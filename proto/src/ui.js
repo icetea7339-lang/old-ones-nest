@@ -28,6 +28,29 @@ const ENDING = {
   child: '아무도 바치지 않았고, 길 잃은 아이는 빵을 다 먹고 집에 갔다. 스무 해 뒤 그 아이가 동굴 앞에 첫 돌을 놓았다. 제단이 아니라 식탁이었다.',
   pure: '아무도 바치지 않고 깨어났다. 인간들은 그것을 뭐라 불러야 할지 아직 정하지 못했다. 신이라기엔 얌전하고, 괴물이라기엔 예의가 바르다.',
 };
+// 최종 모습마다 세 갈래: 점수 등급이 낮으면 조짐, 중간이면 번짐, 높으면 끝
+const ENDING3 = {
+  abyss: [['젖은 발자국', '갯마을 사람들은 아침마다 문 앞에서 젖은 발자국을 본다. 바다 쪽에서 와서 바다 쪽으로 돌아간 발자국이다. 아무도 누구 것인지 묻지 않는다. 묻지 않는 한, 아직은 모르는 일이니까.'],
+    ['밀려오는 것', '밀물이 썰물보다 조금씩 길어졌다. 우물에서 짠맛이 나고, 아이들은 가르친 적 없는 노래를 부른다. 어른들은 가사를 알아듣지 못한다. 알아들은 이들은 밤에 물가로 걸어 나갔다.'],
+    ['가라앉은 세계', '지도 제작자들은 해안선을 다시 그리다가 붓을 놓았다. 육지라 부르던 것이 사실은 아주 오래 드러나 있던 바닥이었음을, 모두가 같은 밤에 알게 되었다. 물은 서두르지 않는다. 가라앉은 도시의 창마다 불이 켜져 있고, 그 안에서 무언가가 여전히 저녁을 차린다.']],
+  nebula: [['낯선 별', '하늘에 별이 하나 늘었다. 점성가들은 장부에 적고 넘어갔다. 그 별이 밤마다 조금씩 자리를 옮긴다는 것을 눈치챈 사람은 양치기 하나뿐이었고, 그는 그 뒤로 위를 보지 않는다.'],
+    ['열린 하늘', '별자리가 맞지 않게 되었다. 뱃사람들은 길을 잃었고 달력은 하루씩 어긋났다. 학술원은 관측을 금했다. 금지령이 닿기 전에 이미 본 사람들은 지금도 같은 쪽을 보고 서 있다. 먹지도 자지도 않고.'],
+    ['별 사이', '어느 밤 하늘이 접혔다. 종이처럼, 소리 없이. 접힌 틈으로 보이는 것은 어둠이 아니었다. 사람들은 그제야 밤하늘이 무언가를 가리는 덮개였음을 알았다. 지금 도시들은 조금씩 떠오르고 있다. 떨어지는 것인지도 모른다. 위아래를 정해 주던 것이 사라졌으므로.']],
+  brood: [['이끼', '너른들의 담장에 못 보던 이끼가 꼈다. 긁어내면 다음 날 다시 있다. 촌장은 별일 아니라고 했다. 촌장의 손톱 밑이 초록색인 것을 본 사람은 아무 말도 하지 않았다.'],
+    ['걸어 다니는 밭', '병이 돈다고들 했다. 병이 아니었다. 앓고 일어난 사람들은 전보다 건강했고, 말수가 줄었고, 해가 지면 다 같이 밭에 나가 서 있었다. 뿌리를 내리는 것처럼. 아침이면 돌아와 식구들에게 웃어 보였다. 웃는 법이 모두 똑같았다.'],
+    ['끝없이 낳는 숲', '마지막까지 남은 도시는 성문을 걸어 잠갔다. 성 밖에서는 이웃이었던 것들이 천천히, 아주 참을성 있게 걸어온다. 썩지 않는다. 오히려 피어 있다. 그들은 문을 두드리지 않는다. 기다릴 뿐이다. 성 안의 누군가가 기침을 하고, 손등에 돋은 싹을 소매로 가릴 때까지.']],
+  dusk: [['같은 꿈', '마을마다 같은 꿈을 꾼다. 막이 오르고, 다들 박수를 친다. 아침에 깨면 손바닥이 얼얼하다. 무대에 무엇이 있었는지는 아무도 기억하지 못한다.'],
+    ['가면', '사람들이 얼굴을 가리기 시작했다. 처음엔 부끄러워서라고 했다. 가면 아래를 본 이발사는 가게 문을 닫았다. 그는 말한다. 아래에 아무것도 없는 게 아니었다고. 아래에도 가면이 있었다고.'],
+    ['마지막 막', '어느 저녁 온 세상의 종이 한꺼번에 울렸다. 사람들은 하던 일을 놓고 줄지어 앉았다. 들판에, 지붕에, 바다 위에. 같은 쪽을 보고서. 무대는 보이지 않는다. 박수 소리만 들린다. 박수는 그치지 않고 아무도 일어서지 않는다. 막이 내리면 무엇이 끝나는지 다들 알기 때문이다.']],
+  hunger: [['빈 접시', '식탁에 차린 것이 자꾸 모자란다. 세어 보면 맞는데, 먹고 나면 모자란다. 사람들은 조금씩 야위어 가고, 누구도 그 까닭을 입 밖에 내지 않는다. 말이 씨가 될까 봐서가 아니다. 말도 먹힐까 봐서다.'],
+    ['지워진 마을', '지도에서 마을 몇 개가 지워졌다. 지도 제작자는 실수라고 했다. 그 뒤로는 지도 제작자도 보이지 않는다. 그 마을에 친척이 있던 사람들은 친척의 이름을 떠올리지 못한다. 이름이 있던 자리만 혀끝에 남아 있다.'],
+    ['마지막 한 입', '달이 한쪽부터 줄어들었다. 그믐이 아니었다. 잇자국이 보였다. 산이 사라진 자리에는 구덩이가 아니라 아무것도 없었다. 사람들은 이제 안다. 세상이 둥근 것은 무언가의 입안에 들어 있기 때문이라는 것을. 그리고 그 입이 아주 천천히 닫히는 중이라는 것을.']],
+};
+const endTier = g => ['D', 'C'].includes(g) ? 0 : ['B', 'A'].includes(g) ? 1 : 2;
+function startEnding(sc) {
+  const c = $('endcv'); if (!c || !G || !G.slime.main) return; const key = G.slime.main, tier = endTier(sc.grade), sl = JSON.parse(JSON.stringify(G.slime)); let fr = 0;
+  const tick = () => { if (!document.body.contains(c)) return clearInterval(iv); try { endingScene(c, key, tier, sl, fr++); } catch (e) { clearInterval(iv); } }, iv = setInterval(tick, 260); tick();
+}
 const GRADE_SAY = { SSS: '별들이 줄을 서서 구경했어. 이 정도면 나도 필요 없겠다.', SS: '예전의 너와 거의 같아. 거의.', S: '훌륭해. 인간들이 지도를 다시 그려야겠네.', A: '무난하게 깨어났어. 다음엔 더 크게.', B: '깨어나긴 했어. 하품부터 하고 있지만.', C: '간신히. 별이 조금만 덜 섰어도 못 깼을 거야.', D: '…다음 별을 기다리자.' };
 const STAGE_NAME = ['한 방울', '첫 허물', '두 번째 허물', '세 번째 허물', '성체'];
 function guideLine() {
@@ -320,8 +343,9 @@ function evoHtml(st, before) {
   return `<div class="evo stack" style="align-items:center;text-align:center"><p class="mute">${STAGE_NAME[sl.stage]}</p><div class="row" style="justify-content:center;gap:24px">${slimeImg(before, 64, '이전 모습')}<span class="h3 mute">→</span>${slimeImg(sl, 128, NEST.formName(G))}</div><h2 style="font-size:32px;color:${ASPCOL[sl.main]}">${esc(NEST.formName(G))}</h2><div class="row" style="justify-content:center">${aspChip(sl.main, '주 ' + NEST.ASP[sl.main])}${sl.sub ? aspChip(sl.sub, '부 ' + NEST.ASP[sl.sub]) : ''}</div><div class="stack">${lines.map(l => `<p>${esc(l)}</p>`).join('')}</div>${st.mut ? `<p>${aspChip(NEST.MUT[st.mut].asp, '변이: ' + NEST.MUT[st.mut].name)} <span class="small">${esc(NEST.MUT[st.mut].desc)}</span></p>` : ''}<p class="small up">인간들 사이에 소문이 돈다. 공포 +10</p></div><div class="row end">${btn('close', null, '좋다', 'pri big')}</div>`;
 }
 function resultHtml(sc, unlocked) {
-  const win = G.over.win, av = NEST.avatarOf(G), key = !win ? null : NEST.endKey(G);
-  return `<div class="stack" style="align-items:center;text-align:center"><p class="mute">${win ? '별이 서는 밤을 넘겼다' : esc(G.over.why)} · ${G.day}일 · ${NEST.DIFF[G.diff].name}</p>${slimeImg(G.slime, 128)}<h2 style="font-size:30px">${win ? esc(av) : esc(NEST.formName(G))}</h2>${win ? `<p>${esc(ENDING[key])}</p>` : ''}<div class="grade">${sc.grade}</div><p class="coin h3">${R(sc.total)}점</p><div class="row">${echoImg(40)}<p>${esc(GRADE_SAY[sc.grade])}</p></div></div>
+  const win = G.over.win, av = NEST.avatarOf(G), key = !win ? null : NEST.endKey(G), tier = endTier(sc.grade), e3 = win && ENDING3[key] ? ENDING3[key][tier] : null;
+  const endText = !win ? '' : e3 ? `<p class="h3 coin">결말 · ${e3[0]}</p><p class="endtxt">${esc(e3[1])}</p><p class="small mute">${['점수가 더 높으면 이 일은 더 멀리 번진다.', '점수가 더 높으면 이 일은 끝까지 간다.', '이 모습으로 갈 수 있는 가장 먼 곳.'][tier]}</p>` : `<p class="endtxt">${esc(ENDING[key])}</p>`;
+  return `<div class="stack" style="align-items:center;text-align:center"><p class="mute">${win ? '별이 서는 밤을 넘겼다' : esc(G.over.why)} · ${G.day}일 · ${NEST.DIFF[G.diff].name}</p>${win && G.slime.main ? '<canvas id="endcv" class="px" width="192" height="108"></canvas>' : slimeImg(G.slime, 128)}<h2 style="font-size:30px">${win ? esc(av) : esc(NEST.formName(G))}</h2>${endText}<div class="grade">${sc.grade}</div><p class="coin h3">${R(sc.total)}점</p><div class="row">${echoImg(40)}<p>${esc(GRADE_SAY[sc.grade])}</p></div></div>
     <div class="ledger">${sc.parts.filter(p => p[1]).map(p => `<span>${p[0]}</span><span class="num">${R(p[1])}</span>`).join('')}<span class="tot">배수 (${NEST.DIFF[G.diff].name}${win ? '' : ' · 실패'})</span><span class="tot num">×${sc.mult.toFixed(2)}</span></div>
     <p class="coin">별가루 +${UI.dustGain || 0} <small class="mute">(타이틀의 명부에서 권속을 부르는 데 쓴다)</small></p>${(UI.grown || []).map(g => `<p class="okc small">명부의 권속이 자랐다: ${esc(g)}</p>`).join('')}${unlocked.map(u => `<p class="okc">새로 열림: ${esc(u)}</p>`).join('')}<div class="row end">${btn('share', { v: `옛 것의 둥지 · ${win ? av : NEST.formName(G)} · ${sc.grade} ${R(sc.total)}점 · ${G.day}일` }, '기록 복사')}${btn('close', null, '다음', 'pri big')}</div>`;
 }
@@ -384,7 +408,7 @@ function codexHtml() {
   const seen = META.codex.forms, node = (id, sl, name) => `<div class="node${seen[id] ? '' : ' unk'}">${slimeImg(sl, 48)}<span>${seen[id] ? esc(name) : '???'}</span></div>`;
   let h = `<h2>도감</h2><p class="small mute">본 형태 ${Object.keys(seen).length}/26 · 변이 ${Object.keys(META.codex.muts).length}/${Object.keys(NEST.MUT).length} · 깨어난 횟수 ${META.clears}</p><div class="codex">${node('base', { stage: 0, muts: [] }, '무형의 점액')}${NEST.ASPECTS.map(a => node(a, { main: a, stage: 1, muts: [] }, NEST.FORM1[a].name)).join('')}</div>`;
   NEST.ASPECTS.forEach(a => { h += `<p class="small" style="color:${ASPCOL[a]}">${NEST.ASP[a]}에서 갈라진 것</p><div class="codex">${NEST.ASPECTS.filter(b => b !== a).map(b => node(a + '_' + b, { main: a, sub: b, stage: 2, muts: [] }, NEST.FORM2[a + '_' + b])).join('')}</div>`; });
-  h += `<h2>변이</h2><div class="row">${Object.keys(NEST.MUT).map(m => META.codex.muts[m] ? aspChip(NEST.MUT[m].asp, NEST.MUT[m].name) : '<span class="chip mute">???</span>').join('')}</div><h2>방 조합</h2><div class="row">${Object.keys(NEST.COMBO).map(k => META.codex.combos[k] ? `<span class="chip on">${NEST.COMBO[k].name}</span>` : '<span class="chip mute">???</span>').join('')}</div><h2>깨어난 모습</h2><div class="row">${Object.keys(NEST.AVATAR).map(k => META.codex.ends[k] ? `<span class="chip on">${NEST.AVATAR[k]}</span>` : '<span class="chip mute">???</span>').join('')}</div>`;
+  h += `<h2>변이</h2><div class="row">${Object.keys(NEST.MUT).map(m => META.codex.muts[m] ? aspChip(NEST.MUT[m].asp, NEST.MUT[m].name) : '<span class="chip mute">???</span>').join('')}</div><h2>방 조합</h2><div class="row">${Object.keys(NEST.COMBO).map(k => META.codex.combos[k] ? `<span class="chip on">${NEST.COMBO[k].name}</span>` : '<span class="chip mute">???</span>').join('')}</div><h2>결말 <small class="mute">같은 모습이라도 점수에 따라 셋으로 갈린다</small></h2>${NEST.ASPECTS.map(a => `<p class="small"><span style="color:${ASPCOL[a]}">${NEST.ASP[a]}</span> ${ENDING3[a].map((e, i) => META.codex.ends[a + i] ? `<span class="chip on">${e[0]}</span>` : '<span class="chip mute">???</span>').join(' ')}</p>`).join('')}<h2>깨어난 모습</h2><div class="row">${Object.keys(NEST.AVATAR).map(k => META.codex.ends[k] ? `<span class="chip on">${NEST.AVATAR[k]}</span>` : '<span class="chip mute">???</span>').join('')}</div>`;
   return h + closeBtn();
 }
 const HELP = `<h2>어떻게 하나</h2><div class="stack">
@@ -483,7 +507,7 @@ async function finishRun() {
   await scene(win ? STORY.win : G.over.why.includes('본체') ? STORY.core : STORY.broke);
   if (win) {
     META.clears++; if (META.clears === 1) unlocked.push('황혼의 조각', '깊은 각성'); if (META.clears === 2) unlocked.push('성운의 조각', '끝없는 밤');
-    META.codex.ends[NEST.endKey(G)] = 1;
+    META.codex.ends[NEST.endKey(G)] = 1; if (ENDING3[NEST.endKey(G)]) META.codex.ends[NEST.endKey(G) + endTier(sc.grade)] = 1;
   }
   const form = win ? NEST.avatarOf(G) : NEST.formName(G);
   if (!META.best || sc.total > META.best.total) META.best = { total: sc.total, grade: sc.grade, form };
@@ -492,7 +516,7 @@ async function finishRun() {
   G.kin.forEach(m => { const r = m.rid && META.roster.find(x => x.rid === m.rid); if (!r) return; const lv = Math.min(ROSTER_LV, Math.max(r.lv, Math.floor((r.lv + m.lv) / 2))); if (lv > r.lv) UI.grown.push(rosterName(r) + ' Lv' + r.lv + ' → ' + lv); r.lv = lv; r.skill = m.skill; r.stance = m.stance; r.evo = r.evo || !!m.evo; r.runs = (r.runs || 0) + 1; });
   checkFeats(); (UI.featNew || []).forEach(f => unlocked.push('흔적 「' + f[1] + '」 — ' + f[3])); UI.featNew = []; UI.featMsg = '';
   saveMeta(); cloudSubmit(sc, win); sfx(win ? 'evo' : 'down');
-  await modal(resultHtml(sc, unlocked), true);
+  { const pr = modal(resultHtml(sc, unlocked), true); startEnding(sc); await pr; }
   const ks = G.kin.filter(m => m.kind !== 'spawn' && !m.rid), room = Math.min(2, ROSTER_MAX - META.roster.length);
   if (ks.length && room > 0) {
     const pickd = []; UI.legacy = pickd; UI.legacyMax = room; for (;;) { const p = modal(legacyHtml(pickd), true); modalKind = 'legacy'; const v = await p; if (v !== 'redraw') break; }
@@ -596,7 +620,7 @@ function boot() {
     if (e.key === 'Tab') { e.preventDefault(); setScreen(ST.screen === 'under' ? 'surface' : 'under'); }
     if (e.key === 'e' || e.key === 'E' || e.key === 'ㄷ') endDay();
   });
-  window.__nest = { get G() { return G; }, NEST, ST, get META() { return META; } };
+  window.__nest = { get G() { return G; }, NEST, ST, get META() { return META; }, endingScene, slimeCanvas };
   if (window.claude && window.claude.hot) try { window.claude.hot.onSnapshot && window.claude.hot.onSnapshot(() => ({ run: G })); } catch (e) { /* 무시 */ }
   initCloud(); showTitle(); requestAnimationFrame(loop);
   const nj = $('nojs'); if (nj) nj.remove();  // 여기까지 왔으면 정상 실행

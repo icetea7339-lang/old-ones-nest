@@ -266,6 +266,10 @@ html, body { overscroll-behavior: none; }
 #right.open #coach2:not([hidden]) { display: flex; }
 .tut-glow { outline: 3px solid var(--coin) !important; outline-offset: 2px; animation: blink .8s steps(2) infinite; }
 @media (max-width: 760px) { #coach { margin-inline: 10px; padding: 6px 8px; font-size: 13px; } #coach img, #coach2 img { width: 32px; height: 32px; } }
+
+/* 결말 그림과 글 */
+#endcv { width: 100%; max-width: 768px; height: auto; aspect-ratio: 16 / 9; border: 2px solid var(--line); background: #05040a; }
+.endtxt { max-width: 640px; line-height: 1.75; text-wrap: pretty; }
 </style>
 </head><body style="margin:0">
 <div id="title" class="screen">
@@ -1374,22 +1378,22 @@ function spriteCanvas(name, pal) {
 }
 // 본체: 주 징조 = 색, 부 징조 = 덧그림, 변이 = 부위, 성체 = 빛나는 눈
 // 본체: 32×32 위에 부품을 조립해 그린다. 주 징조 = 몸의 구조, 단계 = 크기와 부위 수, 부 징조 = 다른 색의 덧붙은 기관, 변이 = 부위.
-function slimeCanvas(sl) {
-  const key = 'sl2:' + (sl.main || 'base') + ':' + (sl.sub || '') + ':' + sl.stage + ':' + (sl.muts || []).join(','); if (cv[key]) return cv[key];
+function slimeCanvas(sl, frame) {
+  const fr = (frame || 0) % 4, ph = fr * 1.57, key = 'sl2:' + (sl.main || 'base') + ':' + (sl.sub || '') + ':' + sl.stage + ':' + (sl.muts || []).join(',') + ':' + fr; if (cv[key]) return cv[key];
   const c = document.createElement('canvas'); c.width = c.height = 32; const x = c.getContext('2d');
   const P = PAL[sl.main] || PAL.base, Q = (sl.sub && PAL[sl.sub]) || P, st = sl.main ? Math.max(1, sl.stage) : 0, DK = '#1a0508', WH = '#f5f5f5';
   const px = (a, b, w, h, col) => { x.fillStyle = col; x.fillRect(Math.round(a), Math.round(b), w || 1, h || 1); };
   const disc = (cx, cy, rx, ry, col) => { x.fillStyle = col; rx = Math.max(0.5, rx); ry = Math.max(0.5, ry); for (let j = -Math.ceil(ry); j <= Math.ceil(ry); j++) { const q = 1 - (j * j) / (ry * ry); if (q < 0) continue; const w = Math.round(rx * Math.sqrt(q)); x.fillRect(Math.round(cx) - w, Math.round(cy) + j, w * 2 + 1, 1); } };
   const blob = (cx, cy, rx, ry, p) => { disc(cx, cy, rx + 1, ry + 1, p[0]); disc(cx, cy, rx, ry, p[3]); disc(cx - rx * 0.12, cy - ry * 0.14, rx * 0.86, ry * 0.84, p[1]); disc(cx - rx * 0.4, cy - ry * 0.45, rx * 0.26, ry * 0.2, p[2]); };
-  const tent = (x0, y0, len, drift, amp, p, w) => { for (let pass = 0; pass < 2; pass++) for (let i = 0; i < len; i++) { const xx = x0 + drift * i + Math.sin(i * 0.8 + x0) * amp, ww = Math.max(1, Math.round((w || 2) * (1 - i / len * 0.6))); if (pass === 0) px(xx - 1, y0 + i, ww + 2, 1, p[0]); else px(xx, y0 + i, ww, 1, i % 4 === 3 ? p[2] : p[1]); } };
-  const maw = (cx, cy, w, h, p, vert) => { disc(cx, cy, w + 1, h + 1, p[0]); disc(cx, cy, w, h, DK); if (vert) { for (let j = -h + 1; j < h; j += 2) { const d = Math.round(w * Math.sqrt(Math.max(0, 1 - (j * j) / (h * h)))); px(cx - d, cy + j, Math.min(2, Math.max(1, d)), 1, WH); px(cx + d - Math.min(1, Math.max(0, d - 1)), cy + j + 1, Math.min(2, Math.max(1, d)), 1, WH); } px(cx, cy - 1, 1, 3, '#c8303a'); } else { for (let i = -w + 1; i < w; i += 2) { const d = Math.round(h * Math.sqrt(Math.max(0, 1 - (i * i) / (w * w)))); px(cx + i, cy - d, 1, Math.min(2, Math.max(1, d)), WH); px(cx + i + 1, cy + d - Math.min(1, Math.max(0, d - 1)), 1, Math.min(2, Math.max(1, d)), WH); } if (h >= 3) px(cx - 1, cy, 3, 1, '#c8303a'); } };
-  const pit = (a, b, col) => { px(a - 1, b, 3, 1, col); px(a, b - 1, 1, 3, col); px(a, b, 1, 1, '#ffffff'); };
+  const tent = (x0, y0, len, drift, amp, p, w) => { for (let pass = 0; pass < 2; pass++) for (let i = 0; i < len; i++) { const xx = x0 + drift * i + Math.sin(i * 0.8 + x0 + ph) * amp * (0.4 + i / len), ww = Math.max(1, Math.round((w || 2) * (1 - i / len * 0.6))); if (pass === 0) px(xx - 1, y0 + i, ww + 2, 1, p[0]); else px(xx, y0 + i, ww, 1, i % 4 === 3 ? p[2] : p[1]); } };
+  const maw = (cx, cy, w, h, p, vert) => { disc(cx, cy, w + 1, h + 1, p[0]); disc(cx, cy, w, h, DK); if (vert) { for (let j = -h + 1; j < h; j += 2) { const d = Math.round(w * Math.sqrt(Math.max(0, 1 - (j * j) / (h * h)))); px(cx - d, cy + j, Math.min(2, Math.max(1, d)), 1, WH); px(cx + d - Math.min(1, Math.max(0, d - 1)), cy + j + 1, Math.min(2, Math.max(1, d)), 1, WH); } px(cx, cy - 1, 1, 3, '#c8303a'); } else { for (let i = -w + 1 + (fr % 2); i < w; i += 2) { const d = Math.round(h * Math.sqrt(Math.max(0, 1 - (i * i) / (w * w)))); px(cx + i, cy - d, 1, Math.min(2, Math.max(1, d)), WH); px(cx + i + 1, cy + d - Math.min(1, Math.max(0, d - 1)), 1, Math.min(2, Math.max(1, d)), WH); } if (h >= 3) px(cx - 1, cy, 3, 1, '#c8303a'); } };
+  const pit = (a, b, col) => { const tw = (Math.round(a * 3 + b) + fr) % 4 === 0; px(a - 1 - (tw ? 1 : 0), b, 3 + (tw ? 2 : 0), 1, tw ? '#ffffff' : col); px(a, b - 1 - (tw ? 1 : 0), 1, 3 + (tw ? 2 : 0), tw ? '#ffffff' : col); px(a, b, 1, 1, '#ffffff'); };
   const ring = (cx, cy, rx, ry, col, half) => { x.fillStyle = col; for (let a = half ? 0 : -3.1416; a < 3.1416; a += 0.1) x.fillRect(Math.round(cx + Math.cos(a) * rx), Math.round(cy + Math.sin(a) * ry), 1, 1); };
   const mask = (a, b, s) => { px(a - 1, b - 1, s + 2, s + 3, '#1b1d2a'); px(a, b, s, s + 1, WH); px(a, b, s, 1, '#c8c8d0'); px(a + 1, b + 2, 1, 1, '#1b1d2a'); px(a + s - 2, b + 2, 1, 1, '#1b1d2a'); px(a + 1, b + s - 1, s - 2, 1, '#7a121c'); };
-  const mouth = (a, b, w, p) => { px(a - 1, b - 1, w + 2, 4, p[0]); px(a, b, w, 2, DK); for (let i = 0; i < w; i += 2) px(a + i, b + (i % 4 ? 1 : 0), 1, 1, WH); };
-  const sac = (a, b, r, p, seed) => { blob(a, b, r, r, p); if (seed) px(a, b, 1, 2, p[0]); };
+  const mouth = (a, b, w, p) => { const op = (Math.round(a + b) + fr) % 3 ? 2 : 1; px(a - 1, b - 1, w + 2, op + 2, p[0]); px(a, b, w, op, DK); for (let i = 0; i < w; i += 2) px(a + i, b + (op > 1 && i % 4 ? 1 : 0), 1, 1, WH); };
+  const sac = (a, b, r, p, seed) => { const pu = (Math.round(a) + fr) % 4 === 0 ? 0.7 : 0; blob(a, b, r + pu, r + pu, p); if (seed) px(a, b + (fr % 2), 1, 2, p[0]); };
   let B = { cx: 16, cy: 24, R: 4, top: 20, bot: 27 };
-  if (st === 0) { blob(16, 25, 5, 3, P); px(11, 28, 2, 2, P[1]); px(21, 28, 1, 2, P[3]); px(14, 21, 1, 2, P[1]); px(14, 20, 1, 1, P[2]); }
+  if (st === 0) { blob(16, 25, 5, 3, P); px(11, 28, 2, 2, P[1]); px(21, 28, 1, 2, P[3]); px(14, 21 - (fr % 2), 1, 2, P[1]); px(14, 20 - (fr % 2), 1, 1, P[2]); px(11 + fr, 29, 1, 1, P[2]); }
   else {
     const R = [0, 5, 7, 9, 11][st];
     if (sl.main === 'abyss') {            // 젖은 것: 갓 아래로 늘어지는 다리들
@@ -1469,6 +1473,56 @@ function kinCanvas(kind, evo) {
   put([[5, 4], [4, 3], [4, 2], [3, 1], [3, 0], [14, 4], [15, 3], [15, 2], [16, 1], [16, 0]], '#f2e9c9'); put([[5, 3], [14, 3]], '#1b1d2a');
   put([[1, 12], [0, 11], [0, 10], [18, 12], [19, 11], [19, 10], [1, 16], [18, 16]], '#f2e9c9'); put([[8, 3], [9, 2], [10, 2], [11, 3]], '#e8c030'); put([[9, 3], [10, 3]], '#ff5040');
   return (cv[key] = c);
+}
+// ---------- 결말 그림: 192×108. 징조마다 다른 재앙이고, 점수 등급(0~2)이 높을수록 더 멀리 간다 ----------
+function endingScene(c, key, tier, sl, fr) {
+  const x = c.getContext('2d'), W = 192, H = 108, t = tier, P = PAL[key] || PAL.base; x.imageSmoothingEnabled = false;
+  const px = (a, b, w, h, col) => { x.fillStyle = col; x.fillRect(Math.round(a), Math.round(b), Math.max(1, Math.round(w)), Math.max(1, Math.round(h))); };
+  const disc = (cx, cy, r, col) => { x.fillStyle = col; for (let j = -r; j <= r; j++) { const w = Math.round(Math.sqrt(r * r - j * j)); x.fillRect(Math.round(cx - w), Math.round(cy + j), w * 2 + 1, 1); } };
+  const tent = (x0, y0, len, w, col) => { for (let i = 0; i < len; i++) px(x0 + Math.sin(i * 0.35 + x0 + fr * 0.8) * (2 + i * 0.08), y0 - i, Math.max(1, w * (1 - i / len)), 1, col); };
+  const SKY = { abyss: ['#0a1830', '#12305a', '#1f5a80'], nebula: ['#0a0620', '#1a1040', '#3a2470'], brood: ['#141c10', '#24381c', '#4a6a2a'], dusk: ['#1c0c14', '#3a1420', '#6a2a2a'], hunger: ['#140406', '#2a0a0e', '#4a1218'] }[key];
+  SKY.forEach((col, i) => px(0, i * 24, W, i === 2 ? 60 : 24, col));
+  for (let k = 0; k < 26; k++) px((k * 53) % W, (k * 29) % 56, 1, 1, (k + fr) % 7 ? '#c8d0ff' : '#ffffff');
+  const mx = 150, my = 22, gy = 78; disc(mx, my, 9, '#e8e6d0'); disc(mx - 3, my - 2, 2, '#c8c6b0');
+  x.fillStyle = '#0c0e1a'; x.beginPath(); x.moveTo(0, gy); for (let k = 0; k <= 8; k++) x.lineTo(k * 24, gy - 10 - ((k * 7) % 13)); x.lineTo(W, gy); x.fill();
+  px(0, gy, W, H - gy, '#10121c');
+  const houses = []; for (let k = 0; k < 11; k++) houses.push({ x: 6 + k * 17, w: 10 + (k % 3) * 2, h: 8 + (k * 5) % 7 });
+  const drawTown = (lift, skip) => houses.forEach((h, k) => { if (skip && skip(k)) return; const up = lift ? lift(k) : 0; px(h.x, gy - h.h - up, h.w, h.h, '#181a28'); x.fillStyle = '#181a28'; x.beginPath(); x.moveTo(h.x - 1, gy - h.h - up); x.lineTo(h.x + h.w / 2, gy - h.h - 5 - up); x.lineTo(h.x + h.w + 1, gy - h.h - up); x.fill(); px(h.x + 2, gy - h.h + 3 - up, 2, 2, '#e8c030'); if (h.w > 11) px(h.x + 7, gy - h.h + 3 - up, 2, 2, (k + fr) % 5 ? '#e8c030' : '#181a28'); });
+  const folk = (fx, col, head, arms) => { px(fx, gy - 5, 2, 5, col); px(fx, gy - 7, 2, 2, head || col); if (arms) px(fx + 2, gy - 5, 2, 1, col); };
+  const body = (cx, by, size) => { x.drawImage(slimeCanvas(sl, fr), Math.round(cx - size / 2), Math.round(by - size), size, size); };
+  if (key === 'abyss') {           // 물이 차오른다
+    body(96, gy + 6, 44 + t * 26); drawTown(); const wl = gy - 2 - t * 12;
+    for (let k = 0; k < 3 + t * 5; k++) tent(10 + k * (170 / (2 + t * 5)), wl + 6, 14 + t * 10 + (k % 3) * 4, 3, P[1]);
+    x.fillStyle = 'rgba(20,70,110,0.72)'; x.fillRect(0, wl, W, H - wl); for (let k = 0; k < W; k += 6) px(k + (fr % 2) * 3, wl, 3, 1, '#9fe8f0');
+    houses.forEach(h => { if (gy - h.h + 3 > wl) px(h.x + 2, gy - h.h + 3, 2, 2, '#ffe890'); });
+    if (t >= 1) for (let k = 0; k < 4 + t * 4; k++) folk(30 + k * 15 + (fr % 2), '#0a0c14');
+    if (t === 0) for (let k = 0; k < 6; k++) px(60 + k * 7, gy + 8 + (k % 2) * 3, 2, 1, '#9fe8f0');
+  } else if (key === 'nebula') {   // 하늘이 갈라진다
+    const cw = 30 + t * 50; x.fillStyle = '#f5f0ff'; for (let k = 0; k < cw; k++) x.fillRect(Math.round(96 - cw / 2 + k), Math.round(30 + Math.sin(k * 0.5) * 3 + ((k * 7) % 5) - 2), 1, 1 + t + ((k + fr) % 3 === 0 ? 1 : 0));
+    if (t === 2) { x.fillStyle = '#05030c'; x.beginPath(); x.moveTo(40, 0); x.lineTo(152, 0); x.lineTo(96, 44); x.fill(); x.fillStyle = '#d8c8ff'; for (let k = 0; k < 30; k++) x.fillRect(60 + (k * 37) % 72, (k * 13) % 30, 1, 1); }
+    body(96, 54 + t * 4, 34 + t * 22); drawTown(t === 2 ? k => 6 + (k * 7) % 16 + (fr % 2) : null);
+    if (t === 2) houses.forEach((h, k) => { for (let d = 0; d < 3; d++) px(h.x + 2 + d * 3, gy - 2 - d * 2 - (k % 3), 1, 1, '#181a28'); });
+    for (let k = 0; k < (t ? 6 + t * 5 : 1); k++) { folk(20 + k * 10, '#0a0c14'); px(20 + k * 10, gy - 8, 2, 1, '#d8c8ff'); }
+    for (let k = 0; k < 8 * t; k++) px((k * 41 + fr * 3) % W, 60 - ((k * 17 + fr * 5) % 50), 1, 3, '#fff3a0');
+    if (t === 0) { px(40, 14, 3, 1, '#fff3a0'); px(41, 13, 1, 3, '#fff3a0'); }
+  } else if (key === 'brood') {    // 피어난다
+    body(96, gy + 4, 40 + t * 28); drawTown();
+    houses.forEach((h, k) => { for (let d = 0; d < 2 + t * 4; d++) px(h.x + (d * 5) % h.w, gy - 1 - (d * 3) % (h.h + t * 3), 2, 1 + (d % 2), d % 3 ? '#4a8a2a' : '#8fd05f'); if (t >= 1) { disc(h.x + h.w / 2, gy - h.h - 6, 2 + (k % 2), '#6fbf3f'); px(h.x + h.w / 2, gy - h.h - 7, 1, 1, '#d0f08a'); } if (t === 2) tent(h.x + 3, gy - h.h - 6, 16 + (k * 5) % 14, 2, '#2f7a2a'); });
+    const n = t === 0 ? 1 : 5 + t * 6; for (let k = 0; k < n; k++) { const fx = 8 + k * (176 / n) + (t === 2 ? (fr + k) % 2 : 0); folk(fx, '#16240f', '#6fbf3f', t === 2); px(fx, gy - 9, 1, 2, '#d0f08a'); }
+    for (let k = 0; k < 10 * t; k++) px((k * 37 + fr * 2) % W, (k * 23 + fr * 3) % 80, 1, 1, '#d0f08a');
+  } else if (key === 'dusk') {     // 막이 오른다
+    body(96, gy - 2, 44 + t * 26);
+    for (let sd = 0; sd < 2; sd++) for (let k = 0; k < 8 + t * 10; k++) px(sd ? W - 1 - k : k, 0, 1, 60 + t * 20 - (k % 4) * 3 + Math.sin(k * 0.6 + fr) * 2, k % 3 ? '#7a121c' : '#c8303a');
+    px(0, 0, W, 3 + t * 2, '#7a121c'); drawTown();
+    houses.forEach((h, k) => { if (t >= 1 || k === 4) { px(h.x + 2, gy - h.h + 2, 3, 4, '#f5f5f5'); px(h.x + 3, gy - h.h + 3, 1, 1, '#1b1d2a'); } });
+    for (let r = 0; r < (t ? t + 1 : 0); r++) for (let k = 0; k < 20; k++) { const fx = 6 + k * 9 + (r % 2) * 4, fy = gy + 6 + r * 8; px(fx, fy, 3, 4, '#0a0c14'); px(fx, fy - 3, 3, 3, '#f5f5f5'); px(fx + 1, fy - 2, 1, 1, '#1b1d2a'); if ((k + fr + r) % 2) px(fx - 1, fy + 1, 5, 1, '#0a0c14'); }
+  } else {                         // 먹힌다
+    disc(mx + 5 + t * 2, my - 3, 5 + t * 3, SKY[0]); for (let k = 0; k < 4 + t * 2; k++) px(mx + 1 + t - k % 2, my - 6 + k * 2, 1, 1, '#ffffff');
+    for (let k = 0; k < 1 + t * 3; k++) { disc(20 + k * 48, gy - 12, 7 + t * 2, SKY[2]); for (let d = -5; d <= 5; d += 2) px(20 + k * 48 + d, gy - 6 - Math.abs(d) / 2, 1, 2, '#f5f5f5'); }
+    body(96, gy + 8, 44 + t * 28); drawTown(null, t ? k => (k * 5 + 1) % (4 - t) === 0 : null);
+    for (let k = 0; k < (t ? 4 : 2); k++) folk(40 + k * 34, '#0a0c14');
+    if (t === 2) { x.fillStyle = '#f2e9c9'; for (let k = 0; k < W; k += 8) { const d = 8 + (k * 3) % 5 + (fr % 2); x.beginPath(); x.moveTo(k, 0); x.lineTo(k + 4, d + 6); x.lineTo(k + 8, 0); x.fill(); x.beginPath(); x.moveTo(k, H); x.lineTo(k + 4, H - d - 4); x.lineTo(k + 8, H); x.fill(); } px(0, 0, W, 2, '#7a121c'); px(0, H - 2, W, 2, '#7a121c'); }
+  }
 }
 const toImg = (c, key, size, alt) => `<img class="px" src="${urls[key] || (urls[key] = c.toDataURL())}" width="${size}" height="${size}" alt="${esc(alt || '')}">`;
 const kinImg = (kind, size, evo) => toImg(kinCanvas(kind, evo), (evo ? 'evo2:' : 'kin:') + kind, size, NEST.KIN[kind].name);
@@ -1593,7 +1647,7 @@ function drawUnit(x, e, t) {
   const px = Math.round(e.x + dx), py = Math.round(e.y + dy + (e.bob ? Math.sin(t / 400) * 2 : 0));
   x.globalAlpha = a;
   if (e.wall) { rect(x, '#b85a6a', px, py - 30, 24, 62); rect(x, '#e89aa8', px + 4, py - 20 + Math.sin(t / 200) * 2, 8, 8); rect(x, '#e89aa8', px + 12, py + 6, 8, 8); }
-  else x.drawImage(e.can, px, py, size, size);
+  else x.drawImage(e.sl ? slimeCanvas(e.sl, Math.floor(t / 240)) : e.can, px, py, size, size);
   if (e.hit && t - e.hit < 80 && !e.wall) { x.globalCompositeOperation = 'lighter'; x.globalAlpha = 0.6 * a; x.drawImage(e.can, px, py, size, size); x.globalCompositeOperation = 'source-over'; }
   x.globalAlpha = 1;
   if (e.kneel) { rect(x, '#8a8296', px + size - 4, py - 8, 2, 14); rect(x, '#f5f5f5', px + size - 2, py - 8, 9, 6); }
@@ -1615,7 +1669,7 @@ function drawUnder(x, t) {
   else {
     const by = {}; G.kin.forEach(m => { if (m.loc !== null) (by[m.loc] = by[m.loc] || []).push(m); });
     for (const loc in by) by[loc].forEach((m, k) => { const sm = m.kind === 'spawn', p = defPos(loc === 'core' ? 'core' : +loc, k, sm); x.globalAlpha = m.hurt || m.strike ? 0.4 : 1; x.drawImage(kinCanvas(m.kind, m.evo), p.x - (m.evo ? 5 : 0), Math.round(p.y + Math.sin(t / 500 + m.id) * 1) - (m.evo ? 10 : 0), sm ? 16 : m.evo ? 42 : 32, sm ? 16 : m.evo ? 42 : 32); x.globalAlpha = 1; if (m.hurt) txt(x, '부상', p.x + 16, p.y - 14, '#ff9a92', 11, 'center'); else if (m.strike) txt(x, '파업', p.x + 16, p.y - 14, '#ffb347', 11, 'center'); });
-    const r = cellRect(NEST.CORE), sc = slimeScale(G.slime), size = 16 * sc; x.drawImage(slimeCanvas(G.slime), r.x + r.w - 14 - size, Math.round(floorY(r) - size + sc + Math.sin(t / 400) * 2), size, size);
+    const r = cellRect(NEST.CORE), sc = slimeScale(G.slime), size = 16 * sc; x.drawImage(slimeCanvas(G.slime, Math.floor(t / 240)), r.x + r.w - 14 - size, Math.round(floorY(r) - size + sc + Math.sin(t / 400) * 2), size, size);
     const hp = G.slime.hp / NEST.slimeStats(G).hp; if (hp < 0.999) { rect(x, '#0b0c16', r.x + r.w - 15 - size, floorY(r) - size - 9, size + 2, 6); rect(x, '#6fd08c', r.x + r.w - 14 - size, floorY(r) - size - 8, size * hp, 4); }
   }
   ST.sparks = ST.sparks.filter(s => t - s.t0 < s.dur); ST.sparks.forEach(s => { const k = (t - s.t0) / s.dur; x.globalAlpha = 1 - k; if (s.ring) { x.strokeStyle = s.col; x.lineWidth = 2; x.beginPath(); x.arc(s.x, s.y, 6 + k * 18, 0, 7); x.stroke(); } else for (let n = 0; n < 6; n++) { const a = n * 1.047 + s.rot, r0 = 4 + k * 6, r1 = 9 + k * 16; x.strokeStyle = s.col; x.lineWidth = 2; x.beginPath(); x.moveTo(s.x + Math.cos(a) * r0, s.y + Math.sin(a) * r0); x.lineTo(s.x + Math.cos(a) * r1, s.y + Math.sin(a) * r1); x.stroke(); } x.globalAlpha = 1; });
@@ -1772,7 +1826,7 @@ function prepareNight() {
   const E = ST.ents = {}; ST.defs = {}; ST.floats = []; ST.sparks = []; ST.fire = {}; ST.sanfx = {};
   G.kin.forEach(m => { if (m.loc === null || m.hurt || m.strike) return; const list = ST.defs[m.loc] = ST.defs[m.loc] || [], sm = m.kind === 'spawn', p = defPos(m.loc, list.length, sm); E['k' + m.id] = { id: 'k' + m.id, side: 'def', can: kinCanvas(m.kind, m.evo), x: p.x - (m.evo ? 5 : 0), y: p.y - (m.evo ? 10 : 0), hp: 1, scale: sm ? 1 : m.evo ? 2.625 : S }; list.push('k' + m.id); });
   const r = cellRect(NEST.CORE), sc = slimeScale(G.slime), size = 16 * sc;
-  E.s = { id: 's', side: 'def', can: slimeCanvas(G.slime), x: r.x + r.w - 14 - size, y: floorY(r) - size + sc, hp: G.slime.hp / NEST.slimeStats(G).hp, scale: sc, bob: true };
+  E.s = { id: 's', side: 'def', sl: JSON.parse(JSON.stringify(G.slime)), can: slimeCanvas(G.slime), x: r.x + r.w - 14 - size, y: floorY(r) - size + sc, hp: G.slime.hp / NEST.slimeStats(G).hp, scale: sc, bob: true };
 }
 function applyHit(h) {
   const e = ST.ents[h.b]; if (!e) return;
@@ -1873,6 +1927,29 @@ const ENDING = {
   child: '아무도 바치지 않았고, 길 잃은 아이는 빵을 다 먹고 집에 갔다. 스무 해 뒤 그 아이가 동굴 앞에 첫 돌을 놓았다. 제단이 아니라 식탁이었다.',
   pure: '아무도 바치지 않고 깨어났다. 인간들은 그것을 뭐라 불러야 할지 아직 정하지 못했다. 신이라기엔 얌전하고, 괴물이라기엔 예의가 바르다.',
 };
+// 최종 모습마다 세 갈래: 점수 등급이 낮으면 조짐, 중간이면 번짐, 높으면 끝
+const ENDING3 = {
+  abyss: [['젖은 발자국', '갯마을 사람들은 아침마다 문 앞에서 젖은 발자국을 본다. 바다 쪽에서 와서 바다 쪽으로 돌아간 발자국이다. 아무도 누구 것인지 묻지 않는다. 묻지 않는 한, 아직은 모르는 일이니까.'],
+    ['밀려오는 것', '밀물이 썰물보다 조금씩 길어졌다. 우물에서 짠맛이 나고, 아이들은 가르친 적 없는 노래를 부른다. 어른들은 가사를 알아듣지 못한다. 알아들은 이들은 밤에 물가로 걸어 나갔다.'],
+    ['가라앉은 세계', '지도 제작자들은 해안선을 다시 그리다가 붓을 놓았다. 육지라 부르던 것이 사실은 아주 오래 드러나 있던 바닥이었음을, 모두가 같은 밤에 알게 되었다. 물은 서두르지 않는다. 가라앉은 도시의 창마다 불이 켜져 있고, 그 안에서 무언가가 여전히 저녁을 차린다.']],
+  nebula: [['낯선 별', '하늘에 별이 하나 늘었다. 점성가들은 장부에 적고 넘어갔다. 그 별이 밤마다 조금씩 자리를 옮긴다는 것을 눈치챈 사람은 양치기 하나뿐이었고, 그는 그 뒤로 위를 보지 않는다.'],
+    ['열린 하늘', '별자리가 맞지 않게 되었다. 뱃사람들은 길을 잃었고 달력은 하루씩 어긋났다. 학술원은 관측을 금했다. 금지령이 닿기 전에 이미 본 사람들은 지금도 같은 쪽을 보고 서 있다. 먹지도 자지도 않고.'],
+    ['별 사이', '어느 밤 하늘이 접혔다. 종이처럼, 소리 없이. 접힌 틈으로 보이는 것은 어둠이 아니었다. 사람들은 그제야 밤하늘이 무언가를 가리는 덮개였음을 알았다. 지금 도시들은 조금씩 떠오르고 있다. 떨어지는 것인지도 모른다. 위아래를 정해 주던 것이 사라졌으므로.']],
+  brood: [['이끼', '너른들의 담장에 못 보던 이끼가 꼈다. 긁어내면 다음 날 다시 있다. 촌장은 별일 아니라고 했다. 촌장의 손톱 밑이 초록색인 것을 본 사람은 아무 말도 하지 않았다.'],
+    ['걸어 다니는 밭', '병이 돈다고들 했다. 병이 아니었다. 앓고 일어난 사람들은 전보다 건강했고, 말수가 줄었고, 해가 지면 다 같이 밭에 나가 서 있었다. 뿌리를 내리는 것처럼. 아침이면 돌아와 식구들에게 웃어 보였다. 웃는 법이 모두 똑같았다.'],
+    ['끝없이 낳는 숲', '마지막까지 남은 도시는 성문을 걸어 잠갔다. 성 밖에서는 이웃이었던 것들이 천천히, 아주 참을성 있게 걸어온다. 썩지 않는다. 오히려 피어 있다. 그들은 문을 두드리지 않는다. 기다릴 뿐이다. 성 안의 누군가가 기침을 하고, 손등에 돋은 싹을 소매로 가릴 때까지.']],
+  dusk: [['같은 꿈', '마을마다 같은 꿈을 꾼다. 막이 오르고, 다들 박수를 친다. 아침에 깨면 손바닥이 얼얼하다. 무대에 무엇이 있었는지는 아무도 기억하지 못한다.'],
+    ['가면', '사람들이 얼굴을 가리기 시작했다. 처음엔 부끄러워서라고 했다. 가면 아래를 본 이발사는 가게 문을 닫았다. 그는 말한다. 아래에 아무것도 없는 게 아니었다고. 아래에도 가면이 있었다고.'],
+    ['마지막 막', '어느 저녁 온 세상의 종이 한꺼번에 울렸다. 사람들은 하던 일을 놓고 줄지어 앉았다. 들판에, 지붕에, 바다 위에. 같은 쪽을 보고서. 무대는 보이지 않는다. 박수 소리만 들린다. 박수는 그치지 않고 아무도 일어서지 않는다. 막이 내리면 무엇이 끝나는지 다들 알기 때문이다.']],
+  hunger: [['빈 접시', '식탁에 차린 것이 자꾸 모자란다. 세어 보면 맞는데, 먹고 나면 모자란다. 사람들은 조금씩 야위어 가고, 누구도 그 까닭을 입 밖에 내지 않는다. 말이 씨가 될까 봐서가 아니다. 말도 먹힐까 봐서다.'],
+    ['지워진 마을', '지도에서 마을 몇 개가 지워졌다. 지도 제작자는 실수라고 했다. 그 뒤로는 지도 제작자도 보이지 않는다. 그 마을에 친척이 있던 사람들은 친척의 이름을 떠올리지 못한다. 이름이 있던 자리만 혀끝에 남아 있다.'],
+    ['마지막 한 입', '달이 한쪽부터 줄어들었다. 그믐이 아니었다. 잇자국이 보였다. 산이 사라진 자리에는 구덩이가 아니라 아무것도 없었다. 사람들은 이제 안다. 세상이 둥근 것은 무언가의 입안에 들어 있기 때문이라는 것을. 그리고 그 입이 아주 천천히 닫히는 중이라는 것을.']],
+};
+const endTier = g => ['D', 'C'].includes(g) ? 0 : ['B', 'A'].includes(g) ? 1 : 2;
+function startEnding(sc) {
+  const c = $('endcv'); if (!c || !G || !G.slime.main) return; const key = G.slime.main, tier = endTier(sc.grade), sl = JSON.parse(JSON.stringify(G.slime)); let fr = 0;
+  const tick = () => { if (!document.body.contains(c)) return clearInterval(iv); try { endingScene(c, key, tier, sl, fr++); } catch (e) { clearInterval(iv); } }, iv = setInterval(tick, 260); tick();
+}
 const GRADE_SAY = { SSS: '별들이 줄을 서서 구경했어. 이 정도면 나도 필요 없겠다.', SS: '예전의 너와 거의 같아. 거의.', S: '훌륭해. 인간들이 지도를 다시 그려야겠네.', A: '무난하게 깨어났어. 다음엔 더 크게.', B: '깨어나긴 했어. 하품부터 하고 있지만.', C: '간신히. 별이 조금만 덜 섰어도 못 깼을 거야.', D: '…다음 별을 기다리자.' };
 const STAGE_NAME = ['한 방울', '첫 허물', '두 번째 허물', '세 번째 허물', '성체'];
 function guideLine() {
@@ -2165,8 +2242,9 @@ function evoHtml(st, before) {
   return `<div class="evo stack" style="align-items:center;text-align:center"><p class="mute">${STAGE_NAME[sl.stage]}</p><div class="row" style="justify-content:center;gap:24px">${slimeImg(before, 64, '이전 모습')}<span class="h3 mute">→</span>${slimeImg(sl, 128, NEST.formName(G))}</div><h2 style="font-size:32px;color:${ASPCOL[sl.main]}">${esc(NEST.formName(G))}</h2><div class="row" style="justify-content:center">${aspChip(sl.main, '주 ' + NEST.ASP[sl.main])}${sl.sub ? aspChip(sl.sub, '부 ' + NEST.ASP[sl.sub]) : ''}</div><div class="stack">${lines.map(l => `<p>${esc(l)}</p>`).join('')}</div>${st.mut ? `<p>${aspChip(NEST.MUT[st.mut].asp, '변이: ' + NEST.MUT[st.mut].name)} <span class="small">${esc(NEST.MUT[st.mut].desc)}</span></p>` : ''}<p class="small up">인간들 사이에 소문이 돈다. 공포 +10</p></div><div class="row end">${btn('close', null, '좋다', 'pri big')}</div>`;
 }
 function resultHtml(sc, unlocked) {
-  const win = G.over.win, av = NEST.avatarOf(G), key = !win ? null : NEST.endKey(G);
-  return `<div class="stack" style="align-items:center;text-align:center"><p class="mute">${win ? '별이 서는 밤을 넘겼다' : esc(G.over.why)} · ${G.day}일 · ${NEST.DIFF[G.diff].name}</p>${slimeImg(G.slime, 128)}<h2 style="font-size:30px">${win ? esc(av) : esc(NEST.formName(G))}</h2>${win ? `<p>${esc(ENDING[key])}</p>` : ''}<div class="grade">${sc.grade}</div><p class="coin h3">${R(sc.total)}점</p><div class="row">${echoImg(40)}<p>${esc(GRADE_SAY[sc.grade])}</p></div></div>
+  const win = G.over.win, av = NEST.avatarOf(G), key = !win ? null : NEST.endKey(G), tier = endTier(sc.grade), e3 = win && ENDING3[key] ? ENDING3[key][tier] : null;
+  const endText = !win ? '' : e3 ? `<p class="h3 coin">결말 · ${e3[0]}</p><p class="endtxt">${esc(e3[1])}</p><p class="small mute">${['점수가 더 높으면 이 일은 더 멀리 번진다.', '점수가 더 높으면 이 일은 끝까지 간다.', '이 모습으로 갈 수 있는 가장 먼 곳.'][tier]}</p>` : `<p class="endtxt">${esc(ENDING[key])}</p>`;
+  return `<div class="stack" style="align-items:center;text-align:center"><p class="mute">${win ? '별이 서는 밤을 넘겼다' : esc(G.over.why)} · ${G.day}일 · ${NEST.DIFF[G.diff].name}</p>${win && G.slime.main ? '<canvas id="endcv" class="px" width="192" height="108"></canvas>' : slimeImg(G.slime, 128)}<h2 style="font-size:30px">${win ? esc(av) : esc(NEST.formName(G))}</h2>${endText}<div class="grade">${sc.grade}</div><p class="coin h3">${R(sc.total)}점</p><div class="row">${echoImg(40)}<p>${esc(GRADE_SAY[sc.grade])}</p></div></div>
     <div class="ledger">${sc.parts.filter(p => p[1]).map(p => `<span>${p[0]}</span><span class="num">${R(p[1])}</span>`).join('')}<span class="tot">배수 (${NEST.DIFF[G.diff].name}${win ? '' : ' · 실패'})</span><span class="tot num">×${sc.mult.toFixed(2)}</span></div>
     <p class="coin">별가루 +${UI.dustGain || 0} <small class="mute">(타이틀의 명부에서 권속을 부르는 데 쓴다)</small></p>${(UI.grown || []).map(g => `<p class="okc small">명부의 권속이 자랐다: ${esc(g)}</p>`).join('')}${unlocked.map(u => `<p class="okc">새로 열림: ${esc(u)}</p>`).join('')}<div class="row end">${btn('share', { v: `옛 것의 둥지 · ${win ? av : NEST.formName(G)} · ${sc.grade} ${R(sc.total)}점 · ${G.day}일` }, '기록 복사')}${btn('close', null, '다음', 'pri big')}</div>`;
 }
@@ -2229,7 +2307,7 @@ function codexHtml() {
   const seen = META.codex.forms, node = (id, sl, name) => `<div class="node${seen[id] ? '' : ' unk'}">${slimeImg(sl, 48)}<span>${seen[id] ? esc(name) : '???'}</span></div>`;
   let h = `<h2>도감</h2><p class="small mute">본 형태 ${Object.keys(seen).length}/26 · 변이 ${Object.keys(META.codex.muts).length}/${Object.keys(NEST.MUT).length} · 깨어난 횟수 ${META.clears}</p><div class="codex">${node('base', { stage: 0, muts: [] }, '무형의 점액')}${NEST.ASPECTS.map(a => node(a, { main: a, stage: 1, muts: [] }, NEST.FORM1[a].name)).join('')}</div>`;
   NEST.ASPECTS.forEach(a => { h += `<p class="small" style="color:${ASPCOL[a]}">${NEST.ASP[a]}에서 갈라진 것</p><div class="codex">${NEST.ASPECTS.filter(b => b !== a).map(b => node(a + '_' + b, { main: a, sub: b, stage: 2, muts: [] }, NEST.FORM2[a + '_' + b])).join('')}</div>`; });
-  h += `<h2>변이</h2><div class="row">${Object.keys(NEST.MUT).map(m => META.codex.muts[m] ? aspChip(NEST.MUT[m].asp, NEST.MUT[m].name) : '<span class="chip mute">???</span>').join('')}</div><h2>방 조합</h2><div class="row">${Object.keys(NEST.COMBO).map(k => META.codex.combos[k] ? `<span class="chip on">${NEST.COMBO[k].name}</span>` : '<span class="chip mute">???</span>').join('')}</div><h2>깨어난 모습</h2><div class="row">${Object.keys(NEST.AVATAR).map(k => META.codex.ends[k] ? `<span class="chip on">${NEST.AVATAR[k]}</span>` : '<span class="chip mute">???</span>').join('')}</div>`;
+  h += `<h2>변이</h2><div class="row">${Object.keys(NEST.MUT).map(m => META.codex.muts[m] ? aspChip(NEST.MUT[m].asp, NEST.MUT[m].name) : '<span class="chip mute">???</span>').join('')}</div><h2>방 조합</h2><div class="row">${Object.keys(NEST.COMBO).map(k => META.codex.combos[k] ? `<span class="chip on">${NEST.COMBO[k].name}</span>` : '<span class="chip mute">???</span>').join('')}</div><h2>결말 <small class="mute">같은 모습이라도 점수에 따라 셋으로 갈린다</small></h2>${NEST.ASPECTS.map(a => `<p class="small"><span style="color:${ASPCOL[a]}">${NEST.ASP[a]}</span> ${ENDING3[a].map((e, i) => META.codex.ends[a + i] ? `<span class="chip on">${e[0]}</span>` : '<span class="chip mute">???</span>').join(' ')}</p>`).join('')}<h2>깨어난 모습</h2><div class="row">${Object.keys(NEST.AVATAR).map(k => META.codex.ends[k] ? `<span class="chip on">${NEST.AVATAR[k]}</span>` : '<span class="chip mute">???</span>').join('')}</div>`;
   return h + closeBtn();
 }
 const HELP = `<h2>어떻게 하나</h2><div class="stack">
@@ -2328,7 +2406,7 @@ async function finishRun() {
   await scene(win ? STORY.win : G.over.why.includes('본체') ? STORY.core : STORY.broke);
   if (win) {
     META.clears++; if (META.clears === 1) unlocked.push('황혼의 조각', '깊은 각성'); if (META.clears === 2) unlocked.push('성운의 조각', '끝없는 밤');
-    META.codex.ends[NEST.endKey(G)] = 1;
+    META.codex.ends[NEST.endKey(G)] = 1; if (ENDING3[NEST.endKey(G)]) META.codex.ends[NEST.endKey(G) + endTier(sc.grade)] = 1;
   }
   const form = win ? NEST.avatarOf(G) : NEST.formName(G);
   if (!META.best || sc.total > META.best.total) META.best = { total: sc.total, grade: sc.grade, form };
@@ -2337,7 +2415,7 @@ async function finishRun() {
   G.kin.forEach(m => { const r = m.rid && META.roster.find(x => x.rid === m.rid); if (!r) return; const lv = Math.min(ROSTER_LV, Math.max(r.lv, Math.floor((r.lv + m.lv) / 2))); if (lv > r.lv) UI.grown.push(rosterName(r) + ' Lv' + r.lv + ' → ' + lv); r.lv = lv; r.skill = m.skill; r.stance = m.stance; r.evo = r.evo || !!m.evo; r.runs = (r.runs || 0) + 1; });
   checkFeats(); (UI.featNew || []).forEach(f => unlocked.push('흔적 「' + f[1] + '」 — ' + f[3])); UI.featNew = []; UI.featMsg = '';
   saveMeta(); cloudSubmit(sc, win); sfx(win ? 'evo' : 'down');
-  await modal(resultHtml(sc, unlocked), true);
+  { const pr = modal(resultHtml(sc, unlocked), true); startEnding(sc); await pr; }
   const ks = G.kin.filter(m => m.kind !== 'spawn' && !m.rid), room = Math.min(2, ROSTER_MAX - META.roster.length);
   if (ks.length && room > 0) {
     const pickd = []; UI.legacy = pickd; UI.legacyMax = room; for (;;) { const p = modal(legacyHtml(pickd), true); modalKind = 'legacy'; const v = await p; if (v !== 'redraw') break; }
@@ -2441,7 +2519,7 @@ function boot() {
     if (e.key === 'Tab') { e.preventDefault(); setScreen(ST.screen === 'under' ? 'surface' : 'under'); }
     if (e.key === 'e' || e.key === 'E' || e.key === 'ㄷ') endDay();
   });
-  window.__nest = { get G() { return G; }, NEST, ST, get META() { return META; } };
+  window.__nest = { get G() { return G; }, NEST, ST, get META() { return META; }, endingScene, slimeCanvas };
   if (window.claude && window.claude.hot) try { window.claude.hot.onSnapshot && window.claude.hot.onSnapshot(() => ({ run: G })); } catch (e) { /* 무시 */ }
   initCloud(); showTitle(); requestAnimationFrame(loop);
   const nj = $('nojs'); if (nj) nj.remove();  // 여기까지 왔으면 정상 실행

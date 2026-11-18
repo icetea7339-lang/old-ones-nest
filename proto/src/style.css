@@ -261,3 +261,7 @@ html, body { overscroll-behavior: none; }
 #right.open #coach2:not([hidden]) { display: flex; }
 .tut-glow { outline: 3px solid var(--coin) !important; outline-offset: 2px; animation: blink .8s steps(2) infinite; }
 @media (max-width: 760px) { #coach { margin-inline: 10px; padding: 6px 8px; font-size: 13px; } #coach img, #coach2 img { width: 32px; height: 32px; } }
+
+/* 결말 그림과 글 */
+#endcv { width: 100%; max-width: 768px; height: auto; aspect-ratio: 16 / 9; border: 2px solid var(--line); background: #05040a; }
+.endtxt { max-width: 640px; line-height: 1.75; text-wrap: pretty; }

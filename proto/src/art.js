@@ -91,22 +91,22 @@ function spriteCanvas(name, pal) {
 }
 // 본체: 주 징조 = 색, 부 징조 = 덧그림, 변이 = 부위, 성체 = 빛나는 눈
 // 본체: 32×32 위에 부품을 조립해 그린다. 주 징조 = 몸의 구조, 단계 = 크기와 부위 수, 부 징조 = 다른 색의 덧붙은 기관, 변이 = 부위.
-function slimeCanvas(sl) {
-  const key = 'sl2:' + (sl.main || 'base') + ':' + (sl.sub || '') + ':' + sl.stage + ':' + (sl.muts || []).join(','); if (cv[key]) return cv[key];
+function slimeCanvas(sl, frame) {
+  const fr = (frame || 0) % 4, ph = fr * 1.57, key = 'sl2:' + (sl.main || 'base') + ':' + (sl.sub || '') + ':' + sl.stage + ':' + (sl.muts || []).join(',') + ':' + fr; if (cv[key]) return cv[key];
   const c = document.createElement('canvas'); c.width = c.height = 32; const x = c.getContext('2d');
   const P = PAL[sl.main] || PAL.base, Q = (sl.sub && PAL[sl.sub]) || P, st = sl.main ? Math.max(1, sl.stage) : 0, DK = '#1a0508', WH = '#f5f5f5';
   const px = (a, b, w, h, col) => { x.fillStyle = col; x.fillRect(Math.round(a), Math.round(b), w || 1, h || 1); };
   const disc = (cx, cy, rx, ry, col) => { x.fillStyle = col; rx = Math.max(0.5, rx); ry = Math.max(0.5, ry); for (let j = -Math.ceil(ry); j <= Math.ceil(ry); j++) { const q = 1 - (j * j) / (ry * ry); if (q < 0) continue; const w = Math.round(rx * Math.sqrt(q)); x.fillRect(Math.round(cx) - w, Math.round(cy) + j, w * 2 + 1, 1); } };
   const blob = (cx, cy, rx, ry, p) => { disc(cx, cy, rx + 1, ry + 1, p[0]); disc(cx, cy, rx, ry, p[3]); disc(cx - rx * 0.12, cy - ry * 0.14, rx * 0.86, ry * 0.84, p[1]); disc(cx - rx * 0.4, cy - ry * 0.45, rx * 0.26, ry * 0.2, p[2]); };
-  const tent = (x0, y0, len, drift, amp, p, w) => { for (let pass = 0; pass < 2; pass++) for (let i = 0; i < len; i++) { const xx = x0 + drift * i + Math.sin(i * 0.8 + x0) * amp, ww = Math.max(1, Math.round((w || 2) * (1 - i / len * 0.6))); if (pass === 0) px(xx - 1, y0 + i, ww + 2, 1, p[0]); else px(xx, y0 + i, ww, 1, i % 4 === 3 ? p[2] : p[1]); } };
-  const maw = (cx, cy, w, h, p, vert) => { disc(cx, cy, w + 1, h + 1, p[0]); disc(cx, cy, w, h, DK); if (vert) { for (let j = -h + 1; j < h; j += 2) { const d = Math.round(w * Math.sqrt(Math.max(0, 1 - (j * j) / (h * h)))); px(cx - d, cy + j, Math.min(2, Math.max(1, d)), 1, WH); px(cx + d - Math.min(1, Math.max(0, d - 1)), cy + j + 1, Math.min(2, Math.max(1, d)), 1, WH); } px(cx, cy - 1, 1, 3, '#c8303a'); } else { for (let i = -w + 1; i < w; i += 2) { const d = Math.round(h * Math.sqrt(Math.max(0, 1 - (i * i) / (w * w)))); px(cx + i, cy - d, 1, Math.min(2, Math.max(1, d)), WH); px(cx + i + 1, cy + d - Math.min(1, Math.max(0, d - 1)), 1, Math.min(2, Math.max(1, d)), WH); } if (h >= 3) px(cx - 1, cy, 3, 1, '#c8303a'); } };
-  const pit = (a, b, col) => { px(a - 1, b, 3, 1, col); px(a, b - 1, 1, 3, col); px(a, b, 1, 1, '#ffffff'); };
+  const tent = (x0, y0, len, drift, amp, p, w) => { for (let pass = 0; pass < 2; pass++) for (let i = 0; i < len; i++) { const xx = x0 + drift * i + Math.sin(i * 0.8 + x0 + ph) * amp * (0.4 + i / len), ww = Math.max(1, Math.round((w || 2) * (1 - i / len * 0.6))); if (pass === 0) px(xx - 1, y0 + i, ww + 2, 1, p[0]); else px(xx, y0 + i, ww, 1, i % 4 === 3 ? p[2] : p[1]); } };
+  const maw = (cx, cy, w, h, p, vert) => { disc(cx, cy, w + 1, h + 1, p[0]); disc(cx, cy, w, h, DK); if (vert) { for (let j = -h + 1; j < h; j += 2) { const d = Math.round(w * Math.sqrt(Math.max(0, 1 - (j * j) / (h * h)))); px(cx - d, cy + j, Math.min(2, Math.max(1, d)), 1, WH); px(cx + d - Math.min(1, Math.max(0, d - 1)), cy + j + 1, Math.min(2, Math.max(1, d)), 1, WH); } px(cx, cy - 1, 1, 3, '#c8303a'); } else { for (let i = -w + 1 + (fr % 2); i < w; i += 2) { const d = Math.round(h * Math.sqrt(Math.max(0, 1 - (i * i) / (w * w)))); px(cx + i, cy - d, 1, Math.min(2, Math.max(1, d)), WH); px(cx + i + 1, cy + d - Math.min(1, Math.max(0, d - 1)), 1, Math.min(2, Math.max(1, d)), WH); } if (h >= 3) px(cx - 1, cy, 3, 1, '#c8303a'); } };
+  const pit = (a, b, col) => { const tw = (Math.round(a * 3 + b) + fr) % 4 === 0; px(a - 1 - (tw ? 1 : 0), b, 3 + (tw ? 2 : 0), 1, tw ? '#ffffff' : col); px(a, b - 1 - (tw ? 1 : 0), 1, 3 + (tw ? 2 : 0), tw ? '#ffffff' : col); px(a, b, 1, 1, '#ffffff'); };
   const ring = (cx, cy, rx, ry, col, half) => { x.fillStyle = col; for (let a = half ? 0 : -3.1416; a < 3.1416; a += 0.1) x.fillRect(Math.round(cx + Math.cos(a) * rx), Math.round(cy + Math.sin(a) * ry), 1, 1); };
   const mask = (a, b, s) => { px(a - 1, b - 1, s + 2, s + 3, '#1b1d2a'); px(a, b, s, s + 1, WH); px(a, b, s, 1, '#c8c8d0'); px(a + 1, b + 2, 1, 1, '#1b1d2a'); px(a + s - 2, b + 2, 1, 1, '#1b1d2a'); px(a + 1, b + s - 1, s - 2, 1, '#7a121c'); };
-  const mouth = (a, b, w, p) => { px(a - 1, b - 1, w + 2, 4, p[0]); px(a, b, w, 2, DK); for (let i = 0; i < w; i += 2) px(a + i, b + (i % 4 ? 1 : 0), 1, 1, WH); };
-  const sac = (a, b, r, p, seed) => { blob(a, b, r, r, p); if (seed) px(a, b, 1, 2, p[0]); };
+  const mouth = (a, b, w, p) => { const op = (Math.round(a + b) + fr) % 3 ? 2 : 1; px(a - 1, b - 1, w + 2, op + 2, p[0]); px(a, b, w, op, DK); for (let i = 0; i < w; i += 2) px(a + i, b + (op > 1 && i % 4 ? 1 : 0), 1, 1, WH); };
+  const sac = (a, b, r, p, seed) => { const pu = (Math.round(a) + fr) % 4 === 0 ? 0.7 : 0; blob(a, b, r + pu, r + pu, p); if (seed) px(a, b + (fr % 2), 1, 2, p[0]); };
   let B = { cx: 16, cy: 24, R: 4, top: 20, bot: 27 };
-  if (st === 0) { blob(16, 25, 5, 3, P); px(11, 28, 2, 2, P[1]); px(21, 28, 1, 2, P[3]); px(14, 21, 1, 2, P[1]); px(14, 20, 1, 1, P[2]); }
+  if (st === 0) { blob(16, 25, 5, 3, P); px(11, 28, 2, 2, P[1]); px(21, 28, 1, 2, P[3]); px(14, 21 - (fr % 2), 1, 2, P[1]); px(14, 20 - (fr % 2), 1, 1, P[2]); px(11 + fr, 29, 1, 1, P[2]); }
   else {
     const R = [0, 5, 7, 9, 11][st];
     if (sl.main === 'abyss') {            // 젖은 것: 갓 아래로 늘어지는 다리들
@@ -186,6 +186,56 @@ function kinCanvas(kind, evo) {
   put([[5, 4], [4, 3], [4, 2], [3, 1], [3, 0], [14, 4], [15, 3], [15, 2], [16, 1], [16, 0]], '#f2e9c9'); put([[5, 3], [14, 3]], '#1b1d2a');
   put([[1, 12], [0, 11], [0, 10], [18, 12], [19, 11], [19, 10], [1, 16], [18, 16]], '#f2e9c9'); put([[8, 3], [9, 2], [10, 2], [11, 3]], '#e8c030'); put([[9, 3], [10, 3]], '#ff5040');
   return (cv[key] = c);
+}
+// ---------- 결말 그림: 192×108. 징조마다 다른 재앙이고, 점수 등급(0~2)이 높을수록 더 멀리 간다 ----------
+function endingScene(c, key, tier, sl, fr) {
+  const x = c.getContext('2d'), W = 192, H = 108, t = tier, P = PAL[key] || PAL.base; x.imageSmoothingEnabled = false;
+  const px = (a, b, w, h, col) => { x.fillStyle = col; x.fillRect(Math.round(a), Math.round(b), Math.max(1, Math.round(w)), Math.max(1, Math.round(h))); };
+  const disc = (cx, cy, r, col) => { x.fillStyle = col; for (let j = -r; j <= r; j++) { const w = Math.round(Math.sqrt(r * r - j * j)); x.fillRect(Math.round(cx - w), Math.round(cy + j), w * 2 + 1, 1); } };
+  const tent = (x0, y0, len, w, col) => { for (let i = 0; i < len; i++) px(x0 + Math.sin(i * 0.35 + x0 + fr * 0.8) * (2 + i * 0.08), y0 - i, Math.max(1, w * (1 - i / len)), 1, col); };
+  const SKY = { abyss: ['#0a1830', '#12305a', '#1f5a80'], nebula: ['#0a0620', '#1a1040', '#3a2470'], brood: ['#141c10', '#24381c', '#4a6a2a'], dusk: ['#1c0c14', '#3a1420', '#6a2a2a'], hunger: ['#140406', '#2a0a0e', '#4a1218'] }[key];
+  SKY.forEach((col, i) => px(0, i * 24, W, i === 2 ? 60 : 24, col));
+  for (let k = 0; k < 26; k++) px((k * 53) % W, (k * 29) % 56, 1, 1, (k + fr) % 7 ? '#c8d0ff' : '#ffffff');
+  const mx = 150, my = 22, gy = 78; disc(mx, my, 9, '#e8e6d0'); disc(mx - 3, my - 2, 2, '#c8c6b0');
+  x.fillStyle = '#0c0e1a'; x.beginPath(); x.moveTo(0, gy); for (let k = 0; k <= 8; k++) x.lineTo(k * 24, gy - 10 - ((k * 7) % 13)); x.lineTo(W, gy); x.fill();
+  px(0, gy, W, H - gy, '#10121c');
+  const houses = []; for (let k = 0; k < 11; k++) houses.push({ x: 6 + k * 17, w: 10 + (k % 3) * 2, h: 8 + (k * 5) % 7 });
+  const drawTown = (lift, skip) => houses.forEach((h, k) => { if (skip && skip(k)) return; const up = lift ? lift(k) : 0; px(h.x, gy - h.h - up, h.w, h.h, '#181a28'); x.fillStyle = '#181a28'; x.beginPath(); x.moveTo(h.x - 1, gy - h.h - up); x.lineTo(h.x + h.w / 2, gy - h.h - 5 - up); x.lineTo(h.x + h.w + 1, gy - h.h - up); x.fill(); px(h.x + 2, gy - h.h + 3 - up, 2, 2, '#e8c030'); if (h.w > 11) px(h.x + 7, gy - h.h + 3 - up, 2, 2, (k + fr) % 5 ? '#e8c030' : '#181a28'); });
+  const folk = (fx, col, head, arms) => { px(fx, gy - 5, 2, 5, col); px(fx, gy - 7, 2, 2, head || col); if (arms) px(fx + 2, gy - 5, 2, 1, col); };
+  const body = (cx, by, size) => { x.drawImage(slimeCanvas(sl, fr), Math.round(cx - size / 2), Math.round(by - size), size, size); };
+  if (key === 'abyss') {           // 물이 차오른다
+    body(96, gy + 6, 44 + t * 26); drawTown(); const wl = gy - 2 - t * 12;
+    for (let k = 0; k < 3 + t * 5; k++) tent(10 + k * (170 / (2 + t * 5)), wl + 6, 14 + t * 10 + (k % 3) * 4, 3, P[1]);
+    x.fillStyle = 'rgba(20,70,110,0.72)'; x.fillRect(0, wl, W, H - wl); for (let k = 0; k < W; k += 6) px(k + (fr % 2) * 3, wl, 3, 1, '#9fe8f0');
+    houses.forEach(h => { if (gy - h.h + 3 > wl) px(h.x + 2, gy - h.h + 3, 2, 2, '#ffe890'); });
+    if (t >= 1) for (let k = 0; k < 4 + t * 4; k++) folk(30 + k * 15 + (fr % 2), '#0a0c14');
+    if (t === 0) for (let k = 0; k < 6; k++) px(60 + k * 7, gy + 8 + (k % 2) * 3, 2, 1, '#9fe8f0');
+  } else if (key === 'nebula') {   // 하늘이 갈라진다
+    const cw = 30 + t * 50; x.fillStyle = '#f5f0ff'; for (let k = 0; k < cw; k++) x.fillRect(Math.round(96 - cw / 2 + k), Math.round(30 + Math.sin(k * 0.5) * 3 + ((k * 7) % 5) - 2), 1, 1 + t + ((k + fr) % 3 === 0 ? 1 : 0));
+    if (t === 2) { x.fillStyle = '#05030c'; x.beginPath(); x.moveTo(40, 0); x.lineTo(152, 0); x.lineTo(96, 44); x.fill(); x.fillStyle = '#d8c8ff'; for (let k = 0; k < 30; k++) x.fillRect(60 + (k * 37) % 72, (k * 13) % 30, 1, 1); }
+    body(96, 54 + t * 4, 34 + t * 22); drawTown(t === 2 ? k => 6 + (k * 7) % 16 + (fr % 2) : null);
+    if (t === 2) houses.forEach((h, k) => { for (let d = 0; d < 3; d++) px(h.x + 2 + d * 3, gy - 2 - d * 2 - (k % 3), 1, 1, '#181a28'); });
+    for (let k = 0; k < (t ? 6 + t * 5 : 1); k++) { folk(20 + k * 10, '#0a0c14'); px(20 + k * 10, gy - 8, 2, 1, '#d8c8ff'); }
+    for (let k = 0; k < 8 * t; k++) px((k * 41 + fr * 3) % W, 60 - ((k * 17 + fr * 5) % 50), 1, 3, '#fff3a0');
+    if (t === 0) { px(40, 14, 3, 1, '#fff3a0'); px(41, 13, 1, 3, '#fff3a0'); }
+  } else if (key === 'brood') {    // 피어난다
+    body(96, gy + 4, 40 + t * 28); drawTown();
+    houses.forEach((h, k) => { for (let d = 0; d < 2 + t * 4; d++) px(h.x + (d * 5) % h.w, gy - 1 - (d * 3) % (h.h + t * 3), 2, 1 + (d % 2), d % 3 ? '#4a8a2a' : '#8fd05f'); if (t >= 1) { disc(h.x + h.w / 2, gy - h.h - 6, 2 + (k % 2), '#6fbf3f'); px(h.x + h.w / 2, gy - h.h - 7, 1, 1, '#d0f08a'); } if (t === 2) tent(h.x + 3, gy - h.h - 6, 16 + (k * 5) % 14, 2, '#2f7a2a'); });
+    const n = t === 0 ? 1 : 5 + t * 6; for (let k = 0; k < n; k++) { const fx = 8 + k * (176 / n) + (t === 2 ? (fr + k) % 2 : 0); folk(fx, '#16240f', '#6fbf3f', t === 2); px(fx, gy - 9, 1, 2, '#d0f08a'); }
+    for (let k = 0; k < 10 * t; k++) px((k * 37 + fr * 2) % W, (k * 23 + fr * 3) % 80, 1, 1, '#d0f08a');
+  } else if (key === 'dusk') {     // 막이 오른다
+    body(96, gy - 2, 44 + t * 26);
+    for (let sd = 0; sd < 2; sd++) for (let k = 0; k < 8 + t * 10; k++) px(sd ? W - 1 - k : k, 0, 1, 60 + t * 20 - (k % 4) * 3 + Math.sin(k * 0.6 + fr) * 2, k % 3 ? '#7a121c' : '#c8303a');
+    px(0, 0, W, 3 + t * 2, '#7a121c'); drawTown();
+    houses.forEach((h, k) => { if (t >= 1 || k === 4) { px(h.x + 2, gy - h.h + 2, 3, 4, '#f5f5f5'); px(h.x + 3, gy - h.h + 3, 1, 1, '#1b1d2a'); } });
+    for (let r = 0; r < (t ? t + 1 : 0); r++) for (let k = 0; k < 20; k++) { const fx = 6 + k * 9 + (r % 2) * 4, fy = gy + 6 + r * 8; px(fx, fy, 3, 4, '#0a0c14'); px(fx, fy - 3, 3, 3, '#f5f5f5'); px(fx + 1, fy - 2, 1, 1, '#1b1d2a'); if ((k + fr + r) % 2) px(fx - 1, fy + 1, 5, 1, '#0a0c14'); }
+  } else {                         // 먹힌다
+    disc(mx + 5 + t * 2, my - 3, 5 + t * 3, SKY[0]); for (let k = 0; k < 4 + t * 2; k++) px(mx + 1 + t - k % 2, my - 6 + k * 2, 1, 1, '#ffffff');
+    for (let k = 0; k < 1 + t * 3; k++) { disc(20 + k * 48, gy - 12, 7 + t * 2, SKY[2]); for (let d = -5; d <= 5; d += 2) px(20 + k * 48 + d, gy - 6 - Math.abs(d) / 2, 1, 2, '#f5f5f5'); }
+    body(96, gy + 8, 44 + t * 28); drawTown(null, t ? k => (k * 5 + 1) % (4 - t) === 0 : null);
+    for (let k = 0; k < (t ? 4 : 2); k++) folk(40 + k * 34, '#0a0c14');
+    if (t === 2) { x.fillStyle = '#f2e9c9'; for (let k = 0; k < W; k += 8) { const d = 8 + (k * 3) % 5 + (fr % 2); x.beginPath(); x.moveTo(k, 0); x.lineTo(k + 4, d + 6); x.lineTo(k + 8, 0); x.fill(); x.beginPath(); x.moveTo(k, H); x.lineTo(k + 4, H - d - 4); x.lineTo(k + 8, H); x.fill(); } px(0, 0, W, 2, '#7a121c'); px(0, H - 2, W, 2, '#7a121c'); }
+  }
 }
 const toImg = (c, key, size, alt) => `<img class="px" src="${urls[key] || (urls[key] = c.toDataURL())}" width="${size}" height="${size}" alt="${esc(alt || '')}">`;
 const kinImg = (kind, size, evo) => toImg(kinCanvas(kind, evo), (evo ? 'evo2:' : 'kin:') + kind, size, NEST.KIN[kind].name);
