@@ -1373,28 +1373,107 @@ function spriteCanvas(name, pal) {
   return (cv[key] = c);
 }
 // 본체: 주 징조 = 색, 부 징조 = 덧그림, 변이 = 부위, 성체 = 빛나는 눈
+// 본체: 32×32 위에 부품을 조립해 그린다. 주 징조 = 몸의 구조, 단계 = 크기와 부위 수, 부 징조 = 다른 색의 덧붙은 기관, 변이 = 부위.
 function slimeCanvas(sl) {
-  const key = 'sl:' + (sl.main || 'base') + ':' + (sl.sub || '') + ':' + sl.stage + ':' + (sl.muts || []).join(','); if (cv[key]) return cv[key];
-  const c = document.createElement('canvas'); c.width = c.height = 16; const x = c.getContext('2d');
-  x.drawImage(spriteCanvas(sl.main ? 'sl_' + sl.main : 'slime', sl.main || 'base'), 0, 0);
-  const put = list => (list || []).forEach(([a, b, col]) => { x.fillStyle = col; x.fillRect(a, b, 1, 1); });
-  if (sl.sub) put(SUBOVER[sl.sub]);
-  (sl.muts || []).forEach(m => put(MUTOVER[m]));
-  const ac = (PAL[sl.main] || PAL.base)[2];
-  if (sl.stage >= 3) put([[0, 9, ac], [0, 10, ac], [15, 8, ac], [15, 9, ac], [1, 14, ac], [0, 15, ac], [14, 14, ac], [15, 15, ac], [3, 15, ac], [12, 15, ac]]);  // 세 번째 허물: 몸 밖으로 뻗는 것들
-  if (sl.stage >= 4) put([[7, 9, '#ff5040'], [8, 9, '#fff3a0'], [8, 10, '#ff5040'], [7, 11, '#fff3a0'], [9, 8, '#ff5040'], [6, 10, '#ff5040'], [2, 2, ac], [13, 1, ac], [1, 4, ac], [14, 3, ac]]);  // 성체: 속에서 새어 나오는 빛
+  const key = 'sl2:' + (sl.main || 'base') + ':' + (sl.sub || '') + ':' + sl.stage + ':' + (sl.muts || []).join(','); if (cv[key]) return cv[key];
+  const c = document.createElement('canvas'); c.width = c.height = 32; const x = c.getContext('2d');
+  const P = PAL[sl.main] || PAL.base, Q = (sl.sub && PAL[sl.sub]) || P, st = sl.main ? Math.max(1, sl.stage) : 0, DK = '#1a0508', WH = '#f5f5f5';
+  const px = (a, b, w, h, col) => { x.fillStyle = col; x.fillRect(Math.round(a), Math.round(b), w || 1, h || 1); };
+  const disc = (cx, cy, rx, ry, col) => { x.fillStyle = col; rx = Math.max(0.5, rx); ry = Math.max(0.5, ry); for (let j = -Math.ceil(ry); j <= Math.ceil(ry); j++) { const q = 1 - (j * j) / (ry * ry); if (q < 0) continue; const w = Math.round(rx * Math.sqrt(q)); x.fillRect(Math.round(cx) - w, Math.round(cy) + j, w * 2 + 1, 1); } };
+  const blob = (cx, cy, rx, ry, p) => { disc(cx, cy, rx + 1, ry + 1, p[0]); disc(cx, cy, rx, ry, p[3]); disc(cx - rx * 0.12, cy - ry * 0.14, rx * 0.86, ry * 0.84, p[1]); disc(cx - rx * 0.4, cy - ry * 0.45, rx * 0.26, ry * 0.2, p[2]); };
+  const tent = (x0, y0, len, drift, amp, p, w) => { for (let pass = 0; pass < 2; pass++) for (let i = 0; i < len; i++) { const xx = x0 + drift * i + Math.sin(i * 0.8 + x0) * amp, ww = Math.max(1, Math.round((w || 2) * (1 - i / len * 0.6))); if (pass === 0) px(xx - 1, y0 + i, ww + 2, 1, p[0]); else px(xx, y0 + i, ww, 1, i % 4 === 3 ? p[2] : p[1]); } };
+  const maw = (cx, cy, w, h, p, vert) => { disc(cx, cy, w + 1, h + 1, p[0]); disc(cx, cy, w, h, DK); if (vert) { for (let j = -h + 1; j < h; j += 2) { const d = Math.round(w * Math.sqrt(Math.max(0, 1 - (j * j) / (h * h)))); px(cx - d, cy + j, Math.min(2, Math.max(1, d)), 1, WH); px(cx + d - Math.min(1, Math.max(0, d - 1)), cy + j + 1, Math.min(2, Math.max(1, d)), 1, WH); } px(cx, cy - 1, 1, 3, '#c8303a'); } else { for (let i = -w + 1; i < w; i += 2) { const d = Math.round(h * Math.sqrt(Math.max(0, 1 - (i * i) / (w * w)))); px(cx + i, cy - d, 1, Math.min(2, Math.max(1, d)), WH); px(cx + i + 1, cy + d - Math.min(1, Math.max(0, d - 1)), 1, Math.min(2, Math.max(1, d)), WH); } if (h >= 3) px(cx - 1, cy, 3, 1, '#c8303a'); } };
+  const pit = (a, b, col) => { px(a - 1, b, 3, 1, col); px(a, b - 1, 1, 3, col); px(a, b, 1, 1, '#ffffff'); };
+  const ring = (cx, cy, rx, ry, col, half) => { x.fillStyle = col; for (let a = half ? 0 : -3.1416; a < 3.1416; a += 0.1) x.fillRect(Math.round(cx + Math.cos(a) * rx), Math.round(cy + Math.sin(a) * ry), 1, 1); };
+  const mask = (a, b, s) => { px(a - 1, b - 1, s + 2, s + 3, '#1b1d2a'); px(a, b, s, s + 1, WH); px(a, b, s, 1, '#c8c8d0'); px(a + 1, b + 2, 1, 1, '#1b1d2a'); px(a + s - 2, b + 2, 1, 1, '#1b1d2a'); px(a + 1, b + s - 1, s - 2, 1, '#7a121c'); };
+  const mouth = (a, b, w, p) => { px(a - 1, b - 1, w + 2, 4, p[0]); px(a, b, w, 2, DK); for (let i = 0; i < w; i += 2) px(a + i, b + (i % 4 ? 1 : 0), 1, 1, WH); };
+  const sac = (a, b, r, p, seed) => { blob(a, b, r, r, p); if (seed) px(a, b, 1, 2, p[0]); };
+  let B = { cx: 16, cy: 24, R: 4, top: 20, bot: 27 };
+  if (st === 0) { blob(16, 25, 5, 3, P); px(11, 28, 2, 2, P[1]); px(21, 28, 1, 2, P[3]); px(14, 21, 1, 2, P[1]); px(14, 20, 1, 1, P[2]); }
+  else {
+    const R = [0, 5, 7, 9, 11][st];
+    if (sl.main === 'abyss') {            // 젖은 것: 갓 아래로 늘어지는 다리들
+      const cy = [0, 13, 12, 11, 10][st], n = 3 + st * 2, len = 7 + st * 3; B = { cx: 16, cy, R, top: cy - R - 1, bot: cy + R };
+      if (st >= 3) for (let k = 0; k < 6; k++) { px(16 - R - 1 - k, cy - 1 + k, 2 + (5 - k), 1, P[0]); px(16 + R + k - (5 - k), cy - 1 + k, 2 + (5 - k), 1, P[0]); px(16 - R - k, cy + k, 5 - k, 1, P[3]); px(16 + R + k - (4 - k), cy + k, 5 - k, 1, P[3]); }
+      for (let k = 0; k < n; k++) { const f = n === 1 ? 0 : k / (n - 1) - 0.5; tent(16 + f * (R * 2 - 2), cy + R - 3, Math.min(31 - (cy + R - 3), len - Math.abs(f) * 5), f * 0.5, 1.2, P, 2); }
+      disc(16, cy, R + 1, R + 2, P[0]); disc(16, cy, R, R + 1, P[3]); disc(15, cy - 1, R - 1, R, P[1]); disc(16 - R * 0.4, cy - R * 0.5, R * 0.3, R * 0.25, P[2]);
+      for (let g = 0; g < Math.min(4, st + 1); g++) { px(16 - R + 2, cy - 2 + g * 2, 3, 1, P[0]); px(16 + R - 4, cy - 2 + g * 2, 3, 1, P[0]); }
+      for (let d = 0; d < st; d++) px(8 + d * 6, 29 + (d % 2), 1, 2, P[4]);
+      if (st >= 4) for (let k = -2; k <= 2; k++) { px(16 + k * 4, cy - R - 3 - (2 - Math.abs(k)), 2, 3 + (2 - Math.abs(k)), P[0]); px(16 + k * 4, cy - R - 2 - (2 - Math.abs(k)), 1, 2 + (2 - Math.abs(k)), P[2]); }
+    } else if (sl.main === 'nebula') {    // 빛나는 것: 고리를 두른 구, 별구멍
+      const r = [0, 5, 6, 8, 9][st], cy = 16; B = { cx: 16, cy, R: r, top: cy - r, bot: cy + r };
+      for (let k = 1; k <= Math.min(3, st); k++) ring(16, cy + (k - 2), r + 2 + k * 2, 2 + k, P[4]);
+      blob(16, cy, r, r, P);
+      for (let k = 1; k <= Math.min(3, st); k++) ring(16, cy + (k - 2), r + 2 + k * 2, 2 + k, P[4], true);
+      for (let k = 0; k < 2 + st * 2; k++) { const a = k * 2.4, d = (k % 3 + 1) / 3.6 * r; pit(16 + Math.cos(a) * d, cy + Math.sin(a) * d, k % 2 ? P[4] : P[2]); }
+      if (st >= 3) blob(16 + r + 4, cy - r - 1, 2, 2, P);
+      if (st >= 4) { for (let j = -r + 2; j < r - 1; j++) px(16 + (j % 3 === 0 ? 1 : j % 3 === 1 ? 0 : -1), cy + j, 2, 1, j % 2 ? '#ffffff' : '#fff3a0'); [[3, 5], [27, 7], [5, 26], [26, 25], [2, 15], [29, 17]].forEach(([a, b]) => { px(a, b, 2, 1, P[2]); px(a, b + 1, 1, 1, P[4]); }); }
+    } else if (sl.main === 'brood') {     // 불어나는 것: 쌓인 주머니와 줄기
+      const n = 3 + st * 3, sr = st >= 3 ? 4 : 3, rows = []; let left = n, w = Math.min(5, 2 + st), y = 26;
+      while (left > 0 && w > 0) { const k = Math.min(left, w); rows.push([y, k]); left -= k; w--; y -= sr + 2; }
+      B = { cx: 16, cy: 20, R: Math.min(13, rows[0][1] * (sr + 1)), top: y + sr, bot: 29 };
+      if (st >= 4) for (let k = 0; k < 5; k++) tent(6 + k * 5, 27, 5, (k - 2) * 0.3, 0.8, P, 1);
+      rows.slice().reverse().forEach(([yy, k], ri) => { for (let i = 0; i < k; i++) sac(16 + (i - (k - 1) / 2) * (sr * 2 + 1), yy, sr, P, st >= 3 && (i + ri) % 2 === 0); });
+      const topRow = rows[rows.length - 1]; for (let k = 0; k <= st; k++) { const sx = 16 + (k - st / 2) * 4, h = 3 + (k % 2) * 2 + st; px(sx, topRow[0] - sr - h, 1, h, P[3]); px(sx - 1, topRow[0] - sr - h - 1, 3, 2, P[4]); }
+      if (st >= 4) { sac(16, 20, 6, P, false); px(15, 19, 3, 3, P[4]); px(16, 20, 1, 1, '#ffffff'); }
+    } else if (sl.main === 'dusk') {      // 속삭이는 것: 얼굴 없는 장막, 입과 가면
+      const top = [0, 9, 7, 5, 4][st], bw = 4 + st * 2; B = { cx: 16, cy: (top + 28) / 2, R: bw, top, bot: 28 };
+      if (st >= 3) { tent(16 - bw + 1, top + 8, 14, -0.45, 0.8, P, 1); tent(16 + bw - 2, top + 8, 14, 0.45, 0.8, P, 1); }
+      for (let y = top; y <= 28; y++) { const f = (y - top) / (28 - top), hw = Math.round(3 + (bw - 3) * Math.pow(f, 0.7)), rag = y > 25 ? ((y + hw) % 2) : 0; px(16 - hw - 1, y, hw * 2 + 3, 1, P[0]); if (!(y === 28)) { px(16 - hw + rag, y, hw * 2 + 1 - rag * 2, 1, P[1]); px(16 + Math.round(hw * 0.4), y, Math.max(1, hw - Math.round(hw * 0.4)), 1, P[3]); } }
+      if (st >= 4) for (let k = 0; k < 5; k++) tent(16 - bw + 1 + k * (bw * 2 - 2) / 4, 27, 5, (k - 2) * 0.25, 0.7, P, 2);
+      disc(16, top + 4, 3, 3, DK); px(15, top + 1, 3, 1, P[2]);
+      for (let k = 0; k < 1 + st * 2; k++) { const yy = top + 9 + ((k * 5) % Math.max(1, 17 - top)), f = (yy - top) / (28 - top), hw = 3 + (bw - 3) * Math.pow(f, 0.7); if (yy < 26) mouth(Math.round(16 + (((k * 7) % 9) / 8 - 0.5) * (hw * 2 - 5)), yy, 3 + (k % 2), P); }
+      if (st >= 2) mask(14, top + 2, 4);
+      if (st >= 3) { mask(16 - bw - 4, top + 3, 4); mask(16 + bw + 1, top + 5, 4); }
+      if (st >= 4) { mask(4, 2, 3); mask(25, 1, 3); mask(15, 0, 3); }
+    } else {                               // 씹는 것: 몸이 곧 입
+      const cy = 17; B = { cx: 16, cy, R, top: cy - R, bot: cy + R };
+      if (st >= 4) for (let k = 0; k < 10; k++) { const a = k * 0.628; tent(16 + Math.cos(a) * (R + 1), cy + Math.sin(a) * (R + 1) - 2, 4, Math.cos(a) * 0.9, 0.3, P, 1); }
+      blob(16, cy, R, R, P);
+      if (st === 1) maw(16, cy + 1, R - 2, 2, P);
+      if (st === 2) { maw(16, cy + 1, R - 2, 3, P); mouth(16 - R + 1, cy - R + 3, 3, P); mouth(16 + R - 4, cy - R + 3, 3, P); }
+      if (st === 3) { maw(16, cy, 4, R - 2, P, true); mouth(16 - R + 1, cy - 2, 3, P); mouth(16 + R - 4, cy + 2, 3, P); mouth(16 - R + 2, cy + 4, 3, P); }
+      if (st >= 4) { disc(16, cy, R - 2, R - 2, DK); for (let a = 0; a < 6.283; a += 0.42) px(16 + Math.cos(a) * (R - 3), cy + Math.sin(a) * (R - 3), 1, 2, WH); disc(16, cy, R - 5, R - 5, P[3]); disc(16, cy, R - 7, R - 7, DK); for (let a = 0.2; a < 6.283; a += 0.7) px(16 + Math.cos(a) * (R - 7), cy + Math.sin(a) * (R - 7), 1, 1, WH); px(15, cy - 1, 3, 3, '#c8303a'); px(16, cy, 1, 1, '#ff9a8a'); }
+    }
+    // 부 징조: 다른 색의 기관이 덧붙는다
+    if (st >= 2 && sl.sub) {
+      const k = st - 1;
+      if (sl.sub === 'abyss') for (let i = 0; i < 2 + k; i++) tent(B.cx - B.R + 2 + i * ((B.R * 2 - 4) / (1 + k)), Math.min(26, B.bot - 2), 31 - Math.min(26, B.bot - 2), (i - (1 + k) / 2) * 0.3, 1, Q, 2);
+      if (sl.sub === 'nebula') { ring(B.cx, B.top + 1, B.R + 1, 2, Q[4]); for (let i = 0; i < 1 + k; i++) pit(B.cx - B.R + 1 + i * ((B.R * 2 - 2) / Math.max(1, k)), Math.max(2, B.top - 3 - (i % 2) * 2), Q[1]); }
+      if (sl.sub === 'brood') for (let i = 0; i < 2 + k; i++) sac(B.cx + (i % 2 ? 1 : -1) * (B.R - 1 - Math.floor(i / 2) * 2), B.top + 2 + Math.floor(i / 2) * 3, 2 + (i < 2 ? 1 : 0), Q, i < 2);
+      if (sl.sub === 'dusk') { mask(B.cx - 2, B.cy - 3, 4); if (k >= 2) mask(B.cx + B.R - 3, B.cy + 1, 3); if (k >= 3) mask(B.cx - B.R, B.cy + 2, 3); }
+      if (sl.sub === 'hunger') { maw(B.cx, Math.min(27, B.cy + B.R * 0.45), Math.max(3, B.R * 0.5), 2, Q); if (k >= 2) mouth(B.cx - B.R + 1, B.cy - 2, 3, Q); if (k >= 3) mouth(B.cx + B.R - 4, B.cy - 3, 3, Q); }
+    }
+  }
+  // 변이: 눈에 보이는 부위
+  (sl.muts || []).forEach(m => {
+    if (m === 'tentacle') { tent(B.cx - B.R - 1, B.cy - 1, 11, -0.35, 1, PAL.abyss, 2); tent(B.cx + B.R, B.cy - 1, 11, 0.35, 1, PAL.abyss, 2); }
+    if (m === 'gills') for (let g = 0; g < 3; g++) { px(B.cx - B.R + 1, B.cy + g * 2, 3, 1, '#081a2a'); px(B.cx + B.R - 3, B.cy + g * 2, 3, 1, '#081a2a'); }
+    if (m === 'thirdeye') { px(B.cx - 2, B.top + 2, 5, 3, '#1b1d2a'); px(B.cx - 1, B.top + 3, 3, 1, '#fff3a0'); px(B.cx, B.top + 3, 1, 1, '#c8303a'); }
+    if (m === 'ring') ring(B.cx, Math.max(1, B.top - 2), 5, 1, '#fff3a0');
+    if (m === 'spore') [[-1.3, -0.6], [1.2, -0.9], [-1.5, 0.4], [1.5, 0.2], [0.3, -1.4]].forEach(([a, b]) => px(B.cx + a * B.R, B.cy + b * B.R, 1, 1, '#d0f08a'));
+    if (m === 'mouth') mouth(B.cx + 1, Math.min(28, B.cy + B.R - 3), 4, P);
+    if (m === 'maskm') mask(B.cx - B.R, B.cy - 4, 4);
+    if (m === 'whisper') for (let i = 0; i < 4; i++) px(B.cx + B.R + 1 + i, B.top + 1 - i + (i % 2), 1, 1, '#ffe0a0');
+    if (m === 'teeth') for (let i = -B.R + 2; i < B.R - 1; i += 2) px(B.cx + i, B.cy + B.R - 1, 1, 2, WH);
+    if (m === 'steelgut') { px(B.cx - 2, B.cy + 1, 5, 3, '#6a6278'); px(B.cx - 1, B.cy + 1, 3, 1, '#d0d0d8'); }
+  });
   return (cv[key] = c);
 }
 function kinCanvas(kind, evo) {
-  const b = spriteCanvas(KINSPR[kind][0], KINSPR[kind][1]); if (!evo) return b; const key = 'evo:' + kind; if (cv[key]) return cv[key];
-  const c = document.createElement('canvas'); c.width = c.height = 16; const x = c.getContext('2d'); x.drawImage(b, 0, 0);
-  [[5, 0], [7, 0], [9, 0], [6, 1], [8, 1]].forEach(([a, d]) => { x.fillStyle = '#e8c030'; x.fillRect(a, d, 1, 1); }); x.fillStyle = '#ff5040'; x.fillRect(7, 1, 1, 1);  // 진화한 권속의 뿔관
+  const b = spriteCanvas(KINSPR[kind][0], KINSPR[kind][1]); if (!evo) return b; const key = 'evo2:' + kind; if (cv[key]) return cv[key];
+  // 진화한 권속: 몸이 붉게 물들고, 뿔과 가시가 돋고, 한 뼘 더 크게 그려진다
+  const c = document.createElement('canvas'); c.width = c.height = 20; const x = c.getContext('2d'); x.drawImage(b, 2, 4);
+  x.globalCompositeOperation = 'source-atop'; x.fillStyle = 'rgba(170, 20, 50, 0.32)'; x.fillRect(0, 0, 20, 20); x.globalCompositeOperation = 'source-over';
+  const put = (list, col) => list.forEach(([a, d]) => { x.fillStyle = col; x.fillRect(a, d, 1, 1); });
+  put([[5, 4], [4, 3], [4, 2], [3, 1], [3, 0], [14, 4], [15, 3], [15, 2], [16, 1], [16, 0]], '#f2e9c9'); put([[5, 3], [14, 3]], '#1b1d2a');
+  put([[1, 12], [0, 11], [0, 10], [18, 12], [19, 11], [19, 10], [1, 16], [18, 16]], '#f2e9c9'); put([[8, 3], [9, 2], [10, 2], [11, 3]], '#e8c030'); put([[9, 3], [10, 3]], '#ff5040');
   return (cv[key] = c);
 }
 const toImg = (c, key, size, alt) => `<img class="px" src="${urls[key] || (urls[key] = c.toDataURL())}" width="${size}" height="${size}" alt="${esc(alt || '')}">`;
-const kinImg = (kind, size, evo) => toImg(kinCanvas(kind, evo), (evo ? 'evo:' : 'kin:') + kind, size, NEST.KIN[kind].name);
+const kinImg = (kind, size, evo) => toImg(kinCanvas(kind, evo), (evo ? 'evo2:' : 'kin:') + kind, size, NEST.KIN[kind].name);
 const invImg = (kind, size) => toImg(invCanvas(kind), 'inv:' + kind, size, NEST.INV[kind].name);
-const slimeImg = (sl, size, alt) => toImg(slimeCanvas(sl), 'sl:' + (sl.main || 'base') + ':' + (sl.sub || '') + ':' + sl.stage + ':' + (sl.muts || []).join(','), size, alt || '본체');
+const slimeImg = (sl, size, alt) => toImg(slimeCanvas(sl), 'sl2:' + (sl.main || 'base') + ':' + (sl.sub || '') + ':' + sl.stage + ':' + (sl.muts || []).join(','), size, alt || '본체');
 const echoImg = size => toImg(spriteCanvas('slime', 'echo'), 'echo', size, '잔향');
 
 // ---------- 소리 ----------
@@ -1429,7 +1508,7 @@ function txt(x, s, px, py, col, size, align) { const z = size || 13, sz = z <= 2
 function plate(x, s, cx, y, col, size) { const z = Math.round((size || 13) * ST.fm); x.font = z + 'px "Do Hyeon", "Malgun Gothic", sans-serif'; const w = x.measureText(s).width + 10; rect(x, '#0b0c16bb', cx - w / 2, y - 2, w, z + 6); txt(x, s, cx, y, col, size, 'center'); }
 function camTo(lx, snap) { const max = Math.max(0, W - ST.viewW); ST.cam.tx = Math.max(0, Math.min(max, lx - ST.viewW / 2)); if (snap) ST.cam.x = ST.cam.tx; }
 function villState(v) { const s = G.vill[v]; return s.razed ? '폐허' : s.tribute ? '공물 중' : s.host >= 50 ? '보복 준비' : s.host >= 15 ? '수상히 여김' : '평온'; }
-function slimeScale(sl) { return [3, 4, 4, 5, 6][sl.stage]; }
+function slimeScale(sl) { return [2.5, 3.5, 4.5, 5.5, 6.5][sl.stage]; }
 function defPos(loc, k, small) {
   const r = cellRect(locIdx(loc)), fy = floorY(r), sz = small ? 16 : 32;
   if (loc === 'core') return { x: r.x + 68 - (k % 3) * 24, y: fy - sz + 2 - Math.floor(k / 3) * 20 };
@@ -1535,7 +1614,7 @@ function drawUnder(x, t) {
   if (ST.ents) { const es = Object.values(ST.ents); es.filter(e => e.side === 'def').forEach(e => drawUnit(x, e, t)); es.filter(e => e.side === 'inv').forEach(e => drawUnit(x, e, t)); }
   else {
     const by = {}; G.kin.forEach(m => { if (m.loc !== null) (by[m.loc] = by[m.loc] || []).push(m); });
-    for (const loc in by) by[loc].forEach((m, k) => { const sm = m.kind === 'spawn', p = defPos(loc === 'core' ? 'core' : +loc, k, sm); x.globalAlpha = m.hurt || m.strike ? 0.4 : 1; x.drawImage(kinCanvas(m.kind, m.evo), p.x, Math.round(p.y + Math.sin(t / 500 + m.id) * 1), sm ? 16 : 32, sm ? 16 : 32); x.globalAlpha = 1; if (m.hurt) txt(x, '부상', p.x + 16, p.y - 14, '#ff9a92', 11, 'center'); else if (m.strike) txt(x, '파업', p.x + 16, p.y - 14, '#ffb347', 11, 'center'); });
+    for (const loc in by) by[loc].forEach((m, k) => { const sm = m.kind === 'spawn', p = defPos(loc === 'core' ? 'core' : +loc, k, sm); x.globalAlpha = m.hurt || m.strike ? 0.4 : 1; x.drawImage(kinCanvas(m.kind, m.evo), p.x - (m.evo ? 5 : 0), Math.round(p.y + Math.sin(t / 500 + m.id) * 1) - (m.evo ? 10 : 0), sm ? 16 : m.evo ? 42 : 32, sm ? 16 : m.evo ? 42 : 32); x.globalAlpha = 1; if (m.hurt) txt(x, '부상', p.x + 16, p.y - 14, '#ff9a92', 11, 'center'); else if (m.strike) txt(x, '파업', p.x + 16, p.y - 14, '#ffb347', 11, 'center'); });
     const r = cellRect(NEST.CORE), sc = slimeScale(G.slime), size = 16 * sc; x.drawImage(slimeCanvas(G.slime), r.x + r.w - 14 - size, Math.round(floorY(r) - size + sc + Math.sin(t / 400) * 2), size, size);
     const hp = G.slime.hp / NEST.slimeStats(G).hp; if (hp < 0.999) { rect(x, '#0b0c16', r.x + r.w - 15 - size, floorY(r) - size - 9, size + 2, 6); rect(x, '#6fd08c', r.x + r.w - 14 - size, floorY(r) - size - 8, size * hp, 4); }
   }
@@ -1691,7 +1770,7 @@ const nlog = (s, cls) => { const el = $('nlog'); if (!el || !s) return; const p 
 function moveTo(e, p, dur) { e.fx = e.x; e.fy = e.y; e.tx = p.x; e.ty = p.y; e.t0 = now(); e.dur = Math.max(1, dur / ST.speed); }
 function prepareNight() {
   const E = ST.ents = {}; ST.defs = {}; ST.floats = []; ST.sparks = []; ST.fire = {}; ST.sanfx = {};
-  G.kin.forEach(m => { if (m.loc === null || m.hurt || m.strike) return; const list = ST.defs[m.loc] = ST.defs[m.loc] || [], sm = m.kind === 'spawn', p = defPos(m.loc, list.length, sm); E['k' + m.id] = { id: 'k' + m.id, side: 'def', can: kinCanvas(m.kind, m.evo), x: p.x, y: p.y, hp: 1, scale: sm ? 1 : S }; list.push('k' + m.id); });
+  G.kin.forEach(m => { if (m.loc === null || m.hurt || m.strike) return; const list = ST.defs[m.loc] = ST.defs[m.loc] || [], sm = m.kind === 'spawn', p = defPos(m.loc, list.length, sm); E['k' + m.id] = { id: 'k' + m.id, side: 'def', can: kinCanvas(m.kind, m.evo), x: p.x - (m.evo ? 5 : 0), y: p.y - (m.evo ? 10 : 0), hp: 1, scale: sm ? 1 : m.evo ? 2.625 : S }; list.push('k' + m.id); });
   const r = cellRect(NEST.CORE), sc = slimeScale(G.slime), size = 16 * sc;
   E.s = { id: 's', side: 'def', can: slimeCanvas(G.slime), x: r.x + r.w - 14 - size, y: floorY(r) - size + sc, hp: G.slime.hp / NEST.slimeStats(G).hp, scale: sc, bob: true };
 }
