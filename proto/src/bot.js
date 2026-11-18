@@ -33,7 +33,7 @@ function play(seed, st, diff, trace, force) {
       // 포로
       for (let i = G.prison.length - 1; i >= 0; i--) {
         const p = G.prison[i]; let how = st.captive;
-        if (how === 'mix') how = G.gold < 80 * c ? 'ransom' : (S.essTotal(G) < S.K.thresh[Math.min(3, G.slime.stage + 1)] ? 'sacrifice' : (S.freeSlot(G, 'cultist') !== null && S.convertChance(G, p.kind) > 0.5 ? 'convert' : 'ransom'));
+        if (how === 'mix') how = G.gold < 80 * c ? 'ransom' : (S.essTotal(G) < S.K.thresh[Math.min(4, G.slime.stage + 1)] ? 'sacrifice' : (S.freeSlot(G, 'cultist') !== null && S.convertChance(G, p.kind) > 0.5 ? 'convert' : 'ransom'));
         if (how !== 'none') S.dispose(G, i, how);
       }
       const path = S.paths(G)[0], onPath = i => path.includes(i);
@@ -69,6 +69,8 @@ function play(seed, st, diff, trace, force) {
       if (st.raid && S.actOf(G) >= 2 && G.ap > 0) { let n = st.raid >= 3 ? 2 : (G.day % 2 === 0 ? 1 : 0); for (const v of S.VIDS) { if (n <= 0 || G.ap <= 0) break; const s = G.vill[v]; if (s.razed) continue; if (S.raid(G, v, st.raid >= 3 ? 1 : (s.tribute ? 1 : 0)).ok) n--; } }
       // 지상에 나타난 것
       if (G.spot && G.ap > 0 && G.day % 3 !== 0) S.resolveSpot(G, G.spot.type === 'cart' && G.fear > 60 ? 1 : 0);
+      // 권속 진화
+      G.kin.forEach(m => { if (!m.evo && m.lv >= 5 && S.EVO[m.kind] && can(S.evoCost(G) + 60 * c)) S.evolveKin(G, m.id); });
       // 훈련
       if (G.day >= 4 && G.ap > 0 && G.kin.length) { const locs = [...new Set(G.kin.map(m => m.loc).filter(l => l !== null))], amt = Math.floor(Math.min(G.gold - reserve() - 40 * c, 60 * c)); if (amt >= 20 * c && locs.length) S.train(G, locs[G.day % locs.length], amt); }
       // 함정 강화
@@ -83,7 +85,7 @@ function play(seed, st, diff, trace, force) {
 }
 
 function run(name, n, diff, force) {
-  const st = STRATS[name]; const o = { win: 0, dieDay: {}, why: {}, gold: 0, score: 0, grades: {}, stage: [0, 0, 0, 0], forms: {}, inc: {}, kills: 0, caps: 0, conv: 0, battles: 0, repel: 0, stolen: 0, fear: 0, dug: 0, kin: 0, muts: 0, err: 0, evoDay: { 6: 0, 12: 0, 18: 0 } };
+  const st = STRATS[name]; const o = { win: 0, dieDay: {}, why: {}, gold: 0, score: 0, grades: {}, stage: [0, 0, 0, 0, 0], forms: {}, inc: {}, kills: 0, caps: 0, conv: 0, battles: 0, repel: 0, stolen: 0, fear: 0, dug: 0, kin: 0, muts: 0, err: 0, evoDay: { 6: 0, 12: 0, 18: 0 } };
   for (let s = 1; s <= n; s++) {
     let r; try { r = play(s * 7919 + 13, st, diff, false, force); } catch (e) { o.err++; if (o.err <= 2) console.log('오류 seed', s, e.stack.split('\n').slice(0, 4).join('\n')); continue; }
     const G = r.G, sc = S.score(G);
@@ -100,7 +102,7 @@ function report(name, n, diff) {
   const inv = (o.inc['소지금'] || 0) + (o.inc['몸값'] || 0);
   console.log(`\n== ${name} (난이도 ${diff || 1}, ${n}판) 오류 ${o.err}`);
   console.log(`클리어 ${pct(o.win, m)} | 평균 재물 ${Math.round(o.gold / m)} 점수 ${Math.round(o.score / m)} 공포 ${Math.round(o.fear / m)} | 등급 ${Object.entries(o.grades).map(e => e.join(':')).join(' ')}`);
-  console.log(`진화 단계 0/1/2/3: ${o.stage.map(x => pct(x, m)).join(' / ')} | 본 형태 ${Object.keys(o.forms).length}종 | 변이 ${(o.muts / m).toFixed(1)}`);
+  console.log(`진화 단계 0/1/2/3/4: ${o.stage.map(x => pct(x, m)).join(' / ')} | 본 형태 ${Object.keys(o.forms).length}종 | 변이 ${(o.muts / m).toFixed(1)}`);
   console.log(`수입 비중: ${Object.entries(o.inc).sort((a, b) => b[1] - a[1]).map(e => e[0] + ' ' + pct(e[1], tot)).join(', ')} | 침입자 몫 ${pct(inv, tot)}`);
   console.log(`판당 전투 ${(o.battles / m).toFixed(1)} 격퇴 ${(o.repel / m).toFixed(1)} 처치 ${(o.kills / m).toFixed(1)} 포로 ${(o.caps / m).toFixed(1)} 개종 ${(o.conv / m).toFixed(1)} 털림 ${Math.round(o.stolen / m)}G | 판 칸 ${(o.dug / m).toFixed(1)} 권속 ${(o.kin / m).toFixed(1)}`);
   if (m - o.win) console.log(`패배: ${Object.entries(o.why).map(e => e.join(' ')).join(', ')} | 날짜 ${Object.entries(o.dieDay).map(e => e[0] + '일:' + e[1]).join(' ')}`);

@@ -19,7 +19,14 @@ const GORD = ['D', 'C', 'B', 'A', 'S', 'SS', 'SSS'];
 
 // ---------- 도트 ----------
 const SPR = {
-  slime: ['................', '................', '................', '.....oooooo.....', '...oobbbbbboo...', '..obhhbbbbbbbo..', '.obhhbbbbbbbbbo.', '.obhbbbbbbbbbbo.', 'obbbbebbbbebbbbo', 'obbbbebbbbebbbbo', 'obbbbbbbbbbbbbbo', 'obbbbbbwwbbbbbso', 'obbbbbbbbbbbbsso', '.obbbbbbbbbbsso.', '..oosssssssoo...', '....ooooooo.....'],
+  slime: ['................', '................', '................', '................', '................', '......ooo.......', '....oobbboo.....', '...obhhbbbbo....', '..obhbbbbbbbo...', '.obbbbbbbbbbbo..', '.obbbbbbbbbbbbo.', 'obbbbbbbbbbbbbso', 'obbbbbbbbbbbbsso', '.obbsbbbbbbssso.', '..oossoosssooo..', '...oo..oooo.....'],
+  sl_abyss: ['.......oo.......', '......obbo......', '.....obhbbo.....', '....obhbbbbo....', '....obbbbbbo....', '...obbebbebbo...', '...obbebbebbo...', '..obbbbbbbbbbo..', '..obbebbebbbbo..', '.obbbbbbbbbbbbo.', '.obbbbbbbbbbsbo.', '.obbsbbbbbbssbo.', '.obo.obbsbo.obo.', '.oao.obo.oo.oao.', '..o..oao.....o..', '......o.........'],
+  sl_nebula: ['....aaaaaaaa....', '...a........a...', '....aaaaaaaa....', '.....oooooo.....', '...oobbbbbboo...', '..obbwbbbbbbbo..', '.obbbbbbabbbbbo.', '.obhbbbbbbbwbbo.', '.obbbbwbbbbbbbo.', '.obbbbbbbbabbso.', '..obbabbbbbbso..', '...oobbbwbsoo...', '.....oossoo.....', '......o..o......', '.....o....o.....', '................'],
+  sl_brood: ['................', '....a.....a.....', '...oao...oao....', '..obbbo.obbbo...', '..obhbooobhbo...', '.oobbbbbbbbboo..', 'obbbobbbbbobbbo.', 'obhbobbhbbobhbo.', 'obbbbbbbbbbbbbo.', '.oobbbobbbobboo.', '.obbbbobbbobbbo.', 'obhbbbbbbbbbbsbo', 'obbbbsbbbbsbbsso', '.obbssbbbssbsso.', '..oooosssoooo...', '................'],
+  sl_dusk: ['......oooo......', '....oobbbboo....', '...obbbbbbbbo...', '..obbwwwbbbbbo..', '..obbweebbbebo..', '.obbbbbbbbbeebo.', '.obebbbbbbbbbbo.', '.obeebbbweebbbo.', '.obbbbbbbbbbbbo.', '.obbbweebbbebbo.', '..obbbbbbbeebo..', '..obsbbbbbbbso..', '...obssbbbsso...', '...oboosssobo...', '..oo.o.oo.o.oo..', '................'],
+  sl_hunger: ['................', '....oooooooo....', '..oobbbbbbbboo..', '.obbhbbbbbbbbbo.', '.obbbbbbbbbbbbo.', 'obwbwbwbwbwbwbwo', 'oeweweweweweweeo', 'oeeeeeeeeeeeeeeo', 'oeeeeaaaaaeeeeeo', 'oeeeeeaaaeeeeeeo', 'oeweweweweweweeo', 'obwbwbwbwbwbwbso', '.obbbbbbbbbbsso.', '.obbsbbbbbssso..', '..ooossssooo....', '................'],
+  eyeheap: ['................', '................', '.....oooooo.....', '...oobbbbbboo...', '..obwwbbbwwbbo..', '..obweobbweobo..', '.obbbbbwwbbbbbo.', '.obwwbbweobwwbo.', '.obweobbbbbweoo.', '.obbbbwwbbbbbbo.', '..obbbweobwwbo..', '..obsbbbbbweoo..', '...obssbbbbso...', '....oosssoo.....', '................', '................'],
+  tangle: ['................', '..o........o....', '.obo..oo..obo...', '.obo.obbo.obo...', '..obobbbbobo....', '..obbbhbbbbo.o..', '.oobbbbbbbbooboo', 'obobbsbbbbbbobo.', 'obobbbbbbsbbbo..', '.oobbbbbbbbboo..', '..obobbbbobobo..', '.obo.obbo.obo...', '.obo.obo..obo...', '..o..obo...o....', '......o.........', '................'],
   goblin: ['................', '................', 'o....oooooo....o', 'oo..obbbbbbo..oo', 'obooobbbbbbooobo', '.obbbbbbbbbbbbo.', '..obbebbbbebbo..', '..obbebbbbebbo..', '..obbbbbbbbbbo..', '...obbwwwwbbo...', '....obbbbbbo....', '...oossssssoo...', '..obosssssobo.a.', '..obosssssoboa..', '....oso..oso....', '...ooo...ooo....'],
   skeleton: ['................', '....oooooooo....', '...owwwwwwwwo...', '..owwwwwwwwwwo..', '..owweewweewwo..', '..owweewweewwo..', '..owwwwsswwwwo..', '...owwwwwwwwo...', '....owowowoo....', '.....oooooo.....', '...oowwsswwoo...', '..owoowssoowo.a.', '..owo.owwo.owoa.', '......owwo......', '.....owoowo.....', '....ooo..ooo....'],
   harpy: ['................', '................', '.o............o.', 'obo...oooo...obo', 'obbo.obbbbo.obbo', 'obbboobebbeoobbo', 'obbbbobbbbobbbbo', '.obbbbbaabbbbbo.', '..obbbbbbbbbbo..', '...oosbbbbsoo...', '.....obbbbo.....', '.....osssso.....', '.....osssso.....', '......o..o......', '.....oo..oo.....', '................'],
@@ -47,11 +54,12 @@ const PAL = {
   scholar: SKIN.concat(['#2a3a8a', '#e8e8f0']), herbalist: SKIN.concat(['#4a8a4a', '#e890b0']), soldier: SKIN.concat(['#2a3a6a', '#a0a8c0']),
   hound: ['#1b1d2a', '#8a6a4a', '#b89a7a', '#5a4630', '#c8c8d0'], handler: SKIN.concat(['#5a4630', '#3f6b46']), sapper: SKIN.concat(['#6a5a2a', '#e8c030']),
   digger: ['#1b1d2a', '#a8845a', '#d8b88a', '#3a2a20', '#e8c030'], clerk: ['#1b1d2a', '#d8c8a8', '#e8c030', '#2f6b46', '#1f4a2a'], licker: ['#3a1a2a', '#e88aa8', '#ffd0e0', '#a84a6a', '#f5f5f5'],
+  spitter: ['#1a1030', '#9a6ad0', '#e0c8ff', '#4a2a7a', '#fff3a0'], eyeheap: ['#2a0a1e', '#a84a6a', '#e89ab0', '#6a2a44', '#f5f5f5'], tangle: ['#081a2a', '#3a8a7a', '#8ad8c0', '#1a5a50', '#f0e060'],
   netter: ['#1b1d2a', '#5f9fc0', '#a8d8f0', '#2a4a6a', '#c8c8d0'], warden: ['#1b1d2a', '#b8b0a0', '#e8e0d0', '#4a4a58', '#e8c030'],
   chaplain: SKIN.concat(['#f0e8e0', '#c83030']), sealer: ['#1b1d2a', '#ffe0c0', '#fff0e0', '#1a1a2a', '#e8c030'],
 };
 const ASPCOL = { abyss: '#3fb8d0', nebula: '#a884ff', brood: '#7fd04f', dusk: '#f0a04a', hunger: '#e8505a' };
-const KINSPR = { goblin: ['goblin', 'goblin'], skeleton: ['skeleton', 'skeleton'], cultist: ['hood', 'cultist'], scale: ['harpy', 'scale'], scribe: ['hood', 'scribe'], spawn: ['slime', 'spawn'], mask: ['hood', 'mask'], hunger: ['mimic', 'hunger_k'], netter: ['goblin', 'netter'], warden: ['skeleton', 'warden'], turncoat: ['human', 'warrior'], fallen: ['hood', 'priest'], digger: ['goblin', 'digger'], clerk: ['hood', 'clerk'], licker: ['slime', 'licker'] };
+const KINSPR = { goblin: ['goblin', 'goblin'], skeleton: ['skeleton', 'skeleton'], cultist: ['hood', 'cultist'], scale: ['harpy', 'scale'], scribe: ['hood', 'scribe'], spawn: ['slime', 'spawn'], mask: ['hood', 'mask'], hunger: ['mimic', 'hunger_k'], netter: ['goblin', 'netter'], warden: ['skeleton', 'warden'], turncoat: ['human', 'warrior'], fallen: ['hood', 'priest'], digger: ['goblin', 'digger'], clerk: ['hood', 'clerk'], licker: ['slime', 'licker'], spitter: ['harpy', 'spitter'], eyeheap: ['eyeheap', 'eyeheap'], tangle: ['tangle', 'tangle'] };
 const invCanvas = kind => spriteCanvas(kind === 'hound' ? 'hound' : 'human', kind);
 // 부 징조가 본체에 더하는 그림 [x, y, 색]
 const SUBOVER = {
@@ -85,16 +93,23 @@ function spriteCanvas(name, pal) {
 function slimeCanvas(sl) {
   const key = 'sl:' + (sl.main || 'base') + ':' + (sl.sub || '') + ':' + sl.stage + ':' + (sl.muts || []).join(','); if (cv[key]) return cv[key];
   const c = document.createElement('canvas'); c.width = c.height = 16; const x = c.getContext('2d');
-  x.drawImage(spriteCanvas('slime', sl.main || 'base'), 0, 0);
+  x.drawImage(spriteCanvas(sl.main ? 'sl_' + sl.main : 'slime', sl.main || 'base'), 0, 0);
   const put = list => (list || []).forEach(([a, b, col]) => { x.fillStyle = col; x.fillRect(a, b, 1, 1); });
   if (sl.sub) put(SUBOVER[sl.sub]);
   (sl.muts || []).forEach(m => put(MUTOVER[m]));
-  if (sl.stage >= 3) put([[5, 8, '#fff3a0'], [10, 8, '#fff3a0'], [5, 9, '#ff5040'], [10, 9, '#ff5040']]);
+  const ac = (PAL[sl.main] || PAL.base)[2];
+  if (sl.stage >= 3) put([[0, 9, ac], [0, 10, ac], [15, 8, ac], [15, 9, ac], [1, 14, ac], [0, 15, ac], [14, 14, ac], [15, 15, ac], [3, 15, ac], [12, 15, ac]]);  // 세 번째 허물: 몸 밖으로 뻗는 것들
+  if (sl.stage >= 4) put([[7, 9, '#ff5040'], [8, 9, '#fff3a0'], [8, 10, '#ff5040'], [7, 11, '#fff3a0'], [9, 8, '#ff5040'], [6, 10, '#ff5040'], [2, 2, ac], [13, 1, ac], [1, 4, ac], [14, 3, ac]]);  // 성체: 속에서 새어 나오는 빛
   return (cv[key] = c);
 }
-const kinCanvas = kind => spriteCanvas(KINSPR[kind][0], KINSPR[kind][1]);
+function kinCanvas(kind, evo) {
+  const b = spriteCanvas(KINSPR[kind][0], KINSPR[kind][1]); if (!evo) return b; const key = 'evo:' + kind; if (cv[key]) return cv[key];
+  const c = document.createElement('canvas'); c.width = c.height = 16; const x = c.getContext('2d'); x.drawImage(b, 0, 0);
+  [[5, 0], [7, 0], [9, 0], [6, 1], [8, 1]].forEach(([a, d]) => { x.fillStyle = '#e8c030'; x.fillRect(a, d, 1, 1); }); x.fillStyle = '#ff5040'; x.fillRect(7, 1, 1, 1);  // 진화한 권속의 뿔관
+  return (cv[key] = c);
+}
 const toImg = (c, key, size, alt) => `<img class="px" src="${urls[key] || (urls[key] = c.toDataURL())}" width="${size}" height="${size}" alt="${esc(alt || '')}">`;
-const kinImg = (kind, size) => toImg(kinCanvas(kind), 'kin:' + kind, size, NEST.KIN[kind].name);
+const kinImg = (kind, size, evo) => toImg(kinCanvas(kind, evo), (evo ? 'evo:' : 'kin:') + kind, size, NEST.KIN[kind].name);
 const invImg = (kind, size) => toImg(invCanvas(kind), 'inv:' + kind, size, NEST.INV[kind].name);
 const slimeImg = (sl, size, alt) => toImg(slimeCanvas(sl), 'sl:' + (sl.main || 'base') + ':' + (sl.sub || '') + ':' + sl.stage + ':' + (sl.muts || []).join(','), size, alt || '본체');
 const echoImg = size => toImg(spriteCanvas('slime', 'echo'), 'echo', size, '잔향');
