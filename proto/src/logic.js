@@ -3,9 +3,9 @@
 const NEST = (function () {
   'use strict';
   const K = {
-    days: 30, cost: [0, 1, 2, 4, 7, 11], stat: [0, 1, 1.5, 2.4, 3.6, 5], size: [0, 1, 1.3, 1.8, 2.4, 3],
-    ap: 2, startGold: 300, faithCap: 30, thresh: [0, 36, 100, 190, 300], tier: [1, 2.5, 6, 11, 18],
-    slime: { hp: 80, atk: 7, df: 5 }, budget: 33, settle: 1.7, rob: 0.5, falls: [0, 3, 2, 2], smell: 0.8, trustMax: 5, trustGain: 0.4, trustCap: [0, 5, 4, 2, 0], trustKills: 3,
+    days: 40, act: 8, cost: [0, 1, 2, 4, 7, 11], stat: [0, 1, 1.5, 2.4, 3.6, 5], size: [0, 1, 1.3, 1.8, 2.4, 3],
+    ap: 2, startGold: 300, faithCap: 30, thresh: [0, 50, 150, 300, 480], tier: [1, 2.5, 6, 11, 18],
+    slime: { hp: 80, atk: 7, df: 5 }, budget: 37, settle: 1.7, rob: 0.5, falls: [0, 2, 2, 2], smell: 0.8, wary: 0.5, trustMax: 5, trustGain: 0.4, trustCap: [0, 5, 4, 2, 0], trustKills: 3,
     lvGrowth: 1.15, expBase: 10, expGrowth: 1.3, trainEff: 1.5, hands: 2, corpseCap: 9,
   };
   const ASPECTS = ['abyss', 'nebula', 'brood', 'dusk', 'hunger'];
@@ -41,12 +41,12 @@ const NEST = (function () {
     core: { name: '본체 방', cost: 0, fixed: true, def: 2, desc: '호위 2. 본체가 쓰러지면 끝난다' },
   };
   const TRAP = {
-    spike: { name: '가시 바닥', cost: 15, desc: '앞에서 3/5/7명에게 피해' },
+    spike: { name: '가시 바닥', cost: 15, desc: '앞에서 3/4/5명에게 피해' },
     rock: { name: '낙석', cost: 25, desc: '1명에게 큰 피해. 하룻밤 1회' },
-    acid: { name: '산성 웅덩이', cost: 30, desc: '앞에서 3/5/7명의 방어 −30%' },
-    mist: { name: '환각 안개', cost: 35, desc: '앞에서 3/5/7명의 정신력을 깎는다' },
+    acid: { name: '산성 웅덩이', cost: 30, desc: '앞에서 3/4/5명의 방어 −30%. 익숙해지지 않는다' },
+    mist: { name: '환각 안개', cost: 35, desc: '앞에서 3/4/5명의 정신력을 깎는다' },
   };
-  const LVM = [0, 1, 1.6, 2.4], TGT = [0, 3, 5, 7];
+  const LVM = [0, 1, 1.5, 2], TGT = [0, 3, 4, 5];
   const ZONE = { abyss: ['침수', '함정 대상 +2명, 아군 방어 +20%'], nebula: ['별빛', '이 칸 아군의 정신 공격 +30%'], brood: ['이끼', '이 칸 아군이 매 라운드 HP 3% 회복'], dusk: ['속삭임', '지나가는 적의 정신력을 깎는다'], hunger: ['화상', '지나가는 적이 최대 체력의 8%를 잃는다'] };
   const PLOT = {
     none: { name: '빈 터', cost: 0, desc: '아무것도 없다' },
@@ -163,8 +163,8 @@ const NEST = (function () {
     maskm: { name: '가면', asp: 'dusk', desc: '아군이 주는 정신력 피해 +25%' }, whisper: { name: '속삭임', asp: 'dusk', desc: '개종 성공률 +15%p' },
     teeth: { name: '이빨 줄', asp: 'hunger', desc: '본체가 처치할 때마다 HP 8% 회복' }, steelgut: { name: '강철 위', asp: 'hunger', desc: '시체 정수 +1' },
   };
-  const DIFF = { 1: { name: '첫 각성', mult: 1, score: 1 }, 2: { name: '깊은 각성', mult: 1.56, score: 1.1 }, 3: { name: '끝없는 밤', mult: 1.85, score: 1.25 } };
-  const GRADES = [['SSS', 19000], ['SS', 15500], ['S', 12500], ['A', 9500], ['B', 7000], ['C', 4500], ['D', 0]];
+  const DIFF = { 1: { name: '첫 각성', mult: 1, score: 1 }, 2: { name: '깊은 각성', mult: 1.4, score: 1.1 }, 3: { name: '끝없는 밤', mult: 1.65, score: 1.25 } };
+  const GRADES = [['SSS', 23000], ['SS', 19000], ['S', 15500], ['A', 12000], ['B', 9000], ['C', 6000], ['D', 0]];
   const EVENTS = {
     feeder: { title: '떠돌이 먹이 상인', text: '수레에 이상한 냄새가 나는 꾸러미가 가득하다. "속성 진한 놈으로만 골라 왔수다."', min: 2 },
     traveler: { title: '길 잃은 여행자', text: '초보 여행자 하나가 둥지 앞에서 지도를 거꾸로 들고 있다.', min: 2 },
@@ -205,7 +205,7 @@ const NEST = (function () {
     dust: { name: '별가루 비', boon: '아침에 정수 +4가 내렸다', bane: '해가 지면 모든 마을의 적의 +5' },
     gaze: { name: '돌아보는 것', boon: '아침에 신앙 +6이 고였다', bane: '오늘 밤 본체 방어 −25%' },
   };
-  const OMEN_IDS = Object.keys(OMEN), OMEN_DAY = 7, CALM_COST = 6;
+  const OMEN_IDS = Object.keys(OMEN), OMEN_DAY = K.act + 1, CALM_COST = 6;
 
   const STAR = {
     none: { name: '별자리 없이', desc: '아무 규칙도 바뀌지 않는다' },
@@ -222,9 +222,9 @@ const NEST = (function () {
   const pick = (G, a) => a[Math.floor(rng(G) * a.length)];
   const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
   const dmg = (atk, df) => Math.max(1, atk * (1 - df / (df + 20)));
-  const actOf = G => Math.min(5, Math.floor((G.day - 1) / 6) + 1);
+  const actOf = G => Math.min(5, Math.floor((G.day - 1) / K.act) + 1);
   const cm = G => K.cost[actOf(G)], sm = G => K.stat[actOf(G)];
-  const isSettle = G => G.day % 6 === 0;
+  const isSettle = G => G.day % K.act === 0;
   const expNeed = l => K.expBase * Math.pow(K.expGrowth, l - 1);
   function giveExp(o, x) { o.exp += x; let up = 0; while (o.exp >= expNeed(o.lv)) { o.exp -= expNeed(o.lv); o.lv++; up++; } return up; }
   function earn(G, x, why) { G.gold += x; G.ledger[why] = (G.ledger[why] || 0) + x; if (x > 0) G.stats.income[why] = (G.stats.income[why] || 0) + x; }
@@ -307,7 +307,7 @@ const NEST = (function () {
     };
     for (let i = 0; i < N; i++) G.cells.push({ dug: START.includes(i) || i === CORE, block: false, type: i === CORE ? 'core' : i === ENT ? 'trap' : 'empty', lv: 1, exp: 0, traps: i === ENT ? [{ kind: 'spike', lv: 1 }] : [], zone: false });
     VIDS.forEach(v => { G.vill[v] = { host: 0, tribute: 0, pause: 0, razed: false, trust: 0 }; });
-    G.slime.ess[startAsp] = 12; if (!G.eld.id) G.eld.id = pick(G, ASPECTS); G.bossAlt = { 6: rng(G) < 0.5, 12: rng(G) < 0.5 };
+    G.slime.ess[startAsp] = 12; if (!G.eld.id) G.eld.id = pick(G, ASPECTS); G.bossAlt = { [K.act]: rng(G) < 0.5, [2 * K.act]: rng(G) < 0.5 };
     G.buried = {}; { const und = G.cells.map((c, i) => c.dug ? -1 : i).filter(i => i >= 0), ts = Object.keys(BURIED); for (let k = 0; k < 3 && und.length; k++) G.buried[und.splice(Math.floor(rng(G) * und.length), 1)[0]] = ts.splice(Math.floor(rng(G) * ts.length), 1)[0]; }
     if (rng(G) < 0.6) G.eventDays[8] = 'mapper1';
     const pool = Object.keys(EVENTS);
@@ -368,7 +368,7 @@ const NEST = (function () {
   function partyKinds(G, v, settle, thin, day) {
     day = day || G.day; const alt = !!(G.bossAlt && G.bossAlt[day]); const final = day === K.days, g = final ? Math.max(3, fearGradeAt(G, true)) : fearGradeAt(G, settle), x = VILL[v].x;
     let B = partyBudget(G, v, settle) * (thin ? 0.7 : 1); const kinds = [];
-    if (final) { kinds.push('sealer'); B -= 60; } else if (settle && day === 6 && alt) { kinds.push('handler', 'hound', 'hound', 'hound'); B -= 44; } else if (settle && day === 12 && alt) { kinds.push('sapper'); B -= 34; } else if (settle && g === 2) { kinds.push('captain'); B -= 30; }
+    if (final) { kinds.push('sealer'); B -= 60; } else if (settle && day === K.act && alt) { kinds.push('handler', 'hound', 'hound', 'hound'); B -= 44; } else if (settle && day === 2 * K.act && alt) { kinds.push('sapper'); B -= 34; } else if (settle && g === 2) { kinds.push('captain'); B -= 30; }
     const seq = [null, [x[0]], ['militia', x[1], 'militia'], ['warrior', x[2], 'torch', x[1]], ['soldier', x[2], 'chaplain', 'warrior']][g];
     for (let i = 0; B >= INV[seq[i % seq.length]].b || !kinds.length; i++) { const k = seq[i % seq.length]; kinds.push(k); B -= INV[k].b; }
     return { g: final ? 5 : g, kinds };
@@ -381,7 +381,7 @@ const NEST = (function () {
     const sched = G.march.tomorrow; G.march.tonight = isSettle(G) ? { vill: (sched && sched.vill) || pickVillage(G), settle: true, thin: !!(sched && sched.thin) } : sched;
     const tmr = G.day + 1;
     if (tmr > K.days) G.march.tomorrow = null;
-    else if (tmr % 6 === 0) G.march.tomorrow = { vill: pickVillage(G), settle: true };
+    else if (tmr % K.act === 0) G.march.tomorrow = { vill: pickVillage(G), settle: true };
     else { const p = clamp(0.45 + (G.mapSold ? 0.1 : 0) + Math.max(0, G.gold) / (3000 * cm(G)) + G.fear / 400, 0.10, 0.92); G.march.tomorrow = (tmr === 3 || G.star === 'loud' || rng(G) < p) ? { vill: tmr === 3 ? 'field' : pickVillage(G), settle: false } : null; }
     // 밤 손님: 평소 밤 대신 가끔 온다. 낮 동안 어떻게 맞을지 정한다
     G.guest = null;
@@ -706,10 +706,12 @@ const NEST = (function () {
         const liv = alive(g); if (!liv.length) return;
         if (liv.some(u => INV[u.kind].disarm && !u.sealed) && rng(G) < 0.3) { say2('disarm', { room: idx, txt: '밀수꾼이 ' + TRAP[t.kind].name + '을(를) 해제했다' }); return; }
         const n = TGT[t.lv] + (zf ? 2 : 0) + (ob(G, 'tide') ? 1 : 0), tg = liv.slice(0, n), half = u => INV[u.kind].trapHalf ? 0.5 : 1;
-        if (t.kind === 'spike') { const d = 10 * LVM[t.lv] * mult; ev.push({ t: 'trap', kind: 'spike', room: idx, txt: '가시 바닥: ' + tg.length + '명에게 ' + Math.round(d), hits: tg.map(u => strike(u, d * half(u))) }); }
-        else if (t.kind === 'rock' && !retreat && !st.rock[idx + '_' + ti]) { st.rock[idx + '_' + ti] = 1; const u = pick(G, liv), d = 40 * LVM[t.lv] * mult; ev.push({ t: 'trap', kind: 'rock', room: idx, txt: '낙석: ' + u.name + '에게 ' + Math.round(d), hits: [strike(u, d * half(u))] }); }
+        if (t.kind === 'rock' && (retreat || st.rock[idx + '_' + ti])) return; if (t.kind === 'acid' && retreat) return;
+        st.wary = st.wary || {}; const wn = st.wary[t.kind] || 0, wv = Math.pow(K.wary, wn), wt = wn ? ' (익숙해짐 −' + Math.round((1 - wv) * 100) + '%)' : ''; st.wary[t.kind] = wn + 1;
+        if (t.kind === 'spike') { const d = 10 * LVM[t.lv] * mult * wv; ev.push({ t: 'trap', kind: 'spike', room: idx, txt: '가시 바닥' + wt + ': ' + tg.length + '명에게 ' + Math.round(d), hits: tg.map(u => strike(u, d * half(u))) }); }
+        else if (t.kind === 'rock' && !retreat && !st.rock[idx + '_' + ti]) { st.rock[idx + '_' + ti] = 1; const u = pick(G, liv), d = 40 * LVM[t.lv] * mult * wv; ev.push({ t: 'trap', kind: 'rock', room: idx, txt: '낙석' + wt + ': ' + u.name + '에게 ' + Math.round(d), hits: [strike(u, d * half(u))] }); }
         else if (t.kind === 'acid' && !retreat) { tg.forEach(u => { if (!u.acid) { u.acid = 1; u.df *= 0.7; } }); ev.push({ t: 'trap', kind: 'acid', room: idx, txt: '산성 웅덩이: ' + tg.length + '명 방어 −30%', hits: tg.map(u => ({ b: u.uid, d: 0, hp: hpf(u), k: false })) }); }
-        else if (t.kind === 'mist') sanHit(g, tg, 8 * LVM[t.lv] * mult, '환각 안개: ' + tg.length + '명의 정신이 흔들린다', idx, idx);
+        else if (t.kind === 'mist') sanHit(g, tg, 8 * LVM[t.lv] * mult * wv, '환각 안개' + wt + ': ' + tg.length + '명의 정신이 흔들린다', idx, idx);
       });
       witness(g);
     }

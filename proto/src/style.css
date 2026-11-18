@@ -172,7 +172,9 @@ details summary { cursor: pointer; }
 #trayrow #tray { flex: 1 1 0; min-width: 0; }
 #tray[hidden] + #sheetbtn { display: none !important; }
 #sheetclose, #rotate { display: none; }
-html, body { overscroll-behavior: none; }
+html, body { overscroll-behavior: none; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+/* 빠르게 두 번 누르면 브라우저가 화면을 확대하는 것을 막는다 */
+html, body, #game, #game *, #title, #title *, #modal, #modal *, #scene, #scene * { touch-action: manipulation; }
 #game, #title { -webkit-tap-highlight-color: transparent; }
 #game { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 .btn, .chip, .unit, .stat, #stage { touch-action: manipulation; }
@@ -202,7 +204,8 @@ html, body { overscroll-behavior: none; }
   #toast:empty { display: none; }
   #main { display: flex; flex-direction: column; gap: 6px; padding-block: 0; }
   #left { flex: none; overflow: visible; gap: 6px; }
-  #stage { height: min(50dvh, 116vw); aspect-ratio: auto; border-width: 0 0 2px; touch-action: none; }
+  /* 주소창이 나타났다 사라져도 지도 크기가 변하지 않게 svh를 쓴다 */
+  #stage { height: min(50vh, 116vw); height: min(50svh, 116vw); aspect-ratio: auto; border-width: 0 0 2px; touch-action: none !important; }
   #viewsw { top: 6px; right: 6px; }
   #viewsw .btn { min-height: 38px; padding: 6px 14px; font-size: 15px; }
   #stagetip, #recent { display: none !important; }

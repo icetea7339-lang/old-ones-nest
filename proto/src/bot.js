@@ -14,6 +14,11 @@ const STRATS = {
   peace: { captive: 'mix', raid: 0, spend: 1 },      // 습격 안 함
   hoard: { captive: 'ransom', raid: 0, spend: 0.4 }, // 재물을 쌓아 둔다
   idle: { captive: 'none', raid: 0, spend: 0 },      // 아무것도 안 한다
+  tspike: { captive: 'ransom', raid: 0, spend: 1, trapOnly: 'spike' },   // 권속 없이 함정만
+  tmist: { captive: 'ransom', raid: 0, spend: 1, trapOnly: 'mist' },
+  trock: { captive: 'ransom', raid: 0, spend: 1, trapOnly: 'rock' },
+  tacid: { captive: 'ransom', raid: 0, spend: 1, trapOnly: 'acid+spike' },
+  tmix: { captive: 'ransom', raid: 0, spend: 1, trapOnly: 'mist+spike' },
   nohand: { captive: 'mix', raid: 1, spend: 1, nohand: true },
   nocalm: { captive: 'mix', raid: 1, spend: 1, nocalm: true },
 };
@@ -38,13 +43,13 @@ function play(seed, st, diff, trace, force) {
       }
       const path = S.paths(G)[0], onPath = i => path.includes(i);
       // 지원자
-      for (let i = G.applicants.length - 1; i >= 0; i--) { const a = G.applicants[i]; if (S.freeSlot(G, a.kind) !== null && G.gold >= S.acceptCost(G, a) + 10 * c && G.kin.length < 14) S.accept(G, i); }
+      for (let i = G.applicants.length - 1; i >= 0; i--) { const a = G.applicants[i]; if (!st.trapOnly && S.freeSlot(G, a.kind) !== null && G.gold >= S.acceptCost(G, a) + 10 * c && G.kin.length < 14) S.accept(G, i); }
       // 방어 시설: 길 위 빈 칸을 채운다
-      const want = ['post', 'trap', 'hall', 'ambush', 'hall', 'trap'];
+      const want = st.trapOnly ? ['trap'] : ['post', 'trap', 'hall', 'ambush', 'hall', 'trap'];
       let wi = G.cells.filter((x, i) => x.dug && onPath(i) && x.type !== 'empty' && i !== S.CORE).length;
       for (const i of path) { const x = G.cells[i]; if (i === S.CORE || x.type !== 'empty') continue; const t = want[wi % want.length], cost = S.buildCost(G, i, t); if (!S.canBuild(G, i, t) && can(cost)) { if (S.build(G, i, t).ok) wi++; } }
       // 함정 채우기
-      G.cells.forEach((x, i) => { const cap = S.ROOM[x.type].traps || 0; while (x.dug && x.traps.length < cap) { const k = G.slime.main === 'dusk' ? 'mist' : (x.traps.some(t => t.kind === 'spike') ? 'acid' : 'spike'); if (!can(S.TRAP[k].cost * c) || !S.addTrap(G, i, k).ok) break; } });
+      G.cells.forEach((x, i) => { const cap = S.ROOM[x.type].traps || 0; while (x.dug && x.traps.length < cap) { const tk = st.trapOnly ? st.trapOnly.split('+') : null, k = tk ? tk[x.traps.length % tk.length] : G.slime.main === 'dusk' ? 'mist' : (x.traps.some(t => t.kind === 'spike') ? 'acid' : 'spike'); if (!can(S.TRAP[k].cost * c) || !S.addTrap(G, i, k).ok) break; } });
       // 대기 중인 권속 배치
       G.kin.forEach(m => { if (m.loc === null) { const f = S.freeSlot(G, m.kind); if (f !== null) S.moveKin(G, m.id, f); } });
       // 곁방: 감옥, 예배당, 징조 시설
