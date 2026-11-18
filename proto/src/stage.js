@@ -211,7 +211,7 @@ function drawSurface(x, t) {
     if (s.razed) { for (let k = 0; k < 5; k++) rect(x, '#4a4a58', p.x - 34 + k * 14, p.y + 8 - (k % 2) * 8, 12, 10 + (k % 2) * 8); for (let k = 0; k < 3; k++) rect(x, '#8a829688', p.x - 10 + k * 8 + Math.sin(t / 300 + k) * 4, p.y - 20 - ((t / 40 + k * 20) % 40), 8, 8); }
     else drawVillage(x, v, p, t, night);
     if (sel || hov) { x.strokeStyle = sel ? '#e8c030' : '#ece6d688'; x.lineWidth = 3; x.strokeRect(p.x - 46.5, p.y - 28.5, 106, 62); }
-    const stt = villState(v); plate(x, d.name + ' · ' + stt, p.x + 6, p.y + 32, stt === '평온' ? '#ece6d6' : stt === '공물 중' ? '#e8c030' : stt === '폐허' ? '#a2a8c6' : '#ff9a92', 14);
+    const stt = villState(v); plate(x, d.name + ' · ' + stt + (stt === '평온' && G.vill[v].trust ? ' ' + '●'.repeat(G.vill[v].trust) : ''), p.x + 6, p.y + 32, stt === '평온' ? '#ece6d6' : stt === '공물 중' ? '#e8c030' : stt === '폐허' ? '#a2a8c6' : '#ff9a92', 14);
     if (!s.razed) { rect(x, '#0b0c16', p.x - 25, p.y + 55, 62, 6); rect(x, '#ff5f57', p.x - 24, p.y + 56, 60 * Math.min(1, s.host / 100), 4); }
   });
   // 길목
@@ -335,9 +335,12 @@ async function playEvents(ev, from) {
       if (e.room != null) camTo(cellRect(locIdx(e.room)).x + CW / 2);
       for (const side of ['inv', 'def']) {
         const hs = e.hits.filter(h => h.s === side); if (!hs.length) continue;
-        hs.forEach(h => { const a = E[h.a], b = E[h.b]; if (a && b && !h.tag && !a.wall && !['shot', 'beam'].includes(FXKIND[a.kind])) a.lunge = { t0: now(), dx: Math.sign(b.x - a.x) * 16 }; applyHit(h); if (a && b && !a.wall) atkFx(a, b, h); });
+        // 한꺼번에 번쩍이지 않고 한 대씩 차례로 친다
+        const gap = Math.min(55, 230 / hs.length);
         if (hs.some(h => h.tag === 'aoe')) ST.shake = now() + 120;
-        sfx(hs.some(h => h.sd > 0) && !hs.some(h => h.d > 0) ? 'mad' : 'hit'); await wait(250);
+        sfx(hs.some(h => h.sd > 0) && !hs.some(h => h.d > 0) ? 'mad' : 'hit');
+        for (let k = 0; k < hs.length; k++) { const h = hs[k], a = E[h.a], b = E[h.b]; if (a && b && !h.tag && !a.wall && !['shot', 'beam'].includes(FXKIND[a.kind])) a.lunge = { t0: now(), dx: Math.sign(b.x - a.x) * 16 }; applyHit(h); if (a && b && !a.wall) atkFx(a, b, h); if (!h.tag && k < hs.length - 1 && hs.length > 1) await wait(gap); }
+        await wait(140);
       }
     } else if (e.t === 'fx') {
       const u = e.u && E[e.u];
