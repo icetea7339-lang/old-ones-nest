@@ -254,3 +254,10 @@ html, body { overscroll-behavior: none; }
 .favor i { width: 14px; height: 8px; background: var(--line); display: block; }
 .favor i.bad { background: #6a2a30; } .favor i.good { background: #2f6b46; }
 .favor i.now { height: 16px; background: var(--coin); outline: 2px solid var(--text); }
+
+/* 길잡이 */
+#coach, #coach2 { border: 2px solid var(--coin); background: var(--panel2); flex: none; }
+#coach2 { display: none; }
+#right.open #coach2:not([hidden]) { display: flex; }
+.tut-glow { outline: 3px solid var(--coin) !important; outline-offset: 2px; animation: blink .8s steps(2) infinite; }
+@media (max-width: 760px) { #coach { margin-inline: 10px; padding: 6px 8px; font-size: 13px; } #coach img, #coach2 img { width: 32px; height: 32px; } }

@@ -132,6 +132,7 @@ function drawUnder(x, t) {
   const mark = (loc, col) => { const r = cellRect(locIdx(loc)); x.strokeStyle = col; x.lineWidth = 3; x.strokeRect(r.x + 3.5, r.y + 3.5, r.w - 7, r.h - 7); };
   if (day && ST.hover && ST.hover.t === 'cell' && !(UI.sel && UI.sel.t === 'cell' && UI.sel.i === ST.hover.i)) mark(ST.hover.i, '#ece6d666');
   if (day && UI.sel && UI.sel.t === 'cell') mark(UI.sel.i, '#e8c030');
+  if (ST.tutCell != null && day) { const r = cellRect(ST.tutCell), up = Math.floor(t / 300) % 2; mark(ST.tutCell, up ? '#e8c030' : '#fff3a0'); plate(x, '▼ 여기', r.x + r.w / 2, r.y + 22 + up * 4, '#fff3a0', 15); }
   if (ST.focus != null) mark(ST.focus, Math.floor(t / 250) % 2 ? '#ff5f57' : '#fff3a0');
 }
 

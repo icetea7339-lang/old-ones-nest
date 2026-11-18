@@ -25,12 +25,14 @@ cd "$(dirname "$0")"
         <canvas id="stage" width="960" height="550" role="img" aria-label="둥지 지도. 지하의 칸, 지상의 마을과 길목을 누르면 할 수 있는 일이 오른쪽에 나옵니다."></canvas>
         <div id="viewsw"><button class="btn sm" data-a="view" data-v="surface" aria-pressed="false">지상</button><button class="btn sm" data-a="view" data-v="under" aria-pressed="true">지하</button></div>
       </div>
+      <div class="card" id="coach" hidden></div>
       <p class="small mute" id="stagetip"></p>
       <div id="trayrow"><div id="tray" class="row"></div><button class="btn sm only-m" id="sheetbtn" data-a="sheet" aria-expanded="false">▲ 넓게</button></div>
       <div class="card" id="recent"></div>
     </section>
     <section id="right">
       <button class="btn sm" id="sheetclose" data-a="sheet">▼ 지도 보기</button>
+      <div class="card" id="coach2" hidden></div>
       <main id="view"></main>
       <footer id="foot"></footer>
       <section id="night" class="card" hidden>
