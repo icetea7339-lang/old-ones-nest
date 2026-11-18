@@ -115,7 +115,7 @@ const TUT = [
   { t: () => '좋아. 창을 닫고 지도 오른쪽 위의 "지상"을 눌러. 오늘 밤 누가 오는지 보여.', sel: '#modal [data-a="close"], [data-a="view"][data-v="surface"]', done: () => ST.screen === 'surface' && $('modal').hidden },
   { t: () => '붉은 표시가 오늘 밤 올 무리야. 마을과 길목도 눌러 볼 수 있어. 다 봤으면 "지하"로 돌아와.', sel: '[data-a="view"][data-v="under"]', done: () => ST.screen === 'under' },
   { t: () => '준비 끝. "밤을 맞는다"를 눌러. 행동이 남았으면 한 번 더 누르면 돼. 싸움은 권속과 함정이 알아서 해.', sel: '[data-a="endday"]', done: () => G.day >= 2 },
-  { t: () => '첫 밤을 넘겼어. 쓰러뜨린 인간은 먹이가 돼. 지도 맨 아래 줄, 재물 더미 위에서 깜빡이는 본체 방을 눌러.', cell: () => NEST.CORE, done: () => !G.corpses.length || (G.stats.eats || 0) >= 1 || (UI.sel && UI.sel.t === 'cell' && UI.sel.i === NEST.CORE) },
+  { t: () => '첫 밤을 넘겼어. 쓰러뜨린 인간은 먹이가 돼. 지도 위의 "본체" 단추를 누르거나, 맨 아래 줄에서 깜빡이는 본체 방을 눌러.', cell: () => NEST.CORE, done: () => !G.corpses.length || (G.stats.eats || 0) >= 1 || (UI.sel && UI.sel.t === 'cell' && UI.sel.i === NEST.CORE) },
   { t: () => '"포식"을 눌러. 먹은 것의 징조가 쌓이고, 6일째 밤에 정수가 36을 넘으면 그 징조로 진화해.', sel: '[data-a="eat"], #sheetbtn', done: () => !G.corpses.length || (G.stats.eats || 0) >= 1 },
   { t: () => '여기까지가 기본이야. 무릎 꿇은 인간은 띠의 "포로"에서 처분하고, 바위를 눌러 굴을 넓히고, 위쪽 숫자를 누르면 뜻이 나와. 나머지는 그때그때 말해 줄게.', end: true, done: () => false },
 ];
@@ -574,6 +574,7 @@ function onAction(el) {
   if (a === 'hand') { if (handRes) handRes({ k: d.k, from: d.from === 'core' ? 'core' : d.from != null ? +d.from : null }); return; }
   if (!G || busy) return;
   if (a === 'quit') { saveRun(); if (!$('modal').hidden) closeModal(); return showTitle(); }
+  if (a === 'core') { if (ST.mode !== 'day' || busy) return; UI.sel = { t: 'cell', i: NEST.CORE }; UI.confirmEnd = false; setScreen('under'); camTo(cellRect(NEST.CORE).x + CW / 2); sfx('click'); render(); $('view').scrollTop = 0; setSheet(isMobile()); return; }
   if (a === 'view') { setSheet(false); if (ST.screen !== d.v && UI.sel) { UI.sel = null; render(); } return setScreen(d.v); }
   if (a === 'sel') { UI.sel = { t: d.t, i: num('i') }; setSheet(false); setScreen('under'); camTo(cellRect(num('i')).x + CW / 2); return render(); }
   if (a === 'gospot') { setSheet(false); setScreen('surface'); UI.sel = G.spot ? { t: 'spot' } : null; if (G.spot) camTo(SPOS[G.spot.pos].x); return render(); }
@@ -617,11 +618,25 @@ function boot() {
     const el = e.target.closest('[data-a]'); if (el && !el.disabled) return onAction(el);
     if (!$('scene').hidden && sceneNext) return sceneNext();
   });
-  // 좁은 화면: 지도를 좌우로 밀어서 본다
-  let drag = null, dragged = false; const stg = $('stage');
-  stg.addEventListener('pointerdown', e => { drag = { x: e.clientX, cam: ST.cam.tx }; dragged = false; });
-  stg.addEventListener('pointermove', e => { if (!drag || !G) return; const dx = e.clientX - drag.x; if (Math.abs(dx) > 8) dragged = true; if (dragged && ST.viewW < W) camTo(drag.cam - dx / (stg.getBoundingClientRect().height / H) + ST.viewW / 2, true); });
-  ['pointerup', 'pointercancel', 'pointerleave'].forEach(n => stg.addEventListener(n, () => { drag = null; }));
+  // 좁은 화면: 지도를 좌우로 밀어서 본다.
+  // 손가락은 touch 이벤트로 직접 받고 기본 동작을 막는다. (pointer 이벤트는 아이폰에서 조금만 비스듬히 밀어도 중간에 끊긴다)
+  let drag = null, dragged = false, lastTouch = 0; const stg = $('stage');
+  const scale = () => stg.getBoundingClientRect().height / H;
+  const dragStart = (x, y) => { drag = { x, y, cam: ST.cam.tx, lx: x, lt: performance.now(), v: 0 }; dragged = false; };
+  const dragMove = (x, y) => {
+    if (!drag || !G) return false; const dx = x - drag.x;
+    if (!dragged && Math.abs(dx) > 8) dragged = true; if (!dragged) return false;
+    const t = performance.now(); if (t > drag.lt) drag.v = 0.5 * drag.v + 0.5 * (x - drag.lx) / (t - drag.lt); drag.lx = x; drag.lt = t;
+    if (ST.viewW < W) { ST.camHold = now() + 3000; camTo(drag.cam - dx / scale() + ST.viewW / 2, true); }
+    return true;
+  };
+  const dragEnd = () => { if (drag && dragged && ST.viewW < W && Math.abs(drag.v) > 0.3 && performance.now() - drag.lt < 90) camTo(ST.cam.tx - drag.v * 170 / scale() + ST.viewW / 2, 'fling'); drag = null; };
+  stg.addEventListener('touchstart', e => { lastTouch = Date.now(); if (e.touches.length !== 1) { drag = null; return; } dragStart(e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
+  stg.addEventListener('touchmove', e => { lastTouch = Date.now(); if (e.touches.length !== 1) return; if (dragMove(e.touches[0].clientX, e.touches[0].clientY) && e.cancelable) e.preventDefault(); }, { passive: false });
+  ['touchend', 'touchcancel'].forEach(n => stg.addEventListener(n, () => { lastTouch = Date.now(); dragEnd(); }));
+  stg.addEventListener('mousedown', e => { if (Date.now() - lastTouch > 800) dragStart(e.clientX, e.clientY); });
+  window.addEventListener('mousemove', e => { if (drag && Date.now() - lastTouch > 800) dragMove(e.clientX, e.clientY); });
+  window.addEventListener('mouseup', () => { if (Date.now() - lastTouch > 800) dragEnd(); });
   $('stage').addEventListener('click', e => {
     if (dragged) { dragged = false; return; }
     if (!G || busy || ST.mode !== 'day') return; const h = hitTest(...stagePoint(e));
