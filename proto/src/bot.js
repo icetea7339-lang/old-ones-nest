@@ -61,6 +61,8 @@ function play(seed, st, diff, trace, force) {
       if (G.slime.main && G.ap > 0) { const i = path.find(i => !G.cells[i].zone && S.ROOM[G.cells[i].type].def); if (i != null && can(30 * c + 60 * c)) S.setZone(G, i); }
       // 길목
       if (G.day >= 4 && G.plots[0] === 'none' && can(40 * c + 80 * c)) S.setPlot(G, 0, 'garden');
+      // 탐식: 남는 재물로 목숨, 호위석, 별 가리기, 삼키기
+      if (st.spend !== 0 && !process.env.NOHOARD) for (const k of (process.env.ONLY ? process.env.ONLY.split(',') : ['life', 'seat', 'veil', 'gulp'])) { let n = 0; while (n++ < 4 && !S.hoardWhy(G, k) && G.gold - S.hoardCost(G, k) >= Math.max(reserve(), 250 * c)) { if (!S.hoardBuy(G, k).ok) break; info.hoard = (info.hoard || 0) + 1; } }
       // 본체
       const ss = S.slimeStats(G);
       if (G.slime.hp < ss.hp * 0.5 || G.kin.filter(m => m.hurt).length >= 2) S.rest(G);

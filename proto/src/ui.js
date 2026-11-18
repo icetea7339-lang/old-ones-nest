@@ -68,7 +68,7 @@ function guideLine() {
   if (G.prison.length) return '포로가 있어. 풀어 주고 몸값을 받을지, 바칠지, 믿게 할지 정해.';
   if (d < 6 && NEST.sideRooms(G).length === 0) return '길에서 벗어난 칸을 파면 적이 지나가지 않는 곁방이 돼. 감옥이나 예배당은 거기에 지어.';
   if (NEST.isSettle(G)) return '오늘은 달이 기우는 밤이야. 평소보다 큰 무리가 오고, 넘기면 정수에 따라 허물을 벗는다. 밤에 손을 쓸 수 있어.';
-  if (G.gold > 500 * NEST.cm(G)) return '깔고 앉은 재물이 묵직해. 냄새를 맡고 더 많이 올 거야. 권속이 있는 방을 눌러 훈련시키거나 함정을 강화해.';
+  if (G.gold > 500 * NEST.cm(G)) return '깔고 앉은 재물이 묵직해. 냄새를 맡고 더 많이 올 거야. 지도 위 "본체"를 눌러 재물을 삼키면 몸이 불어나고, 삼킨 것은 털리지도 않아.';
   if (NEST.actOf(G) >= 2 && !Object.values(G.vill).some(s => s.tribute || s.razed)) return '지상의 마을을 눌러 봐. 위협하면 공물을 바치고, 털면 한몫 잡지만 그 마을이 벼른다.';
   return '먹은 대로 변해. 본체 방에서 어떤 징조가 앞서는지 봐.';
 }
@@ -184,7 +184,7 @@ function tray() {
   $('tray').innerHTML = out.join('');
   $('recent').innerHTML = `<div class="row">${echoImg(40)}<p class="grow"><b class="h3 coin">잔향</b><br>${esc(guideLine())}</p></div>` + (G.log.length ? `<details><summary class="small mute">지난 일 ${Math.min(8, G.log.length)}건</summary>${G.log.slice(-8).reverse().map(s => `<p class="small mute">${esc(s)}</p>`).join('')}</details>` : '');
 }
-const lifePips = () => { const n = NEST.lives(G), t = NEST.K.falls[G.diff]; return '<span class="up">' + '●'.repeat(n) + '</span><span class="mute">' + '○'.repeat(Math.max(0, t - n)) + '</span>'; };
+const lifePips = () => { const n = NEST.lives(G), t = NEST.livesMax(G); return '<span class="up">' + '●'.repeat(n) + '</span><span class="mute">' + '○'.repeat(Math.max(0, t - n)) + '</span>'; };
 function slimePanel() {
   const sl = G.slime, s = NEST.slimeStats(G), need = NEST.K.thresh[sl.stage + 1], tot = NEST.essTotal(G), max = Math.max(1, ...NEST.ASPECTS.map(a => sl.ess[a]), need ? need / 2 : 1);
   const lines = [];
@@ -200,8 +200,11 @@ function slimePanel() {
     <h2>먹이 <small class="mute">${G.corpses.length}/${NEST.corpseCap(G)}</small></h2>
     <div class="row">${G.corpses.map(c => aspChip(NEST.INV[c.kind].asp, NEST.INV[c.kind].name + ' +' + NEST.corpsePts(G, c.kind))).join('') || '<span class="mute small">없음. 쓰러뜨린 침입자가 먹이가 된다.</span>'}</div>
     <div class="row">${btn('eat', null, `포식 (행동 1, ${G.slime.muts.includes('mouth') ? 6 : 3}구)`, 'pri', !G.corpses.length)}${btn('rest', null, '휴식 (행동 1, 본체 회복·부상 복귀)')}</div>
+    <h2>탐식 <small class="mute">깔고 앉은 재물을 쓴다 · 행동은 들지 않는다</small></h2>
+    <div class="opts">${Object.keys(NEST.HOARD).map(k => { const d = NEST.HOARD[k], n = NEST.hoardN(G, k), why = NEST.hoardWhy(G, k), full = n >= d.max; return opt('hoard', { k }, d.name + (n ? (d.max > 2 ? ' ×' + n : ' ' + n + '/' + d.max) : ''), full ? 0 : NEST.hoardCost(G, k), full ? '다 했다' : why && !why.includes('부족') ? why : d.desc, !!why); }).join('')}</div>
+    <p class="small mute">쌓아만 둔 재물은 인간을 부를 뿐이다. 삼킨 재물은 냄새가 조금 덜 나고, 털리지도 않는다.</p>
     ${sl.muts.length ? `<h2>변이 <small class="mute">${sl.muts.length}/6</small></h2><div class="stack">${sl.muts.map(m => `<p>${aspChip(NEST.MUT[m].asp, NEST.MUT[m].name)} <span class="small">${esc(NEST.MUT[m].desc)}</span></p>`).join('')}</div>` : ''}
-    <h2>호위 <small class="mute">${guards.filter(m => m.kind !== 'spawn').length}/2</small></h2><div class="units">${guards.map(kinChip).join('') || '<span class="mute small">없음</span>'}</div>
+    <h2>호위 <small class="mute">${guards.filter(m => m.kind !== 'spawn').length}/${NEST.capacity(G).core}</small></h2><div class="units">${guards.map(kinChip).join('') || '<span class="mute small">없음</span>'}</div>
     ${bench.length ? `<div class="row"><span class="small mute">여기에 세우기:</span>${bench.map(m => btn('place', { id: m.id, loc: 'core' }, esc(m.name), 'sm')).join('')}</div>` : ''}`;
 }
 function cellPanel(i) {
@@ -436,6 +439,7 @@ const HELP = `<h2>어떻게 하나</h2><div class="stack">
 <p><b>낮.</b> 행동은 하루 두 번. 건설 행동 한 번이면 파기·짓기·함정·옮기기 같은 작업을 세 번 한다. 포식, 휴식, 훈련, 습격은 행동 하나씩. 지원자 들이기와 포로 처분은 행동이 들지 않는다.</p>
 <p><b>지하.</b> 인간은 입구에서 본체 방까지 가장 짧은 길(점선)로 온다. 재물은 본체가 깔고 앉아 있어서, 본체를 쓰러뜨리기 전에는 한 푼도 못 가져간다. 본체가 쓰러지면 재물 절반을 털리고 체력 30%로 다시 일어나지만, 일어날 수 있는 횟수(목숨)는 정해져 있고 마지막 밤에는 쓰러지면 바로 끝이다. 길 위에는 싸울 자리와 함정을, 길에서 벗어난 곁방에는 감옥·예배당 같은 살림을 둔다. 칸을 파서 길을 바꿀 수 있다.</p>
 <p><b>지상.</b> 다섯 마을이 길목 셋을 지나 둥지로 온다. 오늘 밤과 내일 밤 올 무리가 지도에 보인다. 2막부터 마을을 습격할 수 있다.</p>
+<p><b>탐식.</b> 본체 창에서 재물을 쓴다. 삼키면 본체가 불어나고(값이 매번 오른다), 호위 자리와 목숨을 살 수 있고, 4막부터는 마지막 밤의 무리를 약하게 만들 수 있다. 쌓아만 둔 재물은 인간을 부르고 쓰러지면 절반을 털리니, 남는 재물은 삼키는 편이 낫다.</p>
 <p><b>교역.</b> 사이가 좋은 마을과는 날마다 교역 신뢰(●)가 쌓이고, 신뢰만큼 매일 들어오는 재물이 커진다. 하룻밤에 그 마을 사람을 여럿 죽이거나 습격하면 처음부터다. 죽이는 대신 무릎 꿇리고(그물꾼, 감옥), 미치게 해 쫓아내고(정신 공격), 몸값 받고 돌려보내면 싸우면서도 교역이 자란다. 공포가 높아질수록 쌓을 수 있는 신뢰가 줄어서, 무서운 둥지는 교역 대신 공물(위협)로 번다. 죽여서 먹으면 빨리 자라고, 살려 보내면 부자가 된다.</p>
 <p><b>정신력.</b> 침입자에게는 체력(빨강)과 정신력(보라)이 있다. 정신력이 바닥나면 달아나거나, 자기 편을 치거나, 무릎을 꿇는다. 무릎 꿇은 자는 포로가 된다: 몸값, 제물, 개종.</p>
 <p><b>흔적.</b> 처음 해 보는 일(첫 포로, 첫 진화…)마다 기록에 남고 별가루를 받는다. 잠긴 것은 없다. 굴을 파다 보면 묻힌 것이 나오기도 한다.</p>
@@ -575,6 +579,7 @@ function onAction(el) {
   if (a === 'hand') { if (handRes) handRes({ k: d.k, from: d.from === 'core' ? 'core' : d.from != null ? +d.from : null }); return; }
   if (!G || busy) return;
   if (a === 'quit') { saveRun(); if (!$('modal').hidden) closeModal(); return showTitle(); }
+  if (a === 'hoard') { const r = act(NEST.hoardBuy, d.k); if (r && r.ok) { sfx('evo'); ST.flash = now() + 120; } return; }
   if (a === 'core') { if (ST.mode !== 'day' || busy) return; UI.sel = { t: 'cell', i: NEST.CORE }; UI.confirmEnd = false; setScreen('under'); camTo(cellRect(NEST.CORE).x + CW / 2); sfx('click'); render(); $('view').scrollTop = 0; setSheet(isMobile()); return; }
   if (a === 'view') { setSheet(false); if (ST.screen !== d.v && UI.sel) { UI.sel = null; render(); } return setScreen(d.v); }
   if (a === 'sel') { UI.sel = { t: d.t, i: num('i') }; setSheet(false); setScreen('under'); camTo(cellRect(num('i')).x + CW / 2); return render(); }

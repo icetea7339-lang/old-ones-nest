@@ -321,7 +321,7 @@ const NEST = (function () {
   const K = {
     days: 30, cost: [0, 1, 2, 4, 7, 11], stat: [0, 1, 1.5, 2.4, 3.6, 5], size: [0, 1, 1.3, 1.8, 2.4, 3],
     ap: 2, startGold: 300, faithCap: 30, thresh: [0, 36, 100, 190, 300], tier: [1, 2.5, 6, 11, 18],
-    slime: { hp: 80, atk: 7, df: 5 }, budget: 32, settle: 1.7, rob: 0.5, falls: [0, 3, 2, 2], trustMax: 5, trustGain: 0.4, trustCap: [0, 5, 4, 2, 0], trustKills: 3,
+    slime: { hp: 80, atk: 7, df: 5 }, budget: 33, settle: 1.7, rob: 0.5, falls: [0, 3, 2, 2], smell: 0.8, trustMax: 5, trustGain: 0.4, trustCap: [0, 5, 4, 2, 0], trustKills: 3,
     lvGrowth: 1.15, expBase: 10, expGrowth: 1.3, trainEff: 1.5, hands: 2, corpseCap: 9,
   };
   const ASPECTS = ['abyss', 'nebula', 'brood', 'dusk', 'hunger'];
@@ -596,7 +596,7 @@ const NEST = (function () {
   const trustCap = G => K.trustCap[fearGrade(G)];
   const tradeOf = (G, v) => Math.round((v === 'gaet' ? 1.5 : 3) * cm(G) * (1 + K.trustGain * (G.vill[v].trust || 0)));
   // 목숨: 본체가 몇 번 더 쓰러질 수 있는가 (마지막 밤은 예외)
-  const lives = G => Math.max(0, K.falls[G.diff] - (G.falls || 0));
+  const livesMax = G => K.falls[G.diff] + hoardN(G, 'life'), lives = G => Math.max(0, livesMax(G) - (G.falls || 0));
   function migrate(G) { if (G.cells[18] && G.cells[18].type === 'vault') { G.cells[18].type = 'core'; G.cells[19] = { dug: false, block: false, type: 'empty', lv: 1, exp: 0, traps: [], zone: false }; } if (G.falls == null) G.falls = G.spared ? 1 : 0; if (!G.eld) G.eld = { id: G.startAsp, favor: 0, tally: 0 }; return G; }
   // ---------- 길 찾기 ----------
   const passable = (G, i) => G.cells[i].dug && !G.cells[i].block && i !== CORE;
@@ -634,9 +634,27 @@ const NEST = (function () {
     morning(G);
     return G;
   }
+  // ---------- 탐식: 깔고 앉은 재물을 삼켜 힘으로 바꾼다 ----------
+  const HOARD = {
+    gulp: { name: '재물을 삼킨다', base: 150, grow: 1.8, max: 99, hp: 0.06, atk: 0.03, desc: '본체 최대 체력 +6%, 공격·방어 +3%. 삼킬 때마다 값이 오른다' },
+    seat: { name: '황금 호위석', base: 300, grow: 1, max: 1, desc: '본체 방 호위 자리 +1' },
+    life: { name: '허물 하나 더', base: 500, grow: 1, max: 1, desc: '목숨 +1. 한 번 더 쓰러져도 일어난다' },
+    veil: { name: '별 가리기', base: 700, grow: 1, max: 1, act: 4, cut: 0.15, desc: '마지막 밤에 오는 무리의 체력·공격 −15%' },
+  };
+  const hoardN = (G, k) => (G.hoard && G.hoard[k]) || 0;
+  const hoardCost = (G, k) => Math.round(HOARD[k].base * cm(G) * Math.pow(HOARD[k].grow, hoardN(G, k)));
+  function hoardWhy(G, k) { const d = HOARD[k]; if (!d) return '없는 것입니다'; if (hoardN(G, k) >= d.max) return '더는 할 수 없습니다'; if (d.act && actOf(G) < d.act) return d.act + '막부터 할 수 있습니다'; if (G.gold < hoardCost(G, k)) return '재물이 부족합니다 (' + hoardCost(G, k) + 'G)'; return null; }
+  function hoardBuy(G, k) {
+    const why = hoardWhy(G, k); if (why) return fail(why); const cost = hoardCost(G, k), before = slimeStats(G).hp;
+    spend(G, cost, '탐식'); G.hoard = G.hoard || {}; G.hoard[k] = hoardN(G, k) + 1; G.stats.hoard = (G.stats.hoard || 0) + cost; note(G, 'gulp');
+    if (k === 'gulp') { G.slime.hp += slimeStats(G).hp - before; return ok('재물을 삼켰다. 본체가 불어났다 (−' + cost + 'G)'); }
+    if (k === 'seat') return ok('황금 호위석을 놓았다. 호위 자리 ' + capacity(G).core + ' (−' + cost + 'G)');
+    if (k === 'life') return ok('허물을 하나 더 둘렀다. 목숨 ' + lives(G) + ' (−' + cost + 'G)');
+    return ok('별을 가렸다. 마지막 밤의 무리가 약해진다 (−' + cost + 'G)');
+  }
   function slimeStats(G) {
     const t = K.tier[G.slime.stage], m = G.slime.main;
-    const x = G.star === 'lone' ? 1.2 : 1; return { hp: K.slime.hp * t * x * (G.star === 'glass' ? 0.5 : 1), atk: K.slime.atk * t * x * (m === 'hunger' ? 1.3 : 1), df: K.slime.df * t * x };
+    const x = G.star === 'lone' ? 1.2 : 1, g = hoardN(G, 'gulp'), gh = 1 + HOARD.gulp.hp * g, ga = 1 + HOARD.gulp.atk * g; return { hp: K.slime.hp * t * x * (G.star === 'glass' ? 0.5 : 1) * gh, atk: K.slime.atk * t * x * (m === 'hunger' ? 1.3 : 1) * ga, df: K.slime.df * t * x * ga };
   }
   function kinStats(G, m) {
     const d = KIN[m.kind], g = Math.pow(K.lvGrowth, m.lv - 1) * (m.rare ? 1.4 : 1) * (m.evo ? 1.5 : 1) * (m.kind === 'spawn' && m.skill === 2 && m.age >= 3 ? 2 : 1) * (m.kind === 'spawn' && G.slime.main === 'brood' && G.slime.stage >= 2 ? 1.5 : 1);
@@ -644,7 +662,7 @@ const NEST = (function () {
   }
   const salary = (G, m) => KIN[m.kind].pay * cm(G) * (1 + 0.1 * m.lv) * (m.evo ? 1.5 : 1);
   const upkeep = G => (G.kin.some(m => m.kind === 'clerk' && m.evo) ? 0.6 : G.kin.some(m => m.kind === 'clerk') ? 0.75 : 1) * (G.cells.filter(c => c.dug && ROOM[c.type].cost > 0 && !c.free).length + G.plots.filter(p => p !== 'none').length) * cm(G);
-  function capacity(G) { const c = { core: 2 }; G.cells.forEach((x, i) => { if (x.dug && i !== CORE && ROOM[x.type].def) c[i] = ROOM[x.type].def; }); return c; }
+  function capacity(G) { const c = { core: 2 + hoardN(G, 'seat') }; G.cells.forEach((x, i) => { if (x.dug && i !== CORE && ROOM[x.type].def) c[i] = ROOM[x.type].def; }); return c; }
   function freeSlot(G, kind) {
     const c = capacity(G), used = {}; G.kin.forEach(m => { if (m.loc !== null && m.kind !== 'spawn') used[m.loc] = (used[m.loc] || 0) + 1; });
     const order = Object.keys(c).filter(k => k !== 'core').map(Number).concat(['core']);
@@ -661,7 +679,7 @@ const NEST = (function () {
   function fearGradeAt(G, settle) { return settle ? Math.min(4, Math.max(fearGrade(G), actOf(G) + 1)) : Math.max(fearGrade(G), actOf(G) - 1); }
   function partyBudget(G, v, settle) {
     const plot = G.plots[VILL[v].plot];
-    return (G.star === 'loud' ? 1.4 : 1) * K.budget * K.size[actOf(G)] * (1 + G.fear / 150 + Math.max(0, G.gold) / (1500 * cm(G))) * (settle ? K.settle : 1) * ({ bramble: 0.8, camp: 1.3 }[plot] || 1) * DIFF[G.diff].mult * G.detBonus;
+    return (G.star === 'loud' ? 1.4 : 1) * K.budget * K.size[actOf(G)] * (1 + G.fear / 150 + (Math.max(0, G.gold) + K.smell * ((G.stats && G.stats.hoard) || 0)) / (1500 * cm(G))) * (settle ? K.settle : 1) * ({ bramble: 0.8, camp: 1.3 }[plot] || 1) * DIFF[G.diff].mult * G.detBonus;
   }
   function partyKinds(G, v, settle, thin, day) {
     day = day || G.day; const alt = !!(G.bossAlt && G.bossAlt[day]); const final = day === K.days, g = final ? Math.max(3, fearGradeAt(G, true)) : fearGradeAt(G, settle), x = VILL[v].x;
@@ -971,6 +989,7 @@ const NEST = (function () {
     const ev = [], rep = { vill: mt.vill, grade: pk.g, gname: GRADE_NAME[pk.g], count: party.length, party: party.map(u => ({ uid: u.uid, kind: u.kind, name: u.name })), ev, result: '', loot: 0, gold: 0, corpses: 0, captives: [], hurt: [], settle: !!mt.settle, off: [], adds: [] };
     const st = { rock: {}, sluice: {}, hands: Math.max(0, handsMax(G) + (ob(G, 'eye') ? 1 : 0) - (ox(G, 'silence') ? 1 : 0)), rummaged: {}, tempId: 0 }, squads = {}, fought = new Set();
     if (G.omen) ev.push({ t: 'note', txt: '징조 「' + OMEN[G.omen.id].name + '」' + (G.omen.tier !== 'bane' ? ' · ' + OMEN[G.omen.id].boon : '') + (ox(G, G.omen.id) ? ' · ' + OMEN[G.omen.id].bane : '') });
+    if (G.day === K.days && hoardN(G, 'veil')) { party.forEach(u => { u.hp *= 1 - HOARD.veil.cut; u.mhp *= 1 - HOARD.veil.cut; u.atk *= 1 - HOARD.veil.cut; }); ev.push({ t: 'note', txt: '가려 둔 별 아래에서 무리가 길을 헤맨다. 침입자의 체력·공격 −15%' }); }
     if (G.day === K.days && G.eld && G.eld.favor >= 2) { party.forEach(u => { u.san *= 0.7; }); ev.push({ t: 'note', txt: '「' + ELDER[G.eld.id].name + '」이(가) 네 편에서 내려다본다. 침입자의 정신력 −30%' }); }
     if (G.day === K.days && G.eld && G.eld.favor <= -2) { party.forEach(u => { u.hp *= 1.2; u.mhp *= 1.2; }); ev.push({ t: 'note', txt: '「' + ELDER[G.eld.id].name + '」이(가) 봉인단의 등을 민다. 침입자의 체력 +20%' }); }
     const main = G.slime.main, stage = G.slime.stage, c = cm(G), m = sm(G);
@@ -1194,7 +1213,7 @@ const NEST = (function () {
       if (alive(arrived).length) { const defs = [sl].concat(gd), ctx = yield* decide('core', arrived, defs, true, null); fight(arrived, defs, null, true, ctx); }
       G.slime.hp = Math.max(0, sl.hp); core = sl.hp <= 0;
       if (core) {
-        fatal = last || (G.falls || 0) + 1 >= K.falls[G.diff];
+        fatal = last || lives(G) <= 1;
         if (!fatal) {
           const frac = Math.min(0.9, K.rob * (stage >= 2 && G.slime.sub === 'abyss' ? 0.6 : 1) * (alive(arrived).some(u => u.kind === 'smuggler') ? 1.3 : 1));
           rep.loot = Math.round(Math.max(0, G.gold) * frac);
@@ -1216,7 +1235,7 @@ const NEST = (function () {
     let heal = (stage >= 2 && G.slime.sub === 'brood') ? 2 : 0;
     for (const x of fought) if (x.hp <= 0 && x.ref) { if (x.kind === 'spawn') { G.kin = G.kin.filter(k => k !== x.ref); continue; } if (heal > 0) heal--; else { x.ref.hurt = 2; rep.hurt.push(x.name); } }
     if (core) {
-      G.falls = (G.falls || 0) + 1; rep.fell = G.falls; rep.lives = Math.max(0, K.falls[G.diff] - G.falls);
+      G.falls = (G.falls || 0) + 1; rep.fell = G.falls; rep.lives = lives(G);
       if (fatal) { rep.result = 'core'; rep.loot = 0; G.over = { win: false, why: last ? '마지막 밤에 본체가 쓰러졌습니다' : '본체가 다시 일어나지 못했습니다' }; }
       else { rep.result = 'stolen'; spend(G, rep.loot, '재물 털림'); G.stats.stolen += rep.loot; note(G, 'stolen'); G.fear = Math.max(0, G.fear - 5); G.slime.hp = slimeStats(G).hp * 0.3; }
     }
@@ -1296,12 +1315,12 @@ const NEST = (function () {
   function endKey(G) { return G.slime.stage === 0 ? 'none' : G.child === 'home' && G.sacrifices === 0 ? 'child' : heretic(G) ? 'h_' + G.slime.main : G.sacrifices === 0 ? 'pure' : G.slime.main; }
   function avatarOf(G) { return AVATAR[endKey(G)]; }
   function score(G) {
-    const parts = [['재물', Math.min(6000, Math.max(0, Math.round(G.gold / 2)))], ['공포', Math.round(G.fear * 10)], ['둥지 호화도', luxury(G) * 25], ['권속 전력', G.kin.reduce((a, m) => a + m.lv, 0) * 25], ['진화', G.slime.stage * 400], ['변이', G.slime.muts.length * 100], ['격퇴', G.stats.repels * 40], ['신도', G.kin.filter(m => m.kind === 'cultist').length * 30], ['털린 재물', -Math.round(G.stats.stolen)]];
+    const parts = [['재물', Math.min(6000, Math.max(0, Math.round(G.gold / 2)))], ['공포', Math.round(G.fear * 10)], ['둥지 호화도', luxury(G) * 25], ['권속 전력', G.kin.reduce((a, m) => a + m.lv, 0) * 25], ['진화', G.slime.stage * 400], ['변이', G.slime.muts.length * 100], ['격퇴', G.stats.repels * 40], ['신도', G.kin.filter(m => m.kind === 'cultist').length * 30], ['탐식', hoardN(G, 'gulp') * 150 + (hoardN(G, 'seat') + hoardN(G, 'life') + hoardN(G, 'veil')) * 250], ['털린 재물', -Math.round(G.stats.stolen)]];
     const base = parts.reduce((a, p) => a + p[1], 0), mult = DIFF[G.diff].score * (G.over && G.over.win ? 1 : 0.4), total = Math.max(0, Math.round(base * mult));
     return { parts, mult, total, grade: GRADES.find(g => total >= g[1])[0] };
   }
 
-  return { K, ASPECTS, ASP, COLS, ROWS, N, ENT, CORE, nbrs, lives, migrate, trading, tradeOf, trustCap, ROOM, TRAP, ZONE, PLOT, KIN, SKILL_LV, INV, GRADE_NAME, VILL, VIDS, FORM1, FORM2, FORM2UP, SUBTRAIT, AVATAR, MUT, DIFF, GRADES, EVENTS,
+  return { K, ASPECTS, ASP, COLS, ROWS, N, ENT, CORE, nbrs, lives, livesMax, migrate, trading, tradeOf, trustCap, HOARD, hoardN, hoardCost, hoardWhy, hoardBuy, ROOM, TRAP, ZONE, PLOT, KIN, SKILL_LV, INV, GRADE_NAME, VILL, VIDS, FORM1, FORM2, FORM2UP, SUBTRAIT, AVATAR, MUT, DIFF, GRADES, EVENTS,
     newGame, actOf, cm, sm, isSettle, formId, formName, essTotal, fearGrade, faithCap, corpseCap, corpsePts, slimeStats, kinStats, salary, upkeep, capacity, freeSlot, prisonCap, handsMax, spellCost, seesDetail, expNeed,
     paths, sideRooms, estimate, partyBudget, canDig, digPreview, dig, toggleBlock, canBuild, buildCost, build, addTrap, trapUpCost, upTrap, setZone, setPlot, accept, acceptCost, dismiss, moveKin, setSkill, setStance, train, eat, rest,
     SPOT, spotOptions, resolveSpot, ELDER, OMEN, OMEN_IDS, OMEN_DAY, CALM_COST, ACT_NAME, calm, COMBO, combos, BURIED, STAR, EVO, EVO_DESC, kinName, evoCost, evolveKin, GUEST, guestOptions, resolveGuest, convertKind, endKey, convertChance, ransomOf, sacEss, mutChance, dispose, raidInfo, raid, eventOptions, resolveEvent, endDay, beginNight, settle, luxury, avatarOf, score };
@@ -2059,7 +2078,7 @@ function guideLine() {
   if (G.prison.length) return '포로가 있어. 풀어 주고 몸값을 받을지, 바칠지, 믿게 할지 정해.';
   if (d < 6 && NEST.sideRooms(G).length === 0) return '길에서 벗어난 칸을 파면 적이 지나가지 않는 곁방이 돼. 감옥이나 예배당은 거기에 지어.';
   if (NEST.isSettle(G)) return '오늘은 달이 기우는 밤이야. 평소보다 큰 무리가 오고, 넘기면 정수에 따라 허물을 벗는다. 밤에 손을 쓸 수 있어.';
-  if (G.gold > 500 * NEST.cm(G)) return '깔고 앉은 재물이 묵직해. 냄새를 맡고 더 많이 올 거야. 권속이 있는 방을 눌러 훈련시키거나 함정을 강화해.';
+  if (G.gold > 500 * NEST.cm(G)) return '깔고 앉은 재물이 묵직해. 냄새를 맡고 더 많이 올 거야. 지도 위 "본체"를 눌러 재물을 삼키면 몸이 불어나고, 삼킨 것은 털리지도 않아.';
   if (NEST.actOf(G) >= 2 && !Object.values(G.vill).some(s => s.tribute || s.razed)) return '지상의 마을을 눌러 봐. 위협하면 공물을 바치고, 털면 한몫 잡지만 그 마을이 벼른다.';
   return '먹은 대로 변해. 본체 방에서 어떤 징조가 앞서는지 봐.';
 }
@@ -2175,7 +2194,7 @@ function tray() {
   $('tray').innerHTML = out.join('');
   $('recent').innerHTML = `<div class="row">${echoImg(40)}<p class="grow"><b class="h3 coin">잔향</b><br>${esc(guideLine())}</p></div>` + (G.log.length ? `<details><summary class="small mute">지난 일 ${Math.min(8, G.log.length)}건</summary>${G.log.slice(-8).reverse().map(s => `<p class="small mute">${esc(s)}</p>`).join('')}</details>` : '');
 }
-const lifePips = () => { const n = NEST.lives(G), t = NEST.K.falls[G.diff]; return '<span class="up">' + '●'.repeat(n) + '</span><span class="mute">' + '○'.repeat(Math.max(0, t - n)) + '</span>'; };
+const lifePips = () => { const n = NEST.lives(G), t = NEST.livesMax(G); return '<span class="up">' + '●'.repeat(n) + '</span><span class="mute">' + '○'.repeat(Math.max(0, t - n)) + '</span>'; };
 function slimePanel() {
   const sl = G.slime, s = NEST.slimeStats(G), need = NEST.K.thresh[sl.stage + 1], tot = NEST.essTotal(G), max = Math.max(1, ...NEST.ASPECTS.map(a => sl.ess[a]), need ? need / 2 : 1);
   const lines = [];
@@ -2191,8 +2210,11 @@ function slimePanel() {
     <h2>먹이 <small class="mute">${G.corpses.length}/${NEST.corpseCap(G)}</small></h2>
     <div class="row">${G.corpses.map(c => aspChip(NEST.INV[c.kind].asp, NEST.INV[c.kind].name + ' +' + NEST.corpsePts(G, c.kind))).join('') || '<span class="mute small">없음. 쓰러뜨린 침입자가 먹이가 된다.</span>'}</div>
     <div class="row">${btn('eat', null, `포식 (행동 1, ${G.slime.muts.includes('mouth') ? 6 : 3}구)`, 'pri', !G.corpses.length)}${btn('rest', null, '휴식 (행동 1, 본체 회복·부상 복귀)')}</div>
+    <h2>탐식 <small class="mute">깔고 앉은 재물을 쓴다 · 행동은 들지 않는다</small></h2>
+    <div class="opts">${Object.keys(NEST.HOARD).map(k => { const d = NEST.HOARD[k], n = NEST.hoardN(G, k), why = NEST.hoardWhy(G, k), full = n >= d.max; return opt('hoard', { k }, d.name + (n ? (d.max > 2 ? ' ×' + n : ' ' + n + '/' + d.max) : ''), full ? 0 : NEST.hoardCost(G, k), full ? '다 했다' : why && !why.includes('부족') ? why : d.desc, !!why); }).join('')}</div>
+    <p class="small mute">쌓아만 둔 재물은 인간을 부를 뿐이다. 삼킨 재물은 냄새가 조금 덜 나고, 털리지도 않는다.</p>
     ${sl.muts.length ? `<h2>변이 <small class="mute">${sl.muts.length}/6</small></h2><div class="stack">${sl.muts.map(m => `<p>${aspChip(NEST.MUT[m].asp, NEST.MUT[m].name)} <span class="small">${esc(NEST.MUT[m].desc)}</span></p>`).join('')}</div>` : ''}
-    <h2>호위 <small class="mute">${guards.filter(m => m.kind !== 'spawn').length}/2</small></h2><div class="units">${guards.map(kinChip).join('') || '<span class="mute small">없음</span>'}</div>
+    <h2>호위 <small class="mute">${guards.filter(m => m.kind !== 'spawn').length}/${NEST.capacity(G).core}</small></h2><div class="units">${guards.map(kinChip).join('') || '<span class="mute small">없음</span>'}</div>
     ${bench.length ? `<div class="row"><span class="small mute">여기에 세우기:</span>${bench.map(m => btn('place', { id: m.id, loc: 'core' }, esc(m.name), 'sm')).join('')}</div>` : ''}`;
 }
 function cellPanel(i) {
@@ -2427,6 +2449,7 @@ const HELP = `<h2>어떻게 하나</h2><div class="stack">
 <p><b>낮.</b> 행동은 하루 두 번. 건설 행동 한 번이면 파기·짓기·함정·옮기기 같은 작업을 세 번 한다. 포식, 휴식, 훈련, 습격은 행동 하나씩. 지원자 들이기와 포로 처분은 행동이 들지 않는다.</p>
 <p><b>지하.</b> 인간은 입구에서 본체 방까지 가장 짧은 길(점선)로 온다. 재물은 본체가 깔고 앉아 있어서, 본체를 쓰러뜨리기 전에는 한 푼도 못 가져간다. 본체가 쓰러지면 재물 절반을 털리고 체력 30%로 다시 일어나지만, 일어날 수 있는 횟수(목숨)는 정해져 있고 마지막 밤에는 쓰러지면 바로 끝이다. 길 위에는 싸울 자리와 함정을, 길에서 벗어난 곁방에는 감옥·예배당 같은 살림을 둔다. 칸을 파서 길을 바꿀 수 있다.</p>
 <p><b>지상.</b> 다섯 마을이 길목 셋을 지나 둥지로 온다. 오늘 밤과 내일 밤 올 무리가 지도에 보인다. 2막부터 마을을 습격할 수 있다.</p>
+<p><b>탐식.</b> 본체 창에서 재물을 쓴다. 삼키면 본체가 불어나고(값이 매번 오른다), 호위 자리와 목숨을 살 수 있고, 4막부터는 마지막 밤의 무리를 약하게 만들 수 있다. 쌓아만 둔 재물은 인간을 부르고 쓰러지면 절반을 털리니, 남는 재물은 삼키는 편이 낫다.</p>
 <p><b>교역.</b> 사이가 좋은 마을과는 날마다 교역 신뢰(●)가 쌓이고, 신뢰만큼 매일 들어오는 재물이 커진다. 하룻밤에 그 마을 사람을 여럿 죽이거나 습격하면 처음부터다. 죽이는 대신 무릎 꿇리고(그물꾼, 감옥), 미치게 해 쫓아내고(정신 공격), 몸값 받고 돌려보내면 싸우면서도 교역이 자란다. 공포가 높아질수록 쌓을 수 있는 신뢰가 줄어서, 무서운 둥지는 교역 대신 공물(위협)로 번다. 죽여서 먹으면 빨리 자라고, 살려 보내면 부자가 된다.</p>
 <p><b>정신력.</b> 침입자에게는 체력(빨강)과 정신력(보라)이 있다. 정신력이 바닥나면 달아나거나, 자기 편을 치거나, 무릎을 꿇는다. 무릎 꿇은 자는 포로가 된다: 몸값, 제물, 개종.</p>
 <p><b>흔적.</b> 처음 해 보는 일(첫 포로, 첫 진화…)마다 기록에 남고 별가루를 받는다. 잠긴 것은 없다. 굴을 파다 보면 묻힌 것이 나오기도 한다.</p>
@@ -2566,6 +2589,7 @@ function onAction(el) {
   if (a === 'hand') { if (handRes) handRes({ k: d.k, from: d.from === 'core' ? 'core' : d.from != null ? +d.from : null }); return; }
   if (!G || busy) return;
   if (a === 'quit') { saveRun(); if (!$('modal').hidden) closeModal(); return showTitle(); }
+  if (a === 'hoard') { const r = act(NEST.hoardBuy, d.k); if (r && r.ok) { sfx('evo'); ST.flash = now() + 120; } return; }
   if (a === 'core') { if (ST.mode !== 'day' || busy) return; UI.sel = { t: 'cell', i: NEST.CORE }; UI.confirmEnd = false; setScreen('under'); camTo(cellRect(NEST.CORE).x + CW / 2); sfx('click'); render(); $('view').scrollTop = 0; setSheet(isMobile()); return; }
   if (a === 'view') { setSheet(false); if (ST.screen !== d.v && UI.sel) { UI.sel = null; render(); } return setScreen(d.v); }
   if (a === 'sel') { UI.sel = { t: d.t, i: num('i') }; setSheet(false); setScreen('under'); camTo(cellRect(num('i')).x + CW / 2); return render(); }
