@@ -177,14 +177,50 @@ function slimeCanvas(sl, frame) {
   });
   return (cv[key] = c);
 }
+// 권속: 종류마다 다른 몸. 손으로 찍은 그림이 없는 종류는 여기서 16×16에 그린다. q = (x, y, 너비, 높이, 색), p = [윤곽, 몸, 밝은 곳, 그늘, 포인트]
+const BONE = '#f2e9c9', STEEL = '#a0a8c0', GOLD = '#e8c030', RED = '#c8303a', WHT = '#f5f5f5', INK = '#1a0508', WOOD = '#7a5a3a';
+const KDRAW = {
+  scale(q, p) { q(7, 0, 1, 4, p[4]); q(6, 1, 1, 3, p[4]); q(5, 3, 6, 4, p[0]); q(6, 4, 4, 3, p[1]); q(7, 5, 1, 1, WHT); q(9, 5, 1, 1, WHT); q(11, 4, 2, 1, p[4]); q(4, 7, 8, 6, p[0]); q(5, 8, 6, 4, p[1]); q(6, 9, 1, 1, p[2]); q(8, 10, 1, 1, p[2]); q(7, 11, 1, 1, p[3]); q(1, 7, 4, 6, p[0]); q(2, 8, 2, 4, p[4]); q(12, 10, 2, 1, p[1]); q(13, 9, 1, 1, p[1]); q(5, 13, 2, 2, p[0]); q(9, 13, 2, 2, p[0]); },
+  scribe(q, p) { q(7, 0, 2, 1, p[4]); q(7, 1, 2, 1, WHT); q(6, 2, 4, 4, p[0]); q(7, 3, 2, 2, p[1]); q(7, 4, 2, 1, p[0]); q(6, 6, 4, 8, p[0]); q(7, 6, 2, 8, p[3]); q(7, 7, 1, 6, p[1]); q(1, 8, 5, 4, p[0]); q(2, 8, 3, 3, BONE); q(3, 8, 1, 4, p[0]); q(2, 9, 1, 1, p[3]); q(4, 10, 1, 1, p[3]); q(5, 14, 6, 1, p[0]); q(11, 5, 1, 6, WHT); q(12, 4, 1, 2, WHT); },
+  mask(q, p) { q(5, 2, 6, 7, p[0]); q(6, 3, 4, 5, WHT); q(7, 4, 1, 1, p[0]); q(9, 4, 1, 1, p[0]); q(7, 6, 3, 1, '#7a121c'); q(7, 9, 2, 5, p[0]); q(6, 10, 4, 3, p[3]); q(5, 14, 6, 1, p[0]); q(1, 5, 3, 3, WHT); q(2, 6, 1, 1, p[0]); q(12, 7, 3, 3, WHT); q(13, 8, 1, 1, p[0]); q(4, 9, 1, 3, p[4]); q(11, 10, 1, 3, p[4]); },
+  netter(q, p) { q(12, 1, 1, 13, WOOD); for (let k = 0; k < 3; k++) { q(8, 1 + k * 2, 4, 1, STEEL); q(8 + k * 2, 1, 1, 5, STEEL); } q(3, 5, 5, 4, p[0]); q(4, 6, 3, 2, p[1]); q(5, 6, 1, 1, WHT); q(3, 9, 7, 4, p[0]); q(4, 9, 5, 3, p[1]); q(5, 10, 3, 1, p[2]); q(9, 8, 3, 1, p[1]); q(4, 13, 2, 2, p[0]); q(7, 13, 2, 2, p[0]); },
+  warden(q, p) { q(5, 1, 6, 4, p[0]); q(6, 2, 4, 2, p[1]); q(6, 3, 4, 1, p[0]); q(3, 5, 10, 8, p[0]); q(4, 6, 8, 6, p[3]); q(5, 6, 6, 3, p[1]); q(4, 9, 8, 1, p[0]); q(7, 9, 2, 1, p[4]); q(10, 10, 1, 3, p[4]); q(11, 12, 1, 1, p[4]); q(1, 6, 2, 1, p[0]); q(0, 7, 3, 3, p[0]); q(1, 8, 1, 1, '#ffd23a'); q(4, 13, 3, 2, p[0]); q(9, 13, 3, 2, p[0]); },
+  fallen(q, p) { q(5, 0, 2, 1, p[4]); q(9, 0, 2, 1, p[4]); q(5, 1, 6, 5, p[0]); q(6, 2, 4, 3, WHT); q(7, 3, 1, 1, p[0]); q(9, 3, 1, 1, p[0]); q(7, 4, 1, 2, '#7a121c'); q(4, 6, 8, 8, p[0]); q(5, 7, 6, 7, p[3]); q(7, 7, 2, 7, p[4]); q(13, 1, 1, 13, WOOD); q(12, 1, 3, 1, p[4]); q(13, 0, 1, 1, p[4]); q(3, 14, 10, 1, p[0]); },
+  digger(q, p) { q(5, 3, 6, 3, p[0]); q(6, 4, 4, 1, p[4]); q(7, 2, 2, 2, '#ffd23a'); q(3, 6, 10, 8, p[0]); q(4, 7, 8, 6, p[1]); q(6, 9, 4, 3, p[2]); q(6, 7, 1, 1, p[0]); q(9, 7, 1, 1, p[0]); q(7, 8, 2, 1, '#e88aa8'); q(0, 9, 3, 1, BONE); q(0, 11, 3, 1, BONE); q(1, 10, 2, 1, p[0]); q(13, 9, 3, 1, BONE); q(13, 11, 3, 1, BONE); q(13, 10, 2, 1, p[0]); q(4, 14, 3, 1, p[0]); q(9, 14, 3, 1, p[0]); },
+  clerk(q, p) { q(8, 2, 5, 5, p[0]); q(9, 3, 3, 3, p[1]); q(9, 4, 1, 1, WHT); q(11, 4, 1, 1, WHT); q(8, 2, 5, 1, p[4]); q(9, 7, 5, 7, p[0]); q(10, 8, 3, 5, p[3]); q(1, 7, 8, 7, p[0]); q(2, 8, 6, 5, BONE); q(3, 9, 4, 1, p[0]); q(3, 11, 3, 1, p[0]); q(13, 5, 2, 2, GOLD); q(12, 13, 3, 1, GOLD); q(13, 12, 2, 1, GOLD); },
+  licker(q, p) { q(3, 6, 9, 8, p[0]); q(4, 7, 7, 6, p[1]); q(5, 8, 2, 1, p[2]); q(6, 10, 5, 2, INK); q(10, 10, 3, 1, '#e8505a'); q(13, 9, 1, 2, '#e8505a'); q(14, 7, 1, 3, '#e8505a'); q(13, 6, 1, 1, '#e8505a'); q(12, 5, 1, 1, '#ff9a8a'); q(7, 12, 1, 2, p[2]); q(4, 14, 7, 1, p[0]); },
+  spitter(q, p) { q(7, 10, 2, 5, p[0]); q(7, 11, 2, 3, p[3]); q(5, 14, 6, 1, p[0]); q(4, 3, 8, 7, p[0]); q(5, 4, 6, 5, p[1]); q(6, 5, 2, 1, p[2]); q(7, 6, 2, 2, INK); [[2, 2, 2, 1], [1, 5, 3, 1], [2, 9, 2, 1], [12, 2, 2, 1], [12, 5, 3, 1], [12, 9, 2, 1], [7, 0, 1, 3], [9, 1, 1, 2], [5, 1, 1, 2]].forEach(a => q(a[0], a[1], a[2], a[3], p[4])); },
+};
+// 진화: 21×21. 원래 몸은 (2, 5)에 놓이고, 종류마다 다른 장비와 부위가 덧붙는다
+const KEVO = {
+  goblin(q) { q(17, 3, 3, 7, WOOD); q(16, 1, 5, 4, '#5a4630'); q(17, 2, 1, 1, STEEL); q(19, 3, 1, 1, STEEL); q(7, 15, 1, 2, BONE); q(12, 15, 1, 2, BONE); q(2, 14, 4, 2, STEEL); q(9, 3, 2, 5, RED); q(8, 4, 1, 2, RED); },
+  skeleton(q) { q(5, 5, 10, 3, STEEL); q(6, 4, 8, 1, STEEL); q(9, 0, 2, 5, RED); q(11, 1, 1, 3, RED); q(0, 12, 5, 7, STEEL); q(1, 13, 3, 5, RED); q(2, 14, 1, 3, GOLD); q(18, 3, 1, 12, WHT); q(17, 14, 3, 1, GOLD); q(18, 15, 1, 2, WOOD); },
+  cultist(q) { q(7, 0, 6, 7, '#5a2a7a'); q(8, 1, 4, 1, '#7a3a9a'); q(9, 2, 2, 2, GOLD); q(18, 3, 1, 17, WOOD); q(17, 0, 3, 3, GOLD); q(18, 1, 1, 1, RED); q(0, 10, 1, 4, WHT); q(0, 9, 1, 1, '#ffd23a'); q(1, 16, 1, 3, WHT); q(1, 15, 1, 1, '#ffd23a'); },
+  scale(q) { q(18, 1, 1, 19, STEEL); q(16, 2, 5, 1, STEEL); q(16, 0, 1, 3, STEEL); q(20, 0, 1, 3, STEEL); q(8, 0, 1, 6, GOLD); q(10, 1, 1, 5, GOLD); q(6, 2, 1, 4, GOLD); q(4, 15, 2, 2, BONE); q(13, 17, 2, 2, BONE); q(2, 11, 6, 8, '#0f5a78'); q(3, 12, 4, 6, GOLD); q(4, 13, 2, 4, '#0f5a78'); },
+  scribe(q) { q(0, 3, 4, 3, BONE); q(1, 4, 2, 1, INK); q(17, 7, 4, 3, BONE); q(18, 8, 2, 1, INK); q(0, 15, 3, 3, BONE); q(6, 3, 9, 1, GOLD); q(5, 4, 1, 1, GOLD); q(15, 4, 1, 1, GOLD); q(10, 0, 1, 2, WHT); q(9, 1, 3, 1, WHT); q(3, 10, 1, 1, GOLD); q(18, 13, 1, 1, GOLD); q(16, 2, 1, 1, WHT); },
+  mask(q) { [[1, 5], [4, 1], [9, 0], [14, 1], [17, 5]].forEach(a => { q(a[0] - 1, a[1] - 1, 5, 6, '#1b1d2a'); q(a[0], a[1], 3, 4, WHT); q(a[0] + 1, a[1] + 1, 1, 1, '#1b1d2a'); q(a[0], a[1] + 3, 3, 1, '#7a121c'); }); q(0, 14, 1, 5, GOLD); q(20, 14, 1, 5, GOLD); },
+  hunger(q) { q(4, 1, 13, 6, '#1b1d2a'); q(5, 2, 11, 4, INK); for (let k = 0; k < 6; k++) { q(5 + k * 2, 2, 1, 1, WHT); q(6 + k * 2, 5, 1, 1, WHT); } q(9, 3, 3, 2, RED); q(3, 19, 3, 2, '#1b1d2a'); q(15, 19, 3, 2, '#1b1d2a'); q(0, 9, 2, 1, BONE); q(19, 9, 2, 1, BONE); q(0, 12, 2, 1, BONE); q(19, 12, 2, 1, BONE); },
+  netter(q) { for (let k = 0; k < 3; k++) { q(0, 1 + k * 2, 5, 1, STEEL); q(k * 2, 1, 1, 6, STEEL); } q(2, 7, 1, 4, WOOD); q(1, 14, 1, 5, STEEL); q(0, 18, 2, 1, STEEL); q(17, 12, 1, 6, STEEL); q(17, 17, 3, 1, STEEL); q(19, 16, 1, 1, STEEL); q(6, 7, 6, 2, RED); },
+  warden(q) { q(15, 2, 6, 9, STEEL); q(16, 3, 4, 7, '#1b1d2a'); q(17, 3, 1, 7, STEEL); q(19, 3, 1, 7, STEEL); q(17, 6, 2, 2, '#e8b890'); q(14, 16, 1, 1, STEEL); q(15, 17, 1, 1, STEEL); q(16, 17, 5, 4, '#4a4a58'); q(17, 18, 1, 1, STEEL); q(6, 3, 8, 3, STEEL); q(7, 2, 6, 1, GOLD); },
+  turncoat(q) { q(0, 11, 4, 9, '#7a121c'); q(17, 11, 3, 9, '#7a121c'); q(1, 12, 2, 7, RED); q(5, 3, 2, 4, BONE); q(4, 2, 1, 2, BONE); q(14, 3, 2, 4, BONE); q(16, 2, 1, 2, BONE); q(19, 0, 2, 15, STEEL); q(20, 0, 1, 15, WHT); q(18, 15, 3, 1, GOLD); q(7, 9, 2, 1, RED); q(11, 9, 2, 1, RED); },
+  fallen(q) { q(4, 1, 4, 1, GOLD); q(12, 1, 4, 1, GOLD); q(3, 3, 3, 1, GOLD); q(15, 3, 3, 1, GOLD); q(9, 0, 2, 1, RED); q(0, 9, 3, 7, BONE); q(1, 10, 1, 5, INK); q(0, 16, 2, 2, BONE); q(18, 9, 3, 7, BONE); q(19, 10, 1, 5, INK); q(19, 16, 2, 2, BONE); },
+  digger(q) { q(15, 13, 6, 3, STEEL); q(19, 11, 2, 7, STEEL); q(20, 14, 1, 1, WHT); q(16, 12, 1, 1, '#4a4a58'); q(18, 16, 1, 1, '#4a4a58'); q(7, 1, 6, 5, GOLD); q(8, 2, 4, 3, '#ffd23a'); q(9, 3, 2, 1, WHT); q(7, 11, 3, 2, '#b6ecff'); q(11, 11, 3, 2, '#b6ecff'); },
+  clerk(q) { for (let k = 0; k < 6; k++) { q(17, 19 - k * 2, 4, 1, GOLD); q(17, 18 - k * 2, 4, 1, '#a87a10'); } q(18, 6, 2, 2, GOLD); q(10, 5, 7, 2, GOLD); q(11, 4, 1, 1, GOLD); q(13, 3, 1, 2, GOLD); q(15, 4, 1, 1, GOLD); q(13, 4, 1, 1, RED); q(0, 9, 3, 1, GOLD); q(1, 8, 1, 3, GOLD); },
+  licker(q) { q(0, 13, 4, 1, '#e8505a'); q(0, 10, 1, 4, '#e8505a'); q(1, 9, 1, 1, '#ff9a8a'); q(16, 18, 4, 1, '#e8505a'); q(19, 18, 1, 3, '#e8505a'); q(5, 4, 1, 7, '#e8505a'); q(4, 3, 1, 2, '#ff9a8a'); q(9, 8, 4, 3, INK); q(10, 9, 2, 1, WHT); q(3, 17, 2, 2, WHT); q(13, 12, 1, 1, WHT); },
+  spitter(q, p) { q(0, 6, 6, 6, p[0]); q(1, 7, 4, 4, p[1]); q(2, 8, 2, 2, INK); q(15, 4, 6, 6, p[0]); q(16, 5, 4, 4, p[1]); q(17, 6, 2, 2, INK); q(2, 4, 1, 2, p[4]); q(0, 9, 1, 1, p[4]); q(18, 2, 1, 2, p[4]); q(20, 7, 1, 1, p[4]); q(9, 0, 1, 5, p[4]); q(11, 1, 1, 4, p[4]); q(4, 12, 4, 1, p[3]); q(14, 10, 3, 1, p[3]); },
+  eyeheap(q, p) { q(5, 0, 11, 8, p[0]); q(6, 1, 9, 6, p[1]); q(8, 2, 5, 4, WHT); q(10, 3, 2, 2, INK); q(10, 3, 1, 1, RED); q(0, 11, 3, 3, p[0]); q(0, 11, 2, 2, WHT); q(1, 12, 1, 1, INK); q(18, 13, 3, 3, p[0]); q(19, 13, 2, 2, WHT); q(19, 14, 1, 1, INK); q(4, 19, 13, 2, p[3]); },
+  tangle(q, p) { q(8, 11, 5, 5, p[0]); q(9, 12, 3, 3, '#f0e060'); q(10, 13, 1, 1, WHT); [[0, 3, 7], [3, 0, 6], [17, 0, 7], [20, 4, 8], [1, 15, 5], [19, 15, 5]].forEach(a => { q(a[0], a[1], 1, a[2], p[1]); q(a[0], a[1], 1, 1, p[2]); }); q(6, 3, 1, 3, p[1]); q(14, 2, 1, 4, p[1]); },
+};
+function kinBase(kind) {
+  if (!KDRAW[kind]) return spriteCanvas(KINSPR[kind][0], KINSPR[kind][1]); const key = 'kb:' + kind; if (cv[key]) return cv[key];
+  const c = document.createElement('canvas'); c.width = c.height = 16; const x = c.getContext('2d'); KDRAW[kind]((a, b, w, h, col) => { x.fillStyle = col; x.fillRect(a, b, w, h); }, PAL[KINSPR[kind][1]] || PAL.base); return (cv[key] = c);
+}
 function kinCanvas(kind, evo) {
-  const b = spriteCanvas(KINSPR[kind][0], KINSPR[kind][1]); if (!evo) return b; const key = 'evo2:' + kind; if (cv[key]) return cv[key];
-  // 진화한 권속: 몸이 붉게 물들고, 뿔과 가시가 돋고, 한 뼘 더 크게 그려진다
-  const c = document.createElement('canvas'); c.width = c.height = 20; const x = c.getContext('2d'); x.drawImage(b, 2, 4);
-  x.globalCompositeOperation = 'source-atop'; x.fillStyle = 'rgba(170, 20, 50, 0.32)'; x.fillRect(0, 0, 20, 20); x.globalCompositeOperation = 'source-over';
-  const put = (list, col) => list.forEach(([a, d]) => { x.fillStyle = col; x.fillRect(a, d, 1, 1); });
-  put([[5, 4], [4, 3], [4, 2], [3, 1], [3, 0], [14, 4], [15, 3], [15, 2], [16, 1], [16, 0]], '#f2e9c9'); put([[5, 3], [14, 3]], '#1b1d2a');
-  put([[1, 12], [0, 11], [0, 10], [18, 12], [19, 11], [19, 10], [1, 16], [18, 16]], '#f2e9c9'); put([[8, 3], [9, 2], [10, 2], [11, 3]], '#e8c030'); put([[9, 3], [10, 3]], '#ff5040');
+  if (!evo || !KEVO[kind]) return kinBase(kind); const key = 'evo3:' + kind; if (cv[key]) return cv[key];
+  const c = document.createElement('canvas'); c.width = c.height = 21; const x = c.getContext('2d'), q = (a, b, w, h, col) => { x.fillStyle = col; x.fillRect(a, b, w, h); }, P = PAL[KINSPR[kind][1]] || PAL.base;
+  if (['turncoat', 'fallen', 'scale', 'warden'].includes(kind)) KEVO[kind](q, P);          // 망토·날개·등짐은 몸 뒤에
+  x.drawImage(kinBase(kind), 2, 5);
+  if (!['turncoat', 'fallen', 'warden'].includes(kind)) KEVO[kind](q, P); else if (kind === 'turncoat') { q(5, 3, 2, 4, BONE); q(14, 3, 2, 4, BONE); q(19, 0, 2, 15, STEEL); q(20, 0, 1, 15, WHT); q(18, 15, 3, 1, GOLD); } else if (kind === 'fallen') { q(4, 1, 4, 1, GOLD); q(12, 1, 4, 1, GOLD); q(3, 3, 3, 1, GOLD); q(15, 3, 3, 1, GOLD); q(9, 0, 2, 1, RED); } else { q(6, 3, 8, 3, STEEL); q(7, 2, 6, 1, GOLD); q(14, 16, 1, 1, STEEL); q(15, 17, 1, 1, STEEL); q(16, 17, 5, 4, '#4a4a58'); q(17, 18, 1, 1, STEEL); }
   return (cv[key] = c);
 }
 // ---------- 결말 그림: 192×108. 징조마다 다른 재앙이고, 점수 등급(0~2)이 높을수록 더 멀리 간다 ----------
@@ -238,7 +274,7 @@ function endingScene(c, key, tier, sl, fr) {
   }
 }
 const toImg = (c, key, size, alt) => `<img class="px" src="${urls[key] || (urls[key] = c.toDataURL())}" width="${size}" height="${size}" alt="${esc(alt || '')}">`;
-const kinImg = (kind, size, evo) => toImg(kinCanvas(kind, evo), (evo ? 'evo2:' : 'kin:') + kind, size, NEST.KIN[kind].name);
+const kinImg = (kind, size, evo) => toImg(kinCanvas(kind, evo), (evo ? 'evo3:' : 'kin2:') + kind, size, NEST.KIN[kind].name);
 const invImg = (kind, size) => toImg(invCanvas(kind), 'inv:' + kind, size, NEST.INV[kind].name);
 const slimeImg = (sl, size, alt) => toImg(slimeCanvas(sl), 'sl2:' + (sl.main || 'base') + ':' + (sl.sub || '') + ':' + sl.stage + ':' + (sl.muts || []).join(','), size, alt || '본체');
 const echoImg = size => toImg(spriteCanvas('slime', 'echo'), 'echo', size, '잔향');
