@@ -1,7 +1,7 @@
 // 옛 것의 둥지 — 화면 2/3: 지도(지상·지하)와 밤 전투 재생
 const W = 960, H = 550, GX = 20, GY = 48, CW = 184, CH = 124, S = 2;
 const cellRect = i => ({ x: GX + (i % 5) * CW, y: GY + Math.floor(i / 5) * CH, w: CW, h: CH });
-const locIdx = loc => loc === 'core' ? NEST.CORE : loc === 'vault' ? NEST.VAULT : +loc;
+const locIdx = loc => loc === 'core' ? NEST.CORE : +loc;
 const floorY = r => r.y + r.h - 20;
 const THEME = {
   base: { wall: '#3a3352', floor: '#5d4f72' }, abyss: { wall: '#183a5e', floor: '#2f6a94' }, nebula: { wall: '#2e2452', floor: '#5a4a9a' },
@@ -60,7 +60,11 @@ function drawRoom(x, c, i, r, t) {
   if (type === 'mirror') { rect(x, '#e8c030', mx - 16, fy - 56, 32, 50); rect(x, '#b6ecff', mx - 13, fy - 53, 26, 44); rect(x, '#ffffff', mx - 9, fy - 48, 4, 14); }
   if (type === 'abattoir') { rect(x, '#8a8296', r.x + 20, r.y + 16, r.w - 40, 3); for (let n = 0; n < 4; n++) { rect(x, '#d0d0d8', r.x + 34 + n * 34, r.y + 19, 2, 14); rect(x, '#b8303a', r.x + 29 + n * 34, r.y + 33, 12, 18); } }
   if (type === 'table') { rect(x, '#7a5a3a', mx - 40, fy - 20, 80, 6); rect(x, '#5a4630', mx - 36, fy - 14, 5, 14); rect(x, '#5a4630', mx + 31, fy - 14, 5, 14); for (let n = 0; n < 3; n++) rect(x, '#f5f5f5', mx - 28 + n * 24, fy - 25, 12, 5); }
-  if (type === 'vault') { const n = Math.min(7, Math.ceil(Math.max(0, ST.hud ? ST.hud.gold : G.gold) / (120 * NEST.cm(G)))); rect(x, '#4a4a58', mx - 44, fy - 40, 88, 40); rect(x, '#2a2a36', mx - 40, fy - 36, 80, 32); for (let k = 0; k < n; k++) { rect(x, '#e8c030', mx - 34 + (k % 4) * 18, fy - 12 - Math.floor(k / 4) * 12, 14, 9); rect(x, '#fff3a0', mx - 32 + (k % 4) * 18, fy - 11 - Math.floor(k / 4) * 12, 5, 2); } }
+
+  if (type === 'core') {   // 본체는 재물 더미를 깔고 앉아 있다
+    const n = Math.min(12, Math.ceil(Math.max(0, ST.hud ? ST.hud.gold : G.gold) / (100 * NEST.cm(G)))), cx = r.x + r.w - 60, rows = [6, 4, 2]; let k = 0;
+    rows.forEach((w, row) => { for (let j = 0; j < w && k < n; j++, k++) { const bx = Math.round(cx - w * 9 + j * 18), by = fy - 9 - row * 8; rect(x, '#8a6a1c', bx, by, 16, 9); rect(x, '#e8c030', bx + 1, by, 14, 7); rect(x, '#fff3a0', bx + 3, by + 1, 5, 2); } });
+  }
   if (type === 'core') { x.fillStyle = (main ? ASPCOL[main] : '#9fb8a8') + '33'; x.beginPath(); x.ellipse(r.x + r.w - 60, fy, 56 + Math.sin(t / 500) * 4, 12, 0, 0, 7); x.fill(); }
   for (let l = 1; l < c.lv; l++) rect(x, '#f5f5f5', r.x + r.w - 14 - (l - 1) * 7, r.y + 10, 4, 4);
 }
@@ -360,10 +364,10 @@ async function playEvents(ev, from) {
       e.who.forEach(id => { const u = E[id]; if (!u) return; for (const k in ST.defs) ST.defs[k] = ST.defs[k].filter(z => z !== id); moveTo(u, defPos(e.to, list.length, u.scale === 1), 350); list.push(id); });
       ST.flash = now() + 100; sfx('spell'); await wait(420);
     } else if (e.t === 'steal') {
-      if (e.amt > 0) { const r = cellRect(NEST.VAULT); ST.floats.push({ x: r.x + r.w / 2, y: r.y + 40, s: '-' + e.amt + 'G', col: '#ff5f57', t0: now(), big: true }); sfx('down'); }
+      if (e.amt > 0) { const r = cellRect(NEST.CORE); ST.floats.push({ x: r.x + r.w / 2, y: r.y + 40, s: '-' + e.amt + 'G', col: '#ff5f57', t0: now(), big: true }); sfx('down'); }
       await wait(600);
     } else if (e.t === 'end') {
-      ST.label = { repel: '격퇴!', stolen: '털렸다…', core: '본체가 쓰러졌다' }[e.result]; sfx(e.result === 'repel' ? 'up' : 'down'); await wait(1000); ST.label = '';
+      ST.label = { repel: '격퇴!', stolen: '쓰러졌다… 재물을 털렸다', core: '본체가 쓰러졌다' }[e.result]; sfx(e.result === 'repel' ? 'up' : 'down'); await wait(1000); ST.label = '';
     }
   }
   return ev.length;
