@@ -399,11 +399,18 @@ const NEST = (function () {
   });
   // 권속의 진화: 레벨 5부터, 재물을 들여 한 번
   const EVO = { goblin: '홉고블린', skeleton: '해골 기사', cultist: '대신도', scale: '심해지기', scribe: '별의 서기', mask: '천의 가면', hunger: '게걸', netter: '올가미꾼', warden: '옥졸장', turncoat: '검은 기사', fallen: '이단 주교', digger: '땅굴 장인', clerk: '재무관', licker: '약손', spitter: '가시 포대', eyeheap: '눈의 탑', tangle: '매듭 덩이' };
+  const EVO_DESC = {
+    goblin: '칠 때마다 옆의 적 하나를 절반 세기로 함께 친다', skeleton: '같은 방 아군이 받는 피해 −15%, 부활 +1회', cultist: '매일 신앙 +2 더, 정신 공격 대상 +1명',
+    scale: '매 라운드 가장 다친 아군을 치료한다 (스킬과 따로)', scribe: '정신 공격 1.5배, 손 주문 효과 +25%', mask: '싸움이 시작될 때 적 전원의 정신력을 깎는다',
+    hunger: '매 라운드 두 번 문다', netter: '그물 문턱 +10%p, 한 번에 한 명 더 덮는다', warden: '포로 자리 +2 더, 싸움이 시작될 때 호통으로 적 전원의 정신력을 깎는다',
+    turncoat: '처치할 때마다 남은 적 전원의 정신력을 깎는다', fallen: '치료량 2배', digger: '공짜 작업 +1번 더', clerk: '시설 유지비 −40%',
+    licker: '전투마다 한 번, 쓰러진 아군 하나를 일으킨다', spitter: '싸움 전에 가시를 두 번 쏜다', eyeheap: '눈길이 들어온 적 전원에게 닿는다', tangle: '적 넷을 세 라운드 동안 붙든다',
+  };
   const kinName = m => m.evo && EVO[m.kind] ? EVO[m.kind] : KIN[m.kind].name, evoCost = G => 80 * cm(G);
   function evolveKin(G, id) {
     const m = G.kin.find(x => x.id === id); if (!m || !EVO[m.kind]) return fail('진화할 수 없는 권속입니다'); if (m.evo) return fail('이미 진화했습니다'); if (m.lv < 5) return fail('레벨 5부터 진화할 수 있습니다');
     if (G.gold < evoCost(G)) return fail('재물이 부족합니다 (' + evoCost(G) + 'G)'); spend(G, evoCost(G), '권속 진화'); m.evo = true; G.stats.kinEvo = (G.stats.kinEvo || 0) + 1;
-    return ok(m.name + '이(가) ' + EVO[m.kind] + '(으)로 자랐다. 능력치 1.5배');
+    return ok(m.name + '이(가) ' + EVO[m.kind] + '(으)로 자랐다. ' + EVO_DESC[m.kind]);
   }
   const convertKind = kind => ['militia', 'captain', 'warrior', 'soldier'].includes(kind) ? 'turncoat' : ['priest', 'chaplain'].includes(kind) ? 'fallen' : 'cultist';
   const SKILL_LV = [2, 4, 7];
@@ -628,7 +635,7 @@ const NEST = (function () {
     return { hp: d.hp * g, atk: d.atk * g, df: d.df * g, satk: (d.satk || 0) * g };
   }
   const salary = (G, m) => KIN[m.kind].pay * cm(G) * (1 + 0.1 * m.lv) * (m.evo ? 1.5 : 1);
-  const upkeep = G => (G.kin.some(m => m.kind === 'clerk') ? 0.75 : 1) * (G.cells.filter(c => c.dug && ROOM[c.type].cost > 0 && !c.free).length + G.plots.filter(p => p !== 'none').length) * cm(G);
+  const upkeep = G => (G.kin.some(m => m.kind === 'clerk' && m.evo) ? 0.6 : G.kin.some(m => m.kind === 'clerk') ? 0.75 : 1) * (G.cells.filter(c => c.dug && ROOM[c.type].cost > 0 && !c.free).length + G.plots.filter(p => p !== 'none').length) * cm(G);
   function capacity(G) { const c = { core: 2 }; G.cells.forEach((x, i) => { if (x.dug && i !== CORE && ROOM[x.type].def) c[i] = ROOM[x.type].def; }); return c; }
   function freeSlot(G, kind) {
     const c = capacity(G), used = {}; G.kin.forEach(m => { if (m.loc !== null && m.kind !== 'spawn') used[m.loc] = (used[m.loc] || 0) + 1; });
@@ -637,7 +644,7 @@ const NEST = (function () {
     for (const k of order) if ((used[k] || 0) < c[k]) return k;
     return null;
   }
-  const prisonCap = G => 2 + 4 * countRoom(G, 'prison') + (G.kin.some(m => m.kind === 'warden') ? 2 : 0) + (G.kin.some(m => m.kind === 'warden' && m.skill === 1) ? 2 : 0);
+  const prisonCap = G => 2 + 4 * countRoom(G, 'prison') + (G.kin.some(m => m.kind === 'warden') ? 2 : 0) + (G.kin.some(m => m.kind === 'warden' && m.skill === 1) ? 2 : 0) + (G.kin.some(m => m.kind === 'warden' && m.evo) ? 2 : 0);
   const handsMax = G => K.hands + (G.slime.main === 'nebula' ? (G.slime.stage >= 2 ? 2 : G.slime.stage >= 1 ? 1 : 0) : 0);
   const spellCost = G => G.slime.main ? Math.max(1, FORM1[G.slime.main].spell[1] - (has(G, 'ring') ? 2 : 0) - (G.slime.main === 'nebula' && G.slime.stage >= 2 ? 2 : 0) - (G.kin.some(m => m.kind === 'scribe' && m.skill === 2) ? 2 : 0)) : 99;
   const seesDetail = (G, v) => G.known || G.known2 || G.kin.some(m => m.kind === 'eyeheap') || has(G, 'thirdeye') || (G.slime.stage >= 2 && G.slime.sub === 'nebula') || G.plots[VILL[v].plot] === 'tower';
@@ -658,7 +665,7 @@ const NEST = (function () {
   }
   function pickVillage(G) { const vs = VIDS.filter(v => !G.vill[v].razed); if (!vs.length) return 'field'; let tot = 0; const w = vs.map(v => (tot += 5 + G.vill[v].host + (v === 'school' ? G.fear / 5 : 0))); const r = rng(G) * tot; return vs[w.findIndex(x => r < x)]; }
   function morning(G) {
-    G.ap = K.ap; G.d = { buildOps: Math.min(2, G.kin.filter(m => m.kind === 'digger').length), fear0: G.fear }; G.ledger = {}; G.off = {}; G.known = false;
+    G.ap = K.ap; G.d = { buildOps: Math.min(3, G.kin.filter(m => m.kind === 'digger').length + G.kin.filter(m => m.kind === 'digger' && m.evo).length), fear0: G.fear }; G.ledger = {}; G.off = {}; G.known = false;
     G.event = G.eventDays[G.day] ? { id: G.eventDays[G.day] } : null;
     // 오늘 밤과 내일 밤
     const sched = G.march.tomorrow; G.march.tonight = isSettle(G) ? { vill: (sched && sched.vill) || pickVillage(G), settle: true, thin: !!(sched && sched.thin) } : sched;
@@ -944,7 +951,7 @@ const NEST = (function () {
   const alive = us => us.filter(u => u.hp > 0 && !u.gone && !u.fled);
   const hpf = u => Math.max(0, u.hp) / u.mhp, spf = u => u.msan ? Math.max(0, u.san) / u.msan : 1;
   function mkInv(G, kind, n, vill) { const d = INV[kind], m0 = sm(G), hm = (ob(G, 'silence') ? 0.85 : 1) * (ox(G, 'longday') ? 1.15 : 1) * (G.star === 'loud' ? 1.25 : 1), m = m0; return { uid: 'i' + n, side: 'inv', kind, name: d.name, hp: d.hp * m * hm, mhp: d.hp * m * hm, atk: d.atk * m * (ox(G, 'whisper') ? 1.15 : 1) * (G.star === 'loud' ? 1.25 : 1), df: d.df * m * (ox(G, 'moon') ? 1.2 : 1), san: d.san * m * (ob(G, 'star') ? 0.75 : 1), msan: d.san * m, vill }; }
-  function mkDef(G, m) { const s = kinStats(G, m); return { uid: 'k' + m.id, side: 'def', kind: m.kind, name: m.name, hp: s.hp, mhp: s.hp, atk: s.atk, df: s.df * ((m.kind === 'scale' && m.skill === 2) || (m.kind === 'netter' && m.skill === 1) ? 1.5 : 1) * (ob(G, 'wetwall') ? 1.3 : 1), satk: s.satk, ref: m, sk: m.skill, revives: m.kind === 'skeleton' ? 1 + (m.skill === 2 ? 1 : 0) : 0 }; }
+  function mkDef(G, m) { const s = kinStats(G, m); return { uid: 'k' + m.id, side: 'def', kind: m.kind, name: m.name, hp: s.hp, mhp: s.hp, atk: s.atk, df: s.df * ((m.kind === 'scale' && m.skill === 2) || (m.kind === 'netter' && m.skill === 1) ? 1.5 : 1) * (ob(G, 'wetwall') ? 1.3 : 1), satk: s.satk * (m.evo && m.kind === 'scribe' ? 1.5 : 1), ref: m, sk: m.skill, evo: !!m.evo, revives: m.kind === 'skeleton' ? 1 + (m.skill === 2 ? 1 : 0) + (m.evo ? 1 : 0) : 0 }; }
   function strike(t, x) { const was = t.hp > 0; t.hp -= x; return { b: t.uid, d: Math.round(x), hp: hpf(t), k: was && t.hp <= 0 }; }
   const ward = g => alive(g).reduce((a, u) => Math.max(a, u.sealed ? 0 : (INV[u.kind].ward || 0)), 0);
 
@@ -1007,13 +1014,15 @@ const NEST = (function () {
         if (d.kind === 'scale' && d.sk === 1) { const u = pick(G, inv); u.skip = 2; fx(u, 'bind', d.name + '이(가) ' + u.name + '을(를) 끌어들였다'); }
         if (d.kind === 'scribe' && d.sk === 1) { const u = inv.find(x => INV[x.kind].heal || INV[x.kind].ward || INV[x.kind].revive || INV[x.kind].twice) || pick(G, inv); u.sealed = true; fx(u, 'bind', d.name + '이(가) ' + u.name + '의 특성을 봉했다'); }
         if (d.kind === 'mask' && d.sk === 2) sanHit(inv0, inv, 4 * m, d.name + '의 막 내림', idx, idx);
-        if (d.kind === 'spitter') ev.push({ t: 'trap', kind: 'spike', room: idx, txt: d.name + '이(가) 가시를 쏟아부었다', hits: alive(inv0).map(u => strike(u, dmg(d.atk * 0.8, u.df))) });
-        if (d.kind === 'tangle') alive(inv0).slice(0, 2).forEach(u => { u.skip = 2; fx(u, 'bind', d.name + '이(가) ' + u.name + '을(를) 붙들었다'); });
-        if (d.kind === 'warden' && d.sk === 2) sanHit(inv0, inv, 3 * m, d.name + '의 호통', idx, idx);
+        if (d.kind === 'mask' && d.evo) sanHit(inv0, alive(inv0), 5 * m, d.name + '의 가면들이 한꺼번에 돌아본다', idx, idx);
+        if (d.kind === 'spitter') ev.push({ t: 'trap', kind: 'spike', room: idx, txt: d.name + '이(가) 가시를 쏟아부었다', hits: alive(inv0).map(u => strike(u, dmg(d.atk * 0.5, u.df))) });
+        if (d.kind === 'spitter' && d.evo) ev.push({ t: 'trap', kind: 'spike', room: idx, txt: d.name + '이(가) 한 번 더 쏟아부었다', hits: alive(inv0).map(u => strike(u, dmg(d.atk * 0.5, u.df))) });
+        if (d.kind === 'tangle') alive(inv0).slice(0, d.evo ? 4 : 2).forEach(u => { u.skip = d.evo ? 3 : 2; fx(u, 'bind', d.name + '이(가) ' + u.name + '을(를) 붙들었다'); });
+        if (d.kind === 'warden' && (d.sk === 2 || d.evo)) sanHit(inv0, alive(inv0), 3 * m, d.name + '의 호통', idx, idx);
       });
       for (let round = 1; round <= 10; round++) {
         const inv = alive(inv0), dfn = alive(defs); if (!inv.length || !dfn.length) break; rounds = round;
-        const hits = [], wall = dfn.some(d => d.kind === 'skeleton' && d.sk === 0), scaleHere = dfn.some(d => d.kind === 'scale'), cap = inv.some(u => u.kind === 'captain');
+        const hits = [], knight = dfn.some(d => d.kind === 'skeleton' && d.evo), wall = dfn.some(d => d.kind === 'skeleton' && d.sk === 0), scaleHere = dfn.some(d => d.kind === 'scale'), cap = inv.some(u => u.kind === 'captain');
         for (const a of inv) {
           if (a.skip > 0) { a.skip--; continue; }
           for (let rep2 = 0; rep2 < (INV[a.kind].twice && !a.sealed ? 2 : 1); rep2++) {
@@ -1021,6 +1030,7 @@ const NEST = (function () {
             if (a.kind === 'priest' && t.kind === 'skeleton') x *= 2;
             if (wall && !(t.kind === 'skeleton' && t.sk === 0)) x *= 0.8;
             if (scaleHere && t.kind !== 'scale') x *= 0.8;
+            if (knight && !(t.kind === 'skeleton' && t.evo)) x *= 0.85;
             if (coreOn && main === 'abyss' && stage >= 1) x *= stage >= 2 ? 0.55 : 0.7;
             if (t.kind === 'wall') hits.push([a, x * 0.25, t]);
             hits.push([t, x, a]);
@@ -1039,13 +1049,15 @@ const NEST = (function () {
             continue;
           }
           const s = d.satk ? d.satk * (zone === 'nebula' ? 1.3 : 1) + (d.kind === 'cultist' && d.sk === 0 ? 2 * (dfn.filter(x => x.kind === 'cultist').length - 1) : 0) : 0;
-          if (s > 0) { const n = (KIN[d.kind].stg || 1) + (d.kind === 'scribe' && d.sk === 0 ? 1 : 0), pool2 = inv.slice().sort((a, b) => d.kind === 'mask' && d.sk === 0 ? a.san - b.san : rng(G) - 0.5); pool2.slice(0, n).forEach(u => sanQ.push([u, s * m / K.stat[1], d])); }
+          if (s > 0) { const n = (KIN[d.kind].stg || 1) + (d.kind === 'scribe' && d.sk === 0 ? 1 : 0) + (d.evo && d.kind === 'cultist' ? 1 : 0) + (d.evo && d.kind === 'eyeheap' ? 99 : 0), pool2 = inv.slice().sort((a, b) => d.kind === 'mask' && d.sk === 0 ? a.san - b.san : rng(G) - 0.5); pool2.slice(0, n).forEach(u => sanQ.push([u, s * m / K.stat[1], d])); }
           if (!d.atk) continue;
           if (d.kind === 'goblin') { if (d.sk === 1) mult *= 1 + 0.15 * (dfn.filter(x => x.kind === 'goblin').length - 1); if (d.sk === 2) { t = weak; mult *= 1.2; } }
           if (d.kind === 'warden' && d.sk === 0) mult *= 1.3;
-          if (d.kind === 'netter') { const th = d.sk === 0 ? 0.4 : 0.3, c = inv.filter(u => u.hp > 0 && !u.gone && !u.netted && u.hp < u.mhp * th && !INV[u.kind].boss).slice(0, d.sk === 2 ? 2 : 1); if (c.length) { c.forEach(u => { u.netted = 1; u.san = 0; }); continue; } }
+          if (d.kind === 'netter') { const th = (d.sk === 0 ? 0.4 : 0.3) + (d.evo ? 0.1 : 0), c = inv.filter(u => u.hp > 0 && !u.gone && !u.netted && u.hp < u.mhp * th && !INV[u.kind].boss).slice(0, (d.sk === 2 ? 2 : 1) + (d.evo ? 1 : 0)); if (c.length) { c.forEach(u => { u.netted = 1; u.san = 0; }); continue; } }
           if (d.kind === 'hunger') { if (d.sk === 0 && round === 1) mult *= 2; if (d.sk === 1) mult *= 1 + 0.15 * (d.kills || 0); if (d.sk === 2 && weak.hp < weak.mhp * 0.25) { hits.push([weak, weak.hp + 1, d]); continue; } }
           const x = dmg(d.atk * mult, t.df); hits.push([t, x, d]);
+          if (d.evo && d.kind === 'goblin' && inv.length > 1) hits.push([inv.find(u => u !== t) || t, x * 0.5, d]);
+          if (d.evo && d.kind === 'hunger') hits.push([pick(G, inv), x, d]);
           if (d.kind === 'goblin' && d.sk === 0 && round === 1) hits.push([pick(G, inv), x, d]);
           if (d.kind === 'spawn' && d.sk === 0) t.stick = 1;
         }
@@ -1054,6 +1066,7 @@ const NEST = (function () {
           const rec = strike(t, x); rec.a = src.uid; rec.s = src.side; if (tag) rec.tag = tag; recs.push(rec);
           if (rec.k && t.side === 'inv') {
             kills++; pool += INV[t.kind].b * m; src.kills = (src.kills || 0) + 1;
+            if (src.evo && src.kind === 'turncoat') alive(inv0).forEach(u => { u.san -= 4 * m; });
             if (src.kind === 'hunger') src.hp = Math.min(src.mhp, src.hp + src.mhp * 0.2);
             if (src.kind === 'slime' && has(G, 'teeth')) src.hp = Math.min(src.mhp, src.hp + src.mhp * 0.08);
             if (has(G, 'spore') && rng(G) < 0.2 && idx != null) { const u = tempSpawn(idx); defs.push(u); }
@@ -1061,6 +1074,7 @@ const NEST = (function () {
         }
         for (const [u, s, d] of sanQ) { if (u.hp <= 0 || u.gone) continue; const v = s * (has(G, 'maskm') ? 1.25 : 1) * (1 - ward(inv0)); u.san -= v; recs.push({ a: d.uid, s: 'def', b: u.uid, d: 0, sd: Math.round(v), hp: hpf(u), sp: spf(u), k: false }); }
         ev.push({ t: 'round', n: round, hits: recs, room: isCore ? 'core' : idx });
+        { const med = dfn.find(d => d.kind === 'licker' && d.evo && d.hp > 0 && !d.used), down = med && defs.find(d => d.ref && d.hp <= 0 && d.kind !== 'spawn' && !(d.kind === 'skeleton' && d.revives > 0)); if (down) { med.used = 1; down.hp = down.mhp * 0.4; fx(down, 'revive', med.name + '이(가) ' + down.name + '을(를) 핥아 일으켰다'); } }
         for (const d of dfn) {
           if (d.kind === 'skeleton' && d.hp <= 0 && d.revives > 0) { d.revives--; d.hp = d.mhp * 0.5; fx(d, 'revive', d.name + ' 부활'); }
           if (d.kind === 'spawn' && d.hp <= 0 && d.sk === 1 && !d.boom) { d.boom = 1; ev.push({ t: 'trap', kind: 'boom', at: d.uid, txt: d.name + '이(가) 터졌다', hits: alive(inv0).map(u => strike(u, dmg(d.atk * 1.5, u.df))) }); }
@@ -1069,7 +1083,7 @@ const NEST = (function () {
         }
         const livD = alive(defs);
         livD.forEach(d => { let h = 0; if (healAdj) h += 0.05; if (zone === 'brood') h += 0.03; if (coreOn && main === 'abyss' && stage >= 1) h += stage >= 2 ? 0.08 : 0.05; if (h && d.hp < d.mhp) d.hp = Math.min(d.mhp, d.hp + d.mhp * h); });
-        livD.forEach(d => { if ((d.kind === 'scale' && d.sk === 0) || d.kind === 'fallen' || d.kind === 'licker') { const w = livD.reduce((a, b) => hpf(a) < hpf(b) ? a : b); if (w.hp < w.mhp) { w.hp = Math.min(w.mhp, w.hp + w.mhp * 0.08); fx(w, 'heal'); } } });
+        livD.forEach(d => { if ((d.kind === 'scale' && (d.sk === 0 || d.evo)) || d.kind === 'fallen' || d.kind === 'licker') { const w = livD.reduce((a, b) => hpf(a) < hpf(b) ? a : b); if (w.hp < w.mhp) { w.hp = Math.min(w.mhp, w.hp + w.mhp * 0.08 * (d.evo && d.kind === 'fallen' ? 2 : 1)); fx(w, 'heal'); } } });
         for (const p of alive(inv0)) if (INV[p.kind].heal && !p.sealed) { const liv = alive(inv0), w = liv.reduce((a, b) => hpf(a) < hpf(b) ? a : b), z = liv.reduce((a, b) => spf(a) < spf(b) ? a : b); if (hpf(w) < 0.7) w.hp = Math.min(w.mhp, w.hp + 10 * m); else z.san = Math.min(z.msan, z.san + 6 * m); }
         for (const h of alive(inv0)) if (INV[h.kind].revive && !h.sealed && !h.used) { const dead = inv0.find(u => u.hp <= 0 && !u.gone && !u.rev); if (dead) { h.used = 1; dead.rev = 1; dead.hp = dead.mhp * 0.3; kills = Math.max(0, kills - 1); fx(dead, 'revive', '약초꾼이 ' + dead.name + '을(를) 일으켰다'); } }
         witness(inv0);
@@ -1094,7 +1108,7 @@ const NEST = (function () {
       if (ans.k === 'whip') { ctx.whip = true; say2('hand', { room: idx, txt: '채찍! 이 방 아군 공격 +30%' }); }
       if (ans.k === 'move' && ans.from != null) { const s = squad(ans.from).filter(d => d.hp > 0); squads[ans.from] = squad(ans.from).filter(d => d.hp <= 0); s.forEach(d => defs.push(d)); ev.push({ t: 'move', who: s.map(d => d.uid), to: isCore ? 'core' : idx, txt: '손: ' + s.length + '명을 옮겼다' }); }
       if (ans.k === 'spell' && main && G.faith >= spellCost(G)) {
-        G.faith -= spellCost(G); note(G, 'spell'); const lib = hasRoom(G, 'library') ? 1.25 : 1; ctx.spell = main;
+        G.faith -= spellCost(G); note(G, 'spell'); const lib = (hasRoom(G, 'library') ? 1.25 : 1) * (G.kin.some(k => k.kind === 'scribe' && k.evo) ? 1.25 : 1); ctx.spell = main;
         say2('spell', { room: idx, txt: '손 주문: ' + FORM1[main].spell[0] });
         if (main === 'dusk') sanHit(g, alive(g), 15 * m * lib, '환영이 무리를 덮친다', idx, idx);
         if (main === 'brood') for (let i = 0; i < 3; i++) defs.push(tempSpawn(isCore ? 'core' : idx));
@@ -1220,7 +1234,7 @@ const NEST = (function () {
     for (const v of VIDS) { const s = G.vill[v]; if (s.pause > 0) s.pause--; else if (s.tribute && !s.razed) earn(G, Math.round(s.tribute * (1 + 0.25 * (fearGrade(G) - 1))), '공물'); if (!s.razed && !s.tribute && s.host < 15 && !s.noTrade) earn(G, (v === 'gaet' ? 1.5 : 3) * c, '교역'); s.host = Math.max(0, s.host - (v === 'bell' ? 1 : 3)); }
     G.plots.forEach(p => { if (p === 'garden' && !G.off.garden) earn(G, 8 * c, '텃밭'); });
     // 신앙과 정수
-    const cult = G.kin.filter(m => m.kind === 'cultist'); addFaith(G, cult.length + cult.filter(m => m.skill === 2).length);
+    const cult = G.kin.filter(m => m.kind === 'cultist'); addFaith(G, cult.length + cult.filter(m => m.skill === 2).length + 2 * cult.filter(m => m.evo).length);
     G.cells.forEach((x, i) => { if (!x.dug || G.off[i]) return; if (x.type === 'chapel') addFaith(G, 2); const d = ROOM[x.type]; if (d.ess) { addEss(G, d.asp, 2); rep.ess[d.asp] = (rep.ess[d.asp] || 0) + 2; } if (x.type === 'hatchery') addSpawn(G); });
     if (hasRoom(G, 'table') && G.corpses.length) eatN(G, 2);
     rep.faith = G.faith - f0;
@@ -1279,7 +1293,7 @@ const NEST = (function () {
   return { K, ASPECTS, ASP, COLS, ROWS, N, ENT, VAULT, CORE, nbrs, ROOM, TRAP, ZONE, PLOT, KIN, SKILL_LV, INV, GRADE_NAME, VILL, VIDS, FORM1, FORM2, FORM2UP, SUBTRAIT, AVATAR, MUT, DIFF, GRADES, EVENTS,
     newGame, actOf, cm, sm, isSettle, formId, formName, essTotal, fearGrade, faithCap, corpseCap, corpsePts, slimeStats, kinStats, salary, upkeep, capacity, freeSlot, prisonCap, handsMax, spellCost, seesDetail, expNeed,
     paths, sideRooms, estimate, partyBudget, canDig, digPreview, dig, toggleBlock, canBuild, buildCost, build, addTrap, trapUpCost, upTrap, setZone, setPlot, accept, acceptCost, dismiss, moveKin, setSkill, setStance, train, eat, rest,
-    SPOT, spotOptions, resolveSpot, ELDER, OMEN, OMEN_IDS, OMEN_DAY, CALM_COST, ACT_NAME, calm, COMBO, combos, BURIED, STAR, EVO, kinName, evoCost, evolveKin, GUEST, guestOptions, resolveGuest, convertKind, endKey, convertChance, ransomOf, sacEss, mutChance, dispose, raidInfo, raid, eventOptions, resolveEvent, endDay, beginNight, settle, luxury, avatarOf, score };
+    SPOT, spotOptions, resolveSpot, ELDER, OMEN, OMEN_IDS, OMEN_DAY, CALM_COST, ACT_NAME, calm, COMBO, combos, BURIED, STAR, EVO, EVO_DESC, kinName, evoCost, evolveKin, GUEST, guestOptions, resolveGuest, convertKind, endKey, convertChance, ransomOf, sacEss, mutChance, dispose, raidInfo, raid, eventOptions, resolveEvent, endDay, beginNight, settle, luxury, avatarOf, score };
 })();
 if (typeof module !== 'undefined') module.exports = NEST;
 </script>
@@ -1471,10 +1485,10 @@ const KDRAW = {
   scribe(q, p) { q(7, 0, 2, 1, p[4]); q(7, 1, 2, 1, WHT); q(6, 2, 4, 4, p[0]); q(7, 3, 2, 2, p[1]); q(7, 4, 2, 1, p[0]); q(6, 6, 4, 8, p[0]); q(7, 6, 2, 8, p[3]); q(7, 7, 1, 6, p[1]); q(1, 8, 5, 4, p[0]); q(2, 8, 3, 3, BONE); q(3, 8, 1, 4, p[0]); q(2, 9, 1, 1, p[3]); q(4, 10, 1, 1, p[3]); q(5, 14, 6, 1, p[0]); q(11, 5, 1, 6, WHT); q(12, 4, 1, 2, WHT); },
   mask(q, p) { q(5, 2, 6, 7, p[0]); q(6, 3, 4, 5, WHT); q(7, 4, 1, 1, p[0]); q(9, 4, 1, 1, p[0]); q(7, 6, 3, 1, '#7a121c'); q(7, 9, 2, 5, p[0]); q(6, 10, 4, 3, p[3]); q(5, 14, 6, 1, p[0]); q(1, 5, 3, 3, WHT); q(2, 6, 1, 1, p[0]); q(12, 7, 3, 3, WHT); q(13, 8, 1, 1, p[0]); q(4, 9, 1, 3, p[4]); q(11, 10, 1, 3, p[4]); },
   netter(q, p) { q(12, 1, 1, 13, WOOD); for (let k = 0; k < 3; k++) { q(8, 1 + k * 2, 4, 1, STEEL); q(8 + k * 2, 1, 1, 5, STEEL); } q(3, 5, 5, 4, p[0]); q(4, 6, 3, 2, p[1]); q(5, 6, 1, 1, WHT); q(3, 9, 7, 4, p[0]); q(4, 9, 5, 3, p[1]); q(5, 10, 3, 1, p[2]); q(9, 8, 3, 1, p[1]); q(4, 13, 2, 2, p[0]); q(7, 13, 2, 2, p[0]); },
-  warden(q, p) { q(5, 1, 6, 4, p[0]); q(6, 2, 4, 2, p[1]); q(6, 3, 4, 1, p[0]); q(3, 5, 10, 8, p[0]); q(4, 6, 8, 6, p[3]); q(5, 6, 6, 3, p[1]); q(4, 9, 8, 1, p[0]); q(7, 9, 2, 1, p[4]); q(10, 10, 1, 3, p[4]); q(11, 12, 1, 1, p[4]); q(1, 6, 2, 1, p[0]); q(0, 7, 3, 3, p[0]); q(1, 8, 1, 1, '#ffd23a'); q(4, 13, 3, 2, p[0]); q(9, 13, 3, 2, p[0]); },
+  warden(q, p) { q(5, 0, 6, 5, p[0]); q(6, 1, 4, 3, STEEL); q(7, 1, 1, 3, p[0]); q(9, 1, 1, 3, p[0]); q(2, 5, 12, 7, p[0]); q(3, 6, 10, 5, p[1]); q(4, 6, 3, 2, p[2]); q(3, 10, 10, 1, p[0]); q(0, 5, 2, 7, WOOD); q(0, 4, 2, 1, p[0]); q(11, 6, 4, 4, GOLD); q(12, 7, 2, 2, p[0]); q(12, 10, 1, 5, GOLD); q(13, 11, 1, 1, GOLD); q(13, 13, 2, 1, GOLD); q(4, 12, 3, 3, p[0]); q(8, 12, 3, 3, p[0]); },
   fallen(q, p) { q(5, 0, 2, 1, p[4]); q(9, 0, 2, 1, p[4]); q(5, 1, 6, 5, p[0]); q(6, 2, 4, 3, WHT); q(7, 3, 1, 1, p[0]); q(9, 3, 1, 1, p[0]); q(7, 4, 1, 2, '#7a121c'); q(4, 6, 8, 8, p[0]); q(5, 7, 6, 7, p[3]); q(7, 7, 2, 7, p[4]); q(13, 1, 1, 13, WOOD); q(12, 1, 3, 1, p[4]); q(13, 0, 1, 1, p[4]); q(3, 14, 10, 1, p[0]); },
   digger(q, p) { q(5, 3, 6, 3, p[0]); q(6, 4, 4, 1, p[4]); q(7, 2, 2, 2, '#ffd23a'); q(3, 6, 10, 8, p[0]); q(4, 7, 8, 6, p[1]); q(6, 9, 4, 3, p[2]); q(6, 7, 1, 1, p[0]); q(9, 7, 1, 1, p[0]); q(7, 8, 2, 1, '#e88aa8'); q(0, 9, 3, 1, BONE); q(0, 11, 3, 1, BONE); q(1, 10, 2, 1, p[0]); q(13, 9, 3, 1, BONE); q(13, 11, 3, 1, BONE); q(13, 10, 2, 1, p[0]); q(4, 14, 3, 1, p[0]); q(9, 14, 3, 1, p[0]); },
-  clerk(q, p) { q(8, 2, 5, 5, p[0]); q(9, 3, 3, 3, p[1]); q(9, 4, 1, 1, WHT); q(11, 4, 1, 1, WHT); q(8, 2, 5, 1, p[4]); q(9, 7, 5, 7, p[0]); q(10, 8, 3, 5, p[3]); q(1, 7, 8, 7, p[0]); q(2, 8, 6, 5, BONE); q(3, 9, 4, 1, p[0]); q(3, 11, 3, 1, p[0]); q(13, 5, 2, 2, GOLD); q(12, 13, 3, 1, GOLD); q(13, 12, 2, 1, GOLD); },
+  clerk(q, p) { q(5, 1, 6, 6, p[0]); q(6, 2, 4, 4, '#e8b890'); q(5, 1, 6, 2, p[4]); q(4, 2, 1, 1, p[4]); q(6, 4, 1, 1, WHT); q(9, 4, 1, 1, WHT); q(7, 4, 2, 1, p[0]); q(4, 7, 8, 7, p[0]); q(5, 8, 6, 5, p[3]); q(7, 8, 2, 3, p[4]); q(2, 9, 7, 5, p[0]); q(3, 10, 5, 3, BONE); q(4, 11, 3, 1, p[0]); q(12, 3, 1, 7, WHT); q(13, 2, 1, 2, WHT); q(12, 11, 3, 1, GOLD); q(12, 12, 3, 1, '#a87a10'); q(12, 13, 3, 1, GOLD); q(12, 14, 3, 1, '#a87a10'); },
   licker(q, p) { q(3, 6, 9, 8, p[0]); q(4, 7, 7, 6, p[1]); q(5, 8, 2, 1, p[2]); q(6, 10, 5, 2, INK); q(10, 10, 3, 1, '#e8505a'); q(13, 9, 1, 2, '#e8505a'); q(14, 7, 1, 3, '#e8505a'); q(13, 6, 1, 1, '#e8505a'); q(12, 5, 1, 1, '#ff9a8a'); q(7, 12, 1, 2, p[2]); q(4, 14, 7, 1, p[0]); },
   spitter(q, p) { q(7, 10, 2, 5, p[0]); q(7, 11, 2, 3, p[3]); q(5, 14, 6, 1, p[0]); q(4, 3, 8, 7, p[0]); q(5, 4, 6, 5, p[1]); q(6, 5, 2, 1, p[2]); q(7, 6, 2, 2, INK); [[2, 2, 2, 1], [1, 5, 3, 1], [2, 9, 2, 1], [12, 2, 2, 1], [12, 5, 3, 1], [12, 9, 2, 1], [7, 0, 1, 3], [9, 1, 1, 2], [5, 1, 1, 2]].forEach(a => q(a[0], a[1], a[2], a[3], p[4])); },
 };
@@ -1498,12 +1512,20 @@ const KEVO = {
   eyeheap(q, p) { q(5, 0, 11, 8, p[0]); q(6, 1, 9, 6, p[1]); q(8, 2, 5, 4, WHT); q(10, 3, 2, 2, INK); q(10, 3, 1, 1, RED); q(0, 11, 3, 3, p[0]); q(0, 11, 2, 2, WHT); q(1, 12, 1, 1, INK); q(18, 13, 3, 3, p[0]); q(19, 13, 2, 2, WHT); q(19, 14, 1, 1, INK); q(4, 19, 13, 2, p[3]); },
   tangle(q, p) { q(8, 11, 5, 5, p[0]); q(9, 12, 3, 3, '#f0e060'); q(10, 13, 1, 1, WHT); [[0, 3, 7], [3, 0, 6], [17, 0, 7], [20, 4, 8], [1, 15, 5], [19, 15, 5]].forEach(a => { q(a[0], a[1], 1, a[2], p[1]); q(a[0], a[1], 1, 1, p[2]); }); q(6, 3, 1, 3, p[1]); q(14, 2, 1, 4, p[1]); },
 };
+// 숨 쉬는 두 번째 장면: 윗몸이 한 칸 내려앉는다. 어떤 그림에도 쓴다
+const FRM = new Map();
+function frameOf(can, f) {
+  if (!f) return can; if (FRM.has(can)) return FRM.get(can);
+  const c = document.createElement('canvas'); c.width = can.width; c.height = can.height; const x = c.getContext('2d'), h = can.height, cutY = h - Math.max(3, Math.round(h * 0.2));
+  x.drawImage(can, 0, 0, can.width, cutY, 0, 1, can.width, cutY); x.drawImage(can, 0, cutY, can.width, h - cutY, 0, cutY, can.width, h - cutY); x.clearRect(0, cutY, 0, 0);
+  FRM.set(can, c); return c;
+}
 function kinBase(kind) {
   if (!KDRAW[kind]) return spriteCanvas(KINSPR[kind][0], KINSPR[kind][1]); const key = 'kb:' + kind; if (cv[key]) return cv[key];
   const c = document.createElement('canvas'); c.width = c.height = 16; const x = c.getContext('2d'); KDRAW[kind]((a, b, w, h, col) => { x.fillStyle = col; x.fillRect(a, b, w, h); }, PAL[KINSPR[kind][1]] || PAL.base); return (cv[key] = c);
 }
 function kinCanvas(kind, evo) {
-  if (!evo || !KEVO[kind]) return kinBase(kind); const key = 'evo3:' + kind; if (cv[key]) return cv[key];
+  if (!evo || !KEVO[kind]) return kinBase(kind); const key = 'evo4:' + kind; if (cv[key]) return cv[key];
   const c = document.createElement('canvas'); c.width = c.height = 21; const x = c.getContext('2d'), q = (a, b, w, h, col) => { x.fillStyle = col; x.fillRect(a, b, w, h); }, P = PAL[KINSPR[kind][1]] || PAL.base;
   if (['turncoat', 'fallen', 'scale', 'warden'].includes(kind)) KEVO[kind](q, P);          // 망토·날개·등짐은 몸 뒤에
   x.drawImage(kinBase(kind), 2, 5);
@@ -1561,7 +1583,7 @@ function endingScene(c, key, tier, sl, fr) {
   }
 }
 const toImg = (c, key, size, alt) => `<img class="px" src="${urls[key] || (urls[key] = c.toDataURL())}" width="${size}" height="${size}" alt="${esc(alt || '')}">`;
-const kinImg = (kind, size, evo) => toImg(kinCanvas(kind, evo), (evo ? 'evo3:' : 'kin2:') + kind, size, NEST.KIN[kind].name);
+const kinImg = (kind, size, evo) => toImg(kinCanvas(kind, evo), (evo ? 'evo4:' : 'kin3:') + kind, size, NEST.KIN[kind].name);
 const invImg = (kind, size) => toImg(invCanvas(kind), 'inv:' + kind, size, NEST.INV[kind].name);
 const slimeImg = (sl, size, alt) => toImg(slimeCanvas(sl), 'sl2:' + (sl.main || 'base') + ':' + (sl.sub || '') + ':' + sl.stage + ':' + (sl.muts || []).join(','), size, alt || '본체');
 const echoImg = size => toImg(spriteCanvas('slime', 'echo'), 'echo', size, '잔향');
@@ -1683,7 +1705,7 @@ function drawUnit(x, e, t) {
   const px = Math.round(e.x + dx), py = Math.round(e.y + dy + (e.bob ? Math.sin(t / 400) * 2 : 0));
   x.globalAlpha = a;
   if (e.wall) { rect(x, '#b85a6a', px, py - 30, 24, 62); rect(x, '#e89aa8', px + 4, py - 20 + Math.sin(t / 200) * 2, 8, 8); rect(x, '#e89aa8', px + 12, py + 6, 8, 8); }
-  else x.drawImage(e.sl ? slimeCanvas(e.sl, Math.floor(t / 240)) : e.can, px, py, size, size);
+  else x.drawImage(e.sl ? slimeCanvas(e.sl, Math.floor(t / 240)) : frameOf(e.can, e.dead || e.down || e.kneel ? 0 : Math.floor(t / (e.side === 'inv' ? 300 : 420) + px * 0.13) % 2), px, py, size, size);
   if (e.hit && t - e.hit < 80 && !e.wall) { x.globalCompositeOperation = 'lighter'; x.globalAlpha = 0.6 * a; x.drawImage(e.can, px, py, size, size); x.globalCompositeOperation = 'source-over'; }
   x.globalAlpha = 1;
   if (e.kneel) { rect(x, '#8a8296', px + size - 4, py - 8, 2, 14); rect(x, '#f5f5f5', px + size - 2, py - 8, 9, 6); }
@@ -1704,7 +1726,7 @@ function drawUnder(x, t) {
   if (ST.ents) { const es = Object.values(ST.ents); es.filter(e => e.side === 'def').forEach(e => drawUnit(x, e, t)); es.filter(e => e.side === 'inv').forEach(e => drawUnit(x, e, t)); }
   else {
     const by = {}; G.kin.forEach(m => { if (m.loc !== null) (by[m.loc] = by[m.loc] || []).push(m); });
-    for (const loc in by) by[loc].forEach((m, k) => { const sm = m.kind === 'spawn', p = defPos(loc === 'core' ? 'core' : +loc, k, sm); x.globalAlpha = m.hurt || m.strike ? 0.4 : 1; x.drawImage(kinCanvas(m.kind, m.evo), p.x - (m.evo ? 5 : 0), Math.round(p.y + Math.sin(t / 500 + m.id) * 1) - (m.evo ? 10 : 0), sm ? 16 : m.evo ? 42 : 32, sm ? 16 : m.evo ? 42 : 32); x.globalAlpha = 1; if (m.hurt) txt(x, '부상', p.x + 16, p.y - 14, '#ff9a92', 11, 'center'); else if (m.strike) txt(x, '파업', p.x + 16, p.y - 14, '#ffb347', 11, 'center'); });
+    for (const loc in by) by[loc].forEach((m, k) => { const sm = m.kind === 'spawn', p = defPos(loc === 'core' ? 'core' : +loc, k, sm); x.globalAlpha = m.hurt || m.strike ? 0.4 : 1; x.drawImage(frameOf(kinCanvas(m.kind, m.evo), Math.floor(t / 420 + m.id * 0.37) % 2), p.x - (m.evo ? 5 : 0), Math.round(p.y + Math.sin(t / 500 + m.id) * 1) - (m.evo ? 10 : 0), sm ? 16 : m.evo ? 42 : 32, sm ? 16 : m.evo ? 42 : 32); x.globalAlpha = 1; if (m.hurt) txt(x, '부상', p.x + 16, p.y - 14, '#ff9a92', 11, 'center'); else if (m.strike) txt(x, '파업', p.x + 16, p.y - 14, '#ffb347', 11, 'center'); });
     const r = cellRect(NEST.CORE), sc = slimeScale(G.slime), size = 16 * sc; x.drawImage(slimeCanvas(G.slime, Math.floor(t / 240)), r.x + r.w - 14 - size, Math.round(floorY(r) - size + sc + Math.sin(t / 400) * 2), size, size);
     const hp = G.slime.hp / NEST.slimeStats(G).hp; if (hp < 0.999) { rect(x, '#0b0c16', r.x + r.w - 15 - size, floorY(r) - size - 9, size + 2, 6); rect(x, '#6fd08c', r.x + r.w - 14 - size, floorY(r) - size - 8, size * hp, 4); }
   }
@@ -2234,7 +2256,7 @@ function kinHtml(id) {
   return `<div class="merc${m.rare ? ' rare' : ''}">${kinImg(m.kind, 64, m.evo)}<div class="body"><h2>${esc(m.name)} <small class="mute">${m.rare ? '희귀 ' : ''}${NEST.kinName(m)} · Lv${m.lv}${m.legacy ? ' · 지난 판에서 옴' : ''}</small></h2><div class="xp"><i style="width:${Math.min(100, m.exp / NEST.expNeed(m.lv) * 100)}%"></i></div><p class="small">체력 ${R(s.hp)} · 공격 ${R(s.atk)} · 방어 ${R(s.df)}${s.satk ? ' · 정신 공격 ' + R(s.satk) : ''} · 급여 ${R(NEST.salary(G, m))}G${d.eat ? ' + 먹이' : ''}</p><p class="small mute">${esc(d.note || '')}</p><p class="small">지금: <b>${esc(locName(m.loc))}</b>${m.hurt ? ' · <span class="up">부상 (' + m.hurt + '일 쉼, 휴식하면 바로 복귀)</span>' : ''}${m.strike ? ' · <span class="warnc">급여를 못 받아 오늘 밤 쉰다</span>' : ''}</p></div></div>
     ${d.skills.length ? '<h2>스킬 <small class="mute">하나만 쓴다</small></h2>' : ''}<div class="opts">${d.skills.map((k, i) => `<button class="btn opt${m.skill === i ? ' on' : ''}" data-a="skill" data-id="${m.id}" data-i="${i}"${m.lv < NEST.SKILL_LV[i] ? ' disabled' : ''}><b>${esc(k[0])} <small class="mute">Lv${NEST.SKILL_LV[i]}</small></b><span class="small mute">${esc(k[1])}</span></button>`).join('')}</div>
     ${m.kind !== 'spawn' ? `<h2>방침</h2><div class="row">${btn('stance', { id: m.id, v: 'careful' }, '신중 (체력 30%에서 물러남)', 'sm' + (m.stance !== 'hold' ? ' on' : ''))}${btn('stance', { id: m.id, v: 'hold' }, '사수 (끝까지 싸움)', 'sm' + (m.stance === 'hold' ? ' on' : ''))}</div>` : ''}
-    ${NEST.EVO[m.kind] ? `<h2>진화</h2>${m.evo ? `<p class="small okc">${NEST.EVO[m.kind]}(으)로 자랐다. 능력치 1.5배, 급여 1.5배.</p>` : `<div class="row">${btn('kinevo', { id: m.id }, `${NEST.EVO[m.kind]}(으)로 진화 (${NEST.evoCost(G)}G)`, 'sm pri', m.lv < 5 || G.gold < NEST.evoCost(G))}${kinImg(m.kind, 42, true)}<span class="small mute">${m.lv < 5 ? '레벨 5부터. 지금 Lv' + m.lv : '능력치 1.5배. 급여도 1.5배가 된다. 행동은 들지 않는다'}</span></div>`}` : ''}
+    ${NEST.EVO[m.kind] ? `<h2>진화</h2>${m.evo ? `<p class="small okc"><b>${NEST.EVO[m.kind]}</b> — ${esc(NEST.EVO_DESC[m.kind])}. 능력치·급여 1.5배.</p>` : `<div class="row">${btn('kinevo', { id: m.id }, `${NEST.EVO[m.kind]}(으)로 진화 (${NEST.evoCost(G)}G)`, 'sm pri', m.lv < 5 || G.gold < NEST.evoCost(G))}${kinImg(m.kind, 42, true)}<span class="small mute">${m.lv < 5 ? '레벨 5부터. 지금 Lv' + m.lv : '<b class="okc">' + esc(NEST.EVO_DESC[m.kind]) + '.</b> 능력치와 급여도 1.5배가 된다. 행동은 들지 않는다'}</span></div>`}` : ''}
     <h2>옮기기 <small class="mute">작업 1</small></h2><div class="row">${slots.map(k => btn('place', { id: m.id, loc: k }, esc(locName(k)), 'sm')).join('') || '<span class="small mute">빈 자리가 없다. 초소나 대기실을 지어야 한다.</span>'}${m.loc !== null ? btn('place', { id: m.id, loc: 'bench' }, '대기로 빼기', 'sm') : ''}</div>
     <div class="row end">${btn('dismiss', { id: m.id }, '내보낸다', 'sm bad')}${btn('close', null, '닫기')}</div>`;
 }

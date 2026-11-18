@@ -184,10 +184,10 @@ const KDRAW = {
   scribe(q, p) { q(7, 0, 2, 1, p[4]); q(7, 1, 2, 1, WHT); q(6, 2, 4, 4, p[0]); q(7, 3, 2, 2, p[1]); q(7, 4, 2, 1, p[0]); q(6, 6, 4, 8, p[0]); q(7, 6, 2, 8, p[3]); q(7, 7, 1, 6, p[1]); q(1, 8, 5, 4, p[0]); q(2, 8, 3, 3, BONE); q(3, 8, 1, 4, p[0]); q(2, 9, 1, 1, p[3]); q(4, 10, 1, 1, p[3]); q(5, 14, 6, 1, p[0]); q(11, 5, 1, 6, WHT); q(12, 4, 1, 2, WHT); },
   mask(q, p) { q(5, 2, 6, 7, p[0]); q(6, 3, 4, 5, WHT); q(7, 4, 1, 1, p[0]); q(9, 4, 1, 1, p[0]); q(7, 6, 3, 1, '#7a121c'); q(7, 9, 2, 5, p[0]); q(6, 10, 4, 3, p[3]); q(5, 14, 6, 1, p[0]); q(1, 5, 3, 3, WHT); q(2, 6, 1, 1, p[0]); q(12, 7, 3, 3, WHT); q(13, 8, 1, 1, p[0]); q(4, 9, 1, 3, p[4]); q(11, 10, 1, 3, p[4]); },
   netter(q, p) { q(12, 1, 1, 13, WOOD); for (let k = 0; k < 3; k++) { q(8, 1 + k * 2, 4, 1, STEEL); q(8 + k * 2, 1, 1, 5, STEEL); } q(3, 5, 5, 4, p[0]); q(4, 6, 3, 2, p[1]); q(5, 6, 1, 1, WHT); q(3, 9, 7, 4, p[0]); q(4, 9, 5, 3, p[1]); q(5, 10, 3, 1, p[2]); q(9, 8, 3, 1, p[1]); q(4, 13, 2, 2, p[0]); q(7, 13, 2, 2, p[0]); },
-  warden(q, p) { q(5, 1, 6, 4, p[0]); q(6, 2, 4, 2, p[1]); q(6, 3, 4, 1, p[0]); q(3, 5, 10, 8, p[0]); q(4, 6, 8, 6, p[3]); q(5, 6, 6, 3, p[1]); q(4, 9, 8, 1, p[0]); q(7, 9, 2, 1, p[4]); q(10, 10, 1, 3, p[4]); q(11, 12, 1, 1, p[4]); q(1, 6, 2, 1, p[0]); q(0, 7, 3, 3, p[0]); q(1, 8, 1, 1, '#ffd23a'); q(4, 13, 3, 2, p[0]); q(9, 13, 3, 2, p[0]); },
+  warden(q, p) { q(5, 0, 6, 5, p[0]); q(6, 1, 4, 3, STEEL); q(7, 1, 1, 3, p[0]); q(9, 1, 1, 3, p[0]); q(2, 5, 12, 7, p[0]); q(3, 6, 10, 5, p[1]); q(4, 6, 3, 2, p[2]); q(3, 10, 10, 1, p[0]); q(0, 5, 2, 7, WOOD); q(0, 4, 2, 1, p[0]); q(11, 6, 4, 4, GOLD); q(12, 7, 2, 2, p[0]); q(12, 10, 1, 5, GOLD); q(13, 11, 1, 1, GOLD); q(13, 13, 2, 1, GOLD); q(4, 12, 3, 3, p[0]); q(8, 12, 3, 3, p[0]); },
   fallen(q, p) { q(5, 0, 2, 1, p[4]); q(9, 0, 2, 1, p[4]); q(5, 1, 6, 5, p[0]); q(6, 2, 4, 3, WHT); q(7, 3, 1, 1, p[0]); q(9, 3, 1, 1, p[0]); q(7, 4, 1, 2, '#7a121c'); q(4, 6, 8, 8, p[0]); q(5, 7, 6, 7, p[3]); q(7, 7, 2, 7, p[4]); q(13, 1, 1, 13, WOOD); q(12, 1, 3, 1, p[4]); q(13, 0, 1, 1, p[4]); q(3, 14, 10, 1, p[0]); },
   digger(q, p) { q(5, 3, 6, 3, p[0]); q(6, 4, 4, 1, p[4]); q(7, 2, 2, 2, '#ffd23a'); q(3, 6, 10, 8, p[0]); q(4, 7, 8, 6, p[1]); q(6, 9, 4, 3, p[2]); q(6, 7, 1, 1, p[0]); q(9, 7, 1, 1, p[0]); q(7, 8, 2, 1, '#e88aa8'); q(0, 9, 3, 1, BONE); q(0, 11, 3, 1, BONE); q(1, 10, 2, 1, p[0]); q(13, 9, 3, 1, BONE); q(13, 11, 3, 1, BONE); q(13, 10, 2, 1, p[0]); q(4, 14, 3, 1, p[0]); q(9, 14, 3, 1, p[0]); },
-  clerk(q, p) { q(8, 2, 5, 5, p[0]); q(9, 3, 3, 3, p[1]); q(9, 4, 1, 1, WHT); q(11, 4, 1, 1, WHT); q(8, 2, 5, 1, p[4]); q(9, 7, 5, 7, p[0]); q(10, 8, 3, 5, p[3]); q(1, 7, 8, 7, p[0]); q(2, 8, 6, 5, BONE); q(3, 9, 4, 1, p[0]); q(3, 11, 3, 1, p[0]); q(13, 5, 2, 2, GOLD); q(12, 13, 3, 1, GOLD); q(13, 12, 2, 1, GOLD); },
+  clerk(q, p) { q(5, 1, 6, 6, p[0]); q(6, 2, 4, 4, '#e8b890'); q(5, 1, 6, 2, p[4]); q(4, 2, 1, 1, p[4]); q(6, 4, 1, 1, WHT); q(9, 4, 1, 1, WHT); q(7, 4, 2, 1, p[0]); q(4, 7, 8, 7, p[0]); q(5, 8, 6, 5, p[3]); q(7, 8, 2, 3, p[4]); q(2, 9, 7, 5, p[0]); q(3, 10, 5, 3, BONE); q(4, 11, 3, 1, p[0]); q(12, 3, 1, 7, WHT); q(13, 2, 1, 2, WHT); q(12, 11, 3, 1, GOLD); q(12, 12, 3, 1, '#a87a10'); q(12, 13, 3, 1, GOLD); q(12, 14, 3, 1, '#a87a10'); },
   licker(q, p) { q(3, 6, 9, 8, p[0]); q(4, 7, 7, 6, p[1]); q(5, 8, 2, 1, p[2]); q(6, 10, 5, 2, INK); q(10, 10, 3, 1, '#e8505a'); q(13, 9, 1, 2, '#e8505a'); q(14, 7, 1, 3, '#e8505a'); q(13, 6, 1, 1, '#e8505a'); q(12, 5, 1, 1, '#ff9a8a'); q(7, 12, 1, 2, p[2]); q(4, 14, 7, 1, p[0]); },
   spitter(q, p) { q(7, 10, 2, 5, p[0]); q(7, 11, 2, 3, p[3]); q(5, 14, 6, 1, p[0]); q(4, 3, 8, 7, p[0]); q(5, 4, 6, 5, p[1]); q(6, 5, 2, 1, p[2]); q(7, 6, 2, 2, INK); [[2, 2, 2, 1], [1, 5, 3, 1], [2, 9, 2, 1], [12, 2, 2, 1], [12, 5, 3, 1], [12, 9, 2, 1], [7, 0, 1, 3], [9, 1, 1, 2], [5, 1, 1, 2]].forEach(a => q(a[0], a[1], a[2], a[3], p[4])); },
 };
@@ -211,12 +211,20 @@ const KEVO = {
   eyeheap(q, p) { q(5, 0, 11, 8, p[0]); q(6, 1, 9, 6, p[1]); q(8, 2, 5, 4, WHT); q(10, 3, 2, 2, INK); q(10, 3, 1, 1, RED); q(0, 11, 3, 3, p[0]); q(0, 11, 2, 2, WHT); q(1, 12, 1, 1, INK); q(18, 13, 3, 3, p[0]); q(19, 13, 2, 2, WHT); q(19, 14, 1, 1, INK); q(4, 19, 13, 2, p[3]); },
   tangle(q, p) { q(8, 11, 5, 5, p[0]); q(9, 12, 3, 3, '#f0e060'); q(10, 13, 1, 1, WHT); [[0, 3, 7], [3, 0, 6], [17, 0, 7], [20, 4, 8], [1, 15, 5], [19, 15, 5]].forEach(a => { q(a[0], a[1], 1, a[2], p[1]); q(a[0], a[1], 1, 1, p[2]); }); q(6, 3, 1, 3, p[1]); q(14, 2, 1, 4, p[1]); },
 };
+// 숨 쉬는 두 번째 장면: 윗몸이 한 칸 내려앉는다. 어떤 그림에도 쓴다
+const FRM = new Map();
+function frameOf(can, f) {
+  if (!f) return can; if (FRM.has(can)) return FRM.get(can);
+  const c = document.createElement('canvas'); c.width = can.width; c.height = can.height; const x = c.getContext('2d'), h = can.height, cutY = h - Math.max(3, Math.round(h * 0.2));
+  x.drawImage(can, 0, 0, can.width, cutY, 0, 1, can.width, cutY); x.drawImage(can, 0, cutY, can.width, h - cutY, 0, cutY, can.width, h - cutY); x.clearRect(0, cutY, 0, 0);
+  FRM.set(can, c); return c;
+}
 function kinBase(kind) {
   if (!KDRAW[kind]) return spriteCanvas(KINSPR[kind][0], KINSPR[kind][1]); const key = 'kb:' + kind; if (cv[key]) return cv[key];
   const c = document.createElement('canvas'); c.width = c.height = 16; const x = c.getContext('2d'); KDRAW[kind]((a, b, w, h, col) => { x.fillStyle = col; x.fillRect(a, b, w, h); }, PAL[KINSPR[kind][1]] || PAL.base); return (cv[key] = c);
 }
 function kinCanvas(kind, evo) {
-  if (!evo || !KEVO[kind]) return kinBase(kind); const key = 'evo3:' + kind; if (cv[key]) return cv[key];
+  if (!evo || !KEVO[kind]) return kinBase(kind); const key = 'evo4:' + kind; if (cv[key]) return cv[key];
   const c = document.createElement('canvas'); c.width = c.height = 21; const x = c.getContext('2d'), q = (a, b, w, h, col) => { x.fillStyle = col; x.fillRect(a, b, w, h); }, P = PAL[KINSPR[kind][1]] || PAL.base;
   if (['turncoat', 'fallen', 'scale', 'warden'].includes(kind)) KEVO[kind](q, P);          // 망토·날개·등짐은 몸 뒤에
   x.drawImage(kinBase(kind), 2, 5);
@@ -274,7 +282,7 @@ function endingScene(c, key, tier, sl, fr) {
   }
 }
 const toImg = (c, key, size, alt) => `<img class="px" src="${urls[key] || (urls[key] = c.toDataURL())}" width="${size}" height="${size}" alt="${esc(alt || '')}">`;
-const kinImg = (kind, size, evo) => toImg(kinCanvas(kind, evo), (evo ? 'evo3:' : 'kin2:') + kind, size, NEST.KIN[kind].name);
+const kinImg = (kind, size, evo) => toImg(kinCanvas(kind, evo), (evo ? 'evo4:' : 'kin3:') + kind, size, NEST.KIN[kind].name);
 const invImg = (kind, size) => toImg(invCanvas(kind), 'inv:' + kind, size, NEST.INV[kind].name);
 const slimeImg = (sl, size, alt) => toImg(slimeCanvas(sl), 'sl2:' + (sl.main || 'base') + ':' + (sl.sub || '') + ':' + sl.stage + ':' + (sl.muts || []).join(','), size, alt || '본체');
 const echoImg = size => toImg(spriteCanvas('slime', 'echo'), 'echo', size, '잔향');
