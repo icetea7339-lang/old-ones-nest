@@ -222,10 +222,21 @@ function cellPanel(i) {
   if (c.zone && G.slime.main) h += `<p class="small">${aspChip(G.slime.main, NEST.ZONE[G.slime.main][0] + ' 영역')} ${esc(NEST.ZONE[G.slime.main][1])}</p>`;
   const groups = [['싸울 자리', ['post', 'hall', 'bighall', 'ambush', 'trap']], ['길 위의 꾀', ['decoy', 'shop'].concat(Object.keys(NEST.ROOM).filter(k => NEST.ROOM[k].asp && !NEST.ROOM[k].side))], ['살림 (곁방에 지어야 안전하다)', ['prison', 'chapel', 'ritual', 'persuade', 'altar'].concat(Object.keys(NEST.ROOM).filter(k => NEST.ROOM[k].asp && NEST.ROOM[k].side))]];
   h += `<h2>${c.type === 'empty' ? '짓기' : '바꾸기'} <small class="mute">작업 1</small></h2>`;
+  // 지금 형편에 맞는 것 두세 가지를 먼저 보여 준다
+  const have = t => G.cells.some(x => x.dug && x.type === t), guards = G.cells.filter(x => x.dug && NEST.ROOM[x.type].def && x.type !== 'core').length, recs = [];
+  if (c.type === 'empty') {
+    if (side) { if (!have('prison')) recs.push(['prison', '무릎 꿇은 인간을 가둘 자리가 는다']); if (!have('chapel')) recs.push(['chapel', '신앙이 쌓여 징조를 달래고 주문을 쓴다']); const er = Object.keys(NEST.ROOM).find(k => NEST.ROOM[k].ess && NEST.ROOM[k].side && !NEST.canBuild(G, i, k) && !have(k)); if (er) recs.push([er, '매일 정수가 고이고, 그 계열 권속이 찾아온다']); if (!recs.length) recs.push(['prison', '포로 자리 +4']); }
+    else { if (!guards) recs.push(['post', '가장 싸다. 권속 둘이 길을 막는다']); else recs.push(['hall', '권속 셋이 들어온 적 전원과 싸운다']); if (G.cells.filter(x => x.type === 'trap').length < 2) recs.push(['trap', '권속이 없어도 지나가는 적을 깎는다']); if (guards) recs.push(['ambush', '함정이 터진 뒤 권속 둘이 덮친다']); }
+  }
+  const recOk = recs.filter(r => !NEST.canBuild(G, i, r[0])).slice(0, 3);
+  if (recOk.length) h += `<p class="small okc">지금은 이쪽이 좋다</p><div class="opts">${recOk.map(r => opt('build', { i, v: r[0] }, NEST.ROOM[r[0]].name, NEST.buildCost(G, i, r[0]), r[1] + comboHint(i, r[0]))).join('')}</div>`;
+  let all = '';
   groups.forEach(([title, list]) => {
-    const items = list.filter(t => t !== c.type).map(t => { const why = NEST.canBuild(G, i, t), r = NEST.ROOM[t]; if (why && r.asp && !why.includes('이미')) return ''; if (locked(t)) return opt('build', { i, v: t }, r.name, 0, lockText(t), true); return opt('build', { i, v: t }, r.name, NEST.buildCost(G, i, t), why || r.desc + comboHint(i, t), !!why); }).join('');
-    if (items) h += `<p class="small mute">${title}</p><div class="opts">${items}</div>`;
+    const items = list.filter(t => t !== c.type).map(t => { const why = NEST.canBuild(G, i, t), r = NEST.ROOM[t]; if (why && r.asp && !why.includes('이미')) return ''; return opt('build', { i, v: t }, r.name, NEST.buildCost(G, i, t), why || r.desc + comboHint(i, t), !!why); }).join('');
+    if (items) all += `<p class="small mute">${title}</p><div class="opts">${items}</div>`;
   });
+  const fold = recOk.length && !UI.allRooms;
+  h += `<div class="row">${recOk.length ? btn('allrooms', null, UI.allRooms ? '추천만 보기 ▴' : '시설 전부 보기 ▾', 'sm') : ''}</div>${fold ? '' : all}`;
   h += `<div class="row">${c.type !== 'empty' ? btn('build', { i, v: 'empty' }, '철거', 'sm bad') : ''}${i !== NEST.ENT ? btn('block', { i }, c.block ? '막은 것 트기' : `길 막기 (${20 * cmx}G)`, 'sm') : ''}</div>`;
   return h;
 }
@@ -535,6 +546,7 @@ function onAction(el) {
   const a = el.dataset.a, d = el.dataset, num = k => +d[k];
   if (a === 'sceneskip') { if (sceneNext) sceneNext(true); return; }
   if (a === 'tutend') { if (G) { G.tut = null; saveRun(); } META.tutDone = true; saveMeta(); sfx('click'); return coach(); }
+  if (a === 'allrooms') { UI.allRooms = !UI.allRooms; sfx('click'); return render(); }
   if (a === 'sheet') return setSheet(!$('right').classList.contains('open'));
   if (a === 'stat') return toast({ ok: true, msg: el.title });
   if (a === 'close') return closeModal(d.v);

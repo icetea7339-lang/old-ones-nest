@@ -114,6 +114,21 @@ function drawUnit(x, e, t) {
   }
   if (e.tag && t - e.tag.t0 < 1000) txt(x, e.tag.s, px + size / 2, py - 24 - (t - e.tag.t0) / 80, e.tag.col || '#fff3a0', 14, 'center');
 }
+// 공격 동작: 베기, 쏘기, 눈길, 물기, 그물, 휘감기
+const FXKIND = { spitter: 'shot', scribe: 'beam', eyeheap: 'beam', mask: 'beam', cultist: 'beam', fallen: 'beam', hunger: 'bite', licker: 'whip', tangle: 'whip', scale: 'whip', netter: 'net' };
+function drawFx(x, s, k) {
+  x.strokeStyle = s.col; x.fillStyle = s.col; x.lineWidth = 2;
+  if (s.fx === 'slash') { x.lineWidth = 3; x.beginPath(); x.arc(s.x, s.y, 14, -2.2 + k * 2.4, -0.8 + k * 2.4); x.stroke(); }
+  else if (s.fx === 'shot') { const px = s.x0 + (s.x - s.x0) * k, py = s.y0 + (s.y - s.y0) * k; x.globalAlpha = 1; x.lineWidth = 3; x.beginPath(); x.moveTo(px, py); x.lineTo(px - (s.x - s.x0) * 0.14, py - (s.y - s.y0) * 0.14); x.stroke(); }
+  else if (s.fx === 'beam') { for (let n = 0; n < 7; n++) { const f = ((n + k * 3) / 7) % 1; x.fillRect(Math.round(s.x0 + (s.x - s.x0) * f) - 1, Math.round(s.y0 + (s.y - s.y0) * f + Math.sin(f * 9 + k * 6) * 3) - 1, 3, 3); } x.beginPath(); x.arc(s.x, s.y, 4 + k * 10, 0, 7); x.stroke(); }
+  else if (s.fx === 'bite') { const g = 12 * (1 - k); for (let n = -2; n <= 2; n++) { x.fillRect(s.x + n * 5 - 1, s.y - g - 7, 3, 7); x.fillRect(s.x + n * 5 + 1, s.y + g, 3, 7); } }
+  else if (s.fx === 'net') { for (let n = -2; n <= 2; n++) { x.fillRect(s.x + n * 6, s.y - 14, 1, 28); x.fillRect(s.x - 14, s.y + n * 6, 28, 1); } }
+  else if (s.fx === 'whip') { x.lineWidth = 3; x.beginPath(); x.moveTo(s.x0, s.y0); x.quadraticCurveTo((s.x0 + s.x) / 2, Math.min(s.y0, s.y) - 22 * (1 - k), s.x, s.y); x.stroke(); }
+}
+function atkFx(a, b, h) {
+  const sa = 8 * (a.scale || S), sb = 8 * (b.scale || S), kind = a.id === 's' ? 'bite' : a.side === 'inv' ? 'slash' : (h.sd > 0 && !h.d ? 'beam' : FXKIND[a.kind] || 'slash');
+  ST.sparks.push({ fx: kind, x0: a.x + sa, y0: a.y + sa, x: b.x + sb, y: b.y + sb, t0: now(), dur: kind === 'beam' ? 360 : kind === 'net' ? 420 : 250, col: kind === 'beam' ? '#c8a8ff' : kind === 'bite' ? '#f5f5f5' : kind === 'net' ? '#a0a8c0' : a.side === 'inv' ? '#ff9a92' : kind === 'whip' ? '#8ad8c0' : '#fff3a0' });
+}
 function drawUnder(x, t) {
   rect(x, '#16121f', 0, 0, W, H); rect(x, '#2f6b3a', 0, 0, W, 10); rect(x, '#4a3a2a', 0, 10, W, 8);
   const er = cellRect(NEST.ENT); rect(x, '#0b0c16', er.x + 28, 0, 40, GY + 6); rect(x, '#7a5a3a', er.x + 34, 0, 3, GY + 60); rect(x, '#7a5a3a', er.x + 59, 0, 3, GY + 60); for (let k = 0; k < 11; k++) rect(x, '#7a5a3a', er.x + 34, 4 + k * 10, 28, 2);
@@ -128,7 +143,7 @@ function drawUnder(x, t) {
     const r = cellRect(NEST.CORE), sc = slimeScale(G.slime), size = 16 * sc; x.drawImage(slimeCanvas(G.slime, Math.floor(t / 240)), r.x + r.w - 14 - size, Math.round(floorY(r) - size + sc + Math.sin(t / 400) * 2), size, size);
     const hp = G.slime.hp / NEST.slimeStats(G).hp; if (hp < 0.999) { rect(x, '#0b0c16', r.x + r.w - 15 - size, floorY(r) - size - 9, size + 2, 6); rect(x, '#6fd08c', r.x + r.w - 14 - size, floorY(r) - size - 8, size * hp, 4); }
   }
-  ST.sparks = ST.sparks.filter(s => t - s.t0 < s.dur); ST.sparks.forEach(s => { const k = (t - s.t0) / s.dur; x.globalAlpha = 1 - k; if (s.ring) { x.strokeStyle = s.col; x.lineWidth = 2; x.beginPath(); x.arc(s.x, s.y, 6 + k * 18, 0, 7); x.stroke(); } else for (let n = 0; n < 6; n++) { const a = n * 1.047 + s.rot, r0 = 4 + k * 6, r1 = 9 + k * 16; x.strokeStyle = s.col; x.lineWidth = 2; x.beginPath(); x.moveTo(s.x + Math.cos(a) * r0, s.y + Math.sin(a) * r0); x.lineTo(s.x + Math.cos(a) * r1, s.y + Math.sin(a) * r1); x.stroke(); } x.globalAlpha = 1; });
+  ST.sparks = ST.sparks.filter(s => t - s.t0 < s.dur); ST.sparks.forEach(s => { const k = (t - s.t0) / s.dur; x.globalAlpha = 1 - k; if (s.fx) drawFx(x, s, k); else if (s.ring) { x.strokeStyle = s.col; x.lineWidth = 2; x.beginPath(); x.arc(s.x, s.y, 6 + k * 18, 0, 7); x.stroke(); } else for (let n = 0; n < 6; n++) { const a = n * 1.047 + s.rot, r0 = 4 + k * 6, r1 = 9 + k * 16; x.strokeStyle = s.col; x.lineWidth = 2; x.beginPath(); x.moveTo(s.x + Math.cos(a) * r0, s.y + Math.sin(a) * r0); x.lineTo(s.x + Math.cos(a) * r1, s.y + Math.sin(a) * r1); x.stroke(); } x.globalAlpha = 1; });
   const mark = (loc, col) => { const r = cellRect(locIdx(loc)); x.strokeStyle = col; x.lineWidth = 3; x.strokeRect(r.x + 3.5, r.y + 3.5, r.w - 7, r.h - 7); };
   if (day && ST.hover && ST.hover.t === 'cell' && !(UI.sel && UI.sel.t === 'cell' && UI.sel.i === ST.hover.i)) mark(ST.hover.i, '#ece6d666');
   if (day && UI.sel && UI.sel.t === 'cell') mark(UI.sel.i, '#e8c030');
@@ -280,7 +295,7 @@ const nlog = (s, cls) => { const el = $('nlog'); if (!el || !s) return; const p 
 function moveTo(e, p, dur) { e.fx = e.x; e.fy = e.y; e.tx = p.x; e.ty = p.y; e.t0 = now(); e.dur = Math.max(1, dur / ST.speed); }
 function prepareNight() {
   const E = ST.ents = {}; ST.defs = {}; ST.floats = []; ST.sparks = []; ST.fire = {}; ST.sanfx = {};
-  G.kin.forEach(m => { if (m.loc === null || m.hurt || m.strike) return; const list = ST.defs[m.loc] = ST.defs[m.loc] || [], sm = m.kind === 'spawn', p = defPos(m.loc, list.length, sm); E['k' + m.id] = { id: 'k' + m.id, side: 'def', can: kinCanvas(m.kind, m.evo), x: p.x - (m.evo ? 5 : 0), y: p.y - (m.evo ? 10 : 0), hp: 1, scale: sm ? (m.evo ? 1.625 : 1) : m.evo ? 2.625 : S }; list.push('k' + m.id); });
+  G.kin.forEach(m => { if (m.loc === null || m.hurt || m.strike) return; const list = ST.defs[m.loc] = ST.defs[m.loc] || [], sm = m.kind === 'spawn', p = defPos(m.loc, list.length, sm); E['k' + m.id] = { id: 'k' + m.id, kind: m.kind, side: 'def', can: kinCanvas(m.kind, m.evo), x: p.x - (m.evo ? 5 : 0), y: p.y - (m.evo ? 10 : 0), hp: 1, scale: sm ? (m.evo ? 1.625 : 1) : m.evo ? 2.625 : S }; list.push('k' + m.id); });
   const r = cellRect(NEST.CORE), sc = slimeScale(G.slime), size = 16 * sc;
   E.s = { id: 's', side: 'def', sl: JSON.parse(JSON.stringify(G.slime)), can: slimeCanvas(G.slime), x: r.x + r.w - 14 - size, y: floorY(r) - size + sc, hp: G.slime.hp / NEST.slimeStats(G).hp, scale: sc, bob: true };
 }
@@ -301,7 +316,7 @@ async function playEvents(ev, from) {
     if (e.t === 'march') {
       UI.sel = null; setScreen('surface'); $('nparty').innerHTML = e.party.map(u => invImg(u.kind, 32)).join(''); ST.label = NEST.VILL[e.vill].name + ' · ' + e.gname + ' ' + e.party.length + '명'; await wait(700);
       ST.march = { t0: now(), dur: 1300 / ST.speed, est: { vill: e.vill, count: e.party.length, kinds: e.party.map(u => u.kind), grade: 1 } }; await wait(1350); ST.label = '';
-      e.party.forEach((u, j) => { E[u.uid] = { id: u.uid, side: 'inv', can: invCanvas(u.kind), x: shaft.x, y: shaft.y - j * 14, hp: 1, sp: 1, scale: u.kind === 'sealer' ? 3 : S }; });
+      e.party.forEach((u, j) => { E[u.uid] = { id: u.uid, kind: u.kind, side: 'inv', can: invCanvas(u.kind), x: shaft.x, y: shaft.y - j * 14, hp: 1, sp: 1, scale: u.kind === 'sealer' ? 3 : S }; });
       ST.camMem.under = 0; setScreen('under'); await wait(450); ST.march = null;
     } else if (e.t === 'go') {
       const out = e.to === 'out', r = out ? null : cellRect(locIdx(e.to)); camTo(r ? r.x + r.w / 2 : 0);
@@ -316,7 +331,7 @@ async function playEvents(ev, from) {
       if (e.room != null) camTo(cellRect(locIdx(e.room)).x + CW / 2);
       for (const side of ['inv', 'def']) {
         const hs = e.hits.filter(h => h.s === side); if (!hs.length) continue;
-        hs.forEach(h => { const a = E[h.a], b = E[h.b]; if (a && b && !h.tag && !a.wall) a.lunge = { t0: now(), dx: Math.sign(b.x - a.x) * 16 }; applyHit(h); });
+        hs.forEach(h => { const a = E[h.a], b = E[h.b]; if (a && b && !h.tag && !a.wall && !['shot', 'beam'].includes(FXKIND[a.kind])) a.lunge = { t0: now(), dx: Math.sign(b.x - a.x) * 16 }; applyHit(h); if (a && b && !a.wall) atkFx(a, b, h); });
         if (hs.some(h => h.tag === 'aoe')) ST.shake = now() + 120;
         sfx(hs.some(h => h.sd > 0) && !hs.some(h => h.d > 0) ? 'mad' : 'hit'); await wait(250);
       }
