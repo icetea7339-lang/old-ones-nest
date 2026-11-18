@@ -5,7 +5,7 @@ const NEST = (function () {
   const K = {
     days: 30, cost: [0, 1, 2, 4, 7, 11], stat: [0, 1, 1.5, 2.4, 3.6, 5], size: [0, 1, 1.3, 1.8, 2.4, 3],
     ap: 2, startGold: 300, faithCap: 30, thresh: [0, 36, 100, 190, 300], tier: [1, 2.5, 6, 11, 18],
-    slime: { hp: 80, atk: 7, df: 5 }, budget: 24, settle: 1.6, steal: 15,
+    slime: { hp: 80, atk: 7, df: 5 }, budget: 27, settle: 1.7, steal: 15,
     lvGrowth: 1.15, expBase: 10, expGrowth: 1.3, trainEff: 1.5, hands: 2, corpseCap: 9,
   };
   const ASPECTS = ['abyss', 'nebula', 'brood', 'dusk', 'hunger'];
@@ -83,17 +83,17 @@ const NEST = (function () {
     tangle: { name: '촉수 뭉치', cost: 45, hp: 50, atk: 6, df: 5, pay: 2, w: 0.7, note: '싸움이 시작되면 적 둘을 두 라운드 동안 붙든다', skills: [] },
   });
   // 권속의 진화: 레벨 5부터, 재물을 들여 한 번
-  const EVO = { goblin: '홉고블린', skeleton: '해골 기사', cultist: '대신도', scale: '심해지기', scribe: '별의 서기', mask: '천의 가면', hunger: '게걸', netter: '올가미꾼', warden: '옥졸장', turncoat: '검은 기사', fallen: '이단 주교', digger: '땅굴 장인', clerk: '재무관', licker: '약손', spitter: '가시 포대', eyeheap: '눈의 탑', tangle: '매듭 덩이' };
+  const EVO = { spawn: '큰 움', goblin: '홉고블린', skeleton: '해골 기사', cultist: '대신도', scale: '심해지기', scribe: '별의 서기', mask: '천의 가면', hunger: '게걸', netter: '올가미꾼', warden: '옥졸장', turncoat: '검은 기사', fallen: '이단 주교', digger: '땅굴 장인', clerk: '재무관', licker: '약손', spitter: '가시 포대', eyeheap: '눈의 탑', tangle: '매듭 덩이' };
   const EVO_DESC = {
-    goblin: '칠 때마다 옆의 적 하나를 절반 세기로 함께 친다', skeleton: '같은 방 아군이 받는 피해 −15%, 부활 +1회', cultist: '매일 신앙 +2 더, 정신 공격 대상 +1명',
-    scale: '매 라운드 가장 다친 아군을 치료한다 (스킬과 따로)', scribe: '정신 공격 1.5배, 손 주문 효과 +25%', mask: '싸움이 시작될 때 적 전원의 정신력을 깎는다',
+    spawn: '나흘을 살아남으면 저절로 자란다', goblin: '칠 때마다 옆의 적 하나도 같은 세기로 친다', skeleton: '같은 방 아군이 받는 피해 −25%, 부활 +1회', cultist: '매일 신앙 +2 더, 정신 공격 대상 +1명',
+    scale: '매 라운드 가장 다친 아군을 치료한다 (스킬과 따로)', scribe: '정신 공격 2배, 손 주문 효과 +25%', mask: '싸움이 시작될 때 적 전원의 정신력을 깎는다',
     hunger: '매 라운드 두 번 문다', netter: '그물 문턱 +10%p, 한 번에 한 명 더 덮는다', warden: '포로 자리 +2 더, 싸움이 시작될 때 호통으로 적 전원의 정신력을 깎는다',
     turncoat: '처치할 때마다 남은 적 전원의 정신력을 깎는다', fallen: '치료량 2배', digger: '공짜 작업 +1번 더', clerk: '시설 유지비 −40%',
     licker: '전투마다 한 번, 쓰러진 아군 하나를 일으킨다', spitter: '싸움 전에 가시를 두 번 쏜다', eyeheap: '눈길이 들어온 적 전원에게 닿는다', tangle: '적 넷을 세 라운드 동안 붙든다',
   };
-  const kinName = m => m.evo && EVO[m.kind] ? EVO[m.kind] : KIN[m.kind].name, evoCost = G => 80 * cm(G);
+  const kinName = m => m.evo && EVO[m.kind] ? EVO[m.kind] : KIN[m.kind].name, evoCost = G => 120 * cm(G);
   function evolveKin(G, id) {
-    const m = G.kin.find(x => x.id === id); if (!m || !EVO[m.kind]) return fail('진화할 수 없는 권속입니다'); if (m.evo) return fail('이미 진화했습니다'); if (m.lv < 5) return fail('레벨 5부터 진화할 수 있습니다');
+    const m = G.kin.find(x => x.id === id); if (!m || !EVO[m.kind]) return fail('진화할 수 없는 권속입니다'); if (m.kind === 'spawn') return fail('움은 나흘을 살아남으면 저절로 자랍니다'); if (m.evo) return fail('이미 진화했습니다'); if (m.lv < 5) return fail('레벨 5부터 진화할 수 있습니다');
     if (G.gold < evoCost(G)) return fail('재물이 부족합니다 (' + evoCost(G) + 'G)'); spend(G, evoCost(G), '권속 진화'); m.evo = true; G.stats.kinEvo = (G.stats.kinEvo || 0) + 1;
     return ok(m.name + '이(가) ' + EVO[m.kind] + '(으)로 자랐다. ' + EVO_DESC[m.kind]);
   }
@@ -636,7 +636,7 @@ const NEST = (function () {
   const alive = us => us.filter(u => u.hp > 0 && !u.gone && !u.fled);
   const hpf = u => Math.max(0, u.hp) / u.mhp, spf = u => u.msan ? Math.max(0, u.san) / u.msan : 1;
   function mkInv(G, kind, n, vill) { const d = INV[kind], m0 = sm(G), hm = (ob(G, 'silence') ? 0.85 : 1) * (ox(G, 'longday') ? 1.15 : 1) * (G.star === 'loud' ? 1.25 : 1), m = m0; return { uid: 'i' + n, side: 'inv', kind, name: d.name, hp: d.hp * m * hm, mhp: d.hp * m * hm, atk: d.atk * m * (ox(G, 'whisper') ? 1.15 : 1) * (G.star === 'loud' ? 1.25 : 1), df: d.df * m * (ox(G, 'moon') ? 1.2 : 1), san: d.san * m * (ob(G, 'star') ? 0.75 : 1), msan: d.san * m, vill }; }
-  function mkDef(G, m) { const s = kinStats(G, m); return { uid: 'k' + m.id, side: 'def', kind: m.kind, name: m.name, hp: s.hp, mhp: s.hp, atk: s.atk, df: s.df * ((m.kind === 'scale' && m.skill === 2) || (m.kind === 'netter' && m.skill === 1) ? 1.5 : 1) * (ob(G, 'wetwall') ? 1.3 : 1), satk: s.satk * (m.evo && m.kind === 'scribe' ? 1.5 : 1), ref: m, sk: m.skill, evo: !!m.evo, revives: m.kind === 'skeleton' ? 1 + (m.skill === 2 ? 1 : 0) + (m.evo ? 1 : 0) : 0 }; }
+  function mkDef(G, m) { const s = kinStats(G, m); return { uid: 'k' + m.id, side: 'def', kind: m.kind, name: m.name, hp: s.hp, mhp: s.hp, atk: s.atk, df: s.df * ((m.kind === 'scale' && m.skill === 2) || (m.kind === 'netter' && m.skill === 1) ? 1.5 : 1) * (ob(G, 'wetwall') ? 1.3 : 1), satk: s.satk * (m.evo && m.kind === 'scribe' ? 2 : 1), ref: m, sk: m.skill, evo: !!m.evo, revives: m.kind === 'skeleton' ? 1 + (m.skill === 2 ? 1 : 0) + (m.evo ? 1 : 0) : 0 }; }
   function strike(t, x) { const was = t.hp > 0; t.hp -= x; return { b: t.uid, d: Math.round(x), hp: hpf(t), k: was && t.hp <= 0 }; }
   const ward = g => alive(g).reduce((a, u) => Math.max(a, u.sealed ? 0 : (INV[u.kind].ward || 0)), 0);
 
@@ -715,7 +715,7 @@ const NEST = (function () {
             if (a.kind === 'priest' && t.kind === 'skeleton') x *= 2;
             if (wall && !(t.kind === 'skeleton' && t.sk === 0)) x *= 0.8;
             if (scaleHere && t.kind !== 'scale') x *= 0.8;
-            if (knight && !(t.kind === 'skeleton' && t.evo)) x *= 0.85;
+            if (knight && !(t.kind === 'skeleton' && t.evo)) x *= 0.75;
             if (coreOn && main === 'abyss' && stage >= 1) x *= stage >= 2 ? 0.55 : 0.7;
             if (t.kind === 'wall') hits.push([a, x * 0.25, t]);
             hits.push([t, x, a]);
@@ -741,7 +741,7 @@ const NEST = (function () {
           if (d.kind === 'netter') { const th = (d.sk === 0 ? 0.4 : 0.3) + (d.evo ? 0.1 : 0), c = inv.filter(u => u.hp > 0 && !u.gone && !u.netted && u.hp < u.mhp * th && !INV[u.kind].boss).slice(0, (d.sk === 2 ? 2 : 1) + (d.evo ? 1 : 0)); if (c.length) { c.forEach(u => { u.netted = 1; u.san = 0; }); continue; } }
           if (d.kind === 'hunger') { if (d.sk === 0 && round === 1) mult *= 2; if (d.sk === 1) mult *= 1 + 0.15 * (d.kills || 0); if (d.sk === 2 && weak.hp < weak.mhp * 0.25) { hits.push([weak, weak.hp + 1, d]); continue; } }
           const x = dmg(d.atk * mult, t.df); hits.push([t, x, d]);
-          if (d.evo && d.kind === 'goblin' && inv.length > 1) hits.push([inv.find(u => u !== t) || t, x * 0.5, d]);
+          if (d.evo && d.kind === 'goblin' && inv.length > 1) hits.push([inv.find(u => u !== t) || t, x, d]);
           if (d.evo && d.kind === 'hunger') hits.push([pick(G, inv), x, d]);
           if (d.kind === 'goblin' && d.sk === 0 && round === 1) hits.push([pick(G, inv), x, d]);
           if (d.kind === 'spawn' && d.sk === 0) t.stick = 1;
@@ -925,7 +925,7 @@ const NEST = (function () {
     rep.faith = G.faith - f0;
     if (G.star === 'quiet' && G.d.fear0 != null && G.fear > G.d.fear0) G.fear = G.d.fear0 + (G.fear - G.d.fear0) / 2;
     G.fear = Math.max(0, G.fear - 2);
-    const lick = G.kin.some(m => m.kind === 'licker' && !m.hurt); G.kin.forEach(m => { if (m.hurt > 0) m.hurt = Math.max(0, m.hurt - (lick ? 2 : 1)); m.age = (m.age || 0) + 1; });
+    const lick = G.kin.some(m => m.kind === 'licker' && !m.hurt); G.kin.forEach(m => { if (m.hurt > 0) m.hurt = Math.max(0, m.hurt - (lick ? 2 : 1)); m.age = (m.age || 0) + 1; if (m.kind === 'spawn' && m.age >= 4) m.evo = true; });
     if (G.detNext) { G.detBonus = 1.2; G.detNext = false; } else G.detBonus = 1;
     if (G.pilgrims) { G.pilgrimDay = G.day + 1; G.pilgrims = false; }
     rep.ledger = Object.assign({}, G.ledger);
