@@ -50,6 +50,9 @@ function play(seed, st, diff, trace, force) {
       for (const i of path) { const x = G.cells[i]; if (i === S.CORE || x.type !== 'empty') continue; const t = want[wi % want.length], cost = S.buildCost(G, i, t); if (!S.canBuild(G, i, t) && can(cost)) { if (S.build(G, i, t).ok) wi++; } }
       // 함정 채우기
       G.cells.forEach((x, i) => { const cap = S.ROOM[x.type].traps || 0; while (x.dug && x.traps.length < cap) { const tk = st.trapOnly ? st.trapOnly.split('+') : null, k = tk ? tk[x.traps.length % tk.length] : G.slime.main === 'dusk' ? 'mist' : (x.traps.some(t => t.kind === 'spike') ? 'acid' : 'spike'); if (!can(S.TRAP[k].cost * c) || !S.addTrap(G, i, k).ok) break; } });
+      // 실험: GIVE=조합 이름 → 6일째에 그 조합의 합체 권속 하나를 쥐여 준다 (NORCP=1 이면 같은 몸에 조합 효과만 끈다)
+      if (process.env.GIVE && G.day === +(process.env.GIVEDAY || 6) && !G._given) { G._given = 1; const pr = S.RECIPE[process.env.GIVE].pair, mk = pr[1] === null ? 'goblin' : pr[0], pk2 = pr[1] === null ? pr[0] : pr[1], host = G.kin.filter(m => m.loc !== null && m.kind !== 'spawn').sort((x, y) => y.lv - x.lv)[0];
+        G.kin.push({ id: G.nextId++, name: '시험', kind: mk, lv: 3, exp: 0, loc: host ? host.loc : 'core', hurt: 0, skill: 0, age: 3, unpaid: 0, stance: 'hold', parts: [{ kind: pk2, lv: 3, name: '재료' }] }); }
       // 대기 중인 권속 배치
       G.kin.forEach(m => { if (m.loc === null) { const f = S.freeSlot(G, m.kind); if (f !== null) S.moveKin(G, m.id, f); } });
       // 합체: 자리가 없어 서성이는 권속을 싸우는 권속에게 붙인다

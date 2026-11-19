@@ -367,7 +367,24 @@ function kinCanvasM(m) {
   parts.forEach((p, k) => { const pc = kinCanvas(p.kind, false), w = Math.round(pc.width * 0.7), px0 = k === 0 ? Math.max(0, hx - 5) : Math.min(24 - w, hx + host.width - w + 5), py0 = Math.max(0, hy - 6 + k * 2); x.drawImage(pc, px0, py0, w, w);
     x.fillStyle = '#5a0c14'; for (let i = 0; i < 4; i++) x.fillRect(px0 + Math.round(w / 2) + (k ? -i : i), py0 + w - 2 + i, 2, 1); x.fillStyle = '#e8505a'; x.fillRect(px0 + Math.round(w / 2) + (k ? -1 : 1), py0 + w - 1, 1, 1); });
   x.drawImage(host, hx, hy);
+  NEST.recipesOf(m).forEach(r => rcpMark(x, r, hx, hy, host.width, host.height));
   return (cv[key] = c);
+}
+// 특별한 합체의 표식: 조합마다 몸에 한 가지가 더 붙는다
+function rcpMark(x, r, hx, hy, w, h) {
+  const cx = hx + Math.floor(w / 2), P = (col, pts) => { x.fillStyle = col; pts.forEach(p => x.fillRect(p[0], p[1], p[2] || 1, p[3] || 1)); }, top = Math.max(0, hy - 3), bot = 23;
+  if (r === 'pray') P('#f4d868', [[cx - 3, top, 6, 1], [cx - 4, top + 1], [cx + 3, top + 1], [cx - 3, top + 2, 6, 1]]);
+  if (r === 'twice') { P('#c8c8dc', [[cx - 3, top, 2, 1], [cx + 1, top, 2, 1], [cx - 4, top + 1], [cx + 3, top + 1], [cx - 3, top + 2, 3, 1]]); P('#e8505a', [[cx, top + 1]]); }
+  if (r === 'read') P('#7fe0ff', [[cx - 3, hy + Math.floor(h / 2)], [cx - 1, hy + Math.floor(h / 2) + 1], [cx + 1, hy + Math.floor(h / 2)], [cx + 3, hy + Math.floor(h / 2) + 1]]);
+  if (r === 'wall') { P('#2a3038', [[hx - 2, bot - 8, 6, 8]]); P('#9aa4b0', [[hx - 1, bot - 7, 4, 6]]); P('#dfe6ee', [[hx, bot - 6, 1, 4]]); }
+  if (r === 'fist') { P('#5a1810', [[hx + w - 2, bot - 9, 6, 6]]); P('#e07050', [[hx + w - 1, bot - 8, 4, 4]]); P('#ffd0b0', [[hx + w - 1, bot - 8, 4, 1]]); }
+  if (r === 'brawl') { P('#3a2408', [[hx - 3, bot - 10, 5, 5], [hx + w - 2, bot - 10, 5, 5]]); P('#e0b060', [[hx - 2, bot - 9, 3, 3], [hx + w - 1, bot - 9, 3, 3]]); }
+  if (r === 'choir') P('#f4d868', [[cx - 6, top + 1, 1, 3], [cx - 7, top + 3, 2, 1], [cx + 5, top, 1, 3], [cx + 4, top + 2, 2, 1]]);
+  if (r === 'bud') { P('#2c5a24', [[cx, top + 1, 1, 3]]); P('#7ad060', [[cx - 2, top, 2, 2], [cx + 1, top, 2, 2]]); }
+  if (r === 'bind') { for (let i = 0; i < w + 4; i += 2) P(i % 4 ? '#6a7078' : '#c8ced6', [[hx - 2 + i, bot - 1, 2, 1]]); P('#f4d868', [[hx + w, bot - 4, 2, 2], [hx + w, bot - 2, 1, 1]]); }
+  if (r === 'briar') P('#5fae4a', [[hx - 2, bot - 9], [hx - 3, bot - 7, 2, 1], [hx - 2, bot - 4], [hx + w + 1, bot - 10], [hx + w, bot - 6, 2, 1], [hx + w + 1, bot - 3], [cx - 2, top + 1], [cx + 2, top]]);
+  if (r === 'ledger') { P('#3a2a10', [[hx + w - 2, bot - 5, 5, 5]]); P('#f0c040', [[hx + w - 1, bot - 4, 3, 3]]); P('#fff0a0', [[hx + w - 1, bot - 4, 1, 1]]); }
+  if (r === 'record') { P('#101018', [[cx - 3, top, 6, 4]]); P('#f0f0f8', [[cx - 2, top + 1, 4, 2]]); P('#7030c0', [[cx - 1, top + 1, 2, 2]]); }
 }
 const kinImgM = (m, size) => m.parts && m.parts.length ? toImg(kinCanvasM(m), 'fz:' + m.kind + (m.evo ? 'e' : '') + ':' + m.parts.map(p => p.kind + (p.evo ? 'e' : '')).join('+'), size, NEST.kinName(m)) : kinImg(m.kind, size, m.evo);
 const kinImg = (kind, size, evo) => toImg(kinCanvas(kind, evo), (evo ? 'evo4:' : 'kin3:') + kind, size, NEST.KIN[kind].name);

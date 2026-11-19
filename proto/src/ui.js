@@ -235,7 +235,7 @@ function slimePanel() {
     if (sl.stage === 0) h += '<p class="small mute">아직 형체가 없다. 허물을 벗으면 능력과 손 주문이 생기고, 그때마다 변이가 하나씩 돋는다.</p>';
   }
   if (tab === 'hoard') h += `<p class="small mute">깔고 앉은 재물을 쓴다. 행동은 들지 않는다. 삼킨 재물은 털리지 않는다.</p><div class="opts">${Object.keys(NEST.HOARD).map(k => { const d = NEST.HOARD[k], n = NEST.hoardN(G, k), why = NEST.hoardWhy(G, k), full = n >= d.max; return opt('hoard', { k }, d.name + (n ? (d.max > 2 ? ' ×' + n : ' ' + n + '/' + d.max) : ''), full ? 0 : NEST.hoardCost(G, k), full ? '다 했다' : why && !why.includes('부족') ? why : d.desc, !!why); }).join('')}</div>`;
-  if (tab === 'guard') h += `<div class="units">${guards.map(kinChip).join('') || '<span class="mute small">호위가 없다. 대기 중인 권속을 세울 수 있다.</span>'}</div>${bench.length ? `<div class="row"><span class="small mute">세우기</span>${bench.slice(0, 8).map(m => btn('place', { id: m.id, loc: 'core' }, esc(m.name), 'sm')).join('')}</div>` : ''}
+  if (tab === 'guard') h += `<div class="units">${guards.map(kinChip).join('') || '<span class="mute small">호위가 없다. 대기 중인 권속을 세울 수 있다.</span>'}</div>${bench.length ? `<div class="row"><span class="small mute">세우기</span>${bench.slice(0, 8).map(m => btn('place', { id: m.id, loc: 'core' }, esc(m.name), 'sm')).join('')}</div>` : ''}${guards.length && G.day >= 4 ? `<div class="row"><span class="small mute">훈련 <small>행동 1</small></span>${[30, 60, 120].map(a => btn('train', { loc: 'core', amt: a * NEST.cm(G) }, a * NEST.cm(G) + 'G', 'sm', G.gold < a * NEST.cm(G))).join('')}</div>` : guards.length ? '<p class="small mute">훈련은 4일째부터.</p>' : ''}
     <p class="small mute">재물은 본체가 깔고 앉아 있다. 여기까지 온 무리는 본체·호위와 싸우고, 본체가 쓰러지면 재물 ${Math.round(NEST.K.rob * (G.origin === 'coin' ? 1.6 : 1) * 100)}%를 들고 간다. ${G.day >= NEST.K.days ? '<b class="up">오늘 밤은 쓰러지면 끝이다.</b>' : NEST.lives(G) > 1 ? '목숨이 하나 남으면 그다음은 끝이다.' : '<b class="up">다음에 쓰러지면 끝이다.</b>'}</p>`;
   return h + '</div>';
 }
@@ -771,7 +771,7 @@ function boot() {
     if (e.key === 'Tab') { e.preventDefault(); setScreen(ST.screen === 'under' ? 'surface' : 'under'); }
     if (e.key === 'e' || e.key === 'E' || e.key === 'ㄷ') endDay();
   });
-  window.__nest = { get G() { return G; }, NEST, ST, get META() { return META; }, endingScene, slimeCanvas, kinCanvas };
+  window.__nest = { get G() { return G; }, NEST, ST, get META() { return META; }, endingScene, slimeCanvas, kinCanvas, kinCanvasM };
   if (window.claude && window.claude.hot) try { window.claude.hot.onSnapshot && window.claude.hot.onSnapshot(() => ({ run: G })); } catch (e) { /* 무시 */ }
   initCloud(); showTitle(); requestAnimationFrame(loop);
   const nj = $('nojs'); if (nj) nj.remove();  // 여기까지 왔으면 정상 실행
