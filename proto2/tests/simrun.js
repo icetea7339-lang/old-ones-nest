@@ -1,6 +1,11 @@
-// 새 판 시험: 화면 없이 여러 씨앗으로 돌려 흐름을 잰다.  node simrun.js [분] [씨앗들]
+// 새 판 시험: 화면 없이 여러 씨앗으로 돌려 흐름을 잰다.  node simrun.js [분] [씨앗들] [방 고르는 법: all|base|none]
 const B = require('/home/user/slime-ipo-design/proto2/src/sim.js');
-const MIN = +(process.argv[2] || 15), seeds = (process.argv[3] || '1,7,42,99,2024').split(',').map(Number);
-for (const seed of seeds) { const S = B.newWorld(seed); const molt = []; let ready = 0, breach = 0, err = null;
-  try { for (let i = 0; i < 600 * MIN && !S.over; i++) { B.tick(S); if (S.molt) { molt.push(Math.round(S.t)); B.applyMolt(S, S.molt.choices ? S.molt.choices[seed % S.molt.choices.length] : null); } if (!ready && B.ready(S)) { ready = Math.round(S.t); B.openUp(S); } if (!breach && S.breach === 2) breach = Math.round(S.t); } } catch (e) { err = e.stack.split('\n').slice(0, 3).join(' | '); }
-  console.log('씨앗 ' + String(seed).padEnd(5), '허물 ' + (molt.join(',') || '-').padEnd(18), '준비 ' + String(ready).padEnd(4), '뚫림 ' + String(breach).padEnd(4), '단계 ' + S.hero.stage, '권속 ' + B.count(S, 'w') + '/' + B.count(S, 's'), '판 ' + S.dug, '방 ' + S.chambers.filter(c => c.open).length, '물결 ' + S.wave, '잃음 ' + S.stats.lost, '잡음 ' + S.stats.slain, S.over ? '끝 ' + Math.round(S.over.t) + 's' : '생존', err ? '오류 ' + err : ''); }
+const MIN = +(process.argv[2] || 15), seeds = (process.argv[3] || '1,7,42,99,2024').split(',').map(Number), POL = process.argv[4] || 'all';
+for (const seed of seeds) { const S = B.newWorld(seed); const molt = []; let ready = 0, breach = 0, err = null, built = {}, first = {}, fails = {};
+  try { for (let i = 0; i < 600 * MIN && !S.over; i++) { B.tick(S);
+      if (S.molt) { molt.push(Math.round(S.t)); B.applyMolt(S, S.molt.choices ? S.molt.choices[seed % S.molt.choices.length] : null); }
+      if (!ready && B.ready(S)) { ready = Math.round(S.t); B.openUp(S); } if (!breach && S.breach === 2) breach = Math.round(S.t);
+      // 방 짓기: 한 바퀴씩 돌아가며, 그 권속이 꽉 찼을 때
+      if (POL !== 'none' && i % 20 === 0) { const keys = B.unlocked(S).filter(k => POL === 'all' || k === 'w' || k === 's'); const need = keys.filter(k => { const kin = B.ROOM[k].kin; return B.count(S, kin) >= B.capOf(S, kin) && !S.chambers.some(c => c.kind === k && !c.open); }).sort((a, b) => B.rooms(S, a, true) - B.rooms(S, b, true))[0]; if (need && S.hero.bio >= B.ROOM[need].cost + 12) { const r = B.buildRoom(S, need); if (!r.ok) fails[r.msg] = (fails[r.msg] || 0) + 1; if (r.ok) { built[need] = (built[need] || 0) + 1; if (!first[need]) first[need] = Math.round(S.t); } } } } } catch (e) { err = e.stack.split('\n').slice(0, 3).join(' | '); }
+  const kin = Object.keys(B.KIN).map(k => k + B.count(S, k)).filter(x => !/0$/.test(x) || x.length > 2).join(' ');
+  console.log('씨앗 ' + String(seed).padEnd(5), '허물 ' + (molt.join(',') || '-').padEnd(16), '채비 ' + String(ready).padEnd(4), '뚫림 ' + String(breach).padEnd(4), '첫방 ' + JSON.stringify(first), '살 ' + Math.round(S.hero.bio), '먹음 ' + Math.round(S.hero.eaten), '단계 ' + S.hero.stage + (S.hero.main ? ' ' + S.hero.main + (S.hero.sub ? '+' + S.hero.sub : '') : ''), '| 권속', kin, '| 방', JSON.stringify(built), '| 판 ' + S.dug, '물결 ' + S.wave, '잃음 ' + S.stats.lost, '잡음 ' + S.stats.slain, '홀림 ' + S.stats.charmed, '낳음 ' + S.stats.laid, JSON.stringify(fails), S.over ? '끝 ' + Math.round(S.over.t) + 's' : '생존', err ? '오류 ' + err : ''); }
