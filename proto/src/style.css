@@ -34,6 +34,7 @@ p { margin: 0; }
 .up { color: var(--up); } .down { color: var(--down); } .coin { color: var(--coin); } .okc { color: var(--ok); } .warnc { color: var(--warn); }
 .num { font-variant-numeric: tabular-nums; }
 img.px, canvas.px { image-rendering: pixelated; display: block; }
+.slbox { display: inline-flex; align-items: flex-end; justify-content: center; flex: none; } .slbox img { flex: none; }
 :focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
 kbd { font-family: var(--body); font-size: var(--t1); border: 1px solid var(--line); padding: 0 5px; color: var(--mute); }
 .clamp1, .clamp2, .clamp3 { display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; }
@@ -197,6 +198,7 @@ img.ic { display: inline-block; vertical-align: -4px; margin-right: 4px; }
 .caprow .btn { padding: 4px 7px; font-size: var(--d1); white-space: nowrap; }
 .grade { font-size: 96px; line-height: 1; color: var(--coin); text-shadow: 5px 5px 0 #7a2a1c; text-align: center; }
 .codex { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 6px; }
+.codex.c4 { grid-template-columns: repeat(4, minmax(0, 1fr)); } .codex.c4 .node { padding: 8px 2px 6px; justify-content: flex-end; }
 .codex .node { background: var(--panel2); padding: 6px 4px; display: flex; flex-direction: column; align-items: center; gap: 3px; text-align: center; font-size: var(--t1); }
 .codex .node.unk img { filter: brightness(0); opacity: .5; }
 #scene { position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 30; background: rgba(8, 9, 20, .72); display: flex; align-items: flex-end; justify-content: center; cursor: pointer;
@@ -321,6 +323,7 @@ img.ic { display: inline-block; vertical-align: -4px; margin-right: 4px; }
   .ledger { gap: 1px 8px; font-size: var(--t1); }
   .grade { font-size: 72px; }
   .codex { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .codex.c4 { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 3px; }
   #scene { padding-bottom: calc(16px + var(--sab)); }
   #scene .box { grid-template-columns: 56px minmax(0, 1fr); gap: 10px; padding: 12px; min-height: 130px; }
   #scene .box img { width: 56px; height: 56px; }
@@ -329,7 +332,7 @@ img.ic { display: inline-block; vertical-align: -4px; margin-right: 4px; }
   #menu .btn { min-height: 44px; }
 }
 @media (max-width: 760px) and (max-height: 660px) { #title .tag { display: none; } #tcv { height: 24vh; } #recent { display: none; }
-  #right.open { max-height: calc(100% - var(--hud-h, 92px)); padding-top: 4px; } #right.open #coach2 p { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; } .slime-top { grid-template-columns: 56px minmax(0, 1fr); } .slime-top > img { width: 56px; height: 56px; } }
+  #right.open { max-height: calc(100% - var(--hud-h, 92px)); padding-top: 4px; } #right.open #coach2 p { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; } .slime-top { grid-template-columns: 56px minmax(0, 1fr); } .slime-top > img { width: 56px; height: 56px; } .slime-top > .slbox { width: 56px !important; height: 56px !important; } .slime-top > .slbox img { max-width: 56px; max-height: 56px; } }
 @media (orientation: landscape) and (max-height: 480px) and (hover: none) {
   #rotate { display: flex; position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 50; background: var(--ink); align-items: center; justify-content: center; font-family: var(--display); font-size: var(--d2); }
 }

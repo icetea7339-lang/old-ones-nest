@@ -19,7 +19,7 @@ function tagL(x, s, px, py, col, size, accent) { const z = Math.round((size || 1
 function plate(x, s, cx, y, col, size) { const z = Math.round((size || 13) * ST.fm); x.font = z + 'px "NestPix", "Do Hyeon", "Malgun Gothic", sans-serif'; const w = x.measureText(s).width + 10; rect(x, '#0b0c16bb', cx - w / 2, y - 2, w, z + 6); txt(x, s, cx, y, col, size, 'center'); }
 function camTo(lx, snap) { if (!snap && ST.mode === 'night' && ST.camHold > now()) return; const max = Math.max(0, W - ST.viewW); ST.cam.tx = Math.max(0, Math.min(max, lx - ST.viewW / 2)); if (snap === true) ST.cam.x = ST.cam.tx; }
 function villState(v) { const s = G.vill[v]; return s.razed ? '폐허' : s.tribute ? '공물 중' : s.host >= 50 ? '보복 준비' : s.host >= 15 ? '수상히 여김' : '평온'; }
-function slimeScale(sl) { return [4, 4.5, 5, 6, 6.5][sl.stage]; }
+function slimeScale(sl) { return slimeCanvas(sl, 0).width / 8; }   // 그림 한 점이 지도 2px. 권속과 점 크기가 같다
 function defPos(loc, k, small) {
   const r = cellRect(locIdx(loc)), fy = floorY(r), sz = small ? 16 : 32;
   if (loc === 'core') return { x: r.x + 68 - (k % 3) * 24, y: fy - sz + 2 - Math.floor(k / 3) * 20 };

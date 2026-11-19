@@ -292,7 +292,12 @@ const NEST = (function () {
   const hasRoom = (G, t) => G.cells.some((c, i) => c.dug && c.type === t && !G.off[i]);
   const countRoom = (G, t) => G.cells.filter(c => c.dug && c.type === t).length;
   const formId = G => G.slime.stage === 0 ? 'base' : G.slime.stage === 1 ? pk(G) : pk(G) + '_' + G.slime.sub;
-  const formName = G => G.slime.stage === 0 ? ((G.origin && ORIGIN[G.origin]) || ORIGIN.drop).title : G.slime.stage === 1 ? FORM1[pk(G)].name : (G.slime.stage === 3 ? '겹쳐진 ' : G.slime.stage >= 4 ? '거대한 ' : '') + (G.slime.body ? SUBADJ[G.slime.sub] + ' ' + BODY[G.slime.body].noun : FORM2[formId(G)]);
+  // 허물을 벗을 때마다 다른 생물이 된다. 이름도 단계마다 다르다. 섞인 징조는 이명(formTitle)으로 남는다
+  const SPECIES = { abyss: ['', '젖은 것', '등불 아귀', '바닥 갑주', '해구의 주인'], nebula: ['', '빛나는 것', '눈 품은 수정', '도는 고리', '틈을 여는 자'], brood: ['', '불어나는 것', '걷는 버섯', '알 품은 어미', '낳는 숲'],
+    dusk: ['', '속삭이는 것', '줄 달린 인형', '막 두른 나방', '막의 연출가'], hunger: ['', '씹는 것', '굶은 짐승', '솟은 목구멍', '마지막 한 입'],
+    hive: ['', '여럿인 것', '얼굴 없는 떼', '눈 달린 벌집', '쌓인 거인'], idol: ['', '받들린 것', '얼굴 기둥', '앉은 상', '떠 있는 얼굴'], mix: ['', '뒤엉킨 것', '반반인 짐승', '쌓인 몸통', '경계 없는 살'] };
+  const formName = G => G.slime.stage === 0 ? ((G.origin && ORIGIN[G.origin]) || ORIGIN.drop).title : SPECIES[pk(G)][Math.min(4, G.slime.stage)];
+  const formTitle = G => G.slime.stage < 2 || !G.slime.sub ? '' : G.slime.body ? SUBADJ[G.slime.sub] + ' ' + BODY[G.slime.body].noun : FORM2[formId(G)];
   const essTotal = G => ASPECTS.reduce((a, k) => a + G.slime.ess[k], 0);
   const fearGrade = G => G.fear < 25 ? 1 : G.fear < 60 ? 2 : G.fear < 110 ? 3 : 4;
   const faithCap = G => K.faithCap + 20 * countRoom(G, 'chapel') + (G.faithBonus || 0) + (G.slime.body === 'idol' ? 20 : 0);
@@ -1121,7 +1126,7 @@ const NEST = (function () {
   }
 
   return { fj, K, ASPECTS, ASP, COLS, ROWS, N, ENT, CORE, nbrs, lives, livesMax, migrate, trading, tradeOf, trustCap, HOARD, hoardN, hoardCost, hoardWhy, hoardBuy, ORIGIN, digCost, SIGN, TRAITS, traitReady, eventInfo, BODY, SUBADJ, bodyOf, pk, FUSE_PRE, fuseCost, fuseWhy, fuseKin, baseName, RECIPE, recipesOf, fusePreview, ROOM, TRAP, ZONE, PLOT, KIN, SKILL_LV, INV, GRADE_NAME, VILL, VIDS, FORM1, FORM2, FORM2UP, SUBTRAIT, AVATAR, MUT, DIFF, GRADES, EVENTS,
-    newGame, actOf, cm, sm, isSettle, formId, formName, essTotal, fearGrade, faithCap, corpseCap, corpsePts, slimeStats, kinStats, salary, upkeep, capacity, freeSlot, prisonCap, handsMax, spellCost, seesDetail, expNeed,
+    newGame, actOf, cm, sm, isSettle, formId, formName, formTitle, SPECIES, essTotal, fearGrade, faithCap, corpseCap, corpsePts, slimeStats, kinStats, salary, upkeep, capacity, freeSlot, prisonCap, handsMax, spellCost, seesDetail, expNeed,
     paths, sideRooms, estimate, partyBudget, canDig, digPreview, dig, toggleBlock, canBuild, buildCost, build, addTrap, trapUpCost, upTrap, setZone, setPlot, accept, acceptCost, dismiss, moveKin, setSkill, setStance, train, eat, rest,
     SPOT, spotOptions, resolveSpot, ELDER, OMEN, OMEN_IDS, OMEN_DAY, CALM_COST, ACT_NAME, calm, COMBO, combos, BURIED, STAR, EVO, EVO_DESC, kinName, evoCost, evolveKin, GUEST, guestOptions, resolveGuest, convertKind, endKey, convertChance, ransomOf, sacEss, mutChance, dispose, raidInfo, raid, eventOptions, resolveEvent, endDay, beginNight, settle, luxury, avatarOf, score };
 })();
