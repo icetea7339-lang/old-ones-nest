@@ -61,6 +61,8 @@ const devName = process.argv[2], tag = devName ? devName.replace(/\s+/g, '') : '
     log('판 시작:', await p.evaluate(() => __nest.G.sign + ' / ' + __nest.G.startAsp + ' / ' + __nest.G.star + ' / ' + __nest.NEST.formName(__nest.G)));
     // ---------- 지원자 ----------
     await check('applicants'); for (let i = 0; i < 2; i++) if (await has('#modal [data-a="accept"]:not([disabled])')) await tap('#modal [data-a="accept"]:not([disabled])'); await closeM();
+    // 막힌 굴에서 시작한다: 그 화면을 보고, 뚫고, 세계가 드러나는 장면을 본다
+    await check('sealed'); await tap('[data-a="breach"]'); await check('breach_confirm'); await tap('#modal [data-a="close"][data-v="go"]'); await p.waitForTimeout(500); await check('reveal'); for (let i = 0; i < 6 && await has('[data-a="sceneskip"]'); i++) await tap('[data-a="sceneskip"]'); await p.waitForTimeout(400); await check('surface_first'); await tap('[data-a="view"][data-v="under"]'); await p.waitForTimeout(300);
     await check('day1');
     // ---------- 빈 굴: 추천 → 초소 → 세우기 ----------
     await cell(1); await check('cell_rec'); log('추천:', (await p.$$eval('#view .opts .opt b', es => es.map(e => e.textContent.trim()))).join(' | '));

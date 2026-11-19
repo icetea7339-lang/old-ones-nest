@@ -398,7 +398,7 @@ const NEST = (function () {
     days: 40, act: 8, cost: [0, 1, 2, 4, 7, 11], stat: [0, 1, 1.5, 2.4, 3.6, 5], size: [0, 1, 1.3, 1.8, 2.4, 3],
     ap: 2, startGold: 300, faithCap: 30, thresh: [0, 50, 150, 300, 480], tier: [1, 2.5, 6, 11, 18],
     slime: { hp: 80, atk: 7, df: 5 }, budget: 40, settle: 1.7, rob: 0.5, falls: [0, 2, 2, 2], smell: 0.8, wary: 0.5, tithe: 3, brood: { own: 0.2, other: 0.1, cap: 14 }, preach: { base: 6, grow: 2 }, gift: { ess: 2, on: 1, boon: 1, bane: 1 }, lean: { on: 1, add: 1.2, mul: 2.5, off: 0.5 }, ktrait: { abyss: 1, nebula: 1, hunger: 1, dusk: 1 }, fuse: { max: 2, share: 0.5, cost: 60 }, trustMax: 5, trustGain: 0.4, trustCap: [0, 5, 4, 2, 0], trustKills: 3,
-    lvGrowth: 1.15, expBase: 10, expGrowth: 1.3, trainEff: 1.5, hands: 2, corpseCap: 9,
+    deep: { risk: [0, 0.25, 0.5, 1], ess: 3 }, lvGrowth: 1.15, expBase: 10, expGrowth: 1.3, trainEff: 1.5, hands: 2, corpseCap: 9,
   };
   const ASPECTS = ['abyss', 'nebula', 'brood', 'dusk', 'hunger'];
   const ASP = { abyss: '심연', nebula: '성운', brood: '번식', dusk: '황혼', hunger: '기아' };
@@ -415,19 +415,19 @@ const NEST = (function () {
     decoy: { name: '미끼 방', cost: 50, desc: '들어온 적의 30%가 푼돈을 들고 돌아간다' },
     shop: { name: '상점', cost: 40, desc: '지나가는 적 1명당 수입. 대신 적 공격 +20%' },
     prison: { name: '감옥', cost: 40, side: true, desc: '포로 자리 +4' },
-    chapel: { name: '예배당', cost: 60, side: true, desc: '매일 신앙 +2, 상한 +20. 신도가 자주 지원한다' },
+    chapel: { name: '예배당', cost: 60, side: true, desc: '매일 신앙 +2, 상한 +20. 신도가 자주 찾아든다' },
     ritual: { name: '의식실', cost: 70, side: true, max: 1, desc: '제물의 정수 +1, 변이 확률 +15%p' },
     persuade: { name: '설득실', cost: 60, side: true, max: 1, desc: '개종 성공률 +20%p' },
     altar: { name: '제단', cost: 80, side: true, max: 1, desc: '달이 기우는 밤마다 주 징조 정수 +8' },
-    pool: { name: '고인 웅덩이', cost: 60, asp: 'abyss', ess: true, side: true, desc: '이웃 칸 아군이 매 라운드 체력 5% 회복. 매일 심연 정수 +2. 비늘지기를 부른다' },
+    pool: { name: '고인 웅덩이', cost: 60, asp: 'abyss', ess: true, side: true, desc: '이웃 칸 아군이 매 라운드 체력 5% 회복. 매일 심연 정수 +2. 비늘지기가 돋는다' },
     sluice: { name: '수문', cost: 70, asp: 'abyss', desc: '지나가는 무리를 하룻밤 한 번 앞 칸으로 되돌린다' },
-    library: { name: '서고', cost: 60, asp: 'nebula', ess: true, side: true, desc: '손 주문 효과 +25%. 매일 성운 정수 +2. 별필경사를 부른다' },
+    library: { name: '서고', cost: 60, asp: 'nebula', ess: true, side: true, desc: '손 주문 효과 +25%. 매일 성운 정수 +2. 별보는 눈이 돋는다' },
     warp: { name: '뒤틀린 복도', cost: 70, asp: 'nebula', desc: '지나가는 적의 25%를 입구로 되돌려 보낸다' },
     hatchery: { name: '부화실', cost: 60, asp: 'brood', ess: true, side: true, desc: '매일 움 1마리. 매일 번식 정수 +2' },
     fleshwall: { name: '살의 벽', cost: 70, asp: 'brood', desc: '벽이 부서질 때까지 무리를 붙잡고, 받은 피해의 25%를 돌려준다' },
-    stage: { name: '무대', cost: 60, asp: 'dusk', ess: true, desc: '지나가는 적 전원의 정신력을 깎는다. 매일 황혼 정수 +2. 가면쟁이를 부른다' },
+    stage: { name: '무대', cost: 60, asp: 'dusk', ess: true, desc: '지나가는 적 전원의 정신력을 깎는다. 매일 황혼 정수 +2. 가면 쓴 것이 돋는다' },
     mirror: { name: '거울 방', cost: 70, asp: 'dusk', side: true, max: 1, desc: '광란한 적이 자기 편을 공격할 확률 20% → 40%' },
-    abattoir: { name: '도살장', cost: 60, asp: 'hunger', ess: true, side: true, desc: '시체 정수 +1. 매일 기아 정수 +2. 허기를 부른다' },
+    abattoir: { name: '도살장', cost: 60, asp: 'hunger', ess: true, side: true, desc: '시체 정수 +1. 매일 기아 정수 +2. 허기가 돋는다' },
     table: { name: '식탁', cost: 70, asp: 'hunger', side: true, max: 1, desc: '시체 창고 +6. 매일 시체 2구를 알아서 먹는다' },
 
     core: { name: '본체 방', cost: 0, fixed: true, def: 2, desc: '호위 2. 본체가 쓰러지면 끝난다' },
@@ -503,6 +503,9 @@ const NEST = (function () {
   };
   // 합체: 권속 하나가 다른 권속을 몸에 붙인다. 붙은 쪽은 사라지고, 그 능력의 절반이 남는다. 한 몸에 둘까지
   const FUSE_PRE = { goblin: '팔 넷 달린', skeleton: '뼈 박힌', cultist: '기도하는', scale: '비늘 덮인', scribe: '글자 새겨진', spawn: '움 돋은', mask: '얼굴 둘인', hunger: '입 둘인', netter: '그물 엮인', warden: '열쇠 박힌', turncoat: '칼 박힌', fallen: '후광 깨진', digger: '발톱 달린', clerk: '장부 든', licker: '혀 늘어진', spitter: '가시 돋은', eyeheap: '눈 박힌', tangle: '엉킨' };
+  // v0.20: 권속은 모두 옛 것의 몸에서 돋았거나 옛 것에게 넘어온 것들이다. 이름과 말만 바꾼다. 규칙은 그대로
+  const KIN_NEW = {"goblin": {"name": "깨물이", "evo": "쌍깨물이", "fusePre": "이빨 돋은", "skills": [["기습", "첫 라운드에 두 번 공격"], ["떼거리", "같은 방 깨물이 1명당 공격 +15%"], ["뒤통수", "가장 약한 적을 노려 피해 +20%"]]}, "skeleton": {"name": "뼈껍질", "evo": "겹껍질", "fusePre": "뼈 박힌", "skills": [["껍질 벽", "같은 방 아군이 받는 피해 −20%"], ["뼈 가시", "맞을 때마다 반격"], ["다시 붙음", "부활 +1회"]]}, "cultist": {"name": "신도", "evo": "대신도", "fusePre": "기도하는"}, "scale": {"name": "비늘지기", "evo": "심해지기", "fusePre": "비늘 덮인"}, "scribe": {"name": "별보는 눈", "evo": "별읽는 눈", "fusePre": "별빛 새겨진", "skills": [["긴 눈길", "정신 공격 대상 +1명"], ["눈 가림", "전투 시작 때 적 1명의 특성을 끈다"], ["별자리", "손 주문 신앙 비용 −2"]]}, "spawn": {"name": "움", "evo": "큰 움", "fusePre": "움 돋은"}, "mask": {"name": "가면 쓴 것", "evo": "천의 가면", "fusePre": "얼굴 둘인"}, "hunger": {"name": "허기", "evo": "게걸", "fusePre": "입 둘인"}, "netter": {"name": "실뽑이", "evo": "그물 어미", "fusePre": "그물 엮인", "note": "체력 30% 아래로 떨어진 적을 실로 감아 무릎 꿇린다. 감옥이 있으면 돋는다", "skills": [["넓은 그물", "체력 40% 아래까지 덮는다"], ["질긴 가죽", "자신의 방어 +50%"], ["두 번 뱉기", "한 라운드에 두 명을 덮는다"]]}, "warden": {"name": "갈비우리", "evo": "갈비감옥", "fusePre": "갈비 벌어진", "note": "포로 자리 +2, 몸값 +25%. 뒤지는 자가 포로를 풀지 못한다. 감옥이 있으면 돋는다", "skills": [["후려치기", "공격 +30%"], ["맞물림", "포로 자리 +2 더"], ["울림", "전투 시작 때 적 전원의 정신력을 깎는다"]]}, "turncoat": {"name": "돌아선 자", "evo": "삼켜진 자", "fusePre": "돌아선", "note": "넘어온 싸움꾼. 옛 동료를 칠 때마다 그들의 정신력도 깎는다"}, "fallen": {"name": "꺾인 믿음", "evo": "뒤집힌 믿음", "fusePre": "후광 깨진", "note": "믿음이 꺾여 넘어온 자. 매 라운드 가장 다친 아군을 치료하고 정신 공격을 한다"}, "digger": {"name": "굴파개", "evo": "깊은 굴파개", "fusePre": "발톱 달린", "note": "매일 공짜 작업 1번 (둘까지). 굴을 3칸 넘게 판 둥지에 돋는다"}, "clerk": {"name": "세는 손", "evo": "세는 손무리", "fusePre": "손가락 많은", "note": "시설 유지비 −25%, 상점 수입 +50%. 싸우지 않는다. 상점이 있으면 돋는다"}, "licker": {"name": "핥는 것", "evo": "세 갈래 혀", "fusePre": "혀 늘어진"}, "spitter": {"name": "가시쏘개", "evo": "가시 덤불", "fusePre": "가시 돋은"}, "eyeheap": {"name": "눈 무더기", "evo": "눈의 탑", "fusePre": "눈 박힌"}, "tangle": {"name": "촉수 뭉치", "evo": "매듭 덩이", "fusePre": "엉킨"}};
+  for (const k in KIN_NEW) { const d = KIN_NEW[k]; if (!KIN[k]) continue; KIN[k].name = d.name; if (d.note) KIN[k].note = d.note; if (d.skills) KIN[k].skills = d.skills; if (d.evo) EVO[k] = d.evo; if (d.fusePre) FUSE_PRE[k] = d.fusePre; }
   const RECIPE = {
     pray: { pair: ['skeleton', 'cultist'], name: '죽어도 기도하는 것', desc: '한 번 더 일어난다. 체력을 8할까지 채워 일어나고, 그때마다 신앙 +3' },
     read: { pair: ['mask', 'scribe'], name: '읽히는 얼굴', desc: '정신 공격이 방 안의 적 전원에게 닿는다 (세기 65%)' },
@@ -510,10 +513,10 @@ const NEST = (function () {
     fist: { pair: ['goblin', 'hunger'], name: '먹는 주먹', desc: '공격 +15%. 적을 쓰러뜨릴 때마다 체력 25% 회복' },
     choir: { pair: ['cultist', 'cultist'], name: '작은 성가대', desc: '정신 공격 +50%. 매일 신앙 +3, 헌금을 한 몫 더 낸다' },
     bud: { pair: ['spawn', null], name: '움 품은 것', desc: '쓰러지면 움 둘이 튀어나와 대신 싸운다' },
-    bind: { pair: ['netter', 'warden'], name: '열쇠 쥔 그물', desc: '이 몸이 쓰러뜨린 적은 죽지 않고 포로가 된다. 간수 일도 그대로 한다' },
+    bind: { pair: ['netter', 'warden'], name: '열쇠 쥔 그물', desc: '이 몸이 쓰러뜨린 적은 죽지 않고 포로가 된다. 갈비우리 일도 그대로 한다' },
     briar: { pair: ['spitter', 'tangle'], name: '가시덤불', desc: '싸움 전에 가시도 쏘고 적 둘도 붙든다. 붙들린 적은 가시를 한 번 더 맞는다' },
     twice: { pair: ['turncoat', 'fallen'], name: '두 번 돌아선 것', desc: '매 라운드 아군을 더 크게 치료하고, 쓰러뜨릴 때마다 적 전원의 정신력을 크게 깎는다' },
-    ledger: { pair: ['digger', 'clerk'], name: '굴 파는 장부', desc: '굴꾼 일과 장부쟁이 일을 한 몸으로 다 한다. 공짜 작업 +1번 더' },
+    ledger: { pair: ['digger', 'clerk'], name: '굴 파는 장부', desc: '굴파개 일과 세는 손 일을 한 몸으로 다 한다. 공짜 작업 +1번 더' },
     record: { pair: ['eyeheap', 'scribe'], name: '받아 적는 눈', desc: '정신 공격 +75%. 다가오는 무리의 구성이 늘 보인다' },
     brawl: { pair: ['goblin', 'goblin'], name: '주먹 떼', desc: '매 라운드 다른 적 하나를 한 번 더 때린다' },
   };
@@ -570,13 +573,59 @@ const NEST = (function () {
   VILL.school.chief = ['학장', '호기심이 많다. 공포가 높을수록 이 마을에서 더 자주 온다'];
   VILL.fort.chief = ['사령관', '앙심을 품는다. 이 마을 사람이 죽을 때마다 적의 +2'];
   const VIDS = Object.keys(VILL);
+  // ---------- 땅 위의 세계: 뚫기 전에는 어떤 세상인지 모른다. 뚫는 순간 하나로 정해지고, 침입자의 이름과 차림이 그 세상을 따른다 ----------
+  // WORLD-BEGIN
+  const WORLD = {
+    fantasy: {
+      name: '판타지', folk: '마을',
+      reveal: ['검과 마법의 땅', '굴 밖은 밀밭이었다. 멀리 성벽 위로 깃발이 나부끼고, 탑 꼭대기에서는 푸른 빛이 새어 나온다.'],
+      inv: { villager: '농부', fisher: '어부', militia: '민병', captain: '자경대장', detective: '수색꾼', apprentice: '견습 마법사', warrior: '소드마스터', smuggler: '도적', priest: '사제', scholar: '마법사', herbalist: '약초꾼', soldier: '중갑병', chaplain: '성기사', sealer: '대마법사', hound: '사냥개', handler: '몰이꾼', sapper: '드워프 공병', torch: '횃불꾼' },
+      boss: { captain: '민병의 공격 +20%', handler: '개들이 처음 두 칸을 건너뛰어 달려 들어온다' },
+      grade: ['', '마을 사람들', '자경대', '모험가 무리', '기사단', '마탑 봉인단'],
+      vill: { gaet: ['갯마을', '선주'], field: ['너른들', '촌장'], bell: ['종탑 마을', '종지기'], school: ['마법 학원', '학장'], fort: ['성채 도시', '성주'] },
+    },
+    wuxia: {
+      name: '무협', folk: '촌락',
+      reveal: ['칼과 협객의 땅', '굴 밖은 대숲이었다. 안개 낀 봉우리마다 기와지붕이 걸려 있고, 어디선가 쇠 부딪는 소리가 메아리친다.'],
+      inv: { villager: '화전민', fisher: '뱃사공', militia: '표사', captain: '표두', detective: '포졸', apprentice: '견습 도사', warrior: '검객', smuggler: '흑의인', priest: '승려', scholar: '도사', herbalist: '의원', soldier: '관병', chaplain: '호법승', sealer: '장문인', hound: '사냥매', handler: '매부리', sapper: '기관 장인', torch: '횃불잡이' },
+      boss: { captain: '표사의 공격 +20%', handler: '매들이 처음 두 칸을 건너뛰어 날아 들어온다' },
+      grade: ['', '산골 사람들', '표국 무리', '강호 낭인들', '관군', '정파 연합'],
+      vill: { gaet: ['나루촌', '객주'], field: ['화전촌', '촌로'], bell: ['범종 마을', '주지'], school: ['도관 고을', '관주'], fort: ['관아 성읍', '현령'] },
+    },
+    modern: {
+      name: '현대', folk: '동네',
+      reveal: ['전깃불과 아스팔트의 땅', '굴 밖은 주차장이었다. 가로등이 줄지어 서 있고, 멀리서 사이렌 소리가 가까워진다.'],
+      inv: { villager: '주민', fisher: '낚시꾼', militia: '방범대원', captain: '방범대장', detective: '형사', apprentice: '대학원생', warrior: '용병', smuggler: '털이범', priest: '구급대원', scholar: '교수', herbalist: '약사', soldier: '군인', chaplain: '퇴마사', sealer: '격리 반장', hound: '경찰견', handler: '핸들러', sapper: '해체반장', torch: '용접공' },
+      boss: { captain: '방범대원의 공격 +20%', handler: '개들이 처음 두 칸을 건너뛰어 달려 들어온다' },
+      grade: ['', '동네 주민들', '방범대', '경찰 수색대', '군 병력', '특수 격리반'],
+      vill: { gaet: ['부둣가', '조합장'], field: ['읍내', '이장'], bell: ['구시가', '번영회장'], school: ['대학가', '총장'], fort: ['주둔지', '연대장'] },
+    },
+    future: {
+      name: '미래', folk: '거주구',
+      reveal: ['강철과 빛의 땅', '굴 밖은 투명한 돔 아래였다. 하늘에는 별 대신 불빛이 줄지어 흐르고, 눈 달린 기계가 이쪽을 돌아본다.'],
+      inv: { villager: '개척민', fisher: '양식공', militia: '보안 요원', captain: '보안 대장', detective: '감식관', apprentice: '수습 연구원', warrior: '강화병', smuggler: '해커', priest: '의무관', scholar: '수석 연구원', herbalist: '소생 기사', soldier: '외골격병', chaplain: '차폐 장교', sealer: '격리 집행관', hound: '추적 드론', handler: '드론 조종사', sapper: '해체 기사장', torch: '소각병' },
+      boss: { captain: '보안 요원의 공격 +20%', handler: '드론들이 처음 두 칸을 건너뛰어 날아 들어온다' },
+      grade: ['', '개척민들', '보안대', '추적조', '강화 병단', '격리 집행단'],
+      vill: { gaet: ['양식 구역', '감독관'], field: ['경작 돔', '돔 대표'], bell: ['기록 보관소', '보관인'], school: ['연구 단지', '소장'], fort: ['방위 기지', '사령관'] },
+    },
+  };
+  // WORLD-END
+  const WORLD_IDS = Object.keys(WORLD), INV0 = {}, GRADE0 = GRADE_NAME.slice(), VILL0 = {};
+  for (const k in INV) INV0[k] = { name: INV[k].name, boss: INV[k].boss }; VIDS.forEach(v => { VILL0[v] = [VILL[v].name, VILL[v].chief[0]]; });
+  function applyWorld(w) {
+    const d = WORLD[w] || {};
+    for (const k in INV) { INV[k].name = (d.inv && d.inv[k]) || INV0[k].name; const b = (d.boss && d.boss[k]) || INV0[k].boss; if (b) INV[k].boss = b; }
+    const g = d.grade || GRADE0; for (let i = 0; i < GRADE0.length; i++) GRADE_NAME[i] = g[i] || GRADE0[i];
+    VIDS.forEach(v => { const x = (d.vill && d.vill[v]) || VILL0[v]; VILL[v].name = x[0]; VILL[v].chief[0] = x[1]; });
+    return WORLD[w] ? w : null;
+  }
   // ---------- 진화 ----------
   const FORM1 = {
-    abyss: { name: '젖은 것', skill: '본체 방 아군이 받는 피해 −30%, 매 라운드 체력 5% 회복', spell: ['해일', 6, '무리를 앞 칸으로 밀어내 그 칸을 다시 치르게 한다'] },
-    nebula: { name: '빛나는 것', skill: '밤 개입 +1', spell: ['틈', 6, '무리의 절반을 입구로 되돌려 보낸다'] },
-    brood: { name: '불어나는 것', skill: '매일 아침 움 1마리 (최대 6)', spell: ['급속 부화', 5, '이 싸움에 움 3마리를 불러낸다'] },
-    dusk: { name: '속삭이는 것', skill: '본체를 본 적의 정신력 피해 2배, 무릎 꿇음 +15%p', spell: ['환영', 8, '무리 전원의 정신력을 크게 깎는다'] },
-    hunger: { name: '씹는 것', skill: '본체 공격 +30%, 쓰러뜨릴 때마다 공격 +10%', spell: ['한 입', 8, '가장 튼튼한 적에게 본체 공격 4배 피해. 쓰러지면 바로 먹는다'] },
+    abyss: { name: '등불 올챙이', skill: '본체 방 아군이 받는 피해 −30%, 매 라운드 체력 5% 회복', spell: ['해일', 6, '무리를 앞 칸으로 밀어내 그 칸을 다시 치르게 한다'] },
+    nebula: { name: '눈 뜬 씨앗', skill: '밤 개입 +1', spell: ['틈', 6, '무리의 절반을 입구로 되돌려 보낸다'] },
+    brood: { name: '새끼 버섯', skill: '매일 아침 움 1마리 (최대 6)', spell: ['급속 부화', 5, '이 싸움에 움 3마리를 불러낸다'] },
+    dusk: { name: '가면 애벌레', skill: '본체를 본 적의 정신력 피해 2배, 무릎 꿇음 +15%p', spell: ['환영', 8, '무리 전원의 정신력을 크게 깎는다'] },
+    hunger: { name: '씹는 구더기', skill: '본체 공격 +30%, 쓰러뜨릴 때마다 공격 +10%', spell: ['한 입', 8, '가장 튼튼한 적에게 본체 공격 4배 피해. 쓰러지면 바로 먹는다'] },
     // 숨은 본체: 징조가 아니라 첫 허물을 벗을 때의 형편이 정한다. 색과 전용 시설은 가장 많이 먹은 징조를 따른다
     hive: { name: '여럿인 것', skill: '권속 한 명마다 본체 공격 +5%, 호위 자리 +1, 살아 있는 호위 하나마다 본체가 받는 피해 −8%', spell: ['부름', 5, '이 싸움 동안 이 방 권속의 공격 +50%'] },
     idol: { name: '받들린 것', skill: '본체 방어 +40%. 본체를 때린 자는 정신력이 깎인다. 신앙 상한 +20, 매일 신앙 +2', spell: ['후광', 7, '무리 전원이 두 라운드 동안 움직이지 못한다'] },
@@ -599,7 +648,7 @@ const NEST = (function () {
     dusk_abyss: '젖은 가면', dusk_nebula: '별을 읽는 입', dusk_brood: '합창하는 살', dusk_hunger: '굶주린 설교자',
     hunger_abyss: '바닥 없는 아가리', hunger_nebula: '궤도를 씹는 것', hunger_brood: '제 새끼를 먹는 것', hunger_dusk: '웃으며 먹는 것',
   };
-  const AVATAR = { child: '빵을 나눠 먹은 것', h_abyss: '말라붙은 바다', h_nebula: '눈 감은 별', h_brood: '외동', h_dusk: '막 뒤의 것', h_hunger: '단식하는 입', abyss: '잠든 해구의 주인', nebula: '별 사이를 여는 자', brood: '끝없이 낳는 숲', dusk: '마지막 막의 연출가', hunger: '모든 것의 마지막 한 입', hive: '혼자가 아닌 것', idol: '올려다보이는 것', mix: '경계 없는 살', none: '깨어나지 않은 것', pure: '아무것도 아닌 것' };
+  const AVATAR = { child: '빵을 나눠 먹은 것', h_abyss: '말라붙은 바다', h_nebula: '눈 감은 별', h_brood: '외동', h_dusk: '막 뒤의 것', h_hunger: '단식하는 입', abyss: '잠든 해구의 주인', nebula: '별 사이를 여는 눈', brood: '끝없이 낳는 숲', dusk: '마지막 막의 연출가', hunger: '모든 것의 마지막 한 입', hive: '혼자가 아닌 것', idol: '올려다보이는 것', mix: '경계 없는 살', none: '깨어나지 않은 것', pure: '아무것도 아닌 것' };
   const MUT = {
     tentacle: { name: '촉수', asp: 'abyss', desc: '본체 방에서 매 라운드 추가 타격' }, gills: { name: '아가미', asp: 'abyss', desc: '휴식 회복 40% → 70%' },
     thirdeye: { name: '셋째 눈', asp: 'nebula', desc: '다가오는 무리의 자세한 구성이 보인다' }, ring: { name: '떠 있는 고리', asp: 'nebula', desc: '손 주문 신앙 비용 −2' },
@@ -653,7 +702,7 @@ const NEST = (function () {
 
   const STAR = {
     none: { name: '고요한 하늘', desc: '바뀌는 규칙이 없다' },
-    poor: { name: '가난한 별', desc: '시작 재물 100. 대신 지원자 계약금이 절반' },
+    poor: { name: '가난한 별', desc: '시작 재물 100. 대신 권속을 돋우는 값이 절반' },
     quiet: { name: '조용한 별', desc: '공포가 절반만 오른다. 대신 침입자의 소지금 −10%' },
     loud: { name: '시끄러운 별', desc: '매일 밤 온다. 무리가 20% 크다. 대신 소지금 +20%' },
     lone: { name: '외톨이 별', desc: '권속을 3명까지만 둔다(개종 포함). 대신 본체 능력치 1.2배' },
@@ -689,6 +738,7 @@ const NEST = (function () {
   }
   // 해가 질 때: 남긴 행동만큼 쉬고, 징조의 나쁜 쪽 중 바로 일어나는 것을 치른다
   function dusk(G) {
+    autoPlace(G);
     if (G.event) { const r = resolveEvent(G, eventOptions(G).length - 1); if (!r.ok) G.event = null; }
     if (G.guest) { const r = resolveGuest(G, guestOptions(G).length - 1); if (!r.ok) G.guest = null; }
     const s = slimeStats(G); if (G.ap > 0) { G.slime.hp = Math.min(s.hp, G.slime.hp + s.hp * 0.15 * G.ap); note(G, 'quiet'); }
@@ -702,9 +752,9 @@ const NEST = (function () {
   const hasRoom = (G, t) => G.cells.some((c, i) => c.dug && c.type === t && !G.off[i]);
   const countRoom = (G, t) => G.cells.filter(c => c.dug && c.type === t).length;
   const formId = G => G.slime.stage === 0 ? 'base' : G.slime.stage === 1 ? pk(G) : pk(G) + '_' + G.slime.sub;
-  // 허물을 벗을 때마다 다른 생물이 된다. 이름도 단계마다 다르다. 섞인 징조는 이명(formTitle)으로 남는다
-  const SPECIES = { abyss: ['', '젖은 것', '등불 아귀', '바닥 갑주', '해구의 주인'], nebula: ['', '빛나는 것', '눈 품은 수정', '도는 고리', '틈을 여는 자'], brood: ['', '불어나는 것', '걷는 버섯', '알 품은 어미', '낳는 숲'],
-    dusk: ['', '속삭이는 것', '줄 달린 인형', '막 두른 나방', '막의 연출가'], hunger: ['', '씹는 것', '굶은 짐승', '솟은 목구멍', '마지막 한 입'],
+  // 허물을 벗을 때마다 꼴이 크게 바뀌지만 같은 종이 자라는 것이다(애벌레에서 성체까지). 이름도 단계마다 다르다. 섞인 징조는 이명(formTitle)으로 남는다
+  const SPECIES = { abyss: ['', '등불 올챙이', '등불 아귀', '긴꼬리 아귀', '해구의 주인'], nebula: ['', '눈 뜬 씨앗', '눈 품은 수정', '고리 두른 눈', '틈을 여는 눈'], brood: ['', '새끼 버섯', '걷는 버섯', '알 밴 버섯', '낳는 숲'],
+    dusk: ['', '가면 애벌레', '가면 고치', '막 두른 나방', '연출가 나방'], hunger: ['', '씹는 구더기', '이빨 유충', '목구멍 벌레', '마지막 한 입'],
     hive: ['', '여럿인 것', '얼굴 없는 떼', '눈 달린 벌집', '쌓인 거인'], idol: ['', '받들린 것', '얼굴 기둥', '앉은 상', '떠 있는 얼굴'], mix: ['', '뒤엉킨 것', '반반인 짐승', '쌓인 몸통', '경계 없는 살'] };
   const formName = G => G.slime.stage === 0 ? ((G.origin && ORIGIN[G.origin]) || ORIGIN.drop).title : SPECIES[pk(G)][Math.min(4, G.slime.stage)];
   const formTitle = G => G.slime.stage < 2 || !G.slime.sub ? '' : G.slime.body ? SUBADJ[G.slime.sub] + ' ' + BODY[G.slime.body].noun : FORM2[formId(G)];
@@ -755,7 +805,7 @@ const NEST = (function () {
       slime: { stage: 0, main: null, sub: null, hp: K.slime.hp, ess: { abyss: 0, nebula: 0, brood: 0, dusk: 0, hunger: 0 }, muts: [] },
       corpses: [], cells: [], plots: ['none', 'none', 'none'], vill: {}, kin: [], prison: [], applicants: [], nextId: 1,
       march: { tonight: null, tomorrow: null }, eld: { id: opts.elder || null, favor: 0, tally: 0 }, omen: null, omenNext: null, forceOmen: opts.forceOmen || null, d: {}, off: {}, event: null, eventDays: {}, ledger: {}, log: [], startAsp,
-      detBonus: 1, known: false, sacrifices: 0,
+      detBonus: 1, known: false, sacrifices: 0, sealed: !opts.open, under: 0, world: null, forceWorld: WORLD[opts.world] ? opts.world : null,
       stats: { income: {}, repels: 0, kills: 0, battles: 0, stolen: 0, captives: 0, converts: 0, ransoms: 0, peak: K.startGold },
     };
     for (let i = 0; i < N; i++) G.cells.push({ dug: START.includes(i) || i === CORE, block: false, type: i === CORE ? 'core' : i === ENT ? 'trap' : 'empty', lv: 1, exp: 0, traps: i === ENT ? [{ kind: 'spike', lv: 1 }] : [], zone: false });
@@ -767,7 +817,7 @@ const NEST = (function () {
     for (const d of [2, 5, 10, 16, 22, 27]) { const c = pool.filter(id => EVENTS[id].min <= d); if (c.length) { const id = pick(G, c); pool.splice(pool.indexOf(id), 1); G.eventDays[d] = id; } }
     (opts.legacy || []).forEach(l => { G.kin.push({ id: G.nextId++, name: l.name, kind: l.kind, lv: l.lv, exp: 0, loc: null, hurt: 0, skill: l.skill, rare: !!l.rare, stance: l.stance, legacy: true, rid: l.rid, title: l.title, evo: !!l.evo, age: 9, unpaid: 0, parts: (l.parts || []).map(p => Object.assign({}, p)) }); });
     if (G.star === 'faith') { G.cells[11].dug = true; G.cells[11].type = 'chapel'; for (let k = 0; k < 2; k++) G.kin.push({ id: G.nextId++, name: NAMES[Math.floor(rng(G) * NAMES.length)], kind: 'cultist', lv: 1, exp: 0, loc: null, hurt: 0, skill: -1, rare: false, age: 0, unpaid: 0 }); }
-    G.kin.forEach(m => { m.loc = freeSlot(G, m.kind); });
+    applyWorld(null); autoPlace(G);
     morning(G);
     return G;
   }
@@ -919,7 +969,46 @@ const NEST = (function () {
     if (ob(G, 'longday')) G.ap++;
     if (ob(G, 'dust')) addEss(G, G.slime.main || G.startAsp, 4);
     if (ob(G, 'gaze')) addFaith(G, 6);
+    if (G.sealed) { G.march = { tonight: null, tomorrow: null }; G.guest = null; G.spot = null; if (G.event && !/^trait_/.test(G.event.id)) G.event = null; }
+    autoPlace(G);
   }
+  // ---------- 땅 위로 뚫는다: 그때부터 침입이 시작된다 ----------
+  const underRisk = G => G.sealed ? K.deep.risk[Math.min(K.deep.risk.length - 1, G.under || 0)] : 0;
+  function breach(G, found) {
+    if (!G.sealed) return fail('이미 뚫려 있다');
+    const envW = typeof process !== 'undefined' && process.env && process.env.WORLD;
+    G.sealed = false; G.world = applyWorld(G.forceWorld || (WORLD[envW] ? envW : pick(G, WORLD_IDS))); G.stats.under = G.under || 0; G.stats.found = !!found;
+    const p = clamp(0.45 + Math.max(0, G.gold) / (3000 * cm(G)) + G.fear / 400, 0.10, 0.92);
+    G.march.tonight = found ? { vill: 'field', settle: false } : null; G.march.tomorrow = (G.star === 'loud' || rng(G) < p) ? { vill: pickVillage(G), settle: false } : null;
+    if (found) G.fear += 8;
+    return ok((found ? '땅 위의 것들이 먼저 굴을 찾아냈다' : '땅 위로 굴을 뚫었다') + ': ' + WORLD[G.world].reveal[0]);
+  }
+  // ---------- 권속은 제 자리를 제가 찾는다. "여기를 지켜라"고 한 권속만 그 자리에 붙박인다 ----------
+  const SUPPORT = ['cultist', 'scribe', 'mask', 'eyeheap', 'licker', 'fallen', 'netter', 'warden'], IDLE = ['clerk', 'digger'];
+  function autoPlace(G) {
+    const cap = capacity(G), used = {}, moved = [];
+    G.kin.forEach(m => { if (m.kind === 'spawn' || !m.pin || m.loc === null) return; if (!(m.loc in cap) || (used[m.loc] || 0) >= cap[m.loc]) { m.pin = false; return; } used[m.loc] = (used[m.loc] || 0) + 1; });
+    const path = (paths(G)[0] || []).filter(i => i !== CORE && (i in cap)), rest = Object.keys(cap).filter(k => k !== 'core' && !path.includes(+k)).map(Number);
+    // 자리의 차례: 먼저 돋은 것들이 본체 곁을 채우고, 나머지는 길목 앞에서부터 선다. 거드는 것은 싸우는 것 다음, 다쳤거나 싸우지 않는 것은 맨 끝
+    const up = m => !m.hurt && !m.strike, by = (a, b) => a.id - b.id, all = G.kin.filter(m => m.kind !== 'spawn' && !m.pin);
+    const F = all.filter(m => up(m) && !SUPPORT.includes(m.kind) && !IDLE.includes(m.kind)).sort(by), U = all.filter(m => up(m) && SUPPORT.includes(m.kind)).sort(by), Z = all.filter(m => !up(m) || IDLE.includes(m.kind)).sort(by);
+    const was = new Map(all.map(m => [m.id, m.loc])); all.forEach(m => { m.loc = null; });
+    const room = k => cap[k] - (used[k] || 0), put = (m, k) => { m.loc = k; used[k] = (used[k] || 0) + 1; };
+    while (F.length && room('core') > 0) put(F.shift(), 'core');
+    for (const k of path.concat(rest)) while (room(k) > 0 && F.length) put(F.shift(), k);
+    for (const m of U.concat(Z)) { const k = path.concat(rest, ['core']).find(q => room(q) > 0); if (k != null) put(m, k); }
+    all.forEach(m => { if (was.get(m.id) !== m.loc) moved.push(m.id); });
+    G.kin.forEach(m => { if (m.kind === 'spawn') m.loc = 'core'; });
+    return moved;
+  }
+  // 지켜라: 그 자리에 붙박는다. 자리가 찼으면 제멋대로 서 있던 권속 하나가 비켜난다
+  function guard(G, id, loc) {
+    const m = G.kin.find(x => x.id === id); if (!m) return fail('없는 권속이다'); if (m.kind === 'spawn') return fail('움은 시킬 수 없다');
+    if (loc !== null) { const c = capacity(G); if (!(loc in c)) return fail('둘 수 없는 곳이다'); if (G.kin.filter(x => x !== m && x.loc === loc && x.kind !== 'spawn' && x.pin).length >= c[loc]) return fail('그 자리는 지키라고 한 권속으로 찼다'); }
+    m.pin = true; m.loc = loc; const here = G.kin.filter(x => x.loc === loc && x.kind !== 'spawn'); if (loc !== null && here.length > capacity(G)[loc]) { const out = here.filter(x => !x.pin).pop(); if (out) out.loc = null; }
+    autoPlace(G); return ok(loc === null ? m.name + ': 쉬어라' : m.name + ': 여기를 지켜라');
+  }
+  function release(G, id) { const m = G.kin.find(x => x.id === id); if (!m) return fail('없는 권속이다'); m.pin = false; autoPlace(G); return ok(fj(m.name + '을(를) 풀어 주었다. 제 자리를 찾아간다')); }
   function addSpawn(G) { if (G.kin.filter(m => m.kind === 'spawn').length >= 6) return false; G.kin.push({ id: G.nextId++, name: '움', kind: 'spawn', lv: Math.max(1, actOf(G) * 3 - 2), exp: 0, loc: freeSlot(G, 'spawn'), hurt: 0, skill: -1, age: 0, unpaid: 0 }); return true; }
   function estimate(G, when) { const m = G.march[when]; if (!m) return null; const p = partyKinds(G, m.vill, m.settle, m.thin, when === 'tonight' ? G.day : G.day + 1), bk = p.kinds.find(k => INV[k].boss); return { vill: m.vill, boss: bk || null, thin: !!m.thin, settle: m.settle, grade: p.g, count: p.kinds.length, kinds: seesDetail(G, m.vill) ? p.kinds : null }; }
 
@@ -1006,21 +1095,16 @@ const NEST = (function () {
   function autoSkill(m) { let best = -1; SKILL_LV.forEach((l, i) => { if (m.lv >= l) best = i; }); if (m.auto !== false) m.skill = best; }
   function acceptCost(G, a) { return Math.round(KIN[a.kind].cost * cm(G) * (a.rare ? 2.5 : 1) * (a.cheap ? 0.7 : 1) * (G.star === 'poor' ? 0.5 : 1)); }
   function accept(G, i) {
-    const a = G.applicants[i]; if (!a) return fail('없는 지원자다');
+    const a = G.applicants[i]; if (!a) return fail('없는 것이다');
     if (G.star === 'lone' && G.kin.filter(m => m.kind !== 'spawn').length >= 3) return fail('외톨이 별: 권속은 3명까지다');
-    const cost = acceptCost(G, a); if (!pay(G, cost, '계약금')) return fail('재물이 부족하다 (' + cost + 'G)');
+    const cost = acceptCost(G, a); if (!pay(G, cost, '돋운 값')) return fail('재물이 부족하다 (' + cost + 'G)');
     const lv = Math.max(1, actOf(G) * 3 - 2) + (a.rare ? 2 : 0);
     const m = { id: G.nextId++, name: a.name, kind: a.kind, lv, exp: 0, loc: freeSlot(G, a.kind), hurt: 0, skill: -1, rare: a.rare, age: 0, unpaid: 0 };
-    autoSkill(m); G.kin.push(m); G.applicants.splice(i, 1); note(G, 'accept');
-    return ok((a.rare ? '희귀 ' : '') + KIN[a.kind].name + ' "' + m.name + '" 맞이 (Lv' + lv + ')' + (m.loc === null ? '. 자리가 없어 대기 중' : ''));
+    autoSkill(m); G.kin.push(m); G.applicants.splice(i, 1); note(G, 'accept'); autoPlace(G);
+    return ok((a.rare ? '희귀 ' : '') + KIN[a.kind].name + ' "' + m.name + '" 돋음 (Lv' + lv + ')' + (m.loc === null ? '. 자리가 없어 대기 중' : ''));
   }
-  function dismiss(G, id) { const i = G.kin.findIndex(m => m.id === id); if (i < 0) return fail('없는 권속이다'); const m = G.kin.splice(i, 1)[0]; return ok(m.name + '을(를) 내보냈다'); }
-  function moveKin(G, id, loc) {
-    const m = G.kin.find(x => x.id === id); if (!m) return fail('없는 권속이다');
-    if (loc !== null) { const c = capacity(G); if (!(loc in c)) return fail('둘 수 없는 곳이다'); if (m.kind !== 'spawn' && G.kin.filter(x => x.loc === loc && x.kind !== 'spawn').length >= c[loc]) return fail('자리가 없다'); }
-    const e = buildOp(G); if (e) return fail(e);
-    m.loc = loc; return ok(m.name + ' 재배치');
-  }
+  function dismiss(G, id) { const i = G.kin.findIndex(m => m.id === id); if (i < 0) return fail('없는 권속이다'); const m = G.kin.splice(i, 1)[0]; autoPlace(G); return ok(m.name + '을(를) 도로 삼켰다'); }
+  const moveKin = guard;   // 예전 이름. 이제 옮기는 데 작업이 들지 않는다
   function setSkill(G, id, idx) { const m = G.kin.find(x => x.id === id); if (!m || idx < 0 || m.lv < SKILL_LV[idx]) return fail('아직 배우지 못한 기술이다'); m.skill = idx; m.auto = false; return ok(m.name + ': ' + KIN[m.kind].skills[idx][0]); }
   function setStance(G, id, st) { const m = G.kin.find(x => x.id === id); if (!m) return fail('없는 권속이다'); m.stance = st; return ok(m.name + ': ' + (st === 'hold' ? '사수' : '신중')); }
   function train(G, loc, gold) {
@@ -1064,6 +1148,7 @@ const NEST = (function () {
     return { gold: Math.round(base * [0.3, 1.0, 0.5][level] * (G.origin === 'shade' ? 1.4 : 1)), ess: [4, 8, 12][level], fear: [6, 12, 25][level], tribute: Math.round(d.wealth * 0.15 * cm(G)) };
   }
   function raid(G, v, level) {
+    if (G.sealed) return fail('아직 땅 위를 모른다');
     if (actOf(G) < 2) return fail('습격은 2막부터 가능하다'); const s = G.vill[v]; if (!s || s.razed) return fail('남아 있지 않은 마을이다'); if (G.d.raided && G.d.raided[v]) return fail('오늘은 이미 다녀왔다');
     if (!useAp(G)) return fail('행동이 남지 않았다');
     note(G, 'raid' + level); G.stats.raids = (G.stats.raids || 0) + 1; const r = raidInfo(G, v, level); earn(G, r.gold, '습격'); addEss(G, VILL[v].asp, r.ess); G.fear += r.fear; (G.d.raided = G.d.raided || {})[v] = 1; G.d.away = true; s.trust = 0;
@@ -1079,13 +1164,13 @@ const NEST = (function () {
     shrine: { name: '버려진 사당', text: '풀에 덮인 돌무더기. 누군가 아주 오래전에 무언가를 빌던 자리다.' },
     band: { name: '떠돌이 무리', text: '갈 곳 없는 것들이 모닥불 가에 모여 있다. 일자리를 찾는 눈치다.' },
     cart: { name: '뒤집힌 수레', text: '길가에 수레가 뒤집혀 있다. 짐은 그대로고, 주인은 도움을 구하러 간 모양이다.' },
-    camp: { name: '사냥꾼 야영', text: '둥지로 올 무리가 길가에서 쉬고 있다. 아직 이쪽을 못 봤다.' },
+    camp: { name: '길가의 야영', text: '둥지로 올 무리가 길가에서 쉬고 있다. 아직 이쪽을 못 봤다.' },
   };
   function spotOptions(G) {
     const s = G.spot; if (!s) return []; const c = cm(G), a0 = G.slime.main || G.startAsp, vn = VILL[s.vill].name;
     if (s.type === 'meteor') return [{ label: '핥는다', desc: '무작위 징조의 정수 +6', run: () => { const a = pick(G, ASPECTS); addEss(G, a, 6); return ASP[a] + ' 정수 +6'; } }, { label: '골라 삼킨다', desc: ASP[a0] + ' 정수 +3', run: () => { addEss(G, a0, 3); return ASP[a0] + ' 정수 +3'; } }];
     if (s.type === 'shrine') return [{ label: '깨운다', desc: '신앙 +10', run: () => { addFaith(G, 10); return '사당이 낮게 울렸다. 신앙 +10'; } }, { label: '부순다', desc: '재물 +' + 40 * c + 'G, 공포 +5', run: () => { earn(G, 40 * c, '사당'); G.fear += 5; return '돌 밑에 묻힌 것을 챙겼다. +' + 40 * c + 'G'; } }];
-    if (s.type === 'band') return [{ label: '불러들인다', desc: '지원자 2명이 더 온다. 계약금 30% 할인', run: () => { for (let i = 0; i < 2; i++) G.applicants.push({ kind: pick(G, ['goblin', 'skeleton', 'cultist', 'goblin']), rare: false, cheap: true, name: NAMES[Math.floor(rng(G) * NAMES.length)] }); return '둘이 둥지 앞으로 따라왔다'; } }];
+    if (s.type === 'band') return [{ label: '불러들인다', desc: '돋으려는 것 둘이 더 생긴다. 값 30% 할인', run: () => { for (let i = 0; i < 2; i++) G.applicants.push({ kind: pick(G, ['goblin', 'skeleton', 'cultist', 'goblin']), rare: false, cheap: true, name: NAMES[Math.floor(rng(G) * NAMES.length)] }); return '둘이 둥지 앞으로 따라왔다'; } }];
     if (s.type === 'cart') return [{ label: '턴다', desc: '재물 +' + 50 * c + 'G, ' + vn + ' 적의 +10', run: () => { earn(G, 50 * c, '수레'); G.vill[s.vill].host += 10; return '짐을 챙겼다. +' + 50 * c + 'G'; } }, { label: '세워 둔다', desc: vn + ' 적의 −15, 공포 −3', run: () => { G.vill[s.vill].host = Math.max(0, G.vill[s.vill].host - 15); G.fear = Math.max(0, G.fear - 3); return '수레를 바로 세워 두었다. 주인은 영문을 모를 것이다'; } }];
     return [{ label: '먼저 덮친다', desc: '다음에 올 무리의 인원 −30%, 먹이 +1, 공포 +5', run: () => { const m = G.march.tonight || G.march.tomorrow; if (m) m.thin = true; addCorpse(G, 'villager'); G.fear += 5; return '야영지를 덮쳤다. 남은 자들만 온다'; } }];
   }
@@ -1109,18 +1194,18 @@ const NEST = (function () {
       { label: '함정 기술자를 쓴다', desc: '레벨이 가장 낮은 함정 둘을 한 단계 올린다', cost: 60 * c, why: G.cells.some(x => x.traps.some(t => t.lv < 3)) ? null : '올릴 함정이 없다', run: () => { const ts = []; G.cells.forEach(x => x.traps.forEach(t => { if (t.lv < 3) ts.push(t); })); ts.sort((a, b) => a.lv - b.lv).slice(0, 2).forEach(t => { t.lv++; }); return '함정을 손봤다'; } },
       { label: '덮친다', desc: '재물 +' + 120 * c + 'G, 모든 마을 적의 +10, 공포 +6', cost: 0, run: () => { earn(G, 120 * c, '행상단'); VIDS.forEach(v => { G.vill[v].host += 10; }); G.fear += 6; note(G, 'raid1'); return '수레째 삼켰다. +' + 120 * c + 'G'; } }, pass];
     if (gs.type === 'pilgrims') return [
-      { label: '맞아들인다', desc: '신앙 +8, 신도 지원자 2명 (계약금 30% 할인), ' + vn + ' 적의 +10', cost: 0, run: () => { addFaith(G, 8); for (let i = 0; i < 2; i++) G.applicants.push({ kind: 'cultist', rare: false, cheap: true, name: NAMES[Math.floor(rng(G) * NAMES.length)] }); G.vill[gs.vill].host += 10; return '등불이 굴 안에 줄지어 섰다. 신앙 +8'; } },
+      { label: '맞아들인다', desc: '신앙 +8, 신도가 되려는 자 2명 (값 30% 할인), ' + vn + ' 적의 +10', cost: 0, run: () => { addFaith(G, 8); for (let i = 0; i < 2; i++) G.applicants.push({ kind: 'cultist', rare: false, cheap: true, name: NAMES[Math.floor(rng(G) * NAMES.length)] }); G.vill[gs.vill].host += 10; return '등불이 굴 안에 줄지어 섰다. 신앙 +8'; } },
       { label: '돌려보낸다', desc: '신앙 −3', cost: 0, run: () => { G.faith = Math.max(0, G.faith - 3); return '행렬은 말없이 돌아섰다'; } }];
     if (gs.type === 'child') return [
       { label: '돌려보낸다', desc: '공포 −10, ' + vn + ' 적의 0', cost: 0, run: () => { G.fear = Math.max(0, G.fear - 10); G.vill[gs.vill].host = 0; G.child = 'home'; note(G, 'ransom'); return '아이는 빵을 다 먹고 돌아갔다'; } },
       { label: '붙잡는다', desc: '포로가 된다 (몸값 5배), ' + vn + ' 적의 +40', cost: 0, why: G.prison.length >= prisonCap(G) ? '감옥에 자리가 없다' : null, run: () => { G.prison.push({ kind: 'villager', vill: gs.vill, bonus: 5 }); G.vill[gs.vill].host += 40; G.child = 'held'; note(G, 'capture'); return '아이를 감옥에 넣었다'; } },
       { label: '삼킨다', desc: ASP[a0] + ' 정수 +10, 공포 +20', cost: 0, run: () => { addEss(G, a0, 10); G.fear += 20; G.sacrifices++; G.child = 'eaten'; note(G, 'eat'); return '빵 조각만 남았다'; } }];
     if (gs.type === 'poet') return [
-      { label: '구경시키고 보낸다', desc: '공포 +15. 노래가 퍼져 신도 지원자 3명이 온다 (계약금 30% 할인)', cost: 0, run: () => { G.fear += 15; G.poet = 'sang'; for (let i = 0; i < 3; i++) G.applicants.push({ kind: 'cultist', rare: false, cheap: true, name: NAMES[Math.floor(rng(G) * NAMES.length)] }); return '시인은 떨리는 손으로 받아 적고 돌아갔다'; } },
-      { label: '곁에 둔다', desc: '희귀 권속 「목쉰 시인」이 된다 (가면쟁이)', cost: 0, run: () => { const m = { id: G.nextId++, name: '목쉰 시인', kind: 'mask', lv: Math.max(1, actOf(G) * 3 - 2) + 2, exp: 0, loc: freeSlot(G, 'mask'), hurt: 0, skill: -1, rare: true, age: 0, unpaid: 0 }; autoSkill(m); G.kin.push(m); G.poet = 'kept'; return '시인은 그날 밤 이후로 다른 노래를 부르지 못했다'; } },
+      { label: '구경시키고 보낸다', desc: '공포 +15. 노래가 퍼져 신도가 되려는 자 3명이 온다 (값 30% 할인)', cost: 0, run: () => { G.fear += 15; G.poet = 'sang'; for (let i = 0; i < 3; i++) G.applicants.push({ kind: 'cultist', rare: false, cheap: true, name: NAMES[Math.floor(rng(G) * NAMES.length)] }); return '시인은 떨리는 손으로 받아 적고 돌아갔다'; } },
+      { label: '곁에 둔다', desc: '희귀 권속 「목쉰 시인」이 된다 (가면 쓴 것)', cost: 0, run: () => { const m = { id: G.nextId++, name: '목쉰 시인', kind: 'mask', lv: Math.max(1, actOf(G) * 3 - 2) + 2, exp: 0, loc: freeSlot(G, 'mask'), hurt: 0, skill: -1, rare: true, age: 0, unpaid: 0 }; autoSkill(m); G.kin.push(m); G.poet = 'kept'; return '시인은 그날 밤 이후로 다른 노래를 부르지 못했다'; } },
       { label: '삼킨다', desc: '황혼 정수 +10, 공포 +5', cost: 0, run: () => { addEss(G, 'dusk', 10); G.fear += 5; G.poet = 'eaten'; note(G, 'eat'); return '류트 줄만 남았다'; } }];
     return [
-      { label: '받아들인다', desc: '「돌아선 검」이 되어 합류한다. 병영 도시 적의 +15', cost: 0, run: () => { const m = { id: G.nextId++, name: NAMES[Math.floor(rng(G) * NAMES.length)], kind: 'turncoat', lv: Math.max(1, actOf(G) * 3 - 1), exp: 0, loc: freeSlot(G, 'turncoat'), hurt: 0, skill: -1, rare: false, age: 0, unpaid: 0 }; G.kin.push(m); G.vill.fort.host += 15; G.deserted = true; note(G, 'accept'); return '"' + m.name + '"이(가) 무기를 고쳐 잡았다'; } },
+      { label: '받아들인다', desc: '「돌아선 자」가 되어 넘어온다. ' + VILL.fort.name + ' 적의 +15', cost: 0, run: () => { const m = { id: G.nextId++, name: NAMES[Math.floor(rng(G) * NAMES.length)], kind: 'turncoat', lv: Math.max(1, actOf(G) * 3 - 1), exp: 0, loc: freeSlot(G, 'turncoat'), hurt: 0, skill: -1, rare: false, age: 0, unpaid: 0 }; G.kin.push(m); G.vill.fort.host += 15; G.deserted = true; note(G, 'accept'); return '"' + m.name + '"이(가) 무기를 고쳐 잡았다'; } },
       { label: '삼킨다', desc: '기아 정수 +8, 공포 +4', cost: 0, run: () => { addEss(G, 'hunger', 8); G.fear += 4; note(G, 'eat'); return '갑옷만 남았다'; } },
       { label: '돌려보낸다', desc: '공포 −3', cost: 0, run: () => { G.fear = Math.max(0, G.fear - 3); return '병사는 어둠 속으로 사라졌다'; } }];
   }
@@ -1186,7 +1271,7 @@ const NEST = (function () {
     if (G.omen) ev.push({ t: 'note', txt: '징조 「' + OMEN[G.omen.id].name + '」' + (G.omen.tier !== 'bane' ? ' · ' + OMEN[G.omen.id].boon : '') + (ox(G, G.omen.id) ? ' · ' + OMEN[G.omen.id].bane : '') });
     if (G.day === K.days && hoardN(G, 'veil')) { party.forEach(u => { u.hp *= 1 - HOARD.veil.cut; u.mhp *= 1 - HOARD.veil.cut; u.atk *= 1 - HOARD.veil.cut; }); ev.push({ t: 'note', txt: '가려 둔 별 아래에서 무리가 길을 헤맨다. 침입자의 체력·공격 −15%' }); }
     if (G.day === K.days && G.eld && G.eld.favor >= 2) { party.forEach(u => { u.san *= 0.7; }); ev.push({ t: 'note', txt: '「' + ELDER[G.eld.id].name + '」이(가) 네 편에서 내려다본다. 침입자의 정신력 −30%' }); }
-    if (G.day === K.days && G.eld && G.eld.favor <= -2) { party.forEach(u => { u.hp *= 1.2; u.mhp *= 1.2; }); ev.push({ t: 'note', txt: '「' + ELDER[G.eld.id].name + '」이(가) 봉인단의 등을 민다. 침입자의 체력 +20%' }); }
+    if (G.day === K.days && G.eld && G.eld.favor <= -2) { party.forEach(u => { u.hp *= 1.2; u.mhp *= 1.2; }); ev.push({ t: 'note', txt: '「' + ELDER[G.eld.id].name + '」이(가) ' + GRADE_NAME[5] + '의 등을 민다. 침입자의 체력 +20%' }); }
     const main = G.slime.main, stage = G.slime.stage, c = cm(G), m = sm(G), pkn = G.slime.body || main;
     const squad = loc => squads[loc] || (squads[loc] = G.kin.filter(k => k.loc === loc && !k.hurt && !k.strike).map(k => mkDef(G, k)));
     const say2 = (k, o) => ev.push(Object.assign({ t: 'fx', k }, o));
@@ -1407,8 +1492,8 @@ const NEST = (function () {
     const queue = [];
     const groups = ps.map(() => []); party.forEach((u, k) => groups[k % ps.length].push(u));
     const breach = party.some(u => INV[u.kind].breach);
-    if (breach) say2('breach', { txt: '병사들이 벽을 뚫고 입구 칸을 건너뛰었다' });
-    const fastU = party.filter(u => INV[u.kind].fast); if (fastU.length) { groups.forEach(gr => { for (let k = gr.length - 1; k >= 0; k--) if (INV[gr[k].kind].fast) gr.splice(k, 1); }); say2('breach', { txt: '사냥개 ' + fastU.length + '마리가 앞질러 달려 들어온다' }); queue.push({ units: fastU, path: ps[0], from: Math.min(2, ps[0].length - 2) }); }
+    if (breach) say2('breach', { txt: INV.soldier.name + '들이 벽을 뚫고 입구 칸을 건너뛰었다' });
+    const fastU = party.filter(u => INV[u.kind].fast); if (fastU.length) { groups.forEach(gr => { for (let k = gr.length - 1; k >= 0; k--) if (INV[gr[k].kind].fast) gr.splice(k, 1); }); say2('breach', { txt: INV.hound.name + ' ' + fastU.length + '마리가 앞질러 들어온다' }); queue.push({ units: fastU, path: ps[0], from: Math.min(2, ps[0].length - 2) }); }
     groups.forEach((units, k) => { if (units.length) queue.push({ units, path: ps[k], from: breach ? 1 : 0 }); });
     const arrived = [];
     while (queue.length) {
@@ -1425,7 +1510,7 @@ const NEST = (function () {
       const s = slimeStats(G), sl = { uid: 's', side: 'def', kind: 'slime', name: formName(G), hp: G.slime.hp, mhp: s.hp, atk: s.atk * (ob(G, 'hungry') ? 1.4 : 1), df: s.df * (G.d.away && G.origin !== 'shade' ? 0.8 : 1) * (ox(G, 'gaze') ? 0.75 : 1) };
       const gd = squad('core');
       ev.push({ t: 'go', to: 'core', who: uids(arrived) });
-      if (alive(arrived).some(u => INV[u.kind].seal && !u.sealed)) { sealedCore = true; say2('seal', { txt: '학자가 본체의 능력을 봉인했다' }); }
+      if (alive(arrived).some(u => INV[u.kind].seal && !u.sealed)) { sealedCore = true; say2('seal', { txt: fj(INV.scholar.name + '이(가) 본체의 능력을 봉인했다') }); }
       sanHit(arrived, alive(arrived), stage * 8 * m * (pkn === 'dusk' && !sealedCore ? 2 : 1) * (combo(G, 'throne') ? 1.5 : 1), '본체를 마주한 침입자들이 얼어붙는다', 'core', 'core');
       if (alive(arrived).length) { const defs = [sl].concat(gd), ctx = yield* decide('core', arrived, defs, true, null); fight(arrived, defs, null, true, ctx); }
       G.slime.hp = Math.max(0, sl.hp); core = sl.hp <= 0; if (!core && sl.hp < sl.mhp * 0.4) G.stats.close = (G.stats.close || 0) + 1;
@@ -1532,6 +1617,12 @@ const NEST = (function () {
         if (low === 'dusk') { const m = G.kin.filter(x => !x.hurt && !x.strike && x.kind !== 'spawn').slice(-1)[0]; if (m) { m.strike = 1; t = fj(m.name + '이(가) 야유에 질려 오늘 밤 나서지 않는다'); } else t = '야유할 것이 없다'; } if (low === 'hunger') { if (G.corpses.length) { G.corpses.shift(); t = '먹이 하나가 사라졌다'; } else { G.slime.hp = Math.max(1, G.slime.hp - ss.hp * 0.08); t = '본체가 허기로 여윈다'; } }
         rep.bane = { god: low, text: t }; rep.notes.push('「' + ELDER[low].name + '」의 벌: ' + t); G.stats.banes = (G.stats.banes || 0) + 1; } }
     if (G.day + 1 >= OMEN_DAY) { const fav = rng(G) < 0.65 ? ELDER[G.eld.id].omens : OMEN_IDS, c = fav.filter(id => !G.omen || id !== G.omen.id), id = G.forceOmen || pick(G, c); G.omenNext = { id, tier: G.eld.favor >= 2 ? 'boon' : G.eld.favor <= -2 ? 'bane' : 'both', calmed: false }; rep.omen = G.omenNext; }
+    if (G.sealed) {   // 땅속의 밤: 아무도 오지 않지만 날은 흐른다. 숨은 만큼 조용히 자라고, 숨은 만큼 먹을 날이 줄고, 들킬 위험이 커진다
+      const risk = underRisk(G); G.under = (G.under || 0) + 1; addEss(G, G.startAsp, K.deep.ess); rep.ess[G.startAsp] = (rep.ess[G.startAsp] || 0) + K.deep.ess; rep.under = G.under; rep.notes.push('땅속의 밤: 아무도 오지 않았다. ' + ASP[G.startAsp] + ' 정수 +' + K.deep.ess);
+      G.day++; morning(G);
+      if (rng(G) < risk) { breach(G, true); rep.found = true; rep.notes.push('땅 위의 것들이 먼저 냄새를 맡았다. 굴이 위에서부터 뚫렸고, 오늘 밤 바로 내려온다'); }
+      return rep;
+    }
     G.day++; morning(G);
     return rep;
   }
@@ -1559,7 +1650,7 @@ const NEST = (function () {
 
   return { KASP, KTRAIT, leanOf, EDICT, RIVAL, edictChoices, setEdict, ELDER, fj, K, ASPECTS, ASP, COLS, ROWS, N, ENT, CORE, nbrs, lives, livesMax, migrate, trading, tradeOf, trustCap, HOARD, hoardN, hoardCost, hoardWhy, hoardBuy, ORIGIN, digCost, SIGN, TRAITS, traitReady, eventInfo, BODY, SUBADJ, bodyOf, pk, FUSE_PRE, fuseCost, fuseWhy, fuseKin, baseName, RECIPE, recipesOf, fusePreview, ROOM, TRAP, ZONE, PLOT, KIN, SKILL_LV, INV, GRADE_NAME, VILL, VIDS, FORM1, FORM2, FORM2UP, SUBTRAIT, AVATAR, MUT, DIFF, GRADES, EVENTS,
     newGame, actOf, cm, sm, isSettle, formId, formName, formTitle, SPECIES, essTotal, fearGrade, faithCap, corpseCap, corpsePts, slimeStats, kinStats, salary, upkeep, capacity, freeSlot, prisonCap, handsMax, spellCost, seesDetail, expNeed,
-    paths, sideRooms, estimate, partyBudget, canDig, digPreview, dig, toggleBlock, canBuild, buildCost, build, addTrap, trapUpCost, upTrap, setZone, setPlot, accept, acceptCost, dismiss, moveKin, setSkill, setStance, train, eat, rest,
+    paths, sideRooms, estimate, partyBudget, canDig, digPreview, dig, toggleBlock, canBuild, buildCost, build, addTrap, trapUpCost, upTrap, setZone, setPlot, accept, acceptCost, dismiss, moveKin, guard, release, autoPlace, breach, underRisk, WORLD, WORLD_IDS, applyWorld, setSkill, setStance, train, eat, rest,
     SPOT, spotOptions, resolveSpot, ELDER, OMEN, OMEN_IDS, OMEN_DAY, CALM_COST, ACT_NAME, calm, COMBO, combos, BURIED, STAR, EVO, EVO_DESC, kinName, evoCost, evolveKin, GUEST, guestOptions, resolveGuest, convertKind, endKey, convertChance, ransomOf, sacEss, mutChance, dispose, raidInfo, raid, eventOptions, resolveEvent, endDay, beginNight, settle, luxury, avatarOf, score };
 })();
 if (typeof module !== 'undefined') module.exports = NEST;
@@ -1589,14 +1680,14 @@ const STEWARD = (function () {
       }
       path = S.paths(G)[0];
     });
-    task('지원자', A => { for (let i = G.applicants.length - 1; i >= 0; i--) { const a = G.applicants[i]; if (!st.trapOnly && (S.freeSlot(G, a.kind) !== null || st.acceptAll) && G.gold >= S.acceptCost(G, a) + 10 * c && G.kin.length < 14) A(S.accept(G, i)); } });
+    task('돋는 것', A => { for (let i = G.applicants.length - 1; i >= 0; i--) { const a = G.applicants[i]; if (!st.trapOnly && (S.freeSlot(G, a.kind) !== null || st.acceptAll) && G.gold >= S.acceptCost(G, a) + 10 * c && G.kin.length < 14) A(S.accept(G, i)); } });
     task('짓기', A => {
       const want = st.trapOnly ? ['trap'] : ['post', 'trap', 'hall', 'ambush', 'hall', 'trap'];
       let wi = G.cells.filter((x, i) => x.dug && onPath(i) && x.type !== 'empty' && i !== S.CORE).length;
       for (const i of path) { const x = G.cells[i]; if (i === S.CORE || x.type !== 'empty') continue; const t = want[wi % want.length], cost = S.buildCost(G, i, t); if (!S.canBuild(G, i, t) && can(cost)) { if (A(S.build(G, i, t), i).ok) wi++; } }
     });
     task('함정', A => { G.cells.forEach((x, i) => { const cap = S.ROOM[x.type].traps || 0; while (x.dug && x.traps.length < cap) { const tk = st.trapOnly ? st.trapOnly.split('+') : null, k = tk ? tk[x.traps.length % tk.length] : G.slime.main === 'dusk' ? 'mist' : (x.traps.some(t => t.kind === 'spike') ? 'acid' : 'spike'); if (!can(S.TRAP[k].cost * c) || !A(S.addTrap(G, i, k), i).ok) break; } }); });
-    task('배치', A => { G.kin.forEach(m => { if (m.loc === null) { const f = S.freeSlot(G, m.kind); if (f !== null) A(S.moveKin(G, m.id, f), f); } }); });
+    task('배치', A => { S.autoPlace(G); });   // 권속은 제 자리를 제가 찾는다
     task('합체', A => {
       if (!opt.nofuse) G.kin.filter(m => m.loc === null && m.kind !== 'spawn' && !(m.parts && m.parts.length)).forEach(b => { if (S.freeSlot(G, b.kind) !== null) return; const hosts = G.kin.filter(m => m.loc !== null && m.kind !== 'spawn' && (m.parts || []).length < S.K.fuse.max).sort((x, y) => y.lv - x.lv); if (hosts.length && can(S.fuseCost(G) + 40 * c) && A(S.fuseKin(G, hosts[0].id, b.id), hosts[0].loc).ok) opt.onFuse && opt.onFuse(); });
       if (opt.aggfuse) { let guard2 = 0; while (guard2++ < 6) { const ks = G.kin.filter(m => m.kind !== 'spawn'), mats = ks.filter(m => !(m.parts && m.parts.length)).sort((x, y) => x.lv - y.lv), hosts = ks.filter(m => m.loc !== null && (m.parts || []).length < S.K.fuse.max).sort((x, y) => y.lv - x.lv); if (ks.length <= +opt.aggfuse || !hosts.length || !mats.length || mats[0] === hosts[0] || !can(S.fuseCost(G) + 40 * c) || !A(S.fuseKin(G, hosts[0].id, mats[0].id)).ok) break; } }
@@ -1702,7 +1793,7 @@ const PAL = {
 };
 const ASPCOL = { abyss: '#3fb8d0', nebula: '#b08fff', brood: '#7fd04f', dusk: '#f0a04a', hunger: '#f2696f' };
 const KINSPR = { goblin: ['goblin', 'goblin'], skeleton: ['skeleton', 'skeleton'], cultist: ['hood', 'cultist'], scale: ['harpy', 'scale'], scribe: ['hood', 'scribe'], spawn: ['slime', 'spawn'], mask: ['hood', 'mask'], hunger: ['mimic', 'hunger_k'], netter: ['goblin', 'netter'], warden: ['skeleton', 'warden'], turncoat: ['human', 'warrior'], fallen: ['hood', 'priest'], digger: ['goblin', 'digger'], clerk: ['hood', 'clerk'], licker: ['slime', 'licker'], spitter: ['harpy', 'spitter'], eyeheap: ['eyeheap', 'eyeheap'], tangle: ['tangle', 'tangle'] };
-const invCanvas = kind => spriteCanvas(kind === 'hound' ? 'hound' : 'human', kind);
+const invCanvas = kind => invCanvasW((typeof G !== 'undefined' && G && G.world) || 'fantasy', kind);   // 뚫린 세계에 맞춘 차림 (worldart.js)
 // 부 징조가 본체에 더하는 그림 [x, y, 색]
 const SUBOVER = {
   abyss: [[7, 2, '#9fe8f0'], [8, 1, '#9fe8f0'], [8, 2, '#3fb8d0'], [9, 2, '#9fe8f0'], [13, 5, '#d8f6ff']],
@@ -2033,7 +2124,7 @@ function rcpMark(x, r, hx, hy, w, h) {
 }
 const kinImgM = (m, size) => m.parts && m.parts.length ? toImg(kinCanvasM(m), 'fz:' + m.kind + (m.evo ? 'e' : '') + ':' + m.parts.map(p => p.kind + (p.evo ? 'e' : '')).join('+'), size, NEST.kinName(m)) : kinImg(m.kind, size, m.evo);
 const kinImg = (kind, size, evo) => toImg(kinCanvas(kind, evo), (evo ? 'evo5:' : 'kin3:') + kind, size, NEST.KIN[kind].name);
-const invImg = (kind, size) => toImg(invCanvas(kind), 'inv:' + kind, size, NEST.INV[kind].name);
+const invImg = (kind, size) => toImg(invCanvas(kind), 'inv:' + ((typeof G !== 'undefined' && G && G.world) || 'fantasy') + ':' + kind, size, NEST.INV[kind].name);
 // 본체 그림은 점이 뭉개지지 않게 정수배로만 키운다. 자리는 size 그대로 잡고 그 안 바닥에 세운다
 const slimeImg = (sl, size, alt) => { const c = slimeCanvas(sl), N = c.width; let k = Math.max(1, Math.round(size / N)); if (k > 1 && N * k > size * 1.12) k--; const w = N * k > size * 1.12 ? size : N * k;
   return `<span class="slbox" style="width:${size}px;height:${size}px">${toImg(c, 'sl5:' + (sl.origin || 'drop') + ':' + (sl.body || '') + ':' + (sl.main || 'base') + ':' + (sl.sub || '') + ':' + sl.stage + ':' + (sl.muts || []).join(','), w, alt || '본체')}</span>`; };
@@ -2677,6 +2768,743 @@ const KEVO2 = {
     K.eye(10, 11, 1.4, '#f0e060'); K.eye(14, 11, 1.4, '#f0e060'); K.G([[11, 13], [12, 16.4], [13, 13]], GOLD_R);
   },
 };
+// 옛 것의 둥지 — 본체의 계통. 허물을 벗을 때마다 꼴은 크게 바뀌지만, 한 종이 자라는 것으로 읽혀야 한다.
+// 징조마다 끝까지 따라가는 표지가 있다.
+//   심연: 등불과 노란 세로눈, 이빨 가득한 입  (올챙이 → 아귀 → 긴꼬리 아귀 → 해구의 주인)
+//   성운: 노란 외눈과 수정                      (눈 뜬 씨앗 → 눈 품은 수정 → 고리 두른 눈 → 틈을 여는 눈)
+//   번식: 흰 자루의 얼굴과 초록 갓, 알           (새끼 버섯 → 걷는 버섯 → 알 밴 버섯 → 낳는 숲)
+//   황혼: 흰 가면과 눈알 무늬                    (가면 애벌레 → 가면 고치 → 막 두른 나방 → 연출가 나방)
+//   기아: 둥근 이빨 고리 입과 뼈 가시            (씹는 구더기 → 이빨 유충 → 목구멍 벌레 → 마지막 한 입)
+// monsters.js 바로 뒤에 붙는다. 여기서 다시 정하지 않은 모습(심연 2, 성운 1·2, 번식 2, 황혼 3)은 monsters.js 의 것을 그대로 쓴다.
+const LURE_R = ['#3a2a10', '#ffd23a', '#fff3a0', '#c8901a'], STK_R = P => [P[0], '#e4e0c4', '#ffffff', '#aaa482'], STR_C = '#d8c8a8';
+const mawRing = (K, hx, hy, R, fr, P) => {      // 기아의 입: 이빨이 고리로 돋은 목구멍
+  K.flat(K.el(hx, hy, R, R), '#1a0508', P[0]); K.flat(K.el(hx, hy, R * 0.76, R * 0.76), '#6a1018'); K.flat(K.el(hx, hy, R * 0.37, R * 0.37), '#1a0508'); K.px(hx, hy, '#ffb347');
+  const n1 = Math.max(8, Math.round(R * 1.6)), n2 = Math.max(5, Math.round(R * 0.9));
+  for (let k = 0; k < n1; k++) { const a = k * 6.2832 / n1 + fr * 0.13; K.px(hx + Math.cos(a) * (R - 1), hy + Math.sin(a) * (R - 1), '#fbf7ea'); if (R > 5) K.px(hx + Math.cos(a) * (R - 2.2), hy + Math.sin(a) * (R - 2.2), '#cfc8b4'); }
+  for (let k = 0; k < n2; k++) { const a = k * 6.2832 / n2 - fr * 0.2; K.px(hx + Math.cos(a) * R * 0.5, hy + Math.sin(a) * R * 0.5, '#fbf7ea'); }
+};
+const boneSpine = (K, cx, cy, ox, oy, r, len) => K.G([[cx + ox * r * 0.7 - oy * r * 0.36, cy + oy * r * 0.7 + ox * r * 0.36], [cx + ox * (r * 0.7 + len), cy + oy * (r * 0.7 + len)], [cx + ox * r * 0.7 + oy * r * 0.36, cy + oy * r * 0.7 - ox * r * 0.36]], BONE_R);
+const eyeSpot = (K, cx, cy, r, col, lid) => { K.flat(K.el(cx, cy, r + 1, r + 1), INKY); K.flat(K.el(cx, cy, r, r), '#f2ecd8'); K.flat(K.el(cx, cy, r * 0.6, r * 0.6), col); K.flat(K.el(cx, cy, Math.max(0.5, r * 0.28), Math.max(0.5, r * 0.28)), INKY); K.px(cx - r * 0.4, cy - r * 0.4, '#ffffff'); if (lid) K.rect(Math.round(cx - r), Math.round(cy - r), Math.round(r * 2) + 1, Math.max(1, Math.round(r)), INKY); };
+const capOf = (K, cx, cy, rx, ry, P) => K.ball(K.cut(K.el(cx, cy, rx, ry), (x, y) => y <= cy), cx, cy, rx, ry, P);
+const shroomFace = (K, cx, cy, k) => {         // 번식의 얼굴: 검은 눈구멍에 노란 불빛, 이빨 난 입
+  K.flat(K.el(cx - 3.5 * k, cy, 1.7 * k, 2.3 * k), INKY); K.flat(K.el(cx + 3.5 * k, cy, 1.7 * k, 2.3 * k), INKY); K.px(cx - 3.5 * k, cy - 1, '#f0e060'); K.px(cx + 3.5 * k, cy - 1, '#f0e060');
+};
+
+// ---------- 심연: 등불 달린 것 ----------
+FORMS.abyss1 = (K, st, P, Q, fr) => {          // 등불 올챙이: 눈만 큰 올챙이. 이마에 등불의 싹이 돋았다
+  const s = SW(fr); K.shadow(15, 11);
+  K.G([[21, 19], [27, 12 + s], [31, 5 + s], [29, 15 + s], [24, 24]], [P[0], P[3], Q[1], mixh(P[3], P[0], 0.4)]);                // 꼬리 지느러미
+  K.L([[20, 23], [25, 20], [28, 14 + s], [29, 8 + s]], 3.4, 1, P);
+  K.B(13, 22, 9, 7, P); K.flat(K.cut(K.el(13, 25, 7, 3.4), (x, y) => y > 25), mixh(P[2], '#ffffff', 0.2));                  // 배
+  K.eye(10, 20, 4, '#f0d060', true);
+  K.rect(14, 26, 5, 1, P[0]); K.px(19, 25, P[0]); K.px(15, 27, '#fbf7ea'); K.px(17, 27, '#fbf7ea');                           // 벌써 이빨이 둘
+  K.L([[14, 15], [11, 9], [7, 8 + s]], 1, 0.7, P); K.B(5.5, 9 + s, 1.8, 1.8, LURE_R); K.spark(5, 9 + s, '#fff3a0', fr % 2 === 0);   // 등불의 싹
+  K.B(9, 29, 2.4, 1.6, P); K.B(18, 29.4, 2.2, 1.4, P);
+  return { cx: 13, cy: 22, R: 8, top: 14, bot: 29, head: [13, 12], back: [[17, 16], [22, 19], [13, 15]], belly: [14, 26], side: [20, 22], under: [[8, 30], [14, 30], [20, 30]] };
+};
+FORMS.abyss3 = (K, st, P, Q, fr) => {          // 긴꼬리 아귀: 입은 그대로 크고, 몸이 길어져 꼬리가 말려 올라간다. 등불이 둘
+  const s = SW(fr), FN = [P[0], P[3], Q[1], mixh(P[3], P[0], 0.4)], SP = [P[0], Q[1], Q[2], P[3]], GL = '#ffd23a'; K.shadow(24, 20);
+  K.G([[41, 12 + s], [35, 5 + s], [39, 1 + s], [42, 7 + s], [46, 1 + s], [47, 8 + s], [44, 13 + s]], FN);                                                              // 꼬리 지느러미
+  K.L([[28, 31], [37, 34], [43, 30], [45, 21 + s], [43, 12 + s]], 7, 1.2, P);                                                 // 길어진 몸
+  for (let k = 0; k < 3; k++) K.G([[39 + k * 2.4, 26 - k * 5], [46 + k, 22 - k * 5 + s * (k % 2)], [40 + k * 2, 20 - k * 5]], SP);   // 꼬리 가시
+  for (let k = 0; k < 5; k++) K.G([[13 + k * 4.6, 19], [15.4 + k * 4.6, 10 + (k % 2) * 2], [18 + k * 4.6, 19]], SP);              // 등 가시
+  K.B(19, 30, 16, 12, P);
+  K.G([[28, 34], [37, 36 + s], [33, 43]], FN);                                                                               // 가슴지느러미
+  K.flat(K.el(15, 35, 13, 6.2), '#1a0508', P[0]); K.flat(K.el(15, 36, 9, 3.4), '#5a0c14');                                  // 입 안
+  K.fangs(4, 26, 30, 1, 6, 3); K.fangs(5, 25, 40, -1, 5, 3);
+  K.L([[6, 42], [15, 44.4], [25, 42]], 1.8, 1.8, P);                                                                         // 아랫입술
+  K.eye(27, 22, 3, GL, true); K.eye(20.5, 20.5, 1.5, GL);
+  [[33, 31], [38, 31], [42, 27], [43, 21]].forEach(([lx, ly], k) => { K.px(lx, ly, '#9fe8f0'); if ((fr + k) % 4 === 0) K.px(lx, ly, '#ffffff'); });   // 옆줄의 빛
+  K.L([[23, 19], [27, 12], [31, 11 - s]], 1, 0.6, P); K.B(33, 12 - s, 2.2, 2.2, LURE_R);                                        // 둘째 등불
+  K.L([[16, 19], [10, 9], [13, 3 + s], [20, 3 + s]], 1.4, 0.8, P); K.B(23, 6 + s, 3.4, 3.4, LURE_R); K.spark(23, 6 + s, '#fff3a0', fr % 2 === 0);  // 등불
+  K.B(11, 45.6, 3.4, 1.7, P); K.B(26, 45.6, 3.4, 1.7, P);
+  return { cx: 20, cy: 30, R: 13, top: 17, bot: 46, head: [19, 12], back: [[31, 22], [12, 20], [39, 27]], belly: [30, 38], side: [37, 31], under: [[10, 47], [22, 47], [36, 47]] };
+};
+FORMS.abyss4 = (K, st, P, Q, fr) => {          // 해구의 주인: 똬리를 튼 긴 몸 위에 아귀의 머리. 등불이 길을 비춘다
+  const s = SW(fr), BL = [P[0], mixh(P[2], '#ffffff', 0.15), '#ffffff', P[1]], FN = [P[0], Q[1], Q[2], Q[3]], GL = '#ffd23a'; K.shadow(27, 23);
+  K.L([[42, 44], [49, 38], [48, 30 + s], [44, 26 + s]], 3.4, 1, P); K.G([[44, 27 + s], [50, 20 + s], [47, 30 + s]], FN);                // 꼬리
+  K.B(34, 41, 17, 9, P); K.flat(K.cut(K.el(34, 44, 14, 5), (x, y) => y > 44 && (x + y) % 3 !== 0), BL[1]);                       // 뒤 똬리
+  K.B(17, 44, 13, 7, P); K.flat(K.cut(K.el(17, 46, 10, 4), (x, y) => y > 46 && (x + y) % 3 !== 0), BL[1]);                        // 앞 똬리
+  [[24, 40], [31, 37], [40, 38], [45, 42], [11, 41]].forEach(([lx, ly], k) => K.px(lx, ly, (fr + k) % 4 === 0 ? '#ffffff' : '#9fe8f0'));   // 옆줄의 빛
+  const neck = [[31, 38], [39, 31], [38, 23], [31, 18], [23, 17]];
+  for (let k = 0; k < 5; k++) { const f = k / 4, px0 = 40 - f * 9, py0 = 32 - f * 15; K.G([[px0 + 3, py0 + 2], [px0 + 10 - f * 3, py0 - 5 + s * (k % 2)], [px0 + 1, py0 - 5]], FN); }   // 등지느러미
+  K.L(neck, 7.2, 6, P);
+  K.commit(K.cut(K.path(neck, 7.2, 6), (x, y) => { let best = 99; for (let i = 0; i < 40; i++) { const f = i / 39, a = neck[Math.min(3, Math.floor(f * 4))], b = neck[Math.min(4, Math.floor(f * 4) + 1)], g = f * 4 - Math.floor(f * 4), cx = a[0] + (b[0] - a[0]) * g - 3.2, cy = a[1] + (b[1] - a[1]) * g + 2.6, d = Math.hypot(x - cx, y - cy); if (d < best) best = d; } return best < 3.1 && (x + y * 2) % 4 !== 0; }), () => BL[1]);   // 배 비늘
+  [[36, 26], [38, 32]].forEach(([ex, ey], k) => K.eye(ex, ey, 1.6, GL, false, (fr + k) % 4 === 0 ? 1 : 0));                    // 목의 눈
+  K.G([[21, 9], [25, 1], [27, 10]], FN); K.G([[26, 11], [31, 5], [31, 13]], FN);                                               // 볏
+  K.B(15, 16, 12, 9, P);                                                                                                     // 아귀의 머리
+  K.flat(K.el(11, 20, 10, 5), '#1a0508', P[0]); K.flat(K.el(11, 21, 7, 2.6), '#5a0c14');
+  K.fangs(2, 20, 16, 1, 5, 3); K.fangs(3, 19, 24, -1, 4, 3);
+  K.L([[3, 25.4], [11, 27], [20, 25]], 1.5, 1.5, P);
+  K.eye(22, 11.5, 2.8, GL, true); K.eye(16, 10, 1.4, GL);
+  K.L([[22, 8], [28, 3], [33, 3 - s]], 1, 0.6, P); K.B(35, 4 - s, 2.2, 2.2, LURE_R);                                           // 둘째 등불
+  K.L([[18, 8], [14, 2], [8, 1 + s]], 1.3, 0.7, P); K.B(5.4, 3.4 + s, 3, 3, LURE_R); K.spark(5, 3 + s, '#fff3a0', fr % 2 === 0);     // 등불
+  K.L([[7, 28], [5, 33], [7, 37 + s]], 1, 0.6, [P[0], Q[2], Q[2], Q[1]]); K.px(7, 38 + s, '#fff3a0'); K.L([[14, 28], [13, 33], [15, 37 - s]], 1, 0.6, [P[0], Q[2], Q[2], Q[1]]); K.px(15, 38 - s, '#fff3a0');   // 수염 끝에도 불
+  return { cx: 28, cy: 31, R: 15, top: 6, bot: 49, head: [22, 3], back: [[41, 33], [44, 41], [30, 37]], belly: [22, 44], side: [42, 26], under: [[10, 50], [26, 50], [42, 50]] };
+};
+
+// ---------- 성운: 외눈과 수정 ----------
+FORMS.nebula3 = (K, st, P, Q, fr) => {         // 고리 두른 눈: 수정은 그대로 눈을 품고, 둘레에 고리가 돈다
+  const s = SW(fr), cy = 23 + s, QR = [P[0], Q[1], Q[2], Q[3]]; K.shadow(24, 15);
+  [[5, 4], [43, 4], [5, 42], [43, 42]].forEach(([tx, ty]) => K.flat(K.poly([[tx, ty + s], [24 + (tx < 24 ? -3 : 3), cy], [24, cy + (ty < 24 ? -3 : 3)]]), mixh(P[3], P[0], 0.35)));
+  K.lit(ringM(K, 24, cy, 21.4, 21.4, 2.6), P);
+  K.lit(K.cut(ringM(K, 24, cy, 21, 7.4, 2.2), (x, y) => y < cy), GOLD_R); K.lit(K.cut(ringM(K, 24, cy, 7.4, 21, 2.2), (x, y) => x < 24), QR);
+  gem(K, [[24, cy - 13], [32, cy - 6], [32, cy + 6], [24, cy + 13], [16, cy + 6], [16, cy - 6]], 24, P);                          // 눈을 품은 수정
+  K.eye(24, cy, 5.2, '#ffd23a', true);
+  K.lit(K.cut(ringM(K, 24, cy, 21, 7.4, 2.2), (x, y) => y >= cy + 4 && (x < 15 || x > 33)), GOLD_R); K.lit(K.cut(ringM(K, 24, cy, 7.4, 21, 2.2), (x, y) => x >= 28 && (y < cy - 10 || y > cy + 10)), QR);
+  for (let k = 0; k < 6; k++) { const a = k * 1.047 + 0.52; K.eye(24 + Math.cos(a) * 20.4, cy + Math.sin(a) * 20.4, 1.8, k % 2 ? '#fff3a0' : Q[2], false, (fr + k) % 4 === 0 ? 1 : 0); }
+  K.spark(21, cy - 9, '#ffffff', fr % 2 === 0);
+  return { cx: 24, cy: 23, R: 12, top: 2, bot: 45, head: [24, 4], back: [[36, 9], [12, 9], [41, 20]], belly: [24, 33], side: [39, 26], under: [[14, 44], [24, 46], [34, 44]] };
+};
+FORMS.nebula4 = (K, st, P, Q, fr) => {         // 틈을 여는 눈: 수정이 꽃잎처럼 벌어지고, 눈동자가 밤하늘로 찢어졌다
+  const s = SW(fr), cy = 27 + s, QR = [P[0], Q[1], Q[2], Q[3]], VOID = '#0a0618'; K.shadow(26, 18);
+  [[4, 5], [48, 5], [4, 49], [48, 49]].forEach(([tx, ty]) => K.flat(K.poly([[tx, ty + s], [26 + (tx < 26 ? -4 : 4), cy], [26, cy + (ty < 26 ? -4 : 4)]]), mixh(P[3], P[0], 0.35)));
+  K.lit(K.cut(ringM(K, 26, cy, 25, 8.6, 2.4), (x, y) => y < cy), GOLD_R);                                                     // 고리의 뒤쪽
+  gem(K, [[26, 0 + s], [32, 8 + s], [30, 17 + s], [22, 17 + s], [20, 8 + s]], 26, P);                                            // 벌어진 수정 넷
+  gem(K, [[26, 52 + s], [32, 45 + s], [30, 37 + s], [22, 37 + s], [20, 45 + s]], 26, P);
+  gem(K, [[7, cy - 14], [13, cy - 8], [14, cy + 8], [8, cy + 15], [3, cy + 8], [2, cy - 7]], 8, QR);
+  gem(K, [[45, cy - 14], [50, cy - 7], [49, cy + 8], [44, cy + 15], [38, cy + 8], [39, cy - 8]], 44, QR);
+  K.B(26, cy, 13.4, 13.4, P);
+  K.flat(K.el(26, cy, 10.6, 10.6), INKY); K.flat(K.el(26, cy, 9.6, 9.6), '#f2ecd8'); K.flat(K.el(26, cy, 7.4, 7.4), '#ffd23a'); K.commit(ringM(K, 26, cy, 7.4, 7.4, 1.2), () => '#c8901a');
+  const rift = K.poly([[26, cy - 10], [30, cy], [26, cy + 10], [22, cy]]);                                                    // 눈동자: 틈
+  K.commit(rift, (x, y) => { const h = ((x * 73856093) ^ (y * 19349663)) >>> 0; return h % 7 === 0 ? ((h + fr) % 3 ? '#ffffff' : '#fff3a0') : h % 5 === 0 ? '#2a1c50' : VOID; }, '#fff3a0');
+  K.px(22, cy - 5, '#ffffff'); K.px(21, cy - 4, '#ffffff'); K.spark(26, cy, '#ffffff', fr % 2 === 0);
+  K.lit(K.cut(ringM(K, 26, cy, 25, 8.6, 2.4), (x, y) => y >= cy + 3 && (x < 13 || x > 39)), GOLD_R);                           // 고리의 앞쪽
+  for (let k = 0; k < 4; k++) { const a = [0.62, 2.52, 3.76, 5.66][k]; K.eye(26 + Math.cos(a) * 20, cy + Math.sin(a) * 17, 1.8, k % 2 ? '#fff3a0' : Q[2], false, (fr + k) % 4 === 0 ? 1 : 0); }
+  K.spark(15, 4, P[2], fr % 2 === 0); K.spark(40, 48, '#fff3a0', fr % 2 === 1); K.px(11, 47, P[2]); K.px(43, 6, '#ffffff');
+  return { cx: 26, cy: 27, R: 14, top: 1, bot: 50, head: [26, 2], back: [[38, 12], [14, 12], [44, 20]], belly: [26, 41], side: [41, 31], under: [[14, 49], [26, 51], [38, 49]] };
+};
+
+// ---------- 번식: 버섯 ----------
+FORMS.brood1 = (K, st, P, Q, fr) => {          // 새끼 버섯: 갓이 막 돋은 흰 알뿌리. 얼굴은 벌써 어미를 닮았다
+  const s = SW(fr), STK = STK_R(P), SPOT = mixh(P[2], '#ffffff', 0.3); K.shadow(16, 10);
+  K.L([[11, 27], [8, 29], [5, 30]], 1.6, 0.8, ROOT_R); K.L([[16, 28], [16, 30]], 1.6, 1, ROOT_R); K.L([[21, 27], [24, 29], [27, 30]], 1.6, 0.8, ROOT_R);
+  K.B(26, 26.4, 2.4, 2.4, EGG_R);
+  K.B(16, 22, 7.6, 6.6, STK);
+  shroomFace(K, 16, 21, 0.86); K.flat(K.el(16, 25.4, 2.2, 1.1), INKY); K.px(15, 25, '#fbf7ea'); K.px(17, 25, '#fbf7ea');
+  K.flat(K.el(16, 15.6, 9, 2.2), mixh(P[3], P[0], 0.45), P[0]); for (let gx = 8; gx < 25; gx += 2) K.px(gx, 16, P[0]);
+  capOf(K, 16, 15, 10.6, 8.4, P);
+  [[12, 11, 1.9, 1.3], [19, 9, 1.6, 1.1], [22, 13, 1.2, 0.9]].forEach(([a, b, c, d]) => K.flat(K.el(a, b, c, d), SPOT));
+  K.L([[16, 7], [17, 4], [15, 2 + s]], 1, 0.6, P); K.px(14, 2 + s, P[2]);                                                       // 한 방울의 꼭지가 아직 남았다
+  K.spark(4, 8 + s, '#d0f08a', fr % 2 === 0); K.px(28, 6 - s, '#d0f08a');
+  return { cx: 16, cy: 20, R: 8, top: 6, bot: 30, head: [16, 3], back: [[23, 10], [9, 10], [16, 7]], belly: [16, 27], side: [23, 22], under: [[10, 31], [16, 31], [22, 31]] };
+};
+FORMS.brood3 = (K, st, P, Q, fr) => {          // 알 밴 버섯: 갓이 활짝 펴지고, 자루 아래가 알로 불룩하다. 갓 끝마다 알주머니
+  const s = SW(fr), STK = STK_R(P), SPOT = mixh(Q[2], '#ffffff', 0.3), EG = [Q[0], Q[1], Q[2], Q[3]]; K.shadow(24, 20);
+  K.L([[16, 41], [10, 44], [5, 46]], 2.2, 1, ROOT_R); K.L([[20, 43], [18, 46]], 2, 1.2, ROOT_R); K.L([[28, 43], [30, 46]], 2, 1.2, ROOT_R); K.L([[32, 41], [38, 44], [43, 46]], 2.2, 1, ROOT_R);
+  K.L([[5, 41], [5, 35]], 1.4, 1.4, STK); capOf(K, 5, 35, 4.6, 4, P); K.L([[43, 42], [43, 37]], 1.4, 1.4, STK); capOf(K, 43, 37, 4.2, 3.6, P);   // 새끼들
+  K.B(24, 35.4, 12.4, 9, STK);                                                                                               // 알 밴 배
+  K.flat(K.el(24, 37, 9, 5.6), mixh('#e4e0c4', '#f0e060', 0.4), '#aaa482');
+  [[19, 36, 2.4], [24.5, 38.4, 2.6], [29.4, 36, 2.3], [24, 34, 2]].forEach(([ex, ey, r], k) => { K.B(ex, ey, r, r, EG); K.px(ex, ey + ((fr + k) % 2), INKY); });
+  [[7, 19, 25], [14, 20, 23], [34, 20, 24], [41, 19, 26]].forEach(([hx, y0, y1], k) => { const yy = y1 + (k % 2 ? s : -s); for (let y = y0; y < yy; y++) K.px(hx, y, '#3a3410'); K.B(hx, yy + 2, 2.3, 2.9, EG); K.px(hx, yy + 3, INKY); });   // 갓 끝의 알주머니
+  K.B(24, 25, 7.6, 7, STK);                                                                                                  // 얼굴
+  shroomFace(K, 24, 24, 1); K.flat(K.el(24, 29, 4.4, 1.8), INKY); K.fangs(21, 27, 28, 1, 2, 2);
+  K.flat(K.el(24, 17, 21, 3.8), mixh(P[3], P[0], 0.45), P[0]); for (let gx = 5; gx < 44; gx += 2) K.px(gx, 18, P[0]);
+  capOf(K, 24, 16, 23, 14.4, P);
+  [[14, 8, 3.4, 2.2], [29, 5, 3.6, 2.3], [38, 12, 2.4, 1.6], [6, 13, 2, 1.4], [22, 12, 1.8, 1.2], [33, 10, 1.4, 1]].forEach(([a, b, c, d]) => K.flat(K.el(a, b, c, d), SPOT));
+  K.spark(3, 4 + s, '#d0f08a', fr % 2 === 0); K.px(45, 6 - s, '#d0f08a'); K.px(40, 1 + s, '#f0e060');
+  return { cx: 24, cy: 28, R: 13, top: 2, bot: 46, head: [24, 1], back: [[36, 6], [12, 6], [24, 3]], belly: [24, 42.4], side: [35, 31], under: [[10, 47], [24, 47], [38, 47]] };
+};
+FORMS.brood4 = (K, st, P, Q, fr) => {          // 낳는 숲: 새끼들이 곁에서 다 자라 한 몸의 숲이 됐다. 입에서 알이 나온다
+  const s = SW(fr), STK = STK_R(P), OLD = [P[0], '#cfc9a4', '#f4f0d8', '#8f8862'], SPOT = mixh(Q[2], '#ffffff', 0.3), EG = [Q[0], Q[1], Q[2], Q[3]]; K.shadow(27, 24);
+  K.L([[20, 46], [12, 49], [3, 50]], 2.6, 1, ROOT_R); K.L([[23, 48], [20, 51]], 2, 1.2, ROOT_R); K.L([[30, 48], [33, 51]], 2, 1.2, ROOT_R); K.L([[33, 46], [41, 49], [50, 50]], 2.6, 1, ROOT_R);
+  K.B(8, 48.6, 2.4, 2, EGG_R); K.B(44, 49, 2.2, 1.8, EGG_R); K.L([[14, 50], [14, 46]], 1, 1, STK); capOf(K, 14, 46, 3, 2.6, P); K.L([[39, 50], [39, 47]], 1, 1, STK); capOf(K, 39, 47, 2.6, 2.2, P);   // 발치의 알과 싹
+  K.L([[21, 36], [12, 31], [9, 23]], 3, 2.2, OLD); K.L([[31, 36], [41, 32], [44, 25]], 3, 2.2, OLD);                           // 곁자루
+  [[3, 25, 30], [15, 25, 28], [39, 27, 31], [50, 27, 32]].forEach(([hx, y0, y1], k) => { const yy = y1 + (k % 2 ? s : -s); for (let y = y0; y < yy; y++) K.px(hx, y, '#3a3410'); K.B(hx, yy + 2, 2.3, 2.9, EG); K.px(hx, yy + 3, INKY); });
+  K.flat(K.el(9, 23, 8, 2), mixh(P[3], P[0], 0.45), P[0]); capOf(K, 9, 22, 9, 6.6, P); K.flat(K.el(44, 25, 7.4, 1.9), mixh(P[3], P[0], 0.45), P[0]); capOf(K, 44, 24, 8.2, 6, P);
+  K.flat(K.el(7, 19, 1.6, 1), SPOT); K.flat(K.el(12, 21, 1.1, 0.8), SPOT); K.flat(K.el(46, 21, 1.5, 1), SPOT);
+  const trunk = K.G([[17, 48], [20, 35], [18, 22], [34, 22], [32, 35], [35, 48]], OLD); K.commit(trunk, (x, y) => (x * 7 + (y >> 2)) % 6 === 0 && x > 20 && x < 33 && y > 30 ? OLD[3] : null);   // 굵어진 자루
+  shroomFace(K, 26, 28, 1.2);
+  K.flat(K.el(26, 38, 5, 6.2), '#0a0806', P[0]); K.fangs(23, 29, 32, 1, 3, 2); K.fangs(24, 28, 44, -1, 2, 2);                    // 벌린 입
+  K.B(26, 40 + (fr % 2), 2.6, 2.8, EG); K.px(26, 41 + (fr % 2), INKY);                                                         // 나오는 알
+  [[14, 23, 27], [38, 23, 28]].forEach(([hx, y0, y1], k) => { const yy = y1 + (k % 2 ? s : -s); for (let y = y0; y < yy; y++) K.px(hx, y, '#3a3410'); K.B(hx, yy + 2, 2.6, 3.2, EG); K.px(hx, yy + 3, INKY); });
+  K.flat(K.el(26, 20, 20, 3.6), mixh(P[3], P[0], 0.45), P[0]); for (let gx = 8; gx < 45; gx += 2) K.px(gx, 21, P[0]);
+  capOf(K, 26, 19, 22, 16, P);
+  [[16, 10, 3.6, 2.3], [31, 7, 3.8, 2.4], [40, 14, 2.4, 1.6], [9, 15, 2, 1.4], [24, 14, 1.9, 1.3], [35, 12, 1.4, 1]].forEach(([a, b, c, d]) => K.flat(K.el(a, b, c, d), SPOT));
+  K.spark(4, 6 + s, '#d0f08a', fr % 2 === 0); K.px(47, 9 - s, '#d0f08a'); K.px(42, 2 + s, '#f0e060'); K.px(2, 44 + s, P[2]); K.px(50, 43 - s, P[2]);
+  return { cx: 26, cy: 34, R: 12, top: 3, bot: 50, head: [26, 2], back: [[38, 8], [14, 8], [44, 20]], belly: [26, 46.6], side: [36, 36], under: [[8, 51], [26, 51], [44, 51]] };
+};
+
+// ---------- 황혼: 가면 쓴 나방 ----------
+FORMS.dusk1 = (K, st, P, Q, fr) => {           // 가면 애벌레: 흰 가면을 쓴 애벌레. 등에는 벌써 눈알 무늬가 있다
+  const s = SW(fr), D = [P[0], P[3], P[1], mixh(P[3], P[0], 0.5)]; K.shadow(17, 11);
+  for (let y = 0; y < 21; y += 2) K.px(28, y, STR_C);                                                                         // 실 한 가닥
+  [[11, 30], [15, 30.4], [19, 30.4], [23, 30], [26, 29.4]].forEach(([lx, ly], k) => K.B(lx + ((fr + k) % 2 ? 0.5 : 0), ly, 1.5, 1.2, D));   // 배다리
+  K.B(26.4, 25, 3.4, 3.6, P); K.B(22.4, 25.4, 4.2, 4.4, D); K.B(18, 25, 4.6, 4.8, P); K.B(13.6, 23.4, 4.8, 5, D); K.B(11.6, 19, 5, 5.2, P);
+  eyeSpot(K, 22.4, 23.6, 1.5, Q[1]); eyeSpot(K, 15, 21, 1.5, Q[1]);                                                           // 눈알 무늬
+  K.L([[27, 22], [29, 20 + s]], 0.9, 0.6, P); K.B(29.4, 23.4 - s, 1.5, 1.7, GOLD_R); K.px(29, 23 - s, '#fff3a0');               // 꼬리의 방울
+  K.L([[9, 7], [6, 3], [4, 2 + s]], 0.8, 0.6, P); K.L([[15, 6], [17, 2], [20, 1 + s]], 0.8, 0.6, P); K.px(4, 1 + s, '#ffd23a'); K.px(20, 0 + s, '#ffd23a');
+  K.B(12, 12, 6.6, 6.4, P); K.flat(K.el(12, 13, 4.8, 5.2), '#1a0a14');
+  drawMask(K, 12, 13.4, 3.6, 4.6, 0);
+  return { cx: 17, cy: 21, R: 8, top: 5, bot: 30, head: [12, 4], back: [[20, 20], [25, 21], [16, 17]], belly: [19, 27], side: [24, 25], under: [[10, 31], [17, 31], [24, 31]] };
+};
+FORMS.dusk2 = (K, st, P, Q, fr) => {           // 가면 고치: 실에 매달려 잠들었다. 접힌 날개의 눈알 무늬가 비친다
+  const s = SW(fr), D = [P[0], P[3], P[1], mixh(P[3], P[0], 0.5)], sw = s * 0.5; K.shadow(20, 8);
+  for (let y = 0; y < 5; y++) K.px(20, y, STR_C);
+  for (let i = 0; i < 6; i++) { K.px(13 - i * 2, 9 - i * 1.6 + (i % 2 ? sw : 0), STR_C); K.px(27 + i * 2, 9 - i * 1.6 - (i % 2 ? sw : 0), STR_C); }
+  K.L([[20, 30], [20, 34], [20 + s, 37]], 2.4, 0.8, D); K.px(20 + s, 38, '#ffd23a');                                           // 고치 끝
+  K.ball(K.path([[20, 13], [20, 22], [20, 31]], 9.4, 4), 20, 20, 11, 14, P);                                                 // 고치
+  for (const yy of [26, 29, 32]) for (let x = 14; x < 27; x++) { const m = Math.abs(x - 20) < (36 - yy) * 0.62; if (m) K.px(x, yy, P[0]); }
+  const lw = [[13, 12], [8, 15], [6, 23], [9, 30], [15, 31], [16, 19]], mir = pts => pts.map(q => [40 - q[0], q[1]]);              // 접힌 날개
+  [lw, mir(lw)].forEach(w => { const m = K.G(w, D); K.commit(m, (x, y) => x % 3 === 1 ? mixh(P[3], P[0], 0.3) : null); });
+  eyeSpot(K, 10.6, 22, 2.4, Q[1], fr !== 3); eyeSpot(K, 29.4, 22, 2.4, Q[1], fr !== 3);                                        // 아직 덜 뜬 눈알 무늬
+  for (let x = 9; x < 32; x++) { if (x % 3) K.px(x, 17 + ((x >> 1) % 2), STR_C); if (x % 4 && x > 11 && x < 29) K.px(x, 25 - ((x >> 1) % 2), STR_C); }   // 감긴 실
+  K.L([[17, 5], [13, 4], [10, 7 + s]], 0.8, 0.6, P); K.L([[23, 5], [27, 4], [30, 7 + s]], 0.8, 0.6, P); K.px(10, 8 + s, '#ffd23a'); K.px(30, 8 + s, '#ffd23a');
+  K.B(20, 9, 6.2, 6, P); K.flat(K.el(20, 10, 4.8, 5.2), '#1a0a14');
+  drawMask(K, 20, 10.4, 4, 5, 2);
+  return { cx: 20, cy: 21, R: 9, top: 3, bot: 37, head: [20, 2], back: [[28, 12], [12, 12], [31, 20]], belly: [20, 29], side: [27, 28], under: [[14, 38], [20, 39], [26, 38]] };
+};
+FORMS.dusk4 = (K, st, P, Q, fr) => {           // 연출가 나방: 날개가 무대의 막이 됐다. 막 끝에는 금술, 날개 끝에는 줄 인형
+  const s = SW(fr), D = [P[0], P[3], P[1], mixh(P[3], P[0], 0.5)], mir = pts => pts.map(q => [52 - q[0], q[1]]); K.shadow(26, 18);
+  for (let y = 33; y < 42; y += 2) { K.px(3, y, STR_C); K.px(49, y, STR_C); }
+  [[3, 42 + s], [49, 42 - s]].forEach(([hx, hy]) => { K.rect(hx - 1, hy, 3, 3, '#e8b890'); K.rect(hx - 1, hy + 3, 3, 4, '#3f6b46'); K.px(hx - 2, hy + 4, '#e8b890'); K.px(hx + 2, hy + 3, '#e8b890'); K.px(hx - 1, hy + 7, INKY); K.px(hx + 1, hy + 7, INKY); K.px(hx, hy + 1, INKY); });   // 줄 인형
+  const lw = [[23, 31], [12, 35], [8, 43 + s], [14, 49 + s], [21, 44], [25, 37]], uw = [[24, 25], [18, 8 - s], [9, 2 - s], [2, 5], [0, 14], [1, 27], [4, 36], [8, 31], [12, 35], [16, 30], [20, 33], [23, 30]];
+  K.G(lw, D); K.G(mir(lw), D);
+  [uw, mir(uw)].forEach(w => { const m = K.G(w, P), N = K.N;
+    K.commit(m, (x, y) => x % 5 === 1 ? P[3] : x % 5 === 2 ? mixh(P[3], P[0], 0.5) : null);                                      // 막의 주름
+    K.commit(m, (x, y) => (y > 0 && !m[(y - 1) * N + x]) ? '#ffd23a' : null);
+    K.commit(m, (x, y) => (y > 24 && y < N - 1 && !m[(y + 1) * N + x]) ? ((x % 4 < 2) ? '#ffd23a' : '#a87e14') : (y > 25 && y < N - 2 && !m[(y + 2) * N + x] && x % 2 ? '#ffd23a' : null)); });   // 금술
+  eyeSpot(K, 10, 15 - s, 4.6, Q[1]); eyeSpot(K, 42, 15 - s, 4.6, Q[1]); eyeSpot(K, 16, 27, 2, Q[1]); eyeSpot(K, 36, 27, 2, Q[1]);
+  eyeSpot(K, 13, 42 + s, 1.8, Q[1]); eyeSpot(K, 39, 42 + s, 1.8, Q[1]);
+  K.L([[23, 31], [20, 37]], 0.7, 0.6, P); K.L([[29, 31], [32, 37]], 0.7, 0.6, P);
+  K.L([[26, 32], [26, 41], [26, 49 + s]], 3.6, 1.3, P); for (const yy of [36, 40, 44]) K.rect(24, yy, 5, 1, P[0]);
+  K.B(26, 28, 5, 5.8, P); K.px(24, 26, P[2]); K.px(27, 25, P[2]);
+  K.G([[19, 22], [26, 27], [33, 22], [30, 19], [22, 19]], BONE_R);                                                            // 깃
+  K.L([[23, 12], [18, 6], [13, 3 + s]], 0.9, 0.6, P); K.L([[29, 12], [34, 6], [39, 3 + s]], 0.9, 0.6, P); for (let k = 0; k < 4; k++) { K.px(21 - k * 2, 7 - k + s, P[2]); K.px(20 - k * 2, 10 - k + s, P[2]); K.px(31 + k * 2, 7 - k + s, P[2]); K.px(32 + k * 2, 10 - k + s, P[2]); }
+  K.B(26, 15, 5.6, 6.6, P); K.flat(K.el(26, 16, 4.6, 5.8), '#1a0a14');
+  drawMask(K, 26, 16, 4.4, 5.6, 0);
+  K.G([[21, 9], [22, 4], [25, 8]], GOLD_R); K.G([[24, 8], [26, 2], [28, 8]], GOLD_R); K.G([[27, 8], [30, 4], [31, 9]], GOLD_R);   // 관
+  return { cx: 26, cy: 27, R: 11, top: 2, bot: 49, head: [26, 3], back: [[38, 8], [14, 8], [46, 20]], belly: [26, 41], side: [40, 30], under: [[14, 50], [26, 51], [38, 50]] };
+};
+
+// ---------- 기아: 이빨 고리 입의 벌레 ----------
+FORMS.hunger1 = (K, st, P, Q, fr) => {         // 씹는 구더기: 짧고 통통한 몸, 앞쪽은 전부 입
+  const s = SW(fr); K.shadow(17, 11);
+  K.G([[27, 20], [30, 15 + s], [29, 22]], BONE_R); K.G([[19, 16], [21, 10 + s], [23, 15]], BONE_R);                              // 뼈 가시의 싹
+  K.B(11, 30, 2.6, 1.4, P); K.B(19, 29.6, 2.2, 1.4, P); K.B(25, 29, 2, 1.3, P);
+  K.B(25.6, 24, 4, 4.6, P); K.B(20.4, 22.4, 6, 6.6, P);
+  K.B(12, 19, 9.4, 9.4, P);
+  mawRing(K, 11, 20.4, 6.4, fr, P);
+  K.eye(7.4, 10.6, 1.7, '#ffd23a'); K.eye(15, 9.6, 2.2, '#ffd23a', true); K.rect(5, 8, 3, 1, P[0]); K.rect(14, 6, 4, 1, P[0]);
+  K.px(8, 28, '#bfe8ff'); K.px(8, 30 + (fr % 2), '#bfe8ff');
+  return { cx: 16, cy: 20, R: 9, top: 9, bot: 30, head: [13, 7], back: [[21, 15], [26, 20], [16, 11]], belly: [22, 26], side: [26, 23], under: [[10, 31], [17, 31], [24, 31]] };
+};
+FORMS.hunger2 = (K, st, P, Q, fr) => {         // 이빨 유충: 등을 굽혀 기는 긴 몸. 마디마다 뼈 가시, 꼬리 끝에도 작은 입
+  const s = SW(fr), seg = [[34, 31, 4.8], [33, 24, 5.4], [28, 18, 6.2], [21, 17, 6.8], [15, 21, 7.4]]; K.shadow(21, 17);
+  K.L([[35, 29], [38, 25], [37, 19 + s]], 2, 1.3, P); K.B(36.4, 16 + s, 3, 2.8, P); K.flat(K.el(35.2, 17 + s, 2.2, 1.1), '#1a0508'); K.px(34, 16 + s, '#fbf7ea'); K.px(36, 16 + s, '#fbf7ea'); K.px(38, 15 + s, '#ffd23a');   // 꼬리의 입
+  K.B(32, 36.8, 2.6, 1.5, P); K.B(37, 36.4, 2.2, 1.4, P);
+  seg.forEach(([cx, cy, r], k) => { const a = Math.atan2(cy - 32, cx - 24), ox = Math.cos(a), oy = Math.sin(a); if (k > 0) boneSpine(K, cx, cy, ox, oy, r, 5 + (k % 2)); K.B(cx, cy, r, r, P); });
+  K.L([[15, 32], [13, 36], [14, 38]], 2, 1.1, P); K.px(12, 38, '#fbf7ea'); K.px(14, 39, '#fbf7ea'); K.L([[7, 33], [5, 36], [6, 38]], 2, 1.1, P); K.px(4, 38, '#fbf7ea'); K.px(6, 39, '#fbf7ea');
+  K.B(11, 25, 9.8, 9.8, P);
+  mawRing(K, 10, 26, 7.2, fr, P);
+  K.eye(5.4, 16.4, 1.6, '#ffd23a'); K.eye(13.6, 15, 2.2, '#ffd23a', true); K.eye(19.4, 19.4, 1.3, '#ffd23a'); K.rect(12, 12, 4, 1, P[0]);
+  K.px(6, 35, '#bfe8ff'); K.px(10, 36 + (fr % 2), '#bfe8ff');
+  return { cx: 22, cy: 24, R: 10, top: 9, bot: 38, head: [12, 12], back: [[28, 11], [21, 9], [35, 19]], belly: [26, 23], side: [37, 28], under: [[9, 39], [22, 39], [34, 39]] };
+};
+{ const old3 = FORMS.hunger3;
+  FORMS.hunger3 = (K, st, P, Q, fr) => {       // 목구멍 벌레: 구멍에서 몸을 세웠다. 다리는 버렸지만 눈은 남았다
+    const A = old3(K, st, P, Q, fr), s = SW(fr);
+    K.eye(18.6, 8.4 + s, 1.4, '#ffd23a'); K.eye(9.4, 8.6 + s, 1.2, '#ffd23a'); K.eye(22.8, 13.6 + s, 1.2, '#ffd23a');
+    return A; }; }
+FORMS.hunger4 = (K, st, P, Q, fr) => {         // 마지막 한 입: 구멍을 다 빠져나온 벌레. 머리가 곧 입이고, 입 안에 입이 또 있다
+  const s = SW(fr), RK = ['#141018', '#4a4458', '#6a6478', '#2a2634'], IN = ['#2a0a0e', '#e8505a', '#ff9a8a', '#8a1c26'], hx = 23, hy = 28 + s * 0.5, seg = [[44, 43, 7], [47, 34, 7.6], [46, 25, 8.2], [41, 16, 8.8], [33, 10, 9.4]]; K.shadow(27, 24);
+  K.L([[4, 49], [3, 44], [5, 40 + s]], 2.4, 2, P); K.flat(K.el(5, 39 + s, 1.9, 1.5), '#1a0508'); K.px(4, 38 + s, '#fbf7ea'); K.px(6, 38 + s, '#fbf7ea');   // 곁입
+  K.B(40, 49, 10, 2.6, RK); K.B(24, 49.6, 6, 2.2, RK); K.B(10, 49.8, 4, 1.8, RK); K.B(49, 49.6, 2.6, 1.8, RK);
+  seg.forEach(([cx, cy, r], k) => { const a = Math.atan2(cy - 30, cx - 26), ox = Math.cos(a), oy = Math.sin(a); boneSpine(K, cx, cy, ox, oy, r, 6 + (k % 2)); K.B(cx, cy, r, r, P); });
+  for (let k = 0; k < 9; k++) { const a = -2.5 + k * 0.52, ox = Math.cos(a), oy = Math.sin(a); if (a > -0.2 && a < 1.1) continue; K.G([[hx + ox * 15 - oy * 2.6, hy + oy * 15 + ox * 2.6], [hx + ox * (21 + (k % 2) * 2), hy + oy * (21 + (k % 2) * 2)], [hx + ox * 15 + oy * 2.6, hy + oy * 15 - ox * 2.6]], BONE_R); }   // 머리 둘레의 뼈 가시
+  K.B(hx, hy, 17.4, 17.4, P);
+  for (let k = 0; k < 8; k++) { const a = k * 0.7854 + 0.39; K.eye(hx + Math.cos(a) * 15, hy + Math.sin(a) * 15, k % 2 ? 1.3 : 1.7, '#ffd23a', false, (fr + k) % 4 === 0 ? 1 : 0); }   // 입 둘레의 눈
+  K.flat(K.el(hx, hy, 13, 13), '#7a121c', P[0]); K.flat(K.el(hx, hy, 11.8, 11.8), '#1a0508');
+  for (let k = 0; k < 14; k++) { const a = k * 0.4488 + fr * 0.11, ox = Math.cos(a), oy = Math.sin(a); K.G([[hx + ox * 12 - oy * 1.6, hy + oy * 12 + ox * 1.6], [hx + ox * (8 + (k % 2)), hy + oy * (8 + (k % 2))], [hx + ox * 12 + oy * 1.6, hy + oy * 12 - ox * 1.6]], BONE_R); }   // 바깥 이빨 고리
+  K.flat(K.el(hx, hy, 7.4, 7.4), '#6a1018');
+  for (let k = 0; k < 10; k++) { const a = k * 0.6283 - fr * 0.17; K.px(hx + Math.cos(a) * 6.6, hy + Math.sin(a) * 6.6, '#fbf7ea'); K.px(hx + Math.cos(a) * 5.6, hy + Math.sin(a) * 5.6, '#cfc8b4'); }   // 안쪽 이빨 고리
+  K.B(hx, hy, 4, 4, IN); K.flat(K.el(hx, hy + 0.6, 2.8, 2), '#1a0508'); K.fangs(hx - 2, hx + 2, Math.round(hy - 1), 1, 2, 2); K.px(hx, hy + 1, '#ffb347');   // 입 안의 입
+  K.px(14, 46, '#bfe8ff'); K.px(14, 48 + (fr % 2), '#bfe8ff'); K.px(30, 47, '#bfe8ff');
+  return { cx: 26, cy: 28, R: 17, top: 4, bot: 49, head: [23, 6], back: [[42, 11], [47, 26], [34, 5]], belly: [42, 40], side: [46, 36], under: [[10, 50], [26, 50], [42, 50]] };
+};
+// 옛 것의 둥지 — 권속의 모습. 전부 옛 것의 몸에서 돋았거나, 옛 것이 고쳐 놓은 것이다.
+// 살, 눈, 촉수, 껍데기, 이빨. 빛깔은 징조를 따른다(심연 청록, 성운 보라, 번식 초록, 황혼 주황, 기아 빨강). 징조가 없는 것은 본체의 처음 빛깔(창백한 잿빛 살)과 뼈.
+// 사람이었던 셋(신도, 돌아선 자, 꺾인 믿음)만 사람 꼴이 남아 있다. 어느 시대의 사람인지는 그리지 않는다.
+// 기본은 16×16, 진화는 24×24. 둘 다 조각 도구(Sculpt)로 그린다. art.js 의 KDRAW / KEVO2 / PAL / KINSPR 을 덮어쓴다.
+(function () {
+  // [윤곽, 몸, 밝은 곳, 그늘, 포인트]
+  const KP = {
+    goblin: ['#102410', '#6fae3f', '#c8ec86', '#2f6f2a', '#f0e060'], licker: ['#14280f', '#8fc45a', '#e0f8a8', '#3f7a34', '#e8505a'], spawn: ['#102410', '#8fd05f', '#e0f8a0', '#3f8a3a', '#f0e060'],
+    scale: ['#081a2a', '#2fa8a0', '#a0f0e0', '#0f6a78', '#e8c030'], tangle: ['#081a2a', '#3a8a7a', '#8ad8c0', '#1a5a50', '#f0e060'],
+    scribe: ['#1a1030', '#8a6fe0', '#e0d0ff', '#4a2a9a', '#fff3a0'], spitter: ['#1a1030', '#9a6ad0', '#e0c8ff', '#4a2a7a', '#fff3a0'], eyeheap: ['#1a1030', '#a070c8', '#e8c8f8', '#5a3088', '#f5f5f5'],
+    cultist: ['#2a1420', '#b8683a', '#f0b070', '#7a3a2a', '#e8c030'], mask: ['#1a0c16', '#5a3040', '#8a5058', '#32182a', '#f0a04a'], fallen: ['#2a1420', '#d8a878', '#fff0d0', '#96603a', '#f0d060'],
+    hunger: ['#2a0a0e', '#c8303a', '#ff9a8a', '#7a121c', '#f5f5f5'], turncoat: ['#2a0a0e', '#b8303a', '#ff9a8a', '#7a121c', '#fff3a0'],
+    skeleton: ['#1b1d2a', '#9fb8a8', '#dff0e0', '#5f7f72', '#ffd23a'], netter: ['#1b1d2a', '#9fb8a8', '#dff0e0', '#5f7f72', '#ffd23a'], warden: ['#1b1d2a', '#9fb8a8', '#dff0e0', '#5f7f72', '#ffd23a'],
+    digger: ['#1b1d2a', '#b8907a', '#e8c8b0', '#6a4638', '#ff9a8a'], clerk: ['#1b1d2a', '#d8b8a0', '#f6e0d0', '#8a6250', '#e8c030'],
+  };
+  Object.keys(KP).forEach(k => { PAL['k_' + k] = KP[k]; KINSPR[k] = ['slime', 'k_' + k]; });
+  const BN = ['#1b1d2a', '#d8d2bc', '#ffffff', '#8a8672'], SK = ['#1b1d2a', '#e8b890', '#f6d8b8', '#b8845f'], CL = ['#1b1d2a', '#4a4a58', '#7a7a8a', '#2a2a36'], TG = ['#5a0c14', '#e8505a', '#ff9a8a', '#b8303a'], GD = ['#3a2a10', '#e8c030', '#fff3a0', '#a87e14'];
+  const VOID = '#140a12', MAW = '#1a0508', TOOTH = '#fbf7ea', WEB = '#e8f4ff';
+  const mir = (pts, N) => pts.map(q => [N - q[0], q[1]]);
+  const both = (K, pts, r0, r1, p) => { K.L(pts, r0, r1, p); K.L(mir(pts, K.N), r0, r1, p); };
+  const bothG = (K, pts, p) => { K.G(pts, p); K.G(mir(pts, K.N), p); };
+  // 작은 눈: 어두운 눈구멍 2×2 에 불빛 한 점. 이 집안의 눈은 다 이렇게 생겼다
+  const dot = (K, x, y, col) => { K.rect(x, y, 2, 2, INKY); K.px(x, y, col || '#ffd23a'); };
+  const dome = (K, cx, cy, rx, ry, y0, y1, p) => K.ball(K.cut(K.el(cx, cy, rx, ry), (x, y) => y >= y0 && y <= y1), cx, cy, rx, ry, p);
+  // 16×16 도 조각 도구로 그린 뒤 art.js 가 주는 점 찍기 함수로 옮긴다
+  const base = fn => (q, p) => { const K = Sculpt(16); fn(K, p); const d = K.canvas().getContext('2d').getImageData(0, 0, 16, 16).data; for (let i = 0; i < 256; i++) { const a = d[i * 4 + 3]; if (a) q(i % 16, i >> 4, 1, 1, 'rgba(' + d[i * 4] + ',' + d[i * 4 + 1] + ',' + d[i * 4 + 2] + ',' + (a / 255) + ')'); } };
+
+  // ================= 기본 (16×16) =================
+  const B16 = {
+    goblin(K, p) {            // 깨물이: 몸의 절반이 입
+      both(K, [[5.5, 12], [5, 14.4]], 1, 0.8, p); K.L([[12, 9], [14.5, 7]], 0.7, 0.5, p);
+      K.B(7.5, 8, 5, 4.4, p); K.flat(K.el(7.5, 9.6, 3.6, 1.8), MAW); K.fangs(5, 10, 8, 1, 2, 2); K.px(6, 11, TOOTH); K.px(9, 11, TOOTH);
+      dot(K, 5, 5); dot(K, 9, 5);
+    },
+    skeleton(K, p) {          // 뼈껍질: 뼈로 된 등딱지를 인 것. 깨져도 다시 붙는다
+      both(K, [[5, 12], [4.4, 14.4]], 1, 0.8, p); K.B(8, 11, 4.4, 2.4, p);
+      dome(K, 8, 9, 5.8, 6.2, 0, 9, BN); K.rect(8, 4, 1, 5, BN[3]); K.rect(5, 5, 1, 4, BN[3]); K.rect(11, 5, 1, 4, BN[3]); K.px(8, 2, BN[2]); K.px(4, 5, BN[2]);
+      K.rect(4, 10, 9, 1, INKY); K.px(6, 10, p[4]); K.px(10, 10, p[4]);
+    },
+    cultist(K, p) {           // 신도: 두건 속에 얼굴 대신 눈 하나
+      K.G([[5, 8], [11, 8], [13, 15], [3, 15]], p); K.L([[5, 10], [2.6, 7]], 0.8, 0.6, p); K.L([[11, 10], [13.4, 7]], 0.8, 0.6, p); K.px(2, 5, SK[1]); K.px(14, 5, SK[1]);
+      K.B(8, 5, 3.6, 3.6, p); K.flat(K.el(8, 5.6, 2.2, 2.2), VOID); K.rect(7, 5, 3, 1, '#fff3a0'); K.px(8, 5, INKY); K.px(8, 11, p[4]); K.px(8, 12, p[4]);
+    },
+    scale(K, p) {             // 비늘지기: 한 팔이 통째로 등딱지
+      both(K, [[6, 12], [5.4, 14.4]], 1.1, 0.9, p); K.G([[7, 4], [8, 0.5], [9.6, 4]], [p[0], p[2], '#ffffff', p[1]]); K.G([[10, 5], [12.6, 3], [12, 7]], [p[0], p[2], '#ffffff', p[1]]);
+      K.B(8.6, 8.4, 4.4, 4.4, p); K.px(8, 10, p[2]); K.px(10, 11, p[2]); K.px(9, 9, p[2]); dot(K, 7, 6); dot(K, 10, 6); K.rect(8, 12, 3, 1, p[0]);
+      K.B(3.4, 9.4, 2.4, 3.4, [p[0], p[4], '#fff3a0', '#a87e14']); K.rect(3, 7, 1, 5, '#a87e14');
+    },
+    scribe(K, p) {            // 별보는 눈: 떠 있는 눈 하나. 별만 본다
+      K.L([[8, 10], [7, 13], [8.4, 15]], 1, 0.5, p); K.L([[6, 10], [4, 13.4]], 0.7, 0.4, p); K.L([[10, 10], [12, 13.4]], 0.7, 0.4, p);
+      K.B(8, 6.4, 4, 4, p); K.eye(8, 6.4, 2.2, p[4], true); K.px(2, 3, p[4]); K.px(13, 1, '#ffffff'); K.px(14, 8, p[4]); K.px(1, 9, p[2]);
+    },
+    spawn(K, p) {             // 움: 갓 돋은 것
+      K.L([[8, 7], [9, 3.6]], 0.7, 0.5, p); K.px(10, 2, p[4]); K.px(11, 3, p[4]);
+      K.B(8, 11, 4.6, 3.4, p); dot(K, 6, 10); dot(K, 9, 10);
+    },
+    mask(K, p) {              // 가면 쓴 것: 그림자가 얼굴을 주웠다
+      K.L([[8, 9], [7, 13], [9, 15]], 2.4, 0.6, p); K.B(8, 6.4, 3.6, 3.6, p); drawMask(K, 8, 6, 2.6, 3, 0);
+      K.B(2.4, 9, 1.4, 1.6, BN); K.px(2, 9, INKY); K.B(13.6, 6, 1.4, 1.6, BN); K.px(13, 6, INKY); K.px(4, 12, p[4]); K.px(12, 11, p[4]);
+    },
+    hunger(K, p) {            // 허기: 입에 다리가 달렸다
+      both(K, [[4, 12], [3.6, 14.4]], 1.1, 0.9, p); K.B(8, 8, 6, 5, p);
+      K.flat(K.el(8, 9, 4.6, 2.8), MAW); K.rect(7, 10, 3, 1, TG[1]); K.fangs(4, 12, 7, 1, 3, 2); K.fangs(5, 11, 11, -1, 2, 2);
+      K.px(5, 4, '#fff3a0'); K.px(8, 3, '#fff3a0'); K.px(11, 4, '#fff3a0');
+    },
+    netter(K, p) {            // 실뽑이: 꽁무니에서 뽑은 실로 그물을 엮는다
+      both(K, [[5, 10], [2, 9], [1, 13.4]], 0.6, 0.5, p); both(K, [[6, 11.4], [4.4, 14.6]], 0.6, 0.5, p);
+      K.B(8, 10, 3.4, 3, p); K.B(8, 5.8, 2.4, 2, p); K.px(7, 5, p[4]); K.px(9, 5, p[4]); K.px(8, 4, p[4]); K.px(7, 10, p[2]); K.px(9, 11, p[3]);
+      K.px(10, 4, WEB); K.px(11, 3, WEB); for (let i = 0; i < 4; i++) { K.px(12 + i, 0, WEB); K.px(12 + i, 3, WEB); K.px(12, i, WEB); K.px(15, i, WEB); } K.px(13, 1, '#c8d8e8'); K.px(14, 2, '#c8d8e8');
+    },
+    warden(K, p) {            // 갈비우리: 가슴이 우리다. 안에 누가 들어 있다
+      both(K, [[6, 13], [5.6, 14.6]], 1, 0.9, p); both(K, [[4.4, 7], [2.4, 10.4]], 0.7, 0.5, p);
+      K.flat(K.el(8, 9.4, 3.8, 3.6), VOID, p[0]); K.px(8, 9, '#e8b890'); K.px(8, 10, '#b8845f');
+      [5, 7, 9, 11].forEach(x => { K.rect(x, 6, 1, 7, BN[1]); K.px(x, 6, BN[2]); K.px(x, 12, BN[3]); }); K.rect(5, 6, 7, 1, BN[2]); K.rect(5, 13, 7, 1, BN[3]);
+      K.B(8, 3.2, 2.4, 2, p); K.rect(7, 3, 3, 1, INKY); K.px(8, 3, p[4]);
+    },
+    turncoat(K, p) {          // 돌아선 자: 사람인데, 한 팔은 이제 사람 것이 아니다
+      K.L([[6.6, 13], [6.6, 14.6]], 0.9, 0.9, CL); K.L([[9.6, 13], [9.6, 14.6]], 0.9, 0.9, CL); K.G([[5, 8], [11, 8], [11, 13], [5, 13]], CL);
+      K.L([[5, 9], [3.6, 12]], 0.8, 0.7, CL); K.px(3, 13, SK[1]); K.px(8, 10, p[1]); K.px(9, 11, p[1]); K.px(9, 9, p[3]);
+      K.B(8, 4.6, 2.6, 2.6, SK); K.rect(6, 2, 5, 1, '#3a2a20'); K.px(7, 5, INKY); K.px(9, 5, '#ff5f57');
+      K.L([[11, 8], [13.6, 10], [13, 13]], 1.4, 1.2, p); K.px(12, 14, TOOTH); K.px(14, 14, TOOTH); K.px(13, 15, TOOTH); K.B(11.6, 7.4, 1.4, 1.4, p); K.px(11, 7, p[4]);
+    },
+    fallen(K, p) {            // 꺾인 믿음: 빛의 고리는 깨졌고, 비는 손은 그대로다
+      K.G([[5, 8], [11, 8], [13, 15], [3, 15]], p); K.B(8, 5.4, 3.2, 3.2, p); K.flat(K.el(8, 6, 2, 2), VOID); K.px(7, 6, '#ffe0a0'); K.px(9, 6, '#ffe0a0'); K.px(7, 7, p[4]);
+      K.rect(7, 10, 2, 2, SK[1]); K.px(7, 12, SK[3]); K.px(8, 12, SK[3]); K.rect(5, 1, 2, 1, GD[1]); K.px(4, 2, GD[1]); K.rect(9, 0, 2, 1, GD[1]); K.px(11, 1, GD[3]); K.px(12, 3, GD[3]);
+    },
+    digger(K, p) {            // 굴파개: 눈은 없고 발톱만 있다
+      K.B(8, 9.6, 5, 3.8, p); K.rect(5, 8, 2, 1, p[0]); K.rect(9, 8, 2, 1, p[0]); K.B(8, 11.4, 1.6, 1.2, [p[0], p[4], '#ffd0c0', '#b8605a']); K.px(8, 11, MAW);
+      bothG(K, [[2.6, 9], [0.5, 14], [3.6, 12]], BN); bothG(K, [[4.6, 10.6], [3.4, 15], [6, 12.6]], BN); K.px(7, 6, p[2]); K.px(9, 6, p[2]); K.px(1, 15, '#7a5a3a'); K.px(14, 15, '#7a5a3a');
+    },
+    clerk(K, p) {             // 세는 손: 손바닥에 눈이 있다. 본 것은 다 센다
+      both(K, [[7, 13], [6, 14.6]], 0.9, 0.8, p); K.L([[5, 8], [3.6, 4]], 0.8, 0.6, p); K.L([[6.6, 7], [6, 2.4]], 0.8, 0.6, p); K.L([[8.6, 7], [9, 2]], 0.8, 0.6, p); K.L([[10.6, 8], [12, 3.6]], 0.8, 0.6, p); K.L([[11.4, 10], [14, 9.4]], 0.8, 0.6, p);
+      K.B(8, 10, 3.8, 3.4, p); K.eye(8, 10, 1.7, p[4]); K.B(14, 7, 1.2, 1.2, GD); K.rect(1, 14, 3, 1, GD[1]); K.rect(1, 13, 3, 1, GD[2]); K.rect(1, 12, 3, 1, GD[1]);
+    },
+    licker(K, p) {            // 핥는 것: 핥은 자리가 아문다
+      K.L([[3, 13], [8, 12.4], [13.4, 13.4]], 2.4, 1.1, p); K.L([[5, 12], [5, 8]], 2.2, 2, p); K.L([[4.4, 5], [3, 2.6]], 0.5, 0.5, p); K.L([[6.6, 5], [8, 2.6]], 0.5, 0.5, p);
+      K.B(5.4, 7, 2.8, 2.4, p); K.rect(2, 1, 2, 2, INKY); K.px(2, 1, '#ffffff'); K.rect(8, 1, 2, 2, INKY); K.px(8, 1, '#ffffff'); K.px(6, 8, MAW); K.px(7, 8, MAW);
+      K.L([[8, 8], [11, 7.4], [13, 4.6]], 0.7, 0.5, TG); K.px(14, 2, '#6fd08c'); K.px(15, 4, '#b8f0c8');
+    },
+    spitter(K, p) {           // 가시쏘개: 주둥이 하나, 뿌리 둘
+      both(K, [[6, 13], [4, 15]], 0.6, 0.5, ROOT_R); K.B(8, 10.6, 3.8, 3.2, p); K.L([[8, 8], [8, 3.6]], 1.8, 1.8, p); K.flat(K.el(8, 3, 1.4, 1), MAW);
+      K.px(8, 0, p[4]); K.px(4, 1, p[4]); K.px(12, 1, p[4]); K.px(3, 9, '#f5f5f5'); K.px(13, 9, '#f5f5f5'); K.px(3, 12, '#f5f5f5'); K.px(13, 12, '#f5f5f5'); dot(K, 7, 10, p[4]);
+    },
+    eyeheap(K, p) {           // 눈 무더기
+      K.B(8, 10.4, 5.6, 4.2, p); K.B(8, 6, 3.4, 3, p); K.eye(8, 5.8, 1.7, '#ffd23a', true); K.eye(5, 10.6, 1.6, '#3fb8d0'); K.eye(11, 10.6, 1.6, '#f2696f'); K.px(8, 13, '#ffffff'); K.px(2, 12, p[2]);
+    },
+    tangle(K, p) {            // 촉수 뭉치
+      both(K, [[5, 7], [2, 4], [1, 6.4]], 0.9, 0.5, p); both(K, [[4, 10], [1.4, 11], [1, 14.4]], 0.9, 0.5, p); both(K, [[6, 12], [5, 15]], 0.9, 0.5, p);
+      K.B(8, 9, 4, 3.8, p); dot(K, 6, 8, p[4]); dot(K, 9, 8, p[4]); K.px(8, 11, GD[1]); K.px(2, 4, p[2]); K.px(13, 4, p[2]);
+    },
+  };
+
+  // ================= 진화 (24×24) =================
+  const E24 = {
+    goblin(K, p) {            // 쌍깨물이: 입이 둘. 하나가 물면 다른 하나도 문다
+      K.shadow(12, 9); both(K, [[6, 18], [4.6, 22]], 1.8, 1.4, p); both(K, [[10, 19.6], [9.6, 22.4]], 1.4, 1.2, p); K.L([[19, 13], [22.4, 10], [21.6, 6]], 1.2, 0.5, p);
+      K.G([[14.6, 10], [16, 6], [17.6, 10.4]], BN); K.G([[17.4, 11], [19.6, 8], [20, 12.4]], BN);
+      K.B(12, 14.6, 8, 5.6, p); K.flat(K.el(12, 16.4, 5.6, 2.6), MAW); K.rect(11, 17, 3, 1, TG[1]); K.fangs(8, 16, 14, 1, 3, 2); K.fangs(9, 15, 18, -1, 2, 2);
+      K.L([[10.6, 11], [9.6, 8]], 2.6, 2.4, p); K.B(9.4, 6, 4.8, 4, p); K.flat(K.el(9.4, 7.6, 3.2, 1.5), MAW); K.fangs(7, 11, 7, 1, 2, 2); dot(K, 6, 3); dot(K, 11, 3); K.px(9, 2, '#ffd23a'); K.px(4, 12, p[2]);
+    },
+    skeleton(K, p) {          // 겹껍질: 껍질 위에 껍질. 틈마다 눈
+      K.shadow(12, 10); both(K, [[7, 19], [6, 22]], 1.8, 1.5, p); K.B(12, 18, 7.6, 3.4, p);
+      dome(K, 12, 17, 10.4, 7, 11, 17, BN); dome(K, 12, 12, 8, 6, 6, 11, BN); dome(K, 12, 7.4, 5.4, 5, 2, 7, BN); K.G([[11, 3], [12, 0.4], [13.4, 3]], BN);
+      [[12, 3, 4], [9, 4, 3], [15, 4, 3], [12, 8, 3], [8, 8, 3], [16, 8, 3], [12, 13, 4], [7, 13, 4], [17, 13, 4], [4, 14, 3], [20, 14, 3]].forEach(q => K.rect(q[0], q[1], 1, q[2], BN[3]));
+      K.rect(5, 11, 14, 1, INKY); K.px(8, 11, p[4]); K.px(15, 11, p[4]); K.rect(4, 18, 17, 1, INKY); K.px(7, 18, p[4]); K.px(12, 18, p[4]); K.px(17, 18, p[4]); K.rect(8, 7, 9, 1, INKY); K.px(12, 7, p[4]);
+    },
+    cultist(K, p) {           // 대신도: 팔이 넷, 눈이 셋
+      K.shadow(12, 8); K.G([[7, 10], [17, 10], [20, 23], [4, 23]], p); K.rect(5, 22, 15, 1, p[4]);
+      both(K, [[7, 12], [3, 9], [2.4, 4.6]], 1.1, 0.8, p); both(K, [[7, 14.6], [3.4, 16], [2.4, 19]], 1.1, 0.8, p); [[1, 3], [21, 3], [1, 19], [21, 19]].forEach(q => K.rect(q[0], q[1], 2, 2, SK[1]));
+      K.B(12, 6.4, 4.6, 4.6, p); K.flat(K.el(12, 7.4, 3, 3), VOID); K.px(10, 8, '#fff3a0'); K.px(14, 8, '#fff3a0'); K.rect(11, 5, 3, 2, '#fff3a0'); K.px(12, 6, INKY);
+      K.flat(K.el(12, 15.4, 2.6, 1.6), VOID); K.rect(11, 15, 3, 1, p[4]); K.px(12, 15, INKY); K.spark(2, 1, '#f0a04a', true); K.spark(22, 1, '#f0a04a', true);
+    },
+    scale(K, p) {             // 심해지기: 가시 돋은 등딱지를 진 문지기
+      const FIN = [p[0], p[2], '#ffffff', p[1]], SH = [p[0], p[4], '#fff3a0', '#a87e14']; K.shadow(12, 10);
+      both(K, [[8, 19], [7, 22]], 1.8, 1.5, p); K.L([[17, 17], [21.4, 19], [23, 15.6]], 1.6, 0.6, p);
+      K.G([[8, 6], [9, 1], [11.4, 5.4]], FIN); K.G([[11.4, 5], [13.4, 0.5], [15, 5]], FIN); K.G([[15, 6.6], [18.6, 3], [18.4, 9]], FIN);
+      K.B(13, 13, 7.4, 7, p); K.ball(K.el(13, 16.4, 4.4, 3.4), 13, 16.4, 4.4, 3.4, [p[0], p[2], '#ffffff', p[1]], null); [[10, 15], [13, 14], [16, 15], [11, 18], [15, 18]].forEach(q => K.px(q[0], q[1], p[1]));
+      K.eye(10, 9.6, 1.7, '#ffd23a', true); K.eye(15.4, 9.6, 1.7, '#ffd23a', true); K.rect(10, 13, 6, 1, p[0]); K.px(11, 12, TOOTH); K.px(14, 12, TOOTH);
+      K.L([[19, 12], [22, 14], [21, 18]], 1.4, 1, p); K.B(4.6, 14.6, 3.6, 5.6, SH); K.rect(4, 10, 1, 9, SH[3]); K.rect(2, 13, 5, 1, SH[3]); K.rect(2, 16, 5, 1, SH[3]);
+    },
+    scribe(K, p) {            // 별읽는 눈: 고리에 별자리가 새겨졌다
+      const RG = [p[0], p[4], '#ffffff', '#c8a820']; K.shadow(12, 6);
+      K.L([[12, 15], [11, 19], [13, 22.4]], 1.4, 0.5, p); K.L([[9, 14], [6, 18], [7, 22]], 1, 0.4, p); K.L([[15, 14], [18, 18], [17, 22]], 1, 0.4, p);
+      K.lit(ringM(K, 12, 9, 11, 3.6, 1), RG); K.B(12, 9, 6, 6, p); K.eye(12, 9, 3.6, p[4], true); K.lit(K.cut(ringM(K, 12, 9, 11, 3.6, 1), (x, y) => y >= 10), RG);
+      K.spark(1, 9, p[4], true); K.spark(22, 9, p[4], true); K.px(6, 2, '#ffffff'); K.px(18, 1, p[4]); K.px(3, 4, p[2]); K.px(21, 4, p[2]); K.px(7, 23, p[4]); K.px(17, 23, p[4]);
+    },
+    spawn(K, p) {             // 큰 움: 움에서 움이 또 돋았다
+      K.shadow(12, 9); K.L([[6, 14], [5, 10.6]], 0.6, 0.5, p); K.px(4, 9, p[4]); K.B(6, 17.6, 4, 3.6, p); K.B(18.4, 18, 3.6, 3.2, p); K.L([[18, 15], [20, 12]], 0.6, 0.5, p); K.px(21, 11, p[4]);
+      K.L([[12, 9], [13, 4.6]], 0.9, 0.6, p); K.G([[13, 4.6], [17.4, 2], [15.4, 6.4]], [p[0], p[2], '#ffffff', p[1]]); K.B(12, 15, 6.4, 5.6, p);
+      dot(K, 9, 14); dot(K, 14, 14); K.rect(11, 18, 3, 1, p[0]); K.px(5, 17, '#ffd23a'); K.px(19, 18, '#ffd23a');
+    },
+    mask(K, p) {              // 천의 가면: 얼굴들이 빈 가운데를 돈다
+      K.shadow(12, 7); K.L([[12, 14], [11, 19], [13, 23]], 3, 0.6, p); K.flat(K.el(12, 11, 4.2, 4.2), VOID, p[0]); K.px(12, 11, p[4]); K.px(11, 12, p[3]);
+      [[12, 3], [19.4, 7], [19.4, 15.4], [4.6, 15.4], [4.6, 7]].forEach((q, k) => drawMask(K, q[0], q[1], 2.4, 2.8, k % 3)); K.px(8, 3, p[4]); K.px(16, 3, p[4]); K.px(12, 19, p[4]);
+    },
+    hunger(K, p) {            // 게걸: 입 아래 입. 한 번에 두 번 문다
+      K.shadow(12, 10); both(K, [[6, 19], [5, 22]], 1.8, 1.5, p); K.B(12, 12.4, 9.6, 8, p);
+      K.flat(K.el(12, 10, 7, 3), MAW); K.rect(10, 11, 5, 1, TG[1]); K.fangs(6, 18, 8, 1, 3, 2); K.fangs(7, 17, 12, -1, 2, 2);
+      K.flat(K.el(12, 17, 5, 1.9), MAW); K.fangs(8, 16, 16, 1, 2, 2); K.fangs(9, 15, 18, -1, 1, 2);
+      [[6, 6], [9, 5], [15, 5], [18, 6]].forEach(q => K.px(q[0], q[1], '#fff3a0')); K.px(12, 4, '#fff3a0'); K.px(3, 9, p[2]); K.px(21, 15, p[3]);
+    },
+    netter(K, p) {            // 그물 어미: 여섯 다리로 그물을 편다
+      K.shadow(12, 10); both(K, [[8, 14], [3, 11.6], [1, 17]], 0.8, 0.5, p); both(K, [[8, 16.4], [3.4, 16.6], [2, 22]], 0.8, 0.5, p); both(K, [[9, 18], [6.4, 20], [6, 23]], 0.8, 0.5, p);
+      both(K, [[9.4, 8.6], [5.4, 4]], 0.5, 0.5, p); for (let x = 5; x <= 19; x += 2) K.rect(x, 0, 1, 5, '#c8d8e8'); for (let y = 0; y <= 4; y += 2) K.rect(5, y, 15, 1, WEB);
+      K.B(12, 16.6, 5.6, 5, p); [[10, 15], [14, 16], [12, 19], [9, 18]].forEach(q => K.px(q[0], q[1], p[2])); K.rect(11, 17, 2, 1, p[3]);
+      K.B(12, 9.6, 3.6, 3.2, p); [[10, 9], [14, 9], [11, 8], [13, 8]].forEach(q => K.px(q[0], q[1], p[4])); K.px(11, 12, TOOTH); K.px(13, 12, TOOTH); K.rect(12, 21, 1, 3, WEB);
+    },
+    warden(K, p) {            // 갈비감옥: 우리가 커졌다. 안에서 내다보는 얼굴도 늘었다
+      K.shadow(12, 10); both(K, [[8, 19], [7, 22]], 2, 1.7, p); both(K, [[5, 9], [2, 14], [3, 20]], 2, 1.8, p); K.B(12, 13, 7.6, 7, p);
+      K.flat(K.el(12, 13.6, 5.8, 5.4), VOID); K.rect(9, 12, 2, 3, SK[1]); K.px(9, 13, INKY); K.rect(13, 14, 2, 3, SK[3]); K.px(14, 15, INKY); K.px(12, 11, '#ff7a2a');
+      K.commit(K.cut(K.el(12, 13.6, 5.8, 5.4), x => x % 2 === 0 && x !== 12), (x, y) => y < 10 ? BN[2] : y > 17 ? BN[3] : BN[1]); K.lit(ringM(K, 12, 13.6, 6.6, 6.2, 1), BN);
+      K.B(12, 4.4, 3.2, 2.8, p); K.eye(12, 4.4, 1.6, p[4]); K.px(2, 21, BN[2]); K.px(4, 21, BN[2]); K.px(20, 21, BN[2]); K.px(22, 21, BN[2]);
+    },
+    turncoat(K, p) {          // 삼켜진 자: 몸의 반이 넘어갔다. 남은 반이 그것을 휘두른다
+      K.shadow(12, 9); K.L([[10, 17], [9.6, 22]], 1.6, 1.4, CL); K.L([[14, 17], [15, 22]], 1.8, 1.6, p); K.G([[8, 9], [16, 9], [16, 18], [8, 18]], CL);
+      K.B(15, 13, 3.6, 5.2, p); K.L([[16, 8], [19, 4], [22, 5]], 0.8, 0.5, p); K.L([[8, 10], [6, 14], [6, 17]], 1.1, 1, CL); K.rect(5, 17, 2, 2, SK[1]);
+      K.B(12, 5.4, 3.4, 3.4, SK); K.ball(K.cut(K.el(12, 5.4, 3.4, 3.4), x => x >= 13), 12, 5.4, 3.4, 3.4, p, null); K.rect(9, 2, 4, 1, '#3a2a20'); K.px(10, 5, INKY); K.px(14, 5, p[4]); K.rect(10, 7, 3, 1, SK[3]);
+      K.L([[17, 10], [21, 13], [20, 19]], 2.2, 1.8, p); K.G([[18, 19], [17.4, 23], [19.6, 20.6]], BN); K.G([[20, 19.6], [21, 23], [22, 20]], BN); K.G([[21.6, 18], [23.6, 21], [22.6, 17.4]], BN);
+      K.eye(14.6, 12, 1.4, p[4]); K.px(16, 15, p[4]); K.px(13, 16, p[4]); K.px(11, 12, p[1]); K.px(10, 14, p[1]); K.px(11, 15, p[3]);
+    },
+    fallen(K, p) {            // 뒤집힌 믿음: 빛의 고리가 발밑으로 내려갔다
+      K.shadow(12, 6); K.lit(ringM(K, 12, 21.4, 7, 1.8, 0.9), GD);
+      K.G([[8, 9], [16, 9], [18, 19], [15, 17.4], [12, 20], [9, 17.4], [6, 19]], p); both(K, [[8, 10], [4, 8], [3, 4.4]], 0.9, 0.7, p); K.rect(2, 2, 2, 2, SK[1]); K.rect(20, 2, 2, 2, SK[1]); K.px(2, 2, p[4]); K.px(21, 2, p[4]);
+      both(K, [[8, 12], [10, 14], [12, 13]], 1, 0.8, p); K.rect(11, 12, 2, 2, SK[1]); K.px(11, 14, SK[3]); K.px(12, 14, SK[3]);
+      K.B(12, 5.6, 4, 4, p); K.flat(K.el(12, 6.2, 2.6, 2.6), VOID); K.eye(12, 6, 1.6, '#f0a04a', true); K.px(12, 9, GD[1]); K.px(12, 10, GD[2]); K.px(8, 1, GD[1]); K.rect(11, 0, 2, 1, GD[3]); K.px(16, 1, GD[1]);
+    },
+    digger(K, p) {            // 깊은 굴파개: 주둥이가 송곳이 됐다
+      K.shadow(12, 10); both(K, [[7, 19], [6, 22]], 1.5, 1.2, p); both(K, [[6, 9], [3, 5.6]], 1, 0.8, p); bothG(K, [[3, 6], [1, 2], [4.4, 4.4]], BN);
+      K.B(12, 13.6, 8, 6.4, p); [[8, 8], [12, 7], [16, 8]].forEach(q => K.px(q[0], q[1], p[2])); K.rect(8, 11, 3, 1, p[0]); K.rect(14, 11, 3, 1, p[0]);
+      K.G([[9.4, 13], [14.6, 13], [12, 20]], BN); K.rect(10, 14, 4, 1, BN[3]); K.rect(11, 16, 3, 1, BN[3]); K.px(12, 18, BN[3]);
+      both(K, [[5, 14], [4, 16]], 2.4, 2.4, p); bothG(K, [[2, 16.6], [0.5, 21.6], [3, 19]], BN); bothG(K, [[4, 17.6], [3.6, 22.6], [5.6, 19]], BN); bothG(K, [[5.6, 16.6], [6.6, 21.6], [7.2, 17.4]], BN);
+    },
+    clerk(K, p) {             // 세는 손무리: 손이 손을 낳았다. 쌓고, 또 센다
+      K.shadow(12, 10); for (let i = 0; i < 7; i++) K.rect(1, 22 - i, 4, 1, i % 2 ? GD[2] : GD[1]); for (let i = 0; i < 4; i++) K.rect(19, 22 - i, 4, 1, i % 2 ? GD[2] : GD[1]); K.rect(1, 15, 4, 1, GD[3]); K.rect(19, 18, 4, 1, GD[3]);
+      both(K, [[10, 19], [9, 22.4]], 0.9, 0.7, p); K.L([[12, 19.6], [12, 22.6]], 0.9, 0.7, p); both(K, [[8, 11], [5, 7.4]], 1.1, 0.9, p); both(K, [[8, 16], [5, 14.6], [3.6, 13.4]], 1, 0.8, p);
+      [[4.6, 5.6], [19.4, 5.6]].forEach(q => { K.L([[q[0] - 1, q[1] - 1], [q[0] - 2, q[1] - 3.6]], 0.5, 0.5, p); K.L([[q[0], q[1] - 1.4], [q[0], q[1] - 4.4]], 0.5, 0.5, p); K.L([[q[0] + 1, q[1] - 1], [q[0] + 2, q[1] - 3.6]], 0.5, 0.5, p); K.B(q[0], q[1], 2, 2, p); K.px(q[0], q[1], p[4]); });
+      K.B(3.4, 13, 1.6, 1.6, p); K.B(20.6, 13, 1.6, 1.6, p); K.B(20.6, 15.6, 1.2, 1.2, GD); K.B(12, 14, 5.6, 5.6, p); K.eye(12, 13.6, 3, p[4]);
+    },
+    licker(K, p) {            // 세 갈래 혀
+      K.shadow(12, 10); K.L([[5, 20], [11, 18], [16, 19], [21, 21]], 3.6, 1.6, p); K.L([[8, 19], [7, 12]], 3.4, 3, p);
+      K.L([[6, 6], [4, 2.4]], 0.8, 0.6, p); K.L([[10, 6], [12, 2.4]], 0.8, 0.6, p); K.B(8, 9, 4, 3.6, p); K.eye(4, 2, 1.4, '#ffffff'); K.eye(12, 2, 1.4, '#ffffff'); K.flat(K.el(8, 11, 2.4, 1.4), MAW);
+      K.L([[9, 11], [14, 9], [18, 5]], 1.1, 0.7, TG); K.L([[9, 12], [15, 13], [20, 11]], 1.1, 0.7, TG); K.L([[8, 12], [11, 16], [15, 15]], 1, 0.6, TG);
+      K.spark(19, 4, '#6fd08c', true); K.px(21, 10, '#6fd08c'); K.px(16, 15, '#b8f0c8'); K.px(18, 22, p[2]); K.px(22, 22, p[2]);
+    },
+    spitter(K, p) {           // 가시 덤불: 주둥이가 셋. 뿌리를 내렸다
+      K.shadow(12, 9); both(K, [[9, 20], [5, 22]], 1.2, 0.8, ROOT_R); K.L([[12, 20], [12, 23]], 1.2, 0.8, ROOT_R);
+      K.L([[9, 14], [4, 8]], 2.2, 2.2, p); K.flat(K.el(3.4, 7.4, 1.6, 1.4), MAW); K.L([[15, 14], [20, 8]], 2.2, 2.2, p); K.flat(K.el(20.6, 7.4, 1.6, 1.4), MAW);
+      K.L([[12, 13], [12, 5]], 2.6, 2.6, p); K.flat(K.el(12, 4, 2, 1.2), MAW); K.px(12, 1, p[4]); K.px(12, 0, '#ffffff'); K.px(1, 5, p[4]); K.px(23, 5, p[4]);
+      K.B(12, 16.4, 6, 5, [p[0], p[3], p[1], mixh(p[3], p[0], 0.5)]); [[6, 15], [18, 15], [7, 19], [17, 19], [5, 17], [19, 17]].forEach(q => K.px(q[0], q[1], '#f5f5f5')); K.eye(12, 16, 1.9, p[4], true);
+    },
+    eyeheap(K, p) {           // 눈의 탑: 눈 셋이 포개져 한 줄로 섰다
+      K.shadow(12, 8); both(K, [[10, 21], [6, 23]], 0.9, 0.6, p); K.L([[12, 21], [12, 23]], 0.9, 0.6, p);
+      K.L([[8, 15], [5, 14]], 0.7, 0.6, p); K.eye(4, 14, 1.4, '#f5f5f5'); K.L([[16, 10], [19, 9]], 0.7, 0.6, p); K.eye(20, 9, 1.4, '#f5f5f5');
+      K.B(12, 18, 5, 4, p); K.eye(12, 18, 3, '#3fb8d0', true); K.B(12, 11, 4.4, 3.6, p); K.eye(12, 11, 2.6, '#ffd23a', true); K.B(12, 5, 3.6, 3, p); K.eye(12, 5, 2.2, '#f2696f', true);
+      [[9, 2], [12, 1], [15, 2]].forEach(q => K.px(q[0], q[1], p[2])); K.px(8, 1, p[1]); K.px(16, 1, p[1]);
+    },
+    tangle(K, p) {            // 매듭 덩이: 풀 수 없게 묶였다
+      K.shadow(12, 9); [[[8, 10], [3, 6], [1, 9]], [[7, 14], [2, 15], [1, 19]], [[9, 17], [7, 21], [4, 22]]].forEach(a => both(K, a, 1.5, 0.6, p)); [[3, 7], [21, 7], [2, 17], [22, 17]].forEach(q => K.px(q[0], q[1], p[2]));
+      K.B(12, 13, 6.2, 5.6, p); const RL = [p[0], p[2], '#ffffff', p[1]]; K.lit(ringM(K, 12, 13, 4.4, 3.6, 1), RL); K.lit(K.cut(ringM(K, 10, 12, 3, 3, 0.9), (x, y) => y < 12), RL);
+      K.eye(10, 11, 1.4, p[4]); K.eye(14, 11, 1.4, p[4]); K.G([[11, 13], [12, 16.4], [13, 13]], GD);
+    },
+  };
+  Object.keys(B16).forEach(k => { KDRAW[k] = base(B16[k]); });
+  Object.keys(E24).forEach(k => { KEVO2[k] = E24[k]; });
+})();
+// 침입자 그림: 땅 위가 어떤 세계인지에 따라 같은 역할이 다른 옷과 무기를 든다. 16×16.
+// 몸은 한 틀(wman)이고, 머리·손에 든 것·몸집을 세계마다 다르게 끼운다. 판타지는 챙 모자와 쇠, 무협은 삿갓과 긴 옷, 현대는 조끼와 제복, 미래는 얼굴 없는 투구와 빛나는 줄.
+const W_OL = '#1b1d2a', W_SK = '#e8b890', W_ST = '#a0a8c0', W_STH = '#d8dcec', W_STD = '#5a6078', W_GD = '#e8c030', W_WD = '#7a5a3a', W_WH = '#f5f5f5', W_RD = '#c8303a', W_CY = '#5fe8f0', W_OR = '#ff8a2a', W_YL = '#ffd23a', W_BK = '#2a2430';
+// ---- 머리 ----  (q, 색1, 색2, 색3, 살색)
+const WHEAD = {
+  hair(q, a) { q(5, 1, 6, 1, W_OL); q(4, 2, 8, 2, W_OL); q(5, 2, 6, 2, a); },
+  bald(q, a, b, c, sk) { q(5, 1, 6, 1, W_OL); q(4, 2, 8, 2, W_OL); q(5, 2, 6, 2, sk); q(6, 2, 2, 1, '#f6d8b8'); if (a) { q(7, 3, 1, 1, a); q(9, 3, 1, 1, a); } },
+  straw(q, a, b) { q(5, 0, 6, 1, W_OL); q(4, 1, 8, 2, W_OL); q(5, 1, 6, 2, a); q(5, 2, 6, 1, b || a); q(1, 3, 14, 1, W_OL); q(2, 3, 12, 1, a); q(3, 3, 3, 1, '#fff3a0'); },
+  floppy(q, a, b) { q(5, 1, 6, 1, W_OL); q(4, 2, 8, 1, W_OL); q(5, 2, 6, 1, a); q(2, 3, 12, 1, W_OL); q(3, 3, 10, 1, a); q(3, 4, 1, 1, a); q(12, 4, 1, 1, a); if (b) q(8, 2, 1, 1, b); },
+  cap(q, a, b) { q(5, 1, 6, 1, W_OL); q(4, 2, 8, 2, W_OL); q(5, 2, 6, 2, a); q(11, 3, 3, 1, W_OL); q(11, 3, 2, 1, b || a); if (b) q(7, 2, 2, 1, b); },
+  leather(q, a, b) { q(5, 1, 6, 1, W_OL); q(4, 2, 8, 2, W_OL); q(5, 2, 6, 2, a); q(5, 3, 6, 1, b || a); q(4, 4, 1, 2, a); q(11, 4, 1, 2, a); },
+  hood(q, a, b) { q(5, 0, 6, 1, W_OL); q(4, 1, 8, 1, W_OL); q(3, 2, 10, 6, W_OL); q(5, 1, 6, 1, a); q(4, 2, 8, 2, a); q(4, 4, 1, 4, a); q(11, 4, 1, 4, a); q(5, 4, 6, 3, '#e8b890'); q(6, 7, 4, 1, '#e8b890'); q(6, 5, 1, 1, W_OL); q(9, 5, 1, 1, W_OL); q(5, 4, 6, 1, b || '#3a2a30'); },
+  helm(q, a, b, c) { q(5, 0, 6, 1, W_OL); q(4, 1, 8, 3, W_OL); q(5, 1, 6, 3, a); q(5, 1, 3, 1, b || W_STH); q(5, 4, 6, 4, a); q(5, 5, 6, 1, W_OL); q(8, 6, 1, 2, W_OL); if (c) { q(7, 0, 2, 1, c); q(8, 0, 3, 1, c); q(10, 1, 2, 1, c); q(11, 2, 1, 1, c); } },
+  kettle(q, a, b) { q(5, 0, 6, 1, W_OL); q(4, 1, 8, 2, W_OL); q(5, 1, 6, 2, a); q(5, 1, 2, 1, b || W_STH); q(2, 3, 12, 1, W_OL); q(3, 3, 10, 1, a); },
+  wizard(q, a, b) { q(7, 0, 3, 1, W_OL); q(8, 0, 1, 1, a); q(5, 1, 6, 2, W_OL); q(6, 1, 4, 2, a); q(1, 3, 14, 1, W_OL); q(2, 3, 12, 1, a); q(6, 2, 4, 1, b || W_GD); },
+  mitre(q, a, b) { q(5, 0, 6, 4, W_OL); q(6, 0, 4, 3, a); q(7, 0, 2, 3, b || W_GD); q(4, 3, 8, 1, W_OL); q(5, 3, 6, 1, a); },
+  wreath(q, a, b) { q(5, 1, 6, 1, W_OL); q(4, 2, 8, 2, W_OL); q(5, 2, 6, 2, a); q(4, 4, 1, 3, a); q(11, 4, 1, 3, a); q(5, 2, 1, 1, b); q(7, 1, 1, 1, b); q(9, 2, 1, 1, b); q(10, 1, 1, 1, '#fff3a0'); },
+  beardcap(q, a, b) { q(5, 0, 6, 1, W_OL); q(3, 1, 10, 3, W_OL); q(4, 1, 8, 2, a); q(4, 3, 8, 1, b || W_GD); q(4, 1, 2, 1, W_STH); },
+  // 무협
+  cone(q, a, b) { q(7, 0, 2, 1, W_OL); q(5, 1, 6, 1, W_OL); q(6, 1, 4, 1, a); q(3, 2, 10, 1, W_OL); q(4, 2, 8, 1, a); q(1, 3, 14, 1, W_OL); q(2, 3, 12, 1, a); q(0, 4, 2, 1, W_OL); q(14, 4, 2, 1, W_OL); q(5, 2, 2, 1, b || '#fff3a0'); q(3, 3, 3, 1, b || '#fff3a0'); },
+  topknot(q, a, b) { q(6, 0, 4, 2, W_OL); q(7, 0, 2, 2, a); q(5, 1, 1, 1, b || W_GD); q(10, 1, 1, 1, b || W_GD); q(4, 2, 8, 2, W_OL); q(5, 2, 6, 2, a); },
+  band(q, a, b) { q(5, 1, 6, 1, W_OL); q(4, 2, 8, 2, W_OL); q(5, 2, 6, 1, a); q(4, 3, 8, 1, b); q(12, 3, 2, 1, b); q(13, 4, 1, 2, b); },
+  longhair(q, a, b) { q(6, 0, 4, 1, W_OL); q(7, 0, 2, 1, b || a); q(5, 1, 6, 1, W_OL); q(4, 2, 8, 2, W_OL); q(5, 1, 6, 1, a); q(5, 2, 6, 2, a); q(3, 4, 1, 6, W_OL); q(12, 4, 1, 6, W_OL); q(4, 4, 1, 5, a); q(11, 4, 1, 5, a); },
+  taocap(q, a, b) { q(5, 0, 6, 3, W_OL); q(6, 0, 4, 2, a); q(7, 1, 2, 1, b || W_GD); q(4, 2, 8, 2, W_OL); q(5, 2, 6, 2, a); q(5, 3, 6, 1, '#3a3440'); },
+  gat(q, a, b) { q(6, 0, 4, 1, W_OL); q(5, 1, 6, 2, W_OL); q(6, 1, 4, 2, a); q(1, 3, 14, 1, W_OL); q(2, 3, 12, 1, a); q(10, 1, 1, 3, b || W_RD); q(11, 4, 1, 1, b || W_RD); },
+  elder(q, a) { q(6, 0, 4, 2, W_OL); q(7, 0, 2, 2, a); q(5, 1, 1, 1, W_GD); q(10, 1, 1, 1, W_GD); q(4, 2, 8, 2, W_OL); q(5, 2, 6, 2, a); q(3, 4, 1, 6, W_OL); q(12, 4, 1, 6, W_OL); q(4, 4, 1, 5, a); q(11, 4, 1, 5, a); q(5, 7, 6, 4, W_OL); q(6, 6, 4, 1, a); q(6, 7, 4, 3, a); q(7, 10, 2, 1, a); },
+  furhat(q, a, b) { q(4, 0, 8, 1, W_OL); q(3, 1, 10, 3, W_OL); q(4, 1, 8, 3, a); q(5, 1, 1, 1, b); q(8, 2, 1, 1, b); q(10, 1, 1, 1, b); q(6, 3, 1, 1, b); },
+  tassel(q, a, b, c) { q(5, 0, 6, 1, W_OL); q(4, 1, 8, 3, W_OL); q(5, 1, 6, 3, a); q(5, 1, 2, 1, W_STH); q(4, 4, 1, 3, a); q(11, 4, 1, 3, a); q(7, 0, 2, 1, c || W_RD); q(9, 0, 1, 2, c || W_RD); q(5, 3, 6, 1, b || W_GD); },
+  // 현대
+  fedora(q, a, b) { q(5, 0, 6, 1, W_OL); q(4, 1, 8, 2, W_OL); q(5, 1, 6, 2, a); q(5, 2, 6, 1, b || W_BK); q(2, 3, 12, 1, W_OL); q(3, 3, 10, 1, a); },
+  beanie(q, a, b) { q(5, 0, 6, 1, W_OL); q(4, 1, 8, 3, W_OL); q(5, 1, 6, 3, a); q(5, 3, 6, 1, b || a); },
+  bucket(q, a, b) { q(5, 0, 6, 1, W_OL); q(4, 1, 8, 2, W_OL); q(5, 1, 6, 2, a); q(3, 3, 10, 1, W_OL); q(4, 3, 8, 1, b || a); q(3, 4, 1, 1, W_OL); q(12, 4, 1, 1, W_OL); },
+  hardhat(q, a, b) { q(5, 0, 6, 1, W_OL); q(4, 1, 8, 2, W_OL); q(5, 1, 6, 2, a); q(7, 1, 2, 1, b || W_WH); q(3, 3, 11, 1, W_OL); q(4, 3, 9, 1, a); },
+  army(q, a, b) { q(5, 0, 6, 1, W_OL); q(3, 1, 10, 3, W_OL); q(4, 1, 8, 3, a); q(5, 1, 2, 1, b); q(9, 2, 2, 1, b); q(6, 3, 1, 1, b); q(4, 4, 1, 3, W_OL); q(11, 4, 1, 3, W_OL); },
+  riot(q, a, b) { q(5, 0, 6, 1, W_OL); q(3, 1, 10, 3, W_OL); q(4, 1, 8, 3, a); q(5, 1, 3, 1, '#6a7aa8'); q(4, 4, 8, 3, W_OL); q(5, 4, 6, 3, b || '#9fd8f0'); q(6, 5, 1, 1, W_OL); q(9, 5, 1, 1, W_OL); q(5, 4, 2, 1, W_WH); },
+  weld(q, a, b) { q(5, 0, 6, 1, W_OL); q(4, 1, 8, 2, W_OL); q(5, 1, 6, 2, a); q(3, 3, 10, 5, W_OL); q(4, 3, 8, 4, a); q(5, 5, 6, 1, b || '#5f8fe0'); q(5, 5, 2, 1, W_WH); q(5, 7, 6, 1, a); },
+  bomb(q, a, b) { q(4, 0, 8, 1, W_OL); q(2, 1, 12, 7, W_OL); q(3, 1, 10, 6, a); q(4, 1, 3, 1, b || a); q(5, 4, 6, 2, '#1a2a30'); q(5, 4, 2, 1, '#6fa8b0'); q(4, 7, 8, 1, a); },
+  hazmat(q, a, b) { q(4, 0, 8, 1, W_OL); q(3, 1, 10, 7, W_OL); q(4, 1, 8, 6, a); q(5, 1, 2, 1, W_WH); q(5, 3, 6, 3, W_OL); q(5, 4, 6, 2, b || '#2a3a40'); q(5, 4, 2, 1, '#9fe8f0'); q(6, 7, 1, 1, W_STD); q(9, 7, 1, 1, W_STD); },
+  // 미래
+  visor(q, a, b, c) { q(5, 0, 6, 1, W_OL); q(4, 1, 8, 3, W_OL); q(5, 1, 6, 3, a); q(5, 1, 3, 1, W_WH); q(5, 4, 6, 3, a); q(6, 7, 4, 1, a); q(4, 5, 8, 1, W_OL); q(5, 5, 6, 1, b || W_CY); q(5, 5, 1, 1, W_WH); if (c) { q(11, 0, 1, 3, c); q(11, 0, 1, 1, b || W_CY); } },
+  dome(q, a, b, c) { q(5, 0, 6, 1, W_OL); q(3, 1, 10, 7, W_OL); q(4, 1, 8, 6, a); q(5, 2, 6, 4, '#16202e'); q(5, 2, 3, 1, b || W_CY); q(5, 3, 1, 1, b || W_CY); q(7, 4, 1, 1, b || W_CY); q(9, 4, 1, 1, b || W_CY); if (c) q(7, 0, 2, 1, c); },
+  halo(q, a, b, c) { q(5, 1, 6, 1, W_OL); q(4, 2, 8, 2, W_OL); q(5, 2, 6, 2, a); q(5, 4, 6, 3, a); q(6, 7, 4, 1, a); q(4, 5, 8, 1, W_OL); q(5, 5, 6, 1, b || W_CY); q(5, 0, 6, 1, c || W_GD); q(3, 1, 2, 1, c || W_GD); q(11, 1, 2, 1, c || W_GD); q(6, 0, 2, 1, '#fff3a0'); },
+  dish(q, a, b, c) { q(5, 1, 6, 1, W_OL); q(4, 2, 8, 2, W_OL); q(5, 2, 6, 2, a); q(5, 4, 6, 3, a); q(6, 7, 4, 1, a); q(4, 5, 8, 1, W_OL); q(5, 5, 6, 1, b || W_CY); q(1, 0, 4, 1, W_OL); q(0, 1, 5, 2, W_OL); q(1, 1, 3, 1, c || W_WH); q(2, 2, 1, 1, c || W_WH); q(3, 3, 1, 1, W_OL); },
+  cyhood(q, a, b) { q(5, 0, 6, 1, W_OL); q(4, 1, 8, 1, W_OL); q(3, 2, 10, 6, W_OL); q(5, 1, 6, 1, a); q(4, 2, 8, 2, a); q(4, 4, 1, 4, a); q(11, 4, 1, 4, a); q(5, 4, 6, 4, '#101018'); q(6, 5, 1, 1, b || '#7fff6a'); q(9, 5, 1, 1, b || '#7fff6a'); q(6, 7, 4, 1, b || '#7fff6a'); },
+};
+// ---- 오른손에 든 것 ---- (x 12~15)
+const WITEM = {
+  fork(q, a) { q(13, 3, 1, 11, W_WD); q(12, 1, 1, 3, a || W_ST); q(14, 1, 1, 3, a || W_ST); q(13, 2, 1, 2, a || W_ST); },
+  hoe(q, a) { q(13, 2, 1, 12, W_WD); q(13, 1, 3, 1, a || W_ST); q(15, 2, 1, 2, a || W_ST); },
+  spear(q, a) { q(13, 3, 1, 11, W_WD); q(13, 0, 1, 3, a || W_ST); q(12, 2, 3, 1, a || W_ST); },
+  rod(q, a) { q(13, 6, 1, 6, W_WD); q(14, 3, 1, 3, W_WD); q(15, 1, 1, 2, W_WD); q(15, 3, 1, 6, '#c8c8d0'); q(14, 9, 2, 2, a || '#5fa8d0'); },
+  pole(q, a) { q(13, 0, 1, 14, a || W_WD); q(13, 0, 1, 1, '#a8845a'); },
+  sword(q, a) { q(13, 4, 1, 6, a || W_STH); q(13, 3, 1, 1, W_WH); q(12, 10, 3, 1, W_GD); q(13, 11, 1, 2, W_WD); },
+  great(q, a) { q(12, 0, 3, 1, W_OL); q(13, 1, 2, 9, a || W_ST); q(13, 1, 1, 9, W_STH); q(13, 0, 1, 1, W_WH); q(12, 10, 4, 1, W_GD); q(13, 11, 1, 2, W_WD); },
+  jian(q, a) { q(13, 2, 1, 8, a || W_STH); q(13, 1, 1, 1, W_WH); q(12, 10, 3, 1, W_GD); q(13, 11, 1, 1, W_WD); q(13, 12, 1, 2, W_RD); },
+  dao(q, a) { q(13, 4, 2, 6, a || W_ST); q(14, 2, 1, 2, a || W_ST); q(13, 4, 1, 6, W_STH); q(15, 3, 1, 4, a || W_ST); q(12, 10, 3, 1, W_GD); q(13, 11, 1, 2, W_WD); q(12, 13, 1, 1, W_RD); },
+  dagger(q, a) { q(13, 8, 1, 3, a || W_STH); q(12, 11, 3, 1, W_STD); },
+  mace(q, a) { q(13, 6, 1, 8, W_WD); q(12, 3, 3, 3, a || W_ST); q(12, 3, 1, 1, W_STH); q(11, 4, 1, 1, a || W_ST); q(15, 4, 1, 1, a || W_ST); },
+  hammer(q, a) { q(13, 5, 1, 9, W_WD); q(11, 3, 5, 2, a || W_ST); q(11, 3, 5, 1, W_STH); },
+  pick(q, a) { q(13, 4, 1, 10, W_WD); q(11, 3, 5, 1, a || W_ST); q(11, 4, 1, 1, a || W_ST); q(15, 4, 1, 1, a || W_ST); },
+  wand(q, a) { q(13, 8, 1, 4, W_WD); q(13, 6, 1, 2, a || W_YL); q(12, 7, 3, 1, a || W_YL); q(13, 7, 1, 1, W_WH); },
+  orb(q, a) { q(13, 4, 1, 10, W_WD); q(12, 1, 3, 3, W_OL); q(12, 1, 3, 2, a || W_CY); q(13, 0, 1, 1, a || W_CY); q(12, 1, 1, 1, W_WH); },
+  holy(q, a) { q(13, 4, 1, 10, a || W_GD); q(12, 0, 3, 3, a || W_GD); q(13, 1, 1, 1, W_WH); q(11, 1, 1, 1, a || W_GD); q(15, 1, 1, 1, a || W_GD); },
+  bigstaff(q, a) { q(13, 3, 1, 11, W_BK); q(11, 0, 5, 1, W_GD); q(11, 1, 1, 2, W_GD); q(15, 1, 1, 2, W_GD); q(12, 1, 3, 2, a || '#b08fff'); q(13, 1, 1, 1, W_WH); },
+  torch(q, a) { q(13, 4, 1, 9, W_WD); q(12, 1, 3, 3, a || W_OR); q(13, 0, 1, 2, W_YL); q(13, 2, 1, 1, W_WH); q(12, 3, 3, 1, '#7a2a10'); },
+  sickle(q, a) { q(13, 9, 1, 4, W_WD); q(12, 6, 3, 1, a || W_ST); q(14, 7, 1, 2, a || W_ST); q(12, 7, 1, 1, a || W_ST); },
+  basket(q, a) { q(12, 9, 3, 1, W_WD); q(11, 10, 5, 3, W_OL); q(12, 10, 3, 2, '#a8845a'); q(12, 9, 1, 1, a || '#6fbf3f'); q(14, 9, 1, 1, a || '#6fbf3f'); q(13, 8, 1, 2, a || '#6fbf3f'); },
+  lantern(q, a) { q(13, 7, 1, 2, W_STD); q(12, 9, 3, 4, W_OL); q(12, 10, 3, 2, a || W_YL); q(13, 10, 1, 1, W_WH); },
+  leash(q, a) { q(13, 10, 1, 1, W_WD); q(14, 11, 1, 1, W_WD); q(15, 12, 1, 2, W_WD); q(12, 8, 2, 1, a || W_GD); },
+  monk(q, a) { q(13, 2, 1, 12, W_WD); q(11, 0, 1, 2, a || W_GD); q(15, 0, 1, 2, a || W_GD); q(12, 1, 3, 1, a || W_GD); q(12, 13, 3, 1, a || W_GD); },
+  beads(q, a) { q(13, 3, 1, 11, W_WD); q(12, 2, 3, 1, a || W_GD); q(12, 4, 1, 1, a || W_GD); q(14, 4, 1, 1, a || W_GD); q(12, 6, 1, 1, a || W_GD); q(14, 6, 1, 1, a || W_GD); },
+  whisk(q, a) { q(13, 6, 1, 7, W_WD); q(13, 5, 1, 1, W_RD); q(13, 3, 2, 2, a || W_WH); q(14, 4, 1, 6, a || W_WH); q(15, 5, 1, 6, a || W_WH); q(15, 5, 1, 1, '#c8c8d0'); },
+  talisman(q, a) { q(12, 6, 3, 5, W_OL); q(12, 6, 3, 4, a || W_YL); q(13, 7, 1, 2, W_RD); },
+  fan(q, a) { q(11, 6, 5, 1, W_OL); q(11, 7, 5, 3, a || W_WH); q(12, 10, 3, 1, a || W_WH); q(13, 11, 1, 1, W_WD); q(12, 7, 1, 2, W_RD); q(14, 7, 1, 2, W_RD); },
+  box(q, a, b) { q(12, 8, 3, 1, W_WD); q(11, 9, 5, 4, W_OL); q(12, 9, 3, 3, a || W_WD); q(13, 10, 1, 1, b || W_GD); },
+  halberd(q, a) { q(13, 1, 1, 13, W_WD); q(13, 0, 1, 2, W_STH); q(14, 2, 2, 3, a || W_ST); q(14, 2, 1, 1, W_STH); q(12, 3, 1, 1, W_RD); q(12, 4, 1, 2, W_RD); },
+  hawk(q, a, b) { q(12, 10, 3, 1, '#5a4630'); q(12, 5, 3, 5, W_OL); q(13, 4, 1, 1, W_OL); q(12, 6, 3, 3, a || '#8a6a4a'); q(13, 5, 1, 1, a || '#8a6a4a'); q(13, 7, 1, 1, b || '#e8dcc0'); q(14, 5, 1, 1, W_YL); q(12, 9, 1, 1, W_YL); },
+  // 현대
+  bat(q, a) { q(13, 9, 1, 4, W_WD); q(13, 3, 2, 6, a || '#c8a878'); q(13, 3, 1, 6, '#e8d0a8'); },
+  baton(q, a) { q(13, 5, 1, 8, a || '#6a6a7a'); q(13, 5, 1, 1, W_WH); q(12, 10, 1, 1, a || '#6a6a7a'); },
+  flash(q, a) { q(12, 10, 2, 1, W_STD); q(14, 9, 1, 3, W_YL); q(15, 8, 1, 5, '#fff3a0'); },
+  mega(q, a) { q(12, 9, 1, 2, W_WH); q(13, 8, 1, 4, a || W_RD); q(14, 7, 1, 6, a || W_RD); q(15, 7, 1, 6, W_WH); },
+  pistol(q, a) { q(12, 9, 4, 1, a || W_BK); q(12, 10, 1, 2, a || W_BK); q(15, 9, 1, 1, W_STD); },
+  shotgun(q, a) { q(13, 3, 1, 7, a || W_ST); q(14, 3, 1, 5, W_STD); q(13, 10, 1, 3, W_WD); },
+  rifle(q, a) { q(13, 2, 1, 8, a || W_STD); q(13, 1, 1, 1, W_ST); q(14, 6, 1, 3, a || W_STD); q(13, 10, 2, 2, W_WD); },
+  clip(q, a) { q(11, 8, 5, 5, W_OL); q(12, 8, 3, 4, a || W_WH); q(13, 8, 1, 1, W_STD); q(12, 10, 2, 1, W_STD); q(12, 11, 3, 1, W_STD); },
+  book(q, a) { q(11, 8, 5, 5, W_OL); q(12, 9, 3, 3, a || '#8a2a2a'); q(12, 9, 1, 3, W_GD); q(14, 9, 1, 3, W_WH); },
+  medkit(q, a) { q(12, 8, 3, 1, W_STD); q(11, 9, 5, 4, W_OL); q(12, 9, 3, 3, a || W_WH); q(13, 9, 1, 3, W_RD); q(12, 10, 3, 1, W_RD); },
+  bag(q, a) { q(12, 8, 3, 1, W_OL); q(11, 9, 5, 5, W_OL); q(12, 9, 3, 4, a || W_WH); q(13, 10, 1, 2, '#3fae5a'); q(12, 11, 3, 1, '#3fae5a'); },
+  crowbar(q, a) { q(13, 5, 1, 8, a || W_RD); q(14, 4, 1, 2, a || W_RD); q(12, 13, 1, 1, a || W_RD); },
+  bell(q, a) { q(13, 6, 1, 2, W_WD); q(12, 8, 3, 3, W_OL); q(12, 8, 3, 2, a || W_GD); q(11, 10, 5, 1, a || W_GD); q(13, 11, 1, 1, W_STD); q(12, 8, 1, 1, '#fff3a0'); },
+  welder(q, a) { q(12, 10, 2, 1, W_STD); q(14, 9, 1, 2, W_STD); q(14, 6, 1, 3, a || '#5f8fe0'); q(14, 5, 1, 1, W_WH); q(13, 6, 1, 1, W_CY); q(15, 7, 1, 1, W_CY); },
+  cutter(q, a) { q(12, 10, 1, 1, a || W_RD); q(13, 9, 1, 1, a || W_RD); q(13, 11, 1, 1, a || W_RD); q(14, 8, 1, 1, W_ST); q(14, 12, 1, 1, W_ST); q(15, 7, 1, 1, W_STH); q(15, 13, 1, 1, W_STH); },
+  spray(q, a) { q(12, 9, 3, 2, W_STD); q(13, 11, 1, 2, W_STD); q(15, 8, 1, 4, a || W_CY); q(14, 9, 1, 2, W_WH); },
+  // 미래
+  eblade(q, a) { q(13, 1, 1, 9, a || W_CY); q(13, 2, 1, 6, W_WH); q(12, 3, 1, 6, (a || W_CY) + '55'); q(14, 3, 1, 6, (a || W_CY) + '55'); q(12, 10, 3, 1, W_STD); q(13, 11, 1, 2, W_BK); },
+  stun(q, a) { q(13, 5, 1, 8, W_BK); q(13, 3, 1, 2, a || W_CY); q(12, 4, 1, 1, a || W_CY); q(14, 3, 1, 1, W_WH); },
+  blaster(q, a) { q(12, 9, 4, 2, W_STD); q(12, 11, 1, 2, W_BK); q(15, 9, 1, 1, a || W_OR); q(13, 9, 2, 1, a || W_OR); },
+  railgun(q, a) { q(13, 1, 1, 10, W_STD); q(14, 3, 1, 6, W_BK); q(13, 1, 1, 2, a || W_CY); q(13, 5, 1, 1, a || W_CY); q(13, 8, 1, 1, a || W_CY); q(13, 11, 2, 2, W_BK); },
+  wrench(q, a) { q(13, 5, 1, 8, a || W_ST); q(12, 3, 1, 2, a || W_ST); q(14, 3, 1, 2, a || W_ST); q(12, 5, 3, 1, a || W_ST); },
+  netpole(q, a) { q(13, 4, 1, 10, W_STD); q(12, 0, 3, 4, a || W_CY); q(13, 1, 1, 2, W_OL); q(12, 0, 1, 1, W_WH); },
+  pad(q, a) { q(11, 8, 5, 5, W_OL); q(12, 9, 3, 3, '#16202e'); q(12, 9, 2, 1, a || W_CY); q(13, 11, 2, 1, a || W_CY); },
+  scan(q, a) { q(12, 10, 2, 2, W_STD); q(14, 10, 2, 1, a || '#7fff6a'); q(14, 8, 1, 1, (a || '#7fff6a') + '88'); q(15, 7, 1, 1, (a || '#7fff6a') + '88'); q(14, 12, 1, 1, (a || '#7fff6a') + '88'); q(15, 13, 1, 1, (a || '#7fff6a') + '88'); },
+  deck(q, a) { q(11, 9, 5, 4, W_OL); q(12, 9, 3, 3, '#101018'); q(12, 9, 1, 1, a || '#7fff6a'); q(14, 10, 1, 1, a || '#7fff6a'); q(13, 11, 1, 1, a || '#7fff6a'); q(13, 6, 1, 2, (a || '#7fff6a') + '88'); },
+  holo(q, a) { q(13, 9, 1, 4, W_STD); q(12, 4, 3, 4, (a || '#b08fff') + '77'); q(13, 5, 1, 2, W_WH); q(12, 3, 3, 1, a || '#b08fff'); q(12, 8, 3, 1, a || '#b08fff'); },
+  inject(q, a) { q(13, 7, 1, 6, W_WH); q(13, 5, 1, 2, W_STD); q(13, 8, 1, 3, a || '#6fe08c'); q(12, 12, 3, 1, W_STD); },
+  paddle(q, a) { q(12, 8, 1, 4, W_STD); q(14, 8, 1, 4, W_STD); q(11, 6, 2, 2, a || '#6fe08c'); q(14, 6, 2, 2, a || '#6fe08c'); q(13, 5, 1, 1, W_YL); q(13, 7, 1, 1, W_YL); },
+  ram(q, a) { q(11, 8, 5, 4, W_OL); q(12, 8, 4, 3, a || W_STD); q(15, 8, 1, 3, W_YL); q(12, 8, 3, 1, W_STH); },
+  lance(q, a) { q(13, 0, 1, 14, W_BK); q(12, 0, 3, 1, a || W_GD); q(12, 2, 1, 3, a || W_GD); q(14, 2, 1, 3, a || W_GD); q(13, 1, 1, 3, W_WH); q(12, 6, 3, 1, a || W_GD); },
+  remote(q, a) { q(12, 10, 3, 2, W_STD); q(14, 7, 1, 3, W_STD); q(14, 6, 1, 1, a || W_RD); q(11, 1, 5, 2, W_OL); q(12, 1, 3, 1, W_ST); q(13, 2, 1, 1, a || W_RD); q(11, 0, 1, 1, W_ST); q(15, 0, 1, 1, W_ST); },
+  flamer(q, a) { q(11, 9, 4, 2, W_STD); q(12, 11, 1, 2, W_BK); q(15, 8, 1, 4, a || '#5f8fe0'); q(15, 9, 1, 2, W_WH); q(14, 8, 1, 1, W_CY); },
+  tool(q, a) { q(13, 6, 1, 7, W_STD); q(12, 3, 3, 3, W_OL); q(12, 4, 3, 1, a || W_YL); q(13, 3, 1, 3, a || W_YL); q(13, 4, 1, 1, W_WH); },
+};
+// ---- 왼손·등에 진 것 ---- (x 0~3)
+const WLEFT = {
+  round(q, a, b) { q(0, 8, 4, 5, W_OL); q(1, 7, 2, 7, W_OL); q(1, 8, 2, 5, a || W_WD); q(0, 9, 4, 3, a || W_WD); q(1, 10, 2, 1, b || W_ST); },
+  tower(q, a, b) { q(0, 6, 4, 9, W_OL); q(1, 7, 2, 7, a || W_ST); q(1, 7, 1, 7, W_STH); q(1, 9, 2, 2, b || W_RD); },
+  kite(q, a, b) { q(0, 7, 4, 6, W_OL); q(1, 13, 2, 1, W_OL); q(1, 8, 2, 5, a || W_WH); q(1, 9, 2, 2, b || W_RD); },
+  sack(q, a) { q(0, 8, 4, 6, W_OL); q(1, 9, 2, 4, a || '#8a7a5a'); q(1, 8, 2, 1, '#5a4630'); q(1, 10, 1, 1, '#b8a888'); },
+  pack(q, a, b) { q(1, 7, 3, 6, W_OL); q(2, 8, 2, 4, a || W_WD); q(2, 8, 2, 1, b || W_STD); },
+  lamp(q, a) { q(1, 8, 1, 2, W_STD); q(0, 10, 3, 4, W_OL); q(0, 11, 3, 2, a || W_YL); q(1, 11, 1, 1, W_WH); },
+  gourd(q, a) { q(1, 9, 2, 1, W_OL); q(0, 10, 4, 4, W_OL); q(1, 10, 2, 3, a || '#c89a4a'); q(1, 10, 1, 1, '#f0d090'); q(2, 9, 1, 1, W_RD); },
+  riot(q, a) { q(0, 5, 4, 10, W_OL); q(1, 6, 2, 8, a || '#9fd8f0'); q(1, 6, 1, 4, W_WH); q(1, 12, 2, 1, W_BK); },
+  case(q, a) { q(1, 9, 2, 2, W_OL); q(0, 10, 4, 4, W_OL); q(1, 11, 2, 2, a || W_WD); q(1, 11, 2, 1, W_GD); },
+  tank(q, a, b) { q(1, 6, 3, 7, W_OL); q(2, 7, 2, 5, a || W_RD); q(2, 7, 1, 2, W_WH); q(2, 6, 1, 1, W_STD); },
+  eshield(q, a) { q(0, 6, 1, 8, (a || W_CY) + '88'); q(1, 5, 2, 10, a || W_CY); q(1, 6, 1, 8, W_WH); q(3, 6, 1, 8, (a || W_CY) + '88'); },
+  cone(q, a) { q(1, 9, 2, 1, W_OL); q(0, 10, 4, 4, W_OL); q(1, 10, 2, 3, a || W_OR); q(1, 11, 2, 1, W_WH); },
+};
+// ---- 몸 ----
+function wman(q, d) {
+  const sk = d.sk || W_SK, c = d.c, l = d.l || c, b = d.b || 'tunic', t = d.t;
+  if (b === 'bulk') {   // 몸집이 큰 것: 팔과 몸통이 한 덩어리
+    q(2, 8, 12, 4, W_OL); q(3, 8, 10, 1, c); q(3, 9, 2, 2, c); q(11, 9, 2, 2, c); q(6, 9, 4, 3, c); q(3, 11, 2, 1, d.g || sk); q(11, 11, 2, 1, d.g || sk);
+    q(4, 12, 8, 2, W_OL); q(5, 12, 2, 2, l); q(9, 12, 2, 2, l); q(3, 14, 5, 1, W_OL); q(8, 14, 5, 1, W_OL); if (t) { q(3, 8, 2, 1, t); q(11, 8, 2, 1, t); q(7, 9, 2, 1, t); }
+  } else {
+    q(3, 8, 10, 4, W_OL); q(4, 8, 8, 1, c); q(4, 9, 1, 2, c); q(11, 9, 1, 2, c); q(6, 9, 4, 3, c); q(4, 11, 1, 1, d.g || sk); q(11, 11, 1, 1, d.g || sk);
+    if (b === 'robe') { q(4, 12, 8, 3, W_OL); q(5, 12, 6, 2, c); if (d.hem) q(5, 13, 6, 1, d.hem); if (t) q(6, 11, 4, 1, t); if (d.col) { q(7, 8, 2, 1, d.col); q(8, 9, 1, 2, d.col); } }
+    else { q(5, 12, 6, 2, W_OL); q(6, 12, 1, 2, l); q(9, 12, 1, 2, l); q(4, 14, 3, 1, W_OL); q(9, 14, 3, 1, W_OL);
+      if (b === 'coat') { q(5, 12, 6, 1, c); q(8, 9, 1, 4, d.col || W_OL); if (t) q(7, 8, 2, 1, t); }
+      else if (b === 'armor') { q(3, 8, 2, 1, t || W_STH); q(11, 8, 2, 1, t || W_STH); q(6, 9, 2, 1, t || W_STH); q(6, 11, 4, 1, d.belt || W_STD); }
+      else if (b === 'vest') { q(6, 9, 4, 2, t || W_YL); q(6, 10, 4, 1, d.col || W_ST); }
+      else if (b === 'suit') { q(8, 9, 1, 3, t || W_CY); q(4, 8, 1, 1, t || W_CY); q(11, 8, 1, 1, t || W_CY); q(6, 13, 1, 1, t || W_CY); q(9, 13, 1, 1, t || W_CY); }
+      else if (t) q(6, 11, 4, 1, t); }
+  }
+  // 얼굴
+  q(4, 4, 8, 3, W_OL); q(5, 7, 6, 1, W_OL); q(5, 4, 6, 3, sk); q(6, 7, 4, 1, sk); q(6, 5, 1, 1, W_OL); q(9, 5, 1, 1, W_OL);
+  if (d.lf) WLEFT[d.lf[0]](q, d.lf[1], d.lf[2]);
+  WHEAD[d.h[0]](q, d.h[1], d.h[2], d.h[3], sk);
+  if (d.f === 'beard') { q(5, 6, 6, 2, d.fc || '#8a5a2a'); q(6, 8, 4, 2, d.fc || '#8a5a2a'); q(7, 10, 2, 1, d.fc || '#8a5a2a'); q(7, 6, 2, 1, sk); }
+  if (d.f === 'mask') { q(5, 6, 6, 1, d.fc || W_BK); q(6, 7, 4, 1, d.fc || W_BK); }
+  if (d.f === 'glass') { q(5, 5, 2, 1, '#cfe8ff'); q(8, 5, 2, 1, '#cfe8ff'); q(7, 5, 1, 1, W_OL); q(10, 5, 1, 1, W_OL); }
+  if (d.f === 'stache') { q(6, 6, 4, 1, d.fc || '#3a2a20'); }
+  if (d.r) WITEM[d.r[0]](q, d.r[1], d.r[2]);
+  if (d.x) d.x.forEach(e => q(e[0], e[1], e[2], e[3], e[4]));
+}
+// ---- 짐승과 기계 ----
+const WDOG = ['................', '................', '................', '................', '.........oo..o..', '........obbooo..', '..o....obbbbeo..', '.obo..obbbbbbbo.', '.obbooobbbbbwwo.', '..obbbbbbbbbooo.', '..obbbbbbbbbo...', '..obbbsbbbbso...', '..obo.obo.obo...', '..obo.obo.obo...', '..oo..oo..oo....', '................'];
+const WBEAST = {
+  dog(q, d) { const m = { o: W_OL, b: d.c, s: d.l || d.c, e: W_OL, w: d.w || W_WH }; WDOG.forEach((row, y) => { for (let i = 0; i < 16; i++) if (m[row[i]]) q(i, y, 1, 1, m[row[i]]); }); if (d.x) d.x.forEach(e => q(e[0], e[1], e[2], e[3], e[4])); },
+  hawk(q, d) { const a = d.c, b = d.l;   // 날개를 편 매
+    q(0, 5, 16, 1, W_OL); q(0, 6, 16, 3, W_OL); q(2, 9, 12, 1, W_OL); q(5, 3, 6, 9, W_OL); q(6, 12, 4, 2, W_OL);
+    q(1, 6, 5, 2, a); q(10, 6, 5, 2, a); q(1, 6, 4, 1, b); q(11, 6, 4, 1, b); q(3, 8, 3, 1, a); q(10, 8, 3, 1, a); q(0, 6, 1, 1, W_OL); q(15, 6, 1, 1, W_OL);
+    q(6, 4, 4, 7, a); q(7, 7, 2, 4, b); q(6, 4, 4, 2, b); q(6, 5, 1, 1, W_OL); q(9, 5, 1, 1, W_OL); q(7, 6, 2, 1, W_YL); q(7, 12, 2, 1, a); q(6, 13, 1, 1, W_YL); q(9, 13, 1, 1, W_YL); },
+  drone(q, d) { const a = d.c, t = d.t || W_RD;   // 떠 있는 기계
+    q(1, 3, 4, 1, W_STD); q(11, 3, 4, 1, W_STD); q(3, 4, 1, 2, W_STD); q(12, 4, 1, 2, W_STD); q(0, 3, 1, 1, W_STH); q(15, 3, 1, 1, W_STH);
+    q(3, 5, 10, 6, W_OL); q(2, 6, 12, 4, W_OL); q(4, 6, 8, 4, a); q(3, 7, 10, 2, a); q(4, 6, 3, 1, W_WH); q(6, 7, 4, 2, W_OL); q(7, 7, 2, 2, t); q(7, 7, 1, 1, W_WH);
+    q(5, 11, 1, 2, W_STD); q(10, 11, 1, 2, W_STD); q(7, 11, 2, 1, W_STD); q(7, 13, 2, 1, t + '88'); q(6, 14, 4, 1, t + '44'); },
+};
+// ---- 세계마다의 차림 ----  c 옷, l 다리, b 몸틀, t 띠·줄, h 머리, r 오른손, lf 왼손, f 얼굴
+const WLOOK = {
+  fantasy: {
+    villager: { c: '#8a6a3a', l: '#5a4630', h: ['straw', '#d8b050', '#b88a30'], r: ['fork'] },
+    fisher: { c: '#3a6a9a', l: '#2a4a6a', h: ['floppy', '#c8b060'], r: ['rod'] },
+    militia: { c: '#3f6b46', l: '#5a4630', t: '#7a5a2a', h: ['leather', '#7a5a2a', '#5a4020'], r: ['spear'], lf: ['round', '#7a5a3a'] },
+    captain: { c: '#8a2a2a', l: '#4a3a3a', b: 'armor', h: ['helm', W_ST, W_STH, W_RD], r: ['sword'], lf: ['kite', W_WH, W_RD] },
+    detective: { c: '#5a5a48', l: '#3a3a30', t: '#2a2a20', h: ['hood', '#4a5a3a'], r: ['lantern'] },
+    apprentice: { c: '#6aa0d0', b: 'robe', t: '#fff3a0', h: ['wizard', '#4a78b0', '#fff3a0'], r: ['wand'] },
+    warrior: { c: '#707890', l: '#4a5068', b: 'armor', h: ['helm', '#8a92aa', W_STH], r: ['great'] },
+    smuggler: { c: '#3a2a4a', l: '#2a2030', h: ['hood', '#2a2030'], f: 'mask', r: ['dagger'], lf: ['sack'] },
+    priest: { c: '#e8e8f0', b: 'robe', t: W_GD, hem: '#c8c8d8', col: W_GD, h: ['mitre', '#f0f0f8', W_GD], r: ['holy'] },
+    scholar: { c: '#2a3a8a', b: 'robe', t: '#b08fff', hem: '#1a2460', h: ['wizard', '#2a3a8a', '#b08fff'], f: 'beard', fc: '#d8d8e0', r: ['orb', '#b08fff'] },
+    herbalist: { c: '#4a8a4a', l: '#6a5a3a', t: '#e8d8a0', h: ['wreath', '#a85a30', '#e890b0'], r: ['basket'] },
+    soldier: { c: '#2a3a6a', l: '#1a2448', b: 'bulk', t: W_ST, g: W_STD, h: ['helm', '#4a5a8a', W_STH], r: ['hammer'], lf: ['tower', '#3a4a7a', W_GD] },
+    chaplain: { c: '#f0e8e0', l: '#a8a0a0', b: 'armor', t: W_GD, belt: W_RD, h: ['helm', '#e8e8f0', W_WH, W_GD], r: ['mace', W_GD], x: [[7, 9, 2, 2, W_RD]] },
+    sealer: { c: '#1a1a2a', b: 'robe', t: W_GD, hem: '#3a2a5a', col: W_GD, sk: '#ffe0c0', h: ['wizard', '#1a1a2a', W_GD], f: 'beard', fc: W_WH, r: ['bigstaff'] },
+    hound: { beast: 'dog', c: '#8a6a4a', l: '#5a4630' },
+    handler: { c: '#5a4630', l: '#3a2a20', t: '#3f6b46', h: ['floppy', '#3f6b46', W_RD], r: ['leash'] },
+    sapper: { c: '#6a5a2a', l: '#3a3020', b: 'bulk', t: '#a89040', h: ['beardcap', '#8a8a96', W_GD], f: 'beard', fc: '#c86a2a', r: ['pick'] },
+    torch: { c: '#6a3a2a', l: '#3a2a20', h: ['cap', '#8a2a2a'], r: ['torch'] },
+  },
+  wuxia: {
+    villager: { c: '#8a7a5a', b: 'robe', t: '#5a4a30', hem: '#6a5a3a', h: ['cone', '#c8a860', '#e8d090'], r: ['hoe'] },
+    fisher: { c: '#4a7a8a', b: 'robe', t: '#2a4a5a', h: ['cone', '#a89050', '#c8b070'], r: ['pole', '#8a9a4a'] },
+    militia: { c: '#3a5a7a', l: '#2a2a3a', t: W_RD, h: ['band', '#34303e', W_RD], r: ['dao'] },
+    captain: { c: '#8a2a2a', b: 'robe', t: W_GD, hem: '#5a1a1a', col: W_GD, h: ['topknot', '#34303e', W_GD], f: 'stache', r: ['dao', '#c0c8e0'], lf: ['gourd'] },
+    detective: { c: '#3a3a4a', b: 'robe', t: W_RD, hem: '#2a2a34', h: ['gat', '#34303e', W_RD], r: ['baton', '#7a2a2a'] },
+    apprentice: { c: '#8ab0d8', b: 'robe', t: W_WH, hem: '#5a80b0', h: ['topknot', '#34303e', '#8ab0d8'], r: ['talisman'] },
+    warrior: { c: '#e8e8f0', b: 'robe', t: '#3a5a9a', hem: '#b8b8c8', col: '#3a5a9a', h: ['longhair', '#34303e', W_WH], r: ['jian'] },
+    smuggler: { c: '#22202a', b: 'robe', t: '#3a3440', h: ['hood', '#22202a', '#22202a'], f: 'mask', fc: '#22202a', r: ['dagger'], lf: ['sack', '#4a4450'] },
+    priest: { c: '#e09a3a', b: 'robe', t: '#8a4a1a', hem: '#b87a2a', col: '#8a4a1a', h: ['bald', '#c88a60'], r: ['beads'], x: [[6, 9, 1, 1, '#5a3a20'], [7, 10, 2, 1, '#5a3a20'], [9, 9, 1, 1, '#5a3a20']] },
+    scholar: { c: '#2a3a6a', b: 'robe', t: W_WH, hem: '#e8e8f0', col: W_WH, h: ['taocap', '#34303e', W_GD], f: 'beard', fc: '#2a2430', r: ['whisk'] },
+    herbalist: { c: '#5a9a6a', b: 'robe', t: '#e8e0c0', hem: '#3a7a4a', h: ['taocap', '#3a5a4a', '#e8e0c0'], r: ['box', '#8a5a3a', W_RD] },
+    soldier: { c: '#6a3a2a', l: '#3a2a2a', b: 'bulk', t: W_GD, g: W_STD, h: ['tassel', '#8a8a96', W_GD, W_RD], r: ['halberd'], lf: ['round', '#8a2a2a', W_GD] },
+    chaplain: { c: '#b8601a', b: 'bulk', t: W_GD, l: '#7a3a10', h: ['bald', '#a86a40'], r: ['monk'], x: [[6, 10, 4, 1, '#3a2a20'], [6, 9, 1, 1, '#3a2a20'], [9, 9, 1, 1, '#3a2a20']] },
+    sealer: { c: '#f0f0f8', b: 'robe', t: W_GD, hem: '#c8c8e0', col: '#8a5fe0', sk: '#ffe0c0', h: ['elder', W_WH], r: ['jian', '#e0c8ff'], lf: ['gourd', '#8a5fe0'], x: [[1, 3, 2, 3, W_YL], [1, 4, 2, 1, W_RD]] },
+    hound: { beast: 'hawk', c: '#7a5a3a', l: '#e8dcc0' },
+    handler: { c: '#6a5a3a', l: '#3a3020', t: '#a8845a', h: ['furhat', '#7a5a3a', '#b89a7a'], r: ['hawk'] },
+    sapper: { c: '#4a5a4a', l: '#2a3a2a', b: 'bulk', t: '#a8a040', h: ['band', '#34303e', W_YL], f: 'stache', r: ['hammer', '#8a8a96'], lf: ['pack', '#7a5a3a', W_ST] },
+    torch: { c: '#7a3a2a', b: 'robe', t: '#3a2a20', h: ['band', '#34303e', W_OR], r: ['torch'] },
+  },
+  modern: {
+    villager: { c: '#5a8ab0', l: '#3a4a6a', b: 'tunic', h: ['cap', '#c83030', W_WH], r: ['bat'] },
+    fisher: { c: '#d86a2a', l: '#4a5a3a', b: 'vest', t: '#e8b040', col: '#8a4a1a', h: ['bucket', '#8a9a5a', '#6a7a40'], r: ['rod', W_RD] },
+    militia: { c: '#2a3a5a', l: '#2a2a3a', b: 'vest', t: '#d8f030', h: ['cap', '#2a3a5a', '#d8f030'], r: ['baton'], lf: ['lamp'] },
+    captain: { c: '#2a3a5a', l: '#2a2a3a', b: 'vest', t: W_OR, h: ['cap', W_RD, W_WH], f: 'stache', r: ['mega'] },
+    detective: { c: '#a8845a', l: '#3a3a44', b: 'coat', col: '#7a5a3a', t: W_WH, h: ['fedora', '#7a5a3a', '#3a2a20'], r: ['flash'] },
+    apprentice: { c: '#e8e8f0', l: '#4a6a9a', b: 'coat', col: '#b8b8c8', t: '#5a8ab0', h: ['hair', '#3a2a20'], f: 'glass', r: ['clip'] },
+    warrior: { c: '#34343e', l: '#26262e', b: 'armor', t: '#5a5a66', belt: '#6a5a3a', h: ['beanie', '#26262e', '#4a4a56'], f: 'mask', fc: '#26262e', r: ['shotgun'] },
+    smuggler: { c: '#3a3a44', l: '#2a2a30', h: ['beanie', '#2a2a30', '#5a5a64'], f: 'mask', fc: W_WH, r: ['crowbar'], lf: ['sack', '#5a6a8a'], x: [[5, 9, 6, 1, W_WH]] },
+    priest: { c: W_WH, l: '#d86a2a', b: 'vest', t: '#d86a2a', col: W_WH, h: ['cap', '#d86a2a', W_WH], r: ['medkit'] },
+    scholar: { c: '#6a5a4a', l: '#3a3a44', b: 'coat', col: '#4a3a30', t: W_RD, h: ['hair', '#b8b8c0'], f: 'glass', r: ['book'], x: [[4, 3, 1, 2, '#b8b8c0'], [11, 3, 1, 2, '#b8b8c0']] },
+    herbalist: { c: '#e8f0e8', l: '#4a7a5a', b: 'coat', col: '#b8c8b8', t: '#3fae5a', h: ['hair', '#5a3a20'], r: ['bag'], x: [[6, 9, 1, 1, '#3fae5a']] },
+    soldier: { c: '#5a6a3a', l: '#4a5a30', b: 'bulk', t: '#3a4a24', g: '#3a4a24', h: ['army', '#5a6a3a', '#3a4a24'], r: ['rifle'], x: [[6, 10, 4, 1, '#3a4a24'], [4, 9, 1, 1, '#7a8a4a'], [10, 12, 1, 1, '#7a8a4a']] },
+    chaplain: { c: '#1e1e24', l: '#1e1e24', b: 'coat', col: '#3a3a44', t: W_WH, h: ['fedora', '#1e1e24', W_RD], r: ['bell'], lf: ['case', '#3a2a20'], x: [[7, 9, 1, 2, W_RD]] },
+    sealer: { c: '#e8d83a', l: '#c8b82a', b: 'bulk', t: W_BK, g: '#3a3a44', h: ['hazmat', '#e8d83a'], r: ['spray', '#b08fff'], lf: ['tank', W_OR], x: [[6, 10, 4, 1, W_BK], [7, 9, 2, 1, W_BK]] },
+    hound: { beast: 'dog', c: '#3a3028', l: '#b8884a', x: [[5, 9, 4, 2, '#2a3a5a'], [6, 9, 2, 1, W_WH], [2, 6, 1, 1, '#3a3028']] },
+    handler: { c: '#2a3a5a', l: '#2a2a3a', b: 'armor', t: '#4a5a7a', belt: W_BK, h: ['cap', '#2a3a5a', W_GD], r: ['leash', W_ST] },
+    sapper: { c: '#5a6a4a', l: '#4a5a3a', b: 'bulk', t: '#3a4a2a', g: '#3a4a2a', h: ['bomb', '#5a6a4a', '#7a8a6a'], r: ['cutter'], x: [[6, 10, 4, 2, '#3a4a2a']] },
+    torch: { c: '#4a5a8a', l: '#3a4a6a', b: 'tunic', t: '#6a5a3a', g: '#8a6a3a', h: ['weld', '#5a5a64'], r: ['welder'], lf: ['tank', '#5a7ab0'] },
+  },
+  future: {
+    villager: { c: '#d8782a', l: '#a85a1a', b: 'suit', t: W_WH, h: ['visor', '#e8e0d0', W_OR], r: ['wrench'] },
+    fisher: { c: '#2a8a8a', l: '#1a6a6a', b: 'suit', t: '#9ff0e0', h: ['visor', '#2a8a8a', '#9ff0e0'], r: ['netpole'] },
+    militia: { c: '#6a7088', l: '#4a5068', b: 'suit', t: W_CY, h: ['visor', '#8a90a8', W_CY], r: ['stun'] },
+    captain: { c: '#6a7088', l: '#4a5068', b: 'armor', t: W_RD, belt: W_RD, h: ['visor', '#8a90a8', W_RD, '#8a90a8'], r: ['blaster', W_RD], x: [[8, 9, 1, 2, W_RD]] },
+    detective: { c: '#3e3e54', l: '#30303f', b: 'coat', col: '#7fff6a', h: ['visor', '#3e3e54', '#7fff6a'], r: ['scan'] },
+    apprentice: { c: '#f0f0f8', l: '#c8c8d8', b: 'suit', t: '#b08fff', h: ['visor', '#f0f0f8', '#b08fff'], r: ['pad', '#b08fff'] },
+    warrior: { c: '#3a3a4a', l: '#2a2a38', b: 'bulk', t: W_OR, g: '#2a2a38', h: ['visor', '#3a3a4a', W_OR], r: ['eblade', W_OR], x: [[4, 10, 1, 1, W_OR], [11, 10, 1, 1, W_OR], [5, 13, 2, 1, W_OR], [9, 13, 2, 1, W_OR]] },
+    smuggler: { c: '#2c2c3c', l: '#22222e', b: 'suit', t: '#7fff6a', h: ['cyhood', '#2c2c3c', '#7fff6a'], r: ['deck'] },
+    priest: { c: '#f0f0f8', l: '#d0d8e0', b: 'suit', t: '#6fe08c', h: ['visor', '#f0f0f8', '#6fe08c'], r: ['inject'], x: [[6, 9, 3, 1, '#6fe08c'], [7, 8, 1, 3, '#6fe08c']] },
+    scholar: { c: '#d8d8e8', b: 'robe', t: '#b08fff', hem: '#a8a8c0', col: '#b08fff', h: ['dome', '#d8d8e8', '#b08fff'], r: ['holo'] },
+    herbalist: { c: '#3a8a5a', l: '#2a6a44', b: 'suit', t: W_YL, h: ['visor', '#3a8a5a', W_YL], r: ['paddle'], lf: ['pack', '#2a6a44', W_YL] },
+    soldier: { c: '#4a5a7a', l: '#34405a', b: 'bulk', t: W_YL, g: W_STD, h: ['dome', '#4a5a7a', W_YL, W_YL], r: ['ram'], lf: ['eshield', W_YL], x: [[2, 7, 3, 1, W_OL], [11, 7, 3, 1, W_OL], [3, 7, 1, 1, W_YL], [12, 7, 1, 1, W_YL]] },
+    chaplain: { c: '#e8e0e0', l: '#b8a8a8', b: 'armor', t: W_RD, belt: W_RD, h: ['dish', '#e8e0e0', W_RD, W_WH], r: ['tool', W_RD], lf: ['eshield', '#ff8a8a'] },
+    sealer: { c: '#22202e', b: 'robe', t: W_GD, hem: '#3a2a5a', col: W_GD, h: ['halo', '#22202e', W_GD, W_GD], r: ['lance'], x: [[4, 8, 1, 1, W_GD], [11, 8, 1, 1, W_GD], [1, 9, 2, 2, '#b08fff'], [1, 9, 1, 1, W_WH]] },
+    hound: { beast: 'drone', c: '#8a90a8', t: W_RD },
+    handler: { c: '#4a5a4a', l: '#3a4a3a', b: 'suit', t: W_RD, h: ['visor', '#4a5a4a', W_RD, '#4a5a4a'], r: ['remote'] },
+    sapper: { c: '#a8882a', l: '#7a6220', b: 'bulk', t: W_BK, g: W_STD, h: ['dome', '#a8882a', W_YL], r: ['tool', W_YL], lf: ['pack', '#3a3a44', W_YL], x: [[6, 10, 4, 1, W_BK]] },
+    torch: { c: '#8a3a2a', l: '#5a2a20', b: 'suit', t: '#5f8fe0', h: ['visor', '#8a3a2a', '#5f8fe0'], r: ['flamer'], lf: ['tank', '#5f8fe0'] },
+  },
+};
+const _wcv = {};
+function invCanvasW(world, kind) {
+  const w = WLOOK[world] ? world : 'fantasy', key = w + ':' + kind; if (_wcv[key]) return _wcv[key];
+  const c = document.createElement('canvas'); c.width = c.height = 16; const x = c.getContext('2d'), q = (a, b, ww, h, col) => { x.fillStyle = col; x.fillRect(a, b, ww, h); };
+  const d = WLOOK[w][kind] || WLOOK.fantasy[kind] || WLOOK.fantasy.villager; if (d.beast) WBEAST[d.beast](q, d); else wman(q, d);
+  return (_wcv[key] = c);
+}
 // 옛 것의 둥지 — 화면 2/3: 지도(지상·지하)와 밤 전투 재생
 const W = 960, H = 550, GX = 20, GY = 48, CW = 184, CH = 124, S = 2;
 const cellRect = i => ({ x: GX + (i % 5) * CW, y: GY + Math.floor(i / 5) * CH, w: CW, h: CH });
@@ -2834,6 +3662,22 @@ function drawRoute(x, t) {
   ps.forEach(p => { for (let k = 0; k < p.length - 1; k++) { const a = cellRect(p[k]), b = cellRect(p[k + 1]), vert = a.x === b.x, ax = a.x + (vert ? 54 : a.w / 2), ay = floorY(a) + 8, bx = b.x + (vert ? 54 : b.w / 2), by = floorY(b) + 8, n = 6; for (let s = 0; s < n; s++) { const f = (s + (t / 600) % 1) / n; x.globalAlpha = 0.55; x.fillRect(Math.round(ax + (bx - ax) * f) - 2, Math.round(ay + (by - ay) * f) - 2, 4, 4); } } });
   x.globalAlpha = 1;
 }
+// ---------- 낮의 권속: 지키라고 한 것은 제자리에, 나머지는 제멋대로 굴을 돌아다닌다. 밤이 오면 제 자리로 간다 ----------
+const dugAt = i => i >= 0 && i < NEST.N && G.cells[i].dug && !G.cells[i].block;
+function roamPos(m, home, t, small) {
+  const R = ST.roam || (ST.roam = {}), still = !!(m.pin || m.hurt || m.strike || ST.mode !== 'day' || small), homeCell = locIdx(m.loc), sz = small ? 16 : 32;
+  let w = R[m.id]; if (!w) w = R[m.id] = { x: home.x, y: home.y, fx: home.x, fy: home.y, tx: home.x, ty: home.y, t0: t, dur: 0, cell: homeCell, next: homeCell, rest: t + 300 + Math.random() * 2500 };
+  const go = (tx, ty, cell) => { w.fx = w.x; w.fy = w.y; w.tx = tx; w.ty = ty; w.t0 = t; w.dur = Math.max(250, Math.hypot(tx - w.x, ty - w.y) * 24); w.next = cell; };
+  if (w.dur) { const k = Math.min(1, (t - w.t0) / w.dur); w.x = w.fx + (w.tx - w.fx) * k; w.y = w.fy + (w.ty - w.fy) * k; if (k >= 1) { w.dur = 0; w.cell = w.next; w.rest = t + 500 + Math.random() * 3200; } }
+  else if (still) { if (Math.abs(w.x - home.x) + Math.abs(w.y - home.y) > 1) go(home.x, home.y, homeCell); }
+  else if (t > w.rest) {
+    const c = dugAt(w.cell) || w.cell === NEST.CORE ? w.cell : homeCell, col = c % 5, row = Math.floor(c / 5), far = Math.abs(col - homeCell % 5) + Math.abs(row - Math.floor(homeCell / 5));
+    const opts = []; if (col > 0 && dugAt(c - 1)) opts.push(c - 1); if (col < 4 && dugAt(c + 1)) opts.push(c + 1); if (row > 0 && dugAt(c - 5)) opts.push(c - 5); if (row < 3 && dugAt(c + 5)) opts.push(c + 5);
+    if (far >= 2 || c !== w.cell) go(home.x, home.y, homeCell);
+    else { const to = opts.length && Math.random() < 0.5 ? opts[Math.floor(Math.random() * opts.length)] : c, r = cellRect(to); go(r.x + 12 + Math.random() * (r.w - 24 - sz), floorY(r) - sz + 2, to); }
+  }
+  (ST.kinPos || (ST.kinPos = {}))[m.id] = w; return w;
+}
 function drawUnit(x, e, t) {
   if (e.gone) return;
   if (e.dur) { const k = Math.min(1, (t - e.t0) / e.dur); e.x = e.fx + (e.tx - e.fx) * k; e.y = e.fy + (e.ty - e.fy) * k; if (k >= 1) e.dur = 0; }
@@ -2875,15 +3719,18 @@ function drawUnder(x, t) {
   rect(x, '#120e1a', 0, 0, W, H); if (!BG.top) { const cv0 = BG.top = document.createElement('canvas'); cv0.width = W; cv0.height = GY; const q = cv0.getContext('2d'); rockTex(q, 999, 0, 0, W, GY, '#1a1524'); q.fillStyle = '#3a2c20'; q.fillRect(0, 10, W, 10); q.fillStyle = '#2a2018'; q.fillRect(0, 18, W, 2); q.fillStyle = '#2f6b3a'; q.fillRect(0, 0, W, 10); q.fillStyle = '#1f4a28'; q.fillRect(0, 8, W, 2);
     for (let k = 0; k < 120; k++) { const px = ev2(hsh(7, k) * W); q.fillStyle = hsh(8, k) > 0.5 ? '#4a9a52' : '#3f8046'; q.fillRect(px, ev2(hsh(9, k) * 6), 2, 4); if (k % 3 === 0) { q.fillStyle = '#5a4634'; q.fillRect(ev2(hsh(10, k) * W), 12 + ev2(hsh(11, k) * 6), 4, 2); } if (k % 5 === 0) { q.fillStyle = '#3a2c20'; const len = 6 + ev2(hsh(12, k) * 16); q.fillRect(px, 20, 2, len); } } }
   x.drawImage(BG.top, 0, 0);
-  const er = cellRect(NEST.ENT); rect(x, '#0b0c16', er.x + 28, 0, 40, GY + 6); rect(x, '#7a5a3a', er.x + 34, 0, 3, GY + 60); rect(x, '#7a5a3a', er.x + 59, 0, 3, GY + 60); for (let k = 0; k < 11; k++) rect(x, '#7a5a3a', er.x + 34, 4 + k * 10, 28, 2);
-  if (ST.focus == null) txt(x, TOUCH ? '▲ 지상' : '▲ 지상 (Tab)', er.x + 78, 22, '#a2a8c6', 13);
+  const er = cellRect(NEST.ENT);
+  if (G.sealed) { rect(x, '#0b0c16', er.x + 28, GY - 8, 40, 14); rect(x, '#3a2c20', er.x + 30, GY - 8, 36, 4); txt(x, '굴이 막혀 있다 · 땅 위는 아직 모른다', er.x + 78, 22, '#8a8296', 13); }
+  else { rect(x, '#0b0c16', er.x + 28, 0, 40, GY + 6); rect(x, '#7a5a3a', er.x + 34, 0, 3, GY + 60); rect(x, '#7a5a3a', er.x + 59, 0, 3, GY + 60); for (let k = 0; k < 11; k++) rect(x, '#7a5a3a', er.x + 34, 4 + k * 10, 28, 2);
+    if (ST.focus == null) txt(x, TOUCH ? '▲ 지상' : '▲ 지상 (Tab)', er.x + 78, 22, '#a2a8c6', 13); }
   const day = ST.mode === 'day';
   for (let i = 0; i < NEST.N; i++) drawCell(x, i, t, day && !G.cells[i].dug && !NEST.canDig(G, i));
   drawRoute(x, t);
   if (ST.ents) { const es = Object.values(ST.ents); es.filter(e => e.side === 'def').forEach(e => drawUnit(x, e, t)); es.filter(e => e.side === 'inv').forEach(e => drawUnit(x, e, t)); }
   else {
     const by = {}; G.kin.forEach(m => { if (m.loc !== null) (by[m.loc] = by[m.loc] || []).push(m); });
-    for (const loc in by) by[loc].forEach((m, k) => { const sm = m.kind === 'spawn', p = defPos(loc === 'core' ? 'core' : +loc, k, sm); x.globalAlpha = m.hurt || m.strike ? 0.4 : 1; { const fz = m.parts && m.parts.length, sz = fz || (m.evo && !sm) ? 48 : sm ? (m.evo ? 26 : 16) : 32; x.drawImage(frameOf(fz ? kinCanvasM(m) : kinCanvas(m.kind, m.evo), Math.floor(t / 420 + m.id * 0.37) % 2), p.x - (fz || (m.evo && !sm) ? 8 : m.evo ? 5 : 0), Math.round(p.y + Math.sin(t / 500 + m.id) * 1) - (fz || (m.evo && !sm) ? 16 : m.evo ? 10 : 0), sz, sz); } x.globalAlpha = 1; if (m.hurt) txt(x, '부상', p.x + 16, p.y - 14, '#ff9a92', 11, 'center'); else if (m.strike) txt(x, '파업', p.x + 16, p.y - 14, '#ffb347', 11, 'center'); });
+    for (const loc in by) by[loc].forEach((m, k) => { const sm = m.kind === 'spawn', p = roamPos(m, defPos(loc === 'core' ? 'core' : +loc, k, sm), t, sm); x.globalAlpha = m.hurt || m.strike ? 0.4 : 1; { const fz = m.parts && m.parts.length, sz = fz || (m.evo && !sm) ? 48 : sm ? (m.evo ? 26 : 16) : 32; x.drawImage(frameOf(fz ? kinCanvasM(m) : kinCanvas(m.kind, m.evo), Math.floor(t / 420 + m.id * 0.37) % 2), p.x - (fz || (m.evo && !sm) ? 8 : m.evo ? 5 : 0), Math.round(p.y + Math.sin(t / 500 + m.id) * 1) - (fz || (m.evo && !sm) ? 16 : m.evo ? 10 : 0), sz, sz); } x.globalAlpha = 1; if (m.hurt) txt(x, '부상', p.x + 16, p.y - 14, '#ff9a92', 11, 'center'); else if (m.strike) txt(x, '파업', p.x + 16, p.y - 14, '#ffb347', 11, 'center'); });
+    G.kin.forEach(m => { if (!m.pin || m.loc === null || m.kind === 'spawn') return; const w = ST.kinPos && ST.kinPos[m.id]; if (!w) return; const fx = Math.round(w.x) + 14, fy = Math.round(w.y) - 12; rect(x, '#0b0c16', fx - 1, fy - 1, 4, 13); rect(x, '#e8c030', fx, fy, 2, 11); rect(x, '#0b0c16', fx + 1, fy - 1, 9, 8); rect(x, '#e8c030', fx + 2, fy, 7, 6); rect(x, '#fff3a0', fx + 2, fy, 7, 2); });
     const r = cellRect(NEST.CORE), sc = slimeScale(G.slime), size = 16 * sc;
     { const hc = G.slime.main ? ASPCOL[G.slime.main] : '#cfeee0', cx = r.x + r.w - 14 - size / 2, fy0 = floorY(r); for (let k = 0; k < 7; k++) { const ph = (t / 1900 + k / 7) % 1; x.globalAlpha = (1 - ph) * 0.85; rect(x, k % 3 ? hc : '#ffffff', cx + Math.sin(k * 2.3 + t / 700) * (size * 0.55 + 6), fy0 - 4 - ph * (size + 18), 2, 2); } x.globalAlpha = 1; }
     x.drawImage(slimeCanvas(G.slime, Math.floor(t / 240)), r.x + r.w - 14 - size, Math.round(floorY(r) - size + sc + Math.sin(t / 400) * 2), size, size);
@@ -2999,9 +3846,9 @@ function drawSurface(x, t) {
     ell(x, '#0b0c1655', p.x, p.y + 6, 36, 12);
     if (ty === 'meteor') { ell(x, '#3a2a20', p.x, p.y, 26, 10); rect(x, fl ? '#fff3a0' : '#c8a8ff', p.x - 4, p.y - 6, 8, 8); rect(x, '#ffffff', p.x - 1, p.y - 14 - (t / 40 % 10), 2, 4); }
     if (ty === 'shrine') { rect(x, '#8a8296', p.x - 18, p.y - 12, 36, 14); rect(x, '#6a6278', p.x - 12, p.y - 30, 8, 18); rect(x, '#6a6278', p.x + 4, p.y - 30, 8, 18); rect(x, '#8a8296', p.x - 16, p.y - 36, 32, 7); rect(x, '#4f8f55', p.x - 20, p.y - 2, 10, 5); }
-    if (ty === 'band') { rect(x, fl ? '#ffb347' : '#ff7a2f', p.x - 4, p.y - 12, 8, 12); x.drawImage(spriteCanvas('goblin', 'goblin'), p.x - 40, p.y - 30, 32, 32); x.drawImage(spriteCanvas('skeleton', 'skeleton'), p.x + 8, p.y - 30, 32, 32); }
+    if (ty === 'band') { rect(x, fl ? '#ffb347' : '#ff7a2f', p.x - 4, p.y - 12, 8, 12); x.drawImage(kinCanvas('goblin'), p.x - 40, p.y - 30, 32, 32); x.drawImage(kinCanvas('skeleton'), p.x + 8, p.y - 30, 32, 32); }
     if (ty === 'cart') { rect(x, '#7a5a3a', p.x - 24, p.y - 18, 44, 16); rect(x, '#c8a050', p.x - 20, p.y - 28, 16, 10); rect(x, '#e8dcc0', p.x, p.y - 26, 14, 8); disc(x, '#3a2a20', p.x + 22, p.y - 20, 9); rect(x, '#7a5a3a', p.x + 20, p.y - 22, 4, 4); }
-    if (ty === 'camp') { tri(x, '#8a6a3a', p.x - 10, p.y, 20, 28); rect(x, fl ? '#ffb347' : '#ff7a2f', p.x + 16, p.y - 10, 8, 10); x.drawImage(spriteCanvas('human', 'militia'), p.x + 22, p.y - 30, 32, 32); }
+    if (ty === 'camp') { tri(x, '#8a6a3a', p.x - 10, p.y, 20, 28); rect(x, fl ? '#ffb347' : '#ff7a2f', p.x + 16, p.y - 10, 8, 10); x.drawImage(invCanvas('militia'), p.x + 22, p.y - 30, 32, 32); }
     if (sel || hov) brk(x, sel ? '#e8c030' : '#ece6d6aa', p.x - 50, p.y - 44, 100, 66);
     txt(x, '!', p.x, p.y - 62 + Math.sin(t / 200) * 4, '#e8c030', 20, 'center');
     plate(x, NEST.SPOT[ty].name + ' · ' + G.spot.left + '일 남음', p.x, p.y + 14, '#e8c030', 13);
@@ -3151,9 +3998,9 @@ const N_ = text => ({ narr: true, text }), E_ = text => ({ text: NEST.fj(text) }
 const STORY = {
   intro: [N_('떨어진 자리에는 손바닥만 한 무언가와, 구덩이에 흩어진 누군가의 금화 몇 닢이 남았다.'), E_('…들리나? 좋아. 나는 잔향이야. 네가 예전에 얼마나 컸는지 기억하는 마지막 메아리지.'), E_('지금 네 이름은 「옛 것?」이야. 물음표가 붙었지. 네가 정말 그것이었는지 아무도 몰라. ' + NEST.K.days + '일 뒤, 별들이 한 줄로 서는 밤까지 살아남으면 물음표가 떨어져.'), E_('굴을 파고, 찾아오는 것들을 거두고, 밤마다 쳐들어오는 인간을 막아. 쓰러뜨린 인간은 먹이고, 겁에 질려 무릎 꿇은 인간은… 쓸모가 많지.'), E_('먹은 대로 변한다는 것만 기억해. 그리고 금화를 쌓아 두면 냄새를 맡고 더 많이 온다는 것도.'), E_('우선 문 앞에 서성이는 것들부터 들여. 혼자서는 첫 주도 못 넘겨.')],
   act2: [E_('첫 허물을 벗었네. 이제 지상으로 손을 뻗을 수 있어. Tab으로 올라가서 마을을 봐.'), E_('겁만 줄지, 털지, 지도에서 지울지는 네 마음이야. 다만 무서운 소문은 더 무서운 인간을 데려와.')],
-  act3: [E_('인간들이 널 부르는 이름이 생겼어. 좋은 뜻은 아니야.'), E_('이제 사냥꾼과 학자가 온다. 학자는 네 능력을 봉하고, 성직자는 겁먹은 자를 다독여. 누구부터 치울지 생각해.')],
-  act4: [E_('세 번째 허물이야. 이제 네 몸은 굴 하나로는 다 안 보여.'), E_('인간들이 군대를 보내기 시작했어. 병사는 벽을 뚫고 들어오고, 종군 사제는 겁먹은 자들을 붙든다. 아직 밤이 ' + NEST.K.act * 2 + '번 남았어.')],
-  act5: [E_('밤이 ' + NEST.K.act + '번 남았어. 인간들도 그걸 알아.'), E_('마지막 밤엔 봉인자가 온다. 함정은 절반만 듣고, 한 번에 두 번 친다. 쓸 수 있는 건 전부 써.')],
+  get act3() { return [E_('인간들이 널 부르는 이름이 생겼어. 좋은 뜻은 아니야.'), E_('이제 ' + NEST.GRADE_NAME[3] + '이(가) 온다. ' + NEST.INV.scholar.name + '은(는) 네 능력을 봉하고, ' + NEST.INV.priest.name + '은(는) 겁먹은 자를 다독여. 누구부터 치울지 생각해.')]; },
+  get act4() { return [E_('세 번째 허물이야. 이제 네 몸은 굴 하나로는 다 안 보여.'), E_('저들이 ' + NEST.GRADE_NAME[4] + '을(를) 보내기 시작했어. ' + NEST.INV.soldier.name + '은(는) 벽을 뚫고 들어오고, ' + NEST.INV.chaplain.name + '은(는) 겁먹은 자들을 붙든다. 아직 밤이 ' + NEST.K.act * 2 + '번 남았어.')]; },
+  get act5() { return [E_('밤이 ' + NEST.K.act + '번 남았어. 인간들도 그걸 알아.'), E_('마지막 밤엔 ' + NEST.INV.sealer.name + '이(가) 온다. 함정은 절반만 듣고, 한 번에 두 번 친다. 쓸 수 있는 건 전부 써.')]; },
   last: [E_('오늘 밤 별이 선다. 넘기면 깨어나고, 못 넘기면 다시 한 방울이야.')],
   fell: [N_('눈을 뜨자 깔고 앉아 있던 재물 더미가 반으로 줄어 있었다.'), E_('쓰러진 널 밟고 가져갔어. 몸은 내가 다시 일으켰지만, 이것도 몇 번이지.'), E_('본체 방에 호위를 세우고, 길 위에 싸울 자리를 더 만들어. 그리고 마지막 밤에 오는 것들은 재물이 아니라 너를 가지러 와.')],
   fell2: [E_('다음에 쓰러지면 나도 못 일으켜. 남은 재물로 지킬 것부터 세워.')],
@@ -3213,12 +4060,13 @@ const STAGE_NAME = ['한 방울', '첫 허물', '두 번째 허물', '세 번째
 const guideLine = () => NEST.fj(guideLine0());
 function guideLine0() {
   const d = G.day, bench = G.kin.filter(m => m.loc === null).length;
+  if (G.sealed) return !G.kin.length ? '굴은 아직 막혀 있어. 아무도 여기를 몰라. 먼저 "돋는 것"을 눌러 권속을 돋워.' : G.under >= 1 ? '숨어 있는 밤마다 조금씩 자라지만 날은 흘러가고, 오늘 밤 들킬 위험이 ' + Math.round(NEST.underRisk(G) * 100) + '%야. 들키면 그 밤에 바로 내려와.' : '준비가 됐으면 "땅 위로 뚫는다"를 눌러. 뚫어야 먹이가 오고, 어떤 세상인지도 그때 알게 돼.';
   if (G.spot && G.ap > 0 && d > 3) return '지상에 ' + NEST.SPOT[G.spot.type].name + '이(가) 보여. 이틀이면 사라져. 행동 하나를 쓸 만한지 봐.';
   if (G.omen && G.omen.tier !== 'boon' && !G.omen.calmed && G.faith >= NEST.CALM_COST) return '오늘 징조에는 나쁜 쪽이 붙어 있어. 신앙 ' + NEST.CALM_COST + '을 바치면 달랠 수 있어. 아래 "징조"를 눌러.';
   if (G.guest) return '오늘 밤은 싸우러 오는 게 아니야. ' + NEST.GUEST[G.guest.type].name + '이(가) 온다. 아래 "손님"을 눌러 어떻게 맞을지 정해.';
   { const e = NEST.estimate(G, 'tonight') || NEST.estimate(G, 'tomorrow'); if (e && e.boss && e.boss !== 'captain' && d < NEST.K.days) return '우두머리는 ' + NEST.INV[e.boss].name + '. ' + NEST.INV[e.boss].boss + '.'; }
   if (bench) return '자리 없이 서성이는 권속이 ' + bench + '명 있어. 초소나 대기실을 지어서 세워.';
-  if (d === 1) return '"지원자"를 눌러 권속을 들이고, 길 위 빈 굴에 초소나 함정방을 지어. 건설 한 번에 작업이 셋이야.';
+  if (d === 1) return '"돋는 것"을 눌러 권속을 돋우고, 길 위 빈 굴에 초소나 함정방을 지어. 건설 한 번에 작업이 셋이야.';
   if (d === 2) return '점선이 인간들이 걸어올 길이야. 길 위에 싸울 자리를 만들어. 내일 밤 처음으로 온다.';
   if (d === 3) return (TOUCH ? "지도 위 '지상' 버튼을 눌러 봐." : 'Tab으로 지상에 올라가 봐.') + ' 오늘 밤 누가 얼마나 오는지 보여.';
   if (G.corpses.length >= 3) return '먹이가 쌓였어. 본체 방을 눌러 포식해. 먹은 것의 징조가 쌓인다.';
@@ -3278,14 +4126,14 @@ function checkFeats() {
 // ---------- 길잡이(튜토리얼): 한 일을 확인하고 다음 할 일을 짚어 준다 ----------
 const tutEmpty = () => NEST.paths(G)[0].find(i => i !== NEST.CORE && i !== NEST.ENT && G.cells[i].type === 'empty');
 const TUT = [
-  { t: () => modalKind === 'applicants' ? '마음에 드는 권속을 들여. 둘쯤이면 좋아. 행동은 들지 않아. 다 들였으면 "나중에"를 눌러 창을 닫아.' : '아래 띠에서 "지원자"를 눌러 봐. 문 앞에 찾아온 것들이야.', sel: '[data-a="open"][data-v="applicants"], #modal [data-a="accept"], #modal [data-a="close"]', done: () => G.kin.length >= 1 && $('modal').hidden },
-  { t: () => '이제 싸울 자리를 만들자. 지도의 점선이 인간들이 걸어올 길이야. 깜빡이는 빈 굴을 눌러.', cell: tutEmpty, done: () => G.cells.some(c => c.type === 'post' || c.type === 'hall') || (UI.sel && UI.sel.t === 'cell' && G.cells[UI.sel.i].dug && G.cells[UI.sel.i].type === 'empty') },
-  { t: () => (isMobile() ? '올라온 창의 ' : '오른쪽 패널의 ') + '"추천"에서 "초소"를 지어. 건설 행동 한 번이면 파기·짓기·옮기기 같은 작업을 세 번 할 수 있어.', sel: '[data-a="build"][data-v="post"]', done: () => G.cells.some(c => c.type === 'post' || c.type === 'hall') },
-  { t: () => '초소에 권속을 세우자. 방금 지은 초소를 누르면 "세우기" 옆에 권속 이름이 나와. 이름을 누르면 그 방으로 옮겨 가.', cell: () => G.cells.findIndex(c => c.type === 'post' || c.type === 'hall'), sel: '[data-a="place"]', done: () => G.kin.some(m => typeof m.loc === 'number') },
-  { t: () => (isMobile() ? '좋아. ✕로 창을 닫고 아래의 "지상"을 눌러.' : '좋아. 지도 오른쪽 위의 "지상"을 눌러.') + ' 오늘 밤 누가 오는지 보여.', sel: '#sheetclose, #modal [data-a="close"], [data-a="view"][data-v="surface"]', done: () => ST.screen === 'surface' && $('modal').hidden },
-  { t: () => '붉은 표시가 오늘 밤 올 무리야. 마을과 길목도 눌러 볼 수 있어. 다 봤으면 "지하"로 돌아와.', sel: '[data-a="view"][data-v="under"]', done: () => ST.screen === 'under' },
+  { t: () => modalKind === 'applicants' ? '마음에 드는 것을 돋워. 둘쯤이면 좋아. 행동은 들지 않아. 다 돋웠으면 "나중에"를 눌러 창을 닫아.' : '아래 띠에서 "돋는 것"을 눌러 봐. 네 몸에서 돋으려는 것들이야.', sel: '[data-a="open"][data-v="applicants"], #modal [data-a="accept"], #modal [data-a="close"]', done: () => G.kin.length >= 1 && $('modal').hidden },
+  { t: () => '이제 싸울 자리를 만들자. 지도의 점선이 땅 위의 것들이 걸어 내려올 길이야. 깜빡이는 빈 굴을 눌러.', cell: tutEmpty, done: () => G.cells.some(c => c.type === 'post' || c.type === 'hall') || (UI.sel && UI.sel.t === 'cell' && G.cells[UI.sel.i].dug && G.cells[UI.sel.i].type === 'empty') },
+  { t: () => (isMobile() ? '올라온 창의 ' : '오른쪽 패널의 ') + '"추천"에서 "초소"를 지어. 건설 행동 한 번이면 파기·짓기·함정 같은 작업을 세 번 할 수 있어.', sel: '[data-a="build"][data-v="post"]', done: () => G.cells.some(c => c.type === 'post' || c.type === 'hall') },
+  { t: () => '권속은 제 자리를 알아서 찾아. 먼저 돋은 것들은 본체 곁을 지키고, 나머지는 길목 앞에서부터 서. 지금 초소는 비어 있으니 하나를 불러 세우자. 방금 지은 초소를 누르고 "여기를 지켜라" 옆의 이름을 눌러.', cell: () => G.cells.findIndex(c => c.type === 'post' || c.type === 'hall'), sel: '[data-a="place"]', done: () => G.kin.some(m => m.pin && typeof m.loc === 'number') },
+  { t: () => '좋아. 지키라고 한 권속은 깃발을 달고 그 자리에 붙박여. 풀어 주면 다시 제멋대로 다녀. 이제 굴을 열자. ' + (isMobile() ? '✕로 창을 닫고 아래의 "뚫기"를 눌러.' : '오른쪽 아래 "땅 위로 뚫는다"를 눌러.'), sel: '#sheetclose, [data-a="breach"], #modal [data-a="close"]', done: () => !G.sealed && $('modal').hidden && $('scene').hidden && !busy },
+  { t: () => '굴이 뚫렸어. 여기가 땅 위야. 붉은 표시가 오늘 밤 올 무리고, 마을과 길목도 눌러 볼 수 있어. 다 봤으면 "지하"로 돌아와.', sel: '[data-a="view"][data-v="under"]', done: () => ST.screen === 'under' },
   { t: () => '준비 끝. "밤을 맞는다"를 눌러. 행동이 남았으면 한 번 더 누르면 돼. 싸움은 권속과 함정이 알아서 해.', sel: '[data-a="endday"]', done: () => G.day >= 2 },
-  { t: () => '첫 밤을 넘겼어. 쓰러뜨린 인간은 먹이가 돼. "본체" 단추를 누르거나, 지도에서 깜빡이는 본체 방을 눌러.', cell: () => NEST.CORE, done: () => !G.corpses.length || (G.stats.eats || 0) >= 1 || (UI.sel && UI.sel.t === 'cell' && UI.sel.i === NEST.CORE) },
+  { t: () => '첫 밤을 넘겼어. 쓰러뜨린 것은 먹이가 돼. "본체" 단추를 누르거나, 지도에서 깜빡이는 본체 방을 눌러.', cell: () => NEST.CORE, done: () => !G.corpses.length || (G.stats.eats || 0) >= 1 || (UI.sel && UI.sel.t === 'cell' && UI.sel.i === NEST.CORE) },
   { t: () => '"포식"을 눌러. 먹은 것의 징조가 쌓이고, ' + NEST.K.act + '일째 밤에 정수가 ' + NEST.K.thresh[1] + '을 넘으면 그 징조의 몸으로 허물을 벗어.', sel: '[data-a="eat"], [data-a="core"]', done: () => !G.corpses.length || (G.stats.eats || 0) >= 1 },
   { t: () => '기본은 여기까지야. 꿇은 인간은 "포로"에서 처분하고, 바위를 눌러 굴을 넓혀. 위쪽 숫자를 누르면 뜻이 나와.', end: true, done: () => false },
 ];
@@ -3334,7 +4182,7 @@ function hud() {
   const h = ST.hud || G, need = NEST.K.thresh[G.slime.stage + 1], fg = NEST.fearGrade(G);
   const IC = { '재물': 'gold', '신앙': 'faith', '공포': 'fear', '정수': 'ess', '먹이': 'food' };
   const stat = (lb, val, sub, tip, cls, style) => `<button class="stat" data-a="stat" title="${esc(tip)}"><span class="lb">${IC[lb] ? iconImg(IC[lb]) : ''}<span class="lbt">${lb}</span></span> <span class="v"><b class="num ${cls || ''}"${style ? ` style="${style}"` : ''}>${val}</b>${sub || ''}</span></button>`;
-  $('hud').innerHTML = `<div class="hud-top"><span class="hud-turn">${G.day}일 <small class="mute">/ ${NEST.K.days} · ${NEST.actOf(G)}막</small>${NEST.isSettle(G) ? '<span class="moon"> ◐<small class="only-pc moontxt"> 달이 기우는 밤</small></span>' : ''}</span>
+  $('hud').innerHTML = `<div class="hud-top"><span class="hud-turn">${G.day}일 <small class="mute">/ ${NEST.K.days} · ${G.sealed ? '땅속' : NEST.actOf(G) + '막'}</small>${NEST.isSettle(G) ? '<span class="moon"> ◐<small class="only-pc moontxt"> 달이 기우는 밤</small></span>' : ''}</span>
     <span class="hud-ap"><span class="only-pc">행동 </span><span class="pips">${Array.from({ length: NEST.K.ap }, (_, i) => `<i class="pip${i < G.ap ? '' : ' off'}"></i>`).join('')}</span>${G.d.buildOps ? ` <small class="mute">작업 ${G.d.buildOps}</small>` : ''}</span>
     <span class="row hud-btns only-m">${btn('menu', null, '메뉴', 'sm')}</span></div>
     <div class="stats">${stat('재물', R(h.gold), '', '재물: 본체가 깔고 앉아 있다. 많이 쌓아 둘수록 침입이 잦고 커진다', 'coin')}
@@ -3346,14 +4194,14 @@ function hud() {
     <span class="row hud-btns only-pc">${btn('help', null, '도움말', 'sm')}${btn('settings', null, '설정', 'sm')}${btn('quit', null, '나가기', 'sm')}</span>`;
   document.documentElement.style.setProperty('--hud-h', $('hud').offsetHeight + 'px');
 }
-function forecastText(when) { if (when === 'tonight' && G.guest) return '손님 · ' + NEST.GUEST[G.guest.type].name; const e = NEST.estimate(G, when); if (!e) return '조용할 것 같다'; if (e.boss && e.boss !== 'sealer') return `${NEST.VILL[e.vill].name} · ${NEST.INV[e.boss].name} 외 ${e.count - 1}명 (큰 무리)`; return `${NEST.VILL[e.vill].name} · ${NEST.GRADE_NAME[e.grade]} ${e.kinds ? '' : '약 '}${e.count}명${e.settle ? ' (큰 무리)' : ''}`; }
+function forecastText(when) { if (G.sealed) return when === 'tonight' ? '굴이 막혀 있다' + (NEST.underRisk(G) ? ' · 들킬 위험 ' + Math.round(NEST.underRisk(G) * 100) + '%' : '') : '뚫기 전에는 아무도 모른다'; if (when === 'tonight' && G.guest) return '손님 · ' + NEST.GUEST[G.guest.type].name; const e = NEST.estimate(G, when); if (!e) return '조용할 것 같다'; if (e.boss && e.boss !== 'sealer') return `${NEST.VILL[e.vill].name} · ${NEST.INV[e.boss].name} 외 ${e.count - 1}명 (큰 무리)`; return `${NEST.VILL[e.vill].name} · ${NEST.GRADE_NAME[e.grade]} ${e.kinds ? '' : '약 '}${e.count}명${e.settle ? ' (큰 무리)' : ''}`; }
 function tray() {
   const out = [], bench = G.kin.filter(m => m.loc === null).length, tm = G.day < NEST.K.days;
   if (G.event) out.push(`<button class="chip todo" data-a="open" data-v="event">사건</button>`);
   if (G.omen) { const live = G.omen.tier !== 'boon' && !G.omen.calmed; out.push(`<button class="chip${live ? ' todo' : ''}" data-a="open" data-v="elder"><span style="color:${ASPCOL[G.eld.id]}">징조</span><span class="tn"> ${NEST.OMEN[G.omen.id].name}</span></button>`); }
   if (G.guest) out.push(`<button class="chip todo" data-a="open" data-v="guest">손님</button>`);
   if (G.spot) out.push(`<button class="chip todo" data-a="gospot">지상<span class="tn"> ${NEST.SPOT[G.spot.type].name}</span></button>`);
-  if (G.applicants.length) out.push(`<button class="chip todo" data-a="open" data-v="applicants">지원자 ${G.applicants.length}</button>`);
+  if (G.applicants.length) out.push(`<button class="chip todo" data-a="open" data-v="applicants">돋는 것 ${G.applicants.length}</button>`);
   if (G.prison.length) out.push(`<button class="chip todo" data-a="open" data-v="captives">포로 ${G.prison.length}</button>`);
   if (bench) out.push(`<button class="chip todo" data-a="open" data-v="roster">대기 ${bench}</button>`);
   out.push(`<button class="chip only-pc" data-a="open" data-v="roster">권속 ${G.kin.length}</button>`);
@@ -3363,7 +4211,7 @@ function tray() {
   $('fore').innerHTML = `<span class="up">오늘 밤</span><span>${esc(forecastText('tonight'))}</span>${tm ? `<span class="warnc">내일 밤</span><span class="mute">${esc(forecastText('tomorrow'))}</span>` : ''}`;
   $('recent').innerHTML = G.auto && AUTO.log.length ? `<div class="row nw" style="align-items:flex-start">${echoImg(40)}<p class="grow"><b class="h3 coin">권속들</b> ${esc(AUTO.log.slice(0, 2).join(' · '))}</p></div>` : `<div class="row nw" style="align-items:flex-start">${echoImg(40)}<p class="grow"><b class="h3 coin">잔향</b> ${esc(G.auto ? '권속들이 일하고 있어. 궁금한 방은 눌러 봐. 급하면 멈추고 직접 시켜도 돼.' : guideLine())}</p></div>`;
   const pr = v => ` aria-pressed="${ST.screen === v}"`;
-  $('mnav').innerHTML = `<span class="seg"><button class="btn" data-a="view" data-v="under"${pr('under')}>지하</button><button class="btn" data-a="view" data-v="surface"${pr('surface')}>지상</button></span>${btn('core', null, '본체')}${btn('open', { v: 'roster' }, '권속 ' + G.kin.length)}${G.auto ? `<button class="btn pri end" data-a="autopause">${AUTO.paused ? '▶ 계속' : '⏸ 멈춤'}</button><button class="btn" data-a="autospeed" data-v="next">${AUTO.speed}배</button>` : `<button class="btn pri end${UI.confirmEnd ? ' warn' : ''}" data-a="endday">${UI.confirmEnd ? `행동 ${G.ap} 남음 · 한 번 더` : (NEST.isSettle(G) ? '◐ ' : '') + '밤 맞기'}</button>`}`;
+  $('mnav').innerHTML = `<span class="seg"><button class="btn" data-a="view" data-v="under"${pr('under')}>지하</button>${G.sealed ? '<button class="btn" data-a="breach">뚫기</button>' : `<button class="btn" data-a="view" data-v="surface"${pr('surface')}>지상</button>`}</span>${btn('core', null, '본체')}${btn('open', { v: 'roster' }, '권속 ' + G.kin.length)}${G.auto ? `<button class="btn pri end" data-a="autopause">${AUTO.paused ? '▶ 계속' : '⏸ 멈춤'}</button><button class="btn" data-a="autospeed" data-v="next">${AUTO.speed}배</button>` : `<button class="btn pri end${UI.confirmEnd ? ' warn' : ''}" data-a="endday">${UI.confirmEnd ? `행동 ${G.ap} 남음 · 한 번 더` : (NEST.isSettle(G) ? '◐ ' : '') + '밤 맞기'}</button>`}`;
 }
 const lifePips = () => { const n = NEST.lives(G), t = NEST.livesMax(G); return '<span class="hearts" role="img" aria-label="목숨 ' + n + ' / ' + t + '">' + iconImg('life', 18).repeat(n) + iconImg('dead', 18).repeat(Math.max(0, t - n)) + '</span>'; };
 // 지금 이대로 달이 기울면 무엇이 되는가. 겪어 보지 못한 숨은 본체는 이름을 가린다
@@ -3376,7 +4224,7 @@ function slimePanel() {
     <div class="row nw">${btn('eat', null, `포식 <small>행동 1 · 먹이 ${G.corpses.length}/${NEST.corpseCap(G)}</small>`, 'pri grow', !G.corpses.length)}${btn('rest', null, '휴식 <small>행동 1</small>', 'grow')}</div>${tabsHtml('core', list, tab)}<div class="tb">`;
   if (tab === 'ess') h += `<div class="pts">${NEST.ASPECTS.map(a => `<span style="color:${ASPCOL[a]}">${NEST.ASP[a]}</span>${bar(sl.ess[a] / max, ASPCOL[a])}<span class="num">${sl.ess[a]}</span>`).join('')}</div>
     <p class="small"><b>합 ${tot}${need ? ' / ' + need : ''}</b> <span class="mute">${sl.stage === 0 ? A + '일째 밤 첫 허물 → <b style="color:' + ASPCOL[moltGuess().asp] + '">「' + moltGuess().name + '」</b>' : sl.stage === 1 ? A * 2 + '일째 밤, 두 번째로 많은 징조가 섞인다.' : sl.stage === 2 ? A * 3 + '일째 밤에 기준을 넘으면 세 번째 허물을 벗는다.' : sl.stage === 3 ? A * 4 + '일째 밤에 기준을 넘으면 성체가 된다.' : '다 자랐다. 별이 서기를 기다린다.'}</span></p>
-    <div class="sec">먹이 <small>포식하면 ${sl.muts.includes('mouth') ? 6 : 3}구씩 정수가 된다</small></div><div class="row">${G.corpses.map(c => aspChip(NEST.INV[c.kind].asp, NEST.INV[c.kind].name + ' +' + NEST.corpsePts(G, c.kind))).join('') || '<span class="mute small">없음. 쓰러뜨린 침입자가 먹이가 된다.</span>'}</div>`;
+    <div class="sec">먹이 <small>포식하면 ${sl.muts.includes('mouth') ? 6 : 3}구씩 정수가 된다</small></div><div class="row">${G.corpses.slice(0, isMobile() ? 4 : 8).map(c => aspChip(NEST.INV[c.kind].asp, NEST.INV[c.kind].name + ' +' + NEST.corpsePts(G, c.kind))).join('') || '<span class="mute small">없음. 쓰러뜨린 침입자가 먹이가 된다.</span>'}${G.corpses.length > (isMobile() ? 4 : 8) ? `<span class="small mute">외 ${G.corpses.length - (isMobile() ? 4 : 8)}</span>` : ''}</div>`;
   if (tab === 'pow') {
     h += `<div class="kv small">${G.origin && G.origin !== 'drop' ? `<span class="chip on">${O.name}</span><span><span class="okc">${esc(O.good)}</span> · <span class="up">${esc(O.bad)}</span></span>` : '<span class="chip">형질 없음</span><span class="mute">하는 짓에 따라 몸에 무언가 돋을 수 있다. 한 판에 하나.</span>'}`;
     if (sl.stage >= 1) { const bk = NEST.pk(G), sp = NEST.FORM1[bk].spell; h += `${aspChip(sl.main, NEST.FORM1[bk].name)}<span>${esc(NEST.FORM1[bk].skill)}${sl.stage >= 2 ? ' · <b>' + esc(NEST.FORM2UP[bk]) + '</b>' : ''}</span><span class="chip" style="border-color:#c8a8ff;color:#c8a8ff">주문 ${sp[0]}</span><span>${esc(sp[2])} <span class="mute">(신앙 ${NEST.spellCost(G)})</span></span>`; }
@@ -3385,7 +4233,7 @@ function slimePanel() {
     if (sl.stage === 0) h += '<p class="small mute">아직 형체가 없다. 허물을 벗으면 능력과 손 주문이 생기고, 그때마다 변이가 하나씩 돋는다.</p>';
   }
   if (tab === 'hoard') h += `<p class="small mute">깔고 앉은 재물을 쓴다. 행동은 들지 않는다. 삼킨 재물은 털리지 않는다.</p><div class="opts">${Object.keys(NEST.HOARD).map(k => { const d = NEST.HOARD[k], n = NEST.hoardN(G, k), why = NEST.hoardWhy(G, k), full = n >= d.max; return opt('hoard', { k }, d.name + (n ? (d.max > 2 ? ' ×' + n : ' ' + n + '/' + d.max) : ''), full ? 0 : NEST.hoardCost(G, k), full ? '다 했다' : why && !why.includes('부족') ? why : d.desc, !!why); }).join('')}</div>`;
-  if (tab === 'guard') h += `<div class="units">${guards.map(kinChip).join('') || '<span class="mute small">호위가 없다. 대기 중인 권속을 세울 수 있다.</span>'}</div>${bench.length ? `<div class="row"><span class="small mute">세우기</span>${bench.slice(0, 8).map(m => btn('place', { id: m.id, loc: 'core' }, esc(m.name), 'sm')).join('')}</div>` : ''}${guards.length && G.day >= 4 ? `<div class="row"><span class="small mute">훈련 <small>행동 1</small></span>${[30, 60, 120].map(a => btn('train', { loc: 'core', amt: a * NEST.cm(G) }, a * NEST.cm(G) + 'G', 'sm', G.gold < a * NEST.cm(G))).join('')}</div>` : guards.length ? '<p class="small mute">훈련은 4일째부터.</p>' : ''}
+  if (tab === 'guard') h += `<div class="units">${guards.map(kinChip).join('') || '<span class="mute small">호위가 없다. 권속이 돋으면 먼저 돋은 것부터 여기를 지킨다.</span>'}</div>${bench.length ? `<div class="row"><span class="small mute">세우기</span>${bench.slice(0, 8).map(m => btn('place', { id: m.id, loc: 'core' }, esc(m.name), 'sm')).join('')}</div>` : ''}${guards.length && G.day >= 4 ? `<div class="row"><span class="small mute">훈련 <small>행동 1</small></span>${[30, 60, 120].map(a => btn('train', { loc: 'core', amt: a * NEST.cm(G) }, a * NEST.cm(G) + 'G', 'sm', G.gold < a * NEST.cm(G))).join('')}</div>` : guards.length ? '<p class="small mute">훈련은 4일째부터.</p>' : ''}
     <p class="small mute">재물은 본체가 깔고 앉아 있다. 여기까지 온 무리는 본체·호위와 싸우고, 본체가 쓰러지면 재물 ${Math.round(NEST.K.rob * (G.origin === 'coin' ? 1.6 : 1) * 100)}%를 들고 간다. ${G.day >= NEST.K.days ? '<b class="up">오늘 밤은 쓰러지면 끝이다.</b>' : NEST.lives(G) > 1 ? '목숨이 하나 남으면 그다음은 끝이다.' : '<b class="up">다음에 쓰러지면 끝이다.</b>'}</p>`;
   return h + '</div>';
 }
@@ -3405,7 +4253,7 @@ function cellPanel(i) {
     if (d.def) {
       const bench = G.kin.filter(m => m.loc === null), full = here.filter(m => m.kind !== 'spawn').length >= d.def;
       h += `<div class="units">${here.map(kinChip).join('') || '<span class="mute small">비어 있다. 권속이 없으면 적이 그냥 지나간다.</span>'}</div>`;
-      if (!full) { const others = G.kin.filter(m => m.loc !== null && m.loc !== i && m.kind !== 'spawn'), pick = bench.concat(others).slice(0, 6); if (pick.length) h += `<div class="row"><span class="small mute">세우기 <small>작업 1</small></span>${pick.map(m => btn('place', { id: m.id, loc: i }, esc(m.name) + (m.loc === null ? '' : ` <small>← ${m.loc === 'core' ? '본체' : coord(m.loc)}</small>`), 'sm')).join('')}</div>`; }
+      if (!full) { const others = G.kin.filter(m => m.loc !== null && m.loc !== i && m.kind !== 'spawn'), pick = bench.concat(others).slice(0, 6); if (pick.length) h += `<div class="row"><span class="small mute">여기를 지켜라</span>${pick.map(m => btn('place', { id: m.id, loc: i }, esc(m.name) + (m.loc === null ? '' : ` <small>← ${m.loc === 'core' ? '본체' : coord(m.loc)}</small>`), 'sm')).join('')}</div>`; }
       if (here.length && G.day >= 4) h += `<div class="row"><span class="small mute">훈련 <small>행동 1</small></span>${[30, 60, 120].map(a => btn('train', { loc: i, amt: a * cmx }, a * cmx + 'G', 'sm', G.gold < a * cmx)).join('')}</div>`;
     }
     if (d.traps) {
@@ -3458,7 +4306,7 @@ function overview() {
     ${G.sign && NEST.SIGN[G.sign] ? `<p class="small clamp2"><span class="chip" style="border-color:${ASPCOL[NEST.SIGN[G.sign].asp]};color:${ASPCOL[NEST.SIGN[G.sign].asp]}">${NEST.SIGN[G.sign].name}</span> ${esc(NEST.STAR[G.star].name + ': ' + NEST.STAR[G.star].desc)}</p>` : G.star && G.star !== 'none' ? `<p class="small clamp2"><span class="chip on">${NEST.STAR[G.star].name}</span> ${esc(NEST.STAR[G.star].desc)}</p>` : ''}
     ${G.gods || G.auto ? godsRow() : ''}
     <div class="sec">권속 ${G.kin.length}명 <small>하루 삯 ${R(G.kin.reduce((a, m) => a + NEST.salary(G, m), 0))}G · 시설 유지 ${R(NEST.upkeep(G))}G</small></div>
-    <div class="rooms">${keys.map(k => `<span class="small ${k === 'bench' ? 'warnc' : 'mute'}">${k === 'bench' ? '대기 (안 싸움)' : esc(locName(k === 'core' ? 'core' : +k))}</span><div class="units">${by[k].map(kinMini).join('')}</div>`).join('') || '<span class="mute small" style="grid-column:1/-1">아직 아무도 없다. 아침마다 지원자가 찾아온다.</span>'}</div>
+    <div class="rooms">${keys.map(k => `<span class="small ${k === 'bench' ? 'warnc' : 'mute'}">${k === 'bench' ? '대기 (안 싸움)' : esc(locName(k === 'core' ? 'core' : +k))}</span><div class="units">${by[k].map(kinMini).join('')}</div>`).join('') || '<span class="mute small" style="grid-column:1/-1">아직 아무도 없다. 아침마다 몸에서 돋으려는 것이 생긴다.</span>'}</div>
     <p class="small mute">지도에서 칸·마을·길목을 누르면 여기에 할 일이 나온다. <kbd>Tab</kbd> 지상·지하 · <kbd>E</kbd> 밤 맞기 · <kbd>Esc</kbd> 선택 해제</p>`;
 }
 function view() {
@@ -3466,7 +4314,7 @@ function view() {
   if (!s) h = overview(); else if (s.t === 'cell') h = cellPanel(s.i); else if (s.t === 'vill') h = villPanel(s.v); else if (s.t === 'spot') h = spotPanel(); else h = plotPanel(s.p);
   $('view').innerHTML = h;
   if (G.auto) $('foot').innerHTML = `<p class="small mute">교시 <b style="color:${G.edict ? ASPCOL[NEST.EDICT[G.edict].god] : 'inherit'}">「${G.edict ? NEST.EDICT[G.edict].name : '아직'}」</b> · ${AUTO.paused ? '멈춰 있다' : '권속들이 일하는 중'}</p><span class="bar"><i style="width:${Math.round(100 * AUTO.i / Math.max(1, AUTO.n))}%;background:var(--coin)"></i></span><div class="row nw"><button class="btn pri big grow" data-a="autopause">${AUTO.paused ? '▶ 다시 흐르게' : '⏸ 멈춤'} <kbd>E</kbd></button>${[1, 2, 4].map(v => btn('autospeed', { v }, v + '배', AUTO.speed === v ? 'on' : '')).join('')}</div>`;
-  else $('foot').innerHTML = `${UI.confirmEnd ? `<p class="small warnc">행동이 ${G.ap} 남았다. 남기면 본체가 그만큼 쉰다. 한 번 더 누르면 밤이 된다.</p>` : ''}<button class="btn pri big" data-a="endday">${NEST.isSettle(G) ? '달이 기우는 밤을 맞는다' : '밤을 맞는다'} <kbd>E</kbd></button>`;
+  else $('foot').innerHTML = `${G.sealed ? `<p class="small mute">굴이 막혀 있다. 아무도 오지 않지만 먹이도 없다. 숨은 밤마다 정수 +${NEST.K.deep.ess}${NEST.underRisk(G) ? ` · <span class="warnc">오늘 밤 들킬 위험 ${Math.round(NEST.underRisk(G) * 100)}%</span>` : ''}</p><button class="btn big" data-a="breach">땅 위로 뚫는다</button>` : ''}${UI.confirmEnd ? `<p class="small warnc">행동이 ${G.ap} 남았다. 남기면 본체가 그만큼 쉰다. 한 번 더 누르면 밤이 된다.</p>` : ''}<button class="btn pri big" data-a="endday">${G.sealed ? '땅속에서 밤을 보낸다' : NEST.isSettle(G) ? '달이 기우는 밤을 맞는다' : '밤을 맞는다'} <kbd>E</kbd></button>`;
   const open = isMobile() && !!s && ST.mode === 'day'; $('right').classList.toggle('open', open);
   if (!open) ST.cover = 0; else requestAnimationFrame(() => { const a = $('stage').getBoundingClientRect(), r = $('right').getBoundingClientRect(); ST.cover = $('right').classList.contains('open') ? Math.max(0, a.bottom - r.top) : 0; });
 }
@@ -3485,10 +4333,10 @@ function openM(fn, wide) { UI.mfn = { fn, wide }; const p = modal(fn(), wide, 's
 function redrawM() { if (UI.mfn && !$('modal').hidden) { $('modal').innerHTML = `<div class="sheet${UI.mfn.wide ? ' wide' : ''}">${UI.mfn.fn()}</div>`; if ($('cloudboard')) fillCloudBoard(); } }
 const closeBtn = label => btn('close', null, label || '닫기');
 function applicantsHtml() {
-  if (!G.applicants.length) return M('지원자', '<p class="mute">오늘은 더 없다. 내일 아침 새 얼굴이 온다.</p>', closeBtn());
-  return M('둥지를 찾아온 것들 <small class="mute">행동은 들지 않는다 · 안 들이면 내일 떠난다</small>', `<div class="pick3">${G.applicants.map((a, i) => {
+  if (!G.applicants.length) return M('돋는 것', '<p class="mute">오늘은 더 없다. 내일 아침 또 돋는다.</p>', closeBtn());
+  return M('몸에서 돋으려는 것들 <small class="mute">행동은 들지 않는다 · 안 돋우면 내일 사라진다</small>', `<div class="pick3">${G.applicants.map((a, i) => {
     const d = NEST.KIN[a.kind], cost = NEST.acceptCost(G, a), slot = NEST.freeSlot(G, a.kind), lv = Math.max(1, NEST.actOf(G) * 3 - 2) + (a.rare ? 2 : 0), g = Math.pow(NEST.K.lvGrowth, lv - 1) * (a.rare ? 1.4 : 1);
-    return `<div class="card pcard${a.rare ? ' rare' : ''}">${kinImg(a.kind, 64)}<b class="h3">${a.rare ? '희귀 ' : ''}${d.name} <small class="mute">"${esc(a.name)}" Lv${lv}</small>${d.satk || a.kind === 'netter' ? ' <span class="chip good" title="적을 죽이지 않고 꺾어 포로로 만든다">생포</span>' : ''}${NEST.KASP[a.kind] ? ' ' + aspChip(NEST.KASP[a.kind], NEST.ASP[NEST.KASP[a.kind]]) : ''}</b><span class="small">체력 ${R(d.hp * g)} · 공격 ${R(d.atk * g)} · 방어 ${R(d.df * g)}${d.satk ? ' · 정신 ' + R(d.satk * g) : ''}</span><span class="small mute clamp2">${esc(d.note || '평범하게 싸운다')}</span><span class="small mute">삯 ${R(NEST.salary(G, { kind: a.kind, lv }))}G${d.eat ? ' + 먹이' : ''} · <span class="${slot === null ? 'warnc' : 'okc'}">${slot === null ? '자리 없음 (대기)' : '→ ' + esc(locName(slot))}</span></span>${btn('accept', { i }, `들인다 ${cost}G`, 'pri', G.gold < cost)}</div>`;
+    return `<div class="card pcard${a.rare ? ' rare' : ''}">${kinImg(a.kind, 64)}<b class="h3">${a.rare ? '희귀 ' : ''}${d.name} <small class="mute">"${esc(a.name)}" Lv${lv}</small>${d.satk || a.kind === 'netter' ? ' <span class="chip good" title="적을 죽이지 않고 꺾어 포로로 만든다">생포</span>' : ''}${NEST.KASP[a.kind] ? ' ' + aspChip(NEST.KASP[a.kind], NEST.ASP[NEST.KASP[a.kind]]) : ''}</b><span class="small">체력 ${R(d.hp * g)} · 공격 ${R(d.atk * g)} · 방어 ${R(d.df * g)}${d.satk ? ' · 정신 ' + R(d.satk * g) : ''}</span><span class="small mute clamp2">${esc(d.note || '평범하게 싸운다')}</span><span class="small mute">삯 ${R(NEST.salary(G, { kind: a.kind, lv }))}G${d.eat ? ' + 먹이' : ''} · <span class="${slot === null ? 'warnc' : 'okc'}">${slot === null ? '설 자리 없음 (대기)' : '설 자리 있음'}</span></span>${btn('accept', { i }, `돋운다 ${cost}G`, 'pri', G.gold < cost)}</div>`;
   }).join('')}</div>`, closeBtn('나중에'));
 }
 function captivesHtml() {
@@ -3510,10 +4358,10 @@ function eventHtml() {
 function kinHtml(id) {
   const m = G.kin.find(x => x.id === id); if (!m) return M('권속', '<p class="mute">떠난 권속이다.</p>', closeBtn());
   const d = NEST.KIN[m.kind], s = NEST.kinStats(G, m), cap = NEST.capacity(G);
-  const slots = Object.keys(cap).map(k => k === 'core' ? k : +k).filter(k => k !== m.loc && (m.kind === 'spawn' || G.kin.filter(x => x.loc === k && x.kind !== 'spawn').length < cap[k]));
+  const slots = Object.keys(cap).map(k => k === 'core' ? k : +k).filter(k => !(m.pin && k === m.loc) && G.kin.filter(x => x !== m && x.loc === k && x.kind !== 'spawn' && x.pin).length < cap[k]);
   const list = [['move', '자리'], ['skill', '기술·방침'], ['evo', '진화'], ['fuse', '합체', (m.parts || []).length + '/' + NEST.K.fuse.max]], tab = curTab('kin', list);
-  let b = `<div class="slime-top sm">${kinImgM(m, 56)}<div class="stack" style="gap:3px"><div class="xp"><i style="width:${Math.min(100, m.exp / NEST.expNeed(m.lv) * 100)}%"></i></div><p class="small">체력 ${R(s.hp)} · 공격 ${R(s.atk)} · 방어 ${R(s.df)}${s.satk ? ' · 정신 ' + R(s.satk) : ''} · 삯 ${R(NEST.salary(G, m))}G${d.eat ? ' + 먹이' : ''}</p><p class="small mute clamp2">${esc(d.note || '')}</p>${NEST.recipesOf(m).map(r => `<p class="small"><span class="chip on">★ ${NEST.RECIPE[r].name}</span> ${esc(NEST.RECIPE[r].desc)}</p>`).join('')}<p class="small">지금 <b>${esc(locName(m.loc))}</b>${m.hurt ? ' · <span class="up">부상 ' + m.hurt + '일 (휴식하면 복귀)</span>' : ''}${m.strike ? ' · <span class="warnc">삯를 못 받아 오늘 밤 쉰다</span>' : ''}</p></div></div>${tabsHtml('kin', list, tab)}<div class="tb">`;
-  if (tab === 'move') b += `<p class="small mute">옮기는 데 작업 1.</p><div class="opts">${slots.map(k => btn('place', { id: m.id, loc: k }, esc(locName(k)), '')).join('') || '<span class="small mute">빈 자리가 없다. 초소나 대기실을 지어야 한다.</span>'}${m.loc !== null ? btn('place', { id: m.id, loc: 'bench' }, '대기로 빼기', '') : ''}</div>`;
+  let b = `<div class="slime-top sm">${kinImgM(m, 56)}<div class="stack" style="gap:3px"><div class="xp"><i style="width:${Math.min(100, m.exp / NEST.expNeed(m.lv) * 100)}%"></i></div><p class="small">체력 ${R(s.hp)} · 공격 ${R(s.atk)} · 방어 ${R(s.df)}${s.satk ? ' · 정신 ' + R(s.satk) : ''} · 삯 ${R(NEST.salary(G, m))}G${d.eat ? ' + 먹이' : ''}</p><p class="small mute clamp2">${esc(d.note || '')}</p>${NEST.recipesOf(m).map(r => `<p class="small"><span class="chip on">★ ${NEST.RECIPE[r].name}</span> ${esc(NEST.RECIPE[r].desc)}</p>`).join('')}<p class="small">지금 <b>${esc(locName(m.loc))}</b>${m.kind === 'spawn' ? '' : m.pin ? ' <span class="chip on">지킴</span>' : ' <span class="chip">제멋대로</span>'}${m.hurt ? ' · <span class="up">부상 ' + m.hurt + '일 (휴식하면 복귀)</span>' : ''}${m.strike ? ' · <span class="warnc">삯를 못 받아 오늘 밤 쉰다</span>' : ''}</p></div></div>${tabsHtml('kin', list, tab)}<div class="tb">`;
+  if (tab === 'move') b += m.kind === 'spawn' ? '<p class="small mute">움은 본체 곁에 붙어 있다. 시킬 수 없다.</p>' : `<p class="small ${m.pin ? 'coin' : 'mute'}">${m.pin ? (m.loc === null ? '쉬라고 해 두었다. 싸우지 않는다.' : '지키라고 한 자리에 붙박여 있다.') : '제 마음대로 다닌다. 밤이 오면 스스로 자리를 잡는다. 꼭 지킬 곳이 있으면 시켜라. 작업은 들지 않는다.'}</p><div class="opts">${m.pin ? btn('release', { id: m.id }, '풀어 준다 <small>제 자리를 찾아간다</small>', 'on') : ''}${slots.map(k => btn('place', { id: m.id, loc: k }, '지켜라 · ' + esc(locName(k)), '')).join('')}${m.pin && m.loc === null ? '' : btn('place', { id: m.id, loc: 'bench' }, '쉬어라', '')}</div>`;
   if (tab === 'skill') b += `${d.skills.length ? `<div class="opts c1">${d.skills.map((k, i) => `<button class="btn opt${m.skill === i ? ' on' : ''}" data-a="skill" data-id="${m.id}" data-i="${i}"${m.lv < NEST.SKILL_LV[i] ? ' disabled' : ''}><b>${esc(k[0])} <small class="mute">Lv${NEST.SKILL_LV[i]}부터</small></b><span class="small mute">${esc(k[1])}</span></button>`).join('')}</div>` : '<p class="small mute">기술이 없다.</p>'}${m.kind !== 'spawn' ? `<div class="row nw">${btn('stance', { id: m.id, v: 'careful' }, '신중 <small>체력 30%에 물러남</small>', 'grow' + (m.stance !== 'hold' ? ' on' : ''))}${btn('stance', { id: m.id, v: 'hold' }, '사수 <small>끝까지</small>', 'grow' + (m.stance === 'hold' ? ' on' : ''))}</div>` : ''}`;
   if (tab === 'evo') b += m.kind === 'spawn' ? `<p class="${m.evo ? 'okc' : 'mute'}">${m.evo ? '큰 움으로 자랐다. 능력치 1.5배.' : '나흘을 살아남으면 저절로 큰 움으로 자란다. 지금 ' + (m.age || 0) + '일째.'}</p>` : !NEST.EVO[m.kind] ? '<p class="mute">더 자라지 않는다.</p>' : m.evo ? `<p class="okc"><b>${NEST.EVO[m.kind]}</b> — ${esc(NEST.EVO_DESC[m.kind])}. 능력치·삯 1.5배.</p>` : `<div class="row nw">${kinImg(m.kind, 56, true)}<p class="grow"><b class="h3">${NEST.EVO[m.kind]}</b><br><span class="small ${m.lv < 5 ? 'mute' : 'okc'}">${esc(NEST.EVO_DESC[m.kind])}. 능력치와 삯 1.5배.</span></p></div><div class="row">${btn('kinevo', { id: m.id }, `진화시킨다 ${NEST.evoCost(G)}G`, 'pri', m.lv < 5 || G.gold < NEST.evoCost(G))}<span class="small mute">${m.lv < 5 ? '레벨 5부터. 지금 Lv' + m.lv : '행동은 들지 않는다'}</span></div>`;
   if (tab === 'fuse') {
@@ -3523,9 +4371,9 @@ function kinHtml(id) {
     else if (full) b += '<p class="small okc">더는 붙일 자리가 없다.</p>';
     else b += pager('fuse', mats, 6, items => `<div class="opts">${items.map(x => { const d2 = NEST.KIN[x.kind], g2 = Math.pow(NEST.K.lvGrowth, x.lv - 1) * (x.rare ? 1.4 : 1) * (x.evo ? 1.5 : 1) * sh; return `<button class="btn opt" data-a="fuse" data-id="${m.id}" data-b="${x.id}"${NEST.fuseWhy(G, m.id, x.id) ? ' disabled' : ''}><b>${esc(x.name)} <small class="mute">${NEST.baseName(x)} Lv${x.lv}</small></b><span class="small mute">체력 +${R(d2.hp * g2)} · 공격 +${R(d2.atk * g2)}${d2.satk ? ' · 정신 +' + R(d2.satk * g2) : ''}${x.loc !== null ? ' · <span class="warnc">' + esc(locName(x.loc)) + '의 자리가 빈다</span>' : ''}${NEST.fusePreview(G, m.id, x.id).map(r => META.codex.rcp[r] ? ' <b class="coin">★ ' + NEST.RECIPE[r].name + '</b>' : ' <b class="coin">★ 무언가 특별한 것이 될 것 같다</b>').join('')}</span></button>`; }).join('') || '<span class="small mute">붙일 권속이 없다.</span>'}</div>`);
   }
-  return M(`${esc(m.name)} <small class="mute">${m.rare ? '희귀 ' : ''}${NEST.kinName(m)} · Lv${m.lv}${m.legacy ? ' · 명부' : ''}</small>`, b + '</div>', btn('dismiss', { id: m.id }, '내보낸다', 'sm bad') + btn('open', { v: 'roster' }, '권속 목록') + closeBtn());
+  return M(`${esc(m.name)} <small class="mute">${m.rare ? '희귀 ' : ''}${NEST.kinName(m)} · Lv${m.lv}${m.legacy ? ' · 명부' : ''}</small>`, b + '</div>', btn('dismiss', { id: m.id }, '도로 삼킨다', 'sm bad') + btn('open', { v: 'roster' }, '권속 목록') + closeBtn());
 }
-function rosterHtml() { return M(`권속 ${G.kin.length}명 <small class="mute">눌러서 자리, 기술, 진화를 본다</small>`, pager('roster', G.kin, isMobile() ? 14 : 18, items => `<div class="units ${isMobile() ? 'g2' : 'g3'}">${items.map(m => kinChip(m).replace('</small></span></button>', ` · ${esc(m.loc === null ? '대기' : m.loc === 'core' ? '본체' : coord(m.loc))}</small></span></button>`)).join('') || '<span class="mute">아직 아무도 없다.</span>'}</div>`), closeBtn()); }
+function rosterHtml() { return M(`권속 ${G.kin.length}명 <small class="mute">알아서 자리를 잡는다 · 눌러서 지킬 곳을 시킨다</small>`, pager('roster', G.kin, isMobile() ? 14 : 18, items => `<div class="units ${isMobile() ? 'g2' : 'g3'}">${items.map(m => kinChip(m).replace('</small></span></button>', ` · ${esc(m.loc === null ? '대기' : m.loc === 'core' ? '본체' : coord(m.loc))}${m.pin ? ' 지킴' : ''}</small></span></button>`)).join('') || '<span class="mute">아직 아무도 없다.</span>'}</div>`), closeBtn()); }
 const omenLines = om => `${om.tier !== 'bane' ? `<p class="okc small">＋ ${esc(NEST.OMEN[om.id].boon)}</p>` : ''}${om.tier !== 'boon' ? `<p class="${om.calmed ? 'mute' : 'up'} small">－ ${esc(NEST.OMEN[om.id].bane)}${om.calmed ? ' (달랬다)' : ''}</p>` : ''}`;
 function elderHtml() {
   const e = NEST.ELDER[G.eld.id], f = G.eld.favor, col = ASPCOL[G.eld.id], om = G.omen, live = om && om.tier !== 'boon' && !om.calmed, tl = G.eld.tally;
@@ -3645,7 +4493,7 @@ function setupHtml(o) {
       <div class="kv small"><span class="chip" style="border-color:${col};color:${col}">${NEST.ASP[sg.asp]} 조각</span><span>${NEST.ASP[sg.asp]} 정수 12를 품고 떨어진다. 그쪽으로 자라기 쉽지만, 무엇이 될지는 결국 먹는 것이 정한다.</span><span class="chip on">${st.name}</span><span>${esc(st.desc)}</span></div></div>
     <p class="small mute">어느 별자리에서 떨어질지는 고르지 못한다. 한 판을 끝내면 하늘이 바뀐다. 처음에는 누구나 「옛 것?」이고, 껍데기나 입 같은 것은 판을 하다가 하는 짓에 따라 몸에 돋는다.</p>
     <div class="row nw">${btn('reroll', null, `다른 별자리를 기다린다 <small>별가루 ${REROLL}</small>`, '', META.dust < REROLL || pool.length < 2)}<span class="small mute grow">별가루 ${R(META.dust)} · 뜰 수 있는 별자리 ${pool.length}/${Object.keys(NEST.SIGN).length}</span></div>`;
-  if (tab === 'rule') b += `<div class="row"><span class="small mute">다스리는 방식</span>${btn('setup', { k: 'auto', v: 1 }, '맡김 <small>권속들이 알아서</small>', o.auto ? 'on' : '')}${btn('setup', { k: 'auto', v: 0 }, '직접 <small>하나하나 시킨다</small>', o.auto ? '' : 'on')}</div><div class="row">${[1, 2, 3].map(d => btn('setup', { k: 'diff', v: d }, `${NEST.DIFF[d].name}${d > 1 ? ' <small>침입 ×' + NEST.DIFF[d].mult + '</small>' : ''}`, o.diff === d ? 'on' : '', !!diffLock(d))).join('')}</div>${[2, 3].filter(d => diffLock(d)).map(d => `<p class="small warnc">${NEST.DIFF[d].name}: ${diffLock(d)}</p>`).join('')}
+  if (tab === 'rule') b += `<div class="row">${[1, 2, 3].map(d => btn('setup', { k: 'diff', v: d }, `${NEST.DIFF[d].name}${d > 1 ? ' <small>침입 ×' + NEST.DIFF[d].mult + '</small>' : ''}`, o.diff === d ? 'on' : '', !!diffLock(d))).join('')}</div>${[2, 3].filter(d => diffLock(d)).map(d => `<p class="small warnc">${NEST.DIFF[d].name}: ${diffLock(d)}</p>`).join('')}
     <p class="small mute">깊을수록 더 많은 인간이 오고 점수 배수가 오른다. 목숨은 어느 깊이에서나 둘이다.</p>
     <div class="row nw">${btn('setup', { k: 'tut', v: 1 }, '길잡이 ' + (o.tut ? '켬' : '끔'), o.tut ? 'on' : '')}<span class="small mute grow">켜면 첫 이틀 동안 잔향이 할 일을 하나씩 짚어 준다.</span></div>`;
   if (tab === 'bring') b += META.roster.length ? `<p class="small mute">명부에서 둘까지 데려간다.</p><div class="units g2">${META.roster.map(r => `<button class="unit${o.bring.includes(r.rid) ? ' on' : ''}" data-a="setup" data-k="bring" data-v="${r.rid}">${kinImgM(r, 32)}<span>${esc(rosterName(r))} <small class="mute">${TIER[r.tier || 'N']} Lv${r.lv}</small></span></button>`).join('')}</div>` : '<p class="small mute">명부가 비어 있다. 타이틀의 "명부"에서 하루 한 번 별똥별을 받거나, 판을 끝낼 때 살아남은 권속을 올리면 여기서 둘까지 데려갈 수 있다.</p>';
@@ -3673,14 +4521,16 @@ function codexHtml() {
   return M(`도감 <small class="mute">깨어난 횟수 ${META.clears}</small>`, b + '</div>', closeBtn());
 }
 const HELP = [
+  ['under', '땅속과 뚫기', '처음에는 굴이 막혀 있다. 아무도 오지 않지만 먹이도 없다. "땅 위로 뚫는다"를 누르면 그때부터 밤마다 내려오고, 위가 어떤 세상인지(판타지·무협·현대·미래)도 그때 정해진다. 숨어 있는 밤마다 정수를 조금 얻지만 날은 흘러가고, 오래 숨을수록 먼저 들킬 위험이 커진다. 들키면 그 밤에 바로 온다.'],
+  ['kin', '권속', '권속은 몸에서 돋는다. 제 자리는 제가 찾는다: 먼저 돋은 것이 본체 곁, 나머지는 길목 앞에서부터. 낮에는 굴을 돌아다니고 밤이 오면 자리로 간다. 꼭 지킬 곳이 있으면 권속을 눌러 "지켜라"고 시킨다. "풀어 준다"를 누르면 다시 제멋대로 다닌다.'],
   ['goal', '목표', `${NEST.K.days}일 동안 본체를 지킨다. ${NEST.K.act}일마다 "달이 기우는 밤"에 큰 무리가 오고, 넘기면 모은 정수에 따라 허물을 벗는다(네 번까지). 마지막 밤에는 봉인자가 온다. 권속도 레벨 5가 되면 재물을 들여 한 번 진화시킬 수 있다.`],
-  ['day', '낮', '행동은 하루 두 번. 건설 행동 한 번이면 파기·짓기·함정·옮기기 같은 작업을 세 번 한다. 포식, 휴식, 훈련, 습격은 행동 하나씩. 지원자 들이기, 포로 처분, 탐식은 행동이 들지 않는다. 행동을 남기고 밤을 맞으면 본체가 그만큼 쉰다.'],
+  ['day', '낮', '행동은 하루 두 번. 건설 행동 한 번이면 파기·짓기·함정 같은 작업을 세 번 한다. 포식, 휴식, 훈련, 습격은 행동 하나씩. 돋는 것 들이기, 포로 처분, 탐식은 행동이 들지 않는다. 행동을 남기고 밤을 맞으면 본체가 그만큼 쉰다.'],
   ['under', '지하', '인간은 입구에서 본체 방까지 가장 짧은 길(점선)로 온다. 길 위에는 싸울 자리와 함정을, 길에서 벗어난 곁방에는 감옥·예배당 같은 살림을 둔다. 칸을 파서 길을 바꿀 수 있다. 재물은 본체가 깔고 앉아 있어서, 본체를 쓰러뜨리기 전에는 한 푼도 못 가져간다.'],
   ['life', '목숨', '본체가 쓰러지면 재물 절반을 털리고 체력 30%로 다시 일어난다. 일어날 수 있는 횟수가 목숨이다. 목숨이 하나 남았을 때 쓰러지면 끝이고, 마지막 밤에는 목숨과 상관없이 쓰러지면 끝이다.'],
   ['trap', '함정', '무리는 함정에 익숙해진다. 같은 종류의 함정은 그날 밤 터질 때마다 절반씩 약해진다(100% → 50% → 25%…). 종류를 섞어 깔고, 함정이 깎아 놓은 적은 권속이 마무리해야 한다. 함정만으로는 못 막는다.'],
   ['san', '정신력', '침입자에게는 체력(빨강)과 정신력(보라)이 있다. 정신력이 바닥나면 달아나거나, 자기 편을 치거나, 무릎을 꿇는다. 무릎 꿇은 자는 포로가 된다: 몸값, 제물, 개종 가운데 고른다. 개종시킨 신도는 매일 신앙과 헌금을 낸다.'],
   ['surf', '지상', '다섯 마을이 길목 셋을 지나 둥지로 온다. 오늘 밤과 내일 밤 올 무리가 지도에 보인다. 2막부터 마을을 습격할 수 있다: 위협하면 공물을 바치고, 약탈하면 한몫 잡지만 그 마을이 벼른다.'],
-  ['trade', '교역', '사이가 좋은 마을과는 날마다 교역 신뢰(●)가 쌓이고, 신뢰만큼 수입이 커진다. 하룻밤에 그 마을 사람을 여럿 죽이거나 습격하면 처음부터다. 죽이는 대신 무릎 꿇리고, 미치게 해 쫓아내고, 몸값 받고 돌려보내면 싸우면서도 교역이 자란다. 지원자 가운데 "생포"가 붙은 권속(신도, 가면, 필경사, 그물꾼…)이 그런 싸움을 한다. 공포가 높을수록 쌓을 수 있는 신뢰가 준다. 죽여서 먹으면 빨리 자라고, 살려 보내면 부자가 된다.'],
+  ['trade', '교역', '사이가 좋은 마을과는 날마다 교역 신뢰(●)가 쌓이고, 신뢰만큼 수입이 커진다. 하룻밤에 그 마을 사람을 여럿 죽이거나 습격하면 처음부터다. 죽이는 대신 무릎 꿇리고, 미치게 해 쫓아내고, 몸값 받고 돌려보내면 싸우면서도 교역이 자란다. 돋는 것 가운데 "생포"가 붙은 권속(신도, 가면, 필경사, 그물꾼…)이 그런 싸움을 한다. 공포가 높을수록 쌓을 수 있는 신뢰가 준다. 죽여서 먹으면 빨리 자라고, 살려 보내면 부자가 된다.'],
   ['hoard', '탐식', '본체 창에서 재물을 쓴다. 삼키면 본체가 불어나고(값이 매번 오른다), 호위 자리와 목숨을 살 수 있고, 4막부터는 마지막 밤의 무리를 약하게 만들 수 있다. 쌓아만 둔 재물은 인간을 부르고 쓰러지면 절반을 털린다.'],
   ['fuse', '합체', '권속 창의 "합체" 탭에서 권속 하나에 다른 권속을 붙인다. 붙은 쪽은 사라지고 그 능력의 절반이 남는다. 한 몸에 둘까지 붙는다. 방의 자리는 한정되어 있으니, 자리가 없어 서성이는 권속을 싸우는 권속에게 붙이면 한 자리에서 둘, 셋 몫을 싸운다. 정신 공격을 하는 권속을 붙이면 정신 공격도 옮겨 온다. 붙은 것 하나마다 적 하나를 더 붙잡는다. 어떤 둘은 한 몸이 되면 특별한 것이 된다(★). 무엇이 그런지는 해 봐야 알고, 찾은 것은 도감에 남는다. 명부에 올려도 붙은 채로 남는다. 되돌릴 수 없다.'],
   ['omen', '징조', `${NEST.OMEN_DAY}일째부터 다 자란 옛 것 하나가 지켜본다. 밤이 지나면 내일의 징조가 정해진다. 징조는 좋은 쪽과 나쁜 쪽이 한 쌍이고, 그것이 좋아하는 짓을 하면 좋은 쪽만, 싫어하는 짓을 하면 나쁜 쪽만 온다. 나쁜 쪽은 신앙 6으로 달랠 수 있다.`],
@@ -3724,7 +4574,7 @@ function scene(lines) {
 let busy = false, handRes = null;
 // 맡김: 권속들이 하루 일을 하나씩 해 나간다. paused 멈춤, speed 빠르기, log 방금 한 일들, last 지난밤의 결과
 const AUTO = { paused: false, speed: 1, gen: 0, log: [], last: null, i: 0, n: 1 };
-if (META.auto == null) META.auto = true;
+META.auto = false;   // 맡김 방식은 v0.20 에서 없앴다. 권속은 늘 제 자리를 제가 찾고, 나머지는 직접 한다
 function autoSay(msg, cell) {
   AUTO.log.unshift(msg); AUTO.log.length = Math.min(AUTO.log.length, 6);
   if (cell != null && ST.screen === 'under') { const r = cellRect(locIdx(cell)); ST.pulse = { i: cell, t0: now() }; ST.floats.push({ x: r.x + r.w / 2, y: r.y + r.h / 2 - 6, s: msg.replace(/\s*\(.*$/, '').slice(0, 14), col: '#fff3a0', t0: now() }); if (isMobile() && !UI.sel) camTo(r.x + CW / 2); }
@@ -3760,16 +4610,29 @@ function showTitle() {
   $('menu').innerHTML = (run ? btn('continue', null, `이어하기 <small>${run.day}일째${run.sign && NEST.SIGN[run.sign] ? ' · ' + NEST.SIGN[run.sign].name : ''}</small>`, 'pri w2') : '') + btn('new', null, '새로 떨어진다', run ? 'w2' : 'pri w2') + btn('barracks', null, '명부 · 별똥별' + (free ? ' <span class="coin">●</span>' : '')) + btn('records', null, '기록 · 순위') + btn('codex', null, '도감') + btn('help', null, '도움말') + btn('settings', null, '설정', 'w2');
   $('trec').textContent = META.best ? `최고 기록 ${META.best.grade} ${R(META.best.total)}점 · ${META.best.form} · 깨어남 ${META.clears}회` : '아직 기록이 없다';
 }
-function showGame() { $('title').hidden = true; $('game').hidden = false; $('game').classList.remove('night'); UI.tab = {}; UI.page = {}; ST.mode = 'day'; ST.ents = null; ST.hud = null; ST.screen = 'surface'; setScreen('under'); ST.p = 1; ST.cam = { x: 0, tx: 0 }; ST.camMem = { surface: 240, under: 0 }; UI.sel = null; setSheet(false); setNight(false); render(); }
+function showGame() { $('title').hidden = true; $('game').hidden = false; $('game').classList.remove('night'); UI.tab = {}; UI.page = {}; ST.mode = 'day'; ST.ents = null; ST.roam = {}; ST.kinPos = {}; ST.hud = null; ST.screen = 'surface'; setScreen('under'); ST.p = 1; ST.cam = { x: 0, tx: 0 }; ST.camMem = { surface: 240, under: 0 }; UI.sel = null; setSheet(false); setNight(false); render(); }
 function setNight(on) { ST.mode = on ? 'night' : 'day'; $('game').classList.toggle('night', on); $('right').classList.remove('open'); $('night').hidden = !on; $('view').hidden = on; $('foot').hidden = on; $('tray').hidden = on; $('recent').hidden = on; $('viewsw').hidden = on; if (on) { setSheet(false); $('nlog').innerHTML = ''; $('nparty').innerHTML = ''; $('hand').hidden = true; $('ntitle').textContent = G.day + '일째 밤' + (NEST.isSettle(G) ? ' · 달이 기운다' : ''); setSpeed(META.speed || 1); } }
 function setSpeed(v) { ST.speed = v; META.speed = v; document.querySelectorAll('[data-a="speed"]').forEach(b => b.classList.toggle('on', +b.dataset.v === v)); }
 async function newRun() {
-  const L = META.last || {}, o = { diff: L.diff && !diffLock(L.diff) ? L.diff : 1, bring: [], tut: !META.tutDone && !META.board.length, tab: 'who', auto: META.auto !== false };
+  const L = META.last || {}, o = { diff: L.diff && !diffLock(L.diff) ? L.diff : 1, bring: [], tut: !META.tutDone && !META.board.length, tab: 'who', auto: false };
   for (;;) { const p = modal(setupHtml(o), true, null); modalKind = 'setup'; UI.setup = o; const v = await p; if (v === 'go') break; if (v === 'redraw') continue; return; }
   const legacy = META.roster.filter(r => o.bring.includes(r.rid)).map(r => ({ name: rosterName(r), kind: r.kind, lv: r.lv, skill: r.skill, rare: r.rare, stance: r.stance, rid: r.rid, evo: r.evo, parts: r.parts || [] }));
   const sk = curSign(), sg = NEST.SIGN[sk]; META.last = { diff: o.diff };
-  G = NEST.newGame((Date.now() ^ (Math.random() * 1e9)) >>> 0, sg.asp, { diff: o.diff, legacy, star: sg.star, sign: sk }); G.auto = !!o.auto; META.auto = G.auto; if (o.tut && !G.auto) { G.tut = 0; G.guest = null; G.march.tonight = { vill: 'field', settle: false, thin: true }; } META.runs++; saveMeta(); store.del('run');
+  G = NEST.newGame((Date.now() ^ (Math.random() * 1e9)) >>> 0, sg.asp, { diff: o.diff, legacy, star: sg.star, sign: sk }); G.auto = false; if (o.tut) G.tut = 0; META.runs++; saveMeta(); store.del('run');
   showGame(); await scene([N_(sg.name + '에서 별 하나가 떨어졌다. ' + sg.text)].concat(STORY.intro).concat(G.auto ? [E_('여기서는 권속들이 알아서 굴을 파고 싸워. 너는 아침마다 뜻 하나만 내리면 돼.'), E_('어떤 뜻을 내리느냐에 따라 하늘의 큰 것 다섯이 너를 달리 본다. 흡족하면 선물을, 언짢으면 벌을 내려.')] : [])); morningFlow();
+}
+// 땅 위로 뚫는다: 되돌릴 수 없다. 어떤 세상인지 이때 처음 본다
+async function revealWorld(found) {
+  const w = NEST.WORLD[G.world]; if (!w) return; const names = ['villager', 'militia', 'warrior', 'scholar', 'priest'].map(k => NEST.INV[k].name).join(', ');
+  sfx('evo'); ST.flash = now() + 300; setScreen('surface');
+  await scene((found ? [N_('흙이 위에서부터 무너져 내렸다. 저들이 먼저 냄새를 맡았다.')] : [N_('마지막 흙 한 줌이 밀려 올라갔다. 처음으로 바깥 공기가 굴로 흘러든다.')]).concat([N_(w.reveal[0] + '. ' + w.reveal[1]), E_('여기는 이런 세상이구나. ' + names + ' 같은 것들이 내려올 거야.'), E_(found ? '들켰으니 오늘 밤 바로 온다. 숨 돌릴 틈은 없어.' : '이제부터 밤마다 누가 올지 "지상"에서 볼 수 있어. 저들이 곧 먹이고, 먹어야 허물을 벗어.')]));
+}
+async function doBreach() {
+  if (!G || !G.sealed || busy || ST.mode !== 'day') return; if (!$('modal').hidden) closeModal(); setSheet(false);
+  const v = await modal(M('땅 위로 뚫는다', `<p>굴을 열면 되돌릴 수 없다. 그때부터 땅 위의 것들이 밤마다 내려온다.</p><p class="small mute">저들이 먹이다. 먹지 못하면 허물을 벗지 못한다. 위가 어떤 세상인지는 뚫어 봐야 안다.</p><p class="small mute">더 숨어 있으면 밤마다 정수 +${NEST.K.deep.ess}을 얻고 권속을 더 돋울 수 있다. 대신 날은 흘러가고, 오래 숨을수록 먼저 들킬 위험이 커진다 (${NEST.K.deep.risk.map(r => Math.round(r * 100) + '%').join(' → ')}). 들키면 그 밤에 바로 내려온다.</p>`, btn('close', { v: 'go' }, '뚫는다', 'pri') + closeBtn('아직')));
+  if (v !== 'go' || !G || !G.sealed) return;
+  const r = NEST.breach(G); if (G.tut != null) { G.guest = null; G.march.tonight = { vill: 'field', settle: false, thin: true }; }
+  UI.sel = null; UI.confirmEnd = false; busy = true; setScreen('surface'); render(); await revealWorld(false); busy = false; saveRun(); render(); toast(r);
 }
 async function morningFlow() {
   busy = true; render();
@@ -3802,7 +4665,8 @@ async function endDay() {
   const st = NEST.settle(G, rep); checkFeats();
   ST.ents = null; ST.hud = null; ST.skip = false; ST.focus = null; setNight(false); setScreen('under'); render();
   sfx(rep && rep.result !== 'repel' ? 'down' : 'coin');
-  if (G.auto && !G.over) AUTO.last = { rep, st, day }; else await modal(settleHtml(rep, st, day));
+  await modal(settleHtml(rep, st, day));
+  if (st.found && !G.over) await revealWorld(true);
   if (st.evolved) { sfx('evo'); ST.flash = now() + 300; await modal(evoHtml(st, before)); }
   if (rep && rep.result === 'stolen' && rep.fell) await scene(rep.lives > 1 ? (rep.fell === 1 ? STORY.fell : STORY.fell.slice(0, 2)) : rep.fell === 1 ? STORY.fell.slice(0, 2).concat(STORY.fell2) : STORY.fell2);
   if (G.over) return finishRun();
@@ -3862,7 +4726,7 @@ function onAction(el) {
   if (a === 'wipe') { if (el.dataset.sure) { store.del('meta'); store.del('run'); META = META0(); closeModal(); if (!G) showTitle(); } else { el.dataset.sure = 1; el.textContent = '정말 지운다'; } return; }
   if (a === 'new') return void newRun();
   if (a === 'reroll') { if (META.dust < REROLL || signPool().length < 2) return; META.dust -= REROLL; rollSign(); sfx('spell'); return closeModal('redraw'); }
-  if (a === 'continue') { const run = store.get('run'); if (run) { G = NEST.migrate(run); showGame(); morningFlow(); } return; }
+  if (a === 'continue') { const run = store.get('run'); if (run) { G = NEST.migrate(run); G.auto = false; NEST.applyWorld(G.world); showGame(); morningFlow(); } return; }
   if (a === 'setup') { const o = UI.setup; if (d.k === 'bring') { const k = o.bring.indexOf(+d.v); if (k >= 0) o.bring.splice(k, 1); else if (o.bring.length < 2) o.bring.push(+d.v); } else if (d.k === 'tut') o.tut = !o.tut; else if (d.k === 'auto') o.auto = d.v === '1'; else o.diff = +d.v; sfx('click'); return closeModal('redraw'); }
   if (a === 'legacy') { const p = UI.legacy, id = num('id'), i = p.indexOf(id); if (i >= 0) p.splice(i, 1); else if (p.length < (UI.legacyMax || 2)) p.push(id); sfx('click'); return closeModal('redraw'); }
   if (a === 'speed') return setSpeed(num('v'));
@@ -3872,7 +4736,9 @@ function onAction(el) {
   if (a === 'quit') { saveRun(); if (!$('modal').hidden) closeModal(); return showTitle(); }
   if (a === 'hoard') { const r = act(NEST.hoardBuy, d.k); if (r && r.ok) { sfx('evo'); ST.flash = now() + 120; } return; }
   if (a === 'core') { if (ST.mode !== 'day') return; if (!$('modal').hidden) closeModal(); UI.sel = { t: 'cell', i: NEST.CORE }; UI.confirmEnd = false; setScreen('under'); camTo(cellRect(NEST.CORE).x + CW / 2); sfx('click'); render(); $('view').scrollTop = 0; return; }
-  if (a === 'view') { if (UI.sel) UI.sel = null; setScreen(d.v); return render(); }
+  if (a === 'view') { if (d.v === 'surface' && G.sealed) return void toast({ ok: false, msg: '굴이 막혀 있어 땅 위가 보이지 않는다. 뚫어야 안다' }); if (UI.sel) UI.sel = null; setScreen(d.v); return render(); }
+  if (a === 'breach') return void doBreach();
+  if (a === 'release') return void act(NEST.release, num('id'));
   if (a === 'sel') { UI.sel = { t: d.t, i: num('i') }; UI.tab.cell = null; setScreen('under'); camTo(cellRect(num('i')).x + CW / 2); return render(); }
   if (a === 'gospot') { setScreen('surface'); UI.sel = G.spot ? { t: 'spot' } : null; if (G.spot) camTo(SPOS[G.spot.pos].x); return render(); }
   if (a === 'log') return void openModal('log');
@@ -3894,7 +4760,7 @@ function onAction(el) {
   if (a === 'zone') return void act(NEST.setZone, num('i'));
   if (a === 'plot') { const r = act(NEST.setPlot, num('p'), d.v); if (r.ok && isMobile()) { UI.sel = null; render(); toast(r); } return; }
   if (a === 'accept') return void act(NEST.accept, num('i'));
-  if (a === 'dismiss') { if (el.dataset.sure) { act(NEST.dismiss, num('id')); closeModal(); } else { el.dataset.sure = 1; el.textContent = '정말 내보낸다'; } return; }
+  if (a === 'dismiss') { if (el.dataset.sure) { act(NEST.dismiss, num('id')); closeModal(); } else { el.dataset.sure = 1; el.textContent = '정말 삼킨다'; } return; }
   if (a === 'place') return void act(NEST.moveKin, num('id'), d.loc === 'bench' ? null : d.loc === 'core' ? 'core' : +d.loc);
   if (a === 'fuse') { const bm = G.kin.find(x => x.id === num('b')), r = act(NEST.fuseKin, num('id'), num('b')); if (r.ok) { const m = G.kin.find(x => x.id === num('id')); META.codex.fuse[m.kind + '+' + bm.kind] = 1; (r.made || []).forEach(k => { META.codex.rcp[k] = 1; }); saveMeta(); sfx('evo'); ST.flash = now() + ((r.made || []).length ? 450 : 220); UI.page.fuse = 0; modal(fuseHtml(m, bm, r.made), false, 'fused'); } return; }
   if (a === 'kinevo') { const r = act(NEST.evolveKin, num('id')); if (r.ok) { sfx('evo'); ST.flash = now() + 200; } return; }

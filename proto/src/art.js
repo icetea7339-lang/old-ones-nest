@@ -60,7 +60,7 @@ const PAL = {
 };
 const ASPCOL = { abyss: '#3fb8d0', nebula: '#b08fff', brood: '#7fd04f', dusk: '#f0a04a', hunger: '#f2696f' };
 const KINSPR = { goblin: ['goblin', 'goblin'], skeleton: ['skeleton', 'skeleton'], cultist: ['hood', 'cultist'], scale: ['harpy', 'scale'], scribe: ['hood', 'scribe'], spawn: ['slime', 'spawn'], mask: ['hood', 'mask'], hunger: ['mimic', 'hunger_k'], netter: ['goblin', 'netter'], warden: ['skeleton', 'warden'], turncoat: ['human', 'warrior'], fallen: ['hood', 'priest'], digger: ['goblin', 'digger'], clerk: ['hood', 'clerk'], licker: ['slime', 'licker'], spitter: ['harpy', 'spitter'], eyeheap: ['eyeheap', 'eyeheap'], tangle: ['tangle', 'tangle'] };
-const invCanvas = kind => spriteCanvas(kind === 'hound' ? 'hound' : 'human', kind);
+const invCanvas = kind => invCanvasW((typeof G !== 'undefined' && G && G.world) || 'fantasy', kind);   // 뚫린 세계에 맞춘 차림 (worldart.js)
 // 부 징조가 본체에 더하는 그림 [x, y, 색]
 const SUBOVER = {
   abyss: [[7, 2, '#9fe8f0'], [8, 1, '#9fe8f0'], [8, 2, '#3fb8d0'], [9, 2, '#9fe8f0'], [13, 5, '#d8f6ff']],
@@ -391,7 +391,7 @@ function rcpMark(x, r, hx, hy, w, h) {
 }
 const kinImgM = (m, size) => m.parts && m.parts.length ? toImg(kinCanvasM(m), 'fz:' + m.kind + (m.evo ? 'e' : '') + ':' + m.parts.map(p => p.kind + (p.evo ? 'e' : '')).join('+'), size, NEST.kinName(m)) : kinImg(m.kind, size, m.evo);
 const kinImg = (kind, size, evo) => toImg(kinCanvas(kind, evo), (evo ? 'evo5:' : 'kin3:') + kind, size, NEST.KIN[kind].name);
-const invImg = (kind, size) => toImg(invCanvas(kind), 'inv:' + kind, size, NEST.INV[kind].name);
+const invImg = (kind, size) => toImg(invCanvas(kind), 'inv:' + ((typeof G !== 'undefined' && G && G.world) || 'fantasy') + ':' + kind, size, NEST.INV[kind].name);
 // 본체 그림은 점이 뭉개지지 않게 정수배로만 키운다. 자리는 size 그대로 잡고 그 안 바닥에 세운다
 const slimeImg = (sl, size, alt) => { const c = slimeCanvas(sl), N = c.width; let k = Math.max(1, Math.round(size / N)); if (k > 1 && N * k > size * 1.12) k--; const w = N * k > size * 1.12 ? size : N * k;
   return `<span class="slbox" style="width:${size}px;height:${size}px">${toImg(c, 'sl5:' + (sl.origin || 'drop') + ':' + (sl.body || '') + ':' + (sl.main || 'base') + ':' + (sl.sub || '') + ':' + sl.stage + ':' + (sl.muts || []).join(','), w, alt || '본체')}</span>`; };

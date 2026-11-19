@@ -24,14 +24,14 @@ const STEWARD = (function () {
       }
       path = S.paths(G)[0];
     });
-    task('지원자', A => { for (let i = G.applicants.length - 1; i >= 0; i--) { const a = G.applicants[i]; if (!st.trapOnly && (S.freeSlot(G, a.kind) !== null || st.acceptAll) && G.gold >= S.acceptCost(G, a) + 10 * c && G.kin.length < 14) A(S.accept(G, i)); } });
+    task('돋는 것', A => { for (let i = G.applicants.length - 1; i >= 0; i--) { const a = G.applicants[i]; if (!st.trapOnly && (S.freeSlot(G, a.kind) !== null || st.acceptAll) && G.gold >= S.acceptCost(G, a) + 10 * c && G.kin.length < 14) A(S.accept(G, i)); } });
     task('짓기', A => {
       const want = st.trapOnly ? ['trap'] : ['post', 'trap', 'hall', 'ambush', 'hall', 'trap'];
       let wi = G.cells.filter((x, i) => x.dug && onPath(i) && x.type !== 'empty' && i !== S.CORE).length;
       for (const i of path) { const x = G.cells[i]; if (i === S.CORE || x.type !== 'empty') continue; const t = want[wi % want.length], cost = S.buildCost(G, i, t); if (!S.canBuild(G, i, t) && can(cost)) { if (A(S.build(G, i, t), i).ok) wi++; } }
     });
     task('함정', A => { G.cells.forEach((x, i) => { const cap = S.ROOM[x.type].traps || 0; while (x.dug && x.traps.length < cap) { const tk = st.trapOnly ? st.trapOnly.split('+') : null, k = tk ? tk[x.traps.length % tk.length] : G.slime.main === 'dusk' ? 'mist' : (x.traps.some(t => t.kind === 'spike') ? 'acid' : 'spike'); if (!can(S.TRAP[k].cost * c) || !A(S.addTrap(G, i, k), i).ok) break; } }); });
-    task('배치', A => { G.kin.forEach(m => { if (m.loc === null) { const f = S.freeSlot(G, m.kind); if (f !== null) A(S.moveKin(G, m.id, f), f); } }); });
+    task('배치', A => { S.autoPlace(G); });   // 권속은 제 자리를 제가 찾는다
     task('합체', A => {
       if (!opt.nofuse) G.kin.filter(m => m.loc === null && m.kind !== 'spawn' && !(m.parts && m.parts.length)).forEach(b => { if (S.freeSlot(G, b.kind) !== null) return; const hosts = G.kin.filter(m => m.loc !== null && m.kind !== 'spawn' && (m.parts || []).length < S.K.fuse.max).sort((x, y) => y.lv - x.lv); if (hosts.length && can(S.fuseCost(G) + 40 * c) && A(S.fuseKin(G, hosts[0].id, b.id), hosts[0].loc).ok) opt.onFuse && opt.onFuse(); });
       if (opt.aggfuse) { let guard2 = 0; while (guard2++ < 6) { const ks = G.kin.filter(m => m.kind !== 'spawn'), mats = ks.filter(m => !(m.parts && m.parts.length)).sort((x, y) => x.lv - y.lv), hosts = ks.filter(m => m.loc !== null && (m.parts || []).length < S.K.fuse.max).sort((x, y) => y.lv - x.lv); if (ks.length <= +opt.aggfuse || !hosts.length || !mats.length || mats[0] === hosts[0] || !can(S.fuseCost(G) + 40 * c) || !A(S.fuseKin(G, hosts[0].id, mats[0].id)).ok) break; } }

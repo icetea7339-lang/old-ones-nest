@@ -155,6 +155,22 @@ function drawRoute(x, t) {
   ps.forEach(p => { for (let k = 0; k < p.length - 1; k++) { const a = cellRect(p[k]), b = cellRect(p[k + 1]), vert = a.x === b.x, ax = a.x + (vert ? 54 : a.w / 2), ay = floorY(a) + 8, bx = b.x + (vert ? 54 : b.w / 2), by = floorY(b) + 8, n = 6; for (let s = 0; s < n; s++) { const f = (s + (t / 600) % 1) / n; x.globalAlpha = 0.55; x.fillRect(Math.round(ax + (bx - ax) * f) - 2, Math.round(ay + (by - ay) * f) - 2, 4, 4); } } });
   x.globalAlpha = 1;
 }
+// ---------- 낮의 권속: 지키라고 한 것은 제자리에, 나머지는 제멋대로 굴을 돌아다닌다. 밤이 오면 제 자리로 간다 ----------
+const dugAt = i => i >= 0 && i < NEST.N && G.cells[i].dug && !G.cells[i].block;
+function roamPos(m, home, t, small) {
+  const R = ST.roam || (ST.roam = {}), still = !!(m.pin || m.hurt || m.strike || ST.mode !== 'day' || small), homeCell = locIdx(m.loc), sz = small ? 16 : 32;
+  let w = R[m.id]; if (!w) w = R[m.id] = { x: home.x, y: home.y, fx: home.x, fy: home.y, tx: home.x, ty: home.y, t0: t, dur: 0, cell: homeCell, next: homeCell, rest: t + 300 + Math.random() * 2500 };
+  const go = (tx, ty, cell) => { w.fx = w.x; w.fy = w.y; w.tx = tx; w.ty = ty; w.t0 = t; w.dur = Math.max(250, Math.hypot(tx - w.x, ty - w.y) * 24); w.next = cell; };
+  if (w.dur) { const k = Math.min(1, (t - w.t0) / w.dur); w.x = w.fx + (w.tx - w.fx) * k; w.y = w.fy + (w.ty - w.fy) * k; if (k >= 1) { w.dur = 0; w.cell = w.next; w.rest = t + 500 + Math.random() * 3200; } }
+  else if (still) { if (Math.abs(w.x - home.x) + Math.abs(w.y - home.y) > 1) go(home.x, home.y, homeCell); }
+  else if (t > w.rest) {
+    const c = dugAt(w.cell) || w.cell === NEST.CORE ? w.cell : homeCell, col = c % 5, row = Math.floor(c / 5), far = Math.abs(col - homeCell % 5) + Math.abs(row - Math.floor(homeCell / 5));
+    const opts = []; if (col > 0 && dugAt(c - 1)) opts.push(c - 1); if (col < 4 && dugAt(c + 1)) opts.push(c + 1); if (row > 0 && dugAt(c - 5)) opts.push(c - 5); if (row < 3 && dugAt(c + 5)) opts.push(c + 5);
+    if (far >= 2 || c !== w.cell) go(home.x, home.y, homeCell);
+    else { const to = opts.length && Math.random() < 0.5 ? opts[Math.floor(Math.random() * opts.length)] : c, r = cellRect(to); go(r.x + 12 + Math.random() * (r.w - 24 - sz), floorY(r) - sz + 2, to); }
+  }
+  (ST.kinPos || (ST.kinPos = {}))[m.id] = w; return w;
+}
 function drawUnit(x, e, t) {
   if (e.gone) return;
   if (e.dur) { const k = Math.min(1, (t - e.t0) / e.dur); e.x = e.fx + (e.tx - e.fx) * k; e.y = e.fy + (e.ty - e.fy) * k; if (k >= 1) e.dur = 0; }
@@ -196,15 +212,18 @@ function drawUnder(x, t) {
   rect(x, '#120e1a', 0, 0, W, H); if (!BG.top) { const cv0 = BG.top = document.createElement('canvas'); cv0.width = W; cv0.height = GY; const q = cv0.getContext('2d'); rockTex(q, 999, 0, 0, W, GY, '#1a1524'); q.fillStyle = '#3a2c20'; q.fillRect(0, 10, W, 10); q.fillStyle = '#2a2018'; q.fillRect(0, 18, W, 2); q.fillStyle = '#2f6b3a'; q.fillRect(0, 0, W, 10); q.fillStyle = '#1f4a28'; q.fillRect(0, 8, W, 2);
     for (let k = 0; k < 120; k++) { const px = ev2(hsh(7, k) * W); q.fillStyle = hsh(8, k) > 0.5 ? '#4a9a52' : '#3f8046'; q.fillRect(px, ev2(hsh(9, k) * 6), 2, 4); if (k % 3 === 0) { q.fillStyle = '#5a4634'; q.fillRect(ev2(hsh(10, k) * W), 12 + ev2(hsh(11, k) * 6), 4, 2); } if (k % 5 === 0) { q.fillStyle = '#3a2c20'; const len = 6 + ev2(hsh(12, k) * 16); q.fillRect(px, 20, 2, len); } } }
   x.drawImage(BG.top, 0, 0);
-  const er = cellRect(NEST.ENT); rect(x, '#0b0c16', er.x + 28, 0, 40, GY + 6); rect(x, '#7a5a3a', er.x + 34, 0, 3, GY + 60); rect(x, '#7a5a3a', er.x + 59, 0, 3, GY + 60); for (let k = 0; k < 11; k++) rect(x, '#7a5a3a', er.x + 34, 4 + k * 10, 28, 2);
-  if (ST.focus == null) txt(x, TOUCH ? '▲ 지상' : '▲ 지상 (Tab)', er.x + 78, 22, '#a2a8c6', 13);
+  const er = cellRect(NEST.ENT);
+  if (G.sealed) { rect(x, '#0b0c16', er.x + 28, GY - 8, 40, 14); rect(x, '#3a2c20', er.x + 30, GY - 8, 36, 4); txt(x, '굴이 막혀 있다 · 땅 위는 아직 모른다', er.x + 78, 22, '#8a8296', 13); }
+  else { rect(x, '#0b0c16', er.x + 28, 0, 40, GY + 6); rect(x, '#7a5a3a', er.x + 34, 0, 3, GY + 60); rect(x, '#7a5a3a', er.x + 59, 0, 3, GY + 60); for (let k = 0; k < 11; k++) rect(x, '#7a5a3a', er.x + 34, 4 + k * 10, 28, 2);
+    if (ST.focus == null) txt(x, TOUCH ? '▲ 지상' : '▲ 지상 (Tab)', er.x + 78, 22, '#a2a8c6', 13); }
   const day = ST.mode === 'day';
   for (let i = 0; i < NEST.N; i++) drawCell(x, i, t, day && !G.cells[i].dug && !NEST.canDig(G, i));
   drawRoute(x, t);
   if (ST.ents) { const es = Object.values(ST.ents); es.filter(e => e.side === 'def').forEach(e => drawUnit(x, e, t)); es.filter(e => e.side === 'inv').forEach(e => drawUnit(x, e, t)); }
   else {
     const by = {}; G.kin.forEach(m => { if (m.loc !== null) (by[m.loc] = by[m.loc] || []).push(m); });
-    for (const loc in by) by[loc].forEach((m, k) => { const sm = m.kind === 'spawn', p = defPos(loc === 'core' ? 'core' : +loc, k, sm); x.globalAlpha = m.hurt || m.strike ? 0.4 : 1; { const fz = m.parts && m.parts.length, sz = fz || (m.evo && !sm) ? 48 : sm ? (m.evo ? 26 : 16) : 32; x.drawImage(frameOf(fz ? kinCanvasM(m) : kinCanvas(m.kind, m.evo), Math.floor(t / 420 + m.id * 0.37) % 2), p.x - (fz || (m.evo && !sm) ? 8 : m.evo ? 5 : 0), Math.round(p.y + Math.sin(t / 500 + m.id) * 1) - (fz || (m.evo && !sm) ? 16 : m.evo ? 10 : 0), sz, sz); } x.globalAlpha = 1; if (m.hurt) txt(x, '부상', p.x + 16, p.y - 14, '#ff9a92', 11, 'center'); else if (m.strike) txt(x, '파업', p.x + 16, p.y - 14, '#ffb347', 11, 'center'); });
+    for (const loc in by) by[loc].forEach((m, k) => { const sm = m.kind === 'spawn', p = roamPos(m, defPos(loc === 'core' ? 'core' : +loc, k, sm), t, sm); x.globalAlpha = m.hurt || m.strike ? 0.4 : 1; { const fz = m.parts && m.parts.length, sz = fz || (m.evo && !sm) ? 48 : sm ? (m.evo ? 26 : 16) : 32; x.drawImage(frameOf(fz ? kinCanvasM(m) : kinCanvas(m.kind, m.evo), Math.floor(t / 420 + m.id * 0.37) % 2), p.x - (fz || (m.evo && !sm) ? 8 : m.evo ? 5 : 0), Math.round(p.y + Math.sin(t / 500 + m.id) * 1) - (fz || (m.evo && !sm) ? 16 : m.evo ? 10 : 0), sz, sz); } x.globalAlpha = 1; if (m.hurt) txt(x, '부상', p.x + 16, p.y - 14, '#ff9a92', 11, 'center'); else if (m.strike) txt(x, '파업', p.x + 16, p.y - 14, '#ffb347', 11, 'center'); });
+    G.kin.forEach(m => { if (!m.pin || m.loc === null || m.kind === 'spawn') return; const w = ST.kinPos && ST.kinPos[m.id]; if (!w) return; const fx = Math.round(w.x) + 14, fy = Math.round(w.y) - 12; rect(x, '#0b0c16', fx - 1, fy - 1, 4, 13); rect(x, '#e8c030', fx, fy, 2, 11); rect(x, '#0b0c16', fx + 1, fy - 1, 9, 8); rect(x, '#e8c030', fx + 2, fy, 7, 6); rect(x, '#fff3a0', fx + 2, fy, 7, 2); });
     const r = cellRect(NEST.CORE), sc = slimeScale(G.slime), size = 16 * sc;
     { const hc = G.slime.main ? ASPCOL[G.slime.main] : '#cfeee0', cx = r.x + r.w - 14 - size / 2, fy0 = floorY(r); for (let k = 0; k < 7; k++) { const ph = (t / 1900 + k / 7) % 1; x.globalAlpha = (1 - ph) * 0.85; rect(x, k % 3 ? hc : '#ffffff', cx + Math.sin(k * 2.3 + t / 700) * (size * 0.55 + 6), fy0 - 4 - ph * (size + 18), 2, 2); } x.globalAlpha = 1; }
     x.drawImage(slimeCanvas(G.slime, Math.floor(t / 240)), r.x + r.w - 14 - size, Math.round(floorY(r) - size + sc + Math.sin(t / 400) * 2), size, size);
@@ -320,9 +339,9 @@ function drawSurface(x, t) {
     ell(x, '#0b0c1655', p.x, p.y + 6, 36, 12);
     if (ty === 'meteor') { ell(x, '#3a2a20', p.x, p.y, 26, 10); rect(x, fl ? '#fff3a0' : '#c8a8ff', p.x - 4, p.y - 6, 8, 8); rect(x, '#ffffff', p.x - 1, p.y - 14 - (t / 40 % 10), 2, 4); }
     if (ty === 'shrine') { rect(x, '#8a8296', p.x - 18, p.y - 12, 36, 14); rect(x, '#6a6278', p.x - 12, p.y - 30, 8, 18); rect(x, '#6a6278', p.x + 4, p.y - 30, 8, 18); rect(x, '#8a8296', p.x - 16, p.y - 36, 32, 7); rect(x, '#4f8f55', p.x - 20, p.y - 2, 10, 5); }
-    if (ty === 'band') { rect(x, fl ? '#ffb347' : '#ff7a2f', p.x - 4, p.y - 12, 8, 12); x.drawImage(spriteCanvas('goblin', 'goblin'), p.x - 40, p.y - 30, 32, 32); x.drawImage(spriteCanvas('skeleton', 'skeleton'), p.x + 8, p.y - 30, 32, 32); }
+    if (ty === 'band') { rect(x, fl ? '#ffb347' : '#ff7a2f', p.x - 4, p.y - 12, 8, 12); x.drawImage(kinCanvas('goblin'), p.x - 40, p.y - 30, 32, 32); x.drawImage(kinCanvas('skeleton'), p.x + 8, p.y - 30, 32, 32); }
     if (ty === 'cart') { rect(x, '#7a5a3a', p.x - 24, p.y - 18, 44, 16); rect(x, '#c8a050', p.x - 20, p.y - 28, 16, 10); rect(x, '#e8dcc0', p.x, p.y - 26, 14, 8); disc(x, '#3a2a20', p.x + 22, p.y - 20, 9); rect(x, '#7a5a3a', p.x + 20, p.y - 22, 4, 4); }
-    if (ty === 'camp') { tri(x, '#8a6a3a', p.x - 10, p.y, 20, 28); rect(x, fl ? '#ffb347' : '#ff7a2f', p.x + 16, p.y - 10, 8, 10); x.drawImage(spriteCanvas('human', 'militia'), p.x + 22, p.y - 30, 32, 32); }
+    if (ty === 'camp') { tri(x, '#8a6a3a', p.x - 10, p.y, 20, 28); rect(x, fl ? '#ffb347' : '#ff7a2f', p.x + 16, p.y - 10, 8, 10); x.drawImage(invCanvas('militia'), p.x + 22, p.y - 30, 32, 32); }
     if (sel || hov) brk(x, sel ? '#e8c030' : '#ece6d6aa', p.x - 50, p.y - 44, 100, 66);
     txt(x, '!', p.x, p.y - 62 + Math.sin(t / 200) * 4, '#e8c030', 20, 'center');
     plate(x, NEST.SPOT[ty].name + ' · ' + G.spot.left + '일 남음', p.x, p.y + 14, '#e8c030', 13);

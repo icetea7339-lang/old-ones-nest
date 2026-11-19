@@ -25,7 +25,7 @@ const STRATS = {
 };
 
 function play(seed, st, diff, trace, force) {
-  const asp = S.ASPECTS[seed % 5], G = S.newGame(seed, asp, { diff: diff || 1, forceOmen: force || null, origin: process.env.ORIGIN || 'drop', star: process.env.STAR || 'none' });
+  const asp = S.ASPECTS[seed % 5], G = S.newGame(seed, asp, { diff: diff || 1, forceOmen: force || null, open: !!process.env.OPEN, origin: process.env.ORIGIN || 'drop', star: process.env.STAR || 'none' });
   const info = { reps: [], digs: 0 };
   let guard = 0;
   while (!G.over && guard++ < 60) {
@@ -35,6 +35,7 @@ function play(seed, st, diff, trace, force) {
         G.kin.push({ id: G.nextId++, name: '시험', kind: mk, lv: 3, exp: 0, loc: host ? host.loc : 'core', hurt: 0, skill: 0, age: 3, unpaid: 0, stance: 'hold', parts: [{ kind: pk2, lv: 3, name: '재료' }] }); }
     let st2 = st; if (process.env.EDICT) { const ch = S.edictChoices(G), want = process.env.EDICT, pick = ch.includes(want) ? want : ch[0]; S.setEdict(G, pick); st2 = Object.assign({}, st, S.EDICT[pick].st); }   // 교시: 아침마다 셋 중 하나. EDICT=이름 이면 나올 때마다 그것, 아니면 첫 번째
     STEWARD.tasks(S, G, st2, { seed, nofuse: !!process.env.NOFUSE, aggfuse: process.env.AGGFUSE, nohoard: !!process.env.NOHOARD, hoardOnly: process.env.ONLY ? process.env.ONLY.split(',') : null, onFuse: () => { info.fuses = (info.fuses || 0) + 1; }, onDig: () => { info.digs++; }, onHoard: () => { info.hoard = (info.hoard || 0) + 1; } }).forEach(t => t());
+    if (G.sealed && (G.under || 0) >= +(process.env.BREACH || 0)) S.breach(G);   // BREACH=n: 땅속에서 n밤을 보낸 뒤 뚫는다 (들키면 그 전에 뚫린다)
     const day = G.day, gold0 = G.gold;
     const r = S.endDay(G, STEWARD.decide(st2));
     if (r.battle) info.reps.push(Object.assign({ day }, r.battle));
