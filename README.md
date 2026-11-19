@@ -21,3 +21,7 @@ node src/bot.js 300
 ## 글꼴
 
 제목·단추·숫자는 [Galmuri11 Bold](https://github.com/quiple/galmuri) (© Lee Minseo, SIL Open Font License 1.1)를 쓴다. 라이선스 전문은 `proto/fonts/OFL-Galmuri.md`. 설명글은 IBM Plex Sans KR(구글 폰트)이다.
+
+## 새 판 시험 (v2)
+
+`proto2/` 는 방향을 바꿔 보는 별도의 시험판 "땅속 한 칸"이다. 땅속 한 칸에서 시작해 본체의 몸에서 권속이 돋아 걸어 다니며 굴을 판다. https://icetea7339-lang.github.io/old-ones-nest/v2/ 에서 열린다. `cd proto2 && ./build.sh && cp ../PLAY-BURROW.html ../v2/index.html`
