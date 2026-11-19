@@ -7,7 +7,7 @@ const devName = process.argv[2];
   if (devName) { const dev = Object.assign({}, pw.devices[devName]); delete dev.defaultBrowserType; ctx = await b.newContext(dev); } else ctx = await b.newContext({ viewport: { width: 1366, height: 768 } });
   const p = await ctx.newPage(), errs = []; p.setDefaultTimeout(7000); p.on('pageerror', e => errs.push(e.message));
   await p.route('http://nest.test/', r => r.fulfill({ contentType: 'text/html', body: html })); await p.route(/fonts\./, r => r.abort());
-  await p.goto('http://nest.test/'); await p.waitForTimeout(300); await p.evaluate(() => { __nest.META.tutDone = true; });
+  await p.goto('http://nest.test/'); await p.waitForTimeout(300); await p.evaluate(() => { __nest.META.auto = false; }); await p.evaluate(() => { __nest.META.tutDone = true; });
   const click = async s => { await p.locator(s).locator('visible=true').first().evaluate(e => e.click()); await p.waitForTimeout(180); };
   const has = async s => (await p.locator(s).locator('visible=true').count()) > 0;
   const over = () => p.evaluate(() => { const m = document.querySelector('#modal .mbody'); return m ? Math.max(0, m.scrollHeight - m.clientHeight) : 0; });

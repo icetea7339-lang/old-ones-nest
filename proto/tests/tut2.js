@@ -9,7 +9,7 @@ const devName = process.argv[2], tag = devName ? devName.replace(/\s+/g, '') : '
   const touch = !!devName, p = await ctx.newPage(), errs = [], bad = []; p.setDefaultTimeout(7000);
   p.on('pageerror', e => errs.push(e.message));
   await p.route('http://nest.test/', r => r.fulfill({ contentType: 'text/html', body: html })); await p.route(/fonts\./, r => r.abort());
-  await p.goto('http://nest.test/'); await p.waitForTimeout(300);
+  await p.goto('http://nest.test/'); await p.waitForTimeout(300); await p.evaluate(() => { __nest.META.auto = false; });
   const tap = async s => { const el = p.locator(s).locator('visible=true').first(); if (touch) await el.tap(); else await el.click(); await p.waitForTimeout(450); };
   const has = async s => (await p.locator(s).locator('visible=true').count()) > 0;
   const coach = async () => { const t = await p.evaluate(() => { const e = [...document.querySelectorAll('#coach, #coach2')].find(x => x.offsetParent); return e ? e.textContent.replace(/\s+/g, ' ').replace(/^잔향 /, '').slice(0, 62) : '(안 보임)'; }); return t; };

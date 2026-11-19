@@ -216,6 +216,7 @@ function drawUnder(x, t) {
   if (day && UI.sel && UI.sel.t === 'cell') mark(UI.sel.i, '#e8c030');
   if (ST.tutCell != null && day) { const r = cellRect(ST.tutCell), up = Math.floor(t / 300) % 2; mark(ST.tutCell, up ? '#e8c030' : '#fff3a0'); plate(x, '▼ 여기', r.x + r.w / 2, r.y + 22 + up * 4, '#fff3a0', 15); }
   if (ST.focus != null) mark(ST.focus, Math.floor(t / 250) % 2 ? '#ff5f57' : '#fff3a0');
+  if (ST.pulse && now() - ST.pulse.t0 < 700) mark(ST.pulse.i, Math.floor((now() - ST.pulse.t0) / 120) % 2 ? '#fff3a0' : '#e8c030');   // 권속이 방금 손댄 칸
 }
 
 // ---------- 지상 ----------

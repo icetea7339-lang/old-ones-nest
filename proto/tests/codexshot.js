@@ -1,7 +1,7 @@
 const pw = require('playwright'); const fs = require('fs'); const path = require('path');
 const html = fs.readFileSync('/home/user/slime-ipo-design/PLAY-GAME.html', 'utf8');
 (async () => { const b = await pw.chromium.launch(); const dev = Object.assign({}, pw.devices['iPhone 14']); delete dev.defaultBrowserType; const p = await (await b.newContext(dev)).newPage(), errs = []; p.on('pageerror', e => errs.push(e.message));
-  await p.route('http://nest.test/', r => r.fulfill({ contentType: 'text/html', body: html })); await p.route(/fonts\./, r => r.abort()); await p.goto('http://nest.test/'); await p.waitForTimeout(400);
+  await p.route('http://nest.test/', r => r.fulfill({ contentType: 'text/html', body: html })); await p.route(/fonts\./, r => r.abort()); await p.goto('http://nest.test/'); await p.waitForTimeout(400); await p.evaluate(() => { __nest.META.auto = false; });
   await p.evaluate(() => { const c = __nest.META.codex; ['abyss1', 'abyss2', 'abyss3', 'hunger1', 'hunger2', 'hunger3', 'hunger4', 'idol1', 'idol2'].forEach(k => c.sp[k] = 1); c.forms.abyss = 1; c.forms.abyss_nebula = 1; c.forms.hunger = 1; c.forms.hunger_dusk = 1; c.forms.idol = 1; });
   const click = async s => { await p.locator(s).locator('visible=true').first().evaluate(e => e.click()); await p.waitForTimeout(250); };
   await click('[data-a="codex"]'); await click('[data-a="tab"][data-g="codex"][data-v="form"]'); await p.screenshot({ path: path.join(__dirname, 'codex_abyss.png') });

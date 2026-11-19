@@ -12,7 +12,7 @@ const devName = process.argv[2], tag = devName ? devName.replace(/\s+/g, '') : '
   const p = await ctx.newPage(), errs = [], bad = []; p.setDefaultTimeout(7000);
   p.on('pageerror', e => errs.push(e.message + ' @ ' + ((e.stack || '').split('\n')[1] || '').trim().slice(0, 90)));
   await p.route('http://nest.test/', r => r.fulfill({ contentType: 'text/html', body: html })); await p.route(/fonts\./, r => r.abort());
-  await p.goto('http://nest.test/'); await p.waitForTimeout(300);
+  await p.goto('http://nest.test/'); await p.waitForTimeout(300); await p.evaluate(() => { __nest.META.auto = false; });
   const tap = async s => { const el = p.locator(s).locator('visible=true').first(); if (touch) await el.tap(); else await el.click(); await p.waitForTimeout(140); };
   const has = async s => (await p.locator(s).locator('visible=true').count()) > 0;
   let n = 0; const trunc = {};
