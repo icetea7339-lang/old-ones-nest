@@ -7,7 +7,9 @@ cd "$(dirname "$0")"
   echo '<meta name="claude:viewport-fit-sides" content="cover">'
   echo '<title>옛 것의 둥지</title>'
   echo '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=IBM+Plex+Sans+KR:wght@400;600&display=swap">'
-  echo '<style>'; cat src/style.css; echo '</style>'
+  echo '<style>'
+  printf '@font-face { font-family: "NestPix"; font-weight: 400; font-display: swap; src: url(data:font/woff2;base64,'; base64 -w0 fonts/NestPix.woff2; echo ') format("woff2"); }'
+  cat src/style.css; echo '</style>'
   cat <<'HTML'
 <div id="title" class="screen">
   <canvas id="tcv" class="px" width="320" height="150" role="img" aria-label="별이 떨어지는 밤, 동굴 앞의 점액 한 방울"></canvas>

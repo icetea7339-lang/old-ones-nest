@@ -14,8 +14,8 @@ const SPOS = [{ x: 120, y: 440 }, { x: 362, y: 424 }, { x: 600, y: 424 }, { x: 8
 const ST = { screen: 'under', p: 1, mode: 'day', ents: null, defs: {}, floats: [], sparks: [], cam: { x: 0, tx: 0 }, camMem: { surface: 240, under: 0 }, viewW: W, ox: 0, fm: 1, fire: {}, sanfx: {}, shake: 0, flash: 0, speed: 1, skip: false, label: '', hud: null, hover: null, focus: null, march: null };
 const now = () => performance.now();
 function rect(x, col, a, b, w, h) { x.fillStyle = col; x.fillRect(Math.round(a), Math.round(b), Math.round(w), Math.round(h)); }
-function txt(x, s, px, py, col, size, align) { const z = size || 13, sz = z <= 20 ? Math.round(z * ST.fm) : z; x.font = sz + 'px "Do Hyeon", "Malgun Gothic", sans-serif'; x.textAlign = align || 'left'; x.textBaseline = 'top'; x.fillStyle = '#0b0c16'; x.fillText(s, px + 1, py + 1); x.fillStyle = col || '#ece6d6'; x.fillText(s, px, py); }
-function plate(x, s, cx, y, col, size) { const z = Math.round((size || 13) * ST.fm); x.font = z + 'px "Do Hyeon", "Malgun Gothic", sans-serif'; const w = x.measureText(s).width + 10; rect(x, '#0b0c16bb', cx - w / 2, y - 2, w, z + 6); txt(x, s, cx, y, col, size, 'center'); }
+function txt(x, s, px, py, col, size, align) { const z = size || 13, sz = z <= 20 ? Math.round(z * ST.fm) : z; x.font = sz + 'px "NestPix", "Do Hyeon", "Malgun Gothic", sans-serif'; x.textAlign = align || 'left'; x.textBaseline = 'top'; x.fillStyle = '#0b0c16'; x.fillText(s, px + 1, py + 1); x.fillStyle = col || '#ece6d6'; x.fillText(s, px, py); }
+function plate(x, s, cx, y, col, size) { const z = Math.round((size || 13) * ST.fm); x.font = z + 'px "NestPix", "Do Hyeon", "Malgun Gothic", sans-serif'; const w = x.measureText(s).width + 10; rect(x, '#0b0c16bb', cx - w / 2, y - 2, w, z + 6); txt(x, s, cx, y, col, size, 'center'); }
 function camTo(lx, snap) { if (!snap && ST.mode === 'night' && ST.camHold > now()) return; const max = Math.max(0, W - ST.viewW); ST.cam.tx = Math.max(0, Math.min(max, lx - ST.viewW / 2)); if (snap === true) ST.cam.x = ST.cam.tx; }
 function villState(v) { const s = G.vill[v]; return s.razed ? '폐허' : s.tribute ? '공물 중' : s.host >= 50 ? '보복 준비' : s.host >= 15 ? '수상히 여김' : '평온'; }
 function slimeScale(sl) { return [2.5, 3.5, 4.5, 5.5, 6.5][sl.stage]; }
@@ -160,7 +160,7 @@ function pathPoint(v, f) { const a = VPOS[v], b = PPOS[NEST.VILL[v].plot], c = C
 function drawParty(x, t, est, f, label, col) {
   const p = pathPoint(est.vill, f), n = Math.min(7, est.count);
   for (let k = 0; k < n; k++) { const kind = est.kinds ? est.kinds[k % est.kinds.length] : 'shade'; x.drawImage(kind === 'shade' ? spriteCanvas('human', 'shade') : invCanvas(kind), Math.round(p.x - n * 9 + k * 18), Math.round(p.y - 30 + Math.sin(t / 200 + k) * 2), 32, 32); }
-  if (label) { const s = label + ' · ' + NEST.GRADE_NAME[est.grade] + ' ' + (est.kinds ? '' : '약 ') + est.count + '명'; const z = Math.round(14 * ST.fm); x.font = z + 'px "Do Hyeon", sans-serif'; const w = x.measureText(s).width + 14; rect(x, '#0b0c16cc', p.x - w / 2, p.y - 42 - z, w, z + 8); rect(x, col, p.x - w / 2, p.y - 42 - z, 4, z + 8); txt(x, s, p.x + 2, p.y - 38 - z, '#ece6d6', 14, 'center'); }
+  if (label) { const s = label + ' · ' + NEST.GRADE_NAME[est.grade] + ' ' + (est.kinds ? '' : '약 ') + est.count + '명'; const z = Math.round(14 * ST.fm); x.font = z + 'px "NestPix", "Do Hyeon", sans-serif'; const w = x.measureText(s).width + 14; rect(x, '#0b0c16cc', p.x - w / 2, p.y - 42 - z, w, z + 8); rect(x, col, p.x - w / 2, p.y - 42 - z, 4, z + 8); txt(x, s, p.x + 2, p.y - 38 - z, '#ece6d6', 14, 'center'); }
 }
 function drawVillage(x, v, p, t, night) {
   const win = night ? '#ffd23a' : '#5a4630', wall = '#e8dcc0';
@@ -276,7 +276,7 @@ function drawStage() {
     if (ST.cam.x > 4) tri(18, -1); if (ST.cam.x < max - 4) tri(VW - 18, 1); x.globalAlpha = 1;
   }
   if (ST.focus != null) plate(x, isMobile() ? '손을 쓸 차례 — 아래에서 고른다' : '손을 쓸 차례 — 오른쪽에서 고른다', VW / 2, 12, '#fff3a0', 16);
-  if (ST.label) { let fs = 34; x.font = fs + 'px "Do Hyeon", sans-serif'; let w = x.measureText(ST.label).width + 60; if (w > VW - 12) { fs = Math.floor(fs * (VW - 12) / w); x.font = fs + 'px "Do Hyeon", sans-serif'; w = x.measureText(ST.label).width + 40; } rect(x, '#0b0c16dd', VW / 2 - w / 2, H / 2 - 36, w, 64); rect(x, '#e8c030', VW / 2 - w / 2, H / 2 - 36, w, 3); txt(x, ST.label, VW / 2, H / 2 - 4 - fs / 2, '#ece6d6', Math.max(21, fs), 'center'); }
+  if (ST.label) { let fs = 34; x.font = fs + 'px "NestPix", "Do Hyeon", sans-serif'; let w = x.measureText(ST.label).width + 60; if (w > VW - 12) { fs = Math.floor(fs * (VW - 12) / w); x.font = fs + 'px "NestPix", "Do Hyeon", sans-serif'; w = x.measureText(ST.label).width + 40; } rect(x, '#0b0c16dd', VW / 2 - w / 2, H / 2 - 36, w, 64); rect(x, '#e8c030', VW / 2 - w / 2, H / 2 - 36, w, 3); txt(x, ST.label, VW / 2, H / 2 - 4 - fs / 2, '#ece6d6', Math.max(21, fs), 'center'); }
 }
 function drawTitle() {
   const c = $('tcv'), x = c.getContext('2d'), t = now() / 1000; x.imageSmoothingEnabled = false;
@@ -301,7 +301,7 @@ function setScreen(s) { if (ST.screen === s) return; ST.camMem[ST.screen] = ST.c
 
 // ---------- 밤 전투 재생 ----------
 const wait = ms => new Promise(res => ST.skip ? res() : setTimeout(res, ms / ST.speed));
-const nlog = (s, cls) => { const el = $('nlog'); if (!el || !s) return; const p = document.createElement('p'); p.className = 'small' + (cls ? ' ' + cls : ''); p.textContent = s; el.prepend(p); while (el.children.length > 12) el.lastChild.remove(); };
+const nlog = (s, cls) => { const el = $('nlog'); if (!el || !s) return; const p = document.createElement('p'); p.className = 'small' + (cls ? ' ' + cls : ''); p.textContent = NEST.fj(s); el.prepend(p); while (el.children.length > 12) el.lastChild.remove(); };
 function moveTo(e, p, dur) { e.fx = e.x; e.fy = e.y; e.tx = p.x; e.ty = p.y; e.t0 = now(); e.dur = Math.max(1, dur / ST.speed); }
 function prepareNight() {
   const E = ST.ents = {}; ST.defs = {}; ST.floats = []; ST.sparks = []; ST.fire = {}; ST.sanfx = {};
@@ -352,7 +352,7 @@ async function playEvents(ev, from) {
       const u = e.u && E[e.u];
       if (u) {
         if (e.hp != null) u.hp = e.hp;
-        const tag = { bind: '묶임', flee: '광란!', kneel: '항복', infight: '내분!', revive: '부활', heal: '+', lvup: 'Lv UP', back: '후퇴' }[e.k]; if (tag) u.tag = { s: tag, t0: now(), col: ['flee', 'kneel', 'infight'].includes(e.k) ? '#c8a8ff' : '#fff3a0' };
+        const tag = { bind: '묶임', flee: '광란!', kneel: '꿇음', infight: '내분!', revive: '부활', heal: '+', lvup: 'Lv UP', back: '후퇴' }[e.k]; if (tag) u.tag = { s: tag, t0: now(), col: ['flee', 'kneel', 'infight'].includes(e.k) ? '#c8a8ff' : '#fff3a0' };
         if (e.k === 'kneel') { u.kneel = true; u.alpha = 0.6; u.sp = 0; sfx('mad'); }
         if (e.k === 'flee') { u.sp = 0; sfx('mad'); moveTo(u, shaft, 500); setTimeout(() => { u.gone = true; }, 520 / ST.speed); }
         if (e.k === 'infight' && e.hit) applyHit(e.hit);

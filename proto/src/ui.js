@@ -1,6 +1,6 @@
 // 옛 것의 둥지 — 화면 3/3: 글, 패널, 창, 낮과 밤의 흐름, 입력
 // ---------- 글 ----------
-const N_ = text => ({ narr: true, text }), E_ = text => ({ text });
+const N_ = text => ({ narr: true, text }), E_ = text => ({ text: NEST.fj(text) });
 const STORY = {
   intro: [N_('떨어진 자리에는 손바닥만 한 무언가와, 구덩이에 흩어진 누군가의 금화 몇 닢이 남았다.'), E_('…들리나? 좋아. 나는 잔향이야. 네가 예전에 얼마나 컸는지 기억하는 마지막 메아리지.'), E_('지금 네 이름은 「옛 것?」이야. 물음표가 붙었지. 네가 정말 그것이었는지 아무도 몰라. ' + NEST.K.days + '일 뒤, 별들이 한 줄로 서는 밤까지 살아남으면 물음표가 떨어져.'), E_('굴을 파고, 찾아오는 것들을 거두고, 밤마다 쳐들어오는 인간을 막아. 쓰러뜨린 인간은 먹이고, 겁에 질려 무릎 꿇은 인간은… 쓸모가 많지.'), E_('먹은 대로 변한다는 것만 기억해. 그리고 금화를 쌓아 두면 냄새를 맡고 더 많이 온다는 것도.'), E_('우선 문 앞에 서성이는 것들부터 들여. 혼자서는 첫 주도 못 넘겨.')],
   act2: [E_('첫 허물을 벗었네. 이제 지상으로 손을 뻗을 수 있어. Tab으로 올라가서 마을을 봐.'), E_('겁만 줄지, 털지, 지도에서 지울지는 네 마음이야. 다만 무서운 소문은 더 무서운 인간을 데려와.')],
@@ -63,21 +63,22 @@ function startEnding(sc) {
 }
 const GRADE_SAY = { SSS: '별들이 줄을 서서 구경했어. 이 정도면 나도 필요 없겠다.', SS: '예전의 너와 거의 같아. 거의.', S: '훌륭해. 인간들이 지도를 다시 그려야겠네.', A: '무난하게 깨어났어. 다음엔 더 크게.', B: '깨어나긴 했어. 하품부터 하고 있지만.', C: '간신히. 별이 조금만 덜 섰어도 못 깼을 거야.', D: '…다음 별을 기다리자.' };
 const STAGE_NAME = ['한 방울', '첫 허물', '두 번째 허물', '세 번째 허물', '성체'];
-function guideLine() {
+const guideLine = () => NEST.fj(guideLine0());
+function guideLine0() {
   const d = G.day, bench = G.kin.filter(m => m.loc === null).length;
   if (G.spot && G.ap > 0 && d > 3) return '지상에 ' + NEST.SPOT[G.spot.type].name + '이(가) 보여. 이틀이면 사라져. 행동 하나를 쓸 만한지 봐.';
   if (G.omen && G.omen.tier !== 'boon' && !G.omen.calmed && G.faith >= NEST.CALM_COST) return '오늘 징조에는 나쁜 쪽이 붙어 있어. 신앙 ' + NEST.CALM_COST + '을 바치면 달랠 수 있어. 아래 "징조"를 눌러.';
   if (G.guest) return '오늘 밤은 싸우러 오는 게 아니야. ' + NEST.GUEST[G.guest.type].name + '이(가) 온다. 아래 "손님"을 눌러 어떻게 맞을지 정해.';
-  { const e = NEST.estimate(G, 'tonight') || NEST.estimate(G, 'tomorrow'); if (e && e.boss && e.boss !== 'captain' && d < NEST.K.days) return '곧 올 무리의 우두머리는 ' + NEST.INV[e.boss].name + '. ' + NEST.INV[e.boss].boss + '. 거기 맞춰 자리를 바꿔.'; }
+  { const e = NEST.estimate(G, 'tonight') || NEST.estimate(G, 'tomorrow'); if (e && e.boss && e.boss !== 'captain' && d < NEST.K.days) return '우두머리는 ' + NEST.INV[e.boss].name + '. ' + NEST.INV[e.boss].boss + '.'; }
   if (bench) return '자리 없이 서성이는 권속이 ' + bench + '명 있어. 초소나 대기실을 지어서 세워.';
-  if (d === 1) return '아래 "지원자"를 눌러 권속을 들이고, 길 위 빈 굴을 눌러 초소나 함정방을 지어. 건설 행동 한 번에 작업 세 번이야.';
+  if (d === 1) return '"지원자"를 눌러 권속을 들이고, 길 위 빈 굴에 초소나 함정방을 지어. 건설 한 번에 작업이 셋이야.';
   if (d === 2) return '점선이 인간들이 걸어올 길이야. 길 위에 싸울 자리를 만들어. 내일 밤 처음으로 온다.';
   if (d === 3) return (TOUCH ? "지도 위 '지상' 버튼을 눌러 봐." : 'Tab으로 지상에 올라가 봐.') + ' 오늘 밤 누가 얼마나 오는지 보여.';
   if (G.corpses.length >= 3) return '먹이가 쌓였어. 본체 방을 눌러 포식해. 먹은 것의 징조가 쌓인다.';
   if (G.prison.length) return '포로가 있어. 풀어 주고 몸값을 받을지, 바칠지, 믿게 할지 정해.';
   if (d < 6 && NEST.sideRooms(G).length === 0) return '길에서 벗어난 칸을 파면 적이 지나가지 않는 곁방이 돼. 감옥이나 예배당은 거기에 지어.';
-  if (NEST.isSettle(G)) return '오늘은 달이 기우는 밤이야. 평소보다 큰 무리가 오고, 넘기면 정수에 따라 허물을 벗는다. 밤에 손을 쓸 수 있어.';
-  if (G.gold > 500 * NEST.cm(G)) return '깔고 앉은 재물이 묵직해. 냄새를 맡고 더 많이 올 거야. "본체"의 탐식에서 재물을 삼키면 몸이 불어나고, 삼킨 것은 털리지도 않아.';
+  if (NEST.isSettle(G)) return '달이 기우는 밤이야. 큰 무리가 오고, 넘기면 정수대로 허물을 벗어. 밤에 손도 쓸 수 있어.';
+  if (G.gold > 500 * NEST.cm(G)) return '재물 냄새를 맡고 더 많이 올 거야. "본체"의 탐식으로 삼키면 몸이 불고, 털리지도 않아.';
   if (NEST.actOf(G) >= 2 && !Object.values(G.vill).some(s => s.tribute || s.razed)) return '지상의 마을을 눌러 봐. 위협하면 공물을 바치고, 털면 한몫 잡지만 그 마을이 벼른다.';
   return '먹은 대로 변해. 본체 방에서 어떤 징조가 앞서는지 봐.';
 }
@@ -89,9 +90,9 @@ const FEATS = [
   ['first_ransom', '첫 몸값', '몸값을 받고 풀어 준다', '미끼 방', () => G.stats.ransoms >= 1],
   ['first_sacrifice', '첫 제물', '포로를 제물로 바친다', '의식실', () => G.sacrifices >= 1],
   ['first_convert', '첫 신도', '포로를 개종시킨다', '환각 안개', () => G.stats.converts >= 1],
-  ['first_evo', '첫 허물', '한 번 진화한다', '제단, 징조 전용 두 번째 시설', () => G.slime.stage >= 1],
+  ['first_evo', '첫 허물', '첫 허물을 벗는다', '제단·징조 시설', () => G.slime.stage >= 1],
   ['first_raid', '지상에 손을 뻗다', '마을을 습격한다', '야영지, 망루', () => (G.stats.raids || 0) >= 1],
-  ['hands3', '손을 쓰다', '한 판에 밤 개입을 3번 한다', '산성 웅덩이', () => (G.stats.hands || 0) >= 3],
+  ['hands3', '손을 쓰다', '한 판에 세 번 개입한다', '산성 웅덩이', () => (G.stats.hands || 0) >= 3],
   ['day12', '열두 밤', '12일째에 닿는다', '큰 대기실, 상점', () => G.day >= 12],
   ['first_end', '첫 낙하의 끝', '한 판을 끝까지 한다 (이기든 지든)', '별자리 셋 (닻, 주머니, 솥)', () => !!G.over],
   ['first_win', '깨어난 것', '처음으로 깨어난다', '황혼의 별자리 둘, 깊은 각성', () => !!G.over && G.over.win],
@@ -137,8 +138,8 @@ const TUT = [
   { t: () => '붉은 표시가 오늘 밤 올 무리야. 마을과 길목도 눌러 볼 수 있어. 다 봤으면 "지하"로 돌아와.', sel: '[data-a="view"][data-v="under"]', done: () => ST.screen === 'under' },
   { t: () => '준비 끝. "밤을 맞는다"를 눌러. 행동이 남았으면 한 번 더 누르면 돼. 싸움은 권속과 함정이 알아서 해.', sel: '[data-a="endday"]', done: () => G.day >= 2 },
   { t: () => '첫 밤을 넘겼어. 쓰러뜨린 인간은 먹이가 돼. "본체" 단추를 누르거나, 지도에서 깜빡이는 본체 방을 눌러.', cell: () => NEST.CORE, done: () => !G.corpses.length || (G.stats.eats || 0) >= 1 || (UI.sel && UI.sel.t === 'cell' && UI.sel.i === NEST.CORE) },
-  { t: () => '"포식"을 눌러. 먹은 것의 징조가 쌓이고, ' + NEST.K.act + '일째 밤에 정수가 ' + NEST.K.thresh[1] + '을 넘으면 그 징조로 진화해.', sel: '[data-a="eat"], [data-a="core"]', done: () => !G.corpses.length || (G.stats.eats || 0) >= 1 },
-  { t: () => '여기까지가 기본이야. 무릎 꿇은 인간은 "포로"에서 처분하고, 바위를 눌러 굴을 넓히고, 위쪽 숫자를 누르면 뜻이 나와. 나머지는 그때그때 말해 줄게.', end: true, done: () => false },
+  { t: () => '"포식"을 눌러. 먹은 것의 징조가 쌓이고, ' + NEST.K.act + '일째 밤에 정수가 ' + NEST.K.thresh[1] + '을 넘으면 그 징조의 몸으로 허물을 벗어.', sel: '[data-a="eat"], [data-a="core"]', done: () => !G.corpses.length || (G.stats.eats || 0) >= 1 },
+  { t: () => '기본은 여기까지야. 꿇은 인간은 "포로"에서 처분하고, 바위를 눌러 굴을 넓혀. 위쪽 숫자를 누르면 뜻이 나와.', end: true, done: () => false },
 ];
 function coach() {
   const on = !!G && G.tut != null && !G.over; ['coach', 'coach2'].forEach(id => { $(id).hidden = !on; });
@@ -200,16 +201,16 @@ function forecastText(when) { if (when === 'tonight' && G.guest) return '손님 
 function tray() {
   const out = [], bench = G.kin.filter(m => m.loc === null).length, tm = G.day < NEST.K.days;
   if (G.event) out.push(`<button class="chip todo" data-a="open" data-v="event">사건</button>`);
-  if (G.omen) { const live = G.omen.tier !== 'boon' && !G.omen.calmed; out.push(`<button class="chip${live ? ' todo' : ''}" data-a="open" data-v="elder"><span style="color:${ASPCOL[G.eld.id]}">징조</span> ${NEST.OMEN[G.omen.id].name}</button>`); }
+  if (G.omen) { const live = G.omen.tier !== 'boon' && !G.omen.calmed; out.push(`<button class="chip${live ? ' todo' : ''}" data-a="open" data-v="elder"><span style="color:${ASPCOL[G.eld.id]}">징조</span><span class="tn"> ${NEST.OMEN[G.omen.id].name}</span></button>`); }
   if (G.guest) out.push(`<button class="chip todo" data-a="open" data-v="guest">손님</button>`);
-  if (G.spot) out.push(`<button class="chip todo" data-a="gospot">지상 ${NEST.SPOT[G.spot.type].name}</button>`);
+  if (G.spot) out.push(`<button class="chip todo" data-a="gospot">지상<span class="tn"> ${NEST.SPOT[G.spot.type].name}</span></button>`);
   if (G.applicants.length) out.push(`<button class="chip todo" data-a="open" data-v="applicants">지원자 ${G.applicants.length}</button>`);
   if (G.prison.length) out.push(`<button class="chip todo" data-a="open" data-v="captives">포로 ${G.prison.length}</button>`);
   if (bench) out.push(`<button class="chip todo" data-a="open" data-v="roster">대기 ${bench}</button>`);
   out.push(`<button class="chip only-pc" data-a="open" data-v="roster">권속 ${G.kin.length}</button>`);
   out.push(`<button class="chip only-pc" data-a="view" data-v="surface"><span class="up">오늘 밤</span> ${esc(forecastText('tonight'))}</button>`);
   if (tm) out.push(`<button class="chip only-pc" data-a="view" data-v="surface"><span class="warnc">내일</span> ${esc(forecastText('tomorrow'))}</button>`);
-  $('tray').innerHTML = out.join('');
+  $('tray').classList.toggle('tight', out.filter(x => !x.includes('only-pc')).length > 3); $('tray').innerHTML = out.join('');
   $('fore').innerHTML = `<span class="up">오늘 밤</span><span>${esc(forecastText('tonight'))}</span>${tm ? `<span class="warnc">내일 밤</span><span class="mute">${esc(forecastText('tomorrow'))}</span>` : ''}`;
   $('recent').innerHTML = `<div class="row nw" style="align-items:flex-start">${echoImg(40)}<p class="grow"><b class="h3 coin">잔향</b> ${esc(guideLine())}</p></div>`;
   const pr = v => ` aria-pressed="${ST.screen === v}"`;
@@ -222,10 +223,10 @@ function slimePanel() {
   const sl = G.slime, s = NEST.slimeStats(G), need = NEST.K.thresh[sl.stage + 1], tot = NEST.essTotal(G), max = Math.max(1, ...NEST.ASPECTS.map(a => sl.ess[a]), need ? need / 2 : 1), O = NEST.ORIGIN[G.origin || 'drop'];
   const guards = G.kin.filter(m => m.loc === 'core'), bench = G.kin.filter(m => m.loc === null), cap = NEST.capacity(G).core, A = NEST.K.act;
   const list = [['ess', '정수'], ['pow', '능력', sl.muts.length ? '변이 ' + sl.muts.length : null], ['hoard', '탐식'], ['guard', '호위', guards.filter(m => m.kind !== 'spawn').length + '/' + cap]], tab = curTab('core', list);
-  let h = phead(esc(NEST.formName(G)), STAGE_NAME[sl.stage]) + `<div class="slime-top">${slimeImg(sl, 72, NEST.formName(G))}<div class="stack"><p class="small">체력 ${R(sl.hp)}/${R(s.hp)} · 공격 ${R(s.atk)} · 방어 ${R(s.df)}</p>${bar(sl.hp / s.hp)}<p class="small">목숨 ${lifePips()}${G.origin && G.origin !== 'drop' ? ` <span class="chip on">${O.name}</span>` : ''}</p></div></div>
+  let h = phead(esc(NEST.formName(G)), STAGE_NAME[sl.stage]) + `<div class="slime-top">${slimeImg(sl, 72, NEST.formName(G))}<div class="stack"><p class="small">체력 ${R(sl.hp)}/${R(s.hp)} · 공격 ${R(s.atk)} · 방어 ${R(s.df)}</p>${bar(sl.hp / s.hp)}<p class="small"><span class="only-pc">목숨 ${lifePips()}</span>${G.origin && G.origin !== 'drop' ? ` <span class="chip on">${O.name}</span>` : ''}</p></div></div>
     <div class="row nw">${btn('eat', null, `포식 <small>행동 1 · 먹이 ${G.corpses.length}/${NEST.corpseCap(G)}</small>`, 'pri grow', !G.corpses.length)}${btn('rest', null, '휴식 <small>행동 1</small>', 'grow')}</div>${tabsHtml('core', list, tab)}<div class="tb">`;
   if (tab === 'ess') h += `<div class="pts">${NEST.ASPECTS.map(a => `<span style="color:${ASPCOL[a]}">${NEST.ASP[a]}</span>${bar(sl.ess[a] / max, ASPCOL[a])}<span class="num">${sl.ess[a]}</span>`).join('')}</div>
-    <p class="small"><b>합 ${tot}${need ? ' / ' + need : ''}</b> <span class="mute">${sl.stage === 0 ? A + '일째 밤에 기준을 넘으면 첫 허물을 벗는다. 이대로면 <b style="color:' + ASPCOL[moltGuess().asp] + '">「' + moltGuess().name + '」</b>.' : sl.stage === 1 ? A * 2 + '일째 밤, 두 번째로 많은 징조가 섞인다.' : sl.stage === 2 ? A * 3 + '일째 밤에 기준을 넘으면 세 번째 허물을 벗는다.' : sl.stage === 3 ? A * 4 + '일째 밤에 기준을 넘으면 성체가 된다.' : '다 자랐다. 별이 서기를 기다린다.'}</span></p>
+    <p class="small"><b>합 ${tot}${need ? ' / ' + need : ''}</b> <span class="mute">${sl.stage === 0 ? A + '일째 밤 첫 허물 → <b style="color:' + ASPCOL[moltGuess().asp] + '">「' + moltGuess().name + '」</b>' : sl.stage === 1 ? A * 2 + '일째 밤, 두 번째로 많은 징조가 섞인다.' : sl.stage === 2 ? A * 3 + '일째 밤에 기준을 넘으면 세 번째 허물을 벗는다.' : sl.stage === 3 ? A * 4 + '일째 밤에 기준을 넘으면 성체가 된다.' : '다 자랐다. 별이 서기를 기다린다.'}</span></p>
     <div class="sec">먹이 <small>포식하면 ${sl.muts.includes('mouth') ? 6 : 3}구씩 정수가 된다</small></div><div class="row">${G.corpses.map(c => aspChip(NEST.INV[c.kind].asp, NEST.INV[c.kind].name + ' +' + NEST.corpsePts(G, c.kind))).join('') || '<span class="mute small">없음. 쓰러뜨린 침입자가 먹이가 된다.</span>'}</div>`;
   if (tab === 'pow') {
     h += `<div class="kv small">${G.origin && G.origin !== 'drop' ? `<span class="chip on">${O.name}</span><span><span class="okc">${esc(O.good)}</span> · <span class="up">${esc(O.bad)}</span></span>` : '<span class="chip">형질 없음</span><span class="mute">하는 짓에 따라 몸에 무언가 돋을 수 있다. 한 판에 하나.</span>'}`;
@@ -306,7 +307,7 @@ function overview() {
   return `<div class="ph"><h2>둥지</h2>${btn('log', null, '지난 일', 'sm')}</div>
     <div class="card"><div class="slime-top sm">${slimeImg(G.slime, 56)}<div class="stack"><p class="h3">${esc(NEST.formName(G))} <small class="mute">${STAGE_NAME[G.slime.stage]}${G.origin && G.origin !== 'drop' ? ' · ' + O.name : ''}</small></p>${bar(G.slime.hp / NEST.slimeStats(G).hp)}<div class="row">${NEST.ASPECTS.filter(a => G.slime.ess[a] > 0).map(a => aspChip(a, NEST.ASP[a] + ' ' + G.slime.ess[a])).join('')}${btn('core', null, '본체 열기', 'sm')}</div></div></div></div>
     ${G.sign && NEST.SIGN[G.sign] ? `<p class="small clamp2"><span class="chip" style="border-color:${ASPCOL[NEST.SIGN[G.sign].asp]};color:${ASPCOL[NEST.SIGN[G.sign].asp]}">${NEST.SIGN[G.sign].name}</span> ${esc(NEST.STAR[G.star].name + ': ' + NEST.STAR[G.star].desc)}</p>` : G.star && G.star !== 'none' ? `<p class="small clamp2"><span class="chip on">${NEST.STAR[G.star].name}</span> ${esc(NEST.STAR[G.star].desc)}</p>` : ''}
-    <div class="sec">권속 ${G.kin.length}명 <small>하루 급여 ${R(G.kin.reduce((a, m) => a + NEST.salary(G, m), 0))}G · 시설 유지 ${R(NEST.upkeep(G))}G</small></div>
+    <div class="sec">권속 ${G.kin.length}명 <small>하루 삯 ${R(G.kin.reduce((a, m) => a + NEST.salary(G, m), 0))}G · 시설 유지 ${R(NEST.upkeep(G))}G</small></div>
     <div class="rooms">${keys.map(k => `<span class="small ${k === 'bench' ? 'warnc' : 'mute'}">${k === 'bench' ? '대기 (안 싸움)' : esc(locName(k === 'core' ? 'core' : +k))}</span><div class="units">${by[k].map(kinMini).join('')}</div>`).join('') || '<span class="mute small" style="grid-column:1/-1">아직 아무도 없다. 아침마다 지원자가 찾아온다.</span>'}</div>
     <p class="small mute">지도에서 칸·마을·길목을 누르면 여기에 할 일이 나온다. <kbd>Tab</kbd> 지상·지하 · <kbd>E</kbd> 밤 맞기 · <kbd>Esc</kbd> 선택 해제</p>`;
 }
@@ -336,7 +337,7 @@ function applicantsHtml() {
   if (!G.applicants.length) return M('지원자', '<p class="mute">오늘은 더 없다. 내일 아침 새 얼굴이 온다.</p>', closeBtn());
   return M('둥지를 찾아온 것들 <small class="mute">행동은 들지 않는다 · 안 들이면 내일 떠난다</small>', `<div class="pick3">${G.applicants.map((a, i) => {
     const d = NEST.KIN[a.kind], cost = NEST.acceptCost(G, a), slot = NEST.freeSlot(G, a.kind), lv = Math.max(1, NEST.actOf(G) * 3 - 2) + (a.rare ? 2 : 0), g = Math.pow(NEST.K.lvGrowth, lv - 1) * (a.rare ? 1.4 : 1);
-    return `<div class="card pcard${a.rare ? ' rare' : ''}">${kinImg(a.kind, 64)}<b class="h3">${a.rare ? '희귀 ' : ''}${d.name} <small class="mute">"${esc(a.name)}" Lv${lv}</small>${d.satk || a.kind === 'netter' ? ' <span class="chip good">살려 잡음</span>' : ''}</b><span class="small">체력 ${R(d.hp * g)} · 공격 ${R(d.atk * g)} · 방어 ${R(d.df * g)}${d.satk ? ' · 정신 ' + R(d.satk * g) : ''}</span><span class="small mute clamp2">${esc(d.note || '평범하게 싸운다')}</span><span class="small mute">급여 ${R(NEST.salary(G, { kind: a.kind, lv }))}G${d.eat ? ' + 먹이' : ''} · <span class="${slot === null ? 'warnc' : 'okc'}">${slot === null ? '자리 없음 (대기)' : '→ ' + esc(locName(slot))}</span></span>${btn('accept', { i }, `들인다 ${cost}G`, 'pri', G.gold < cost)}</div>`;
+    return `<div class="card pcard${a.rare ? ' rare' : ''}">${kinImg(a.kind, 64)}<b class="h3">${a.rare ? '희귀 ' : ''}${d.name} <small class="mute">"${esc(a.name)}" Lv${lv}</small>${d.satk || a.kind === 'netter' ? ' <span class="chip good">살려 잡음</span>' : ''}</b><span class="small">체력 ${R(d.hp * g)} · 공격 ${R(d.atk * g)} · 방어 ${R(d.df * g)}${d.satk ? ' · 정신 ' + R(d.satk * g) : ''}</span><span class="small mute clamp2">${esc(d.note || '평범하게 싸운다')}</span><span class="small mute">삯 ${R(NEST.salary(G, { kind: a.kind, lv }))}G${d.eat ? ' + 먹이' : ''} · <span class="${slot === null ? 'warnc' : 'okc'}">${slot === null ? '자리 없음 (대기)' : '→ ' + esc(locName(slot))}</span></span>${btn('accept', { i }, `들인다 ${cost}G`, 'pri', G.gold < cost)}</div>`;
   }).join('')}</div>`, closeBtn('나중에'));
 }
 function captivesHtml() {
@@ -359,21 +360,21 @@ function kinHtml(id) {
   const m = G.kin.find(x => x.id === id); if (!m) return M('권속', '<p class="mute">떠난 권속이다.</p>', closeBtn());
   const d = NEST.KIN[m.kind], s = NEST.kinStats(G, m), cap = NEST.capacity(G);
   const slots = Object.keys(cap).map(k => k === 'core' ? k : +k).filter(k => k !== m.loc && (m.kind === 'spawn' || G.kin.filter(x => x.loc === k && x.kind !== 'spawn').length < cap[k]));
-  const list = [['move', '자리'], ['skill', '스킬·방침'], ['evo', '진화'], ['fuse', '합체', (m.parts || []).length + '/' + NEST.K.fuse.max]], tab = curTab('kin', list);
-  let b = `<div class="slime-top sm">${kinImgM(m, 56)}<div class="stack" style="gap:3px"><div class="xp"><i style="width:${Math.min(100, m.exp / NEST.expNeed(m.lv) * 100)}%"></i></div><p class="small">체력 ${R(s.hp)} · 공격 ${R(s.atk)} · 방어 ${R(s.df)}${s.satk ? ' · 정신 ' + R(s.satk) : ''} · 급여 ${R(NEST.salary(G, m))}G${d.eat ? ' + 먹이' : ''}</p><p class="small mute clamp2">${esc(d.note || '')}</p>${NEST.recipesOf(m).map(r => `<p class="small"><span class="chip on">★ ${NEST.RECIPE[r].name}</span> ${esc(NEST.RECIPE[r].desc)}</p>`).join('')}<p class="small">지금 <b>${esc(locName(m.loc))}</b>${m.hurt ? ' · <span class="up">부상 ' + m.hurt + '일 (휴식하면 복귀)</span>' : ''}${m.strike ? ' · <span class="warnc">급여를 못 받아 오늘 밤 쉰다</span>' : ''}</p></div></div>${tabsHtml('kin', list, tab)}<div class="tb">`;
+  const list = [['move', '자리'], ['skill', '기술·방침'], ['evo', '진화'], ['fuse', '합체', (m.parts || []).length + '/' + NEST.K.fuse.max]], tab = curTab('kin', list);
+  let b = `<div class="slime-top sm">${kinImgM(m, 56)}<div class="stack" style="gap:3px"><div class="xp"><i style="width:${Math.min(100, m.exp / NEST.expNeed(m.lv) * 100)}%"></i></div><p class="small">체력 ${R(s.hp)} · 공격 ${R(s.atk)} · 방어 ${R(s.df)}${s.satk ? ' · 정신 ' + R(s.satk) : ''} · 삯 ${R(NEST.salary(G, m))}G${d.eat ? ' + 먹이' : ''}</p><p class="small mute clamp2">${esc(d.note || '')}</p>${NEST.recipesOf(m).map(r => `<p class="small"><span class="chip on">★ ${NEST.RECIPE[r].name}</span> ${esc(NEST.RECIPE[r].desc)}</p>`).join('')}<p class="small">지금 <b>${esc(locName(m.loc))}</b>${m.hurt ? ' · <span class="up">부상 ' + m.hurt + '일 (휴식하면 복귀)</span>' : ''}${m.strike ? ' · <span class="warnc">삯를 못 받아 오늘 밤 쉰다</span>' : ''}</p></div></div>${tabsHtml('kin', list, tab)}<div class="tb">`;
   if (tab === 'move') b += `<p class="small mute">옮기는 데 작업 1.</p><div class="opts">${slots.map(k => btn('place', { id: m.id, loc: k }, esc(locName(k)), '')).join('') || '<span class="small mute">빈 자리가 없다. 초소나 대기실을 지어야 한다.</span>'}${m.loc !== null ? btn('place', { id: m.id, loc: 'bench' }, '대기로 빼기', '') : ''}</div>`;
-  if (tab === 'skill') b += `${d.skills.length ? `<div class="opts c1">${d.skills.map((k, i) => `<button class="btn opt${m.skill === i ? ' on' : ''}" data-a="skill" data-id="${m.id}" data-i="${i}"${m.lv < NEST.SKILL_LV[i] ? ' disabled' : ''}><b>${esc(k[0])} <small class="mute">Lv${NEST.SKILL_LV[i]}부터</small></b><span class="small mute">${esc(k[1])}</span></button>`).join('')}</div>` : '<p class="small mute">스킬이 없다.</p>'}${m.kind !== 'spawn' ? `<div class="row nw">${btn('stance', { id: m.id, v: 'careful' }, '신중 <small>체력 30%에 물러남</small>', 'grow' + (m.stance !== 'hold' ? ' on' : ''))}${btn('stance', { id: m.id, v: 'hold' }, '사수 <small>끝까지</small>', 'grow' + (m.stance === 'hold' ? ' on' : ''))}</div>` : ''}`;
-  if (tab === 'evo') b += m.kind === 'spawn' ? `<p class="${m.evo ? 'okc' : 'mute'}">${m.evo ? '큰 움으로 자랐다. 능력치 1.5배.' : '나흘을 살아남으면 저절로 큰 움으로 자란다. 지금 ' + (m.age || 0) + '일째.'}</p>` : !NEST.EVO[m.kind] ? '<p class="mute">더 자라지 않는다.</p>' : m.evo ? `<p class="okc"><b>${NEST.EVO[m.kind]}</b> — ${esc(NEST.EVO_DESC[m.kind])}. 능력치·급여 1.5배.</p>` : `<div class="row nw">${kinImg(m.kind, 56, true)}<p class="grow"><b class="h3">${NEST.EVO[m.kind]}</b><br><span class="small ${m.lv < 5 ? 'mute' : 'okc'}">${esc(NEST.EVO_DESC[m.kind])}. 능력치와 급여 1.5배.</span></p></div><div class="row">${btn('kinevo', { id: m.id }, `진화시킨다 ${NEST.evoCost(G)}G`, 'pri', m.lv < 5 || G.gold < NEST.evoCost(G))}<span class="small mute">${m.lv < 5 ? '레벨 5부터. 지금 Lv' + m.lv : '행동은 들지 않는다'}</span></div>`;
+  if (tab === 'skill') b += `${d.skills.length ? `<div class="opts c1">${d.skills.map((k, i) => `<button class="btn opt${m.skill === i ? ' on' : ''}" data-a="skill" data-id="${m.id}" data-i="${i}"${m.lv < NEST.SKILL_LV[i] ? ' disabled' : ''}><b>${esc(k[0])} <small class="mute">Lv${NEST.SKILL_LV[i]}부터</small></b><span class="small mute">${esc(k[1])}</span></button>`).join('')}</div>` : '<p class="small mute">기술이 없다.</p>'}${m.kind !== 'spawn' ? `<div class="row nw">${btn('stance', { id: m.id, v: 'careful' }, '신중 <small>체력 30%에 물러남</small>', 'grow' + (m.stance !== 'hold' ? ' on' : ''))}${btn('stance', { id: m.id, v: 'hold' }, '사수 <small>끝까지</small>', 'grow' + (m.stance === 'hold' ? ' on' : ''))}</div>` : ''}`;
+  if (tab === 'evo') b += m.kind === 'spawn' ? `<p class="${m.evo ? 'okc' : 'mute'}">${m.evo ? '큰 움으로 자랐다. 능력치 1.5배.' : '나흘을 살아남으면 저절로 큰 움으로 자란다. 지금 ' + (m.age || 0) + '일째.'}</p>` : !NEST.EVO[m.kind] ? '<p class="mute">더 자라지 않는다.</p>' : m.evo ? `<p class="okc"><b>${NEST.EVO[m.kind]}</b> — ${esc(NEST.EVO_DESC[m.kind])}. 능력치·삯 1.5배.</p>` : `<div class="row nw">${kinImg(m.kind, 56, true)}<p class="grow"><b class="h3">${NEST.EVO[m.kind]}</b><br><span class="small ${m.lv < 5 ? 'mute' : 'okc'}">${esc(NEST.EVO_DESC[m.kind])}. 능력치와 삯 1.5배.</span></p></div><div class="row">${btn('kinevo', { id: m.id }, `진화시킨다 ${NEST.evoCost(G)}G`, 'pri', m.lv < 5 || G.gold < NEST.evoCost(G))}<span class="small mute">${m.lv < 5 ? '레벨 5부터. 지금 Lv' + m.lv : '행동은 들지 않는다'}</span></div>`;
   if (tab === 'fuse') {
     const full = (m.parts || []).length >= NEST.K.fuse.max, mats = G.kin.filter(x => x !== m && !(x.parts && x.parts.length)).sort((p, q) => (p.loc === null ? 0 : 1) - (q.loc === null ? 0 : 1) || q.lv - p.lv), sh = NEST.K.fuse.share;
-    b += `${(m.parts || []).length ? `<p class="small">붙은 것: ${m.parts.map(p => `<span class="chip on">${esc(p.name)} · ${NEST.KIN[p.kind].name} Lv${p.lv}</span>`).join(' ')}</p>` : ''}<p class="small mute">다른 권속을 이 몸에 붙인다. 붙은 쪽은 사라지고 그 능력의 ${Math.round(sh * 100)}%가 남는다(급여도 그만큼). ${NEST.fuseCost(G)}G · 행동은 들지 않는다 · 되돌릴 수 없다.</p><p class="small">한 번에 붙잡는 적 <b>${2 + (m.parts || []).length}명</b>${full ? '' : ' → 붙이면 <b class="okc">' + (3 + (m.parts || []).length) + '명</b>'} <span class="mute">(권속 한 명은 둘, 붙은 것 하나마다 +1. 따로 세워 두면 한 명당 둘씩이니, 자리가 남으면 따로 두는 쪽이 더 많이 붙잡는다)</span></p>`;
+    b += `${(m.parts || []).length ? `<p class="small">붙은 것: ${m.parts.map(p => `<span class="chip on">${esc(p.name)} · ${NEST.KIN[p.kind].name} Lv${p.lv}</span>`).join(' ')}</p>` : ''}<p class="small mute">다른 권속을 이 몸에 붙인다. 붙은 쪽은 사라지고 그 능력의 ${Math.round(sh * 100)}%가 남는다(삯도 그만큼). ${NEST.fuseCost(G)}G · 행동은 들지 않는다 · 되돌릴 수 없다.</p><p class="small">한 번에 붙잡는 적 <b>${2 + (m.parts || []).length}명</b>${full ? '' : ' → 붙이면 <b class="okc">' + (3 + (m.parts || []).length) + '명</b>'} <span class="mute">(권속 한 명은 둘, 붙은 것 하나마다 +1. 따로 세워 두면 한 명당 둘씩이니, 자리가 남으면 따로 두는 쪽이 더 많이 붙잡는다)</span></p>`;
     if (m.kind === 'spawn') b += '<p class="small warnc">움은 다른 것을 붙이지 못한다. 재료는 될 수 있다.</p>';
     else if (full) b += '<p class="small okc">더는 붙일 자리가 없다.</p>';
-    else b += pager('fuse', mats, 6, items => `<div class="opts">${items.map(x => { const d2 = NEST.KIN[x.kind], g2 = Math.pow(NEST.K.lvGrowth, x.lv - 1) * (x.rare ? 1.4 : 1) * (x.evo ? 1.5 : 1) * sh; return `<button class="btn opt" data-a="fuse" data-id="${m.id}" data-b="${x.id}"${NEST.fuseWhy(G, m.id, x.id) ? ' disabled' : ''}><b>${esc(x.name)} <small class="mute">${NEST.baseName(x)} Lv${x.lv} · ${x.loc === null ? '대기' : x.loc === 'core' ? '본체' : coord(x.loc)}</small></b><span class="small mute">체력 +${R(d2.hp * g2)} · 공격 +${R(d2.atk * g2)}${d2.satk ? ' · 정신 +' + R(d2.satk * g2) : ''}${x.loc !== null ? ' · <span class="warnc">' + esc(locName(x.loc)) + '의 자리가 빈다</span>' : ''}${NEST.fusePreview(G, m.id, x.id).map(r => META.codex.rcp[r] ? ' <b class="coin">★ ' + NEST.RECIPE[r].name + '</b>' : ' <b class="coin">★ 무언가 특별한 것이 될 것 같다</b>').join('')}</span></button>`; }).join('') || '<span class="small mute">붙일 권속이 없다.</span>'}</div>`);
+    else b += pager('fuse', mats, 6, items => `<div class="opts">${items.map(x => { const d2 = NEST.KIN[x.kind], g2 = Math.pow(NEST.K.lvGrowth, x.lv - 1) * (x.rare ? 1.4 : 1) * (x.evo ? 1.5 : 1) * sh; return `<button class="btn opt" data-a="fuse" data-id="${m.id}" data-b="${x.id}"${NEST.fuseWhy(G, m.id, x.id) ? ' disabled' : ''}><b>${esc(x.name)} <small class="mute">${NEST.baseName(x)} Lv${x.lv}</small></b><span class="small mute">체력 +${R(d2.hp * g2)} · 공격 +${R(d2.atk * g2)}${d2.satk ? ' · 정신 +' + R(d2.satk * g2) : ''}${x.loc !== null ? ' · <span class="warnc">' + esc(locName(x.loc)) + '의 자리가 빈다</span>' : ''}${NEST.fusePreview(G, m.id, x.id).map(r => META.codex.rcp[r] ? ' <b class="coin">★ ' + NEST.RECIPE[r].name + '</b>' : ' <b class="coin">★ 무언가 특별한 것이 될 것 같다</b>').join('')}</span></button>`; }).join('') || '<span class="small mute">붙일 권속이 없다.</span>'}</div>`);
   }
   return M(`${esc(m.name)} <small class="mute">${m.rare ? '희귀 ' : ''}${NEST.kinName(m)} · Lv${m.lv}${m.legacy ? ' · 명부' : ''}</small>`, b + '</div>', btn('dismiss', { id: m.id }, '내보낸다', 'sm bad') + btn('open', { v: 'roster' }, '권속 목록') + closeBtn());
 }
-function rosterHtml() { return M(`권속 ${G.kin.length}명 <small class="mute">눌러서 자리, 스킬, 진화를 본다</small>`, pager('roster', G.kin, isMobile() ? 14 : 18, items => `<div class="units ${isMobile() ? 'g2' : 'g3'}">${items.map(m => kinChip(m).replace('</small></span></button>', ` · ${esc(m.loc === null ? '대기' : m.loc === 'core' ? '본체' : coord(m.loc))}</small></span></button>`)).join('') || '<span class="mute">아직 아무도 없다.</span>'}</div>`), closeBtn()); }
+function rosterHtml() { return M(`권속 ${G.kin.length}명 <small class="mute">눌러서 자리, 기술, 진화를 본다</small>`, pager('roster', G.kin, isMobile() ? 14 : 18, items => `<div class="units ${isMobile() ? 'g2' : 'g3'}">${items.map(m => kinChip(m).replace('</small></span></button>', ` · ${esc(m.loc === null ? '대기' : m.loc === 'core' ? '본체' : coord(m.loc))}</small></span></button>`)).join('') || '<span class="mute">아직 아무도 없다.</span>'}</div>`), closeBtn()); }
 const omenLines = om => `${om.tier !== 'bane' ? `<p class="okc small">＋ ${esc(NEST.OMEN[om.id].boon)}</p>` : ''}${om.tier !== 'boon' ? `<p class="${om.calmed ? 'mute' : 'up'} small">－ ${esc(NEST.OMEN[om.id].bane)}${om.calmed ? ' (달랬다)' : ''}</p>` : ''}`;
 function elderHtml() {
   const e = NEST.ELDER[G.eld.id], f = G.eld.favor, col = ASPCOL[G.eld.id], om = G.omen, live = om && om.tier !== 'boon' && !om.calmed, tl = G.eld.tally;
@@ -413,13 +414,13 @@ function evoHtml(st, before) {
   if (sl.stage === 2) { lines.push(NEST.FORM2UP[bk]); lines.push(NEST.ASP[sl.sub] + ' 섞임: ' + NEST.SUBTRAIT[sl.sub]); }
   if (sl.stage === 3) lines.push('몸 밖으로 무언가가 뻗어 나온다. 체력·공격·방어가 크게 오른다');
   if (sl.stage === 4) lines.push('다 자랐다. 굴 하나가 몸으로 가득 찬다. 체력·공격·방어가 다시 크게 오른다');
-  return `<div class="mbody evo" style="align-items:center;text-align:center"><p class="mute">${STAGE_NAME[sl.stage]}</p><div class="row" style="justify-content:center;gap:20px">${slimeImg(before, 64, '이전 모습')}<span class="h3 mute">→</span>${slimeImg(sl, 128, NEST.formName(G))}</div><h2 style="font-size:28px;color:${ASPCOL[sl.main]}">${esc(NEST.formName(G))}</h2><div class="row" style="justify-content:center">${aspChip(sl.main, '주 ' + NEST.ASP[sl.main])}${sl.sub ? aspChip(sl.sub, '부 ' + NEST.ASP[sl.sub]) : ''}</div>${lines.map(l => `<p class="small">${esc(l)}</p>`).join('')}${st.mut ? `<p class="small">${aspChip(NEST.MUT[st.mut].asp, '변이: ' + NEST.MUT[st.mut].name)} ${esc(NEST.MUT[st.mut].desc)}</p>` : ''}<p class="small up">인간들 사이에 소문이 돈다. 공포 +10</p></div><div class="mfoot">${btn('close', null, '좋다', 'pri big')}</div>`;
+  return `<div class="mbody evo" style="align-items:center;text-align:center"><p class="mute">${STAGE_NAME[sl.stage]}</p><div class="row" style="justify-content:center;gap:20px">${slimeImg(before, 64, '이전 모습')}<span class="h3 mute">→</span>${slimeImg(sl, 128, NEST.formName(G))}</div><h2 style="font-size:var(--d2);color:${ASPCOL[sl.main]}">${esc(NEST.formName(G))}</h2><div class="row" style="justify-content:center">${aspChip(sl.main, '주 ' + NEST.ASP[sl.main])}${sl.sub ? aspChip(sl.sub, '부 ' + NEST.ASP[sl.sub]) : ''}</div>${lines.map(l => `<p class="small">${esc(l)}</p>`).join('')}${st.mut ? `<p class="small">${aspChip(NEST.MUT[st.mut].asp, '변이: ' + NEST.MUT[st.mut].name)} ${esc(NEST.MUT[st.mut].desc)}</p>` : ''}<p class="small up">인간들 사이에 소문이 돈다. 공포 +10</p></div><div class="mfoot">${btn('close', null, '좋다', 'pri big')}</div>`;
 }
 function resultHtml(sc, unlocked) {
   const win = G.over.win, av = NEST.avatarOf(G), key = !win ? null : NEST.endKey(G), tier = endTier(sc.grade), e3 = win && ENDING3[key] ? ENDING3[key][tier] : null;
   const list = win ? [['end', '결말'], ['score', '점수']] : [['score', '점수']], tab = curTab('result', list);
   let b = (win ? tabsHtml('result', list, tab) : '') + '<div class="tb" style="align-items:center;text-align:center">';
-  if (tab === 'end') b += `${G.slime.main ? '<canvas id="endcv" class="px" width="192" height="108"></canvas>' : slimeImg(G.slime, 128)}<h2 style="font-size:24px">${esc(av)}</h2>${e3 ? `<p class="h3 coin">결말 · ${e3[0]}</p><p class="endtxt small">${esc(e3[1])}</p><p class="small mute">${['점수가 더 높으면 이 일은 더 멀리 번진다.', '점수가 더 높으면 이 일은 끝까지 간다.', '이 모습으로 갈 수 있는 가장 먼 곳.'][tier]}</p>` : `<p class="endtxt small">${esc(ENDING[key])}</p>`}`;
+  if (tab === 'end') b += `${G.slime.main ? '<canvas id="endcv" class="px" width="192" height="108"></canvas>' : slimeImg(G.slime, 128)}<h2 style="font-size:var(--d2)">${esc(av)}</h2>${e3 ? `<p class="h3 coin">결말 · ${e3[0]}</p><p class="endtxt small">${esc(e3[1])}</p><p class="small mute">${['점수가 더 높으면 이 일은 더 멀리 번진다.', '점수가 더 높으면 이 일은 끝까지 간다.', '이 모습으로 갈 수 있는 가장 먼 곳.'][tier]}</p>` : `<p class="endtxt small">${esc(ENDING[key])}</p>`}`;
   else b += `<div class="row nw" style="gap:14px;justify-content:center">${win ? '' : slimeImg(G.slime, 96)}<div><div class="grade">${sc.grade}</div><p class="coin h3">${R(sc.total)}점</p></div></div><p class="small mute">${win ? '별이 서는 밤을 넘겼다' : esc(G.over.why)} · ${G.day}일 · ${NEST.DIFF[G.diff].name}${G.sign && NEST.SIGN[G.sign] ? ' · ' + NEST.SIGN[G.sign].name : ''}</p><div class="row nw" style="align-items:flex-start;text-align:left">${echoImg(32)}<p class="small">${esc(GRADE_SAY[sc.grade])}</p></div>
     <div class="ledger" style="width:100%;text-align:left">${(() => { const r = sc.parts.filter(p => p[1]).map(p => `<span>${p[0]}</span><span class="num">${R(p[1])}</span>`); if (r.length % 2) r.push('<span></span><span></span>'); return r.join(''); })()}<span class="tot l">배수 (${NEST.DIFF[G.diff].name}${win ? '' : ' · 실패'})</span><span class="tot num">×${sc.mult.toFixed(2)}</span></div>
     <p class="small"><span class="coin">별가루 +${UI.dustGain || 0}</span>${(UI.grown || []).slice(0, 2).map(g => ` · <span class="okc">${esc(g)}</span>`).join('')}</p>${unlocked.slice(0, 5).map(u => `<p class="okc small">새로 열림: ${esc(u)}</p>`).join('')}`;
@@ -471,7 +472,7 @@ function recordsHtml() {
   const list = [['mine', '내 기록'], ['feats', '흔적', FEATS.filter(f => META.feats[f[0]]).length + '/' + FEATS.length], ['cloud', '함께 보는 순위']], tab = curTab('records', list);
   let b = tabsHtml('records', list, tab) + '<div class="tb">';
   if (tab === 'mine') b += `<div class="board">${META.board.map((x, i) => `<span class="num">${i + 1}</span><span>${esc(x.form)} <small class="mute">${x.day}일 · ${NEST.DIFF[x.diff].name}${x.win ? '' : ' · 실패'}</small></span><b class="coin">${x.grade}</b><span class="num">${R(x.total)}</span>`).join('') || '<span class="mute">아직 기록이 없다.</span>'}</div>`;
-  if (tab === 'feats') b += '<p class="small mute">처음 해 보는 일이 새 시설, 함정, 주인공을 연다. 하나에 별가루 +15.</p>' + pager('feats', FEATS.slice().sort((x, y) => (META.feats[x[0]] ? 1 : 0) - (META.feats[y[0]] ? 1 : 0)), isMobile() ? 9 : 11, items => `<div class="frow small">${items.map(f => META.feats[f[0]] ? `<span class="chip on">${f[1]}</span><span>${f[3]}</span>` : `<span class="chip">${f[1]}</span><span class="mute">${f[2]} → <b class="coin">${f[3]}</b></span>`).join('')}</div>`);
+  if (tab === 'feats') b += '<p class="small mute">처음 해 보는 일이 새 시설과 함정, 별자리를 연다. 하나에 별가루 +15.</p>' + pager('feats', FEATS.slice().sort((x, y) => (META.feats[x[0]] ? 1 : 0) - (META.feats[y[0]] ? 1 : 0)), isMobile() ? 9 : 11, items => `<div class="frow small">${items.map(f => META.feats[f[0]] ? `<span class="chip on">${f[1]}</span><span>${f[3]}</span>` : `<span class="chip">${f[1]}</span><span class="mute">${f[2]} → <b class="coin">${f[3]}</b></span>`).join('')}</div>`);
   if (tab === 'cloud') b += `<div id="cloudboard" class="board"><span class="mute">${CLOUD ? '불러오는 중…' : '게시된 링크를 공유받아 로그인한 사람들끼리 최고 점수를 겨룬다. 지금은 연결되지 않았다(파일로 열었거나 로그인하지 않았다).'}</span></div>`;
   return M(`기록 <small class="mute">판 ${META.runs} · 깨어남 ${META.clears}</small>`, b + '</div>', closeBtn());
 }
@@ -501,11 +502,11 @@ function setupHtml(o) {
 }
 function fuseHtml(m, bm, made) {
   const s2 = NEST.kinStats(G, m), mk = (made || []).map(r => `<p class="h3 coin">★ 특별한 합체 「${NEST.RECIPE[r].name}」</p><p class="small">${esc(NEST.RECIPE[r].desc)}</p>`).join('');
-  return `<div class="mbody evo" style="align-items:center;text-align:center"><p class="mute">두 몸이 하나가 되었다</p><div class="row" style="justify-content:center;gap:14px">${kinImg(bm.kind, 48, bm.evo)}<span class="h3 mute">+</span>${kinImg(m.kind, 48, m.evo)}<span class="h3 mute">→</span>${kinImgM(m, 120)}</div><h2 style="font-size:24px">${esc(NEST.kinName(m))}</h2>${mk}<p class="small mute">${esc(m.name)}이(가) ${esc(bm.name)}을(를) 몸에 붙였다.</p><p class="small okc">체력 ${R(s2.hp)} · 공격 ${R(s2.atk)} · 방어 ${R(s2.df)}${s2.satk ? ' · 정신 ' + R(s2.satk) : ''}</p><p class="small mute">붙은 것 ${m.parts.length}/${NEST.K.fuse.max} · 한 번에 붙잡는 적 ${2 + m.parts.length}명</p></div><div class="mfoot">${btn('kin', { id: m.id }, '권속 창으로')}${btn('close', null, '좋다', 'pri big')}</div>`;
+  return `<div class="mbody evo" style="align-items:center;text-align:center"><p class="mute">두 몸이 하나가 되었다</p><div class="row" style="justify-content:center;gap:14px">${kinImg(bm.kind, 48, bm.evo)}<span class="h3 mute">+</span>${kinImg(m.kind, 48, m.evo)}<span class="h3 mute">→</span>${kinImgM(m, 120)}</div><h2 style="font-size:var(--d2)">${esc(NEST.kinName(m))}</h2>${mk}<p class="small mute">${NEST.fj(esc(m.name) + '이(가) ' + esc(bm.name) + '을(를)')} 몸에 붙였다.</p><p class="small okc">체력 ${R(s2.hp)} · 공격 ${R(s2.atk)} · 방어 ${R(s2.df)}${s2.satk ? ' · 정신 ' + R(s2.satk) : ''}</p><p class="small mute">붙은 것 ${m.parts.length}/${NEST.K.fuse.max} · 한 번에 붙잡는 적 ${2 + m.parts.length}명</p></div><div class="mfoot">${btn('kin', { id: m.id }, '권속 창으로')}${btn('close', null, '좋다', 'pri big')}</div>`;
 }
 function traitHtml(before) {
   const O = NEST.ORIGIN[G.origin];
-  return `<div class="mbody evo" style="align-items:center;text-align:center"><p class="mute">몸에 무언가 돋았다</p><div class="row" style="justify-content:center;gap:20px">${slimeImg(before, 64, '이전 모습')}<span class="h3 mute">→</span>${slimeImg(G.slime, 128, O.name)}</div><h2 style="font-size:26px">${O.name}</h2><p class="small mute">${esc(O.text)}</p><p class="small okc">＋ ${esc(O.good)}</p><p class="small up">－ ${esc(O.bad)}</p><p class="small mute">형질은 한 판에 하나만 돋는다. 어떤 모습으로 자라도 남는다.</p></div><div class="mfoot">${btn('close', null, '좋다', 'pri big')}</div>`;
+  return `<div class="mbody evo" style="align-items:center;text-align:center"><p class="mute">몸에 무언가 돋았다</p><div class="row" style="justify-content:center;gap:20px">${slimeImg(before, 64, '이전 모습')}<span class="h3 mute">→</span>${slimeImg(G.slime, 128, O.name)}</div><h2 style="font-size:var(--d2)">${O.name}</h2><p class="small mute">${esc(O.text)}</p><p class="small okc">＋ ${esc(O.good)}</p><p class="small up">－ ${esc(O.bad)}</p><p class="small mute">형질은 한 판에 하나만 돋는다. 어떤 모습으로 자라도 남는다.</p></div><div class="mfoot">${btn('close', null, '좋다', 'pri big')}</div>`;
 }
 function codexHtml() {
   const seen = META.codex.forms, node = (id, sl, name) => `<div class="node${seen[id] ? '' : ' unk'}">${slimeImg(sl, 48)}<span>${seen[id] ? esc(name) : '???'}</span></div>`, tr = META.codex.traits || {};
@@ -545,7 +546,8 @@ function settingsHtml() {
   return M('설정', `<div class="row"><span class="grow">소리</span>${btn('set', { k: 'sound', v: 1 }, '켬', 'sm' + (META.sound ? ' on' : ''))}${btn('set', { k: 'sound', v: 0 }, '끔', 'sm' + (META.sound ? '' : ' on'))}</div>
     <div class="row"><span class="grow">밤에 멈춰서 손을 쓸 때</span>${[['settle', '큰 밤만'], ['always', '매일'], ['never', '안 멈춤']].map(([k, l]) => btn('set', { k: 'pause', v: k }, l, 'sm' + (META.pause === k ? ' on' : ''))).join('')}</div>
     <div class="row"><span class="grow">해금</span>${btn('set', { k: 'open', v: 0 }, '흔적으로 연다', 'sm' + (META.openAll ? '' : ' on'))}${btn('set', { k: 'open', v: 1 }, '전부 열어 둔다', 'sm' + (META.openAll ? ' on' : ''))}</div>
-    <div class="row"><span class="grow">기록 (판 ${META.runs} · 깨어남 ${META.clears})</span>${btn('wipe', null, '모두 지우기', 'sm bad')}</div>`, closeBtn());
+    <div class="row"><span class="grow">기록 (판 ${META.runs} · 깨어남 ${META.clears})</span>${btn('wipe', null, '모두 지우기', 'sm bad')}</div>
+    <p class="small mute">제목·단추 글꼴: Galmuri11 Bold © Lee Minseo (SIL OFL 1.1)</p>`, closeBtn());
 }
 
 // ---------- 대사 장면 ----------

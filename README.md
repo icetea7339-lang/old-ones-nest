@@ -11,8 +11,13 @@ PC와 휴대폰(세로 화면) 브라우저에서 열린다. 진행은 그 브�
 - `index.html` — 게임 전체가 들어 있는 한 파일. 위 주소가 이 파일을 연다.
 - `proto/src/` — 소스. `logic.js`(규칙), `art.js`·`stage.js`·`ui.js`(화면), `style.css`, `bot.js`(자동 플레이어).
 - `proto/build.sh` — 소스를 한 파일로 묶는다. 묶은 뒤 `PLAY-GAME.html`을 `index.html`로 복사한다.
+- `proto/fonts/` — 제목·단추용 픽셀 글꼴. `NestPix.woff2`는 Galmuri11 Bold에서 게임에 쓰는 글자만 남긴 것이고, `build.sh`가 게임 파일 안에 넣는다. `subset.py`로 다시 만든다.
 
 ```bash
 cd proto && ./build.sh && cp ../PLAY-GAME.html ../index.html
 node src/bot.js 300
 ```
+
+## 글꼴
+
+제목·단추·숫자는 [Galmuri11 Bold](https://github.com/quiple/galmuri) (© Lee Minseo, SIL Open Font License 1.1)를 쓴다. 라이선스 전문은 `proto/fonts/OFL-Galmuri.md`. 설명글은 IBM Plex Sans KR(구글 폰트)이다.

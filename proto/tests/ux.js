@@ -15,7 +15,7 @@ const devName = process.argv[2], tag = devName ? devName.replace(/\s+/g, '') : '
   await p.goto('http://nest.test/'); await p.waitForTimeout(300);
   const tap = async s => { const el = p.locator(s).locator('visible=true').first(); if (touch) await el.tap(); else await el.click(); await p.waitForTimeout(140); };
   const has = async s => (await p.locator(s).locator('visible=true').count()) > 0;
-  let n = 0;
+  let n = 0; const trunc = {};
   const check = async label => {
     await p.waitForTimeout(200);
     const m = await p.evaluate(() => {
@@ -24,10 +24,14 @@ const devName = process.argv[2], tag = devName ? devName.replace(/\s+/g, '') : '
       [['#view', '패널'], ['#modal .mbody', '창'], ['#night', '밤'], ['#left', '왼쪽']].forEach(([s, nm]) => { const e = document.querySelector(s), o = over(e); if (o > 2) r.push(nm + ' ' + o); });
       // 화면 밖으로 잘린 단추
       let cut = 0; document.querySelectorAll('button').forEach(e => { if (!vis(e) || e.closest('#tray')) return; const q = e.getBoundingClientRect(); if (!q.width) return; const top = document.elementFromPoint(Math.min(innerWidth - 1, Math.max(0, q.left + q.width / 2)), Math.min(innerHeight - 1, Math.max(0, q.top + q.height / 2))); if (q.right > innerWidth + 1 || q.bottom > innerHeight + 1 || q.left < -1 || q.top < -1) cut++; });
-      if (cut) r.push('잘린 단추 ' + cut); return r;
+      if (cut) r.push('잘린 단추 ' + cut);
+      if (/이\(가\)|을\(를\)|은\(는\)|와\(과\)|\(으\)로/.test(document.body.innerText)) r.push('조사 표기가 남음: ' + document.body.innerText.match(/.{0,12}(이\(가\)|을\(를\)|은\(는\)|와\(과\)|\(으\)로).{0,6}/)[0]);
+      // 말줄임으로 잘린 글 (실패는 아니고 목록으로 모은다)
+      const tr = []; document.querySelectorAll('#game *, #modal *, #title *').forEach(e => { if (!vis(e) || !e.textContent.trim() || e.children.length > 3) return; const cs = getComputedStyle(e); if (cs.textOverflow === 'ellipsis' && e.scrollWidth > e.clientWidth + 1) tr.push(e.textContent.trim().slice(0, 30)); else if (cs.webkitLineClamp !== 'none' && cs.overflow === 'hidden' && e.scrollHeight > e.clientHeight + 2) tr.push(e.textContent.trim().slice(0, 30)); });
+      return { r, tr };
     });
     n++; await p.screenshot({ path: path.join(out, String(n).padStart(2, '0') + '_' + label + '.png') });
-    if (m.length) bad.push(label + ': ' + m.join(', '));
+    if (m.r.length) bad.push(label + ': ' + m.r.join(', ')); m.tr.forEach(t => { trunc[t] = trunc[t] || label; });
   };
   const closeM = async () => { for (let i = 0; i < 6; i++) { if (await has('#modal [data-a="event"]:not([disabled])')) await tap('#modal [data-a="event"]:not([disabled])'); else if (await has('#modal [data-a="close"]')) await tap('#modal [data-a="close"]'); else break; } };
   const tabs = async (g, label) => { const vs = await p.$$eval(`#modal [data-a="tab"][data-g="${g}"], #view [data-a="tab"][data-g="${g}"]`, es => es.filter(e => e.offsetParent).map(e => e.dataset.v)); for (const v of vs) { await tap(`[data-a="tab"][data-g="${g}"][data-v="${v}"]`); await check(label + '_' + v); } return vs.length; };
@@ -123,5 +127,6 @@ const devName = process.argv[2], tag = devName ? devName.replace(/\s+/g, '') : '
     await check('title_after');
   } catch (e) { errs.push('검사 스크립트: ' + e.message.split('\n').slice(0, 3).join(' | ')); await p.screenshot({ path: path.join(out, 'fail.png') }).catch(() => {}); }
   console.log(tag, '· 화면', n, '개 ·', bad.length ? '넘치거나 잘린 화면:\n  ' + bad.join('\n  ') : '넘치거나 잘린 화면 없음');
+  { const ks = Object.keys(trunc); console.log('말줄임으로 잘린 글', ks.length, '개' + (ks.length ? ':\n  ' + ks.slice(0, 40).map(k => k + '  ← ' + trunc[k]).join('\n  ') : '')); }
   console.log(errs.length ? '오류:\n  ' + errs.join('\n  ') : 'no errors'); await b.close();
 })();
