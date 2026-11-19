@@ -5,7 +5,7 @@ const NEST = (function () {
   const K = {
     days: 40, act: 8, cost: [0, 1, 2, 4, 7, 11], stat: [0, 1, 1.5, 2.4, 3.6, 5], size: [0, 1, 1.3, 1.8, 2.4, 3],
     ap: 2, startGold: 300, faithCap: 30, thresh: [0, 50, 150, 300, 480], tier: [1, 2.5, 6, 11, 18],
-    slime: { hp: 80, atk: 7, df: 5 }, budget: 37, settle: 1.7, rob: 0.5, falls: [0, 2, 2, 2], smell: 0.8, wary: 0.5, trustMax: 5, trustGain: 0.4, trustCap: [0, 5, 4, 2, 0], trustKills: 3,
+    slime: { hp: 80, atk: 7, df: 5 }, budget: 37, settle: 1.7, rob: 0.5, falls: [0, 2, 2, 2], smell: 0.8, wary: 0.5, tithe: 3, trustMax: 5, trustGain: 0.4, trustCap: [0, 5, 4, 2, 0], trustKills: 3,
     lvGrowth: 1.15, expBase: 10, expGrowth: 1.3, trainEff: 1.5, hands: 2, corpseCap: 9,
   };
   const ASPECTS = ['abyss', 'nebula', 'brood', 'dusk', 'hunger'];
@@ -59,7 +59,7 @@ const NEST = (function () {
   const KIN = {
     goblin: { name: '떠돌이 고블린', cost: 20, hp: 30, atk: 8, df: 2, pay: 1, w: 3, skills: [['기습', '첫 라운드에 두 번 공격'], ['떼거리', '같은 방 고블린 1명당 공격 +15%'], ['뒤통수', '가장 약한 적을 노려 피해 +20%']] },
     skeleton: { name: '떠돌이 해골', cost: 30, hp: 45, atk: 7, df: 6, pay: 1, w: 3, note: '전투당 1회 부활', skills: [['방패 벽', '같은 방 아군이 받는 피해 −20%'], ['뼈 가시', '맞을 때마다 반격'], ['불사', '부활 +1회']] },
-    cultist: { name: '신도', cost: 15, hp: 20, atk: 4, df: 1, satk: 3, pay: 0.5, w: 1, note: '매일 신앙 +1', skills: [['합창', '같은 방 신도 1명당 정신 공격 +2'], ['순교', '쓰러질 때 적 전원의 정신력을 깎는다'], ['열성', '매일 신앙 +1 추가']] },
+    cultist: { name: '신도', cost: 15, hp: 20, atk: 4, df: 1, satk: 3, pay: 0.5, w: 1, note: '매일 신앙 +1, 헌금을 낸다. 정신 공격으로 적을 죽이지 않고 꺾는다', skills: [['합창', '같은 방 신도 1명당 정신 공격 +2'], ['순교', '쓰러질 때 적 전원의 정신력을 깎는다'], ['열성', '매일 신앙 +1 추가']] },
     scale: { name: '비늘지기', cost: 40, hp: 60, atk: 7, df: 9, pay: 2, w: 0, room: 'pool', note: '같은 방 아군 피해 −20%', skills: [['조류', '매 라운드 가장 다친 아군 HP 8% 회복'], ['끌어들임', '전투 시작 때 적 1명을 2라운드 묶음'], ['깊은 숨', '자신의 방어 +50%']] },
     scribe: { name: '별필경사', cost: 50, hp: 25, atk: 0, df: 2, satk: 5, stg: 2, pay: 3, w: 0, room: 'library', note: '정신 공격만 한다', skills: [['낭독', '정신 공격 대상 +1명'], ['봉인문', '전투 시작 때 적 1명의 특성을 끈다'], ['주석', '손 주문 신앙 비용 −2']] },
     spawn: { name: '움', cost: 0, hp: 14, atk: 4, df: 0, pay: 0, w: 0, note: '자리를 차지하지 않는다. 최대 6', skills: [['달라붙기', '맞힌 적의 공격 −10%'], ['터짐', '쓰러질 때 적 전원에게 피해'], ['자라남', '사흘 살아남으면 능력치 2배']] },
@@ -152,7 +152,7 @@ const NEST = (function () {
   };
   const SUBADJ = { abyss: '젖은', nebula: '빛나는', brood: '불어나는', dusk: '속삭이는', hunger: '씹는' };
   const BODY = {
-    hive: { noun: '무리', hint: '권속 열둘 이상을 거느린 채 첫 허물을 벗으면', cond: G => G.kin.filter(m => m.kind !== 'spawn').length >= 12 },
+    hive: { noun: '무리', hint: '신도가 아닌 권속 열하나 이상을 거느린 채 첫 허물을 벗으면', cond: G => G.kin.filter(m => m.kind !== 'spawn' && m.kind !== 'cultist').length >= 11 },
     idol: { noun: '우상', hint: '신앙 33 이상을 쌓은 채 첫 허물을 벗으면', cond: G => G.faith >= 33 },
     mix: { noun: '뒤엉킴', hint: '두 징조를 거의 같게 먹은 채 첫 허물을 벗으면', cond: G => { const e = ASPECTS.map(a => G.slime.ess[a]).sort((a, b) => b - a); return e[1] >= e[0] * 0.85; } },
   };
@@ -167,7 +167,7 @@ const NEST = (function () {
     dusk_abyss: '젖은 가면', dusk_nebula: '별을 읽는 입', dusk_brood: '합창하는 살', dusk_hunger: '굶주린 설교자',
     hunger_abyss: '바닥 없는 아가리', hunger_nebula: '궤도를 씹는 것', hunger_brood: '제 새끼를 먹는 것', hunger_dusk: '웃으며 먹는 것',
   };
-  const AVATAR = { child: '빵을 나눠 먹은 것', h_abyss: '말라붙은 바다', h_nebula: '눈 감은 별', h_brood: '외동', h_dusk: '막 뒤의 것', h_hunger: '단식하는 입', abyss: '잠든 해구의 주인', nebula: '별 사이를 여는 자', brood: '끝없이 낳는 숲', dusk: '마지막 막의 연출가', hunger: '모든 것의 마지막 한 입', none: '깨어나지 않은 것', pure: '아무것도 아닌 것' };
+  const AVATAR = { child: '빵을 나눠 먹은 것', h_abyss: '말라붙은 바다', h_nebula: '눈 감은 별', h_brood: '외동', h_dusk: '막 뒤의 것', h_hunger: '단식하는 입', abyss: '잠든 해구의 주인', nebula: '별 사이를 여는 자', brood: '끝없이 낳는 숲', dusk: '마지막 막의 연출가', hunger: '모든 것의 마지막 한 입', hive: '혼자가 아닌 것', idol: '올려다보이는 것', mix: '경계 없는 살', none: '깨어나지 않은 것', pure: '아무것도 아닌 것' };
   const MUT = {
     tentacle: { name: '촉수', asp: 'abyss', desc: '본체 방에서 매 라운드 추가 타격' }, gills: { name: '아가미', asp: 'abyss', desc: '휴식 회복 40% → 70%' },
     thirdeye: { name: '셋째 눈', asp: 'nebula', desc: '다가오는 무리의 자세한 구성이 보인다' }, ring: { name: '떠 있는 고리', asp: 'nebula', desc: '손 주문 신앙 비용 −2' },
@@ -224,7 +224,7 @@ const NEST = (function () {
     poor: { name: '가난한 별', desc: '시작 재물 100. 대신 지원자 계약금이 절반' },
     quiet: { name: '조용한 별', desc: '공포가 절반만 오른다. 대신 침입자의 소지금 −10%' },
     loud: { name: '시끄러운 별', desc: '매일 밤 온다. 무리가 20% 크다. 대신 소지금 +20%' },
-    lone: { name: '외톨이 별', desc: '권속을 3명까지만 들인다. 대신 본체 능력치 1.1배' },
+    lone: { name: '외톨이 별', desc: '권속을 3명까지만 둔다(개종 포함). 대신 본체 능력치 1.2배' },
     faith: { name: '믿음의 별', desc: '예배당과 신도 둘로 시작한다. 대신 시작 재물 150' },
     glass: { name: '유리 별', desc: '본체 체력 절반. 대신 얻는 정수 +20%' },
   };
@@ -386,7 +386,7 @@ const NEST = (function () {
   }
   function slimeStats(G) {
     const t = K.tier[G.slime.stage], m = G.slime.main;
-    const x = G.star === 'lone' ? 1.1 : 1, g = hoardN(G, 'gulp'), gh = 1 + HOARD.gulp.hp * g, ga = 1 + HOARD.gulp.atk * g, O = ORIGIN[org(G)]; return { hp: K.slime.hp * t * x * (G.star === 'glass' ? 0.5 : 1) * gh * (O.hp || 1), atk: K.slime.atk * t * x * (pk(G) === 'hunger' ? 1.3 : 1) * (G.slime.body === 'hive' ? 1 + (G.slime.stage >= 2 ? 0.07 : 0.05) * Math.min(15, G.kin.filter(q => q.kind !== 'spawn').length) : 1) * ga * (O.atk || 1), df: K.slime.df * t * x * ga * (O.df || 1) * (G.slime.body === 'idol' ? 1.4 : 1) };
+    const x = G.star === 'lone' ? 1.2 : 1, g = hoardN(G, 'gulp'), gh = 1 + HOARD.gulp.hp * g, ga = 1 + HOARD.gulp.atk * g, O = ORIGIN[org(G)]; return { hp: K.slime.hp * t * x * (G.star === 'glass' ? 0.5 : 1) * gh * (O.hp || 1), atk: K.slime.atk * t * x * (pk(G) === 'hunger' ? 1.3 : 1) * (G.slime.body === 'hive' ? 1 + (G.slime.stage >= 2 ? 0.07 : 0.05) * Math.min(15, G.kin.filter(q => q.kind !== 'spawn').length) : 1) * ga * (O.atk || 1), df: K.slime.df * t * x * ga * (O.df || 1) * (G.slime.body === 'idol' ? 1.4 : 1) };
   }
   function kinStats(G, m) {
     const d = KIN[m.kind], g = Math.pow(K.lvGrowth, m.lv - 1) * (m.rare ? 1.4 : 1) * (m.evo ? 1.5 : 1) * (m.kind === 'spawn' && m.skill === 2 && m.age >= 3 ? 2 : 1) * (m.kind === 'spawn' && pk(G) === 'brood' && G.slime.stage >= 2 ? 1.5 : 1);
@@ -585,6 +585,7 @@ const NEST = (function () {
   function gainMut(G, asp) { const c = Object.keys(MUT).filter(k => !has(G, k) && (!asp || MUT[k].asp === asp)); if (!c.length || G.slime.muts.length >= 6) return null; const k = pick(G, c); G.slime.muts.push(k); say(G, '변이: ' + MUT[k].name); return k; }
   function dispose(G, i, how) {
     const p = G.prison[i]; if (!p) return fail('없는 포로입니다');
+    if (how === 'convert' && G.star === 'lone' && G.kin.filter(m => m.kind !== 'spawn').length >= 3) return fail('외톨이 별: 권속은 3명까지입니다');
     const d = INV[p.kind]; G.prison.splice(i, 1); if (['ransom', 'sacrifice', 'convert'].includes(how)) note(G, how);
     if (how === 'ransom') { const g = ransomOf(G, p.kind, (p.bonus || 1) * (p.vill === 'gaet' ? 1.5 : 1)); earn(G, g, '몸값'); G.stats.ransoms++; if (p.vill) { const vs = G.vill[p.vill]; vs.host = Math.max(0, vs.host - 5); if (trading(G, p.vill)) vs.trust = Math.min(trustCap(G), (vs.trust || 0) + 1); } return ok(d.name + ' 몸값 +' + g + 'G'); }
     if (how === 'sacrifice') {
@@ -1010,7 +1011,7 @@ const NEST = (function () {
     for (const v of VIDS) { const s = G.vill[v]; if (s.pause > 0) s.pause--; else if (s.tribute && !s.razed) earn(G, Math.round(s.tribute * (1 + 0.25 * (fearGrade(G) - 1))), '공물'); if (trading(G, v)) { earn(G, tradeOf(G, v), '교역'); s.trust = Math.min(trustCap(G), (s.trust || 0) + 1); } else s.trust = 0; s.host = Math.max(0, s.host - (v === 'bell' ? 1 : 3)); }
     G.plots.forEach(p => { if (p === 'garden' && !G.off.garden) earn(G, 8 * c, '텃밭'); });
     // 신앙과 정수
-    const cult = G.kin.filter(m => m.kind === 'cultist'); if (G.origin === 'lamp') addFaith(G, 3); if (G.slime.body === 'idol') addFaith(G, 2); addFaith(G, cult.length + cult.filter(m => m.skill === 2).length + 2 * cult.filter(m => m.evo).length);
+    const cult = G.kin.filter(m => m.kind === 'cultist'); if (cult.length) earn(G, Math.round(K.tithe * cm(G) * cult.length), '헌금'); if (G.origin === 'lamp') addFaith(G, 3); if (G.slime.body === 'idol') addFaith(G, 2); addFaith(G, cult.length + cult.filter(m => m.skill === 2).length + 2 * cult.filter(m => m.evo).length);
     G.cells.forEach((x, i) => { if (!x.dug || G.off[i]) return; if (x.type === 'chapel') addFaith(G, 2); const d = ROOM[x.type]; if (d.ess) { addEss(G, d.asp, 2); rep.ess[d.asp] = (rep.ess[d.asp] || 0) + 2; } if (x.type === 'hatchery') addSpawn(G); });
     if (hasRoom(G, 'table') && G.corpses.length) eatN(G, 2);
     rep.faith = G.faith - f0;
@@ -1058,7 +1059,7 @@ const NEST = (function () {
   function luxury(G) { let v = 0; G.cells.forEach(c => { if (c.dug) v += ROOM[c.type].cost / 10 + c.traps.reduce((a, t) => a + t.lv * 2, 0) + (c.zone ? 3 : 0) + (c.lv - 1) + 1; }); return Math.round(v); }
   // 이단 화신: 성체까지 자랐는데 그 징조답지 않게 굴었을 때
   function heretic(G) { const m = G.slime.main, st = G.stats; if (G.slime.stage < 4) return false; return m === 'abyss' ? !st.aspBuilt : m === 'nebula' ? !st.hands : m === 'brood' ? G.kin.filter(k => k.kind !== 'spawn').length <= 4 : m === 'dusk' ? st.kills <= 10 : (st.eats || 0) <= 5; }
-  function endKey(G) { return G.slime.stage === 0 ? 'none' : G.child === 'home' && G.sacrifices === 0 ? 'child' : heretic(G) ? 'h_' + G.slime.main : G.sacrifices === 0 ? 'pure' : G.slime.main; }
+  function endKey(G) { return G.slime.stage === 0 ? 'none' : G.child === 'home' && G.sacrifices === 0 ? 'child' : heretic(G) ? 'h_' + G.slime.main : G.sacrifices === 0 ? 'pure' : (G.slime.body || G.slime.main); }
   function avatarOf(G) { return AVATAR[endKey(G)]; }
   function score(G) {
     const parts = [['재물', Math.min(6000, Math.max(0, Math.round(G.gold / 2)))], ['공포', Math.round(G.fear * 10)], ['둥지 호화도', luxury(G) * 25], ['권속 전력', G.kin.reduce((a, m) => a + m.lv, 0) * 25], ['진화', G.slime.stage * 400], ['변이', G.slime.muts.length * 100], ['격퇴', G.stats.repels * 40], ['신도', G.kin.filter(m => m.kind === 'cultist').length * 30], ['탐식', hoardN(G, 'gulp') * 150 + (hoardN(G, 'seat') + hoardN(G, 'life') + hoardN(G, 'veil')) * 250], ['털린 재물', -Math.round(G.stats.stolen)]];
