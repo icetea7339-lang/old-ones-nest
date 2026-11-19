@@ -128,7 +128,8 @@ const devName = process.argv[2], tag = devName ? devName.replace(/\s+/g, '') : '
     }
     log('끝:', ended.replace(/d\d+/g, ''), '· 기록', JSON.stringify(await p.evaluate(() => ({ best: __nest.META.best, clears: __nest.META.clears, feats: Object.keys(__nest.META.feats).length, traits: Object.keys(__nest.META.codex.traits), next: __nest.META.nextSign }))));
     await check('title_after');
-  } catch (e) { errs.push('검사 스크립트: ' + e.message.split('\n').slice(0, 3).join(' | ')); await p.screenshot({ path: path.join(out, 'fail.png') }).catch(() => {}); }
+  } catch (e) { errs.push('검사 스크립트: ' + e.message.split('\n').slice(0, 3).join(' | ')); await p.screenshot({ path: path.join(out, 'fail.png') }).catch(() => {});
+    errs.push('그때의 화면: ' + JSON.stringify(await p.evaluate(() => ({ modal: !document.getElementById('modal').hidden, scene: !document.getElementById('scene').hidden, mode: __nest.ST.mode, screen: __nest.ST.screen, day: __nest.G && __nest.G.day, ap: __nest.G && __nest.G.ap, ops: __nest.G && __nest.G.d.buildOps, view: document.getElementById('view').innerText.slice(0, 160).replace(/\s+/g, ' ') })).catch(() => null))); }
   console.log(tag, '· 화면', n, '개 ·', bad.length ? '넘치거나 잘린 화면:\n  ' + bad.join('\n  ') : '넘치거나 잘린 화면 없음');
   { const ks = Object.keys(trunc); console.log('말줄임으로 잘린 글', ks.length, '개' + (ks.length ? ':\n  ' + ks.slice(0, 40).map(k => k + '  ← ' + trunc[k]).join('\n  ') : '')); }
   console.log(errs.length ? '오류:\n  ' + errs.join('\n  ') : 'no errors'); await b.close();

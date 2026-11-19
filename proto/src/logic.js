@@ -15,28 +15,28 @@ const NEST = (function () {
   const nbrs = i => { const c = i % COLS, r = Math.floor(i / COLS), o = []; if (c > 0) o.push(i - 1); if (c < COLS - 1) o.push(i + 1); if (r > 0) o.push(i - COLS); if (r < ROWS - 1) o.push(i + COLS); return o; };
   const ROOM = {
     empty: { name: '빈 굴', cost: 0, desc: '아무것도 없다. 적이 그냥 지나간다' },
-    trap: { name: '함정방', cost: 30, traps: 2, desc: '함정 2개' },
-    post: { name: '초소', cost: 25, def: 2, desc: '권속 2. 한 명이 적 2명까지 막고 나머지는 지나간다' },
-    hall: { name: '대기실', cost: 60, def: 3, block: true, desc: '권속 3. 들어온 적 전원과 싸운다' },
+    trap: { name: '함정 굴', cost: 30, traps: 2, desc: '함정 2개' },
+    post: { name: '문턱', cost: 25, def: 2, desc: '권속 2. 한 명이 적 2명까지 막고 나머지는 지나간다' },
+    hall: { name: '싸움 굴', cost: 60, def: 3, block: true, desc: '권속 3. 들어온 적 전원과 싸운다' },
     ambush: { name: '매복굴', cost: 50, def: 2, traps: 1, desc: '함정 1개가 터진 뒤 권속 2가 덮친다' },
-    bighall: { name: '큰 대기실', cost: 140, def: 5, block: true, act: 2, desc: '권속 5. 전원 조우. 2막부터' },
-    decoy: { name: '미끼 방', cost: 50, desc: '들어온 적의 30%가 진액 한 줌을 훔쳐 들고 돌아간다' },
+    bighall: { name: '큰 싸움 굴', cost: 140, def: 5, block: true, act: 2, desc: '권속 5. 전원 조우. 2막부터' },
+    decoy: { name: '미끼 굴', cost: 50, desc: '들어온 적의 30%가 진액 한 줌을 훔쳐 들고 돌아간다' },
     shop: { name: '빨판 굴', cost: 40, desc: '지나가는 적의 진액을 빤다. 대신 적 공격 +20%' },
-    prison: { name: '감옥', cost: 40, side: true, desc: '포로 자리 +4' },
-    chapel: { name: '예배당', cost: 60, side: true, desc: '매일 신앙 +2, 상한 +20. 신도가 자주 찾아든다' },
-    ritual: { name: '의식실', cost: 70, side: true, max: 1, desc: '제물의 정수 +1, 변이 확률 +15%p' },
-    persuade: { name: '설득실', cost: 60, side: true, max: 1, desc: '개종 성공률 +20%p' },
-    altar: { name: '제단', cost: 80, side: true, max: 1, desc: '달이 기우는 밤마다 주 징조 정수 +8' },
+    prison: { name: '고치 굴', cost: 40, side: true, desc: '고치에 싸 둔다. 포로 자리 +4' },
+    chapel: { name: '기도 굴', cost: 60, side: true, desc: '매일 신앙 +2, 상한 +20. 신도가 자주 찾아든다' },
+    ritual: { name: '제물 굴', cost: 70, side: true, max: 1, desc: '제물의 정수 +1, 변이 확률 +15%p' },
+    persuade: { name: '속삭임 굴', cost: 60, side: true, max: 1, desc: '개종 성공률 +20%p' },
+    altar: { name: '달맞이 굴', cost: 80, side: true, max: 1, desc: '달이 기우는 밤마다 주 징조 정수 +8' },
     pool: { name: '고인 웅덩이', cost: 60, asp: 'abyss', ess: true, side: true, desc: '이웃 칸 아군이 매 라운드 체력 5% 회복. 매일 심연 정수 +2. 비늘지기가 돋는다' },
-    sluice: { name: '수문', cost: 70, asp: 'abyss', desc: '지나가는 무리를 하룻밤 한 번 앞 칸으로 되돌린다' },
-    library: { name: '서고', cost: 60, asp: 'nebula', ess: true, side: true, desc: '손 주문 효과 +25%. 매일 성운 정수 +2. 별보는 눈이 돋는다' },
-    warp: { name: '뒤틀린 복도', cost: 70, asp: 'nebula', desc: '지나가는 적의 25%를 입구로 되돌려 보낸다' },
-    hatchery: { name: '부화실', cost: 60, asp: 'brood', ess: true, side: true, desc: '매일 움 1마리. 매일 번식 정수 +2' },
+    sluice: { name: '물목', cost: 70, asp: 'abyss', desc: '지나가는 무리를 하룻밤 한 번 앞 칸으로 되돌린다' },
+    library: { name: '별자리 굴', cost: 60, asp: 'nebula', ess: true, side: true, desc: '손 주문 효과 +25%. 매일 성운 정수 +2. 별보는 눈이 돋는다' },
+    warp: { name: '뒤틀린 굴', cost: 70, asp: 'nebula', desc: '지나가는 적의 25%를 입구로 되돌려 보낸다' },
+    hatchery: { name: '알 굴', cost: 60, asp: 'brood', ess: true, side: true, desc: '매일 움 1마리. 매일 번식 정수 +2' },
     fleshwall: { name: '살의 벽', cost: 70, asp: 'brood', desc: '벽이 부서질 때까지 무리를 붙잡고, 받은 피해의 25%를 돌려준다' },
     stage: { name: '무대', cost: 60, asp: 'dusk', ess: true, desc: '지나가는 적 전원의 정신력을 깎는다. 매일 황혼 정수 +2. 가면 쓴 것이 돋는다' },
-    mirror: { name: '거울 방', cost: 70, asp: 'dusk', side: true, max: 1, desc: '광란한 적이 자기 편을 공격할 확률 20% → 40%' },
-    abattoir: { name: '도살장', cost: 60, asp: 'hunger', ess: true, side: true, desc: '시체 정수 +1. 매일 기아 정수 +2. 허기가 돋는다' },
-    table: { name: '식탁', cost: 70, asp: 'hunger', side: true, max: 1, desc: '시체 창고 +6. 매일 시체 2구를 알아서 먹는다' },
+    mirror: { name: '거울 굴', cost: 70, asp: 'dusk', side: true, max: 1, desc: '광란한 적이 자기 편을 공격할 확률 20% → 40%' },
+    abattoir: { name: '되새김 굴', cost: 60, asp: 'hunger', ess: true, side: true, desc: '시체 정수 +1. 매일 기아 정수 +2. 허기가 돋는다' },
+    table: { name: '먹이 굴', cost: 70, asp: 'hunger', side: true, max: 1, desc: '시체 창고 +6. 매일 시체 2구를 알아서 먹는다' },
 
     core: { name: '본체 방', cost: 0, fixed: true, def: 2, desc: '호위 2. 본체가 쓰러지면 끝난다' },
   };
@@ -57,24 +57,24 @@ const NEST = (function () {
   };
   // ---------- 권속 ----------
   const KIN = {
-    goblin: { name: '떠돌이 고블린', cost: 20, hp: 30, atk: 8, df: 2, pay: 1, w: 3, skills: [['기습', '첫 라운드에 두 번 공격'], ['떼거리', '같은 방 고블린 1명당 공격 +15%'], ['뒤통수', '가장 약한 적을 노려 피해 +20%']] },
-    skeleton: { name: '떠돌이 해골', cost: 30, hp: 45, atk: 7, df: 6, pay: 1, w: 3, note: '전투당 1회 부활', skills: [['방패 벽', '같은 방 아군이 받는 피해 −20%'], ['뼈 가시', '맞을 때마다 반격'], ['불사', '부활 +1회']] },
+    goblin: { name: '깨물이', cost: 20, hp: 30, atk: 8, df: 2, pay: 1, w: 3, skills: [['기습', '첫 라운드에 두 번 공격'], ['떼거리', '같은 방 깨물이 1명당 공격 +15%'], ['뒤통수', '가장 약한 적을 노려 피해 +20%']] },
+    skeleton: { name: '뼈껍질', cost: 30, hp: 45, atk: 7, df: 6, pay: 1, w: 3, note: '전투당 1회 부활', skills: [['껍질 벽', '같은 방 아군이 받는 피해 −20%'], ['뼈 가시', '맞을 때마다 반격'], ['불사', '부활 +1회']] },
     cultist: { name: '신도', cost: 15, hp: 20, atk: 4, df: 1, satk: 3, pay: 0.5, w: 1, note: '매일 신앙 +1, 제 것을 조금 바친다. 정신 공격으로 적을 죽이지 않고 꺾는다', skills: [['합창', '같은 방 신도 1명당 정신 공격 +2'], ['순교', '쓰러질 때 적 전원의 정신력을 깎는다'], ['열성', '매일 신앙 +1 추가']] },
     scale: { name: '비늘지기', cost: 40, hp: 60, atk: 7, df: 9, pay: 2, w: 0, room: 'pool', note: '같은 방 아군 피해 −20%', skills: [['조류', '매 라운드 가장 다친 아군 체력 8% 회복'], ['끌어들임', '전투 시작 때 적 1명을 2라운드 묶음'], ['깊은 숨', '자신의 방어 +50%']] },
-    scribe: { name: '별필경사', cost: 50, hp: 25, atk: 0, df: 2, satk: 5, stg: 2, pay: 3, w: 0, room: 'library', note: '정신 공격만 한다', skills: [['낭독', '정신 공격 대상 +1명'], ['봉인문', '전투 시작 때 적 1명의 특성을 끈다'], ['주석', '손 주문 신앙 비용 −2']] },
+    scribe: { name: '별보는 눈', cost: 50, hp: 25, atk: 0, df: 2, satk: 5, stg: 2, pay: 3, w: 0, room: 'library', note: '정신 공격만 한다', skills: [['낭독', '정신 공격 대상 +1명'], ['봉인문', '전투 시작 때 적 1명의 특성을 끈다'], ['주석', '손 주문 신앙 비용 −2']] },
     spawn: { name: '움', cost: 0, hp: 14, atk: 4, df: 0, pay: 0, w: 0, note: '자리를 차지하지 않는다. 최대 6', skills: [['달라붙기', '맞힌 적의 공격 −10%'], ['터짐', '쓰러질 때 적 전원에게 피해'], ['자라남', '사흘 살아남으면 능력치 2배']] },
-    mask: { name: '가면쟁이', cost: 45, hp: 30, atk: 0, df: 3, satk: 8, stg: 1, pay: 2, w: 0, room: 'stage', note: '정신 공격만 한다. 무릎 꿇음 +10%p', skills: [['눈맞춤', '정신력이 가장 낮은 적을 노린다'], ['흉내', '광란한 적의 내분 확률 +20%p'], ['막 내림', '전투당 1회 적 전원의 정신력을 깎는다']] },
+    mask: { name: '가면 쓴 것', cost: 45, hp: 30, atk: 0, df: 3, satk: 8, stg: 1, pay: 2, w: 0, room: 'stage', note: '정신 공격만 한다. 무릎 꿇음 +10%p', skills: [['눈맞춤', '정신력이 가장 낮은 적을 노린다'], ['흉내', '광란한 적의 내분 확률 +20%p'], ['막 내림', '전투당 1회 적 전원의 정신력을 깎는다']] },
     hunger: { name: '허기', cost: 55, hp: 55, atk: 16, df: 4, pay: 0, eat: 0.5, w: 0, room: 'abattoir', note: '쓰러뜨리면 체력 20% 회복. 시체를 먹는다', skills: [['물어뜯기', '첫 타격 2배'], ['포만', '쓰러뜨릴 때마다 공격 +15%'], ['통째로', '체력 25% 이하인 적을 즉시 처치']] },
   };
   Object.assign(KIN, {
-    netter: { name: '그물잡이', cost: 35, hp: 28, atk: 6, df: 3, pay: 2, w: 0, room: 'prison', note: '체력 30% 아래로 떨어진 적을 그물로 덮어 무릎 꿇린다. 감옥이 있으면 찾아온다', skills: [['넓은 그물', '체력 40% 아래까지 덮는다'], ['질긴 가죽', '자신의 방어 +50%'], ['두 번 던지기', '한 라운드에 두 명을 덮는다']] },
-    warden: { name: '간수', cost: 30, hp: 40, atk: 6, df: 6, pay: 1, w: 0, room: 'prison', note: '포로 자리 +2, 몸값 +25%. 뒤지는 자가 포로를 풀지 못한다. 감옥이 있으면 찾아온다', skills: [['몽둥이', '공격 +30%'], ['자물쇠', '포로 자리 +2 더'], ['호통', '전투 시작 때 적 전원의 정신력을 깎는다']] },
-    turncoat: { name: '돌아선 검', cost: 0, hp: 60, atk: 13, df: 8, satk: 2, pay: 2, w: 0, note: '개종한 싸움꾼. 옛 동료를 칠 때마다 그들의 정신력도 깎는다', skills: [] },
-    fallen: { name: '무너진 사제', cost: 0, hp: 35, atk: 0, df: 4, satk: 4, pay: 2, w: 0, note: '개종한 성직자. 매 라운드 가장 다친 아군을 치료하고 정신 공격을 한다', skills: [] },
+    netter: { name: '실뽑이', cost: 35, hp: 28, atk: 6, df: 3, pay: 2, w: 0, room: 'prison', note: '체력 30% 아래로 떨어진 적을 그물로 덮어 무릎 꿇린다. 고치 굴이 있으면 돋는다', skills: [['넓은 그물', '체력 40% 아래까지 덮는다'], ['질긴 가죽', '자신의 방어 +50%'], ['두 번 던지기', '한 라운드에 두 명을 덮는다']] },
+    warden: { name: '갈비우리', cost: 30, hp: 40, atk: 6, df: 6, pay: 1, w: 0, room: 'prison', note: '포로 자리 +2, 몸값 +25%. 뒤지는 자가 포로를 풀지 못한다. 고치 굴이 있으면 돋는다', skills: [['몽둥이', '공격 +30%'], ['자물쇠', '포로 자리 +2 더'], ['울림', '전투 시작 때 적 전원의 정신력을 깎는다']] },
+    turncoat: { name: '돌아선 자', cost: 0, hp: 60, atk: 13, df: 8, satk: 2, pay: 2, w: 0, note: '넘어온 싸움꾼. 옛 동료를 칠 때마다 그들의 정신력도 깎는다', skills: [] },
+    fallen: { name: '꺾인 믿음', cost: 0, hp: 35, atk: 0, df: 4, satk: 4, pay: 2, w: 0, note: '믿음이 꺾여 넘어온 자. 매 라운드 가장 다친 아군을 치료하고 정신 공격을 한다', skills: [] },
   });
   Object.assign(KIN, {
-    digger: { name: '굴꾼', cost: 40, hp: 20, atk: 3, df: 2, pay: 2, w: 0, note: '매일 공짜 작업 1번 (둘까지). 굴을 3칸 넘게 판 둥지에 찾아온다', skills: [] },
-    clerk: { name: '장부쟁이', cost: 50, hp: 15, atk: 0, df: 1, pay: 3, w: 0, room: 'shop', note: '방 유지 −25%, 빨판 굴 수입 +50%. 싸우지 않는다. 빨판 굴이 있으면 돋는다', skills: [] },
+    digger: { name: '굴파개', cost: 40, hp: 20, atk: 3, df: 2, pay: 2, w: 0, note: '매일 공짜 작업 1번 (둘까지). 굴을 3칸 넘게 판 둥지에 돋는다', skills: [] },
+    clerk: { name: '세는 손', cost: 50, hp: 15, atk: 0, df: 1, pay: 3, w: 0, room: 'shop', note: '방 유지 −25%, 빨판 굴 수입 +50%. 싸우지 않는다. 빨판 굴이 있으면 돋는다', skills: [] },
     licker: { name: '핥는 것', cost: 40, hp: 30, atk: 2, df: 4, pay: 2, w: 0.5, note: '같은 방 아군을 매 라운드 치료한다. 다친 권속이 하루 만에 돌아온다', skills: [] },
   });
   Object.assign(KIN, {
@@ -92,7 +92,7 @@ const NEST = (function () {
   const EDICT = {
     deep: { god: 'abyss', name: '깊이 숨어라', text: '굴을 넓히고 몸을 쉰다. 포로는 몸값을 받고 돌려보낸다. 마을은 건드리지 않는다', st: { captive: 'ransom', raid: 0, expand: 1, restMore: 1 } },
     craft: { god: 'nebula', name: '솜씨를 보여라', text: '곱절로 훈련한다. 포로는 믿게 만든다', st: { captive: 'convert', raid: 1, trainMore: 1 } },
-    grow: { god: 'brood', name: '식구를 늘려라', text: '찾아온 것은 다 들이고 굴을 넓힌다. 포로는 믿게 만든다', st: { captive: 'convert', raid: 1, expand: 1, acceptAll: 1 } },
+    grow: { god: 'brood', name: '식구를 늘려라', text: '돋으려는 것은 다 돋우고 굴을 넓힌다. 포로는 믿게 만든다', st: { captive: 'convert', raid: 1, expand: 1, acceptAll: 1 } },
     show: { god: 'dusk', name: '겁을 주어라', text: '마을을 털지 않고 위협만 한다. 포로는 믿게 만든다', st: { captive: 'convert', raid: 3, raidKind: 0 } },
     feast: { god: 'hunger', name: '먹어라', text: '잡은 것은 제물로 바치고, 먹이는 남기지 않는다. 마을을 턴다', st: { captive: 'sacrifice', raid: 3, eatMore: 1 } },
   };
@@ -101,27 +101,27 @@ const NEST = (function () {
   const edictChoices = G => { const ks = Object.keys(EDICT), a = ks.splice(Math.floor(rng(G) * ks.length), 1)[0], b = ks.splice(Math.floor(rng(G) * ks.length), 1)[0], c = ks.splice(Math.floor(rng(G) * ks.length), 1)[0]; return [a, b, c]; };
   function setEdict(G, id) { if (!EDICT[id]) return fail('없는 교시다'); if (G.edictDay === G.day) return fail('오늘의 교시는 이미 내렸다'); G.edict = id; G.edictDay = G.day; G.godT = G.godT || {}; G.godT[EDICT[id].god] = (G.godT[EDICT[id].god] || 0) + 2; { const rv = RIVAL[EDICT[id].god]; G.godT[rv] = (G.godT[rv] || 0) - 2; } G.stats.edicts = G.stats.edicts || {}; G.stats.edicts[id] = (G.stats.edicts[id] || 0) + 1; return ok('교시: ' + EDICT[id].name); }
   // 권속의 진화: 레벨 5부터, 진액을 들여 한 번
-  const EVO = { spawn: '큰 움', goblin: '홉고블린', skeleton: '해골 기사', cultist: '대신도', scale: '심해지기', scribe: '별의 서기', mask: '천의 가면', hunger: '게걸', netter: '올가미꾼', warden: '옥졸장', turncoat: '검은 기사', fallen: '이단 주교', digger: '땅굴 장인', clerk: '재무관', licker: '약손', spitter: '가시 포대', eyeheap: '눈의 탑', tangle: '매듭 덩이' };
+  const EVO = { spawn: '큰 움', goblin: '쌍깨물이', skeleton: '겹껍질', cultist: '대신도', scale: '심해지기', scribe: '별읽는 눈', mask: '천의 가면', hunger: '게걸', netter: '그물 어미', warden: '갈비감옥', turncoat: '삼켜진 자', fallen: '뒤집힌 믿음', digger: '깊은 굴파개', clerk: '세는 손무리', licker: '세 갈래 혀', spitter: '가시 덤불', eyeheap: '눈의 탑', tangle: '매듭 덩이' };
   const EVO_DESC = {
     spawn: '나흘을 살아남으면 저절로 자란다', goblin: '칠 때마다 옆의 적 하나도 같은 세기로 친다', skeleton: '같은 방 아군이 받는 피해 −25%, 부활 +1회', cultist: '매일 신앙 +2 더, 정신 공격 대상 +1명',
     scale: '매 라운드 가장 다친 아군을 치료한다 (기술과 따로)', scribe: '정신 공격 2배, 손 주문 효과 +25%', mask: '싸움이 시작될 때 적 전원의 정신력을 깎는다',
-    hunger: '매 라운드 두 번 문다', netter: '그물 문턱 +10%p, 한 번에 한 명 더 덮는다', warden: '포로 자리 +2 더, 싸움이 시작될 때 호통으로 적 전원의 정신력을 깎는다',
+    hunger: '매 라운드 두 번 문다', netter: '덮는 기준 +10%p, 한 번에 한 명 더 덮는다', warden: '포로 자리 +2 더, 싸움이 시작될 때 울림으로 적 전원의 정신력을 깎는다',
     turncoat: '쓰러뜨릴 때마다 남은 적 전원의 정신력을 깎는다', fallen: '치료량 2배', digger: '공짜 작업 +1번 더', clerk: '방 유지 −40%',
     licker: '전투마다 한 번, 쓰러진 아군 하나를 일으킨다', spitter: '싸움 전에 가시를 두 번 쏜다', eyeheap: '눈길이 들어온 적 전원에게 닿는다', tangle: '적 넷을 세 라운드 동안 붙든다',
   };
   // 합체: 권속 하나가 다른 권속을 몸에 붙인다. 붙은 쪽은 사라지고, 그 능력의 절반이 남는다. 한 몸에 둘까지
-  const FUSE_PRE = { goblin: '팔 넷 달린', skeleton: '뼈 박힌', cultist: '기도하는', scale: '비늘 덮인', scribe: '글자 새겨진', spawn: '움 돋은', mask: '얼굴 둘인', hunger: '입 둘인', netter: '그물 엮인', warden: '열쇠 박힌', turncoat: '칼 박힌', fallen: '후광 깨진', digger: '발톱 달린', clerk: '장부 든', licker: '혀 늘어진', spitter: '가시 돋은', eyeheap: '눈 박힌', tangle: '엉킨' };
+  const FUSE_PRE = { goblin: '이빨 돋은', skeleton: '뼈 박힌', cultist: '기도하는', scale: '비늘 덮인', scribe: '별빛 새겨진', spawn: '움 돋은', mask: '얼굴 둘인', hunger: '입 둘인', netter: '그물 엮인', warden: '갈비 벌어진', turncoat: '돌아선', fallen: '후광 깨진', digger: '발톱 달린', clerk: '손가락 많은', licker: '혀 늘어진', spitter: '가시 돋은', eyeheap: '눈 박힌', tangle: '엉킨' };
   // v0.20: 권속은 모두 옛 것의 몸에서 돋았거나 옛 것에게 넘어온 것들이다. 이름과 말만 바꾼다. 규칙은 그대로
-  const KIN_NEW = {"goblin": {"name": "깨물이", "evo": "쌍깨물이", "fusePre": "이빨 돋은", "skills": [["기습", "첫 라운드에 두 번 공격"], ["떼거리", "같은 방 깨물이 1명당 공격 +15%"], ["뒤통수", "가장 약한 적을 노려 피해 +20%"]]}, "skeleton": {"name": "뼈껍질", "evo": "겹껍질", "fusePre": "뼈 박힌", "skills": [["껍질 벽", "같은 방 아군이 받는 피해 −20%"], ["뼈 가시", "맞을 때마다 반격"], ["다시 붙음", "부활 +1회"]]}, "cultist": {"name": "신도", "evo": "대신도", "fusePre": "기도하는"}, "scale": {"name": "비늘지기", "evo": "심해지기", "fusePre": "비늘 덮인"}, "scribe": {"name": "별보는 눈", "evo": "별읽는 눈", "fusePre": "별빛 새겨진", "skills": [["긴 눈길", "정신 공격 대상 +1명"], ["눈 가림", "전투 시작 때 적 1명의 특성을 끈다"], ["별자리", "손 주문 신앙 비용 −2"]]}, "spawn": {"name": "움", "evo": "큰 움", "fusePre": "움 돋은"}, "mask": {"name": "가면 쓴 것", "evo": "천의 가면", "fusePre": "얼굴 둘인"}, "hunger": {"name": "허기", "evo": "게걸", "fusePre": "입 둘인"}, "netter": {"name": "실뽑이", "evo": "그물 어미", "fusePre": "그물 엮인", "note": "체력 30% 아래로 떨어진 적을 실로 감아 무릎 꿇린다. 감옥이 있으면 돋는다", "skills": [["넓은 그물", "체력 40% 아래까지 덮는다"], ["질긴 가죽", "자신의 방어 +50%"], ["두 번 뱉기", "한 라운드에 두 명을 덮는다"]]}, "warden": {"name": "갈비우리", "evo": "갈비감옥", "fusePre": "갈비 벌어진", "note": "포로 자리 +2, 몸값 +25%. 뒤지는 자가 포로를 풀지 못한다. 감옥이 있으면 돋는다", "skills": [["후려치기", "공격 +30%"], ["맞물림", "포로 자리 +2 더"], ["울림", "전투 시작 때 적 전원의 정신력을 깎는다"]]}, "turncoat": {"name": "돌아선 자", "evo": "삼켜진 자", "fusePre": "돌아선", "note": "넘어온 싸움꾼. 옛 동료를 칠 때마다 그들의 정신력도 깎는다"}, "fallen": {"name": "꺾인 믿음", "evo": "뒤집힌 믿음", "fusePre": "후광 깨진", "note": "믿음이 꺾여 넘어온 자. 매 라운드 가장 다친 아군을 치료하고 정신 공격을 한다"}, "digger": {"name": "굴파개", "evo": "깊은 굴파개", "fusePre": "발톱 달린", "note": "매일 공짜 작업 1번 (둘까지). 굴을 3칸 넘게 판 둥지에 돋는다"}, "clerk": {"name": "세는 손", "evo": "세는 손무리", "fusePre": "손가락 많은", "note": "방 유지 −25%, 빨판 굴 수입 +50%. 싸우지 않는다. 빨판 굴이 있으면 돋는다"}, "licker": {"name": "핥는 것", "evo": "세 갈래 혀", "fusePre": "혀 늘어진"}, "spitter": {"name": "가시쏘개", "evo": "가시 덤불", "fusePre": "가시 돋은"}, "eyeheap": {"name": "눈 무더기", "evo": "눈의 탑", "fusePre": "눈 박힌"}, "tangle": {"name": "촉수 뭉치", "evo": "매듭 덩이", "fusePre": "엉킨"}};
+  const KIN_NEW = {"goblin": {"name": "깨물이", "evo": "쌍깨물이", "fusePre": "이빨 돋은", "skills": [["기습", "첫 라운드에 두 번 공격"], ["떼거리", "같은 방 깨물이 1명당 공격 +15%"], ["뒤통수", "가장 약한 적을 노려 피해 +20%"]]}, "skeleton": {"name": "뼈껍질", "evo": "겹껍질", "fusePre": "뼈 박힌", "skills": [["껍질 벽", "같은 방 아군이 받는 피해 −20%"], ["뼈 가시", "맞을 때마다 반격"], ["다시 붙음", "부활 +1회"]]}, "cultist": {"name": "신도", "evo": "대신도", "fusePre": "기도하는"}, "scale": {"name": "비늘지기", "evo": "심해지기", "fusePre": "비늘 덮인"}, "scribe": {"name": "별보는 눈", "evo": "별읽는 눈", "fusePre": "별빛 새겨진", "skills": [["긴 눈길", "정신 공격 대상 +1명"], ["눈 가림", "전투 시작 때 적 1명의 특성을 끈다"], ["별자리", "손 주문 신앙 비용 −2"]]}, "spawn": {"name": "움", "evo": "큰 움", "fusePre": "움 돋은"}, "mask": {"name": "가면 쓴 것", "evo": "천의 가면", "fusePre": "얼굴 둘인"}, "hunger": {"name": "허기", "evo": "게걸", "fusePre": "입 둘인"}, "netter": {"name": "실뽑이", "evo": "그물 어미", "fusePre": "그물 엮인", "note": "체력 30% 아래로 떨어진 적을 실로 감아 무릎 꿇린다. 고치 굴이 있으면 돋는다", "skills": [["넓은 그물", "체력 40% 아래까지 덮는다"], ["질긴 가죽", "자신의 방어 +50%"], ["두 번 뱉기", "한 라운드에 두 명을 덮는다"]]}, "warden": {"name": "갈비우리", "evo": "갈비감옥", "fusePre": "갈비 벌어진", "note": "포로 자리 +2, 몸값 +25%. 뒤지는 자가 포로를 풀지 못한다. 고치 굴이 있으면 돋는다", "skills": [["후려치기", "공격 +30%"], ["맞물림", "포로 자리 +2 더"], ["울림", "전투 시작 때 적 전원의 정신력을 깎는다"]]}, "turncoat": {"name": "돌아선 자", "evo": "삼켜진 자", "fusePre": "돌아선", "note": "넘어온 싸움꾼. 옛 동료를 칠 때마다 그들의 정신력도 깎는다"}, "fallen": {"name": "꺾인 믿음", "evo": "뒤집힌 믿음", "fusePre": "후광 깨진", "note": "믿음이 꺾여 넘어온 자. 매 라운드 가장 다친 아군을 치료하고 정신 공격을 한다"}, "digger": {"name": "굴파개", "evo": "깊은 굴파개", "fusePre": "발톱 달린", "note": "매일 공짜 작업 1번 (둘까지). 굴을 3칸 넘게 판 둥지에 돋는다"}, "clerk": {"name": "세는 손", "evo": "세는 손무리", "fusePre": "손가락 많은", "note": "방 유지 −25%, 빨판 굴 수입 +50%. 싸우지 않는다. 빨판 굴이 있으면 돋는다"}, "licker": {"name": "핥는 것", "evo": "세 갈래 혀", "fusePre": "혀 늘어진"}, "spitter": {"name": "가시쏘개", "evo": "가시 덤불", "fusePre": "가시 돋은"}, "eyeheap": {"name": "눈 무더기", "evo": "눈의 탑", "fusePre": "눈 박힌"}, "tangle": {"name": "촉수 뭉치", "evo": "매듭 덩이", "fusePre": "엉킨"}};
   for (const k in KIN_NEW) { const d = KIN_NEW[k]; if (!KIN[k]) continue; KIN[k].name = d.name; if (d.note) KIN[k].note = d.note; if (d.skills) KIN[k].skills = d.skills; if (d.evo) EVO[k] = d.evo; if (d.fusePre) FUSE_PRE[k] = d.fusePre; }
   const RECIPE = {
     pray: { pair: ['skeleton', 'cultist'], name: '죽어도 기도하는 것', desc: '한 번 더 일어난다. 체력을 8할까지 채워 일어나고, 그때마다 신앙 +3' },
     read: { pair: ['mask', 'scribe'], name: '읽히는 얼굴', desc: '정신 공격이 방 안의 적 전원에게 닿는다 (세기 65%)' },
-    wall: { pair: ['scale', 'skeleton'], name: '걸어 다니는 성벽', desc: '같은 방 아군이 받는 피해 −30%' },
+    wall: { pair: ['scale', 'skeleton'], name: '걸어 다니는 벽', desc: '같은 방 아군이 받는 피해 −30%' },
     fist: { pair: ['goblin', 'hunger'], name: '먹는 주먹', desc: '공격 +15%. 적을 쓰러뜨릴 때마다 체력 25% 회복' },
-    choir: { pair: ['cultist', 'cultist'], name: '작은 성가대', desc: '정신 공격 +50%. 매일 신앙 +3, 한 몫 더 바친다' },
+    choir: { pair: ['cultist', 'cultist'], name: '작은 합창', desc: '정신 공격 +50%. 매일 신앙 +3, 한 몫 더 바친다' },
     bud: { pair: ['spawn', null], name: '움 품은 것', desc: '쓰러지면 움 둘이 튀어나와 대신 싸운다' },
-    bind: { pair: ['netter', 'warden'], name: '열쇠 쥔 그물', desc: '이 몸이 쓰러뜨린 적은 죽지 않고 포로가 된다. 갈비우리 일도 그대로 한다' },
+    bind: { pair: ['netter', 'warden'], name: '갈비 엮은 그물', desc: '이 몸이 쓰러뜨린 적은 죽지 않고 포로가 된다. 갈비우리 일도 그대로 한다' },
     briar: { pair: ['spitter', 'tangle'], name: '가시덤불', desc: '싸움 전에 가시도 쏘고 적 둘도 붙든다. 붙들린 적은 가시를 한 번 더 맞는다' },
     twice: { pair: ['turncoat', 'fallen'], name: '두 번 돌아선 것', desc: '매 라운드 아군을 더 크게 치료하고, 쓰러뜨릴 때마다 적 전원의 정신력을 크게 깎는다' },
     ledger: { pair: ['digger', 'clerk'], name: '굴 파는 손', desc: '굴파개 일과 세는 손 일을 한 몸으로 다 한다. 공짜 작업 +1번 더' },
@@ -130,7 +130,7 @@ const NEST = (function () {
   };
   const NORCP = typeof process !== 'undefined' && process.env && process.env.NORCP;
   const recipesOf = m => { const ps = (m.parts || []).map(p => p.kind); if (!ps.length || NORCP) return []; const all = [m.kind].concat(ps), cnt = k => all.filter(x => x === k).length; return Object.keys(RECIPE).filter(id => { const [a, b] = RECIPE[id].pair; return b === null ? ps.includes(a) : a === b ? cnt(a) >= 2 : cnt(a) >= 1 && cnt(b) >= 1; }); };
-  // 붙은 쪽의 일을 그대로 하는 조합: 굴파개·세는 손(굴 파는 손), 간수(열쇠 쥔 그물), 눈 무더기(받아 적는 눈)
+  // 붙은 쪽의 일을 그대로 하는 조합: 굴파개·세는 손(굴 파는 손), 갈비우리(갈비 엮은 그물), 눈 무더기(받아 적는 눈)
   const KEEP = { digger: 'ledger', clerk: 'ledger', warden: 'bind', eyeheap: 'record' };
   const does = (m, k) => m.kind === k || (!!KEEP[k] && recipesOf(m).includes(KEEP[k]));
   const baseName = m => m.evo && EVO[m.kind] ? EVO[m.kind] : KIN[m.kind].name;
@@ -275,19 +275,19 @@ const NEST = (function () {
   const DIFF = { 1: { name: '첫 각성', mult: 1, score: 1 }, 2: { name: '깊은 각성', mult: 1.4, score: 1.1 }, 3: { name: '끝없는 밤', mult: 1.65, score: 1.25 } };
   const GRADES = [['SSS', 23000], ['SS', 19000], ['S', 15500], ['A', 12000], ['B', 9000], ['C', 6000], ['D', 0]];
   const EVENTS = {
-    feeder: { title: '떠돌이 먹이 상인', text: '수레에 이상한 냄새가 나는 꾸러미가 가득하다. "속성 진한 놈으로만 골라 왔수다."', min: 2 },
+    feeder: { title: '떠돌이 먹이 장수', text: '짊어진 꾸러미마다 이상한 냄새가 난다. "속성 진한 놈으로만 골라 왔수다."', min: 2 },
     traveler: { title: '길 잃은 여행자', text: '초보 여행자 하나가 둥지 앞에서 지도를 거꾸로 들고 있다.', min: 2 },
     meteor: { title: '유성우', text: '밤새 별똥별이 쏟아졌다. 구덩이마다 낯익은 빛이 고여 있다.', min: 2 },
-    trainer: { title: '떠돌이 교관', text: '흉터투성이 교관이 권속들을 훑어본다. "돈만 주면 하루 만에 괴물 만들어 주지."', min: 5 },
+    trainer: { title: '떠돌이 교관', text: '흉터투성이 교관이 권속들을 훑어본다. "값만 치르면 하루 만에 괴물 만들어 주지."', min: 5 },
     box: { title: '수상한 상자', text: '입구 앞에 누가 상자를 두고 갔다. 안에서 달그락거린다.', min: 2 },
-    informer: { title: '밀고자', text: '후드를 눌러쓴 자가 속삭인다. "다음에 올 놈들이 누군지 안다. 값만 맞으면."', min: 5 },
+    informer: { title: '밀고자', text: '얼굴을 가린 자가 속삭인다. "다음에 올 놈들이 누군지 안다. 값만 맞으면."', min: 5 },
     dream: { title: '꿈', text: '잠결에 몸 어딘가가 간지럽다. 뭔가 돋으려 한다.', min: 7 },
     pilgrims: { title: '순례자 무리', text: '누더기를 걸친 무리가 동굴을 향해 절을 하고 있다.', min: 5 },
     informer2: { title: '밀고자의 다른 손님', text: '지난번 그 밀고자가 마을에도 네 둥지 얘기를 팔고 있었다. 오늘 또 왔다. 아무 일 없다는 얼굴로.', min: 99 },
     pilgrims2: { title: '순례자들의 청', text: '굴 앞에 자리 잡은 순례자들이 다시 왔다. 맨 앞의 늙은이가 입을 연다. "절할 곳을 하나만 내어 주십시오."', min: 99 },
-    mapper1: { title: '측량꾼', text: '낯선 자가 입구 앞에서 줄자를 펴고 뭔가를 적고 있다. 학술원 마을에서 온 지도 제작자다.', min: 99 },
+    mapper1: { title: '측량꾼', get text() { return '낯선 자가 입구 앞에서 줄자를 펴고 뭔가를 적고 있다. ' + VILL.school.name + '에서 온 지도 제작자다.'; }, min: 99 },
     mapper2: { title: '측량꾼의 지도', text: '며칠 전 그 측량꾼의 일이 다시 불거졌다.', min: 99 },
-    tax: { title: '세금 징수원', text: '징수원이 장부를 펼친다. "동굴에도 재산세는 붙는다."', min: 5 },
+    tax: { title: '거두러 온 자', text: '낯선 자가 두꺼운 기록을 펼친다. "땅속에 살아도 낼 것은 내야지."', min: 5 },
   };
 
   // ---------- 옛 것과 징조 (7일째부터) ----------
@@ -322,7 +322,7 @@ const NEST = (function () {
     quiet: { name: '조용한 별', desc: '공포가 절반만 오른다. 대신 침입자의 지닌 것 −10%' },
     loud: { name: '시끄러운 별', desc: '매일 밤 온다. 무리가 20% 크다. 대신 지닌 것 +20%' },
     lone: { name: '외톨이 별', desc: '권속을 3명까지만 둔다(개종 포함). 대신 본체 능력치 1.2배' },
-    faith: { name: '믿음의 별', desc: '예배당과 신도 둘로 시작한다. 대신 시작 진액 150' },
+    faith: { name: '믿음의 별', desc: '기도 굴과 신도 둘로 시작한다. 대신 시작 진액 150' },
     glass: { name: '유리 별', desc: '본체 체력 절반. 대신 얻는 정수 +20%' },
   };
 
@@ -387,9 +387,9 @@ const NEST = (function () {
 
   // ---------- 방 조합: 맞닿은 두 시설 ----------
   const COMBO = {
-    confess: { name: '고해소', a: 'prison', b: 'chapel', desc: '개종 +15%p, 포로 밥값 없음' },
+    confess: { name: '참회 굴', a: 'prison', b: 'chapel', desc: '개종 +15%p, 포로 밥값 없음' },
     queue: { name: '대기 줄', a: 'prison', b: 'ritual', desc: '제물의 정수 +2' },
-    corridor: { name: '죽음의 복도', a: 'trap', b: 'trap', desc: '두 함정방의 함정 피해 +30%' },
+    corridor: { name: '죽음의 굴길', a: 'trap', b: 'trap', desc: '두 함정 굴의 함정 피해 +30%' },
     throne: { name: '옥좌', a: 'altar', b: 'core', desc: '본체를 마주한 적의 정신력 피해 +50%' },
   };
   function combos(G) { const out = []; for (const id in COMBO) { const c = COMBO[id], cells = []; G.cells.forEach((x, i) => { if (x.dug && x.type === c.a && nbrs(i).some(j => j !== i && G.cells[j].dug && G.cells[j].type === c.b)) { cells.push(i); nbrs(i).forEach(j => { if (G.cells[j].dug && G.cells[j].type === c.b) cells.push(j); }); } }); if (cells.length) out.push({ id, name: c.name, desc: c.desc, cells: [...new Set(cells)] }); } return out; }
@@ -446,10 +446,10 @@ const NEST = (function () {
     well: { name: '마른 우물자리', asp: 'abyss', star: 'none', need: 0, text: '바닥이 보이지 않는 우물. 물은 오래전에 여기로 떨어졌다.', pts: [[30, 8], [70, 8], [74, 30], [62, 52], [38, 52], [26, 30]] },
     saw: { name: '이 빠진 톱자리', asp: 'hunger', star: 'none', need: 0, text: '하늘을 썰다 만 톱. 빠진 이 하나가 너다.', pts: [[8, 44], [22, 22], [36, 44], [50, 22], [64, 44], [78, 22], [92, 44]] },
     anchor: { name: '가라앉은 닻자리', asp: 'abyss', star: 'quiet', need: 1, text: '소리 없이 가라앉는 닻. 떨어지는 소리도 나지 않았다.', pts: [[50, 6], [50, 46], [26, 36], [34, 52], [50, 56], [66, 52], [74, 36]] },
-    purse: { name: '빈 주머니자리', asp: 'hunger', star: 'poor', need: 1, text: '뒤집어 턴 주머니. 금화는 대부분 오다가 흩어졌다.', pts: [[36, 8], [64, 8], [58, 22], [78, 44], [50, 56], [22, 44], [42, 22]] },
+    purse: { name: '빈 주머니자리', asp: 'hunger', star: 'poor', need: 1, text: '뒤집어 턴 주머니. 든 것은 대부분 오다가 흩어졌다.', pts: [[36, 8], [64, 8], [58, 22], [78, 44], [50, 56], [22, 44], [42, 22]] },
     pot: { name: '끓는 솥자리', asp: 'brood', star: 'loud', need: 1, text: '뚜껑이 들썩이는 솥. 떨어질 때 온 들판이 그 소리를 들었다.', pts: [[18, 18], [82, 18], [76, 44], [60, 56], [40, 56], [24, 44], [50, 6]] },
     mask: { name: '뒤집힌 가면자리', asp: 'dusk', star: 'none', need: 2, text: '안쪽을 보이며 걸린 가면. 얼굴이 닿던 자리에서 떨어졌다.', pts: [[24, 10], [76, 10], [84, 34], [64, 54], [36, 54], [16, 34], [38, 28], [62, 28]] },
-    choir: { name: '눈먼 성가대자리', asp: 'dusk', star: 'faith', need: 2, text: '줄지어 선 별들이 보이지 않는 것을 향해 노래한다. 그 노래가 너를 따라 내려왔다.', pts: [[10, 40], [26, 28], [42, 40], [58, 28], [74, 40], [90, 28], [50, 10]] },
+    choir: { name: '눈먼 합창자리', asp: 'dusk', star: 'faith', need: 2, text: '줄지어 선 별들이 보이지 않는 것을 향해 노래한다. 그 노래가 너를 따라 내려왔다.', pts: [[10, 40], [26, 28], [42, 40], [58, 28], [74, 40], [90, 28], [50, 10]] },
     tower: { name: '외딴 등대자리', asp: 'nebula', star: 'lone', need: 3, text: '아무 배도 지나지 않는 등대. 불빛만 떨어져 나왔다.', pts: [[50, 4], [42, 20], [58, 20], [38, 54], [62, 54], [20, 12], [80, 12]] },
     crown: { name: '유리 왕관자리', asp: 'nebula', star: 'glass', need: 3, text: '손대면 깨질 듯한 왕관. 가장 밝은 조각이 떨어졌다.', pts: [[12, 46], [22, 14], [36, 34], [50, 8], [64, 34], [78, 14], [88, 46]] },
   };
@@ -458,11 +458,11 @@ const NEST = (function () {
     drop: { name: '아직 없음', title: '옛 것?', text: '아직 아무것도 돋지 않았다.', good: '치우침이 없다', bad: '없음' },
     shell: { name: '껍데기 쓴 것', title: '옛 것?', ev: ['굳어 가는 것', '맞은 자리의 살이 딱딱하게 굳어 간다. 깨진 알껍데기 같은 것이 등을 덮기 시작했다.', '쓰러졌다 일어나거나, 죽기 직전까지 몰린 밤을 두 번 넘기면'], cond: G => (G.falls || 0) >= 1 || (G.stats.close || 0) >= 2, text: '깨진 알껍데기 같은 것이 등을 덮었다. 잘 깨지지 않는다.', good: '본체 방어 +50%, 체력 +20%', bad: '본체 공격 −25%', hp: 1.2, atk: 0.75, df: 1.5 },
     root: { name: '뿌리 내린 것', title: '옛 것?', ev: ['벽 속의 가닥', '파 놓은 굴마다 가느다란 가닥이 뻗어 있다. 잘라도 다음 날이면 다시 자란다. 네 몸에서 나온 것이다.', '굴을 넷 넘게 파면'], cond: G => (G.stats.dug || 0) >= 4, text: '굴 벽을 따라 뿌리가 뻗었다. 굴이 곧 몸이다.', good: '굴 파기 값 절반, 방 유지 없음', bad: '본체 체력 −20%', hp: 0.8 },
-    maw: { name: '입이 벌어진 것', title: '옛 것?', ev: ['먼저 벌어지는 것', '먹을 때마다 몸 한쪽이 먼저 벌어진다. 이제는 먹지 않을 때도 닫히지 않는다.', '많이 죽이고 많이 먹으면'], cond: G => G.stats.kills >= 30 && (G.stats.eats || 0) >= 5, text: '닫히지 않는 입이 생겼다. 먹는 것 말고는 관심이 없다.', good: '포식 정수 +25%, 본체 공격 +15%', bad: '권속이 겁을 먹어 끼니 +30%, 마을이 거래하지 않는다', atk: 1.15 },
+    maw: { name: '입이 벌어진 것', title: '옛 것?', ev: ['먼저 벌어지는 것', '먹을 때마다 몸 한쪽이 먼저 벌어진다. 이제는 먹지 않을 때도 닫히지 않는다.', '많이 죽이고 많이 먹으면'], cond: G => G.stats.kills >= 30 && (G.stats.eats || 0) >= 5, text: '닫히지 않는 입이 생겼다. 먹는 것 말고는 관심이 없다.', good: '포식 정수 +25%, 본체 공격 +15%', bad: '권속이 겁을 먹어 끼니 +30%, 마을이 섬기지 않는다', atk: 1.15 },
     lamp: { name: '등불 든 것', title: '옛 것?', ev: ['어둠 속의 깜빡임', '신도들이 네 머리 위를 보며 무릎을 꿇는다. 거기 무언가가 돋아 빛나고 있다.', '신도 셋을 거느리면'], cond: G => G.kin.filter(m => m.kind === 'cultist').length >= 3, text: '머리 위에 빛나는 것이 돋았다. 그 빛을 보고 찾아오는 자들이 있다.', good: '매일 신앙 +3, 개종 확률 +20%p, 신도는 끼니를 받지 않는다', bad: '본체 체력 −10%', hp: 0.9 },
-    coin: { name: '금화 품은 것', title: '옛 것?', ev: ['박힌 금화', '깔고 앉은 금화 몇 닢이 살에 박혀 떨어지지 않는다. 박힌 자리가 따뜻하다.', '진액을 많이 쌓거나 삼키면'], cond: G => G.gold >= 600 * cm(G) || hoardN(G, 'gulp') >= 1, text: '금화가 살에 박혔다. 금 냄새가 난다.', good: '섬김 +50%, 탐식 값 −20%, 돋을 때 진액을 조금 토해 낸다', bad: '금 냄새에 무리가 15% 더 온다. 쓰러지면 진액의 80%를 털린다' },
+    coin: { name: '굳은 방울 박힌 것', title: '옛 것?', ev: ['박힌 방울', '깔고 앉은 진액이 굳어 살에 박혔다. 떨어지지 않는다. 박힌 자리가 따뜻하다.', '진액을 많이 쌓거나 삼키면'], cond: G => G.gold >= 600 * cm(G) || hoardN(G, 'gulp') >= 1, text: '굳은 진액이 살에 박혔다. 단내가 난다.', good: '섬김 +50%, 탐식 값 −20%, 돋을 때 진액을 조금 토해 낸다', bad: '단내에 무리가 15% 더 온다. 쓰러지면 진액의 80%를 털린다' },
     thorn: { name: '가시 돋은 것', title: '옛 것?', ev: ['살을 뚫고 나오는 것', '함정에 누가 걸릴 때마다 몸 어딘가가 따끔거렸다. 오늘 아침, 그 자리마다 뾰족한 것이 살을 뚫고 나와 있다.', '함정을 많이 깔고 강화하면'], cond: G => G.cells.reduce((a, c) => a + (c.dug ? c.traps.reduce((x, t) => x + t.lv, 0) : 0), 0) >= 9, text: '온몸에 가시가 돋았다. 건드리는 쪽이 다친다.', good: '함정 피해 +30%, 본체를 때린 적은 그 피해의 25%를 돌려받는다', bad: '곁에 서기 어렵다: 호위 자리 −1' },
-    chain: { name: '사슬 감은 것', title: '옛 것?', ev: ['끊어지지 않는 것', '포로들이 차고 있던 사슬이 밤사이 네 몸에 감겨 있다. 풀어도 다음 날이면 다시 감긴다.', '포로를 열둘 넘게 잡으면'], cond: G => G.stats.captives >= 12, text: '포로의 사슬이 몸에 감겼다. 붙잡은 것을 놓지 않는다.', good: '감옥 자리 +4, 몸값 +30%', bad: '제물로 바쳐도 정수가 절반만 나온다' },
+    chain: { name: '사슬 감은 것', title: '옛 것?', ev: ['끊어지지 않는 것', '포로들을 묶어 둔 사슬이 밤사이 네 몸에 감겨 있다. 풀어도 다음 날이면 다시 감긴다.', '포로를 열둘 넘게 잡으면'], cond: G => G.stats.captives >= 12, text: '포로의 사슬이 몸에 감겼다. 붙잡은 것을 놓지 않는다.', good: '포로 자리 +4, 몸값 +30%', bad: '제물로 바쳐도 정수가 절반만 나온다' },
     shade: { name: '그림자 끄는 것', title: '옛 것?', ev: ['따라오는 것', '마을에서 돌아올 때마다 그림자가 조금씩 길어졌다. 이제는 해가 떠도 줄지 않는다.', '마을을 세 번 습격하면'], cond: G => (G.stats.raids || 0) >= 3, text: '몸보다 큰 그림자가 생겼다. 그림자가 먼저 마을에 닿는다.', good: '습격으로 얻는 진액 +40%, 습격한 날 밤에도 본체 방어가 깎이지 않는다', bad: '공포가 가라앉지 않는다' },
   };
   const org = G => (G && G.origin && ORIGIN[G.origin] ? G.origin : 'drop'), isO = (G, k) => org(G) === k;
@@ -478,7 +478,7 @@ const NEST = (function () {
   // ---------- 탐식: 깔고 앉은 진액을 삼켜 힘으로 바꾼다 ----------
   const HOARD = {
     gulp: { name: '진액을 삼킨다', base: 150, grow: 1.8, max: 99, hp: 0.06, atk: 0.03, desc: '체력 +6%, 공격·방어 +3%. 삼킬수록 비싸진다' },
-    seat: { name: '황금 호위석', base: 300, grow: 1, max: 1, desc: '본체 방 호위 자리 +1' },
+    seat: { name: '굳힌 호위 자리', base: 300, grow: 1, max: 1, desc: '본체 방 호위 자리 +1' },
     life: { name: '허물 하나 더', base: 500, grow: 1, max: 1, desc: '목숨 +1. 한 번 더 쓰러져도 일어난다' },
     veil: { name: '별 가리기', base: 700, grow: 1, max: 1, act: 4, cut: 0.15, desc: '마지막 밤에 오는 무리의 체력·공격 −15%' },
   };
@@ -567,7 +567,7 @@ const NEST = (function () {
     // 지상에 나타나는 것: 이틀 머문다
     if (G.spot && --G.spot.left <= 0) G.spot = null;
     if (!G.spot && G.day >= 2 && rng(G) < 0.6) { const ts = ['meteor', 'shrine', 'band', 'cart'].concat(G.march.tonight || G.march.tomorrow ? ['camp', 'camp'] : []), vs = VIDS.filter(v => !G.vill[v].razed); G.spot = { type: pick(G, ts), pos: Math.floor(rng(G) * 4), left: G.spotLong ? 3 : 2, vill: vs.length ? pick(G, vs) : 'field' }; }
-    // 지원자
+    // 돋는 것
     G.applicants = [];
     if (G.day >= 1) {
       const w = {}; for (const k in KIN) w[k] = KIN[k].w + (KIN[k].room && hasRoom(G, KIN[k].room) ? (k === 'netter' || k === 'warden' ? 1.5 : k === 'clerk' ? 2 : 4) : 0); if ((G.stats.dug || 0) >= 3) w.digger = 1.5;
@@ -632,11 +632,11 @@ const NEST = (function () {
   function estimate(G, when) { const m = G.march[when]; if (!m) return null; const p = partyKinds(G, m.vill, m.settle, m.thin, when === 'tonight' ? G.day : G.day + 1), bk = p.kinds.find(k => INV[k].boss); return { vill: m.vill, boss: bk || null, thin: !!m.thin, settle: m.settle, grade: p.g, count: p.kinds.length, kinds: seesDetail(G, m.vill) ? p.kinds : null }; }
 
   // ---------- 굴을 파다 나오는 것: 판마다 세 칸 ----------
-  const BURIED = { gold: '금맥', bones: '옛 뼈무더기', spring: '지하수', sealed: '봉인된 방', relic: '잊힌 제단' };
+  const BURIED = { gold: '진액 맥', bones: '옛 뼈무더기', spring: '지하수', sealed: '봉인된 방', relic: '잊힌 제단' };
   function unearth(G, i) {
     const t = G.buried && G.buried[i]; if (!t) return null; delete G.buried[i]; const c = cm(G); G.stats.found = (G.stats.found || 0) + 1;
-    if (t === 'gold') { earn(G, 60 * c, '금맥'); G.cells[i].free = true; return '금맥이 드러났다! +' + 60 * c + '방울. 이 칸은 유지에 진액이 들지 않는다'; }
-    if (t === 'bones') { for (let k = 0; k < 2; k++) { const m = { id: G.nextId++, name: NAMES[Math.floor(rng(G) * NAMES.length)], kind: 'skeleton', lv: Math.max(1, actOf(G) * 3 - 2) + 1, exp: 0, loc: freeSlot(G, 'skeleton'), hurt: 0, skill: -1, rare: false, age: 0, unpaid: 0 }; autoSkill(m); G.kin.push(m); } return '옛 뼈무더기가 일어났다. 해골 둘이 따라온다'; }
+    if (t === 'gold') { earn(G, 60 * c, '진액 맥'); G.cells[i].free = true; return '굳은 진액 맥이 드러났다! +' + 60 * c + '방울. 이 칸은 유지에 진액이 들지 않는다'; }
+    if (t === 'bones') { for (let k = 0; k < 2; k++) { const m = { id: G.nextId++, name: NAMES[Math.floor(rng(G) * NAMES.length)], kind: 'skeleton', lv: Math.max(1, actOf(G) * 3 - 2) + 1, exp: 0, loc: freeSlot(G, 'skeleton'), hurt: 0, skill: -1, rare: false, age: 0, unpaid: 0 }; autoSkill(m); G.kin.push(m); } return '옛 뼈무더기가 일어났다. ' + KIN.skeleton.name + ' 둘이 따라온다'; }
     if (t === 'spring') { G.cells[i].type = 'pool'; G.cells[i].free = true; return '지하수가 터졌다. 이 칸이 고인 웅덩이가 되었다'; }
     if (t === 'sealed') { const k = gainMut(G, null); G.fear += 8; return '봉인된 방이 열렸다. ' + (k ? '변이 ' + MUT[k].name + ', ' : '') + '공포 +8'; }
     G.faithBonus = (G.faithBonus || 0) + 10; addFaith(G, 12); return '잊힌 제단을 찾았다. 신앙 +12, 신앙 상한 +10';
@@ -785,17 +785,17 @@ const NEST = (function () {
   // ---------- 지상 인카운터 ----------
   const SPOT = {
     meteor: { name: '유성 구덩이', text: '밤사이 떨어진 별똥별이 구덩이를 남겼다. 바닥에 낯익은 빛이 고여 있다.' },
-    shrine: { name: '버려진 사당', text: '풀에 덮인 돌무더기. 누군가 아주 오래전에 무언가를 빌던 자리다.' },
-    band: { name: '떠돌이 무리', text: '갈 곳 없는 것들이 모닥불 가에 모여 있다. 일자리를 찾는 눈치다.' },
-    cart: { name: '버려진 짐', text: '길가에 수레가 뒤집혀 있다. 짐은 그대로고, 주인은 도움을 구하러 간 모양이다.' },
+    shrine: { name: '버려진 돌무지', text: '풀에 덮인 돌무더기. 누군가 아주 오래전에 무언가를 빌던 자리다.' },
+    band: { name: '떠돌이 무리', text: '갈 곳 없는 것들이 구덩이에 웅크려 있다. 깃들 곳을 찾는 눈치다.' },
+    cart: { name: '버려진 짐', text: '길가에 짐이 쏟아져 있다. 실어 나르던 것은 뒤집혔고, 주인은 도움을 구하러 간 모양이다.' },
     camp: { name: '길가의 야영', text: '둥지로 올 무리가 길가에서 쉬고 있다. 아직 이쪽을 못 봤다.' },
   };
   function spotOptions(G) {
     const s = G.spot; if (!s) return []; const c = cm(G), a0 = G.slime.main || G.startAsp, vn = VILL[s.vill].name;
     if (s.type === 'meteor') return [{ label: '핥는다', desc: '무작위 징조의 정수 +6', run: () => { const a = pick(G, ASPECTS); addEss(G, a, 6); return ASP[a] + ' 정수 +6'; } }, { label: '골라 삼킨다', desc: ASP[a0] + ' 정수 +3', run: () => { addEss(G, a0, 3); return ASP[a0] + ' 정수 +3'; } }];
-    if (s.type === 'shrine') return [{ label: '깨운다', desc: '신앙 +10', run: () => { addFaith(G, 10); return '사당이 낮게 울렸다. 신앙 +10'; } }, { label: '부순다', desc: '진액 +' + 40 * c + '방울, 공포 +5', run: () => { earn(G, 40 * c, '사당'); G.fear += 5; return '돌 밑에 묻힌 것을 챙겼다. +' + 40 * c + '방울'; } }];
+    if (s.type === 'shrine') return [{ label: '깨운다', desc: '신앙 +10', run: () => { addFaith(G, 10); return '돌무지가 낮게 울렸다. 신앙 +10'; } }, { label: '부순다', desc: '진액 +' + 40 * c + '방울, 공포 +5', run: () => { earn(G, 40 * c, '돌무지'); G.fear += 5; return '돌 밑에 묻힌 것을 챙겼다. +' + 40 * c + '방울'; } }];
     if (s.type === 'band') return [{ label: '불러들인다', desc: '돋으려는 것 둘이 더 생긴다. 값 30% 할인', run: () => { for (let i = 0; i < 2; i++) G.applicants.push({ kind: pick(G, ['goblin', 'skeleton', 'cultist', 'goblin']), rare: false, cheap: true, name: NAMES[Math.floor(rng(G) * NAMES.length)] }); return '둘이 둥지 앞으로 따라왔다'; } }];
-    if (s.type === 'cart') return [{ label: '턴다', desc: '진액 +' + 50 * c + '방울, ' + vn + ' 적의 +10', run: () => { earn(G, 50 * c, '수레'); G.vill[s.vill].host += 10; return '짐을 챙겼다. +' + 50 * c + '방울'; } }, { label: '세워 둔다', desc: vn + ' 적의 −15, 공포 −3', run: () => { G.vill[s.vill].host = Math.max(0, G.vill[s.vill].host - 15); G.fear = Math.max(0, G.fear - 3); return '수레를 바로 세워 두었다. 주인은 영문을 모를 것이다'; } }];
+    if (s.type === 'cart') return [{ label: '턴다', desc: '진액 +' + 50 * c + '방울, ' + vn + ' 적의 +10', run: () => { earn(G, 50 * c, '버려진 짐'); G.vill[s.vill].host += 10; return '짐을 챙겼다. +' + 50 * c + '방울'; } }, { label: '쌓아 둔다', desc: vn + ' 적의 −15, 공포 −3', run: () => { G.vill[s.vill].host = Math.max(0, G.vill[s.vill].host - 15); G.fear = Math.max(0, G.fear - 3); return '쏟아진 짐을 도로 쌓아 두었다. 주인은 영문을 모를 것이다'; } }];
     return [{ label: '먼저 덮친다', desc: '다음에 올 무리의 인원 −30%, 먹이 +1, 공포 +5', run: () => { const m = G.march.tonight || G.march.tomorrow; if (m) m.thin = true; addCorpse(G, 'villager'); G.fear += 5; return '야영지를 덮쳤다. 남은 자들만 온다'; } }];
   }
   function resolveSpot(G, i) {
@@ -805,33 +805,33 @@ const NEST = (function () {
 
   // ---------- 밤 손님 ----------
   const GUEST = {
-    merchant: { name: '행상단', text: '수레 셋이 입구 앞에 멈췄다. 싸울 뜻은 없어 보인다. "밤길에 장사 좀 하고 갑시다."' },
-    pilgrims: { name: '순례 행렬', text: '누더기를 걸친 무리가 등불을 들고 온다. 무기는 없다. 동굴 쪽으로 절을 하며 걷는다.' },
+    merchant: { name: '행상단', text: '짐을 진 무리가 입구 앞에 멈췄다. 싸울 뜻은 없어 보인다. "밤길에 장사 좀 하고 갑시다."' },
+    pilgrims: { name: '순례 행렬', text: '누더기를 걸친 무리가 불빛을 들고 온다. 무기는 없다. 동굴 쪽으로 절을 하며 걷는다.' },
     child: { name: '길 잃은 아이', text: '아이 하나가 울지도 않고 굴 안으로 걸어 들어온다. 손에는 반쯤 먹은 빵이 들려 있다.' },
-    poet: { name: '떠돌이 시인', text: '류트를 멘 사내가 입구에서 안을 들여다본다. 무서운 소문을 듣고 구경하러 왔단다. "노래 한 곡 지어도 되겠습니까?"' },
-    deserter: { name: '탈영병', text: '갑옷을 반쯤 벗어 던진 병사 하나가 입구에 주저앉아 있다. "저쪽보단 이쪽이 낫겠다 싶어서."' },
+    poet: { name: '떠돌이 시인', text: '악기를 멘 사내가 입구에서 안을 들여다본다. 무서운 소문을 듣고 구경하러 왔단다. "노래 한 곡 지어도 되겠습니까?"' },
+    deserter: { name: '달아난 싸움꾼', text: '차림을 반쯤 벗어 던진 싸움꾼 하나가 입구에 주저앉아 있다. "저쪽보단 이쪽이 낫겠다 싶어서."' },
   };
   function guestOptions(G) {
     const gs = G.guest; if (!gs) return []; const c = cm(G), a0 = G.slime.main || G.startAsp, vn = VILL[gs.vill].name, pass = { label: '문을 닫는다', desc: '아무 일도 없다', cost: 0, run: () => '아무도 들이지 않았다' };
     if (gs.type === 'merchant') return [
       { label: '정수 병을 산다', desc: ASP[a0] + ' 정수 +8', cost: 40 * c, run: () => { addEss(G, a0, 8); return ASP[a0] + ' 정수 +8'; } },
       { label: '함정 기술자를 쓴다', desc: '레벨이 가장 낮은 함정 둘을 한 단계 올린다', cost: 60 * c, why: G.cells.some(x => x.traps.some(t => t.lv < 3)) ? null : '올릴 함정이 없다', run: () => { const ts = []; G.cells.forEach(x => x.traps.forEach(t => { if (t.lv < 3) ts.push(t); })); ts.sort((a, b) => a.lv - b.lv).slice(0, 2).forEach(t => { t.lv++; }); return '함정을 손봤다'; } },
-      { label: '덮친다', desc: '진액 +' + 120 * c + '방울, 모든 마을 적의 +10, 공포 +6', cost: 0, run: () => { earn(G, 120 * c, '행상단'); VIDS.forEach(v => { G.vill[v].host += 10; }); G.fear += 6; note(G, 'raid1'); return '수레째 삼켰다. +' + 120 * c + '방울'; } }, pass];
+      { label: '덮친다', desc: '진액 +' + 120 * c + '방울, 모든 마을 적의 +10, 공포 +6', cost: 0, run: () => { earn(G, 120 * c, '행상단'); VIDS.forEach(v => { G.vill[v].host += 10; }); G.fear += 6; note(G, 'raid1'); return '짐째 삼켰다. +' + 120 * c + '방울'; } }, pass];
     if (gs.type === 'pilgrims') return [
-      { label: '맞아들인다', desc: '신앙 +8, 신도가 되려는 자 2명 (값 30% 할인), ' + vn + ' 적의 +10', cost: 0, run: () => { addFaith(G, 8); for (let i = 0; i < 2; i++) G.applicants.push({ kind: 'cultist', rare: false, cheap: true, name: NAMES[Math.floor(rng(G) * NAMES.length)] }); G.vill[gs.vill].host += 10; return '등불이 굴 안에 줄지어 섰다. 신앙 +8'; } },
+      { label: '맞아들인다', desc: '신앙 +8, 신도가 되려는 자 2명 (값 30% 할인), ' + vn + ' 적의 +10', cost: 0, run: () => { addFaith(G, 8); for (let i = 0; i < 2; i++) G.applicants.push({ kind: 'cultist', rare: false, cheap: true, name: NAMES[Math.floor(rng(G) * NAMES.length)] }); G.vill[gs.vill].host += 10; return '불빛이 굴 안에 줄지어 섰다. 신앙 +8'; } },
       { label: '돌려보낸다', desc: '신앙 −3', cost: 0, run: () => { G.faith = Math.max(0, G.faith - 3); return '행렬은 말없이 돌아섰다'; } }];
     if (gs.type === 'child') return [
       { label: '돌려보낸다', desc: '공포 −10, ' + vn + ' 적의 0', cost: 0, run: () => { G.fear = Math.max(0, G.fear - 10); G.vill[gs.vill].host = 0; G.child = 'home'; note(G, 'ransom'); return '아이는 빵을 다 먹고 돌아갔다'; } },
-      { label: '붙잡는다', desc: '포로가 된다 (몸값 5배), ' + vn + ' 적의 +40', cost: 0, why: G.prison.length >= prisonCap(G) ? '감옥에 자리가 없다' : null, run: () => { G.prison.push({ kind: 'villager', vill: gs.vill, bonus: 5 }); G.vill[gs.vill].host += 40; G.child = 'held'; note(G, 'capture'); return '아이를 감옥에 넣었다'; } },
+      { label: '붙잡는다', desc: '포로가 된다 (몸값 5배), ' + vn + ' 적의 +40', cost: 0, why: G.prison.length >= prisonCap(G) ? '포로를 둘 자리가 없다' : null, run: () => { G.prison.push({ kind: 'villager', vill: gs.vill, bonus: 5 }); G.vill[gs.vill].host += 40; G.child = 'held'; note(G, 'capture'); return '아이를 고치에 싸 두었다'; } },
       { label: '삼킨다', desc: ASP[a0] + ' 정수 +10, 공포 +20', cost: 0, run: () => { addEss(G, a0, 10); G.fear += 20; G.sacrifices++; G.child = 'eaten'; note(G, 'eat'); return '빵 조각만 남았다'; } }];
     if (gs.type === 'poet') return [
       { label: '구경시키고 보낸다', desc: '공포 +15. 노래가 퍼져 신도가 되려는 자 3명이 온다 (값 30% 할인)', cost: 0, run: () => { G.fear += 15; G.poet = 'sang'; for (let i = 0; i < 3; i++) G.applicants.push({ kind: 'cultist', rare: false, cheap: true, name: NAMES[Math.floor(rng(G) * NAMES.length)] }); return '시인은 떨리는 손으로 받아 적고 돌아갔다'; } },
       { label: '곁에 둔다', desc: '희귀 권속 「목쉰 시인」이 된다 (가면 쓴 것)', cost: 0, run: () => { const m = { id: G.nextId++, name: '목쉰 시인', kind: 'mask', lv: Math.max(1, actOf(G) * 3 - 2) + 2, exp: 0, loc: freeSlot(G, 'mask'), hurt: 0, skill: -1, rare: true, age: 0, unpaid: 0 }; autoSkill(m); G.kin.push(m); G.poet = 'kept'; return '시인은 그날 밤 이후로 다른 노래를 부르지 못했다'; } },
-      { label: '삼킨다', desc: '황혼 정수 +10, 공포 +5', cost: 0, run: () => { addEss(G, 'dusk', 10); G.fear += 5; G.poet = 'eaten'; note(G, 'eat'); return '류트 줄만 남았다'; } }];
+      { label: '삼킨다', desc: '황혼 정수 +10, 공포 +5', cost: 0, run: () => { addEss(G, 'dusk', 10); G.fear += 5; G.poet = 'eaten'; note(G, 'eat'); return '끊어진 줄만 남았다'; } }];
     return [
       { label: '받아들인다', desc: '「돌아선 자」가 되어 넘어온다. ' + VILL.fort.name + ' 적의 +15', cost: 0, run: () => { const m = { id: G.nextId++, name: NAMES[Math.floor(rng(G) * NAMES.length)], kind: 'turncoat', lv: Math.max(1, actOf(G) * 3 - 1), exp: 0, loc: freeSlot(G, 'turncoat'), hurt: 0, skill: -1, rare: false, age: 0, unpaid: 0 }; G.kin.push(m); G.vill.fort.host += 15; G.deserted = true; note(G, 'accept'); return '"' + m.name + '"이(가) 무기를 고쳐 잡았다'; } },
-      { label: '삼킨다', desc: '기아 정수 +8, 공포 +4', cost: 0, run: () => { addEss(G, 'hunger', 8); G.fear += 4; note(G, 'eat'); return '갑옷만 남았다'; } },
-      { label: '돌려보낸다', desc: '공포 −3', cost: 0, run: () => { G.fear = Math.max(0, G.fear - 3); return '병사는 어둠 속으로 사라졌다'; } }];
+      { label: '삼킨다', desc: '기아 정수 +8, 공포 +4', cost: 0, run: () => { addEss(G, 'hunger', 8); G.fear += 4; note(G, 'eat'); return '벗어 둔 것만 남았다'; } },
+      { label: '돌려보낸다', desc: '공포 −3', cost: 0, run: () => { G.fear = Math.max(0, G.fear - 3); return '그는 어둠 속으로 사라졌다'; } }];
   }
   function resolveGuest(G, i) {
     const o = guestOptions(G)[i]; if (!o) return fail('고를 수 없다'); if (o.why) return fail(o.why); if (o.cost > G.gold) return fail('진액이 부족하다 (' + o.cost + '방울)');
@@ -845,7 +845,7 @@ const NEST = (function () {
     if (!G.event) return []; const c = cm(G), id = G.event.id, pass = { label: '그냥 보낸다', cost: 0, run: () => '아무 일도 없었다' };
     const later = () => { let d = G.day + 5; while (G.eventDays[d]) d++; if (d < K.days) G.eventDays[d] = 'mapper2'; };
     if (id === 'mapper1') return [
-      { label: '붙잡는다 (포로가 된다)', cost: 0, why: G.prison.length >= prisonCap(G) ? '감옥에 자리가 없다' : null, run: () => { G.prison.push({ kind: 'detective', vill: 'school' }); G.vill.school.host += 10; G.mapper = 'held'; later(); return '측량꾼을 감옥에 넣었다. 그가 적던 것도 함께'; } },
+      { label: '붙잡는다 (포로가 된다)', cost: 0, why: G.prison.length >= prisonCap(G) ? '포로를 둘 자리가 없다' : null, run: () => { G.prison.push({ kind: 'detective', vill: 'school' }); G.vill.school.host += 10; G.mapper = 'held'; later(); return '측량꾼을 고치에 싸 두었다. 그가 적던 것도 함께'; } },
       { label: '적게 둔다', cost: 0, run: () => { G.mapper = 'sent'; later(); return '측량꾼은 뭔가를 잔뜩 적어 돌아갔다'; } },
       { label: '겁을 줘서 쫓는다 (공포 +5)', cost: 0, run: () => { G.fear += 5; G.mapper = 'gone'; return '줄자만 남기고 달아났다'; } }];
     if (id === 'mapper2') return G.mapper === 'held' ? [
@@ -854,21 +854,21 @@ const NEST = (function () {
       { label: '지도를 사들여 태운다', cost: 80 * c, run: () => '지도는 불쏘시개가 됐다' },
       { label: '내버려 둔다', cost: 0, run: () => { G.mapSold = true; return '둥지로 오는 길이 지도에 실렸다. 앞으로 침입이 잦아진다'; } }];
     if (id === 'feeder') return ASPECTS.map(a => ({ label: ASP[a] + ' 정수 +6', cost: 30 * c, run: () => { addEss(G, a, 6); return ASP[a] + ' 정수를 삼켰다'; } })).concat([pass]);
-    if (id === 'traveler') return [{ label: '길을 알려 준다 (공포 −8)', cost: 0, run: () => { G.fear = Math.max(0, G.fear - 8); return '여행자가 고맙다며 돌아갔다'; } }, { label: '잡아 둔다 (포로 1)', cost: 0, why: G.prison.length >= prisonCap(G) ? '감옥에 자리가 없다' : null, run: () => { G.prison.push({ kind: 'villager', vill: 'field' }); G.fear += 2; return '여행자를 감옥에 넣었다'; } }];
+    if (id === 'traveler') return [{ label: '길을 알려 준다 (공포 −8)', cost: 0, run: () => { G.fear = Math.max(0, G.fear - 8); return '여행자가 고맙다며 돌아갔다'; } }, { label: '잡아 둔다 (포로 1)', cost: 0, why: G.prison.length >= prisonCap(G) ? '포로를 둘 자리가 없다' : null, run: () => { G.prison.push({ kind: 'villager', vill: 'field' }); G.fear += 2; return '여행자를 고치에 싸 두었다'; } }];
     if (id === 'meteor') return [{ label: '빛을 핥는다 (무작위 정수 +4)', cost: 0, run: () => { const a = pick(G, ASPECTS); addEss(G, a, 4); return ASP[a] + ' 정수 +4'; } }, { label: '지켜본다 (신앙 +8)', cost: 0, run: () => { addFaith(G, 8); return '신앙이 차올랐다'; } }];
     if (id === 'trainer') return [{ label: '전 권속 특훈', cost: 30 * c, why: G.kin.length ? null : '권속이 없다', run: () => { let u = 0; G.kin.forEach(m => { u += giveExp(m, 12 * sm(G)); autoSkill(m); }); return '특훈 완료: 레벨업 ' + u + '회'; } }, pass];
     if (id === 'box') return [{ label: '열어 본다', cost: 0, run: () => { if (rng(G) < 0.5) { earn(G, 60 * c, '상자'); return '진액이 들어 있었다. +' + 60 * c + '방울'; } G.fear += 10; return '빈 상자였다. 누가 지켜보고 있었다 (공포 +10)'; } }, pass];
     if (id === 'informer') return [{ label: '정보를 산다', cost: 20 * c, run: () => { G.known = true; let d = G.day + 5; while (G.eventDays[d]) d++; if (d < K.days) G.eventDays[d] = 'informer2'; return '오늘과 내일 올 무리의 구성을 알았다'; } }, pass];
     if (id === 'pilgrims2') return [
-      { label: hasRoom(G, 'chapel') ? '예배당을 내어 준다' : '성소를 지어 준다', cost: hasRoom(G, 'chapel') ? 0 : 60 * c, run: () => { const m = { id: G.nextId++, name: '첫 사도', kind: 'cultist', lv: Math.max(1, actOf(G) * 3 - 2) + 3, exp: 0, loc: freeSlot(G, 'cultist'), hurt: 0, skill: -1, rare: true, age: 0, unpaid: 0 }; autoSkill(m); G.kin.push(m); G.faithBonus = (G.faithBonus || 0) + 10; addFaith(G, 10); return '늙은이가 무릎을 꿇었다. 「첫 사도」가 합류했다. 신앙 +10, 신앙 상한 +10'; } },
+      { label: hasRoom(G, 'chapel') ? '기도 굴을 내어 준다' : '빌 자리를 내어 준다', cost: hasRoom(G, 'chapel') ? 0 : 60 * c, run: () => { const m = { id: G.nextId++, name: '첫 사도', kind: 'cultist', lv: Math.max(1, actOf(G) * 3 - 2) + 3, exp: 0, loc: freeSlot(G, 'cultist'), hurt: 0, skill: -1, rare: true, age: 0, unpaid: 0 }; autoSkill(m); G.kin.push(m); G.faithBonus = (G.faithBonus || 0) + 10; addFaith(G, 10); return '늙은이가 무릎을 꿇었다. 「첫 사도」가 합류했다. 신앙 +10, 신앙 상한 +10'; } },
       { label: '돌려보낸다', cost: 0, run: () => { G.faith = Math.max(0, G.faith - 5); return '순례자들은 다른 굴을 찾아 떠났다'; } }];
     if (id === 'informer2') return [
-      { label: '붙잡는다 (포로가 된다)', cost: 0, why: G.prison.length >= prisonCap(G) ? '감옥에 자리가 없다' : null, run: () => { G.prison.push({ kind: 'detective', vill: 'bell' }); return '밀고자를 감옥에 넣었다'; } },
-      { label: '이중 첩자로 쓴다', cost: 0, run: () => { G.known2 = true; G.spy = true; return '이제 다가오는 무리의 구성이 늘 보인다. 대신 매일 끼니를 줘야 한다'; } },
+      { label: '붙잡는다 (포로가 된다)', cost: 0, why: G.prison.length >= prisonCap(G) ? '포로를 둘 자리가 없다' : null, run: () => { G.prison.push({ kind: 'detective', vill: 'bell' }); return '밀고자를 고치에 싸 두었다'; } },
+      { label: '이중 첩자로 쓴다', cost: 0, run: () => { G.known2 = true; G.spy = true; return '이제 다가오는 무리의 구성이 늘 보인다. 대신 매일 제 몫을 줘야 한다'; } },
       { label: '모른 척한다', cost: 0, run: () => { G.leak = true; return '다음 큰 밤, 인간들은 네 함정 자리를 알고 온다'; } }];
     if (id === 'dream') return [{ label: '돋게 둔다 (변이 1, 본체 체력 −30%)', cost: 0, why: G.slime.muts.length >= 6 ? '변이 칸이 가득 찼다' : null, run: () => { const k = gainMut(G, null); G.slime.hp = Math.max(1, G.slime.hp - slimeStats(G).hp * 0.3); return k ? '변이를 얻었다: ' + MUT[k].name : '아무것도 돋지 않았다'; } }, { label: '깬다', cost: 0, run: () => '꿈은 금세 잊혔다' }];
     if (id === 'pilgrims') return [{ label: '맞이한다 (내일 신도 지망자가 온다)', cost: 0, run: () => { G.pilgrims = true; let d = G.day + 5; while (G.eventDays[d]) d++; if (d < K.days) G.eventDays[d] = 'pilgrims2'; return '순례자들이 근처에 자리를 잡았다'; } }, { label: '쫓아낸다 (공포 +4)', cost: 0, run: () => { G.fear += 4; return '순례자들이 비명을 지르며 흩어졌다'; } }];
-    if (id === 'tax') { const t = Math.round(Math.max(0, G.gold) * 0.1); return [{ label: '세금을 낸다 (' + t + '방울)', cost: 0, run: () => { spend(G, t, '세금'); return t + '방울을 냈다'; } }, { label: '삼킨다 (시체 1, 공포 +8)', cost: 0, run: () => { addCorpse(G, 'militia'); G.fear += 8; return '징수원은 돌아가지 못했다'; } }]; }
+    if (id === 'tax') { const t = Math.round(Math.max(0, G.gold) * 0.1); return [{ label: '달라는 대로 낸다 (' + t + '방울)', cost: 0, run: () => { spend(G, t, '내준 몫'); return t + '방울을 내주었다'; } }, { label: '삼킨다 (시체 1, 공포 +8)', cost: 0, run: () => { addCorpse(G, 'militia'); G.fear += 8; return '거두러 온 자는 돌아가지 못했다'; } }]; }
     return [pass];
   }
   function resolveEvent(G, i) {
@@ -923,9 +923,9 @@ const NEST = (function () {
       const zf = cell.zone && main === 'abyss', mult = m * (G.origin === 'thorn' ? 1.3 : 1) * (1 + 0.1 * (cell.lv - 1)) * (ox(G, 'wetwall') ? 0.7 : 1) * (cell.type === 'trap' && combo(G, 'corridor', idx) ? 1.3 : 1) * (G.leak && mt.settle ? 0.7 : 1);
       const dead0 = g.filter(u => u.hp <= 0).length;
       cell.traps.forEach((t, ti) => {
-        if (ti === 0 && !retreat && alive(g).some(u => INV[u.kind].sap && !u.sealed)) { say2('disarm', { room: idx, txt: '공병대장이 ' + TRAP[t.kind].name + '을(를) 꺼 버렸다' }); return; }
+        if (ti === 0 && !retreat && alive(g).some(u => INV[u.kind].sap && !u.sealed)) { say2('disarm', { room: idx, txt: fj(INV.sapper.name + '이(가) ' + TRAP[t.kind].name + '을(를) 꺼 버렸다') }); return; }
         const liv = alive(g); if (!liv.length) return;
-        if (liv.some(u => INV[u.kind].disarm && !u.sealed) && rng(G) < 0.3) { say2('disarm', { room: idx, txt: '밀수꾼이 ' + TRAP[t.kind].name + '을(를) 해제했다' }); return; }
+        if (liv.some(u => INV[u.kind].disarm && !u.sealed) && rng(G) < 0.3) { say2('disarm', { room: idx, txt: fj(INV.smuggler.name + '이(가) ' + TRAP[t.kind].name + '을(를) 해제했다') }); return; }
         const n = TGT[t.lv] + (zf ? 2 : 0) + (ob(G, 'tide') ? 1 : 0), tg = liv.slice(0, n), half = u => (INV[u.kind].trapHalf ? 0.5 : 1) * wr(G, 'trap', 1);
         if (t.kind === 'rock' && (retreat || st.rock[idx + '_' + ti])) return; if (t.kind === 'acid' && retreat) return;
         st.wary = st.wary || {}; const wn = st.wary[t.kind] || 0, wv = Math.pow(K.wary, wn), wt = wn ? ' (익숙해짐 −' + Math.round((1 - wv) * 100) + '%)' : ''; st.wary[t.kind] = wn + 1;
@@ -958,7 +958,7 @@ const NEST = (function () {
           if (d.kind !== 'spitter') ev.push({ t: 'trap', kind: 'spike', room: idx, txt: d.name + '이(가) 가시를 쏟아부었다', hits: alive(inv0).map(u => strike(u, dmg(d.atk * 0.5, u.df))) });
           const held = alive(inv0).filter(u => u.skip > 0); if (held.length) ev.push({ t: 'trap', kind: 'spike', room: idx, txt: '붙들린 적에게 가시가 한 번 더 박혔다', hits: held.map(u => strike(u, dmg(d.atk * 0.5, u.df))) });
         }
-        if (d.kind === 'warden' && (d.sk === 2 || d.evo)) sanHit(inv0, alive(inv0), 3 * m, d.name + '의 호통', idx, idx);
+        if (d.kind === 'warden' && (d.sk === 2 || d.evo)) sanHit(inv0, alive(inv0), 3 * m, d.name + '의 울림', idx, idx);
       });
       for (let round = 1; round <= 10; round++) {
         const inv = alive(inv0), dfn = alive(defs); if (!inv.length || !dfn.length) break; rounds = round;
@@ -1035,7 +1035,7 @@ const NEST = (function () {
         livD.forEach(d => { let h = 0; if (healAdj) h += 0.05; if (zone === 'brood') h += 0.03; if (coreOn && pkn === 'abyss' && stage >= 1) h += stage >= 2 ? 0.08 : 0.05; if (h && d.hp < d.mhp) d.hp = Math.min(d.mhp, d.hp + d.mhp * h); });
         livD.forEach(d => { if ((d.kind === 'scale' && (d.sk === 0 || d.evo)) || d.kind === 'fallen' || d.kind === 'licker' || (d.rc && d.rc.includes('twice'))) { const w = livD.reduce((a, b) => hpf(a) < hpf(b) ? a : b); if (w.hp < w.mhp) { w.hp = Math.min(w.mhp, w.hp + w.mhp * 0.08 * (d.evo && d.kind === 'fallen' ? 2 : 1) * (d.rc && d.rc.includes('twice') ? 1.5 : 1)); fx(w, 'heal'); } } });
         for (const p of alive(inv0)) if (INV[p.kind].heal && !p.sealed) { const liv = alive(inv0), w = liv.reduce((a, b) => hpf(a) < hpf(b) ? a : b), z = liv.reduce((a, b) => spf(a) < spf(b) ? a : b); if (hpf(w) < 0.7) w.hp = Math.min(w.mhp, w.hp + 10 * m); else z.san = Math.min(z.msan, z.san + 6 * m); }
-        for (const h of alive(inv0)) if (INV[h.kind].revive && !h.sealed && !h.used) { const dead = inv0.find(u => u.hp <= 0 && !u.gone && !u.rev); if (dead) { h.used = 1; dead.rev = 1; dead.hp = dead.mhp * 0.3; kills = Math.max(0, kills - 1); fx(dead, 'revive', '약초꾼이 ' + dead.name + '을(를) 일으켰다'); } }
+        for (const h of alive(inv0)) if (INV[h.kind].revive && !h.sealed && !h.used) { const dead = inv0.find(u => u.hp <= 0 && !u.gone && !u.rev); if (dead) { h.used = 1; dead.rev = 1; dead.hp = dead.mhp * 0.3; kills = Math.max(0, kills - 1); fx(dead, 'revive', fj(INV.herbalist.name + '이(가) ' + dead.name + '을(를) 일으켰다')); } }
         witness(inv0);
         inv0.forEach(u => madness(u, inv0, idx));
         if (slime && slime.hp <= 0 && !alive(inv0).length) { slime.hp = 1; fx(slime, 'revive', '본체가 간신히 버텼다'); }
@@ -1096,10 +1096,10 @@ const NEST = (function () {
           fight(d.block ? g : (ctx.rift ? alive(g) : eng).filter(u => g.includes(u)), s, i, false, ctx);
         }
       }
-      if (cell.type === 'sluice' && prev != null && !st.sluice[i] && alive(g).length) { st.sluice[i] = 1; say2('wave', { room: i, txt: '수문이 열려 무리가 앞 칸으로 쓸려 갔다' }); yield* visit(prev, g, null, true); ev.push({ t: 'go', to: i, who: uids(g) }); }
-      if (cell.type === 'warp' && alive(g).length > 1) { const liv = alive(g), out = liv.filter(() => rng(G) < 0.25); if (out.length && out.length < liv.length) { out.forEach(u => g.splice(g.indexOf(u), 1)); queue.push({ units: out, path: curPath, from: 0 }); ev.push({ t: 'go', to: ENT, who: out.map(u => u.uid), back: true }); say2('rift', { room: i, txt: '뒤틀린 복도: ' + out.length + '명이 입구로 떨어졌다' }); } }
+      if (cell.type === 'sluice' && prev != null && !st.sluice[i] && alive(g).length) { st.sluice[i] = 1; say2('wave', { room: i, txt: '물목이 터져 무리가 앞 칸으로 쓸려 갔다' }); yield* visit(prev, g, null, true); ev.push({ t: 'go', to: i, who: uids(g) }); }
+      if (cell.type === 'warp' && alive(g).length > 1) { const liv = alive(g), out = liv.filter(() => rng(G) < 0.25); if (out.length && out.length < liv.length) { out.forEach(u => g.splice(g.indexOf(u), 1)); queue.push({ units: out, path: curPath, from: 0 }); ev.push({ t: 'go', to: ENT, who: out.map(u => u.uid), back: true }); say2('rift', { room: i, txt: '뒤틀린 굴: ' + out.length + '명이 입구로 떨어졌다' }); } }
       if (cell.type === 'shop' && alive(g).length) { const n = alive(g).length; alive(g).forEach(u => { u.shop = 1; }); earn(G, 4 * c * n * (G.kin.some(k => does(k, 'clerk')) ? 1.5 : 1), '빨판 굴'); say2('shop', { room: i, txt: '빨판 굴: ' + n + '명에게서 진액을 빨았다 (+' + 4 * c * n + '방울, 적 공격↑)' }); }
-      if (cell.type === 'decoy') { const out = alive(g).filter(() => rng(G) < 0.3); if (out.length) { const amt = Math.min(Math.max(0, G.gold), 5 * c * out.length); petty += amt; out.forEach(u => { u.gone = true; u.left = 1; }); ev.push({ t: 'fx', k: 'decoy', room: i, who: out.map(u => u.uid), txt: '미끼 방: ' + out.length + '명이 ' + Math.round(amt) + '방울을 들고 돌아갔다' }); } }
+      if (cell.type === 'decoy') { const out = alive(g).filter(() => rng(G) < 0.3); if (out.length) { const amt = Math.min(Math.max(0, G.gold), 5 * c * out.length); petty += amt; out.forEach(u => { u.gone = true; u.left = 1; }); ev.push({ t: 'fx', k: 'decoy', room: i, who: out.map(u => u.uid), txt: '미끼 굴: ' + out.length + '명이 ' + Math.round(amt) + '방울을 들고 돌아갔다' }); } }
     }
     function runAway(g, passed) {
       if (!alive(g).length) return; say2('retreat', { txt: alive(g).length + '명이 물러난다' });
@@ -1156,7 +1156,7 @@ const NEST = (function () {
     }
     { const kv = {}; party.forEach(u => { if (u.hp <= 0) kv[u.vill] = (kv[u.vill] || 0) + 1; }); rep.trustLost = []; for (const v in kv) { const vs = G.vill[v]; if (vs && kv[v] >= K.trustKills && (vs.trust || 0) > 0) { rep.trustLost.push({ v, n: kv[v], was: vs.trust }); vs.trust = 0; } } }
     rep.gold = Math.round(rep.gold * (ob(G, 'moon') ? 1.5 : 1) * (G.star === 'quiet' ? 0.9 : G.star === 'loud' ? 1.2 : 1)); if (rep.gold) earn(G, rep.gold, '지닌 것');
-    if (petty > 0) { spend(G, petty, '미끼 방'); G.stats.stolen += petty; }
+    if (petty > 0) { spend(G, petty, '미끼 굴'); G.stats.stolen += petty; }
     rep.captives.forEach(p => G.prison.push(p)); G.stats.captives += rep.captives.length; if (rep.captives.length) note(G, 'capture'); if (party.filter(u => u.hp <= 0).length >= 3) note(G, 'kill');
     let heal = (stage >= 2 && G.slime.sub === 'brood') ? 2 : 0;
     for (const x of fought) if (x.hp <= 0 && x.ref) { if (x.kind === 'spawn') { G.kin = G.kin.filter(k => k !== x.ref); continue; } if (heal > 0) heal--; else { x.ref.hurt = 2; rep.hurt.push(x.name); } }

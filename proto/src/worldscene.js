@@ -127,6 +127,44 @@ function spotPropW(x, world, ty, p, t, fl) {
   return false;
 }
 
+// 길목의 시설: 둥지가 길가에 내어 놓은 것. 사람이 지은 천막이나 망루가 아니라 돋아난 것이다. 어느 세상에서나 같다
+function plotPropW(x, world, p, type, t) {
+  if (type === 'bramble') {   // 가시덤불: 뼈 끝이 달린 붉은 가시
+    for (let n = 0; n < 8; n++) { const bx = p.x - 32 + n * 9, lean = (n % 2 ? 1 : -1) * (2 + n % 3), h = 16 + (n * 5) % 9; for (let q = 0; q < h; q += 2) { const k = q / h, px = bx + Math.round(lean * k * 2); rect(x, '#3a0e0a', px - 1, p.y + 4 - q, 4, 2); rect(x, q > h - 6 ? '#f2e9c9' : '#9c2a1c', px, p.y + 4 - q, 2, 2); } if (n % 3 === 1) { rect(x, '#9c2a1c', bx + 2, p.y - 6, 4, 2); rect(x, '#f2e9c9', bx + 6, p.y - 8, 2, 2); } }
+    return true; }
+  if (type === 'camp') {   // 야영지: 따뜻한 빛이 새는 살 둔덕. 쉬어 가라고 꾀는 미끼다
+    const fl = Math.sin(t / 120) > 0, pu = Math.round(Math.sin(t / 500) * 1);
+    ell(x, '#2a1418', p.x - 4, p.y + 4, 30, 30 + pu, true); ell(x, '#6a2a34', p.x - 6, p.y + 2, 26, 26 + pu, true); ell(x, '#9a4a52', p.x - 12, p.y - 6, 12, 10, true);
+    ell(x, '#12060a', p.x - 4, p.y + 4, 12, 16, true); ell(x, fl ? '#ffb347' : '#ff7a2f', p.x - 4, p.y + 4, 8, 10, true); rect(x, '#fff3a0', p.x - 6, p.y - 2, 4, 4);
+    for (const [dx, h] of [[26, 16], [34, 10]]) { rect(x, '#6a2a34', p.x + dx, p.y + 2 - h, 2, h); disc(x, '#8a6a1c', p.x + dx + 1, p.y - h, 5); disc(x, fl ? '#ffd23a' : '#e8c030', p.x + dx + 1, p.y - h - 1, 3); }
+    return true; }
+  if (type === 'tower') {   // 망루: 길을 내려다보는 눈자루
+    const look = Math.round(Math.sin(t / 1100) * 3), shut = Math.floor(t / 200) % 31 === 0;
+    ell(x, '#2a1a28', p.x, p.y + 4, 16, 8, true); for (let q = 0; q < 42; q += 2) { const sway = Math.round(Math.sin(q / 9 + t / 1600) * 2); rect(x, '#2a1a28', p.x - 4 + sway, p.y + 2 - q, 8, 2); rect(x, '#7a4a62', p.x - 3 + sway, p.y + 2 - q, 6, 2); rect(x, '#a86a82', p.x - 3 + sway, p.y + 2 - q, 2, 2); }
+    const ex = p.x + Math.round(Math.sin(42 / 9 + t / 1600) * 2), ey = p.y - 48; disc(x, '#0b0911', ex, ey, 12); if (shut) { disc(x, '#7a4a62', ex, ey, 10); rect(x, '#0b0911', ex - 8, ey, 16, 2); } else { disc(x, '#f2ecd8', ex, ey, 10); disc(x, '#e8c030', ex + look, ey, 6); rect(x, '#0b0911', ex + look - 1, ey - 5, 2, 10); rect(x, '#ffffff', ex + look - 4, ey - 4, 2, 2); }
+    return true; }
+  if (type === 'garden') {   // 텃밭: 진을 빨아올리는 버섯밭
+    for (let n = 0; n < 8; n++) { const bx = p.x - 30 + (n % 4) * 16 + (n > 3 ? 6 : 0), by = p.y - 6 + Math.floor(n / 4) * 10, tall = 6 + (n * 3) % 5, lit = Math.sin(t / 600 + n * 1.3) > 0.2;
+      rect(x, '#2a2018', bx - 2, by + 2, 12, 3); rect(x, '#e8e0c8', bx + 3, by - tall + 4, 2, tall); rect(x, '#2f7a2a', bx - 1, by - tall + 1, 10, 4); rect(x, lit ? '#d0f08a' : '#8fe05a', bx, by - tall, 8, 3); rect(x, '#ffffff', bx + 1, by - tall, 2, 1); }
+    return true; }
+  return false;
+}
+// 무너진 마을: 세상마다 남는 것이 다르다. 그렸으면 true
+function razedW(x, world, p, t) {
+  const R = (col, a, b, w, h) => rect(x, col, p.x + a, p.y + b, w, h), smoke = col => { for (let k = 0; k < 3; k++) rect(x, col, p.x - 10 + k * 8 + Math.sin(t / 300 + k) * 4, p.y - 20 - ((t / 40 + k * 20) % 40), 8, 8); };
+  if (world === 'wuxia') { R('#3a342c', -36, 10, 76, 8); R('#5a4a3a', -30, -2, 10, 14); R('#5a4a3a', 14, 2, 8, 10); for (let k = 0; k < 6; k++) R(k % 2 ? '#3a5a5a' : '#2c4848', -34 + k * 11, 4 - (k % 3) * 4, 12, 4); R('#7a2a20', -18, -10, 44, 4); R('#4a1810', -18, -6, 44, 2); R('#3a5a5a', -4, -16, 20, 4); smoke('#9a9e8a88'); return true; }
+  if (world === 'modern') { R('#2a2a32', -38, 10, 80, 8); R('#6a6a74', -32, -4, 22, 16); R('#8a8a94', -32, -4, 22, 2); R('#5a5a64', -6, 2, 26, 10); R('#8a8a94', -6, 2, 26, 2); R('#4a4a54', 22, -10, 12, 22); for (let k = 0; k < 4; k++) R('#a0522a', -28 + k * 14, -10 - (k % 2) * 4, 2, 8); R('#1a1a22', -26, 0, 6, 6); R('#1a1a22', 26, -4, 4, 6); R('#5a5a66', 40, -30, 3, 40); R('#5a5a66', 32, -32, 12, 3); if (Math.sin(t / 90) > 0.6) R('#fff3a0', 30, -29, 4, 3); smoke('#6a6a7488'); return true; }
+  if (world === 'future') { R('#0e161e', -38, 10, 80, 8); R('#2c3a48', -34, -2, 24, 14); R('#3a4a5a', -34, -2, 24, 2); R('#24303c', -4, -12, 18, 24); R('#3a4a5a', -4, -12, 2, 24); R('#2c3a48', 18, 2, 20, 10); for (let k = 0; k < 3; k++) { const on = Math.sin(t / 110 + k * 2.1) > 0.3; R(on ? '#5fe0f0' : '#1f5a66', -28 + k * 22, 4 - k * 6, 8, 2); } const sp = Math.floor(t / 70) % 9; if (sp < 3) { R('#9ff8ff', 6 + sp * 4, -18 - sp * 3, 2, 2); R('#5fe0f0', 2 - sp * 3, -14 - sp * 2, 2, 2); } smoke('rgba(95,224,240,.25)'); return true; }
+  return false;
+}
+// 지상에 나타난 것 곁에 그 세상 사람들이 남긴 표시 (사당, 유성 구덩이)
+function spotDressW(x, world, ty, p, t, fl) {
+  if (ty !== 'shrine' && ty !== 'meteor') return;
+  if (world === 'wuxia') { rect(x, '#5a6a3a', p.x + 26, p.y - 34, 2, 36); rect(x, '#c8404a', p.x + 28, p.y - 32, 6, 16 + Math.round(Math.sin(t / 400) * 1)); rect(x, '#f2e9c9', p.x + 30, p.y - 28, 2, 8); }
+  if (world === 'modern') { for (const d of [-34, 30]) { tri(x, '#e87a2a', p.x + d + 3, p.y + 4, 5, 12); rect(x, '#f5f5f5', p.x + d, p.y - 2, 6, 2); } for (let k = 0; k < 8; k++) rect(x, k % 2 ? '#e8c030' : '#1a1a22', p.x - 30 + k * 8, p.y - 8, 8, 2); }
+  if (world === 'future') { for (const d of [-34, 32]) { rect(x, '#3a4856', p.x + d, p.y - 22, 3, 26); rect(x, '#56687a', p.x + d - 2, p.y - 26, 7, 4); rect(x, fl ? '#5fe0f0' : '#1f5a66', p.x + d, p.y - 30, 3, 3); } rect(x, 'rgba(95,224,240,.18)', p.x - 32, p.y - 20 + ((t / 30) % 20), 66, 2); }
+}
+
 // 마을: 자리와 크기는 판타지와 같다 (가로 −46…+58, 세로 −66…+28)
 function drawVillageW(x, world, v, p, t, night) {
   if (!WS_SKY[world]) return drawVillage(x, v, p, t, night);
