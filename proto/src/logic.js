@@ -338,16 +338,21 @@ const NEST = (function () {
     shell: { name: '껍데기 쓴 것', title: '옛 것?', ev: ['굳어 가는 것', '맞은 자리의 살이 딱딱하게 굳어 간다. 깨진 알껍데기 같은 것이 등을 덮기 시작했다.', '쓰러졌다 일어나거나, 죽기 직전까지 몰린 밤을 두 번 넘기면'], cond: G => (G.falls || 0) >= 1 || (G.stats.close || 0) >= 2, text: '깨진 알껍데기 같은 것이 등을 덮었다. 잘 깨지지 않는다.', good: '본체 방어 +50%, 체력 +20%', bad: '본체 공격 −25%', hp: 1.2, atk: 0.75, df: 1.5 },
     root: { name: '뿌리 내린 것', title: '옛 것?', ev: ['벽 속의 가닥', '파 놓은 굴마다 가느다란 가닥이 뻗어 있다. 잘라도 다음 날이면 다시 자란다. 네 몸에서 나온 것이다.', '굴을 넷 넘게 파면'], cond: G => (G.stats.dug || 0) >= 4, text: '굴 벽을 따라 뿌리가 뻗었다. 굴이 곧 몸이다.', good: '굴 파기 값 절반, 시설 유지비 없음', bad: '본체 체력 −20%', hp: 0.8 },
     maw: { name: '입이 벌어진 것', title: '옛 것?', ev: ['먼저 벌어지는 것', '먹을 때마다 몸 한쪽이 먼저 벌어진다. 이제는 먹지 않을 때도 닫히지 않는다.', '많이 죽이고 많이 먹으면'], cond: G => G.stats.kills >= 30 && (G.stats.eats || 0) >= 5, text: '닫히지 않는 입이 생겼다. 먹는 것 말고는 관심이 없다.', good: '포식 정수 +25%, 본체 공격 +15%', bad: '권속이 겁을 먹어 급여 +30%, 마을이 거래하지 않는다', atk: 1.15 },
-    lamp: { name: '등불 든 것', title: '옛 것?', ev: ['어둠 속의 깜빡임', '신도들이 네 머리 위를 보며 무릎을 꿇는다. 거기 무언가가 돋아 빛나고 있다.', '신도 둘을 거느리면'], cond: G => G.kin.filter(m => m.kind === 'cultist').length >= 2, text: '머리 위에 빛나는 것이 돋았다. 그 빛을 보고 찾아오는 자들이 있다.', good: '매일 신앙 +3, 개종 확률 +20%p, 신도는 급여를 받지 않는다', bad: '본체 체력 −10%', hp: 0.9 },
+    lamp: { name: '등불 든 것', title: '옛 것?', ev: ['어둠 속의 깜빡임', '신도들이 네 머리 위를 보며 무릎을 꿇는다. 거기 무언가가 돋아 빛나고 있다.', '신도 셋을 거느리면'], cond: G => G.kin.filter(m => m.kind === 'cultist').length >= 3, text: '머리 위에 빛나는 것이 돋았다. 그 빛을 보고 찾아오는 자들이 있다.', good: '매일 신앙 +3, 개종 확률 +20%p, 신도는 급여를 받지 않는다', bad: '본체 체력 −10%', hp: 0.9 },
     coin: { name: '금화 품은 것', title: '옛 것?', ev: ['박힌 금화', '깔고 앉은 금화 몇 닢이 살에 박혀 떨어지지 않는다. 박힌 자리가 따뜻하다.', '재물을 많이 쌓거나 삼키면'], cond: G => G.gold >= 600 * cm(G) || hoardN(G, 'gulp') >= 1, text: '금화가 살에 박혔다. 금 냄새가 난다.', good: '교역 +50%, 탐식 값 −20%, 돋을 때 재물을 조금 토해 낸다', bad: '금 냄새에 무리가 15% 더 온다. 쓰러지면 재물의 80%를 털린다' },
+    thorn: { name: '가시 돋은 것', title: '옛 것?', ev: ['살을 뚫고 나오는 것', '함정에 누가 걸릴 때마다 몸 어딘가가 따끔거렸다. 오늘 아침, 그 자리마다 뾰족한 것이 살을 뚫고 나와 있다.', '함정을 많이 깔고 강화하면'], cond: G => G.cells.reduce((a, c) => a + (c.dug ? c.traps.reduce((x, t) => x + t.lv, 0) : 0), 0) >= 9, text: '온몸에 가시가 돋았다. 건드리는 쪽이 다친다.', good: '함정 피해 +30%, 본체를 때린 적은 그 피해의 25%를 돌려받는다', bad: '곁에 서기 어렵다: 호위 자리 −1' },
+    chain: { name: '사슬 감은 것', title: '옛 것?', ev: ['끊어지지 않는 것', '포로들이 차고 있던 사슬이 밤사이 네 몸에 감겨 있다. 풀어도 다음 날이면 다시 감긴다.', '포로를 열둘 넘게 잡으면'], cond: G => G.stats.captives >= 12, text: '포로의 사슬이 몸에 감겼다. 붙잡은 것을 놓지 않는다.', good: '감옥 자리 +4, 몸값 +30%', bad: '제물로 바쳐도 정수가 절반만 나온다' },
+    shade: { name: '그림자 끄는 것', title: '옛 것?', ev: ['따라오는 것', '마을에서 돌아올 때마다 그림자가 조금씩 길어졌다. 이제는 해가 떠도 줄지 않는다.', '마을을 세 번 습격하면'], cond: G => (G.stats.raids || 0) >= 3, text: '몸보다 큰 그림자가 생겼다. 그림자가 먼저 마을에 닿는다.', good: '습격으로 얻는 재물 +40%, 습격한 날 밤에도 본체 방어가 깎이지 않는다', bad: '공포가 가라앉지 않는다' },
   };
   const org = G => (G && G.origin && ORIGIN[G.origin] ? G.origin : 'drop'), isO = (G, k) => org(G) === k;
   const digCost = G => Math.round(40 * cm(G) * (isO(G, 'root') ? 0.5 : 1));
-  const TRAITS = ['shell', 'root', 'maw', 'lamp', 'coin'];
-  const traitReady = G => isO(G, 'drop') && G.day >= 4 ? TRAITS.filter(k => !(G.traitNo && G.traitNo[k]) && ORIGIN[k].cond(G)) : [];
+  const TRAITS = ['shell', 'root', 'maw', 'lamp', 'coin', 'thorn', 'chain', 'shade'];
+  const traitReady = G => isO(G, 'drop') && G.day >= K.act ? TRAITS.filter(k => !(G.traitNo && G.traitNo[k]) && ORIGIN[k].cond(G)) : [];
   function takeTrait(G, k) {
     const before = slimeStats(G).hp; G.origin = k; G.slime.origin = k; G.slime.hp = Math.max(1, G.slime.hp * slimeStats(G).hp / before); G.stats.trait = k; G.traitDay = G.day;
-    if (k === 'coin') earn(G, 150 * cm(G), '형질'); return '몸에 무언가 돋았다 — ' + ORIGIN[k].name;
+    if (k === 'coin') earn(G, 150 * cm(G), '형질');
+    if (k === 'thorn') { const cap = capacity(G).core, gs = G.kin.filter(m => m.loc === 'core' && m.kind !== 'spawn'); gs.slice(cap).forEach(m => { m.loc = null; }); }
+    return '몸에 무언가 돋았다 — ' + ORIGIN[k].name;
   }
   // ---------- 탐식: 깔고 앉은 재물을 삼켜 힘으로 바꾼다 ----------
   const HOARD = {
@@ -377,7 +382,7 @@ const NEST = (function () {
   }
   const salary = (G, m) => G.origin === 'lamp' && m.kind === 'cultist' ? 0 : KIN[m.kind].pay * cm(G) * (1 + 0.1 * m.lv) * (m.evo ? 1.5 : 1) * (G.origin === 'maw' ? 1.3 : 1);
   const upkeep = G => G.origin === 'root' ? 0 : (G.kin.some(m => m.kind === 'clerk' && m.evo) ? 0.6 : G.kin.some(m => m.kind === 'clerk') ? 0.75 : 1) * (G.cells.filter(c => c.dug && ROOM[c.type].cost > 0 && !c.free).length + G.plots.filter(p => p !== 'none').length) * cm(G);
-  function capacity(G) { const c = { core: 2 + hoardN(G, 'seat') }; G.cells.forEach((x, i) => { if (x.dug && i !== CORE && ROOM[x.type].def) c[i] = ROOM[x.type].def; }); return c; }
+  function capacity(G) { const c = { core: Math.max(1, 2 + hoardN(G, 'seat') - (G.origin === 'thorn' ? 1 : 0)) }; G.cells.forEach((x, i) => { if (x.dug && i !== CORE && ROOM[x.type].def) c[i] = ROOM[x.type].def; }); return c; }
   function freeSlot(G, kind) {
     const c = capacity(G), used = {}; G.kin.forEach(m => { if (m.loc !== null && m.kind !== 'spawn') used[m.loc] = (used[m.loc] || 0) + 1; });
     const order = Object.keys(c).filter(k => k !== 'core').map(Number).concat(['core']);
@@ -385,7 +390,7 @@ const NEST = (function () {
     for (const k of order) if ((used[k] || 0) < c[k]) return k;
     return null;
   }
-  const prisonCap = G => 2 + 4 * countRoom(G, 'prison') + (G.kin.some(m => m.kind === 'warden') ? 2 : 0) + (G.kin.some(m => m.kind === 'warden' && m.skill === 1) ? 2 : 0) + (G.kin.some(m => m.kind === 'warden' && m.evo) ? 2 : 0);
+  const prisonCap = G => 2 + (G.origin === 'chain' ? 4 : 0) + 4 * countRoom(G, 'prison') + (G.kin.some(m => m.kind === 'warden') ? 2 : 0) + (G.kin.some(m => m.kind === 'warden' && m.skill === 1) ? 2 : 0) + (G.kin.some(m => m.kind === 'warden' && m.evo) ? 2 : 0);
   const handsMax = G => K.hands + (G.slime.main === 'nebula' ? (G.slime.stage >= 2 ? 2 : G.slime.stage >= 1 ? 1 : 0) : 0);
   const spellCost = G => G.slime.main ? Math.max(1, FORM1[G.slime.main].spell[1] - (has(G, 'ring') ? 2 : 0) - (G.slime.main === 'nebula' && G.slime.stage >= 2 ? 2 : 0) - (G.kin.some(m => m.kind === 'scribe' && m.skill === 2) ? 2 : 0)) : 99;
   const seesDetail = (G, v) => G.known || G.known2 || G.kin.some(m => m.kind === 'eyeheap') || has(G, 'thirdeye') || (G.slime.stage >= 2 && G.slime.sub === 'nebula') || G.plots[VILL[v].plot] === 'tower';
@@ -408,7 +413,7 @@ const NEST = (function () {
   function morning(G) {
     G.ap = K.ap; G.d = { buildOps: Math.min(3, G.kin.filter(m => m.kind === 'digger').length + G.kin.filter(m => m.kind === 'digger' && m.evo).length), fear0: G.fear }; G.ledger = {}; G.off = {}; G.known = false;
     G.event = G.eventDays[G.day] ? { id: G.eventDays[G.day] } : null;
-    if (!G.event) { const rd = traitReady(G); if (rd.length && rng(G) < 0.45) G.event = { id: 'trait_' + pick(G, rd) }; }
+    if (!G.event) { const rd = traitReady(G); if (rd.length && rng(G) < 0.3) G.event = { id: 'trait_' + pick(G, rd) }; }
     // 오늘 밤과 내일 밤
     const sched = G.march.tomorrow; G.march.tonight = isSettle(G) ? { vill: (sched && sched.vill) || pickVillage(G), settle: true, thin: !!(sched && sched.thin) } : sched;
     const tmr = G.day + 1;
@@ -562,8 +567,8 @@ const NEST = (function () {
 
   // ---------- 포로 ----------
   function convertChance(G, kind) { return clamp(0.70 + (G.origin === 'lamp' ? 0.2 : 0) - 0.15 * (Math.min(4, INV[kind].g) - 1) + (combo(G, 'confess') ? 0.15 : 0) + (hasRoom(G, 'persuade') ? 0.2 : 0) + (G.slime.stage >= 2 && G.slime.sub === 'dusk' ? 0.2 : 0) + (has(G, 'whisper') ? 0.15 : 0), 0.05, 0.95); }
-  const ransomOf = (G, kind, bonus) => Math.round(INV[kind].g * 20 * cm(G) * (G.kin.some(m => m.kind === 'warden') ? 1.25 : 1) * (bonus || 1));
-  const sacEss = (G, kind) => INV[kind].g * 4 + (hasRoom(G, 'ritual') ? 1 : 0) + (combo(G, 'queue') ? 2 : 0);
+  const ransomOf = (G, kind, bonus) => Math.round(INV[kind].g * 20 * cm(G) * (G.kin.some(m => m.kind === 'warden') ? 1.25 : 1) * (G.origin === 'chain' ? 1.3 : 1) * (bonus || 1));
+  const sacEss = (G, kind) => Math.ceil((INV[kind].g * 4 + (hasRoom(G, 'ritual') ? 1 : 0) + (combo(G, 'queue') ? 2 : 0)) * (G.origin === 'chain' ? 0.5 : 1));
   const mutChance = (G, kind) => clamp(0.1 * INV[kind].g + (hasRoom(G, 'ritual') ? 0.15 : 0), 0, 0.9);
   function gainMut(G, asp) { const c = Object.keys(MUT).filter(k => !has(G, k) && (!asp || MUT[k].asp === asp)); if (!c.length || G.slime.muts.length >= 6) return null; const k = pick(G, c); G.slime.muts.push(k); say(G, '변이: ' + MUT[k].name); return k; }
   function dispose(G, i, how) {
@@ -585,7 +590,7 @@ const NEST = (function () {
   // ---------- 습격 ----------
   function raidInfo(G, v, level) {
     const d = VILL[v], ratio = clamp(slimeStats(G).atk / (d.df * sm(G)), 0.2, 1.5), base = d.wealth * cm(G) * ratio;
-    return { gold: Math.round(base * [0.3, 1.0, 0.5][level]), ess: [4, 8, 12][level], fear: [6, 12, 25][level], tribute: Math.round(d.wealth * 0.15 * cm(G)) };
+    return { gold: Math.round(base * [0.3, 1.0, 0.5][level] * (G.origin === 'shade' ? 1.4 : 1)), ess: [4, 8, 12][level], fear: [6, 12, 25][level], tribute: Math.round(d.wealth * 0.15 * cm(G)) };
   }
   function raid(G, v, level) {
     if (actOf(G) < 2) return fail('습격은 2막부터 가능합니다'); const s = G.vill[v]; if (!s || s.razed) return fail('남아 있지 않은 마을입니다'); if (G.d.raided && G.d.raided[v]) return fail('오늘은 이미 다녀왔습니다');
@@ -734,7 +739,8 @@ const NEST = (function () {
     }
     // --- 함정 ---
     function fireTraps(cell, idx, g, retreat) {
-      const zf = cell.zone && main === 'abyss', mult = m * (1 + 0.1 * (cell.lv - 1)) * (ox(G, 'wetwall') ? 0.7 : 1) * (cell.type === 'trap' && combo(G, 'corridor', idx) ? 1.3 : 1) * (G.leak && mt.settle ? 0.7 : 1);
+      const zf = cell.zone && main === 'abyss', mult = m * (G.origin === 'thorn' ? 1.3 : 1) * (1 + 0.1 * (cell.lv - 1)) * (ox(G, 'wetwall') ? 0.7 : 1) * (cell.type === 'trap' && combo(G, 'corridor', idx) ? 1.3 : 1) * (G.leak && mt.settle ? 0.7 : 1);
+      const dead0 = g.filter(u => u.hp <= 0).length;
       cell.traps.forEach((t, ti) => {
         if (ti === 0 && !retreat && alive(g).some(u => INV[u.kind].sap && !u.sealed)) { say2('disarm', { room: idx, txt: '공병대장이 ' + TRAP[t.kind].name + '을(를) 꺼 버렸다' }); return; }
         const liv = alive(g); if (!liv.length) return;
@@ -747,6 +753,7 @@ const NEST = (function () {
         else if (t.kind === 'acid' && !retreat) { tg.forEach(u => { if (!u.acid) { u.acid = 1; u.df *= 0.7; } }); ev.push({ t: 'trap', kind: 'acid', room: idx, txt: '산성 웅덩이: ' + tg.length + '명 방어 −30%', hits: tg.map(u => ({ b: u.uid, d: 0, hp: hpf(u), k: false })) }); }
         else if (t.kind === 'mist') sanHit(g, tg, 8 * LVM[t.lv] * mult * wv, '환각 안개' + wt + ': ' + tg.length + '명의 정신이 흔들린다', idx, idx);
       });
+      G.stats.trapKills = (G.stats.trapKills || 0) + g.filter(u => u.hp <= 0).length - dead0;
       witness(g);
     }
     function witness(g) { const dead = g.filter(u => u.hp <= 0 && !u.seen); if (!dead.length) return; dead.forEach(u => { u.seen = 1; }); const liv = alive(g); if (liv.length && !liv.some(u => u.kind === 'torch' && !u.sealed)) { liv.forEach(u => { u.san -= 4 * m * dead.length * (1 - ward(g)); }); liv.forEach(u => madness(u, g, null)); } }
@@ -782,6 +789,7 @@ const NEST = (function () {
             if (t.kind === 'wall') hits.push([a, x * 0.25, t]);
             hits.push([t, x, a]);
             if (t.kind === 'skeleton' && t.sk === 1) hits.push([a, dmg(t.atk * 0.3, a.df), t]);
+            if (t.kind === 'slime' && G.origin === 'thorn') hits.push([a, Math.max(1, x * 0.25), t]);
           }
         }
         const sanQ = [];
@@ -925,7 +933,7 @@ const NEST = (function () {
     }
     const last = G.day >= K.days; let fatal = false;
     if (arrived.length) {
-      const s = slimeStats(G), sl = { uid: 's', side: 'def', kind: 'slime', name: formName(G), hp: G.slime.hp, mhp: s.hp, atk: s.atk * (ob(G, 'hungry') ? 1.4 : 1), df: s.df * (G.d.away ? 0.8 : 1) * (ox(G, 'gaze') ? 0.75 : 1) };
+      const s = slimeStats(G), sl = { uid: 's', side: 'def', kind: 'slime', name: formName(G), hp: G.slime.hp, mhp: s.hp, atk: s.atk * (ob(G, 'hungry') ? 1.4 : 1), df: s.df * (G.d.away && G.origin !== 'shade' ? 0.8 : 1) * (ox(G, 'gaze') ? 0.75 : 1) };
       const gd = squad('core');
       ev.push({ t: 'go', to: 'core', who: uids(arrived) });
       if (alive(arrived).some(u => INV[u.kind].seal && !u.sealed)) { sealedCore = true; say2('seal', { txt: '학자가 본체의 능력을 봉인했다' }); }
@@ -989,7 +997,7 @@ const NEST = (function () {
     if (hasRoom(G, 'table') && G.corpses.length) eatN(G, 2);
     rep.faith = G.faith - f0;
     if (G.star === 'quiet' && G.d.fear0 != null && G.fear > G.d.fear0) G.fear = G.d.fear0 + (G.fear - G.d.fear0) / 2;
-    G.fear = Math.max(0, G.fear - 2);
+    if (G.origin !== 'shade') G.fear = Math.max(0, G.fear - 2);
     const lick = G.kin.some(m => m.kind === 'licker' && !m.hurt); G.kin.forEach(m => { if (m.hurt > 0) m.hurt = Math.max(0, m.hurt - (lick ? 2 : 1)); m.age = (m.age || 0) + 1; if (m.kind === 'spawn' && m.age >= 4) m.evo = true; });
     if (G.detNext) { G.detBonus = 1.2; G.detNext = false; } else G.detBonus = 1;
     if (G.pilgrims) { G.pilgrimDay = G.day + 1; G.pilgrims = false; }

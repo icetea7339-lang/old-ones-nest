@@ -206,6 +206,24 @@ function slimeCanvas(sl, frame) {
     const by = Math.min(30, B.bot + 1), sp = 2 + Math.min(3, st); for (let k = -sp; k <= sp; k++) coin(B.cx + k * 3, by - (Math.abs(k) % 2), (k + fr + 8) % 4 === 0);
     for (let k = 0; k < 2 + st; k++) { const a = k * 2.2 + 0.6, d = B.R * (0.3 + (k % 3) * 0.22); coin(Math.round(B.cx + Math.cos(a) * d), Math.round(Math.min(27, B.cy + Math.sin(a) * d * 0.8)), (k + fr) % 4 === 0); }
   }
+  if (og === 'thorn') {          // 온몸에 가시가 돋았다
+    const TH = ['#1e1424', '#d8cdb8', '#ffffff'], n = 7 + st * 2;
+    for (let k = 0; k < n; k++) { const a = -3.3 + k * (3.5 / (n - 1)) + (k % 2 ? 0.08 : -0.08), len = 3 + (k % 3 === 0 ? 2 : 0) + Math.min(2, st), c0 = Math.cos(a), s0 = Math.sin(a) * 0.95;
+      for (let i = 0; i <= len; i++) { const xx = B.cx + c0 * (B.R + i), yy = B.cy + s0 * (B.R + i); if (yy < 0 || yy > 31) continue; if (i < len) px(xx - 1, yy, 3, 1, TH[0]); px(xx, yy, 1, 1, i >= len - 1 ? TH[2] : TH[1]); } }
+    for (let k = 0; k < 2 + st; k++) { const xx = B.cx - B.R + 2 + k * ((B.R * 2 - 4) / (1 + st)), yy = Math.round(B.cy - B.R * 0.3 + (k % 2) * 3); px(xx - 1, yy - 1, 3, 3, TH[0]); px(xx, yy - 1, 1, 2, TH[1]); px(xx, yy - 2 + (fr % 2 ? 0 : 0), 1, 1, TH[2]); }
+  }
+  if (og === 'chain') {          // 포로의 사슬이 감겼다
+    const CH = ['#22242e', '#8a90a8', '#e0e4f0'], link = (a, b, k) => { px(a - 1, b - 1, 3, 3, CH[0]); px(a, b, k % 2 ? 2 : 1, k % 2 ? 1 : 2, k % 3 === 0 ? CH[2] : CH[1]); };
+    for (let k = 0, n = B.R * 2 + 2; k <= n; k += 2) { link(Math.round(B.cx - B.R - 1 + k), Math.round(B.cy - B.R * 0.5 + k * 0.55), k / 2); if (st >= 2) link(Math.round(B.cx + B.R + 1 - k), Math.round(B.cy - B.R * 0.2 + k * 0.4), k / 2 + 1); }
+    const gy = Math.min(30, B.bot + 1); for (let k = 0; k < 4 + st; k++) link(B.cx + B.R + 1 + k * 2, gy - (k % 2), k);
+    const sx = Math.min(29, B.cx + B.R + 3 + (4 + st) * 2); px(sx - 2, gy - 3, 5, 5, CH[0]); px(sx - 1, gy - 2, 3, 3, CH[1]); px(sx, gy - 1, 1, 1, CH[0]);
+    px(B.cx - B.R - 2, B.cy + 1, 1, 3 + (fr % 2), CH[1]); px(B.cx - B.R - 3, B.cy + 4 + (fr % 2), 3, 2, CH[0]); px(B.cx - B.R - 2, B.cy + 4 + (fr % 2), 1, 1, CH[2]);
+  }
+  if (og === 'shade') {          // 몸보다 큰 그림자를 끈다
+    const SD = ['#07050c', '#2a1840', '#6a3a9a'], w = B.R + 5 + st, gy = Math.min(30, B.bot + 1);
+    for (let dx = -w; dx <= w; dx++) { const h = Math.abs(dx) > B.R + 1 ? 2 : 1; px(B.cx + dx + ((fr % 2) && Math.abs(dx) === w ? 1 : 0), gy - h + 1, 1, h, SD[0]); if ((dx + 40) % 5 === 0) px(B.cx + dx, gy - h, 1, 1, SD[1]); }
+    for (const side of [-1, 1]) for (let k = 0; k < 6 + st * 2; k++) { const xx = B.cx + side * (B.R + 1 + k), top = Math.round(B.cy - B.R * 0.6 - Math.sin(k / (5 + st * 2) * 3.14) * (4 + st) + k * 0.4), bot = Math.round(B.cy + 2 - k * 0.2 + ((k + fr) % 3 === 0 ? 2 : 0)); if (xx < 0 || xx > 31) continue; px(xx, top, 1, Math.max(1, bot - top), SD[0]); px(xx, top, 1, 1, k % 2 ? SD[2] : SD[1]); if (k % 3 === 2) px(xx, bot, 1, 2, SD[1]); }
+  }
   return (cv[key] = c);
 }
 // 권속: 종류마다 다른 몸. 손으로 찍은 그림이 없는 종류는 여기서 16×16에 그린다. q = (x, y, 너비, 높이, 색), p = [윤곽, 몸, 밝은 곳, 그늘, 포인트]
