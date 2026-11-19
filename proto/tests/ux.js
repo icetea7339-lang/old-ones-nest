@@ -46,20 +46,15 @@ const devName = process.argv[2], tag = devName ? devName.replace(/\s+/g, '') : '
     await tap('[data-a="records"]'); log('기록 탭', await tabs('records', 'records')); await closeM();
     await tap('[data-a="barracks"]'); await tabs('barracks', 'barracks'); await tap('[data-a="tab"][data-g="barracks"][data-v="draw"]'); await tap('[data-a="draw"][data-v="free"]'); await check('barracks_drawn'); await closeM();
     await tap('[data-a="help"]'); log('도움말 쪽', await tabs('help', 'help')); await closeM();
-    // ---------- 새 판 준비: 처음엔 잠겨 있다 ----------
-    await tap('[data-a="new"]'); await check('setup_who');
-    log('잠긴 주인공', await p.$$eval('[data-a="setup"][data-k="origin"].lockd', e => e.length), '/ 6');
-    await tap('[data-a="setup"][data-k="origin"][data-v="root"]'); log('잠긴 주인공을 고르면 떨어지기 단추:', await p.$eval('[data-a="close"][data-v="go"]', e => e.disabled ? '꺼짐' : '켜짐'), '·', (await p.$eval('#modal .warnc', e => e.textContent)).slice(0, 40)); await check('setup_locked');
-    await tap('[data-a="tab"][data-g="setup"][data-v="asp"]'); log('잠긴 조각', await p.$$eval('[data-a="setup"][data-k="asp"][disabled]', e => e.length)); await check('setup_asp');
-    await tap('[data-a="tab"][data-g="setup"][data-v="rule"]'); log('잠긴 깊이', await p.$$eval('[data-a="setup"][data-k="diff"][disabled]', e => e.length), '· 별자리 단추', await p.$$eval('[data-a="setup"][data-k="star"]', e => e.length)); await check('setup_rule');
-    await tap('[data-a="tab"][data-g="setup"][data-v="bring"]'); await check('setup_bring'); await tap('[data-a="close"][data-v=""]');
-    // 설정에서 전부 열기
+    // ---------- 새 판 준비: 고르는 것은 깊이와 데려갈 권속뿐 ----------
+    await tap('[data-a="new"]'); await check('setup_sky'); log('별자리:', await p.$eval('#modal .card .h3', e => e.textContent), '· 준비 창 탭', await tabs('setup', 'setup'));
+    await tap('[data-a="tab"][data-g="setup"][data-v="rule"]'); log('잠긴 깊이', await p.$$eval('[data-a="setup"][data-k="diff"][disabled]', e => e.length)); await tap('[data-a="close"][data-v=""]');
     await tap('[data-a="settings"]'); await tap('[data-a="set"][data-k="open"][data-v="1"]'); await check('settings'); await closeM();
-    await tap('[data-a="new"]'); log('전부 열어 둔 뒤 잠긴 주인공', await p.$$eval('[data-a="setup"][data-k="origin"].lockd', e => e.length));
-    await tap('[data-a="setup"][data-k="origin"][data-v="root"]'); await tap('[data-a="tab"][data-g="setup"][data-v="asp"]'); await tap('[data-a="setup"][data-k="asp"][data-v="hunger"]'); await tap('[data-a="tab"][data-g="setup"][data-v="rule"]'); await check('setup_rule_open');
+    await tap('[data-a="codex"]'); await tap('[data-a="tab"][data-g="codex"][data-v="sign"]'); log('전부 열어 둔 뒤 잠긴 별자리', await p.$$eval('#modal .node.lockd', e => e.length)); await closeM();
+    await tap('[data-a="new"]'); await tap('[data-a="tab"][data-g="setup"][data-v="rule"]'); await check('setup_rule_open');
     if (await has('[data-a="setup"][data-k="tut"].on')) await tap('[data-a="setup"][data-k="tut"]');
-    await tap('[data-a="close"][data-v="go"]'); await p.waitForTimeout(300); await tap('[data-a="sceneskip"]'); await p.waitForTimeout(300);
-    log('판 시작:', await p.evaluate(() => __nest.G.origin + ' / ' + __nest.G.startAsp + ' / 굴 값 ' + __nest.NEST.digCost(__nest.G)));
+    await tap('[data-a="close"][data-v="go"]'); await p.waitForTimeout(300); await check('intro'); await tap('[data-a="sceneskip"]'); await p.waitForTimeout(300);
+    log('판 시작:', await p.evaluate(() => __nest.G.sign + ' / ' + __nest.G.startAsp + ' / ' + __nest.G.star + ' / ' + __nest.NEST.formName(__nest.G)));
     // ---------- 지원자 ----------
     await check('applicants'); for (let i = 0; i < 2; i++) if (await has('#modal [data-a="accept"]:not([disabled])')) await tap('#modal [data-a="accept"]:not([disabled])'); await closeM();
     await check('day1');
@@ -105,7 +100,8 @@ const devName = process.argv[2], tag = devName ? devName.replace(/\s+/g, '') : '
       if (s.modal) {
         if (/깨어났다|돌아갔다/.test(s.h)) { await check('result'); log('결과 창:', s.h, '· 탭', await tabs('result', 'result')); await p.evaluate(() => { const e = document.querySelector('#modal [data-a="close"]'); if (e) e.click(); }); await p.waitForTimeout(150); continue; }
         if (s.h.includes('명부에 올릴')) await check('legacy');
-        if (await p.$('.evo') && !s.evoShot) await check('evo_' + s.day);
+        if (await p.$('.evo') && !s.evoShot) await check((s.h ? 'evo_' : 'trait_') + s.day);
+        if (/달라지려/.test(await p.$eval('#modal', e => e.textContent))) await check('traitevent_' + s.day);
         await p.evaluate(() => { const ev = document.querySelector('#modal [data-a="event"]:not([disabled])'), gu = document.querySelector('#modal [data-a="guest"]:not([disabled])'), c = document.querySelector('#modal [data-a="close"]'); (ev || gu || c).click(); }); await p.waitForTimeout(70); continue;
       }
       await p.evaluate(() => {
@@ -123,7 +119,7 @@ const devName = process.argv[2], tag = devName ? devName.replace(/\s+/g, '') : '
       await p.evaluate(() => { const e = [...document.querySelectorAll('[data-a="endday"]')].find(x => x.offsetParent); if (e) { e.click(); } }); await p.waitForTimeout(60);
       await p.evaluate(() => { const e = [...document.querySelectorAll('[data-a="endday"]')].find(x => x.offsetParent); if (e && __nest.ST.mode === 'day') e.click(); }); await p.waitForTimeout(60);
     }
-    log('끝:', ended, '· 기록', JSON.stringify(await p.evaluate(() => ({ best: __nest.META.best, clears: __nest.META.clears, feats: Object.keys(__nest.META.feats).length }))));
+    log('끝:', ended.replace(/d\d+/g, ''), '· 기록', JSON.stringify(await p.evaluate(() => ({ best: __nest.META.best, clears: __nest.META.clears, feats: Object.keys(__nest.META.feats).length, traits: Object.keys(__nest.META.codex.traits), next: __nest.META.nextSign }))));
     await check('title_after');
   } catch (e) { errs.push('검사 스크립트: ' + e.message.split('\n').slice(0, 3).join(' | ')); await p.screenshot({ path: path.join(out, 'fail.png') }).catch(() => {}); }
   console.log(tag, '· 화면', n, '개 ·', bad.length ? '넘치거나 잘린 화면:\n  ' + bad.join('\n  ') : '넘치거나 잘린 화면 없음');

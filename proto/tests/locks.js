@@ -20,7 +20,7 @@ const html = fs.readFileSync('/home/user/slime-ipo-design/PLAY-GAME.html', 'utf8
   console.log('알림:', await p.$eval('#toast', e => e.textContent));
   const c = await lockedIn(); console.log('첫 밤·첫 포로·60명·5천G 뒤:'); for (const k in c) console.log('  ' + k + ': ' + c[k].join(', '));
   console.log('흔적 기록:', JSON.stringify(await p.evaluate(() => Object.keys(__nest.META.feats))));
-  await p.keyboard.press('Escape'); await click('[data-a="quit"]'); await p.waitForTimeout(200); await click('[data-a="new"]'); await p.waitForTimeout(200);
-  console.log('새 판 준비 창의 주인공:', (await p.$$eval('[data-a="setup"][data-k="origin"]', es => es.map(e => (e.classList.contains('lockd') ? '🔒' : '') + e.querySelector('b').textContent))).join(', '));
+  await p.keyboard.press('Escape'); await click('[data-a="quit"]'); await p.waitForTimeout(200); await click('[data-a="codex"]'); await click('[data-a="tab"][data-g="codex"][data-v="sign"]');
+  console.log('도감의 별자리:', (await p.$$eval('#modal .node', es => es.map(e => (e.classList.contains('lockd') ? '🔒' : '') + e.children[1].textContent))).join(', '));
   console.log(errs.length ? errs.join('\n') : 'no errors'); await b.close();
 })();
