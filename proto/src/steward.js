@@ -13,6 +13,7 @@ const STEWARD = (function () {
       if (st.spend > 0 && !st.nocalm && G.omen && G.omen.tier !== 'boon' && !G.omen.calmed && G.faith >= S.CALM_COST + 8) A(S.calm(G));
       if (G.guest) { const o = S.guestOptions(G); let k = st.spend > 0 ? o.findIndex(x => !x.why && x.cost <= G.gold - 40 * c) : -1; if (k < 0) k = o.length - 1; A(S.resolveGuest(G, k)); if (G.guest) G.guest = null; }
     });
+    task('파 올라가기', A => { let n = 0; while (G.sealed && !S.paths(G).length && n++ < 8) { const i = S.START.slice().reverse().find(j => !G.cells[j].dug && !S.canDig(G, j)); if (i == null || !A(S.dig(G, i), i).ok) break; } });
     if (!(st.spend > 0)) return T;
     let path = null; const onPath = i => path.includes(i);
     task('포로', A => {
@@ -22,7 +23,7 @@ const STEWARD = (function () {
         if (how !== 'none' && starving()) how = 'sacrifice';
         if (how !== 'none') A(S.dispose(G, i, how));
       }
-      path = S.paths(G)[0];
+      path = S.paths(G)[0] || [];
     });
     task('돋는 것', A => { for (let i = G.applicants.length - 1; i >= 0; i--) { const a = G.applicants[i]; if (!st.trapOnly && (S.freeSlot(G, a.kind) !== null || st.acceptAll) && G.gold >= S.acceptCost(G, a) + 10 * c && G.kin.length < 14) A(S.accept(G, i)); } });
     task('짓기', A => {

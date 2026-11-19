@@ -397,7 +397,7 @@ const slimeImg = (sl, size, alt) => { const c = slimeCanvas(sl), N = c.width; le
   return `<span class="slbox" style="width:${size}px;height:${size}px">${toImg(c, 'sl5:' + (sl.origin || 'drop') + ':' + (sl.body || '') + ':' + (sl.main || 'base') + ':' + (sl.sub || '') + ':' + sl.stage + ':' + (sl.muts || []).join(','), w, alt || '본체')}</span>`; };
 // 현황판의 작은 그림
 const ICON = {
-  gold: [['..yyyyy..', '.yYYYYYy.', 'yYYwYYYYy', 'yYwYYYYdy', 'yYwYYYYdy', 'yYYYYYddy', '.yYYdddy.', '..yyyyy..'], { y: '#8a6a1c', Y: '#e8c030', w: '#fff3a0', d: '#c89a20' }],
+  gold: [['....y....', '...yYy...', '..yYYYy..', '.yYwYYYy.', 'yYwYYYYdy', 'yYYYYYddy', '.yYYdddy.', '..yyyyy..'], { y: '#8a6a1c', Y: '#e8c030', w: '#fff3a0', d: '#c89a20' }],
   faith: [['....f....', '...fo....', '...fof...', '..foyof..', '..foyof..', '...ooo...', '..wwwww..', '..wWWWw..', '..wWWWw..'], { f: '#b08fff', o: '#d8c0ff', y: '#ffffff', w: '#8a8296', W: '#d8d4e4' }],
   fear: [['..sssss..', '.sssssss.', 'ssksssks.', 'sskksskk.', 'sssssssss', '.sssksss.', '..sssss..', '..s.s.s..'], { s: '#ff9a92', k: '#3a1014' }],
   ess: [['....d....', '...dd....', '...dDd...', '..dDDdd..', '.dDwDDdd.', '.dDwDDDd.', '.ddDDDdd.', '..ddddd..'], { d: '#3f8a9a', D: '#8fe0e8', w: '#ffffff' }],

@@ -9,7 +9,7 @@ PC와 휴대폰(세로 화면) 브라우저에서 열린다. 진행은 그 브�
 ## 구성
 
 - `index.html` — 게임 전체가 들어 있는 한 파일. 위 주소가 이 파일을 연다.
-- `proto/src/` — 소스. `logic.js`(규칙), `art.js`·`monsters.js`·`lineage.js`·`kinart.js`·`worldart.js`·`stage.js`·`ui.js`(화면. `lineage.js`는 본체가 계통마다 자라는 모습, `kinart.js`는 권속, `worldart.js`는 세계 넷의 침입자), `style.css`, `steward.js`(권속들의 판단. 맡김 방식과 자동 플레이어가 같이 쓴다), `bot.js`(자동 플레이어).
+- `proto/src/` — 소스. `logic.js`(규칙), `art.js`·`monsters.js`·`lineage.js`·`kinart.js`·`worldart.js`·`worldscene.js`·`stage.js`·`ui.js`(화면. `lineage.js`는 본체가 계통마다 자라는 모습, `kinart.js`는 권속, `worldart.js`는 세계 넷의 침입자), `style.css`, `steward.js`(권속들의 판단. 맡김 방식과 자동 플레이어가 같이 쓴다), `bot.js`(자동 플레이어).
 - `proto/build.sh` — 소스를 한 파일로 묶는다. 묶은 뒤 `PLAY-GAME.html`을 `index.html`로 복사한다.
 - `proto/fonts/` — 제목·단추용 픽셀 글꼴. `NestPix.woff2`는 Galmuri11 Bold에서 게임에 쓰는 글자만 남긴 것이고, `build.sh`가 게임 파일 안에 넣는다. `subset.py`로 다시 만든다.
 
