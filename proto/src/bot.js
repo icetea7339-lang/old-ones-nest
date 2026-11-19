@@ -24,7 +24,7 @@ const STRATS = {
 };
 
 function play(seed, st, diff, trace, force) {
-  const asp = S.ASPECTS[seed % 5], G = S.newGame(seed, asp, { diff: diff || 1, forceOmen: force || null });
+  const asp = S.ASPECTS[seed % 5], G = S.newGame(seed, asp, { diff: diff || 1, forceOmen: force || null, origin: process.env.ORIGIN || 'drop' });
   const info = { reps: [], digs: 0 };
   let guard = 0;
   while (!G.over && guard++ < 60) {

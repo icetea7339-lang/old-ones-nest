@@ -259,7 +259,13 @@ function drawStage() {
   const max = W - ST.viewW; ST.cam.tx = Math.max(0, Math.min(max, ST.cam.tx)); ST.cam.x += (ST.cam.tx - ST.cam.x) * 0.16; if (Math.abs(ST.cam.tx - ST.cam.x) < 0.5) ST.cam.x = ST.cam.tx;
   x.setTransform(k0, 0, 0, k0, 0, 0); x.imageSmoothingEnabled = false; rect(x, '#16121f', 0, 0, VW + 1, H);
   const target = ST.screen === 'under' ? 1 : 0; ST.p += (target - ST.p) * 0.2; if (Math.abs(target - ST.p) < 0.004) ST.p = target;
-  x.save(); x.translate(Math.round(ST.ox - ST.cam.x), 0);
+  { // 창이 덮은 만큼(ST.cover, 화면 px) 고른 것을 위로 올린다
+    const cov = ST.mode === 'day' && ST.cover ? ST.cover / (c.clientHeight / H) : 0, sel = UI.sel; let sy = null;
+    if (cov > 0 && sel) sy = sel.t === 'cell' ? cellRect(sel.i).y + CH / 2 : sel.t === 'vill' ? VPOS[sel.v].y + 20 : sel.t === 'plot' ? PPOS[sel.p].y : sel.t === 'spot' && G.spot ? SPOS[G.spot.pos].y : null;
+    const ty = sy == null ? 0 : Math.max(0, Math.min(cov, sy - (H - cov) / 2));
+    ST.cam.y = ST.cam.y || 0; ST.cam.y += (ty - ST.cam.y) * 0.22; if (Math.abs(ty - ST.cam.y) < 0.5) ST.cam.y = ty;
+  }
+  x.save(); x.translate(Math.round(ST.ox - ST.cam.x), -Math.round(ST.cam.y || 0));
   if (ST.shake > t) x.translate((Math.random() - 0.5) * 8, (Math.random() - 0.5) * 6);
   if (ST.p < 0.999) { x.save(); x.translate(0, Math.round(-H * ST.p)); drawSurface(x, t); x.restore(); }
   if (ST.p > 0.001) { x.save(); x.translate(0, Math.round(H * (1 - ST.p))); drawUnder(x, t); ST.floats = ST.floats.filter(f => t - f.t0 < 800); ST.floats.forEach(f => { const k = (t - f.t0) / 800; x.globalAlpha = 1 - k; txt(x, f.s, f.x, f.y - k * 26, f.col, f.big ? 20 : 14, 'center'); x.globalAlpha = 1; }); x.restore(); }
@@ -291,11 +297,11 @@ function hitTest(cx, cy) {
   if (Math.abs(cx - CAVE.x) < 76 && cy > CAVE.y - 44) return { t: 'down' };
   return null;
 }
-function setScreen(s) { if (ST.screen === s) return; ST.camMem[ST.screen] = ST.cam.tx; ST.screen = s; ST.cam.tx = ST.camMem[s]; sfx('slide'); document.querySelectorAll('#viewsw button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === s)); }
+function setScreen(s) { if (ST.screen === s) return; ST.camMem[ST.screen] = ST.cam.tx; ST.screen = s; ST.cam.tx = ST.camMem[s]; sfx('slide'); document.querySelectorAll('[data-a="view"]').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === s)); }
 
 // ---------- 밤 전투 재생 ----------
 const wait = ms => new Promise(res => ST.skip ? res() : setTimeout(res, ms / ST.speed));
-const nlog = (s, cls) => { const el = $('nlog'); if (!el || !s) return; const p = document.createElement('p'); p.className = 'small' + (cls ? ' ' + cls : ''); p.textContent = s; el.prepend(p); while (el.children.length > 50) el.lastChild.remove(); };
+const nlog = (s, cls) => { const el = $('nlog'); if (!el || !s) return; const p = document.createElement('p'); p.className = 'small' + (cls ? ' ' + cls : ''); p.textContent = s; el.prepend(p); while (el.children.length > 12) el.lastChild.remove(); };
 function moveTo(e, p, dur) { e.fx = e.x; e.fy = e.y; e.tx = p.x; e.ty = p.y; e.t0 = now(); e.dur = Math.max(1, dur / ST.speed); }
 function prepareNight() {
   const E = ST.ents = {}; ST.defs = {}; ST.floats = []; ST.sparks = []; ST.fire = {}; ST.sanfx = {};

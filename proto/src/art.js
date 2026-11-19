@@ -92,7 +92,7 @@ function spriteCanvas(name, pal) {
 // 본체: 주 징조 = 색, 부 징조 = 덧그림, 변이 = 부위, 성체 = 빛나는 눈
 // 본체: 32×32 위에 부품을 조립해 그린다. 주 징조 = 몸의 구조, 단계 = 크기와 부위 수, 부 징조 = 다른 색의 덧붙은 기관, 변이 = 부위.
 function slimeCanvas(sl, frame) {
-  const fr = (frame || 0) % 4, ph = fr * 1.57, key = 'sl2:' + (sl.main || 'base') + ':' + (sl.sub || '') + ':' + sl.stage + ':' + (sl.muts || []).join(',') + ':' + fr; if (cv[key]) return cv[key];
+  const fr = (frame || 0) % 4, ph = fr * 1.57, key = 'sl3:' + (sl.origin || 'drop') + ':' + (sl.main || 'base') + ':' + (sl.sub || '') + ':' + sl.stage + ':' + (sl.muts || []).join(',') + ':' + fr; if (cv[key]) return cv[key];
   const c = document.createElement('canvas'); c.width = c.height = 32; const x = c.getContext('2d');
   const P = PAL[sl.main] || PAL.base, Q = (sl.sub && PAL[sl.sub]) || P, st = sl.main ? Math.max(1, sl.stage) : 0, DK = '#1a0508', WH = '#f5f5f5';
   const px = (a, b, w, h, col) => { x.fillStyle = col; x.fillRect(Math.round(a), Math.round(b), w || 1, h || 1); };
@@ -175,6 +175,37 @@ function slimeCanvas(sl, frame) {
     if (m === 'teeth') for (let i = -B.R + 2; i < B.R - 1; i += 2) px(B.cx + i, B.cy + B.R - 1, 1, 2, WH);
     if (m === 'steelgut') { px(B.cx - 2, B.cy + 1, 5, 3, '#6a6278'); px(B.cx - 1, B.cy + 1, 3, 1, '#d0d0d8'); }
   });
+  // 태생: 어떤 모습으로 자라도 남는 것
+  const og = sl.origin || 'drop';
+  if (og === 'shell') {          // 깨진 알껍데기를 뒤집어썼다
+    const SH = ['#2a261c', '#efe6d0', '#ffffff', '#b8ad92'], w = Math.max(3, Math.round(B.R * 0.95)), hh = Math.max(2, Math.round(B.R * 0.6)), y0 = Math.max(1, B.top - 1);
+    for (let dx = -w; dx <= w; dx++) { const h = Math.max(1, Math.round(hh * Math.sqrt(Math.max(0, 1 - (dx * dx) / (w * w + 1))))) + ((dx + 40) % 3 === 0 ? 1 : 0); const yt = y0 + (hh + 1 - h) - 2 + ((dx + 40) % 3 === 0 ? 0 : 0), hb = h + ((dx + 41) % 4 === 0 ? 1 : 0); px(B.cx + dx, yt - 1, 1, hb + 2, SH[0]); px(B.cx + dx, yt, 1, hb, dx > w * 0.35 ? SH[3] : SH[1]); }
+    px(B.cx - w - 1, y0 + hh - 2, 1, 2, SH[0]); px(B.cx + w + 1, y0 + hh - 2, 1, 2, SH[0]); px(B.cx - Math.round(w * 0.45), y0 + Math.round(hh * 0.3) - 1, 2, 1, SH[2]);
+    for (let k = 0; k < hh; k++) px(B.cx + 1 + (k % 2), y0 - 1 + k, 1, 1, SH[0]);
+    const gy = Math.min(30, B.bot + 1); px(B.cx + w + 2, gy - 1, 4, 3, SH[0]); px(B.cx + w + 3, gy - 1, 2, 2, SH[1]); px(B.cx - w - 5, gy, 3, 2, SH[0]); px(B.cx - w - 4, gy, 1, 1, SH[3]);
+  }
+  if (og === 'root') {           // 뿌리부터 뻗었다
+    const RT = ['#1e140a', '#6b4a2a', '#b08a50'], by = Math.min(28, B.bot), n = 3 + Math.min(3, st);
+    for (let k = 0; k < n; k++) { const f = n === 1 ? 0 : k / (n - 1) - 0.5; let xx = B.cx + f * (B.R * 2 - 2), yy = by - 1; for (let i = 0; i < 6 + (k % 2) * 2 && yy < 32; i++) { px(xx - 1, yy, 3, 1, RT[0]); px(xx, yy, 1, 1, i % 3 === 2 ? RT[2] : RT[1]); xx += f * 2.2 + (((i + k) % 2) ? 0.7 : -0.7); if (!(i % 3 === 2 && Math.abs(f) > 0.2)) yy++; } }
+    for (let i = 0; i < 3 + st; i++) { const yy = Math.min(31, by + 1 + (i % 2)); px(B.cx - B.R - 1 - i * 2, yy, 3, 1, RT[0]); px(B.cx - B.R - 1 - i * 2, yy, 2, 1, RT[1]); px(B.cx + B.R + i * 2 - 1, yy, 3, 1, RT[0]); px(B.cx + B.R + i * 2, yy, 2, 1, RT[1]); }
+    for (let i = 0; i < 1 + Math.min(3, st); i++) { px(B.cx - B.R - 2, B.cy + 2 - i * 3, 2, 3, RT[0]); px(B.cx - B.R - 1, B.cy + 2 - i * 3, 1, 3, RT[1]); px(B.cx - B.R - 3, B.cy + 1 - i * 3, 1, 1, RT[2]); px(B.cx + B.R + 1, B.cy + 3 - i * 3, 2, 3, RT[0]); px(B.cx + B.R + 1, B.cy + 3 - i * 3, 1, 3, RT[1]); px(B.cx + B.R + 3, B.cy + 2 - i * 3, 1, 1, RT[2]); }
+  }
+  if (og === 'maw') {            // 입부터 생겼다
+    const mw = Math.max(2, Math.round(B.R * 0.6)), my = Math.min(26, Math.round(B.cy + B.R * 0.2)); maw(B.cx, my, mw, st >= 3 ? 3 : 2, P);
+    const tl = 3 + Math.min(4, st); for (let i = 0; i < tl; i++) { const tx = B.cx + Math.round(Math.sin(i * 0.9 + ph) * (i / tl) * 2); px(tx - 1, my + 1 + i, 3, 1, '#5a0c14'); px(tx, my + 1 + i, 1, 1, i === tl - 1 ? '#ff9a8a' : '#e8505a'); }
+    px(B.cx - mw, my + 2 + (fr % 2), 1, 2, '#bfe8ff');
+  }
+  if (og === 'lamp') {           // 등불을 들었다
+    const LG = ['#3a2a10', '#ffd23a', '#fff3a0'], sx = B.cx + Math.max(1, Math.round(B.R * 0.35)), ty = Math.max(3, B.top - 4 - Math.min(2, st));
+    for (let y = ty + 1; y <= B.top + 1; y++) px(sx - 1 + (y % 3 === 0 ? 1 : 0), y, 2, 1, P[0]);
+    const ox = sx + 2, oy = ty, lr = st >= 3 ? 2 : 1; disc(ox, oy, lr + 1, lr + 1, LG[0]); disc(ox, oy, lr, lr, LG[1]); px(ox, oy, 1, 1, '#ffffff'); if (lr > 1) px(ox - 1, oy - 1, 1, 1, LG[2]);
+    if (fr % 2 === 0) { px(ox - 4, oy, 1, 1, LG[2]); px(ox + 4, oy, 1, 1, LG[2]); px(ox, oy - 3, 1, 1, LG[2]); px(ox, oy + 4, 1, 1, LG[1]); } else { px(ox - 3, oy - 2, 1, 1, LG[2]); px(ox + 3, oy + 2, 1, 1, LG[2]); px(ox + 3, oy - 2, 1, 1, LG[2]); px(ox - 3, oy + 3, 1, 1, LG[1]); }
+  }
+  if (og === 'coin') {           // 금화째 굳었다
+    const CN = ['#5a3c06', '#e8c030', '#fff3a0'], coin = (a, b, g) => { px(a - 1, b - 1, 4, 4, CN[0]); px(a, b, 2, 2, CN[1]); px(a, b, 1, 1, g ? '#ffffff' : CN[2]); };
+    const by = Math.min(30, B.bot + 1), sp = 2 + Math.min(3, st); for (let k = -sp; k <= sp; k++) coin(B.cx + k * 3, by - (Math.abs(k) % 2), (k + fr + 8) % 4 === 0);
+    for (let k = 0; k < 2 + st; k++) { const a = k * 2.2 + 0.6, d = B.R * (0.3 + (k % 3) * 0.22); coin(Math.round(B.cx + Math.cos(a) * d), Math.round(Math.min(27, B.cy + Math.sin(a) * d * 0.8)), (k + fr) % 4 === 0); }
+  }
   return (cv[key] = c);
 }
 // 권속: 종류마다 다른 몸. 손으로 찍은 그림이 없는 종류는 여기서 16×16에 그린다. q = (x, y, 너비, 높이, 색), p = [윤곽, 몸, 밝은 곳, 그늘, 포인트]
@@ -285,7 +316,7 @@ function endingScene(c, key, tier, sl, fr) {
 const toImg = (c, key, size, alt) => `<img class="px" src="${urls[key] || (urls[key] = c.toDataURL())}" width="${size}" height="${size}" alt="${esc(alt || '')}">`;
 const kinImg = (kind, size, evo) => toImg(kinCanvas(kind, evo), (evo ? 'evo4:' : 'kin3:') + kind, size, NEST.KIN[kind].name);
 const invImg = (kind, size) => toImg(invCanvas(kind), 'inv:' + kind, size, NEST.INV[kind].name);
-const slimeImg = (sl, size, alt) => toImg(slimeCanvas(sl), 'sl2:' + (sl.main || 'base') + ':' + (sl.sub || '') + ':' + sl.stage + ':' + (sl.muts || []).join(','), size, alt || '본체');
+const slimeImg = (sl, size, alt) => toImg(slimeCanvas(sl), 'sl3:' + (sl.origin || 'drop') + ':' + (sl.main || 'base') + ':' + (sl.sub || '') + ':' + sl.stage + ':' + (sl.muts || []).join(','), size, alt || '본체');
 const echoImg = size => toImg(spriteCanvas('slime', 'echo'), 'echo', size, '잔향');
 
 // ---------- 소리 ----------

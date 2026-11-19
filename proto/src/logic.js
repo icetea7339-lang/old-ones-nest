@@ -254,14 +254,14 @@ const NEST = (function () {
   const hasRoom = (G, t) => G.cells.some((c, i) => c.dug && c.type === t && !G.off[i]);
   const countRoom = (G, t) => G.cells.filter(c => c.dug && c.type === t).length;
   const formId = G => G.slime.stage === 0 ? 'base' : G.slime.stage === 1 ? G.slime.main : G.slime.main + '_' + G.slime.sub;
-  const formName = G => G.slime.stage === 0 ? '무형의 점액' : G.slime.stage === 1 ? FORM1[G.slime.main].name : (G.slime.stage === 3 ? '겹쳐진 ' : G.slime.stage >= 4 ? '거대한 ' : '') + FORM2[formId(G)];
+  const formName = G => G.slime.stage === 0 ? ((G.origin && ORIGIN[G.origin]) || ORIGIN.drop).title : G.slime.stage === 1 ? FORM1[G.slime.main].name : (G.slime.stage === 3 ? '겹쳐진 ' : G.slime.stage >= 4 ? '거대한 ' : '') + FORM2[formId(G)];
   const essTotal = G => ASPECTS.reduce((a, k) => a + G.slime.ess[k], 0);
   const fearGrade = G => G.fear < 25 ? 1 : G.fear < 60 ? 2 : G.fear < 110 ? 3 : 4;
   const faithCap = G => K.faithCap + 20 * countRoom(G, 'chapel') + (G.faithBonus || 0);
   const addFaith = (G, x) => { G.faith = clamp(G.faith + x, 0, faithCap(G)); };
   const addEss = (G, asp, x) => { G.slime.ess[asp] += G.star === 'glass' ? Math.round(x * 1.4) : x; };
   const corpseCap = G => K.corpseCap + (hasRoom(G, 'table') ? 6 : 0);
-  const corpsePts = (G, kind) => INV[kind].g * 2 + (has(G, 'steelgut') ? 1 : 0) + (hasRoom(G, 'abattoir') ? 1 : 0) + (G.slime.stage >= 2 && (G.slime.main === 'hunger' || G.slime.sub === 'hunger') ? 1 : 0);
+  const corpsePts = (G, kind) => Math.floor((G.origin === 'maw' ? 1.25 : 1) * INV[kind].g * 2) + (has(G, 'steelgut') ? 1 : 0) + (hasRoom(G, 'abattoir') ? 1 : 0) + (G.slime.stage >= 2 && (G.slime.main === 'hunger' || G.slime.sub === 'hunger') ? 1 : 0);
   function addCorpse(G, kind) { G.corpses.push({ kind }); while (G.corpses.length > corpseCap(G)) G.corpses.shift(); }
   function eatN(G, n) { const out = {}; G.corpses.splice(0, n).forEach(c => { const a = INV[c.kind].asp, p = corpsePts(G, c.kind); addEss(G, a, p); out[a] = (out[a] || 0) + p; }); return Object.keys(out).map(a => ASP[a] + ' +' + out[a]).join(', '); }
 
@@ -277,11 +277,11 @@ const NEST = (function () {
 
   // 교역: 사이가 좋은 날마다 신뢰가 쌓이고, 신뢰만큼 교역이 커진다
   const trading = (G, v) => { const s = G.vill[v]; return !s.razed && !s.tribute && s.host < 15 && !s.noTrade; };
-  const trustCap = G => K.trustCap[fearGrade(G)];
-  const tradeOf = (G, v) => Math.round((v === 'gaet' ? 1.5 : 3) * cm(G) * (1 + K.trustGain * (G.vill[v].trust || 0)));
+  const trustCap = G => G.origin === 'maw' ? 0 : K.trustCap[fearGrade(G)];
+  const tradeOf = (G, v) => Math.round((v === 'gaet' ? 1.5 : 3) * cm(G) * (1 + K.trustGain * (G.vill[v].trust || 0)) * (G.origin === 'coin' ? 1.5 : 1));
   // 목숨: 본체가 몇 번 더 쓰러질 수 있는가 (마지막 밤은 예외)
   const livesMax = G => K.falls[G.diff] + hoardN(G, 'life'), lives = G => Math.max(0, livesMax(G) - (G.falls || 0));
-  function migrate(G) { if (G.cells[18] && G.cells[18].type === 'vault') { G.cells[18].type = 'core'; G.cells[19] = { dug: false, block: false, type: 'empty', lv: 1, exp: 0, traps: [], zone: false }; } if (G.falls == null) G.falls = G.spared ? 1 : 0; if (!G.eld) G.eld = { id: G.startAsp, favor: 0, tally: 0 }; return G; }
+  function migrate(G) { if (!G.origin) G.origin = 'drop'; if (G.slime && !G.slime.origin) G.slime.origin = G.origin; if (G.cells[18] && G.cells[18].type === 'vault') { G.cells[18].type = 'core'; G.cells[19] = { dug: false, block: false, type: 'empty', lv: 1, exp: 0, traps: [], zone: false }; } if (G.falls == null) G.falls = G.spared ? 1 : 0; if (!G.eld) G.eld = { id: G.startAsp, favor: 0, tally: 0 }; return G; }
   // ---------- 길 찾기 ----------
   const passable = (G, i) => G.cells[i].dug && !G.cells[i].block && i !== CORE;
   function paths(G) {
@@ -298,7 +298,7 @@ const NEST = (function () {
   function newGame(seed, startAsp, opts) {
     opts = opts || {};
     const G = {
-      seed: seed >>> 0, day: 1, ap: K.ap, spot: null, over: null, star: STAR[opts.star] ? opts.star : 'none', gold: opts.star === 'poor' ? 100 : opts.star === 'faith' ? 150 : K.startGold, faith: 0, fear: 0, diff: opts.diff || 1,
+      seed: seed >>> 0, day: 1, ap: K.ap, spot: null, over: null, star: STAR[opts.star] ? opts.star : 'none', gold: (opts.star === 'poor' ? 100 : opts.star === 'faith' ? 150 : K.startGold) + (opts.origin === 'coin' ? 100 : 0), origin: ORIGIN[opts.origin] ? opts.origin : 'drop', faith: 0, fear: 0, diff: opts.diff || 1,
       slime: { stage: 0, main: null, sub: null, hp: K.slime.hp, ess: { abyss: 0, nebula: 0, brood: 0, dusk: 0, hunger: 0 }, muts: [] },
       corpses: [], cells: [], plots: ['none', 'none', 'none'], vill: {}, kin: [], prison: [], applicants: [], nextId: 1,
       march: { tonight: null, tomorrow: null }, eld: { id: opts.elder || null, favor: 0, tally: 0 }, omen: null, omenNext: null, forceOmen: opts.forceOmen || null, d: {}, off: {}, event: null, eventDays: {}, ledger: {}, log: [], startAsp,
@@ -307,7 +307,7 @@ const NEST = (function () {
     };
     for (let i = 0; i < N; i++) G.cells.push({ dug: START.includes(i) || i === CORE, block: false, type: i === CORE ? 'core' : i === ENT ? 'trap' : 'empty', lv: 1, exp: 0, traps: i === ENT ? [{ kind: 'spike', lv: 1 }] : [], zone: false });
     VIDS.forEach(v => { G.vill[v] = { host: 0, tribute: 0, pause: 0, razed: false, trust: 0 }; });
-    G.slime.ess[startAsp] = 12; if (!G.eld.id) G.eld.id = pick(G, ASPECTS); G.bossAlt = { [K.act]: rng(G) < 0.5, [2 * K.act]: rng(G) < 0.5 };
+    G.slime.origin = G.origin; G.slime.ess[startAsp] = 12; G.slime.hp = slimeStats(G).hp; if (!G.eld.id) G.eld.id = pick(G, ASPECTS); G.bossAlt = { [K.act]: rng(G) < 0.5, [2 * K.act]: rng(G) < 0.5 };
     G.buried = {}; { const und = G.cells.map((c, i) => c.dug ? -1 : i).filter(i => i >= 0), ts = Object.keys(BURIED); for (let k = 0; k < 3 && und.length; k++) G.buried[und.splice(Math.floor(rng(G) * und.length), 1)[0]] = ts.splice(Math.floor(rng(G) * ts.length), 1)[0]; }
     if (rng(G) < 0.6) G.eventDays[8] = 'mapper1';
     const pool = Object.keys(EVENTS);
@@ -318,6 +318,17 @@ const NEST = (function () {
     morning(G);
     return G;
   }
+  // ---------- 태생: 어떤 것으로 떨어졌는가. 판 내내 가는 장점 하나와 단점 하나 ----------
+  const ORIGIN = {
+    drop: { name: '한 방울', title: '무형의 점액', text: '별에서 떨어진 점액 한 방울. 무엇이든 될 수 있다.', good: '치우침이 없다', bad: '없음' },
+    shell: { name: '껍데기 쓴 것', title: '껍데기 쓴 점액', text: '깨진 알껍데기를 뒤집어쓴 채 떨어졌다. 잘 깨지지 않는다.', good: '본체 방어 +50%, 체력 +20%', bad: '본체 공격 −25%', hp: 1.2, atk: 0.75, df: 1.5 },
+    root: { name: '뿌리 내린 것', title: '뿌리 내린 점액', text: '떨어진 자리에서 굴 벽을 따라 뿌리부터 뻗었다. 굴이 곧 몸이다.', good: '굴 파기 값 절반, 시설 유지비 없음', bad: '본체 체력 −20%', hp: 0.8 },
+    maw: { name: '입부터 생긴 것', title: '입 달린 점액', text: '몸보다 입이 먼저 생겼다. 먹는 것 말고는 관심이 없다.', good: '포식 정수 +25%, 본체 공격 +15%', bad: '권속이 겁을 먹어 급여 +30%, 마을이 거래하지 않는다', atk: 1.15 },
+    lamp: { name: '등불 든 것', title: '등불 든 점액', text: '어둠 속에서 혼자 깜빡인다. 그 빛을 보고 찾아오는 자들이 있다.', good: '매일 신앙 +3, 개종 확률 +20%p, 신도는 급여를 받지 않는다', bad: '본체 체력 −10%', hp: 0.9 },
+    coin: { name: '금화 품은 것', title: '금화 품은 점액', text: '누군가의 보물 상자 위에 떨어져 금화째 굳었다.', good: '시작 재물 +100, 교역 +50%, 탐식 값 −20%', bad: '금 냄새에 무리가 15% 더 온다. 쓰러지면 재물의 80%를 털린다' },
+  };
+  const org = G => (G && G.origin && ORIGIN[G.origin] ? G.origin : 'drop'), isO = (G, k) => org(G) === k;
+  const digCost = G => Math.round(40 * cm(G) * (isO(G, 'root') ? 0.5 : 1));
   // ---------- 탐식: 깔고 앉은 재물을 삼켜 힘으로 바꾼다 ----------
   const HOARD = {
     gulp: { name: '재물을 삼킨다', base: 150, grow: 1.8, max: 99, hp: 0.06, atk: 0.03, desc: '본체 최대 체력 +6%, 공격·방어 +3%. 삼킬 때마다 값이 오른다' },
@@ -326,7 +337,7 @@ const NEST = (function () {
     veil: { name: '별 가리기', base: 700, grow: 1, max: 1, act: 4, cut: 0.15, desc: '마지막 밤에 오는 무리의 체력·공격 −15%' },
   };
   const hoardN = (G, k) => (G.hoard && G.hoard[k]) || 0;
-  const hoardCost = (G, k) => Math.round(HOARD[k].base * cm(G) * Math.pow(HOARD[k].grow, hoardN(G, k)));
+  const hoardCost = (G, k) => Math.round(HOARD[k].base * cm(G) * Math.pow(HOARD[k].grow, hoardN(G, k)) * (isO(G, 'coin') ? 0.8 : 1));
   function hoardWhy(G, k) { const d = HOARD[k]; if (!d) return '없는 것입니다'; if (hoardN(G, k) >= d.max) return '더는 할 수 없습니다'; if (d.act && actOf(G) < d.act) return d.act + '막부터 할 수 있습니다'; if (G.gold < hoardCost(G, k)) return '재물이 부족합니다 (' + hoardCost(G, k) + 'G)'; return null; }
   function hoardBuy(G, k) {
     const why = hoardWhy(G, k); if (why) return fail(why); const cost = hoardCost(G, k), before = slimeStats(G).hp;
@@ -338,14 +349,14 @@ const NEST = (function () {
   }
   function slimeStats(G) {
     const t = K.tier[G.slime.stage], m = G.slime.main;
-    const x = G.star === 'lone' ? 1.2 : 1, g = hoardN(G, 'gulp'), gh = 1 + HOARD.gulp.hp * g, ga = 1 + HOARD.gulp.atk * g; return { hp: K.slime.hp * t * x * (G.star === 'glass' ? 0.5 : 1) * gh, atk: K.slime.atk * t * x * (m === 'hunger' ? 1.3 : 1) * ga, df: K.slime.df * t * x * ga };
+    const x = G.star === 'lone' ? 1.2 : 1, g = hoardN(G, 'gulp'), gh = 1 + HOARD.gulp.hp * g, ga = 1 + HOARD.gulp.atk * g, O = ORIGIN[org(G)]; return { hp: K.slime.hp * t * x * (G.star === 'glass' ? 0.5 : 1) * gh * (O.hp || 1), atk: K.slime.atk * t * x * (m === 'hunger' ? 1.3 : 1) * ga * (O.atk || 1), df: K.slime.df * t * x * ga * (O.df || 1) };
   }
   function kinStats(G, m) {
     const d = KIN[m.kind], g = Math.pow(K.lvGrowth, m.lv - 1) * (m.rare ? 1.4 : 1) * (m.evo ? 1.5 : 1) * (m.kind === 'spawn' && m.skill === 2 && m.age >= 3 ? 2 : 1) * (m.kind === 'spawn' && G.slime.main === 'brood' && G.slime.stage >= 2 ? 1.5 : 1);
     return { hp: d.hp * g, atk: d.atk * g, df: d.df * g, satk: (d.satk || 0) * g };
   }
-  const salary = (G, m) => KIN[m.kind].pay * cm(G) * (1 + 0.1 * m.lv) * (m.evo ? 1.5 : 1);
-  const upkeep = G => (G.kin.some(m => m.kind === 'clerk' && m.evo) ? 0.6 : G.kin.some(m => m.kind === 'clerk') ? 0.75 : 1) * (G.cells.filter(c => c.dug && ROOM[c.type].cost > 0 && !c.free).length + G.plots.filter(p => p !== 'none').length) * cm(G);
+  const salary = (G, m) => G.origin === 'lamp' && m.kind === 'cultist' ? 0 : KIN[m.kind].pay * cm(G) * (1 + 0.1 * m.lv) * (m.evo ? 1.5 : 1) * (G.origin === 'maw' ? 1.3 : 1);
+  const upkeep = G => G.origin === 'root' ? 0 : (G.kin.some(m => m.kind === 'clerk' && m.evo) ? 0.6 : G.kin.some(m => m.kind === 'clerk') ? 0.75 : 1) * (G.cells.filter(c => c.dug && ROOM[c.type].cost > 0 && !c.free).length + G.plots.filter(p => p !== 'none').length) * cm(G);
   function capacity(G) { const c = { core: 2 + hoardN(G, 'seat') }; G.cells.forEach((x, i) => { if (x.dug && i !== CORE && ROOM[x.type].def) c[i] = ROOM[x.type].def; }); return c; }
   function freeSlot(G, kind) {
     const c = capacity(G), used = {}; G.kin.forEach(m => { if (m.loc !== null && m.kind !== 'spawn') used[m.loc] = (used[m.loc] || 0) + 1; });
@@ -363,7 +374,7 @@ const NEST = (function () {
   function fearGradeAt(G, settle) { return settle ? Math.min(4, Math.max(fearGrade(G), actOf(G) + 1)) : Math.max(fearGrade(G), actOf(G) - 1); }
   function partyBudget(G, v, settle) {
     const plot = G.plots[VILL[v].plot];
-    return (G.star === 'loud' ? 1.4 : 1) * K.budget * K.size[actOf(G)] * (1 + G.fear / 150 + (Math.max(0, G.gold) + K.smell * ((G.stats && G.stats.hoard) || 0)) / (1500 * cm(G))) * (settle ? K.settle : 1) * ({ bramble: 0.8, camp: 1.3 }[plot] || 1) * DIFF[G.diff].mult * G.detBonus;
+    return (G.star === 'loud' ? 1.4 : 1) * (G.origin === 'coin' ? 1.15 : 1) * K.budget * K.size[actOf(G)] * (1 + G.fear / 150 + (Math.max(0, G.gold) + K.smell * ((G.stats && G.stats.hoard) || 0)) / (1500 * cm(G))) * (settle ? K.settle : 1) * ({ bramble: 0.8, camp: 1.3 }[plot] || 1) * DIFF[G.diff].mult * G.detBonus;
   }
   function partyKinds(G, v, settle, thin, day) {
     day = day || G.day; const alt = !!(G.bossAlt && G.bossAlt[day]); const final = day === K.days, g = final ? Math.max(3, fearGradeAt(G, true)) : fearGradeAt(G, settle), x = VILL[v].x;
@@ -438,7 +449,7 @@ const NEST = (function () {
   }
   function dig(G, i) {
     const why = canDig(G, i); if (why) return fail(why);
-    const cost = 40 * cm(G); if (G.gold < cost) return fail('재물이 부족합니다 (' + cost + 'G)');
+    const cost = digCost(G); if (G.gold < cost) return fail('재물이 부족합니다 (' + cost + 'G)');
     const e = buildOp(G); if (e) return fail(e);
     pay(G, cost, '굴착'); G.cells[i].dug = true; G.stats.dug = (G.stats.dug || 0) + 1; note(G, 'dig');
     const found = unearth(G, i); return found ? { ok: true, msg: found, found: true } : ok('한 칸을 팠습니다');
@@ -529,7 +540,7 @@ const NEST = (function () {
   function rest(G) { if (!useAp(G)) return fail('행동이 남지 않았습니다'); note(G, 'rest'); const s = slimeStats(G); G.slime.hp = Math.min(s.hp, G.slime.hp + s.hp * (has(G, 'gills') ? 0.7 : 0.4)); G.kin.forEach(m => { m.hurt = 0; }); return ok('휴식: 본체 회복, 다친 권속 복귀'); }
 
   // ---------- 포로 ----------
-  function convertChance(G, kind) { return clamp(0.70 - 0.15 * (Math.min(4, INV[kind].g) - 1) + (combo(G, 'confess') ? 0.15 : 0) + (hasRoom(G, 'persuade') ? 0.2 : 0) + (G.slime.stage >= 2 && G.slime.sub === 'dusk' ? 0.2 : 0) + (has(G, 'whisper') ? 0.15 : 0), 0.05, 0.95); }
+  function convertChance(G, kind) { return clamp(0.70 + (G.origin === 'lamp' ? 0.2 : 0) - 0.15 * (Math.min(4, INV[kind].g) - 1) + (combo(G, 'confess') ? 0.15 : 0) + (hasRoom(G, 'persuade') ? 0.2 : 0) + (G.slime.stage >= 2 && G.slime.sub === 'dusk' ? 0.2 : 0) + (has(G, 'whisper') ? 0.15 : 0), 0.05, 0.95); }
   const ransomOf = (G, kind, bonus) => Math.round(INV[kind].g * 20 * cm(G) * (G.kin.some(m => m.kind === 'warden') ? 1.25 : 1) * (bonus || 1));
   const sacEss = (G, kind) => INV[kind].g * 4 + (hasRoom(G, 'ritual') ? 1 : 0) + (combo(G, 'queue') ? 2 : 0);
   const mutChance = (G, kind) => clamp(0.1 * INV[kind].g + (hasRoom(G, 'ritual') ? 0.15 : 0), 0, 0.9);
@@ -901,7 +912,7 @@ const NEST = (function () {
       if (core) {
         fatal = last || lives(G) <= 1;
         if (!fatal) {
-          const frac = Math.min(0.9, K.rob * (stage >= 2 && G.slime.sub === 'abyss' ? 0.6 : 1) * (alive(arrived).some(u => u.kind === 'smuggler') ? 1.3 : 1));
+          const frac = Math.min(0.9, K.rob * (G.origin === 'coin' ? 1.6 : 1) * (stage >= 2 && G.slime.sub === 'abyss' ? 0.6 : 1) * (alive(arrived).some(u => u.kind === 'smuggler') ? 1.3 : 1));
           rep.loot = Math.round(Math.max(0, G.gold) * frac);
           ev.push({ t: 'steal', amt: rep.loot, txt: rep.loot > 0 ? '쓰러진 본체 밑에서 ' + rep.loot + 'G를 끌어냈다' : '본체 밑에는 아무것도 없었다' });
           ev.push({ t: 'go', to: 'out', who: uids(arrived), back: true }); alive(arrived).forEach(u => { u.gone = true; u.left = 1; });
@@ -950,7 +961,7 @@ const NEST = (function () {
     for (const v of VIDS) { const s = G.vill[v]; if (s.pause > 0) s.pause--; else if (s.tribute && !s.razed) earn(G, Math.round(s.tribute * (1 + 0.25 * (fearGrade(G) - 1))), '공물'); if (trading(G, v)) { earn(G, tradeOf(G, v), '교역'); s.trust = Math.min(trustCap(G), (s.trust || 0) + 1); } else s.trust = 0; s.host = Math.max(0, s.host - (v === 'bell' ? 1 : 3)); }
     G.plots.forEach(p => { if (p === 'garden' && !G.off.garden) earn(G, 8 * c, '텃밭'); });
     // 신앙과 정수
-    const cult = G.kin.filter(m => m.kind === 'cultist'); addFaith(G, cult.length + cult.filter(m => m.skill === 2).length + 2 * cult.filter(m => m.evo).length);
+    const cult = G.kin.filter(m => m.kind === 'cultist'); if (G.origin === 'lamp') addFaith(G, 3); addFaith(G, cult.length + cult.filter(m => m.skill === 2).length + 2 * cult.filter(m => m.evo).length);
     G.cells.forEach((x, i) => { if (!x.dug || G.off[i]) return; if (x.type === 'chapel') addFaith(G, 2); const d = ROOM[x.type]; if (d.ess) { addEss(G, d.asp, 2); rep.ess[d.asp] = (rep.ess[d.asp] || 0) + 2; } if (x.type === 'hatchery') addSpawn(G); });
     if (hasRoom(G, 'table') && G.corpses.length) eatN(G, 2);
     rep.faith = G.faith - f0;
@@ -1006,7 +1017,7 @@ const NEST = (function () {
     return { parts, mult, total, grade: GRADES.find(g => total >= g[1])[0] };
   }
 
-  return { K, ASPECTS, ASP, COLS, ROWS, N, ENT, CORE, nbrs, lives, livesMax, migrate, trading, tradeOf, trustCap, HOARD, hoardN, hoardCost, hoardWhy, hoardBuy, ROOM, TRAP, ZONE, PLOT, KIN, SKILL_LV, INV, GRADE_NAME, VILL, VIDS, FORM1, FORM2, FORM2UP, SUBTRAIT, AVATAR, MUT, DIFF, GRADES, EVENTS,
+  return { K, ASPECTS, ASP, COLS, ROWS, N, ENT, CORE, nbrs, lives, livesMax, migrate, trading, tradeOf, trustCap, HOARD, hoardN, hoardCost, hoardWhy, hoardBuy, ORIGIN, digCost, ROOM, TRAP, ZONE, PLOT, KIN, SKILL_LV, INV, GRADE_NAME, VILL, VIDS, FORM1, FORM2, FORM2UP, SUBTRAIT, AVATAR, MUT, DIFF, GRADES, EVENTS,
     newGame, actOf, cm, sm, isSettle, formId, formName, essTotal, fearGrade, faithCap, corpseCap, corpsePts, slimeStats, kinStats, salary, upkeep, capacity, freeSlot, prisonCap, handsMax, spellCost, seesDetail, expNeed,
     paths, sideRooms, estimate, partyBudget, canDig, digPreview, dig, toggleBlock, canBuild, buildCost, build, addTrap, trapUpCost, upTrap, setZone, setPlot, accept, acceptCost, dismiss, moveKin, setSkill, setStance, train, eat, rest,
     SPOT, spotOptions, resolveSpot, ELDER, OMEN, OMEN_IDS, OMEN_DAY, CALM_COST, ACT_NAME, calm, COMBO, combos, BURIED, STAR, EVO, EVO_DESC, kinName, evoCost, evolveKin, GUEST, guestOptions, resolveGuest, convertKind, endKey, convertChance, ransomOf, sacEss, mutChance, dispose, raidInfo, raid, eventOptions, resolveEvent, endDay, beginNight, settle, luxury, avatarOf, score };
