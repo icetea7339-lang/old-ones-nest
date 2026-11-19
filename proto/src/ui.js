@@ -184,7 +184,8 @@ function act(fn, ...a) { const r = fn(G, ...a); UI.confirmEnd = false; render();
 // ---------- 낮 화면 ----------
 function hud() {
   const h = ST.hud || G, need = NEST.K.thresh[G.slime.stage + 1], fg = NEST.fearGrade(G);
-  const stat = (lb, val, sub, tip, cls, style) => `<button class="stat" data-a="stat" title="${esc(tip)}"><span class="lb">${lb}</span> <span class="v"><b class="num ${cls || ''}"${style ? ` style="${style}"` : ''}>${val}</b>${sub || ''}</span></button>`;
+  const IC = { '재물': 'gold', '신앙': 'faith', '공포': 'fear', '정수': 'ess', '먹이': 'food' };
+  const stat = (lb, val, sub, tip, cls, style) => `<button class="stat" data-a="stat" title="${esc(tip)}"><span class="lb">${IC[lb] ? iconImg(IC[lb]) : ''}<span class="lbt">${lb}</span></span> <span class="v"><b class="num ${cls || ''}"${style ? ` style="${style}"` : ''}>${val}</b>${sub || ''}</span></button>`;
   $('hud').innerHTML = `<div class="hud-top"><span class="hud-turn">${G.day}일 <small class="mute">/ ${NEST.K.days} · ${NEST.actOf(G)}막</small>${NEST.isSettle(G) ? '<span class="moon"> ◐<small class="only-pc moontxt"> 달이 기우는 밤</small></span>' : ''}</span>
     <span class="hud-ap"><span class="only-pc">행동 </span><span class="pips">${Array.from({ length: NEST.K.ap }, (_, i) => `<i class="pip${i < G.ap ? '' : ' off'}"></i>`).join('')}</span>${G.d.buildOps ? ` <small class="mute">작업 ${G.d.buildOps}</small>` : ''}</span>
     <span class="row hud-btns only-m">${btn('menu', null, '메뉴', 'sm')}</span></div>
@@ -216,7 +217,7 @@ function tray() {
   const pr = v => ` aria-pressed="${ST.screen === v}"`;
   $('mnav').innerHTML = `<span class="seg"><button class="btn" data-a="view" data-v="under"${pr('under')}>지하</button><button class="btn" data-a="view" data-v="surface"${pr('surface')}>지상</button></span>${btn('core', null, '본체')}${btn('open', { v: 'roster' }, '권속 ' + G.kin.length)}<button class="btn pri end${UI.confirmEnd ? ' warn' : ''}" data-a="endday">${UI.confirmEnd ? `행동 ${G.ap} 남음 · 한 번 더` : (NEST.isSettle(G) ? '◐ ' : '') + '밤 맞기'}</button>`;
 }
-const lifePips = () => { const n = NEST.lives(G), t = NEST.livesMax(G); return '<span class="up">' + '●'.repeat(n) + '</span><span class="mute">' + '○'.repeat(Math.max(0, t - n)) + '</span>'; };
+const lifePips = () => { const n = NEST.lives(G), t = NEST.livesMax(G); return '<span class="hearts" role="img" aria-label="목숨 ' + n + ' / ' + t + '">' + iconImg('life', 18).repeat(n) + iconImg('dead', 18).repeat(Math.max(0, t - n)) + '</span>'; };
 // 지금 이대로 달이 기울면 무엇이 되는가. 겪어 보지 못한 숨은 본체는 이름을 가린다
 function moltGuess() { const asp = NEST.ASPECTS.slice().sort((a, b) => G.slime.ess[b] - G.slime.ess[a] || (a === G.startAsp ? -1 : 0))[0], b = NEST.bodyOf(G); return { asp, name: b ? (META.codex.forms[b] ? NEST.FORM1[b].name : '낯선 무언가') : NEST.FORM1[asp].name }; }
 function slimePanel() {

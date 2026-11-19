@@ -1,0 +1,31 @@
+// 완성도 점검용: 여러 방을 지은 중반 상태의 화면을 찍는다.  node look.js [기기] [이름표]
+const pw = require('playwright'); const fs = require('fs'); const path = require('path');
+const html = fs.readFileSync('/home/user/slime-ipo-design/PLAY-GAME.html', 'utf8');
+const devName = process.argv[2] || '', tag = process.argv[3] || 'look';
+(async () => {
+  const b = await pw.chromium.launch(); let ctx;
+  if (devName) { const dev = Object.assign({}, pw.devices[devName]); delete dev.defaultBrowserType; ctx = await b.newContext(dev); } else ctx = await b.newContext({ viewport: { width: 1366, height: 768 }, deviceScaleFactor: 2 });
+  const p = await ctx.newPage(), errs = []; p.setDefaultTimeout(7000); p.on('pageerror', e => errs.push(e.message));
+  await p.route('http://nest.test/', r => r.fulfill({ contentType: 'text/html', body: html })); await p.route(/fonts\./, r => r.abort());
+  await p.goto('http://nest.test/'); await p.waitForTimeout(400); await p.evaluate(() => { __nest.META.tutDone = true; });
+  const shot = n => p.screenshot({ path: path.join(__dirname, tag + '_' + n + (devName ? '_m' : '') + '.png') });
+  await shot('title');
+  const click = async s => { await p.locator(s).locator('visible=true').first().evaluate(e => e.click()); await p.waitForTimeout(200); };
+  const has = async s => (await p.locator(s).locator('visible=true').count()) > 0;
+  await click('[data-a="new"]'); await click('[data-a="close"][data-v="go"]'); await p.waitForTimeout(250); await click('[data-a="sceneskip"]'); await p.waitForTimeout(250); if (await has('#modal [data-a="close"]')) await click('#modal [data-a="close"]');
+  await p.evaluate(() => { const G = __nest.G, S = __nest.NEST; G.gold = 9000; G.day = 12; G.ap = 99; G.d.buildOps = 99; G.faith = 14; G.fear = 42;
+    const dig = i => { if (!G.cells[i].dug) { G.cells[i].dug = true; G.cells[i].type = 'empty'; } };
+    [0, 1, 2, 6, 7, 8, 12, 13, 14, 18, 11, 17].forEach(dig);
+    const put = (i, t) => { G.cells[i].type = t; G.cells[i].traps = G.cells[i].traps || []; };
+    put(0, 'trap'); G.cells[0].traps = [{ kind: 'spike', lv: 2 }, { kind: 'rock', lv: 1 }]; put(1, 'post'); put(2, 'library'); put(6, 'prison'); put(7, 'hall'); put(8, 'chapel'); put(12, 'shop'); put(13, 'pool'); put(11, 'altar');
+    G.kin = []; const add = (name, kind, lv, loc, evo, parts) => G.kin.push({ id: G.nextId++, name, kind, lv, exp: 0, loc, hurt: 0, skill: 0, age: 3, unpaid: 0, stance: 'hold', evo, parts });
+    add('뼈돌', 'skeleton', 4, 1); add('고블', 'goblin', 3, 1); add('솔', 'cultist', 3, 8); add('비늘', 'scale', 5, 7, true); add('허기', 'hunger', 3, 7); add('그물', 'netter', 2, 7, false, [{ kind: 'warden', lv: 2 }]); add('글', 'scribe', 2, 2); add('호위', 'skeleton', 2, 'core');
+    G.prison = [{ kind: 'militia', vill: 'gaet' }, { kind: 'priest', vill: 'bell' }]; });
+  await click('[data-a="view"][data-v="surface"]'); await click('[data-a="view"][data-v="under"]'); await p.waitForTimeout(600);
+  await shot('day');
+  await click('[data-a="core"]'); await p.waitForTimeout(500); await shot('core');
+  if (await has('#view [data-a="sheet"]')) await click('#view [data-a="sheet"]'); else if (await has('.xbtn')) await click('.xbtn');
+  await click('[data-a="open"][data-v="roster"]'); await p.waitForTimeout(300); await shot('roster'); await click('#modal [data-a="close"]');
+  await click('[data-a="view"][data-v="surface"]'); await p.waitForTimeout(700); await shot('surface');
+  console.log(errs.length ? '오류: ' + errs.join(' / ') : 'no errors'); await b.close();
+})();

@@ -390,6 +390,18 @@ const kinImgM = (m, size) => m.parts && m.parts.length ? toImg(kinCanvasM(m), 'f
 const kinImg = (kind, size, evo) => toImg(kinCanvas(kind, evo), (evo ? 'evo4:' : 'kin3:') + kind, size, NEST.KIN[kind].name);
 const invImg = (kind, size) => toImg(invCanvas(kind), 'inv:' + kind, size, NEST.INV[kind].name);
 const slimeImg = (sl, size, alt) => toImg(slimeCanvas(sl), 'sl4:' + (sl.origin || 'drop') + ':' + (sl.body || '') + ':' + (sl.main || 'base') + ':' + (sl.sub || '') + ':' + sl.stage + ':' + (sl.muts || []).join(','), size, alt || '본체');
+// 현황판의 작은 그림
+const ICON = {
+  gold: [['..yyyyy..', '.yYYYYYy.', 'yYYwYYYYy', 'yYwYYYYdy', 'yYwYYYYdy', 'yYYYYYddy', '.yYYdddy.', '..yyyyy..'], { y: '#8a6a1c', Y: '#e8c030', w: '#fff3a0', d: '#c89a20' }],
+  faith: [['....f....', '...fo....', '...fof...', '..foyof..', '..foyof..', '...ooo...', '..wwwww..', '..wWWWw..', '..wWWWw..'], { f: '#b08fff', o: '#d8c0ff', y: '#ffffff', w: '#8a8296', W: '#d8d4e4' }],
+  fear: [['..sssss..', '.sssssss.', 'ssksssks.', 'sskksskk.', 'sssssssss', '.sssksss.', '..sssss..', '..s.s.s..'], { s: '#ff9a92', k: '#3a1014' }],
+  ess: [['....d....', '...dd....', '...dDd...', '..dDDdd..', '.dDwDDdd.', '.dDwDDDd.', '.ddDDDdd.', '..ddddd..'], { d: '#3f8a9a', D: '#8fe0e8', w: '#ffffff' }],
+  food: [['.rrrr....', 'rRRRRr...', 'rRpRRRr..', 'rRRRRRr..', '.rRRRrw..', '..rrrwWw.', '.....wWWw', '......ww.'], { r: '#7a2028', R: '#d85a5a', p: '#ffb0a8', w: '#b8b0a0', W: '#f0ead8' }],
+  life: [['.rr...rr.', 'rRRr.rRRr', 'rRwRrRRRr', 'rRRRRRRRr', '.rRRRRRr.', '..rRRRr..', '...rRr...', '....r....'], { r: '#8a2028', R: '#ff7d76', w: '#ffd0cc' }],
+  dead: [['.kk...kk.', 'kKKk.kKKk', 'kKKKkKKKk', 'kKKKKKKKk', '.kKKKKKk.', '..kKKKk..', '...kKk...', '....k....'], { k: '#2a2a3c', K: '#4a4e6e' }],
+};
+const iconSrc = {};
+function iconImg(name, size) { if (!iconSrc[name]) { const [rows, pal] = ICON[name], c = document.createElement('canvas'); c.width = 9; c.height = 9; const x = c.getContext('2d'); rows.forEach((row, yy) => { for (let k = 0; k < row.length; k++) if (pal[row[k]]) { x.fillStyle = pal[row[k]]; x.fillRect(k, yy, 1, 1); } }); iconSrc[name] = c.toDataURL(); } return `<img class="px ic" src="${iconSrc[name]}" width="${size || 18}" height="${size || 18}" alt="">`; }
 const echoImg = size => toImg(spriteCanvas('slime', 'echo'), 'echo', size, '잔향');
 
 // ---------- 소리 ----------
