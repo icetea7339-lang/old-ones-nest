@@ -358,6 +358,18 @@ function endingScene(c, key, tier, sl, fr) {
   }
 }
 const toImg = (c, key, size, alt) => `<img class="px" src="${urls[key] || (urls[key] = c.toDataURL())}" width="${size}" height="${size}" alt="${esc(alt || '')}">`;
+// 합체: 붙은 것들이 어깨 뒤로 비죽 나온다. 24×24, 숙주는 아래 가운데
+function kinCanvasM(m) {
+  const parts = (m.parts || []); if (!parts.length) return kinCanvas(m.kind, m.evo);
+  const key = 'fz:' + m.kind + (m.evo ? 'e' : '') + ':' + parts.map(p => p.kind + (p.evo ? 'e' : '')).join('+'); if (cv[key]) return cv[key];
+  const host = kinCanvas(m.kind, m.evo), c = document.createElement('canvas'); c.width = c.height = 24; const x = c.getContext('2d'); x.imageSmoothingEnabled = false;
+  const hx = Math.round((24 - host.width) / 2), hy = 24 - host.height;
+  parts.forEach((p, k) => { const pc = kinCanvas(p.kind, false), w = Math.round(pc.width * 0.7), px0 = k === 0 ? Math.max(0, hx - 5) : Math.min(24 - w, hx + host.width - w + 5), py0 = Math.max(0, hy - 6 + k * 2); x.drawImage(pc, px0, py0, w, w);
+    x.fillStyle = '#5a0c14'; for (let i = 0; i < 4; i++) x.fillRect(px0 + Math.round(w / 2) + (k ? -i : i), py0 + w - 2 + i, 2, 1); x.fillStyle = '#e8505a'; x.fillRect(px0 + Math.round(w / 2) + (k ? -1 : 1), py0 + w - 1, 1, 1); });
+  x.drawImage(host, hx, hy);
+  return (cv[key] = c);
+}
+const kinImgM = (m, size) => m.parts && m.parts.length ? toImg(kinCanvasM(m), 'fz:' + m.kind + (m.evo ? 'e' : '') + ':' + m.parts.map(p => p.kind + (p.evo ? 'e' : '')).join('+'), size, NEST.kinName(m)) : kinImg(m.kind, size, m.evo);
 const kinImg = (kind, size, evo) => toImg(kinCanvas(kind, evo), (evo ? 'evo4:' : 'kin3:') + kind, size, NEST.KIN[kind].name);
 const invImg = (kind, size) => toImg(invCanvas(kind), 'inv:' + kind, size, NEST.INV[kind].name);
 const slimeImg = (sl, size, alt) => toImg(slimeCanvas(sl), 'sl4:' + (sl.origin || 'drop') + ':' + (sl.body || '') + ':' + (sl.main || 'base') + ':' + (sl.sub || '') + ':' + sl.stage + ':' + (sl.muts || []).join(','), size, alt || '본체');

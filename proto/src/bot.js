@@ -52,6 +52,9 @@ function play(seed, st, diff, trace, force) {
       G.cells.forEach((x, i) => { const cap = S.ROOM[x.type].traps || 0; while (x.dug && x.traps.length < cap) { const tk = st.trapOnly ? st.trapOnly.split('+') : null, k = tk ? tk[x.traps.length % tk.length] : G.slime.main === 'dusk' ? 'mist' : (x.traps.some(t => t.kind === 'spike') ? 'acid' : 'spike'); if (!can(S.TRAP[k].cost * c) || !S.addTrap(G, i, k).ok) break; } });
       // 대기 중인 권속 배치
       G.kin.forEach(m => { if (m.loc === null) { const f = S.freeSlot(G, m.kind); if (f !== null) S.moveKin(G, m.id, f); } });
+      // 합체: 자리가 없어 서성이는 권속을 싸우는 권속에게 붙인다
+      if (!process.env.NOFUSE) G.kin.filter(m => m.loc === null && m.kind !== 'spawn' && !(m.parts && m.parts.length)).forEach(b => { if (S.freeSlot(G, b.kind) !== null) return; const hosts = G.kin.filter(m => m.loc !== null && m.kind !== 'spawn' && (m.parts || []).length < S.K.fuse.max).sort((x, y) => y.lv - x.lv); if (hosts.length && can(S.fuseCost(G) + 40 * c) && S.fuseKin(G, hosts[0].id, b.id).ok) info.fuses = (info.fuses || 0) + 1; });
+      if (process.env.AGGFUSE) { let guard2 = 0; while (guard2++ < 6) { const ks = G.kin.filter(m => m.kind !== 'spawn'), mats = ks.filter(m => !(m.parts && m.parts.length)).sort((x, y) => x.lv - y.lv), hosts = ks.filter(m => m.loc !== null && (m.parts || []).length < S.K.fuse.max).sort((x, y) => y.lv - x.lv); if (ks.length <= +process.env.AGGFUSE || !hosts.length || !mats.length || mats[0] === hosts[0] || !can(S.fuseCost(G) + 40 * c) || !S.fuseKin(G, hosts[0].id, mats[0].id).ok) break; } }
       // 곁방: 감옥, 예배당, 징조 시설
       if (G.day >= 3 && G.ap > 0) {
         const sides = S.sideRooms(G), empt = sides.filter(i => G.cells[i].type === 'empty');
@@ -99,7 +102,7 @@ function run(name, n, diff, force) {
     if (G.over && G.over.win) o.win++; else { o.dieDay[G.day] = (o.dieDay[G.day] || 0) + 1; const w = G.over ? G.over.why : '끝나지 않음'; o.why[w] = (o.why[w] || 0) + 1; }
     o.gold += G.gold; o.score += sc.total; o.grades[sc.grade] = (o.grades[sc.grade] || 0) + 1; o.stage[G.slime.stage]++; o.forms[S.formName(G)] = 1;
     for (const k in G.stats.income) o.inc[k] = (o.inc[k] || 0) + G.stats.income[k];
-    o.kills += G.stats.kills; o.caps += G.stats.captives; o.conv += G.stats.converts; o.battles += G.stats.battles; o.repel += G.stats.repels; o.stolen += G.stats.stolen; o.falls = (o.falls || 0) + (G.falls || 0); o.bd = o.bd || {}; o.bdw = o.bdw || {}; { const bk = G.slime.body || (G.slime.main ? '평범' : '허물 전'); o.bd[bk] = (o.bd[bk] || 0) + 1; if (G.over && G.over.win) o.bdw[bk] = (o.bdw[bk] || 0) + 1; } o.tr = o.tr || {}; o.tr[G.origin || 'drop'] = (o.tr[G.origin || 'drop'] || 0) + 1; o.trw = o.trw || {}; if (G.over && G.over.win) o.trw[G.origin || 'drop'] = (o.trw[G.origin || 'drop'] || 0) + 1; o.fellRuns = (o.fellRuns || 0) + (G.falls ? 1 : 0); o.fear += G.fear; o.dug += G.cells.filter(c => c.dug).length; o.kin += G.kin.length; o.muts += G.slime.muts.length;
+    o.kills += G.stats.kills; o.caps += G.stats.captives; o.conv += G.stats.converts; o.battles += G.stats.battles; o.repel += G.stats.repels; o.stolen += G.stats.stolen; o.falls = (o.falls || 0) + (G.falls || 0); o.fz = (o.fz || 0) + (G.stats.fuses || 0); o.bd = o.bd || {}; o.bdw = o.bdw || {}; { const bk = G.slime.body || (G.slime.main ? '평범' : '허물 전'); o.bd[bk] = (o.bd[bk] || 0) + 1; if (G.over && G.over.win) o.bdw[bk] = (o.bdw[bk] || 0) + 1; } o.tr = o.tr || {}; o.tr[G.origin || 'drop'] = (o.tr[G.origin || 'drop'] || 0) + 1; o.trw = o.trw || {}; if (G.over && G.over.win) o.trw[G.origin || 'drop'] = (o.trw[G.origin || 'drop'] || 0) + 1; o.fellRuns = (o.fellRuns || 0) + (G.falls ? 1 : 0); o.fear += G.fear; o.dug += G.cells.filter(c => c.dug).length; o.kin += G.kin.length; o.muts += G.slime.muts.length;
   }
   return o;
 }
@@ -111,6 +114,7 @@ function report(name, n, diff) {
   console.log(`클리어 ${pct(o.win, m)} | 평균 재물 ${Math.round(o.gold / m)} 점수 ${Math.round(o.score / m)} 공포 ${Math.round(o.fear / m)} | 등급 ${Object.entries(o.grades).map(e => e.join(':')).join(' ')}`);
   console.log(`진화 단계 0/1/2/3/4: ${o.stage.map(x => pct(x, m)).join(' / ')} | 본 형태 ${Object.keys(o.forms).length}종 | 변이 ${(o.muts / m).toFixed(1)}`);
   console.log(`수입 비중: ${Object.entries(o.inc).sort((a, b) => b[1] - a[1]).map(e => e[0] + ' ' + pct(e[1], tot)).join(', ')} | 침입자 몫 ${pct(inv, tot)}`);
+  console.log('판당 합체 ' + ((o.fz || 0) / m).toFixed(1) + '회');
   console.log('본체: ' + Object.keys(o.bd || {}).map(k => k + ' ' + o.bd[k] + '판(클리어 ' + Math.round(((o.bdw || {})[k] || 0) / o.bd[k] * 100) + '%)').join(', '));
   console.log('형질: ' + Object.keys(o.tr || {}).map(k => k + ' ' + o.tr[k] + '판(클리어 ' + Math.round(((o.trw || {})[k] || 0) / o.tr[k] * 100) + '%)').join(', '));
   console.log(`판당 전투 ${(o.battles / m).toFixed(1)} 격퇴 ${(o.repel / m).toFixed(1)} 처치 ${(o.kills / m).toFixed(1)} 포로 ${(o.caps / m).toFixed(1)} 개종 ${(o.conv / m).toFixed(1)} 털림 ${Math.round(o.stolen / m)}G 쓰러짐 ${((o.falls || 0) / m).toFixed(2)}회 (쓰러진 판 ${Math.round((o.fellRuns || 0) / m * 100)}%) | 판 칸 ${(o.dug / m).toFixed(1)} 권속 ${(o.kin / m).toFixed(1)}`);

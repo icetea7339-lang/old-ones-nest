@@ -5,7 +5,7 @@ const NEST = (function () {
   const K = {
     days: 40, act: 8, cost: [0, 1, 2, 4, 7, 11], stat: [0, 1, 1.5, 2.4, 3.6, 5], size: [0, 1, 1.3, 1.8, 2.4, 3],
     ap: 2, startGold: 300, faithCap: 30, thresh: [0, 50, 150, 300, 480], tier: [1, 2.5, 6, 11, 18],
-    slime: { hp: 80, atk: 7, df: 5 }, budget: 37, settle: 1.7, rob: 0.5, falls: [0, 2, 2, 2], smell: 0.8, wary: 0.5, tithe: 3, trustMax: 5, trustGain: 0.4, trustCap: [0, 5, 4, 2, 0], trustKills: 3,
+    slime: { hp: 80, atk: 7, df: 5 }, budget: 37, settle: 1.7, rob: 0.5, falls: [0, 2, 2, 2], smell: 0.8, wary: 0.5, tithe: 3, fuse: { max: 2, share: 0.5, cost: 60 }, trustMax: 5, trustGain: 0.4, trustCap: [0, 5, 4, 2, 0], trustKills: 3,
     lvGrowth: 1.15, expBase: 10, expGrowth: 1.3, trainEff: 1.5, hands: 2, corpseCap: 9,
   };
   const ASPECTS = ['abyss', 'nebula', 'brood', 'dusk', 'hunger'];
@@ -91,7 +91,10 @@ const NEST = (function () {
     turncoat: '처치할 때마다 남은 적 전원의 정신력을 깎는다', fallen: '치료량 2배', digger: '공짜 작업 +1번 더', clerk: '시설 유지비 −40%',
     licker: '전투마다 한 번, 쓰러진 아군 하나를 일으킨다', spitter: '싸움 전에 가시를 두 번 쏜다', eyeheap: '눈길이 들어온 적 전원에게 닿는다', tangle: '적 넷을 세 라운드 동안 붙든다',
   };
-  const kinName = m => m.evo && EVO[m.kind] ? EVO[m.kind] : KIN[m.kind].name, evoCost = G => 120 * cm(G);
+  // 합체: 권속 하나가 다른 권속을 몸에 붙인다. 붙은 쪽은 사라지고, 그 능력의 절반이 남는다. 한 몸에 둘까지
+  const FUSE_PRE = { goblin: '팔 넷 달린', skeleton: '뼈 박힌', cultist: '기도하는', scale: '비늘 덮인', scribe: '글자 새겨진', spawn: '움 돋은', mask: '얼굴 둘인', hunger: '입 둘인', netter: '그물 엮인', warden: '열쇠 박힌', turncoat: '칼 박힌', fallen: '후광 깨진', digger: '발톱 달린', clerk: '장부 든', licker: '혀 늘어진', spitter: '가시 돋은', eyeheap: '눈 박힌', tangle: '엉킨' };
+  const baseName = m => m.evo && EVO[m.kind] ? EVO[m.kind] : KIN[m.kind].name;
+  const kinName = m => (m.parts && m.parts.length ? m.parts.map(p => FUSE_PRE[p.kind] || '겹쳐진').join(' ') + ' ' : '') + baseName(m), evoCost = G => 120 * cm(G);
   function evolveKin(G, id) {
     const m = G.kin.find(x => x.id === id); if (!m || !EVO[m.kind]) return fail('진화할 수 없는 권속입니다'); if (m.kind === 'spawn') return fail('움은 나흘을 살아남으면 저절로 자랍니다'); if (m.evo) return fail('이미 진화했습니다'); if (m.lv < 5) return fail('레벨 5부터 진화할 수 있습니다');
     if (G.gold < evoCost(G)) return fail('재물이 부족합니다 (' + evoCost(G) + 'G)'); spend(G, evoCost(G), '권속 진화'); m.evo = true; G.stats.kinEvo = (G.stats.kinEvo || 0) + 1;
@@ -390,9 +393,23 @@ const NEST = (function () {
   }
   function kinStats(G, m) {
     const d = KIN[m.kind], g = Math.pow(K.lvGrowth, m.lv - 1) * (m.rare ? 1.4 : 1) * (m.evo ? 1.5 : 1) * (m.kind === 'spawn' && m.skill === 2 && m.age >= 3 ? 2 : 1) * (m.kind === 'spawn' && pk(G) === 'brood' && G.slime.stage >= 2 ? 1.5 : 1);
-    return { hp: d.hp * g, atk: d.atk * g, df: d.df * g, satk: (d.satk || 0) * g };
+    const o = { hp: d.hp * g, atk: d.atk * g, df: d.df * g, satk: (d.satk || 0) * g };
+    (m.parts || []).forEach(p => { const pd = KIN[p.kind], pg = Math.pow(K.lvGrowth, p.lv - 1) * (p.rare ? 1.4 : 1) * (p.evo ? 1.5 : 1) * K.fuse.share; o.hp += pd.hp * pg; o.atk += pd.atk * pg; o.df += pd.df * pg; o.satk += (pd.satk || 0) * pg; });
+    return o;
   }
-  const salary = (G, m) => G.origin === 'lamp' && m.kind === 'cultist' ? 0 : KIN[m.kind].pay * cm(G) * (1 + 0.1 * m.lv) * (m.evo ? 1.5 : 1) * (G.origin === 'maw' ? 1.3 : 1);
+  const fuseCost = G => K.fuse.cost * cm(G);
+  function fuseWhy(G, a, b) {
+    const A = G.kin.find(m => m.id === a), B = G.kin.find(m => m.id === b); if (!A || !B || A === B) return '없는 권속입니다';
+    if (A.kind === 'spawn') return '움은 다른 것을 붙이지 못합니다'; if ((A.parts || []).length >= K.fuse.max) return '한 몸에 둘까지만 붙습니다'; if (B.parts && B.parts.length) return '이미 합쳐진 권속은 재료가 되지 못합니다';
+    if (G.gold < fuseCost(G)) return '재물이 부족합니다 (' + fuseCost(G) + 'G)'; return null;
+  }
+  function fuseKin(G, a, b) {
+    const why = fuseWhy(G, a, b); if (why) return fail(why); const A = G.kin.find(m => m.id === a), B = G.kin.find(m => m.id === b);
+    spend(G, fuseCost(G), '합체'); (A.parts = A.parts || []).push({ kind: B.kind, lv: B.lv, rare: !!B.rare, evo: !!B.evo, name: B.name }); G.kin = G.kin.filter(m => m !== B); A.hurt = 0;
+    G.stats.fuses = (G.stats.fuses || 0) + 1; say(G, '합체: ' + A.name + ' ← ' + B.name);
+    return { ok: true, msg: A.name + '이(가) ' + B.name + '을(를) 몸에 붙였다 — ' + kinName(A), fused: true };
+  }
+  const salary = (G, m) => (G.origin === 'lamp' && m.kind === 'cultist' ? 0 : KIN[m.kind].pay * cm(G) * (1 + 0.1 * m.lv) * (m.evo ? 1.5 : 1) * (G.origin === 'maw' ? 1.3 : 1)) + (m.parts || []).reduce((x, p) => x + KIN[p.kind].pay * cm(G) * (1 + 0.1 * p.lv) * K.fuse.share, 0);
   const upkeep = G => G.origin === 'root' ? 0 : (G.kin.some(m => m.kind === 'clerk' && m.evo) ? 0.6 : G.kin.some(m => m.kind === 'clerk') ? 0.75 : 1) * (G.cells.filter(c => c.dug && ROOM[c.type].cost > 0 && !c.free).length + G.plots.filter(p => p !== 'none').length) * cm(G);
   function capacity(G) { const c = { core: Math.max(1, 2 + hoardN(G, 'seat') - (G.origin === 'thorn' ? 1 : 0) + (G.slime.body === 'hive' ? 1 : 0)) }; G.cells.forEach((x, i) => { if (x.dug && i !== CORE && ROOM[x.type].def) c[i] = ROOM[x.type].def; }); return c; }
   function freeSlot(G, kind) {
@@ -1067,7 +1084,7 @@ const NEST = (function () {
     return { parts, mult, total, grade: GRADES.find(g => total >= g[1])[0] };
   }
 
-  return { K, ASPECTS, ASP, COLS, ROWS, N, ENT, CORE, nbrs, lives, livesMax, migrate, trading, tradeOf, trustCap, HOARD, hoardN, hoardCost, hoardWhy, hoardBuy, ORIGIN, digCost, SIGN, TRAITS, traitReady, eventInfo, BODY, SUBADJ, bodyOf, pk, ROOM, TRAP, ZONE, PLOT, KIN, SKILL_LV, INV, GRADE_NAME, VILL, VIDS, FORM1, FORM2, FORM2UP, SUBTRAIT, AVATAR, MUT, DIFF, GRADES, EVENTS,
+  return { K, ASPECTS, ASP, COLS, ROWS, N, ENT, CORE, nbrs, lives, livesMax, migrate, trading, tradeOf, trustCap, HOARD, hoardN, hoardCost, hoardWhy, hoardBuy, ORIGIN, digCost, SIGN, TRAITS, traitReady, eventInfo, BODY, SUBADJ, bodyOf, pk, FUSE_PRE, fuseCost, fuseWhy, fuseKin, baseName, ROOM, TRAP, ZONE, PLOT, KIN, SKILL_LV, INV, GRADE_NAME, VILL, VIDS, FORM1, FORM2, FORM2UP, SUBTRAIT, AVATAR, MUT, DIFF, GRADES, EVENTS,
     newGame, actOf, cm, sm, isSettle, formId, formName, essTotal, fearGrade, faithCap, corpseCap, corpsePts, slimeStats, kinStats, salary, upkeep, capacity, freeSlot, prisonCap, handsMax, spellCost, seesDetail, expNeed,
     paths, sideRooms, estimate, partyBudget, canDig, digPreview, dig, toggleBlock, canBuild, buildCost, build, addTrap, trapUpCost, upTrap, setZone, setPlot, accept, acceptCost, dismiss, moveKin, setSkill, setStance, train, eat, rest,
     SPOT, spotOptions, resolveSpot, ELDER, OMEN, OMEN_IDS, OMEN_DAY, CALM_COST, ACT_NAME, calm, COMBO, combos, BURIED, STAR, EVO, EVO_DESC, kinName, evoCost, evolveKin, GUEST, guestOptions, resolveGuest, convertKind, endKey, convertChance, ransomOf, sacEss, mutChance, dispose, raidInfo, raid, eventOptions, resolveEvent, endDay, beginNight, settle, luxury, avatarOf, score };
