@@ -87,6 +87,7 @@ const FEATS = [
   ['first_end', '첫 낙하의 끝', '한 판을 끝까지 한다 (이기든 지든)', '별자리 셋 (닻, 주머니, 솥)', () => !!G.over],
   ['first_win', '깨어난 것', '처음으로 깨어난다', '황혼의 별자리 둘, 깊은 각성', () => !!G.over && G.over.win],
   ['win2', '두 번째 물음표', '두 번 깨어난다', '성운의 별자리 둘, 끝없는 밤', () => !!G.over && G.over.win && META.clears >= 1],
+  ['body1', '낯선 허물', '숨은 본체로 첫 허물을 벗는다', '별가루', () => !!G.slime.body],
   ['trait1', '덧난 것', '몸에 형질이 하나 돋는다', '별가루', () => !!G.origin && G.origin !== 'drop'],
   ['trait5', '여덟 갈래', '형질 여덟을 모두 겪는다', '별가루', () => Object.keys(META.codex.traits || {}).length >= NEST.TRAITS.length],
   ['dig8', '개미굴', '한 판에 8칸을 판다', '별가루', () => (G.stats.dug || 0) >= 8],
@@ -203,6 +204,8 @@ function tray() {
   $('mnav').innerHTML = `<span class="seg"><button class="btn" data-a="view" data-v="under"${pr('under')}>지하</button><button class="btn" data-a="view" data-v="surface"${pr('surface')}>지상</button></span>${btn('core', null, '본체')}${btn('open', { v: 'roster' }, '권속 ' + G.kin.length)}<button class="btn pri end${UI.confirmEnd ? ' warn' : ''}" data-a="endday">${UI.confirmEnd ? `행동 ${G.ap} 남음 · 한 번 더` : (NEST.isSettle(G) ? '◐ ' : '') + '밤 맞기'}</button>`;
 }
 const lifePips = () => { const n = NEST.lives(G), t = NEST.livesMax(G); return '<span class="up">' + '●'.repeat(n) + '</span><span class="mute">' + '○'.repeat(Math.max(0, t - n)) + '</span>'; };
+// 지금 이대로 달이 기울면 무엇이 되는가. 겪어 보지 못한 숨은 본체는 이름을 가린다
+function moltGuess() { const asp = NEST.ASPECTS.slice().sort((a, b) => G.slime.ess[b] - G.slime.ess[a] || (a === G.startAsp ? -1 : 0))[0], b = NEST.bodyOf(G); return { asp, name: b ? (META.codex.forms[b] ? NEST.FORM1[b].name : '낯선 무언가') : NEST.FORM1[asp].name }; }
 function slimePanel() {
   const sl = G.slime, s = NEST.slimeStats(G), need = NEST.K.thresh[sl.stage + 1], tot = NEST.essTotal(G), max = Math.max(1, ...NEST.ASPECTS.map(a => sl.ess[a]), need ? need / 2 : 1), O = NEST.ORIGIN[G.origin || 'drop'];
   const guards = G.kin.filter(m => m.loc === 'core'), bench = G.kin.filter(m => m.loc === null), cap = NEST.capacity(G).core, A = NEST.K.act;
@@ -210,11 +213,11 @@ function slimePanel() {
   let h = phead(esc(NEST.formName(G)), STAGE_NAME[sl.stage]) + `<div class="slime-top">${slimeImg(sl, 72, NEST.formName(G))}<div class="stack"><p class="small">체력 ${R(sl.hp)}/${R(s.hp)} · 공격 ${R(s.atk)} · 방어 ${R(s.df)}</p>${bar(sl.hp / s.hp)}<p class="small">목숨 ${lifePips()}${G.origin && G.origin !== 'drop' ? ` <span class="chip on">${O.name}</span>` : ''}</p></div></div>
     <div class="row nw">${btn('eat', null, `포식 <small>행동 1 · 먹이 ${G.corpses.length}/${NEST.corpseCap(G)}</small>`, 'pri grow', !G.corpses.length)}${btn('rest', null, '휴식 <small>행동 1</small>', 'grow')}</div>${tabsHtml('core', list, tab)}<div class="tb">`;
   if (tab === 'ess') h += `<div class="pts">${NEST.ASPECTS.map(a => `<span style="color:${ASPCOL[a]}">${NEST.ASP[a]}</span>${bar(sl.ess[a] / max, ASPCOL[a])}<span class="num">${sl.ess[a]}</span>`).join('')}</div>
-    <p class="small"><b>합 ${tot}${need ? ' / ' + need : ''}</b> <span class="mute">${sl.stage === 0 ? A + '일째 밤에 기준을 넘으면, 가장 많은 징조로 첫 허물을 벗는다.' : sl.stage === 1 ? A * 2 + '일째 밤, 두 번째로 많은 징조가 섞인다.' : sl.stage === 2 ? A * 3 + '일째 밤에 기준을 넘으면 세 번째 허물을 벗는다.' : sl.stage === 3 ? A * 4 + '일째 밤에 기준을 넘으면 성체가 된다.' : '다 자랐다. 별이 서기를 기다린다.'}</span></p>
+    <p class="small"><b>합 ${tot}${need ? ' / ' + need : ''}</b> <span class="mute">${sl.stage === 0 ? A + '일째 밤에 기준을 넘으면 첫 허물을 벗는다. 이대로면 <b style="color:' + ASPCOL[moltGuess().asp] + '">「' + moltGuess().name + '」</b>.' : sl.stage === 1 ? A * 2 + '일째 밤, 두 번째로 많은 징조가 섞인다.' : sl.stage === 2 ? A * 3 + '일째 밤에 기준을 넘으면 세 번째 허물을 벗는다.' : sl.stage === 3 ? A * 4 + '일째 밤에 기준을 넘으면 성체가 된다.' : '다 자랐다. 별이 서기를 기다린다.'}</span></p>
     <div class="sec">먹이 <small>포식하면 ${sl.muts.includes('mouth') ? 6 : 3}구씩 정수가 된다</small></div><div class="row">${G.corpses.map(c => aspChip(NEST.INV[c.kind].asp, NEST.INV[c.kind].name + ' +' + NEST.corpsePts(G, c.kind))).join('') || '<span class="mute small">없음. 쓰러뜨린 침입자가 먹이가 된다.</span>'}</div>`;
   if (tab === 'pow') {
     h += `<div class="kv small">${G.origin && G.origin !== 'drop' ? `<span class="chip on">${O.name}</span><span><span class="okc">${esc(O.good)}</span> · <span class="up">${esc(O.bad)}</span></span>` : '<span class="chip">형질 없음</span><span class="mute">하는 짓에 따라 몸에 무언가 돋을 수 있다. 한 판에 하나.</span>'}`;
-    if (sl.stage >= 1) { const sp = NEST.FORM1[sl.main].spell; h += `${aspChip(sl.main, NEST.FORM1[sl.main].name)}<span>${esc(sl.stage >= 2 ? NEST.FORM2UP[sl.main] : NEST.FORM1[sl.main].skill)}</span><span class="chip" style="border-color:#c8a8ff;color:#c8a8ff">주문 ${sp[0]}</span><span>${esc(sp[2])} <span class="mute">(신앙 ${NEST.spellCost(G)})</span></span>`; }
+    if (sl.stage >= 1) { const bk = NEST.pk(G), sp = NEST.FORM1[bk].spell; h += `${aspChip(sl.main, NEST.FORM1[bk].name)}<span>${esc(NEST.FORM1[bk].skill)}${sl.stage >= 2 ? ' · <b>' + esc(NEST.FORM2UP[bk]) + '</b>' : ''}</span><span class="chip" style="border-color:#c8a8ff;color:#c8a8ff">주문 ${sp[0]}</span><span>${esc(sp[2])} <span class="mute">(신앙 ${NEST.spellCost(G)})</span></span>`; }
     if (sl.stage >= 2) h += `${aspChip(sl.sub, NEST.ASP[sl.sub] + ' 섞임')}<span>${esc(NEST.SUBTRAIT[sl.sub])}</span>`;
     h += sl.muts.map(m => `${aspChip(NEST.MUT[m].asp, NEST.MUT[m].name)}<span>${esc(NEST.MUT[m].desc)}</span>`).join('') + '</div>';
     if (sl.stage === 0) h += '<p class="small mute">아직 형체가 없다. 허물을 벗으면 능력과 손 주문이 생기고, 그때마다 변이가 하나씩 돋는다.</p>';
@@ -386,8 +389,9 @@ function settleHtml(b, st, day) {
 }
 function evoHtml(st, before) {
   const sl = G.slime, lines = [];
-  if (sl.stage === 1) { lines.push(NEST.FORM1[sl.main].skill); lines.push('손 주문 「' + NEST.FORM1[sl.main].spell[0] + '」: ' + NEST.FORM1[sl.main].spell[2]); lines.push(NEST.ASP[sl.main] + ' 징조 전용 시설과 영역을 지을 수 있다'); }
-  if (sl.stage === 2) { lines.push(NEST.FORM2UP[sl.main]); lines.push(NEST.ASP[sl.sub] + ' 섞임: ' + NEST.SUBTRAIT[sl.sub]); }
+  const bk = NEST.pk(G);
+  if (sl.stage === 1) { if (sl.body) lines.push('평범한 허물이 아니다. ' + NEST.BODY[sl.body].hint + ' 이렇게 된다'); lines.push(NEST.FORM1[bk].skill); lines.push('손 주문 「' + NEST.FORM1[bk].spell[0] + '」: ' + NEST.FORM1[bk].spell[2]); lines.push(NEST.ASP[sl.main] + ' 징조 전용 시설과 영역을 지을 수 있다'); }
+  if (sl.stage === 2) { lines.push(NEST.FORM2UP[bk]); lines.push(NEST.ASP[sl.sub] + ' 섞임: ' + NEST.SUBTRAIT[sl.sub]); }
   if (sl.stage === 3) lines.push('몸 밖으로 무언가가 뻗어 나온다. 체력·공격·방어가 크게 오른다');
   if (sl.stage === 4) lines.push('다 자랐다. 굴 하나가 몸으로 가득 찬다. 체력·공격·방어가 다시 크게 오른다');
   return `<div class="mbody evo" style="align-items:center;text-align:center"><p class="mute">${STAGE_NAME[sl.stage]}</p><div class="row" style="justify-content:center;gap:20px">${slimeImg(before, 64, '이전 모습')}<span class="h3 mute">→</span>${slimeImg(sl, 128, NEST.formName(G))}</div><h2 style="font-size:28px;color:${ASPCOL[sl.main]}">${esc(NEST.formName(G))}</h2><div class="row" style="justify-content:center">${aspChip(sl.main, '주 ' + NEST.ASP[sl.main])}${sl.sub ? aspChip(sl.sub, '부 ' + NEST.ASP[sl.sub]) : ''}</div>${lines.map(l => `<p class="small">${esc(l)}</p>`).join('')}${st.mut ? `<p class="small">${aspChip(NEST.MUT[st.mut].asp, '변이: ' + NEST.MUT[st.mut].name)} ${esc(NEST.MUT[st.mut].desc)}</p>` : ''}<p class="small up">인간들 사이에 소문이 돈다. 공포 +10</p></div><div class="mfoot">${btn('close', null, '좋다', 'pri big')}</div>`;
@@ -482,10 +486,11 @@ function traitHtml(before) {
 }
 function codexHtml() {
   const seen = META.codex.forms, node = (id, sl, name) => `<div class="node${seen[id] ? '' : ' unk'}">${slimeImg(sl, 48)}<span>${seen[id] ? esc(name) : '???'}</span></div>`, tr = META.codex.traits || {};
-  const list = [['sign', '별자리'], ['form', '모습'], ['trait', '형질'], ['mut', '변이'], ['end', '결말']], tab = curTab('codex', list), ca = NEST.ASPECTS.includes(UI.tab.codexAsp) ? UI.tab.codexAsp : NEST.ASPECTS[0];
+  const list = [['sign', '별자리'], ['form', '모습'], ['trait', '형질'], ['mut', '변이'], ['end', '결말']], tab = curTab('codex', list), ca = NEST.ASPECTS.includes(UI.tab.codexAsp) || UI.tab.codexAsp === 'hid' ? UI.tab.codexAsp : NEST.ASPECTS[0], HB = Object.keys(NEST.BODY);
   let b = tabsHtml('codex', list, tab) + '<div class="tb">';
   if (tab === 'sign') b += pager('signs', Object.keys(NEST.SIGN), isMobile() ? 6 : 10, items => `<div class="codex">${items.map(k => { const sg = NEST.SIGN[k], op = signOpen(k); return `<div class="node${op ? '' : ' lockd'}" title="${esc(NEST.STAR[sg.star].desc)}">${signSvg(k, 84)}<span${op ? ` style="color:${ASPCOL[sg.asp]}"` : ''}>${op ? sg.name : '???'}</span><span class="mute">${op ? NEST.STAR[sg.star].name : SIGN_NEED[sg.need]}</span></div>`; }).join('')}</div>`) + `<p class="small mute">뜬 별자리 ${signPool().length}/${Object.keys(NEST.SIGN).length}. 어느 별자리에서 떨어질지는 고르지 못한다. 별자리마다 품고 오는 조각과 규칙이 다르다.</p>`;
-  if (tab === 'form') b += tabsHtml('codexAsp', NEST.ASPECTS.map(a => [a, `<span style="color:${ASPCOL[a]}">${NEST.ASP[a]}</span>`]), ca, true) + `<div class="codex">${ca === NEST.ASPECTS[0] ? node('base', { stage: 0, muts: [] }, '옛 것?') : ''}${node(ca, { main: ca, stage: 1, muts: [] }, NEST.FORM1[ca].name)}${NEST.ASPECTS.filter(x => x !== ca).map(x => node(ca + '_' + x, { main: ca, sub: x, stage: 2, muts: [] }, NEST.FORM2[ca + '_' + x])).join('')}</div><p class="small mute">첫 허물은 가장 많이 먹은 징조로, 두 번째는 그다음으로 많은 징조가 섞여 정해진다.</p>`;
+  if (tab === 'form' && ca === 'hid') b += tabsHtml('codexAsp', NEST.ASPECTS.map(a => [a, `<span style="color:${ASPCOL[a]}">${NEST.ASP[a]}</span>`]).concat([['hid', '숨은 것']]), ca, true) + `<div class="codex">${HB.map((k, n) => node(k, { body: k, main: NEST.ASPECTS[(n * 2) % 5], stage: 1, muts: [] }, NEST.FORM1[k].name)).join('')}</div><div class="frow small">${HB.map(k => seen[k] ? `<span class="chip on">${NEST.FORM1[k].name}</span><span>${esc(NEST.BODY[k].hint)} · <span class="okc">${esc(NEST.FORM1[k].skill)}</span></span>` : '<span class="chip">???</span><span class="mute">아직 이 몸으로 허물을 벗어 본 적이 없다</span>').join('')}</div><p class="small mute">징조가 아니라 첫 허물을 벗을 때의 형편이 정하는 몸. 색과 전용 시설은 가장 많이 먹은 징조를 따른다.</p>`;
+  else if (tab === 'form') b += tabsHtml('codexAsp', NEST.ASPECTS.map(a => [a, `<span style="color:${ASPCOL[a]}">${NEST.ASP[a]}</span>`]).concat([['hid', '숨은 것']]), ca, true) + `<div class="codex">${ca === NEST.ASPECTS[0] ? node('base', { stage: 0, muts: [] }, '옛 것?') : ''}${node(ca, { main: ca, stage: 1, muts: [] }, NEST.FORM1[ca].name)}${NEST.ASPECTS.filter(x => x !== ca).map(x => node(ca + '_' + x, { main: ca, sub: x, stage: 2, muts: [] }, NEST.FORM2[ca + '_' + x])).join('')}</div><p class="small mute">첫 허물은 가장 많이 먹은 징조로, 두 번째는 그다음으로 많은 징조가 섞여 정해진다.</p>`;
   if (tab === 'trait') b += `<div class="codex" style="grid-template-columns:repeat(${isMobile() ? 4 : 8},minmax(0,1fr))">${NEST.TRAITS.map(k => `<div class="node${tr[k] ? '' : ' unk'}">${slimeImg({ origin: k, main: 'abyss', stage: 1, muts: [] }, isMobile() ? 44 : 56)}<span>${tr[k] ? NEST.ORIGIN[k].name : '???'}</span></div>`).join('')}</div>` + pager('traits', NEST.TRAITS, 4, items => `<div class="frow small">${items.map(k => { const O = NEST.ORIGIN[k]; return tr[k] ? `<span class="chip on">${O.name}</span><span>${esc(O.ev[2])} · <span class="okc">${esc(O.good)}</span></span>` : `<span class="chip">???</span><span class="mute">아직 돋아 본 적이 없다</span>`; }).join('')}</div>`) + `<p class="small mute">겪은 형질 ${Object.keys(tr).length}/${NEST.TRAITS.length}. 판을 하다 보면 하는 짓에 따라 몸에 돋는다. 한 판에 하나.</p>`;
   if (tab === 'mut') b += `<div class="sec">변이 <small>${Object.keys(META.codex.muts).length}/${Object.keys(NEST.MUT).length}</small></div><div class="row">${Object.keys(NEST.MUT).map(m => META.codex.muts[m] ? aspChip(NEST.MUT[m].asp, NEST.MUT[m].name) : '<span class="chip mute">???</span>').join('')}</div><div class="sec">방 조합</div><div class="row">${Object.keys(NEST.COMBO).map(k => META.codex.combos[k] ? `<span class="chip on">${NEST.COMBO[k].name}</span>` : '<span class="chip mute">???</span>').join('')}</div>`;
   if (tab === 'end') b += `<p class="small mute">같은 모습이라도 점수에 따라 결말이 셋으로 갈린다.</p>${NEST.ASPECTS.map(a => `<p class="small row"><span style="color:${ASPCOL[a]}">${NEST.ASP[a]}</span> ${ENDING3[a].map((e, i) => META.codex.ends[a + i] ? `<span class="chip on">${e[0]}</span>` : '<span class="chip mute">???</span>').join(' ')}</p>`).join('')}<div class="sec">깨어난 모습</div><div class="row">${Object.keys(NEST.AVATAR).map(k => META.codex.ends[k] ? `<span class="chip on">${NEST.AVATAR[k]}</span>` : '<span class="chip mute">???</span>').join('')}</div>`;
@@ -503,7 +508,8 @@ const HELP = [
   ['hoard', '탐식', '본체 창에서 재물을 쓴다. 삼키면 본체가 불어나고(값이 매번 오른다), 호위 자리와 목숨을 살 수 있고, 4막부터는 마지막 밤의 무리를 약하게 만들 수 있다. 쌓아만 둔 재물은 인간을 부르고 쓰러지면 절반을 털린다.'],
   ['omen', '징조', `${NEST.OMEN_DAY}일째부터 다 자란 옛 것 하나가 지켜본다. 밤이 지나면 내일의 징조가 정해진다. 징조는 좋은 쪽과 나쁜 쪽이 한 쌍이고, 그것이 좋아하는 짓을 하면 좋은 쪽만, 싫어하는 짓을 하면 나쁜 쪽만 온다. 나쁜 쪽은 신앙 6으로 달랠 수 있다.`],
   ['night', '밤', '싸움은 알아서 한다. 달이 기우는 밤에는 싸움 직전에 멈추고 손을 쓸 수 있다: 채찍, 옮기기, 손 주문(신앙 소모). 설정에서 멈추는 때를 바꾼다. 공포와 재물은 둘 다 더 많고 더 강한 인간을 부른다. 강한 인간은 더 좋은 먹이이기도 하다.'],
-  ['who', '별자리와 형질', '판을 시작하면 어느 별자리에서 떨어졌는지가 정해져 있다. 고르지 못한다. 별자리가 품고 오는 조각(징조)과 판의 규칙 하나를 정한다. 처음에는 누구나 「옛 것?」이다. 판을 하다 보면 하는 짓에 따라 사건이 찾아와 몸에 형질이 돋는다: 많이 맞으면 껍데기, 굴을 많이 파면 뿌리, 많이 먹으면 입, 신도를 모으면 등불, 재물을 쌓으면 금화, 함정을 많이 깔면 가시, 포로를 많이 잡으면 사슬, 마을을 자주 습격하면 그림자. 형질마다 장점과 단점이 하나씩 있고, 한 판에 하나만 돋는다. 싫으면 긁어낼 수 있다.'],
+  ['sign', '별자리', '판을 시작하면 어느 별자리에서 떨어졌는지가 정해져 있다. 고르지 못한다. 별자리가 품고 오는 조각(징조)과 판의 규칙 하나를 정한다. 판을 끝내야 하늘이 바뀌고, 별가루로 다시 뽑을 수도 있다.'],
+  ['who', '본체와 형질', '처음에는 누구나 「옛 것?」이다. 첫 허물은 보통 가장 많이 먹은 징조의 몸이 되지만, 그때의 형편에 따라 숨은 본체가 되기도 한다. 본체 창의 정수 탭에 "이대로면 무엇이 되는지"가 나온다. 또 판을 하다 보면 하는 짓에 따라 사건이 찾아와 몸에 형질이 돋는다(껍데기, 뿌리, 입, 등불, 금화, 가시, 사슬, 그림자). 형질마다 장점과 단점이 하나씩 있고, 한 판에 하나만 돋는다. 무엇이 어떻게 돋는지는 겪어 본 것만 도감에 적힌다.'],
   ['lock', '흔적과 해금', '처음에는 일부 시설·함정·별자리·깊이가 잠겨 있다. 처음 해 보는 일(첫 포로, 첫 진화…)이 흔적으로 남아 그것들을 연다. 무엇이 무엇을 여는지는 타이틀의 "기록 → 흔적"에 있다. 설정에서 전부 열어 둘 수도 있다.'],
   ['etc', '그 밖에', '어떤 시설은 맞닿게 지으면 하나처럼 움직인다(건설 목록의 ★). 굴을 파다 보면 묻힌 것이 나온다. 가끔은 싸우러 오지 않는 밤 손님이 온다. 큰 밤의 우두머리는 판마다 다르고, 미리 보인다. 위쪽 숫자(재물·신앙·공포…)를 누르면 뜻이 나온다.'],
 ];
@@ -572,7 +578,7 @@ async function endDay() {
   if (busy || !G || G.over) return;
   if (G.ap > 0 && !UI.confirmEnd) { UI.confirmEnd = true; render(); return; }
   busy = true; UI.confirmEnd = false; UI.sel = null; if (!$('modal').hidden) closeModal(); toast(null);
-  const day = G.day, tonight = G.march.tonight, before = { origin: G.origin, main: G.slime.main, sub: G.slime.sub, stage: G.slime.stage, muts: G.slime.muts.slice() };
+  const day = G.day, tonight = G.march.tonight, before = { origin: G.origin, body: G.slime.body, main: G.slime.main, sub: G.slime.sub, stage: G.slime.stage, muts: G.slime.muts.slice() };
   ST.hud = { gold: G.gold, faith: G.faith, fear: G.fear }; ST.skip = false; setNight(true); hud();
   const it = NEST.beginNight(G); prepareNight(); let rep = null;
   if (!tonight) { it.next(); nlog('아무도 오지 않았다.'); ST.label = '조용한 밤'; await wait(1100); ST.label = ''; }
@@ -684,7 +690,7 @@ function onAction(el) {
   if (a === 'rest') return void act(NEST.rest);
   if (a === 'dispose') { const r = act(NEST.dispose, num('i'), d.how); if (r.mut) { sfx('evo'); ST.flash = now() + 200; } return; }
   if (a === 'raid') { const r = act(NEST.raid, d.v, num('l')); if (r.ok) { ST.shake = now() + 300; sfx('trap'); if (isMobile()) { UI.sel = null; render(); toast(r); } } return; }
-  if (a === 'event') { const was = G.event ? G.event.id : '', o0 = G.origin, before = { origin: G.origin, main: G.slime.main, sub: G.slime.sub, stage: G.slime.stage, muts: G.slime.muts.slice() }, r = act(NEST.resolveEvent, num('i')); if (r.ok) { closeModal(); if (was.startsWith('trait_') && G.origin !== o0) { META.codex.traits[G.origin] = 1; saveMeta(); sfx('evo'); ST.flash = now() + 250; modal(traitHtml(before), false, 'trait'); } } return; }
+  if (a === 'event') { const was = G.event ? G.event.id : '', o0 = G.origin, before = { origin: G.origin, body: G.slime.body, main: G.slime.main, sub: G.slime.sub, stage: G.slime.stage, muts: G.slime.muts.slice() }, r = act(NEST.resolveEvent, num('i')); if (r.ok) { closeModal(); if (was.startsWith('trait_') && G.origin !== o0) { META.codex.traits[G.origin] = 1; saveMeta(); sfx('evo'); ST.flash = now() + 250; modal(traitHtml(before), false, 'trait'); } } return; }
 }
 function stagePoint(e) { const b = $('stage').getBoundingClientRect(), u = b.height / H; return [(e.clientX - b.left) / u - ST.ox + ST.cam.x, (e.clientY - b.top) / u + (ST.cam.y || 0)]; }
 function tipFor(h) {

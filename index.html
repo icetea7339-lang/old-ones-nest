@@ -510,8 +510,20 @@ const NEST = (function () {
     brood: { name: '불어나는 것', skill: '매일 아침 움 1마리 (최대 6)', spell: ['급속 부화', 5, '이 싸움에 움 3마리를 불러낸다'] },
     dusk: { name: '속삭이는 것', skill: '본체를 본 적의 정신력 피해 2배, 무릎 꿇음 +15%p', spell: ['환영', 8, '무리 전원의 정신력을 크게 깎는다'] },
     hunger: { name: '씹는 것', skill: '본체 공격 +30%, 처치할 때마다 공격 +10%', spell: ['한 입', 8, '가장 튼튼한 적에게 본체 공격 4배 피해. 쓰러지면 바로 먹는다'] },
+    // 숨은 본체: 징조가 아니라 첫 허물을 벗을 때의 형편이 정한다. 색과 전용 시설은 가장 많이 먹은 징조를 따른다
+    hive: { name: '여럿인 것', skill: '권속 한 명마다 본체 공격 +5%, 호위 자리 +1, 살아 있는 호위 하나마다 본체가 받는 피해 −8%', spell: ['부름', 5, '이 싸움 동안 이 방 권속의 공격 +50%'] },
+    idol: { name: '받들린 것', skill: '본체 방어 +40%. 본체를 때린 자는 정신력이 깎인다. 신앙 상한 +20, 매일 신앙 +2', spell: ['후광', 7, '무리 전원이 두 라운드 동안 움직이지 못한다'] },
+    mix: { name: '뒤엉킨 것', skill: '본체가 매 라운드 무작위 적 둘을 더 친다 (70% 세기)', spell: ['뒤집기', 6, '무리의 절반이 옆 사람을 한 번씩 친다'] },
   };
-  const FORM2UP = { abyss: '피해 −45%, 회복 8%', nebula: '개입 +2, 주문 신앙 −2', brood: '움 하루 2마리, 움 능력치 +50%', dusk: '무릎 꿇음 +30%p, 달아난 광란자가 공포를 올리지 않음', hunger: '처치당 공격 +20%, 포식 정수 +1' };
+  const SUBADJ = { abyss: '젖은', nebula: '빛나는', brood: '불어나는', dusk: '속삭이는', hunger: '씹는' };
+  const BODY = {
+    hive: { noun: '무리', hint: '권속 열둘 이상을 거느린 채 첫 허물을 벗으면', cond: G => G.kin.filter(m => m.kind !== 'spawn').length >= 12 },
+    idol: { noun: '우상', hint: '신앙 33 이상을 쌓은 채 첫 허물을 벗으면', cond: G => G.faith >= 33 },
+    mix: { noun: '뒤엉킴', hint: '두 징조를 거의 같게 먹은 채 첫 허물을 벗으면', cond: G => { const e = ASPECTS.map(a => G.slime.ess[a]).sort((a, b) => b - a); return e[1] >= e[0] * 0.85; } },
+  };
+  const bodyOf = G => typeof process !== 'undefined' && process.env.FORCEBODY ? (BODY[process.env.FORCEBODY] ? process.env.FORCEBODY : null) : Object.keys(BODY).find(k => (typeof process === 'undefined' || !process.env.ONLYBODY || process.env.ONLYBODY === k) && BODY[k].cond(G)) || null;
+  const pk = G => G.slime.body || G.slime.main;   // 능력과 손 주문을 정하는 몸
+  const FORM2UP = { abyss: '피해 −45%, 회복 8%', nebula: '개입 +2, 주문 신앙 −2', brood: '움 하루 2마리, 움 능력치 +50%', dusk: '무릎 꿇음 +30%p, 달아난 광란자가 공포를 올리지 않음', hunger: '처치당 공격 +20%, 포식 정수 +1', hive: '권속 한 명마다 +7% (최대 +105%)', idol: '때린 자의 정신력이 훨씬 크게 깎인다', mix: '더 치는 횟수가 셋' };
   const SUBTRAIT = { abyss: '본체가 쓰러졌을 때 털리는 재물 −40%', nebula: '다가오는 무리의 자세한 구성이 보인다', brood: '다친 권속이 쉬지 않고 복귀 (하루 2명)', dusk: '개종 성공률 +20%p', hunger: '시체 정수 +1' };
   const FORM2 = {
     abyss_nebula: '조수의 눈', abyss_brood: '알 품는 웅덩이', abyss_dusk: '익사자의 노래', abyss_hunger: '삼키는 소용돌이',
@@ -618,15 +630,15 @@ const NEST = (function () {
   const has = (G, m) => G.slime.muts.includes(m);
   const hasRoom = (G, t) => G.cells.some((c, i) => c.dug && c.type === t && !G.off[i]);
   const countRoom = (G, t) => G.cells.filter(c => c.dug && c.type === t).length;
-  const formId = G => G.slime.stage === 0 ? 'base' : G.slime.stage === 1 ? G.slime.main : G.slime.main + '_' + G.slime.sub;
-  const formName = G => G.slime.stage === 0 ? ((G.origin && ORIGIN[G.origin]) || ORIGIN.drop).title : G.slime.stage === 1 ? FORM1[G.slime.main].name : (G.slime.stage === 3 ? '겹쳐진 ' : G.slime.stage >= 4 ? '거대한 ' : '') + FORM2[formId(G)];
+  const formId = G => G.slime.stage === 0 ? 'base' : G.slime.stage === 1 ? pk(G) : pk(G) + '_' + G.slime.sub;
+  const formName = G => G.slime.stage === 0 ? ((G.origin && ORIGIN[G.origin]) || ORIGIN.drop).title : G.slime.stage === 1 ? FORM1[pk(G)].name : (G.slime.stage === 3 ? '겹쳐진 ' : G.slime.stage >= 4 ? '거대한 ' : '') + (G.slime.body ? SUBADJ[G.slime.sub] + ' ' + BODY[G.slime.body].noun : FORM2[formId(G)]);
   const essTotal = G => ASPECTS.reduce((a, k) => a + G.slime.ess[k], 0);
   const fearGrade = G => G.fear < 25 ? 1 : G.fear < 60 ? 2 : G.fear < 110 ? 3 : 4;
-  const faithCap = G => K.faithCap + 20 * countRoom(G, 'chapel') + (G.faithBonus || 0);
+  const faithCap = G => K.faithCap + 20 * countRoom(G, 'chapel') + (G.faithBonus || 0) + (G.slime.body === 'idol' ? 20 : 0);
   const addFaith = (G, x) => { G.faith = clamp(G.faith + x, 0, faithCap(G)); };
   const addEss = (G, asp, x) => { G.slime.ess[asp] += G.star === 'glass' ? Math.round(x * 1.2) : x; };
   const corpseCap = G => K.corpseCap + (hasRoom(G, 'table') ? 6 : 0);
-  const corpsePts = (G, kind) => Math.floor((G.origin === 'maw' ? 1.25 : 1) * INV[kind].g * 2) + (has(G, 'steelgut') ? 1 : 0) + (hasRoom(G, 'abattoir') ? 1 : 0) + (G.slime.stage >= 2 && (G.slime.main === 'hunger' || G.slime.sub === 'hunger') ? 1 : 0);
+  const corpsePts = (G, kind) => Math.floor((G.origin === 'maw' ? 1.25 : 1) * INV[kind].g * 2) + (has(G, 'steelgut') ? 1 : 0) + (hasRoom(G, 'abattoir') ? 1 : 0) + (G.slime.stage >= 2 && (pk(G) === 'hunger' || G.slime.sub === 'hunger') ? 1 : 0);
   function addCorpse(G, kind) { G.corpses.push({ kind }); while (G.corpses.length > corpseCap(G)) G.corpses.shift(); }
   function eatN(G, n) { const out = {}; G.corpses.splice(0, n).forEach(c => { const a = INV[c.kind].asp, p = corpsePts(G, c.kind); addEss(G, a, p); out[a] = (out[a] || 0) + p; }); return Object.keys(out).map(a => ASP[a] + ' +' + out[a]).join(', '); }
 
@@ -739,15 +751,15 @@ const NEST = (function () {
   }
   function slimeStats(G) {
     const t = K.tier[G.slime.stage], m = G.slime.main;
-    const x = G.star === 'lone' ? 1.1 : 1, g = hoardN(G, 'gulp'), gh = 1 + HOARD.gulp.hp * g, ga = 1 + HOARD.gulp.atk * g, O = ORIGIN[org(G)]; return { hp: K.slime.hp * t * x * (G.star === 'glass' ? 0.5 : 1) * gh * (O.hp || 1), atk: K.slime.atk * t * x * (m === 'hunger' ? 1.3 : 1) * ga * (O.atk || 1), df: K.slime.df * t * x * ga * (O.df || 1) };
+    const x = G.star === 'lone' ? 1.1 : 1, g = hoardN(G, 'gulp'), gh = 1 + HOARD.gulp.hp * g, ga = 1 + HOARD.gulp.atk * g, O = ORIGIN[org(G)]; return { hp: K.slime.hp * t * x * (G.star === 'glass' ? 0.5 : 1) * gh * (O.hp || 1), atk: K.slime.atk * t * x * (pk(G) === 'hunger' ? 1.3 : 1) * (G.slime.body === 'hive' ? 1 + (G.slime.stage >= 2 ? 0.07 : 0.05) * Math.min(15, G.kin.filter(q => q.kind !== 'spawn').length) : 1) * ga * (O.atk || 1), df: K.slime.df * t * x * ga * (O.df || 1) * (G.slime.body === 'idol' ? 1.4 : 1) };
   }
   function kinStats(G, m) {
-    const d = KIN[m.kind], g = Math.pow(K.lvGrowth, m.lv - 1) * (m.rare ? 1.4 : 1) * (m.evo ? 1.5 : 1) * (m.kind === 'spawn' && m.skill === 2 && m.age >= 3 ? 2 : 1) * (m.kind === 'spawn' && G.slime.main === 'brood' && G.slime.stage >= 2 ? 1.5 : 1);
+    const d = KIN[m.kind], g = Math.pow(K.lvGrowth, m.lv - 1) * (m.rare ? 1.4 : 1) * (m.evo ? 1.5 : 1) * (m.kind === 'spawn' && m.skill === 2 && m.age >= 3 ? 2 : 1) * (m.kind === 'spawn' && pk(G) === 'brood' && G.slime.stage >= 2 ? 1.5 : 1);
     return { hp: d.hp * g, atk: d.atk * g, df: d.df * g, satk: (d.satk || 0) * g };
   }
   const salary = (G, m) => G.origin === 'lamp' && m.kind === 'cultist' ? 0 : KIN[m.kind].pay * cm(G) * (1 + 0.1 * m.lv) * (m.evo ? 1.5 : 1) * (G.origin === 'maw' ? 1.3 : 1);
   const upkeep = G => G.origin === 'root' ? 0 : (G.kin.some(m => m.kind === 'clerk' && m.evo) ? 0.6 : G.kin.some(m => m.kind === 'clerk') ? 0.75 : 1) * (G.cells.filter(c => c.dug && ROOM[c.type].cost > 0 && !c.free).length + G.plots.filter(p => p !== 'none').length) * cm(G);
-  function capacity(G) { const c = { core: Math.max(1, 2 + hoardN(G, 'seat') - (G.origin === 'thorn' ? 1 : 0)) }; G.cells.forEach((x, i) => { if (x.dug && i !== CORE && ROOM[x.type].def) c[i] = ROOM[x.type].def; }); return c; }
+  function capacity(G) { const c = { core: Math.max(1, 2 + hoardN(G, 'seat') - (G.origin === 'thorn' ? 1 : 0) + (G.slime.body === 'hive' ? 1 : 0)) }; G.cells.forEach((x, i) => { if (x.dug && i !== CORE && ROOM[x.type].def) c[i] = ROOM[x.type].def; }); return c; }
   function freeSlot(G, kind) {
     const c = capacity(G), used = {}; G.kin.forEach(m => { if (m.loc !== null && m.kind !== 'spawn') used[m.loc] = (used[m.loc] || 0) + 1; });
     const order = Object.keys(c).filter(k => k !== 'core').map(Number).concat(['core']);
@@ -756,8 +768,8 @@ const NEST = (function () {
     return null;
   }
   const prisonCap = G => 2 + (G.origin === 'chain' ? 4 : 0) + 4 * countRoom(G, 'prison') + (G.kin.some(m => m.kind === 'warden') ? 2 : 0) + (G.kin.some(m => m.kind === 'warden' && m.skill === 1) ? 2 : 0) + (G.kin.some(m => m.kind === 'warden' && m.evo) ? 2 : 0);
-  const handsMax = G => K.hands + (G.slime.main === 'nebula' ? (G.slime.stage >= 2 ? 2 : G.slime.stage >= 1 ? 1 : 0) : 0);
-  const spellCost = G => G.slime.main ? Math.max(1, FORM1[G.slime.main].spell[1] - (has(G, 'ring') ? 2 : 0) - (G.slime.main === 'nebula' && G.slime.stage >= 2 ? 2 : 0) - (G.kin.some(m => m.kind === 'scribe' && m.skill === 2) ? 2 : 0)) : 99;
+  const handsMax = G => K.hands + (pk(G) === 'nebula' ? (G.slime.stage >= 2 ? 2 : G.slime.stage >= 1 ? 1 : 0) : 0);
+  const spellCost = G => G.slime.main ? Math.max(1, FORM1[pk(G)].spell[1] - (has(G, 'ring') ? 2 : 0) - (pk(G) === 'nebula' && G.slime.stage >= 2 ? 2 : 0) - (G.kin.some(m => m.kind === 'scribe' && m.skill === 2) ? 2 : 0)) : 99;
   const seesDetail = (G, v) => G.known || G.known2 || G.kin.some(m => m.kind === 'eyeheap') || has(G, 'thirdeye') || (G.slime.stage >= 2 && G.slime.sub === 'nebula') || G.plots[VILL[v].plot] === 'tower';
 
   // ---------- 아침 ----------
@@ -806,7 +818,7 @@ const NEST = (function () {
       if (G.day === 1) { G.applicants[0].kind = 'goblin'; G.applicants[1].kind = 'skeleton'; }
       if (G.day > 1 && [11, 22, 33, 44, 55].includes(Math.floor(Math.max(0, G.gold)) % 100)) G.applicants[0].rare = true;
     }
-    if (G.slime.main === 'brood' && G.slime.stage >= 1) for (let i = 0; i < (G.slime.stage >= 2 ? 2 : 1); i++) addSpawn(G);
+    if (pk(G) === 'brood' && G.slime.stage >= 1) for (let i = 0; i < (G.slime.stage >= 2 ? 2 : 1); i++) addSpawn(G);
     // 오늘의 징조: 좋은 쪽 가운데 아침에 바로 일어나는 것
     G.omen = G.omenNext || null; G.omenNext = null;
     if (ob(G, 'silence') && G.march.tonight && !G.march.tonight.settle) G.march.tonight = null;
@@ -1080,20 +1092,20 @@ const NEST = (function () {
     if (G.day === K.days && hoardN(G, 'veil')) { party.forEach(u => { u.hp *= 1 - HOARD.veil.cut; u.mhp *= 1 - HOARD.veil.cut; u.atk *= 1 - HOARD.veil.cut; }); ev.push({ t: 'note', txt: '가려 둔 별 아래에서 무리가 길을 헤맨다. 침입자의 체력·공격 −15%' }); }
     if (G.day === K.days && G.eld && G.eld.favor >= 2) { party.forEach(u => { u.san *= 0.7; }); ev.push({ t: 'note', txt: '「' + ELDER[G.eld.id].name + '」이(가) 네 편에서 내려다본다. 침입자의 정신력 −30%' }); }
     if (G.day === K.days && G.eld && G.eld.favor <= -2) { party.forEach(u => { u.hp *= 1.2; u.mhp *= 1.2; }); ev.push({ t: 'note', txt: '「' + ELDER[G.eld.id].name + '」이(가) 봉인단의 등을 민다. 침입자의 체력 +20%' }); }
-    const main = G.slime.main, stage = G.slime.stage, c = cm(G), m = sm(G);
+    const main = G.slime.main, stage = G.slime.stage, c = cm(G), m = sm(G), pkn = G.slime.body || main;
     const squad = loc => squads[loc] || (squads[loc] = G.kin.filter(k => k.loc === loc && !k.hurt && !k.strike).map(k => mkDef(G, k)));
     const say2 = (k, o) => ev.push(Object.assign({ t: 'fx', k }, o));
     let sealedCore = false;
     // --- 정신력 ---
     function madness(u, group, cellIdx) {
       if (u.hp <= 0 || u.gone || u.san > 0) return; u.gone = true; addFaith(G, 1);
-      let kneel = (u.netted ? 2 : 0.4) + (ob(G, 'whisper') ? 0.2 : 0) + (main === 'dusk' && stage >= 1 ? (stage >= 2 ? 0.3 : 0.15) : 0) + (cellIdx != null && squad(cellIdx).some(d => d.kind === 'mask' && d.hp > 0) ? 0.1 : 0);
+      let kneel = (u.netted ? 2 : 0.4) + (ob(G, 'whisper') ? 0.2 : 0) + (pkn === 'dusk' && stage >= 1 ? (stage >= 2 ? 0.3 : 0.15) : 0) + (cellIdx != null && squad(cellIdx).some(d => d.kind === 'mask' && d.hp > 0) ? 0.1 : 0);
       let infight = 0.2 + (hasRoom(G, 'mirror') ? 0.2 : 0) + (cellIdx != null && squad(cellIdx).some(d => d.kind === 'mask' && d.sk === 1 && d.hp > 0) ? 0.2 : 0);
       kneel = Math.min(u.netted ? 1 : 0.85, kneel); infight = Math.min(1 - kneel, infight);
       const r = rng(G);
       if (r < kneel && G.prison.length + rep.captives.length < prisonCap(G)) { u.mad = 'kneel'; rep.captives.push({ kind: u.kind, vill: u.vill }); ev.push({ t: 'fx', k: 'kneel', u: u.uid, txt: u.name + '이(가) 무릎을 꿇었다' }); return; }
       if (r < kneel + infight) { const others = alive(group); if (others.length) { const t = pick(G, others), h = strike(t, dmg(u.atk, t.df)); ev.push({ t: 'fx', k: 'infight', u: u.uid, txt: u.name + '이(가) 미쳐서 ' + t.name + '을(를) 쳤다', hit: h }); } }
-      u.mad = 'flee'; if (!(main === 'dusk' && stage >= 2)) G.fear += 1;
+      u.mad = 'flee'; if (!(pkn === 'dusk' && stage >= 2)) G.fear += 1;
       ev.push({ t: 'fx', k: 'flee', u: u.uid, txt: u.name + '이(가) 비명을 지르며 달아났다' });
     }
     function sanHit(group, targets, amt, txt, cellIdx, room) {
@@ -1150,22 +1162,25 @@ const NEST = (function () {
             if (wall && !(t.kind === 'skeleton' && t.sk === 0)) x *= 0.8;
             if (scaleHere && t.kind !== 'scale') x *= 0.8;
             if (knight && !(t.kind === 'skeleton' && t.evo)) x *= 0.75;
-            if (coreOn && main === 'abyss' && stage >= 1) x *= stage >= 2 ? 0.55 : 0.7;
+            if (coreOn && pkn === 'abyss' && stage >= 1) x *= stage >= 2 ? 0.55 : 0.7;
+            if (coreOn && pkn === 'hive' && t.kind === 'slime') x *= 1 - 0.08 * Math.min(4, dfn.filter(q => q.ref && q.hp > 0).length);
             if (t.kind === 'wall') hits.push([a, x * 0.25, t]);
             hits.push([t, x, a]);
             if (t.kind === 'skeleton' && t.sk === 1) hits.push([a, dmg(t.atk * 0.3, a.df), t]);
             if (t.kind === 'slime' && G.origin === 'thorn') hits.push([a, Math.max(1, x * 0.25), t]);
+            if (t.kind === 'slime' && pkn === 'idol' && coreOn) a.san -= (stage >= 2 ? 10 : 6) * m * (1 - ward(inv0));
           }
         }
         const sanQ = [];
         for (const d of dfn) {
           if (d.kind === 'wall') continue;
-          const weak = inv.reduce((a, b) => a.hp < b.hp ? a : b); let t = pick(G, inv), mult = (ctx.whip ? 1.3 : 1);
+          const weak = inv.reduce((a, b) => a.hp < b.hp ? a : b); let t = pick(G, inv), mult = (ctx.whip ? 1.3 : 1) * (ctx.call ? 1.5 : 1);
           if (d.kind === 'slime') {
-            const atk = d.atk * (coreOn && main === 'hunger' ? 1 + (stage >= 2 ? 0.2 : 0.1) * kills : 1);
+            const atk = d.atk * (coreOn && pkn === 'hunger' ? 1 + (stage >= 2 ? 0.2 : 0.1) * kills : 1);
             hits.push([t, dmg(atk, t.df), d]);
             if (stage >= 1) inv.forEach(u => hits.push([u, dmg(atk * 0.3, u.df), d, 'aoe']));
             if (has(G, 'tentacle')) hits.push([pick(G, inv), dmg(atk * 0.6, t.df), d]);
+            if (coreOn && pkn === 'mix') for (let q = 0; q < (stage >= 2 ? 3 : 2); q++) { const t2 = pick(G, inv); hits.push([t2, dmg(atk * 0.7, t2.df), d]); }
             continue;
           }
           const s = d.satk ? d.satk * (zone === 'nebula' ? 1.3 : 1) + (d.kind === 'cultist' && d.sk === 0 ? 2 * (dfn.filter(x => x.kind === 'cultist').length - 1) : 0) : 0;
@@ -1202,7 +1217,7 @@ const NEST = (function () {
           if (d.ref && !isCore && d.ref.stance !== 'hold' && d.kind !== 'spawn' && d.hp > 0 && d.hp < d.mhp * 0.3) { d.fled = true; fx(d, 'back', d.name + '이(가) 물러났다'); }
         }
         const livD = alive(defs);
-        livD.forEach(d => { let h = 0; if (healAdj) h += 0.05; if (zone === 'brood') h += 0.03; if (coreOn && main === 'abyss' && stage >= 1) h += stage >= 2 ? 0.08 : 0.05; if (h && d.hp < d.mhp) d.hp = Math.min(d.mhp, d.hp + d.mhp * h); });
+        livD.forEach(d => { let h = 0; if (healAdj) h += 0.05; if (zone === 'brood') h += 0.03; if (coreOn && pkn === 'abyss' && stage >= 1) h += stage >= 2 ? 0.08 : 0.05; if (h && d.hp < d.mhp) d.hp = Math.min(d.mhp, d.hp + d.mhp * h); });
         livD.forEach(d => { if ((d.kind === 'scale' && (d.sk === 0 || d.evo)) || d.kind === 'fallen' || d.kind === 'licker') { const w = livD.reduce((a, b) => hpf(a) < hpf(b) ? a : b); if (w.hp < w.mhp) { w.hp = Math.min(w.mhp, w.hp + w.mhp * 0.08 * (d.evo && d.kind === 'fallen' ? 2 : 1)); fx(w, 'heal'); } } });
         for (const p of alive(inv0)) if (INV[p.kind].heal && !p.sealed) { const liv = alive(inv0), w = liv.reduce((a, b) => hpf(a) < hpf(b) ? a : b), z = liv.reduce((a, b) => spf(a) < spf(b) ? a : b); if (hpf(w) < 0.7) w.hp = Math.min(w.mhp, w.hp + 10 * m); else z.san = Math.min(z.msan, z.san + 6 * m); }
         for (const h of alive(inv0)) if (INV[h.kind].revive && !h.sealed && !h.used) { const dead = inv0.find(u => u.hp <= 0 && !u.gone && !u.rev); if (dead) { h.used = 1; dead.rev = 1; dead.hp = dead.mhp * 0.3; kills = Math.max(0, kills - 1); fx(dead, 'revive', '약초꾼이 ' + dead.name + '을(를) 일으켰다'); } }
@@ -1217,24 +1232,27 @@ const NEST = (function () {
       if (cell) giveExp(cell, pool);
       defs.forEach(d => { if (d.ref) fought.add(d); });
     }
-    function tempSpawn(idx) { const d = KIN.spawn, g = Math.pow(K.lvGrowth, Math.max(1, actOf(G) * 3 - 2) - 1) * (main === 'brood' && stage >= 2 ? 1.5 : 1), u = { uid: 't' + (st.tempId++), side: 'def', kind: 'spawn', name: '움', hp: d.hp * g, mhp: d.hp * g, atk: d.atk * g, df: 0, temp: true, sk: -1 }; rep.adds.push({ uid: u.uid, kind: 'spawn', loc: idx }); ev.push({ t: 'add', uid: u.uid, kind: 'spawn', loc: idx }); return u; }
+    function tempSpawn(idx) { const d = KIN.spawn, g = Math.pow(K.lvGrowth, Math.max(1, actOf(G) * 3 - 2) - 1) * (pkn === 'brood' && stage >= 2 ? 1.5 : 1), u = { uid: 't' + (st.tempId++), side: 'def', kind: 'spawn', name: '움', hp: d.hp * g, mhp: d.hp * g, atk: d.atk * g, df: 0, temp: true, sk: -1 }; rep.adds.push({ uid: u.uid, kind: 'spawn', loc: idx }); ev.push({ t: 'add', uid: u.uid, kind: 'spawn', loc: idx }); return u; }
     // --- 개입 ---
     function* decide(idx, g, defs, isCore, prev) {
       const ctx = {}; if (st.hands <= 0 || !alive(g).length) return ctx;
       const others = Object.keys(capacity(G)).map(k => k === 'core' ? k : +k).filter(k => k !== (isCore ? 'core' : idx) && squad(k).some(d => d.hp > 0));
-      const ans = yield { cell: isCore ? 'core' : idx, enemies: alive(g).length, hands: st.hands, faith: G.faith, spell: main && stage >= 1 ? { name: FORM1[main].spell[0], cost: spellCost(G), ok: G.faith >= spellCost(G) && !(main === 'abyss' && prev == null) } : null, from: others, ev, settle: !!mt.settle };
+      const ans = yield { cell: isCore ? 'core' : idx, enemies: alive(g).length, hands: st.hands, faith: G.faith, spell: main && stage >= 1 ? { name: FORM1[pkn].spell[0], cost: spellCost(G), ok: G.faith >= spellCost(G) && !(pkn === 'abyss' && prev == null) } : null, from: others, ev, settle: !!mt.settle };
       if (!ans || ans.k === 'none') return ctx;
       st.hands--; G.stats.hands = (G.stats.hands || 0) + 1;
       if (ans.k === 'whip') { ctx.whip = true; say2('hand', { room: idx, txt: '채찍! 이 방 아군 공격 +30%' }); }
       if (ans.k === 'move' && ans.from != null) { const s = squad(ans.from).filter(d => d.hp > 0); squads[ans.from] = squad(ans.from).filter(d => d.hp <= 0); s.forEach(d => defs.push(d)); ev.push({ t: 'move', who: s.map(d => d.uid), to: isCore ? 'core' : idx, txt: '손: ' + s.length + '명을 옮겼다' }); }
       if (ans.k === 'spell' && main && G.faith >= spellCost(G)) {
-        G.faith -= spellCost(G); note(G, 'spell'); const lib = (hasRoom(G, 'library') ? 1.25 : 1) * (G.kin.some(k => k.kind === 'scribe' && k.evo) ? 1.25 : 1); ctx.spell = main;
-        say2('spell', { room: idx, txt: '손 주문: ' + FORM1[main].spell[0] });
-        if (main === 'dusk') sanHit(g, alive(g), 15 * m * lib, '환영이 무리를 덮친다', idx, idx);
-        if (main === 'brood') for (let i = 0; i < 3; i++) defs.push(tempSpawn(isCore ? 'core' : idx));
-        if (main === 'hunger') { const liv = alive(g); if (liv.length) { const t = liv.reduce((a, b) => a.hp > b.hp ? a : b), h = strike(t, dmg(slimeStats(G).atk * 4 * lib, t.df)); h.tag = 'coin'; ev.push({ t: 'trap', kind: 'bite', room: idx, txt: '한 입: ' + t.name + '에게 ' + h.d, hits: [h] }); if (h.k) { t.eaten = 1; addEss(G, INV[t.kind].asp, corpsePts(G, t.kind)); } witness(g); } }
-        if (main === 'nebula') ctx.rift = true;
-        if (main === 'abyss') ctx.wave = true;
+        G.faith -= spellCost(G); note(G, 'spell'); const lib = (hasRoom(G, 'library') ? 1.25 : 1) * (G.kin.some(k => k.kind === 'scribe' && k.evo) ? 1.25 : 1); ctx.spell = pkn;
+        say2('spell', { room: idx, txt: '손 주문: ' + FORM1[pkn].spell[0] });
+        if (pkn === 'dusk') sanHit(g, alive(g), 15 * m * lib, '환영이 무리를 덮친다', idx, idx);
+        if (pkn === 'hive') ctx.call = true;
+        if (pkn === 'idol') { alive(g).forEach(u => { u.skip = (u.skip || 0) + 2; }); ev.push({ t: 'note', txt: '후광: 무리가 두 라운드 동안 얼어붙었다' }); }
+        if (pkn === 'mix') { const liv = alive(g), hs = []; liv.forEach((u, q) => { if (q % 2 === 0 && liv.length > 1) { const t = liv[(q + 1) % liv.length]; if (t.hp > 0) hs.push(strike(t, dmg(u.atk * lib, t.df))); } }); ev.push({ t: 'trap', kind: 'bite', room: idx, txt: '뒤집기: 무리의 절반이 옆 사람을 쳤다', hits: hs }); witness(g); }
+        if (pkn === 'brood') for (let i = 0; i < 3; i++) defs.push(tempSpawn(isCore ? 'core' : idx));
+        if (pkn === 'hunger') { const liv = alive(g); if (liv.length) { const t = liv.reduce((a, b) => a.hp > b.hp ? a : b), h = strike(t, dmg(slimeStats(G).atk * 4 * lib, t.df)); h.tag = 'coin'; ev.push({ t: 'trap', kind: 'bite', room: idx, txt: '한 입: ' + t.name + '에게 ' + h.d, hits: [h] }); if (h.k) { t.eaten = 1; addEss(G, INV[t.kind].asp, corpsePts(G, t.kind)); } witness(g); } }
+        if (pkn === 'nebula') ctx.rift = true;
+        if (pkn === 'abyss') ctx.wave = true;
       }
       return ctx;
     }
@@ -1302,7 +1320,7 @@ const NEST = (function () {
       const gd = squad('core');
       ev.push({ t: 'go', to: 'core', who: uids(arrived) });
       if (alive(arrived).some(u => INV[u.kind].seal && !u.sealed)) { sealedCore = true; say2('seal', { txt: '학자가 본체의 능력을 봉인했다' }); }
-      sanHit(arrived, alive(arrived), stage * 8 * m * (main === 'dusk' && !sealedCore ? 2 : 1) * (combo(G, 'throne') ? 1.5 : 1), '본체를 마주한 침입자들이 얼어붙는다', 'core', 'core');
+      sanHit(arrived, alive(arrived), stage * 8 * m * (pkn === 'dusk' && !sealedCore ? 2 : 1) * (combo(G, 'throne') ? 1.5 : 1), '본체를 마주한 침입자들이 얼어붙는다', 'core', 'core');
       if (alive(arrived).length) { const defs = [sl].concat(gd), ctx = yield* decide('core', arrived, defs, true, null); fight(arrived, defs, null, true, ctx); }
       G.slime.hp = Math.max(0, sl.hp); core = sl.hp <= 0; if (!core && sl.hp < sl.mhp * 0.4) G.stats.close = (G.stats.close || 0) + 1;
       if (core) {
@@ -1357,7 +1375,7 @@ const NEST = (function () {
     for (const v of VIDS) { const s = G.vill[v]; if (s.pause > 0) s.pause--; else if (s.tribute && !s.razed) earn(G, Math.round(s.tribute * (1 + 0.25 * (fearGrade(G) - 1))), '공물'); if (trading(G, v)) { earn(G, tradeOf(G, v), '교역'); s.trust = Math.min(trustCap(G), (s.trust || 0) + 1); } else s.trust = 0; s.host = Math.max(0, s.host - (v === 'bell' ? 1 : 3)); }
     G.plots.forEach(p => { if (p === 'garden' && !G.off.garden) earn(G, 8 * c, '텃밭'); });
     // 신앙과 정수
-    const cult = G.kin.filter(m => m.kind === 'cultist'); if (G.origin === 'lamp') addFaith(G, 3); addFaith(G, cult.length + cult.filter(m => m.skill === 2).length + 2 * cult.filter(m => m.evo).length);
+    const cult = G.kin.filter(m => m.kind === 'cultist'); if (G.origin === 'lamp') addFaith(G, 3); if (G.slime.body === 'idol') addFaith(G, 2); addFaith(G, cult.length + cult.filter(m => m.skill === 2).length + 2 * cult.filter(m => m.evo).length);
     G.cells.forEach((x, i) => { if (!x.dug || G.off[i]) return; if (x.type === 'chapel') addFaith(G, 2); const d = ROOM[x.type]; if (d.ess) { addEss(G, d.asp, 2); rep.ess[d.asp] = (rep.ess[d.asp] || 0) + 2; } if (x.type === 'hatchery') addSpawn(G); });
     if (hasRoom(G, 'table') && G.corpses.length) eatN(G, 2);
     rep.faith = G.faith - f0;
@@ -1376,7 +1394,7 @@ const NEST = (function () {
         const need = K.thresh[G.slime.stage + 1]; if (need) rep.evoCheck = { tot, need, ate };
         if (need && tot >= need) {
           const order = ASPECTS.slice().sort((a, b) => G.slime.ess[b] - G.slime.ess[a] || (a === G.startAsp ? -1 : 0));
-          if (G.slime.stage === 0) G.slime.main = order[0];
+          if (G.slime.stage === 0) { G.slime.main = order[0]; const b = bodyOf(G); if (b) { G.slime.body = b; G.stats.body = b; } }
           if (G.slime.stage === 1) G.slime.sub = order.filter(a => a !== G.slime.main)[0];
           G.slime.stage++; G.slime.hp = slimeStats(G).hp; G.fear += 10; rep.evolved = formId(G); rep.mut = gainMut(G, order[0]) || gainMut(G, null); say(G, '진화: ' + formName(G));
         }
@@ -1413,7 +1431,7 @@ const NEST = (function () {
     return { parts, mult, total, grade: GRADES.find(g => total >= g[1])[0] };
   }
 
-  return { K, ASPECTS, ASP, COLS, ROWS, N, ENT, CORE, nbrs, lives, livesMax, migrate, trading, tradeOf, trustCap, HOARD, hoardN, hoardCost, hoardWhy, hoardBuy, ORIGIN, digCost, SIGN, TRAITS, traitReady, eventInfo, ROOM, TRAP, ZONE, PLOT, KIN, SKILL_LV, INV, GRADE_NAME, VILL, VIDS, FORM1, FORM2, FORM2UP, SUBTRAIT, AVATAR, MUT, DIFF, GRADES, EVENTS,
+  return { K, ASPECTS, ASP, COLS, ROWS, N, ENT, CORE, nbrs, lives, livesMax, migrate, trading, tradeOf, trustCap, HOARD, hoardN, hoardCost, hoardWhy, hoardBuy, ORIGIN, digCost, SIGN, TRAITS, traitReady, eventInfo, BODY, SUBADJ, bodyOf, pk, ROOM, TRAP, ZONE, PLOT, KIN, SKILL_LV, INV, GRADE_NAME, VILL, VIDS, FORM1, FORM2, FORM2UP, SUBTRAIT, AVATAR, MUT, DIFF, GRADES, EVENTS,
     newGame, actOf, cm, sm, isSettle, formId, formName, essTotal, fearGrade, faithCap, corpseCap, corpsePts, slimeStats, kinStats, salary, upkeep, capacity, freeSlot, prisonCap, handsMax, spellCost, seesDetail, expNeed,
     paths, sideRooms, estimate, partyBudget, canDig, digPreview, dig, toggleBlock, canBuild, buildCost, build, addTrap, trapUpCost, upTrap, setZone, setPlot, accept, acceptCost, dismiss, moveKin, setSkill, setStance, train, eat, rest,
     SPOT, spotOptions, resolveSpot, ELDER, OMEN, OMEN_IDS, OMEN_DAY, CALM_COST, ACT_NAME, calm, COMBO, combos, BURIED, STAR, EVO, EVO_DESC, kinName, evoCost, evolveKin, GUEST, guestOptions, resolveGuest, convertKind, endKey, convertChance, ransomOf, sacEss, mutChance, dispose, raidInfo, raid, eventOptions, resolveEvent, endDay, beginNight, settle, luxury, avatarOf, score };
@@ -1516,7 +1534,7 @@ function spriteCanvas(name, pal) {
 // 본체: 주 징조 = 색, 부 징조 = 덧그림, 변이 = 부위, 성체 = 빛나는 눈
 // 본체: 32×32 위에 부품을 조립해 그린다. 주 징조 = 몸의 구조, 단계 = 크기와 부위 수, 부 징조 = 다른 색의 덧붙은 기관, 변이 = 부위.
 function slimeCanvas(sl, frame) {
-  const fr = (frame || 0) % 4, ph = fr * 1.57, key = 'sl3:' + (sl.origin || 'drop') + ':' + (sl.main || 'base') + ':' + (sl.sub || '') + ':' + sl.stage + ':' + (sl.muts || []).join(',') + ':' + fr; if (cv[key]) return cv[key];
+  const fr = (frame || 0) % 4, ph = fr * 1.57, key = 'sl4:' + (sl.origin || 'drop') + ':' + (sl.body || '') + ':' + (sl.main || 'base') + ':' + (sl.sub || '') + ':' + sl.stage + ':' + (sl.muts || []).join(',') + ':' + fr; if (cv[key]) return cv[key];
   const c = document.createElement('canvas'); c.width = c.height = 32; const x = c.getContext('2d');
   const P = PAL[sl.main] || PAL.base, Q = (sl.sub && PAL[sl.sub]) || P, st = sl.main ? Math.max(1, sl.stage) : 0, DK = '#1a0508', WH = '#f5f5f5';
   const px = (a, b, w, h, col) => { x.fillStyle = col; x.fillRect(Math.round(a), Math.round(b), w || 1, h || 1); };
@@ -1533,7 +1551,33 @@ function slimeCanvas(sl, frame) {
   if (st === 0) { blob(16, 25, 5, 3, P); px(11, 28, 2, 2, P[1]); px(21, 28, 1, 2, P[3]); px(14, 21 - (fr % 2), 1, 2, P[1]); px(14, 20 - (fr % 2), 1, 1, P[2]); px(11 + fr, 29, 1, 1, P[2]); }
   else {
     const R = [0, 5, 7, 9, 11][st];
-    if (sl.main === 'abyss') {            // 젖은 것: 갓 아래로 늘어지는 다리들
+    if (sl.body === 'mix') {              // 뒤엉킨 것: 먹은 것들이 제각각 자라 한 덩어리가 됐다
+      const cy = [0, 19, 18, 17, 16][st], O2 = ['abyss', 'hunger', 'brood', 'dusk', 'nebula'].map(a => PAL[a]).filter(q => q !== P); B = { cx: 16, cy, R, top: cy - R, bot: Math.min(30, cy + R) };
+      tent(16 - R + 1, cy + 2, 8 + st * 2, -0.5, 1.2, O2[0], 2); tent(16 + R - 3, cy + 1, 6 + st * 2, 0.4, 1, O2[2], 2);
+      if (st >= 3) { tent(14, cy + R - 2, 31 - (cy + R - 2), 0.1, 1.4, O2[1], 2); tent(16 - R - 2, cy - 2, 9, -0.7, 0.8, O2[3], 1); }
+      blob(16 - R * 0.35, cy + 1, R * 0.8, R * 0.75, P); blob(16 + R * 0.45, cy - R * 0.25, R * 0.6, R * 0.6, O2[0]); blob(16 + R * 0.1, cy + R * 0.45, R * 0.55, R * 0.45, O2[1]);
+      if (st >= 2) blob(16 - R * 0.7, cy - R * 0.55, R * 0.4, R * 0.4, O2[2]); if (st >= 3) blob(16 + R * 0.9, cy + R * 0.4, R * 0.35, R * 0.35, O2[3]);
+      mouth(Math.round(16 - R * 0.6), cy + 1, 3 + (st > 2 ? 1 : 0), P); if (st >= 2) mouth(Math.round(16 + R * 0.3), Math.round(cy - R * 0.4), 3, O2[0]); pit(16 + R * 0.1, cy + R * 0.5, O2[1][2]);
+      px(16 + R * 0.5, cy - R - 2, 1, 3 + st, O2[2][3]); px(16 + R * 0.5 - 1, cy - R - 3, 3, 2, O2[2][4]);
+      if (st >= 4) { mask(16 - R - 1, cy - R + 1, 4); ring(16 + R * 0.45, cy - R * 0.25, R * 0.6 + 2, 2, O2[3][4]); }
+    } else if (sl.body === 'hive') {      // 여럿인 것: 작은 몸 여럿이 빈 가운데를 돌며 하나처럼 군다
+      const cy = [0, 18, 17, 16, 16][st], n = 4 + st * 2, rr = [0, 6, 8, 10, 12][st], rot = fr * (6.283 / n) / 4; B = { cx: 16, cy, R: rr, top: Math.round(cy - rr * 0.7 - 2), bot: Math.min(30, Math.round(cy + rr * 0.7 + 2)) };
+      const ring2 = []; for (let k = 0; k < n; k++) { const a = k * 6.283 / n + rot; ring2.push([Math.sin(a), 16 + Math.cos(a) * rr, cy + Math.sin(a) * rr * 0.7, k]); }
+      ring2.forEach(([s0, bx, by]) => { for (let i = 1; i < 5; i++) px(16 + (bx - 16) * i / 5, cy + (by - cy) * i / 5, 1, 1, i % 2 ? P[3] : P[0]); });
+      disc(16, cy, 2 + (st > 2 ? 1 : 0), 2 + (st > 2 ? 1 : 0), P[0]); px(16, cy, 1, 1, P[4]);
+      ring2.sort((u, v) => u[0] - v[0]).forEach(([s0, bx, by, k]) => { const r = 2 + (k % 3 === 0 ? 1 : 0) + (st >= 3 && k % 4 === 0 ? 1 : 0); blob(bx, by, r, r - 0.5, P); px(bx, by - r - 1, 1, 1, P[1]); if (k % 2) px(bx - 1, by + 1, 2, 1, P[0]); });
+      if (st >= 4) { blob(16, cy, 4, 3.5, P); mouth(14, cy, 4, P); }
+    } else if (sl.body === 'idol') {      // 받들린 것: 받침 위에 선 매끈한 돌, 머리 위의 테, 발치의 촛불
+      const top = [0, 12, 9, 6, 4][st], hw = [0, 3, 4, 5, 6][st], bs = 27; B = { cx: 16, cy: Math.round((top + bs) / 2), R: hw + 1, top, bot: 30 };
+      px(16 - hw - 4, bs + 1, hw * 2 + 9, 3, P[0]); px(16 - hw - 3, bs + 1, hw * 2 + 7, 1, P[3]); px(16 - hw - 2, bs - 1, hw * 2 + 5, 2, P[0]); px(16 - hw - 1, bs - 1, hw * 2 + 3, 1, P[1]);
+      for (let y = top; y <= bs - 2; y++) { const f = (y - top) / (bs - 2 - top), w = Math.round(hw * (0.55 + 0.45 * Math.min(1, f * 2.2))); px(16 - w - 1, y, w * 2 + 3, 1, P[0]); px(16 - w, y, w * 2 + 1, 1, P[1]); px(16 + Math.round(w * 0.3), y, Math.max(1, w - Math.round(w * 0.3) + 1), 1, P[3]); px(16 - w, y, 1, 1, P[2]); }
+      px(15, top - 1, 3, 1, P[0]);
+      for (let k = 0; k < st + 1; k++) { const yy = top + 4 + k * 4; if (yy < bs - 4) { px(14, yy, 5, 1, P[0]); px(15, yy + 1, 3, 1, P[4]); } }
+      ring(16, Math.max(1, top - 2), hw + 2, 1.5, '#fff3a0'); if (st >= 3) ring(16, Math.max(1, top - 2), hw + 4, 2.5, P[4]);
+      for (let k = 0; k < 1 + st; k++) { const s2 = k % 2 ? 1 : -1, xx = 16 + s2 * (hw + 3 + Math.floor(k / 2) * 3); px(xx, bs - 2, 1, 3, '#e8dcc0'); px(xx, bs - 3 - ((fr + k) % 2), 1, 1 + ((fr + k) % 2), '#ffd23a'); }
+      if (st >= 2) { px(16 - hw - 3, top + 6, 2, 1, P[0]); px(16 - hw - 4, top + 3, 1, 4, P[1]); px(16 + hw + 2, top + 6, 2, 1, P[0]); px(16 + hw + 4, top + 3, 1, 4, P[1]); }
+      if (st >= 4) [[4, 6], [27, 8], [6, 16], [26, 17]].forEach(([a, b2], k) => { px(a, b2 + ((fr + k) % 2), 2, 2, P[0]); px(a, b2 + ((fr + k) % 2), 1, 1, P[2]); });
+    } else if (sl.main === 'abyss') {            // 젖은 것: 갓 아래로 늘어지는 다리들
       const cy = [0, 13, 12, 11, 10][st], n = 3 + st * 2, len = 7 + st * 3; B = { cx: 16, cy, R, top: cy - R - 1, bot: cy + R };
       if (st >= 3) for (let k = 0; k < 6; k++) { px(16 - R - 1 - k, cy - 1 + k, 2 + (5 - k), 1, P[0]); px(16 + R + k - (5 - k), cy - 1 + k, 2 + (5 - k), 1, P[0]); px(16 - R - k, cy + k, 5 - k, 1, P[3]); px(16 + R + k - (4 - k), cy + k, 5 - k, 1, P[3]); }
       for (let k = 0; k < n; k++) { const f = n === 1 ? 0 : k / (n - 1) - 0.5; tent(16 + f * (R * 2 - 2), cy + R - 3, Math.min(31 - (cy + R - 3), len - Math.abs(f) * 5), f * 0.5, 1.2, P, 2); }
@@ -1758,7 +1802,7 @@ function endingScene(c, key, tier, sl, fr) {
 const toImg = (c, key, size, alt) => `<img class="px" src="${urls[key] || (urls[key] = c.toDataURL())}" width="${size}" height="${size}" alt="${esc(alt || '')}">`;
 const kinImg = (kind, size, evo) => toImg(kinCanvas(kind, evo), (evo ? 'evo4:' : 'kin3:') + kind, size, NEST.KIN[kind].name);
 const invImg = (kind, size) => toImg(invCanvas(kind), 'inv:' + kind, size, NEST.INV[kind].name);
-const slimeImg = (sl, size, alt) => toImg(slimeCanvas(sl), 'sl3:' + (sl.origin || 'drop') + ':' + (sl.main || 'base') + ':' + (sl.sub || '') + ':' + sl.stage + ':' + (sl.muts || []).join(','), size, alt || '본체');
+const slimeImg = (sl, size, alt) => toImg(slimeCanvas(sl), 'sl4:' + (sl.origin || 'drop') + ':' + (sl.body || '') + ':' + (sl.main || 'base') + ':' + (sl.sub || '') + ':' + sl.stage + ':' + (sl.muts || []).join(','), size, alt || '본체');
 const echoImg = size => toImg(spriteCanvas('slime', 'echo'), 'echo', size, '잔향');
 
 // ---------- 소리 ----------
@@ -2245,6 +2289,7 @@ const FEATS = [
   ['first_end', '첫 낙하의 끝', '한 판을 끝까지 한다 (이기든 지든)', '별자리 셋 (닻, 주머니, 솥)', () => !!G.over],
   ['first_win', '깨어난 것', '처음으로 깨어난다', '황혼의 별자리 둘, 깊은 각성', () => !!G.over && G.over.win],
   ['win2', '두 번째 물음표', '두 번 깨어난다', '성운의 별자리 둘, 끝없는 밤', () => !!G.over && G.over.win && META.clears >= 1],
+  ['body1', '낯선 허물', '숨은 본체로 첫 허물을 벗는다', '별가루', () => !!G.slime.body],
   ['trait1', '덧난 것', '몸에 형질이 하나 돋는다', '별가루', () => !!G.origin && G.origin !== 'drop'],
   ['trait5', '여덟 갈래', '형질 여덟을 모두 겪는다', '별가루', () => Object.keys(META.codex.traits || {}).length >= NEST.TRAITS.length],
   ['dig8', '개미굴', '한 판에 8칸을 판다', '별가루', () => (G.stats.dug || 0) >= 8],
@@ -2361,6 +2406,8 @@ function tray() {
   $('mnav').innerHTML = `<span class="seg"><button class="btn" data-a="view" data-v="under"${pr('under')}>지하</button><button class="btn" data-a="view" data-v="surface"${pr('surface')}>지상</button></span>${btn('core', null, '본체')}${btn('open', { v: 'roster' }, '권속 ' + G.kin.length)}<button class="btn pri end${UI.confirmEnd ? ' warn' : ''}" data-a="endday">${UI.confirmEnd ? `행동 ${G.ap} 남음 · 한 번 더` : (NEST.isSettle(G) ? '◐ ' : '') + '밤 맞기'}</button>`;
 }
 const lifePips = () => { const n = NEST.lives(G), t = NEST.livesMax(G); return '<span class="up">' + '●'.repeat(n) + '</span><span class="mute">' + '○'.repeat(Math.max(0, t - n)) + '</span>'; };
+// 지금 이대로 달이 기울면 무엇이 되는가. 겪어 보지 못한 숨은 본체는 이름을 가린다
+function moltGuess() { const asp = NEST.ASPECTS.slice().sort((a, b) => G.slime.ess[b] - G.slime.ess[a] || (a === G.startAsp ? -1 : 0))[0], b = NEST.bodyOf(G); return { asp, name: b ? (META.codex.forms[b] ? NEST.FORM1[b].name : '낯선 무언가') : NEST.FORM1[asp].name }; }
 function slimePanel() {
   const sl = G.slime, s = NEST.slimeStats(G), need = NEST.K.thresh[sl.stage + 1], tot = NEST.essTotal(G), max = Math.max(1, ...NEST.ASPECTS.map(a => sl.ess[a]), need ? need / 2 : 1), O = NEST.ORIGIN[G.origin || 'drop'];
   const guards = G.kin.filter(m => m.loc === 'core'), bench = G.kin.filter(m => m.loc === null), cap = NEST.capacity(G).core, A = NEST.K.act;
@@ -2368,11 +2415,11 @@ function slimePanel() {
   let h = phead(esc(NEST.formName(G)), STAGE_NAME[sl.stage]) + `<div class="slime-top">${slimeImg(sl, 72, NEST.formName(G))}<div class="stack"><p class="small">체력 ${R(sl.hp)}/${R(s.hp)} · 공격 ${R(s.atk)} · 방어 ${R(s.df)}</p>${bar(sl.hp / s.hp)}<p class="small">목숨 ${lifePips()}${G.origin && G.origin !== 'drop' ? ` <span class="chip on">${O.name}</span>` : ''}</p></div></div>
     <div class="row nw">${btn('eat', null, `포식 <small>행동 1 · 먹이 ${G.corpses.length}/${NEST.corpseCap(G)}</small>`, 'pri grow', !G.corpses.length)}${btn('rest', null, '휴식 <small>행동 1</small>', 'grow')}</div>${tabsHtml('core', list, tab)}<div class="tb">`;
   if (tab === 'ess') h += `<div class="pts">${NEST.ASPECTS.map(a => `<span style="color:${ASPCOL[a]}">${NEST.ASP[a]}</span>${bar(sl.ess[a] / max, ASPCOL[a])}<span class="num">${sl.ess[a]}</span>`).join('')}</div>
-    <p class="small"><b>합 ${tot}${need ? ' / ' + need : ''}</b> <span class="mute">${sl.stage === 0 ? A + '일째 밤에 기준을 넘으면, 가장 많은 징조로 첫 허물을 벗는다.' : sl.stage === 1 ? A * 2 + '일째 밤, 두 번째로 많은 징조가 섞인다.' : sl.stage === 2 ? A * 3 + '일째 밤에 기준을 넘으면 세 번째 허물을 벗는다.' : sl.stage === 3 ? A * 4 + '일째 밤에 기준을 넘으면 성체가 된다.' : '다 자랐다. 별이 서기를 기다린다.'}</span></p>
+    <p class="small"><b>합 ${tot}${need ? ' / ' + need : ''}</b> <span class="mute">${sl.stage === 0 ? A + '일째 밤에 기준을 넘으면 첫 허물을 벗는다. 이대로면 <b style="color:' + ASPCOL[moltGuess().asp] + '">「' + moltGuess().name + '」</b>.' : sl.stage === 1 ? A * 2 + '일째 밤, 두 번째로 많은 징조가 섞인다.' : sl.stage === 2 ? A * 3 + '일째 밤에 기준을 넘으면 세 번째 허물을 벗는다.' : sl.stage === 3 ? A * 4 + '일째 밤에 기준을 넘으면 성체가 된다.' : '다 자랐다. 별이 서기를 기다린다.'}</span></p>
     <div class="sec">먹이 <small>포식하면 ${sl.muts.includes('mouth') ? 6 : 3}구씩 정수가 된다</small></div><div class="row">${G.corpses.map(c => aspChip(NEST.INV[c.kind].asp, NEST.INV[c.kind].name + ' +' + NEST.corpsePts(G, c.kind))).join('') || '<span class="mute small">없음. 쓰러뜨린 침입자가 먹이가 된다.</span>'}</div>`;
   if (tab === 'pow') {
     h += `<div class="kv small">${G.origin && G.origin !== 'drop' ? `<span class="chip on">${O.name}</span><span><span class="okc">${esc(O.good)}</span> · <span class="up">${esc(O.bad)}</span></span>` : '<span class="chip">형질 없음</span><span class="mute">하는 짓에 따라 몸에 무언가 돋을 수 있다. 한 판에 하나.</span>'}`;
-    if (sl.stage >= 1) { const sp = NEST.FORM1[sl.main].spell; h += `${aspChip(sl.main, NEST.FORM1[sl.main].name)}<span>${esc(sl.stage >= 2 ? NEST.FORM2UP[sl.main] : NEST.FORM1[sl.main].skill)}</span><span class="chip" style="border-color:#c8a8ff;color:#c8a8ff">주문 ${sp[0]}</span><span>${esc(sp[2])} <span class="mute">(신앙 ${NEST.spellCost(G)})</span></span>`; }
+    if (sl.stage >= 1) { const bk = NEST.pk(G), sp = NEST.FORM1[bk].spell; h += `${aspChip(sl.main, NEST.FORM1[bk].name)}<span>${esc(NEST.FORM1[bk].skill)}${sl.stage >= 2 ? ' · <b>' + esc(NEST.FORM2UP[bk]) + '</b>' : ''}</span><span class="chip" style="border-color:#c8a8ff;color:#c8a8ff">주문 ${sp[0]}</span><span>${esc(sp[2])} <span class="mute">(신앙 ${NEST.spellCost(G)})</span></span>`; }
     if (sl.stage >= 2) h += `${aspChip(sl.sub, NEST.ASP[sl.sub] + ' 섞임')}<span>${esc(NEST.SUBTRAIT[sl.sub])}</span>`;
     h += sl.muts.map(m => `${aspChip(NEST.MUT[m].asp, NEST.MUT[m].name)}<span>${esc(NEST.MUT[m].desc)}</span>`).join('') + '</div>';
     if (sl.stage === 0) h += '<p class="small mute">아직 형체가 없다. 허물을 벗으면 능력과 손 주문이 생기고, 그때마다 변이가 하나씩 돋는다.</p>';
@@ -2544,8 +2591,9 @@ function settleHtml(b, st, day) {
 }
 function evoHtml(st, before) {
   const sl = G.slime, lines = [];
-  if (sl.stage === 1) { lines.push(NEST.FORM1[sl.main].skill); lines.push('손 주문 「' + NEST.FORM1[sl.main].spell[0] + '」: ' + NEST.FORM1[sl.main].spell[2]); lines.push(NEST.ASP[sl.main] + ' 징조 전용 시설과 영역을 지을 수 있다'); }
-  if (sl.stage === 2) { lines.push(NEST.FORM2UP[sl.main]); lines.push(NEST.ASP[sl.sub] + ' 섞임: ' + NEST.SUBTRAIT[sl.sub]); }
+  const bk = NEST.pk(G);
+  if (sl.stage === 1) { if (sl.body) lines.push('평범한 허물이 아니다. ' + NEST.BODY[sl.body].hint + ' 이렇게 된다'); lines.push(NEST.FORM1[bk].skill); lines.push('손 주문 「' + NEST.FORM1[bk].spell[0] + '」: ' + NEST.FORM1[bk].spell[2]); lines.push(NEST.ASP[sl.main] + ' 징조 전용 시설과 영역을 지을 수 있다'); }
+  if (sl.stage === 2) { lines.push(NEST.FORM2UP[bk]); lines.push(NEST.ASP[sl.sub] + ' 섞임: ' + NEST.SUBTRAIT[sl.sub]); }
   if (sl.stage === 3) lines.push('몸 밖으로 무언가가 뻗어 나온다. 체력·공격·방어가 크게 오른다');
   if (sl.stage === 4) lines.push('다 자랐다. 굴 하나가 몸으로 가득 찬다. 체력·공격·방어가 다시 크게 오른다');
   return `<div class="mbody evo" style="align-items:center;text-align:center"><p class="mute">${STAGE_NAME[sl.stage]}</p><div class="row" style="justify-content:center;gap:20px">${slimeImg(before, 64, '이전 모습')}<span class="h3 mute">→</span>${slimeImg(sl, 128, NEST.formName(G))}</div><h2 style="font-size:28px;color:${ASPCOL[sl.main]}">${esc(NEST.formName(G))}</h2><div class="row" style="justify-content:center">${aspChip(sl.main, '주 ' + NEST.ASP[sl.main])}${sl.sub ? aspChip(sl.sub, '부 ' + NEST.ASP[sl.sub]) : ''}</div>${lines.map(l => `<p class="small">${esc(l)}</p>`).join('')}${st.mut ? `<p class="small">${aspChip(NEST.MUT[st.mut].asp, '변이: ' + NEST.MUT[st.mut].name)} ${esc(NEST.MUT[st.mut].desc)}</p>` : ''}<p class="small up">인간들 사이에 소문이 돈다. 공포 +10</p></div><div class="mfoot">${btn('close', null, '좋다', 'pri big')}</div>`;
@@ -2640,10 +2688,11 @@ function traitHtml(before) {
 }
 function codexHtml() {
   const seen = META.codex.forms, node = (id, sl, name) => `<div class="node${seen[id] ? '' : ' unk'}">${slimeImg(sl, 48)}<span>${seen[id] ? esc(name) : '???'}</span></div>`, tr = META.codex.traits || {};
-  const list = [['sign', '별자리'], ['form', '모습'], ['trait', '형질'], ['mut', '변이'], ['end', '결말']], tab = curTab('codex', list), ca = NEST.ASPECTS.includes(UI.tab.codexAsp) ? UI.tab.codexAsp : NEST.ASPECTS[0];
+  const list = [['sign', '별자리'], ['form', '모습'], ['trait', '형질'], ['mut', '변이'], ['end', '결말']], tab = curTab('codex', list), ca = NEST.ASPECTS.includes(UI.tab.codexAsp) || UI.tab.codexAsp === 'hid' ? UI.tab.codexAsp : NEST.ASPECTS[0], HB = Object.keys(NEST.BODY);
   let b = tabsHtml('codex', list, tab) + '<div class="tb">';
   if (tab === 'sign') b += pager('signs', Object.keys(NEST.SIGN), isMobile() ? 6 : 10, items => `<div class="codex">${items.map(k => { const sg = NEST.SIGN[k], op = signOpen(k); return `<div class="node${op ? '' : ' lockd'}" title="${esc(NEST.STAR[sg.star].desc)}">${signSvg(k, 84)}<span${op ? ` style="color:${ASPCOL[sg.asp]}"` : ''}>${op ? sg.name : '???'}</span><span class="mute">${op ? NEST.STAR[sg.star].name : SIGN_NEED[sg.need]}</span></div>`; }).join('')}</div>`) + `<p class="small mute">뜬 별자리 ${signPool().length}/${Object.keys(NEST.SIGN).length}. 어느 별자리에서 떨어질지는 고르지 못한다. 별자리마다 품고 오는 조각과 규칙이 다르다.</p>`;
-  if (tab === 'form') b += tabsHtml('codexAsp', NEST.ASPECTS.map(a => [a, `<span style="color:${ASPCOL[a]}">${NEST.ASP[a]}</span>`]), ca, true) + `<div class="codex">${ca === NEST.ASPECTS[0] ? node('base', { stage: 0, muts: [] }, '옛 것?') : ''}${node(ca, { main: ca, stage: 1, muts: [] }, NEST.FORM1[ca].name)}${NEST.ASPECTS.filter(x => x !== ca).map(x => node(ca + '_' + x, { main: ca, sub: x, stage: 2, muts: [] }, NEST.FORM2[ca + '_' + x])).join('')}</div><p class="small mute">첫 허물은 가장 많이 먹은 징조로, 두 번째는 그다음으로 많은 징조가 섞여 정해진다.</p>`;
+  if (tab === 'form' && ca === 'hid') b += tabsHtml('codexAsp', NEST.ASPECTS.map(a => [a, `<span style="color:${ASPCOL[a]}">${NEST.ASP[a]}</span>`]).concat([['hid', '숨은 것']]), ca, true) + `<div class="codex">${HB.map((k, n) => node(k, { body: k, main: NEST.ASPECTS[(n * 2) % 5], stage: 1, muts: [] }, NEST.FORM1[k].name)).join('')}</div><div class="frow small">${HB.map(k => seen[k] ? `<span class="chip on">${NEST.FORM1[k].name}</span><span>${esc(NEST.BODY[k].hint)} · <span class="okc">${esc(NEST.FORM1[k].skill)}</span></span>` : '<span class="chip">???</span><span class="mute">아직 이 몸으로 허물을 벗어 본 적이 없다</span>').join('')}</div><p class="small mute">징조가 아니라 첫 허물을 벗을 때의 형편이 정하는 몸. 색과 전용 시설은 가장 많이 먹은 징조를 따른다.</p>`;
+  else if (tab === 'form') b += tabsHtml('codexAsp', NEST.ASPECTS.map(a => [a, `<span style="color:${ASPCOL[a]}">${NEST.ASP[a]}</span>`]).concat([['hid', '숨은 것']]), ca, true) + `<div class="codex">${ca === NEST.ASPECTS[0] ? node('base', { stage: 0, muts: [] }, '옛 것?') : ''}${node(ca, { main: ca, stage: 1, muts: [] }, NEST.FORM1[ca].name)}${NEST.ASPECTS.filter(x => x !== ca).map(x => node(ca + '_' + x, { main: ca, sub: x, stage: 2, muts: [] }, NEST.FORM2[ca + '_' + x])).join('')}</div><p class="small mute">첫 허물은 가장 많이 먹은 징조로, 두 번째는 그다음으로 많은 징조가 섞여 정해진다.</p>`;
   if (tab === 'trait') b += `<div class="codex" style="grid-template-columns:repeat(${isMobile() ? 4 : 8},minmax(0,1fr))">${NEST.TRAITS.map(k => `<div class="node${tr[k] ? '' : ' unk'}">${slimeImg({ origin: k, main: 'abyss', stage: 1, muts: [] }, isMobile() ? 44 : 56)}<span>${tr[k] ? NEST.ORIGIN[k].name : '???'}</span></div>`).join('')}</div>` + pager('traits', NEST.TRAITS, 4, items => `<div class="frow small">${items.map(k => { const O = NEST.ORIGIN[k]; return tr[k] ? `<span class="chip on">${O.name}</span><span>${esc(O.ev[2])} · <span class="okc">${esc(O.good)}</span></span>` : `<span class="chip">???</span><span class="mute">아직 돋아 본 적이 없다</span>`; }).join('')}</div>`) + `<p class="small mute">겪은 형질 ${Object.keys(tr).length}/${NEST.TRAITS.length}. 판을 하다 보면 하는 짓에 따라 몸에 돋는다. 한 판에 하나.</p>`;
   if (tab === 'mut') b += `<div class="sec">변이 <small>${Object.keys(META.codex.muts).length}/${Object.keys(NEST.MUT).length}</small></div><div class="row">${Object.keys(NEST.MUT).map(m => META.codex.muts[m] ? aspChip(NEST.MUT[m].asp, NEST.MUT[m].name) : '<span class="chip mute">???</span>').join('')}</div><div class="sec">방 조합</div><div class="row">${Object.keys(NEST.COMBO).map(k => META.codex.combos[k] ? `<span class="chip on">${NEST.COMBO[k].name}</span>` : '<span class="chip mute">???</span>').join('')}</div>`;
   if (tab === 'end') b += `<p class="small mute">같은 모습이라도 점수에 따라 결말이 셋으로 갈린다.</p>${NEST.ASPECTS.map(a => `<p class="small row"><span style="color:${ASPCOL[a]}">${NEST.ASP[a]}</span> ${ENDING3[a].map((e, i) => META.codex.ends[a + i] ? `<span class="chip on">${e[0]}</span>` : '<span class="chip mute">???</span>').join(' ')}</p>`).join('')}<div class="sec">깨어난 모습</div><div class="row">${Object.keys(NEST.AVATAR).map(k => META.codex.ends[k] ? `<span class="chip on">${NEST.AVATAR[k]}</span>` : '<span class="chip mute">???</span>').join('')}</div>`;
@@ -2661,7 +2710,8 @@ const HELP = [
   ['hoard', '탐식', '본체 창에서 재물을 쓴다. 삼키면 본체가 불어나고(값이 매번 오른다), 호위 자리와 목숨을 살 수 있고, 4막부터는 마지막 밤의 무리를 약하게 만들 수 있다. 쌓아만 둔 재물은 인간을 부르고 쓰러지면 절반을 털린다.'],
   ['omen', '징조', `${NEST.OMEN_DAY}일째부터 다 자란 옛 것 하나가 지켜본다. 밤이 지나면 내일의 징조가 정해진다. 징조는 좋은 쪽과 나쁜 쪽이 한 쌍이고, 그것이 좋아하는 짓을 하면 좋은 쪽만, 싫어하는 짓을 하면 나쁜 쪽만 온다. 나쁜 쪽은 신앙 6으로 달랠 수 있다.`],
   ['night', '밤', '싸움은 알아서 한다. 달이 기우는 밤에는 싸움 직전에 멈추고 손을 쓸 수 있다: 채찍, 옮기기, 손 주문(신앙 소모). 설정에서 멈추는 때를 바꾼다. 공포와 재물은 둘 다 더 많고 더 강한 인간을 부른다. 강한 인간은 더 좋은 먹이이기도 하다.'],
-  ['who', '별자리와 형질', '판을 시작하면 어느 별자리에서 떨어졌는지가 정해져 있다. 고르지 못한다. 별자리가 품고 오는 조각(징조)과 판의 규칙 하나를 정한다. 처음에는 누구나 「옛 것?」이다. 판을 하다 보면 하는 짓에 따라 사건이 찾아와 몸에 형질이 돋는다: 많이 맞으면 껍데기, 굴을 많이 파면 뿌리, 많이 먹으면 입, 신도를 모으면 등불, 재물을 쌓으면 금화, 함정을 많이 깔면 가시, 포로를 많이 잡으면 사슬, 마을을 자주 습격하면 그림자. 형질마다 장점과 단점이 하나씩 있고, 한 판에 하나만 돋는다. 싫으면 긁어낼 수 있다.'],
+  ['sign', '별자리', '판을 시작하면 어느 별자리에서 떨어졌는지가 정해져 있다. 고르지 못한다. 별자리가 품고 오는 조각(징조)과 판의 규칙 하나를 정한다. 판을 끝내야 하늘이 바뀌고, 별가루로 다시 뽑을 수도 있다.'],
+  ['who', '본체와 형질', '처음에는 누구나 「옛 것?」이다. 첫 허물은 보통 가장 많이 먹은 징조의 몸이 되지만, 그때의 형편에 따라 숨은 본체가 되기도 한다. 본체 창의 정수 탭에 "이대로면 무엇이 되는지"가 나온다. 또 판을 하다 보면 하는 짓에 따라 사건이 찾아와 몸에 형질이 돋는다(껍데기, 뿌리, 입, 등불, 금화, 가시, 사슬, 그림자). 형질마다 장점과 단점이 하나씩 있고, 한 판에 하나만 돋는다. 무엇이 어떻게 돋는지는 겪어 본 것만 도감에 적힌다.'],
   ['lock', '흔적과 해금', '처음에는 일부 시설·함정·별자리·깊이가 잠겨 있다. 처음 해 보는 일(첫 포로, 첫 진화…)이 흔적으로 남아 그것들을 연다. 무엇이 무엇을 여는지는 타이틀의 "기록 → 흔적"에 있다. 설정에서 전부 열어 둘 수도 있다.'],
   ['etc', '그 밖에', '어떤 시설은 맞닿게 지으면 하나처럼 움직인다(건설 목록의 ★). 굴을 파다 보면 묻힌 것이 나온다. 가끔은 싸우러 오지 않는 밤 손님이 온다. 큰 밤의 우두머리는 판마다 다르고, 미리 보인다. 위쪽 숫자(재물·신앙·공포…)를 누르면 뜻이 나온다.'],
 ];
@@ -2730,7 +2780,7 @@ async function endDay() {
   if (busy || !G || G.over) return;
   if (G.ap > 0 && !UI.confirmEnd) { UI.confirmEnd = true; render(); return; }
   busy = true; UI.confirmEnd = false; UI.sel = null; if (!$('modal').hidden) closeModal(); toast(null);
-  const day = G.day, tonight = G.march.tonight, before = { origin: G.origin, main: G.slime.main, sub: G.slime.sub, stage: G.slime.stage, muts: G.slime.muts.slice() };
+  const day = G.day, tonight = G.march.tonight, before = { origin: G.origin, body: G.slime.body, main: G.slime.main, sub: G.slime.sub, stage: G.slime.stage, muts: G.slime.muts.slice() };
   ST.hud = { gold: G.gold, faith: G.faith, fear: G.fear }; ST.skip = false; setNight(true); hud();
   const it = NEST.beginNight(G); prepareNight(); let rep = null;
   if (!tonight) { it.next(); nlog('아무도 오지 않았다.'); ST.label = '조용한 밤'; await wait(1100); ST.label = ''; }
@@ -2842,7 +2892,7 @@ function onAction(el) {
   if (a === 'rest') return void act(NEST.rest);
   if (a === 'dispose') { const r = act(NEST.dispose, num('i'), d.how); if (r.mut) { sfx('evo'); ST.flash = now() + 200; } return; }
   if (a === 'raid') { const r = act(NEST.raid, d.v, num('l')); if (r.ok) { ST.shake = now() + 300; sfx('trap'); if (isMobile()) { UI.sel = null; render(); toast(r); } } return; }
-  if (a === 'event') { const was = G.event ? G.event.id : '', o0 = G.origin, before = { origin: G.origin, main: G.slime.main, sub: G.slime.sub, stage: G.slime.stage, muts: G.slime.muts.slice() }, r = act(NEST.resolveEvent, num('i')); if (r.ok) { closeModal(); if (was.startsWith('trait_') && G.origin !== o0) { META.codex.traits[G.origin] = 1; saveMeta(); sfx('evo'); ST.flash = now() + 250; modal(traitHtml(before), false, 'trait'); } } return; }
+  if (a === 'event') { const was = G.event ? G.event.id : '', o0 = G.origin, before = { origin: G.origin, body: G.slime.body, main: G.slime.main, sub: G.slime.sub, stage: G.slime.stage, muts: G.slime.muts.slice() }, r = act(NEST.resolveEvent, num('i')); if (r.ok) { closeModal(); if (was.startsWith('trait_') && G.origin !== o0) { META.codex.traits[G.origin] = 1; saveMeta(); sfx('evo'); ST.flash = now() + 250; modal(traitHtml(before), false, 'trait'); } } return; }
 }
 function stagePoint(e) { const b = $('stage').getBoundingClientRect(), u = b.height / H; return [(e.clientX - b.left) / u - ST.ox + ST.cam.x, (e.clientY - b.top) / u + (ST.cam.y || 0)]; }
 function tipFor(h) {
