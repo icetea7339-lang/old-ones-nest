@@ -302,6 +302,7 @@ function kinBase(kind) {
   const c = document.createElement('canvas'); c.width = c.height = 16; const x = c.getContext('2d'); KDRAW[kind]((a, b, w, h, col) => { x.fillStyle = col; x.fillRect(a, b, w, h); }, PAL[KINSPR[kind][1]] || PAL.base); return (cv[key] = c);
 }
 function kinCanvas(kind, evo) {
+  if (evo && KEVO2[kind]) { const k2 = 'evo5:' + kind; if (cv[k2]) return cv[k2]; const K = Sculpt(24); KEVO2[kind](K, PAL[KINSPR[kind][1]] || PAL.base); return (cv[k2] = K.canvas()); }   // 진화하면 다른 것이 된다
   if (!evo || !KEVO[kind]) return kinBase(kind); const key = 'evo4:' + kind; if (cv[key]) return cv[key];
   const c = document.createElement('canvas'); c.width = c.height = 21; const x = c.getContext('2d'), q = (a, b, w, h, col) => { x.fillStyle = col; x.fillRect(a, b, w, h); }, P = PAL[KINSPR[kind][1]] || PAL.base;
   if (['turncoat', 'fallen', 'scale', 'warden'].includes(kind)) KEVO[kind](q, P);          // 망토·날개·등짐은 몸 뒤에
@@ -389,7 +390,7 @@ function rcpMark(x, r, hx, hy, w, h) {
   if (r === 'record') { P('#101018', [[cx - 3, top, 6, 4]]); P('#f0f0f8', [[cx - 2, top + 1, 4, 2]]); P('#7030c0', [[cx - 1, top + 1, 2, 2]]); }
 }
 const kinImgM = (m, size) => m.parts && m.parts.length ? toImg(kinCanvasM(m), 'fz:' + m.kind + (m.evo ? 'e' : '') + ':' + m.parts.map(p => p.kind + (p.evo ? 'e' : '')).join('+'), size, NEST.kinName(m)) : kinImg(m.kind, size, m.evo);
-const kinImg = (kind, size, evo) => toImg(kinCanvas(kind, evo), (evo ? 'evo4:' : 'kin3:') + kind, size, NEST.KIN[kind].name);
+const kinImg = (kind, size, evo) => toImg(kinCanvas(kind, evo), (evo ? 'evo5:' : 'kin3:') + kind, size, NEST.KIN[kind].name);
 const invImg = (kind, size) => toImg(invCanvas(kind), 'inv:' + kind, size, NEST.INV[kind].name);
 // 본체 그림은 점이 뭉개지지 않게 정수배로만 키운다. 자리는 size 그대로 잡고 그 안 바닥에 세운다
 const slimeImg = (sl, size, alt) => { const c = slimeCanvas(sl), N = c.width; let k = Math.max(1, Math.round(size / N)); if (k > 1 && N * k > size * 1.12) k--; const w = N * k > size * 1.12 ? size : N * k;
