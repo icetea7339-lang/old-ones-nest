@@ -5,7 +5,7 @@ const NEST = (function () {
   const K = {
     days: 40, act: 8, cost: [0, 1, 2, 4, 7, 11], stat: [0, 1, 1.5, 2.4, 3.6, 5], size: [0, 1, 1.3, 1.8, 2.4, 3],
     ap: 2, startGold: 300, faithCap: 30, thresh: [0, 50, 150, 300, 480], tier: [1, 2.5, 6, 11, 18],
-    slime: { hp: 80, atk: 7, df: 5 }, budget: 40, settle: 1.7, rob: 0.5, falls: [0, 2, 2, 2], smell: 0.8, wary: 0.5, tithe: 3, brood: { own: 0.2, other: 0.1, cap: 14 }, preach: { base: 6, grow: 2 }, gift: { ess: 2, on: 1, boon: 1, bane: 1 }, lean: { on: 1, add: 1.2, mul: 2.5, off: 0.5 }, ktrait: { abyss: 1, nebula: 1, hunger: 1, dusk: 1 }, fuse: { max: 2, share: 0.5, cost: 60 }, trustMax: 5, trustGain: 0.4, trustCap: [0, 5, 4, 2, 0], trustKills: 3,
+    slime: { hp: 80, atk: 7, df: 5 }, budget: 44, settle: 1.7, rob: 0.5, falls: [0, 2, 2, 2], smell: 0.8, wary: 0.5, tithe: 3, brood: { own: 0.2, other: 0.1, cap: 14 }, preach: { base: 6, grow: 2 }, gift: { ess: 2, on: 1, boon: 1, bane: 1 }, lean: { on: 1, add: 1.2, mul: 2.5, off: 0.5 }, ktrait: { abyss: 1, nebula: 1, hunger: 1, dusk: 1 }, fuse: { max: 2, share: 0.5, cost: 60 }, trustMax: 5, trustGain: 0.4, trustCap: [0, 5, 4, 2, 0], trustKills: 3,
     deep: { risk: [0, 0.25, 0.5, 1], ess: 3 }, pro: { essCap: 26, goldBase: 30, goldMax: 90 }, hold: { per: 0.06, max: 5, pins: 2 }, lvGrowth: 1.15, expBase: 10, expGrowth: 1.3, trainEff: 1.5, hands: 2, corpseCap: 9,
   };
   const ASPECTS = ['abyss', 'nebula', 'brood', 'dusk', 'hunger'];
@@ -436,9 +436,10 @@ const NEST = (function () {
   // 땅속의 한 방울을 건너뛰었거나 자동 플레이어가 할 때의 결과: 서툴게 / 보통 / 잘
   function proResult(asp, tier) {
     const others = ASPECTS.filter(a => a !== asp), ess = {}; ASPECTS.forEach(a => { ess[a] = 0; });
-    if (tier === 'poor') { ess[asp] = 5; ess[others[0]] = 2; return { ess, kin: [], gold: 20, size: 1, time: 40, fell: true }; }
-    if (tier === 'great') { ess[asp] = 20; others.forEach((a, i) => { ess[a] = i < 2 ? 5 : 2; }); return { ess, kin: ['goblin', 'skeleton', { abyss: 'tangle', nebula: 'spitter', brood: 'licker', dusk: 'cultist', hunger: 'hunger' }[asp]], gold: 110, size: 3, time: 110, fell: false }; }
-    ess[asp] = 12; others.forEach((a, i) => { ess[a] = i < 3 ? 2 : 0; }); return { ess, kin: ['goblin', 'skeleton'], gold: 30, size: 2, time: 80, fell: false, skipped: true };
+    const MUT1 = { abyss: 'tentacle', nebula: 'thirdeye', brood: 'spore', dusk: 'whisper', hunger: 'teeth' };
+    if (tier === 'poor') { ess[asp] = 5; ess[others[0]] = 2; return { ess, kin: [], parts: [], mut: null, gold: 20, size: 1, time: 40, fell: true }; }
+    if (tier === 'great') { ess[asp] = 20; others.forEach((a, i) => { ess[a] = i < 2 ? 5 : 2; }); return { ess, kin: [], parts: [], mut: MUT1[asp], gold: 110, size: 3, time: 110, fell: false }; }
+    ess[asp] = 12; others.forEach((a, i) => { ess[a] = i < 3 ? 2 : 0; }); return { ess, kin: [], parts: [], mut: null, gold: 30, size: 2, time: 80, fell: false, skipped: true };
   }
   function newGame(seed, startAsp, opts) {
     opts = opts || {};
@@ -465,7 +466,8 @@ const NEST = (function () {
       const k = tot > K.pro.essCap ? K.pro.essCap / tot : 1; for (const a of ASPECTS) G.slime.ess[a] = Math.floor(e[a] * k);
       G.gold += -K.pro.goldBase + clamp(Math.round(pr.gold || 0), 0, K.pro.goldMax);
       (pr.kin || []).slice(0, 3).forEach(kind => { if (!KIN[kind] || kind === 'spawn') return; const m = { id: G.nextId++, name: NAMES[Math.floor(rng(G) * NAMES.length)], kind, lv: 1, exp: 0, loc: null, hurt: 0, skill: -1, rare: false, age: 0, unpaid: 0, split: true }; autoSkill(m); G.kin.push(m); });
-      openTrail(G); G.pro = { size: pr.size || 1, time: Math.round(pr.time || 0), fell: !!pr.fell, skipped: !!pr.skipped, kin: (pr.kin || []).length }; G.slime.hp = slimeStats(G).hp * (pr.fell ? 0.6 : 1);
+      if (pr.mut && MUT[pr.mut] && !pr.fell && !G.slime.muts.includes(pr.mut)) G.slime.muts.push(pr.mut);   // 허물에 새긴 부위 하나가 변이로 남는다
+      openTrail(G); G.pro = { size: pr.size || 1, time: Math.round(pr.time || 0), fell: !!pr.fell, skipped: !!pr.skipped, kin: (pr.kin || []).length, mut: G.slime.muts[0] || null, parts: (pr.parts || []).length }; G.slime.hp = slimeStats(G).hp * (pr.fell ? 0.6 : 1);
     }
     applyWorld(null); autoPlace(G);
     morning(G);
@@ -612,7 +614,7 @@ const NEST = (function () {
       w.spawn = 0;
       const ks = Object.keys(w).filter(k => w[k] > 0), tot = ks.reduce((a, k) => a + w[k], 0);
       for (let i = 0; i < 3; i++) { let r = rng(G) * tot, kind = ks[0]; for (const k of ks) { if (r < w[k]) { kind = k; break; } r -= w[k]; } G.applicants.push({ kind, rare: false, name: NAMES[Math.floor(rng(G) * NAMES.length)] }); }
-      if (G.day === 1 && !G.pro) { G.applicants[0].kind = 'goblin'; G.applicants[1].kind = 'skeleton'; }
+      if (G.day === 1 && !(G.pro && G.pro.kin)) { G.applicants[0].kind = 'goblin'; G.applicants[1].kind = 'skeleton'; }
       if (G.day > 1 && [11, 22, 33, 44, 55].includes(Math.floor(Math.max(0, G.gold)) % 100)) G.applicants[0].rare = true;
     }
     if (pk(G) === 'brood' && G.slime.stage >= 1) for (let i = 0; i < (G.slime.stage >= 2 ? 2 : 1); i++) addSpawn(G);
