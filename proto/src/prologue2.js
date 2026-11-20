@@ -55,7 +55,21 @@ const PRO_CSS = `#pro { position: fixed; top: 0; right: 0; bottom: 0; left: 0; z
 .pro-det .pro-brow { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; }
 .pro-parts { display: flex; flex-wrap: wrap; gap: 6px; } .pro-keep { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px 3px 3px; font: inherit; font-size: 13px; color: #ece6d6; background: #2a2236; border: 1px solid #07050a; box-shadow: inset 0 0 0 1px #4a3c58; cursor: pointer; } .pro-keep img { width: 28px; height: 28px; }
 .pro-keep.on { box-shadow: inset 0 0 0 2px #e8c030; background: #3a3020; }
-@media (max-height: 640px) { .pro-cell { min-height: 42px; } .pro-cell img { width: 28px; height: 28px; } .pro-card { padding: 10px; gap: 5px; font-size: 13px; } .pro-det { min-height: 118px; } .pro-card h2 { font-size: 18px; } }`;
+@media (max-height: 640px) { .pro-cell { min-height: 42px; } .pro-cell img { width: 28px; height: 28px; } .pro-card { padding: 10px; gap: 5px; font-size: 13px; } .pro-det { min-height: 118px; } .pro-card h2 { font-size: 18px; } }
+/* 글자 다듬기: 작은 이름표는 본문 글꼴 굵게, 픽셀 글꼴은 큰 글에만. 줄은 낱말 단위로, 숫자는 한 덩이로 */
+#pro { word-break: keep-all; overflow-wrap: break-word; }
+.pro-b, .pro-act, .pro-gh, .pro-gl, .pro-settle, .pro-keep { font-family: var(--body, sans-serif); font-weight: 600; letter-spacing: -0.01em; }
+.pro-b { font-size: 14px; } .pro-act { font-size: 14px; } .pro-gh, .pro-gl { font-size: 13px; }
+.pro-mute, .pro-warn, .pro-bars, .pro-keep { font-size: 14px; }
+.pro-card p, .pro-det { text-wrap: pretty; } .pro-cap, .pro-card h2 { text-wrap: balance; }
+.pro-cap { font-size: 24px; } .pro-cap.big { font-size: 24px; } .pro-cap small { font-size: 15px; }
+.pro-card h2 { font-size: 24px; line-height: 1.2; } .pro-card h2 small { font-family: var(--body, sans-serif); font-size: 14px; font-weight: 400; }
+.pro-row b { font-family: var(--display, sans-serif); font-size: 16px; } .pro-row, .pro-row b, .pro-row span, .pro-settle, .pro-b { white-space: nowrap; }
+.pro-settle small { font-family: var(--body, sans-serif); font-weight: 400; font-size: 13px; white-space: nowrap; }
+.pro-det b { font-size: 16px; } .pro-gl small { font-size: 12px; line-height: 1.1; white-space: nowrap; } .pro-card p > b[style] { font-family: var(--body, sans-serif) !important; font-weight: 600 !important; font-size: 14px; }
+@media (min-width: 900px) { .pro-hud { font-size: 16px; } }
+@media (max-width: 380px), (max-height: 640px) { .pro-mute, .pro-warn, .pro-bars, .pro-keep { font-size: 13px; } .pro-card h2 { font-size: 16px; } .pro-cap, .pro-cap.big { font-size: 16px; } }
+`;
 
 function runPrologue(opts) {
   opts = opts || {};

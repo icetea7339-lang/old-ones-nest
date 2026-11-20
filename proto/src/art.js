@@ -58,7 +58,7 @@ const PAL = {
   netter: ['#1b1d2a', '#5f9fc0', '#a8d8f0', '#2a4a6a', '#c8c8d0'], warden: ['#1b1d2a', '#b8b0a0', '#e8e0d0', '#4a4a58', '#e8c030'],
   chaplain: SKIN.concat(['#f0e8e0', '#c83030']), sealer: ['#1b1d2a', '#ffe0c0', '#fff0e0', '#1a1a2a', '#e8c030'],
 };
-const ASPCOL = { abyss: '#3fb8d0', nebula: '#b08fff', brood: '#7fd04f', dusk: '#f0a04a', hunger: '#f2696f' };
+const ASPCOL = { abyss: '#3fb8d0', nebula: '#b08fff', brood: '#7fd04f', dusk: '#f0a04a', hunger: '#f47c81' };
 const KINSPR = { goblin: ['goblin', 'goblin'], skeleton: ['skeleton', 'skeleton'], cultist: ['hood', 'cultist'], scale: ['harpy', 'scale'], scribe: ['hood', 'scribe'], spawn: ['slime', 'spawn'], mask: ['hood', 'mask'], hunger: ['mimic', 'hunger_k'], netter: ['goblin', 'netter'], warden: ['skeleton', 'warden'], turncoat: ['human', 'warrior'], fallen: ['hood', 'priest'], digger: ['goblin', 'digger'], clerk: ['hood', 'clerk'], licker: ['slime', 'licker'], spitter: ['harpy', 'spitter'], eyeheap: ['eyeheap', 'eyeheap'], tangle: ['tangle', 'tangle'] };
 const invCanvas = kind => invCanvasW((typeof G !== 'undefined' && G && G.world) || 'fantasy', kind);   // 뚫린 세계에 맞춘 차림 (worldart.js)
 // 부 징조가 본체에 더하는 그림 [x, y, 색]
@@ -108,7 +108,8 @@ function slimeCanvas(sl, frame) {
   const mouth = (a, b, w, p) => { const op = (Math.round(a + b) + fr) % 3 ? 2 : 1; px(a - 1, b - 1, w + 2, op + 2, p[0]); px(a, b, w, op, DK); for (let i = 0; i < w; i += 2) px(a + i, b + (op > 1 && i % 4 ? 1 : 0), 1, 1, WH); };
   const sac = (a, b, r, p, seed) => { const pu = (Math.round(a) + fr) % 4 === 0 ? 0.7 : 0; blob(a, b, r + pu, r + pu, p); if (seed) px(a, b + (fr % 2), 1, 2, p[0]); };
   let B = { cx: 16, cy: 24, R: 4, top: 20, bot: 27 };
-  if (NEW) { const K = Sculpt(N); B = NEW(K, st, P, Q, fr); if (st >= 2 && sl.sub) subOrgan(K, sl.sub, Q, B, st, fr); x.drawImage(K.canvas(), 0, 0); }
+  if (NEW) { const K = Sculpt(N); B = NEW(K, st, P, Q, fr); if (st >= 2 && sl.sub) subOrgan(K, sl.sub, Q, B, st, fr); x.drawImage(K.canvas(), 0, 0);
+    if (st >= 1 && sl.look && FORMS['seed_' + sl.look]) { const K2 = Sculpt(32); FORMS['seed_' + sl.look](K2, 0, PAL.base, PAL.base, 0); x.imageSmoothingEnabled = false; x.globalAlpha = 0.85; x.drawImage(K2.canvas(), 4, 6, 24, 26, 0, N - 13, 12, 13); x.globalAlpha = 1; } }
   else if (st === 0) { blob(16, 25, 5, 3, P); px(11, 28, 2, 2, P[1]); px(21, 28, 1, 2, P[3]); px(14, 21 - (fr % 2), 1, 2, P[1]); px(14, 20 - (fr % 2), 1, 1, P[2]); px(11 + fr, 29, 1, 1, P[2]); }
   else {
     const R = [0, 5, 7, 9, 11][st];

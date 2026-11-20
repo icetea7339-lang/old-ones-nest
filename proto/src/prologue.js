@@ -455,7 +455,7 @@ const PRO = (function () {
       if (kind === 'skip') { const e = zero(); e[home] = 12; const rest = ASPS.filter(a => a !== home); for (let k = 0; k < 6; k++) e[rest[k % rest.length]]++; return { ess: e, kin: [], gold: 60, size: 2, time, fell: false, skipped: true, parts: [], mut: null, look }; }
       const e = essAt(S.stage), parts = wornList(); if (fell) ASPS.forEach(a => { e[a] = Math.floor(e[a] / 2); });
       const best = parts.slice().sort((a, b) => b.lv - a.lv)[0], can = !fell && S.stage >= K.keepFrom && best;
-      return { ess: e, kin: [], gold: Math.min(K.goldCap, S.gold), size: S.stage, time, fell, skipped: false, parts, mut: can ? PART[keep && parts.some(p => p.id === keep) ? keep : best.id].mut : null, look };
+      return { ess: e, kin: [], gold: Math.min(K.goldCap, S.gold), size: S.stage, time, fell, skipped: false, ate: Object.assign({}, S.stats.byKind), parts, mut: can ? PART[keep && parts.some(p => p.id === keep) ? keep : best.id].mut : null, look };
     }
     function end(kind) { if (S.ended) return; S.ended = kind; emit('end', { kind }); }
 
