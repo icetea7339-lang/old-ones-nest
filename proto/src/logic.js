@@ -5,8 +5,8 @@ const NEST = (function () {
   const K = {
     days: 40, act: 8, cost: [0, 1, 2, 4, 7, 11], stat: [0, 1, 1.5, 2.4, 3.6, 5], size: [0, 1, 1.3, 1.8, 2.4, 3],
     ap: 2, startGold: 300, faithCap: 30, thresh: [0, 50, 150, 300, 480], tier: [1, 2.5, 6, 11, 18],
-    slime: { hp: 80, atk: 7, df: 5 }, budget: 44, settle: 1.7, rob: 0.5, falls: [0, 2, 2, 2], smell: 0.8, wary: 0.5, tithe: 3, brood: { own: 0.2, other: 0.1, cap: 14 }, preach: { base: 6, grow: 2 }, gift: { ess: 2, on: 1, boon: 1, bane: 1 }, lean: { on: 1, add: 1.2, mul: 2.5, off: 0.5 }, ktrait: { abyss: 1, nebula: 1, hunger: 1, dusk: 1 }, fuse: { max: 2, share: 0.5, cost: 60 }, trustMax: 5, trustGain: 0.4, trustCap: [0, 5, 4, 2, 0], trustKills: 3,
-    deep: { risk: [0, 0.25, 0.5, 1], ess: 3 }, pro: { essCap: 26, goldBase: 30, goldMax: 90 }, hold: { per: 0.06, max: 5, pins: 2 }, lvGrowth: 1.15, expBase: 10, expGrowth: 1.3, trainEff: 1.5, hands: 2, corpseCap: 9,
+    slime: { hp: 80, atk: 7, df: 5 }, budget: 56, settle: 1.7, rob: 0.5, falls: [0, 2, 2, 2], smell: 0.8, wary: 0.5, tithe: 3, brood: { own: 0.2, other: 0.1, cap: 14 }, preach: { base: 6, grow: 2 }, gift: { ess: 2, on: 1, boon: 1, bane: 1 }, lean: { on: 1, add: 1.2, mul: 2.5, off: 0.5 }, ktrait: { abyss: 1, nebula: 1, hunger: 1, dusk: 1 }, fuse: { max: 2, share: 0.5, cost: 60 }, trustMax: 5, trustGain: 0.4, trustCap: [0, 5, 4, 2, 0], trustKills: 3,
+    deep: { risk: [0, 0.25, 0.5, 1], ess: 3 }, pro: { essCap: [0, 4, 8, 14, 22, 36], goldBase: 30, goldMax: 90, body: 0.07, life: 5 }, hold: { per: 0.06, max: 5, pins: 2 }, lvGrowth: 1.15, expBase: 10, expGrowth: 1.3, trainEff: 1.5, hands: 2, corpseCap: 9,
   };
   const ASPECTS = ['abyss', 'nebula', 'brood', 'dusk', 'hunger'];
   const ASP = { abyss: '심연', nebula: '성운', brood: '번식', dusk: '황혼', hunger: '기아' };
@@ -281,7 +281,7 @@ const NEST = (function () {
     maskm: { name: '가면', asp: 'dusk', desc: '아군이 주는 정신력 피해 +25%' }, whisper: { name: '속삭임', asp: 'dusk', desc: '개종 성공률 +15%p' },
     teeth: { name: '이빨 줄', asp: 'hunger', desc: '본체가 쓰러뜨릴 때마다 체력 8% 회복' }, steelgut: { name: '강철 위', asp: 'hunger', desc: '시체 정수 +1' },
   };
-  const DIFF = { 1: { name: '첫 각성', mult: 1, score: 1 }, 2: { name: '깊은 각성', mult: 1.4, score: 1.1 }, 3: { name: '끝없는 밤', mult: 1.65, score: 1.25 } };
+  const DIFF = { 1: { name: '첫 각성', mult: 1, score: 1 }, 2: { name: '깊은 각성', mult: 1.2, score: 1.1 }, 3: { name: '끝없는 밤', mult: 1.4, score: 1.25 } };
   const GRADES = [['SSS', 23000], ['SS', 19000], ['S', 15500], ['A', 12000], ['B', 9000], ['C', 6000], ['D', 0]];
   const EVENTS = {
     feeder: { title: '떠돌이 먹이 장수', text: '짊어진 꾸러미마다 이상한 냄새가 난다. "속성 진한 놈으로만 골라 왔수다."', min: 2 },
@@ -418,7 +418,7 @@ const NEST = (function () {
   const trustCap = G => G.origin === 'maw' ? 0 : K.trustCap[fearGrade(G)];
   const tradeOf = (G, v) => Math.round((v === 'gaet' ? 1.5 : 3) * cm(G) * (1 + K.trustGain * (G.vill[v].trust || 0)) * (G.origin === 'coin' ? 1.5 : 1));
   // 목숨: 본체가 몇 번 더 쓰러질 수 있는가 (마지막 밤은 예외)
-  const livesMax = G => K.falls[G.diff] + hoardN(G, 'life'), lives = G => Math.max(0, livesMax(G) - (G.falls || 0));
+  const livesMax = G => K.falls[G.diff] + hoardN(G, 'life') + (G.pro && G.pro.size >= K.pro.life && !G.pro.fell ? 1 : 0), lives = G => Math.max(0, livesMax(G) - (G.falls || 0));
   function migrate(G) { if (!G.origin) G.origin = 'drop'; if (G.slime && !G.slime.origin) G.slime.origin = G.origin; if (G.cells[18] && G.cells[18].type === 'vault') { G.cells[18].type = 'core'; G.cells[19] = { dug: false, block: false, type: 'empty', lv: 1, exp: 0, traps: [], zone: false }; } if (G.falls == null) G.falls = G.spared ? 1 : 0; if (!G.eld) G.eld = { id: G.startAsp, favor: 0, tally: 0 }; return G; }
   // ---------- 길 찾기 ----------
   const passable = (G, i) => G.cells[i].dug && !G.cells[i].block && i !== CORE;
@@ -437,9 +437,9 @@ const NEST = (function () {
   function proResult(asp, tier) {
     const others = ASPECTS.filter(a => a !== asp), ess = {}; ASPECTS.forEach(a => { ess[a] = 0; });
     const MUT1 = { abyss: 'tentacle', nebula: 'thirdeye', brood: 'spore', dusk: 'whisper', hunger: 'teeth' };
-    if (tier === 'poor') { ess[asp] = 5; ess[others[0]] = 2; return { ess, kin: [], parts: [], mut: null, gold: 20, size: 1, time: 40, fell: true }; }
-    if (tier === 'great') { ess[asp] = 20; others.forEach((a, i) => { ess[a] = i < 2 ? 5 : 2; }); return { ess, kin: [], parts: [], mut: MUT1[asp], gold: 110, size: 3, time: 110, fell: false }; }
-    ess[asp] = 12; others.forEach((a, i) => { ess[a] = i < 3 ? 2 : 0; }); return { ess, kin: [], parts: [], mut: null, gold: 30, size: 2, time: 80, fell: false, skipped: true };
+    if (tier === 'poor') { ess[asp] = 5; ess[others[0]] = 2; return { ess, kin: [], parts: [], mut: null, gold: 20, size: 2, time: 60, fell: true }; }
+    if (tier === 'great') { ess[asp] = 22; others.forEach((a, i) => { ess[a] = i < 2 ? 5 : 2; }); return { ess, kin: [], parts: [], mut: MUT1[asp], gold: 110, size: 5, time: 270, fell: false }; }
+    ess[asp] = 11; others.forEach((a, i) => { ess[a] = i < 3 ? 2 : 0; }); return { ess, kin: [], parts: [], mut: null, gold: 30, size: 3, time: 150, fell: false, skipped: true };
   }
   function newGame(seed, startAsp, opts) {
     opts = opts || {};
@@ -463,7 +463,8 @@ const NEST = (function () {
     if (G.star === 'faith') { G.cells[11].dug = true; G.cells[11].type = 'chapel'; for (let k = 0; k < 2; k++) G.kin.push({ id: G.nextId++, name: NAMES[Math.floor(rng(G) * NAMES.length)], kind: 'cultist', lv: 1, exp: 0, loc: null, hurt: 0, skill: -1, rare: false, age: 0, unpaid: 0 }); }
     if (opts.prologue) {
       const pr = opts.prologue, e = {}; let tot = 0; for (const a of ASPECTS) { e[a] = Math.max(0, Math.round((pr.ess && pr.ess[a]) || 0)); tot += e[a]; }
-      const k = tot > K.pro.essCap ? K.pro.essCap / tot : 1; for (const a of ASPECTS) G.slime.ess[a] = Math.floor(e[a] * k);
+      const cap = K.pro.essCap[clamp(Math.round(pr.size || 1), 1, 5)], k = tot > cap ? cap / tot : 1;
+      for (const a of ASPECTS) G.slime.ess[a] = Math.floor(e[a] * k);   // 멀리 자란 만큼 더 가져온다
       G.gold += -K.pro.goldBase + clamp(Math.round(pr.gold || 0), 0, K.pro.goldMax);
       (pr.kin || []).slice(0, 3).forEach(kind => { if (!KIN[kind] || kind === 'spawn') return; const m = { id: G.nextId++, name: NAMES[Math.floor(rng(G) * NAMES.length)], kind, lv: 1, exp: 0, loc: null, hurt: 0, skill: -1, rare: false, age: 0, unpaid: 0, split: true }; autoSkill(m); G.kin.push(m); });
       if (pr.mut && MUT[pr.mut] && !pr.fell && !G.slime.muts.includes(pr.mut)) G.slime.muts.push(pr.mut);   // 허물에 새긴 부위 하나가 변이로 남는다
@@ -527,9 +528,11 @@ const NEST = (function () {
     if (k === 'life') return ok('허물을 하나 더 둘렀다. 목숨 ' + lives(G) + ' (−' + cost + '방울)');
     return ok('별을 가렸다. 마지막 밤의 무리가 약해진다 (−' + cost + '방울)');
   }
+  // 땅속에서 멀리 자란 몸일수록 굳세다: 3단계가 기준, 한 단계마다 체력과 공격 ±7%. 다 자란 몸(5단계)은 목숨이 하나 더 있다
+  const grown = G => 1 + K.pro.body * (((G.pro && G.pro.size) || 3) - 3);
   function slimeStats(G) {
     const t = K.tier[G.slime.stage], m = G.slime.main;
-    const x = G.star === 'lone' ? 1.2 : 1, g = hoardN(G, 'gulp'), gh = 1 + HOARD.gulp.hp * g, ga = 1 + HOARD.gulp.atk * g, O = ORIGIN[org(G)]; return { hp: K.slime.hp * t * x * (G.star === 'glass' ? 0.5 : 1) * gh * (O.hp || 1), atk: K.slime.atk * t * x * (pk(G) === 'hunger' ? 1.3 : 1) * (G.slime.body === 'hive' ? 1 + (G.slime.stage >= 2 ? 0.07 : 0.05) * Math.min(15, G.kin.filter(q => q.kind !== 'spawn').length) : 1) * ga * (O.atk || 1), df: K.slime.df * t * x * ga * (O.df || 1) * (G.slime.body === 'idol' ? 1.4 : 1) };
+    const x = (G.star === 'lone' ? 1.2 : 1) * grown(G), g = hoardN(G, 'gulp'), gh = 1 + HOARD.gulp.hp * g, ga = 1 + HOARD.gulp.atk * g, O = ORIGIN[org(G)]; return { hp: K.slime.hp * t * x * (G.star === 'glass' ? 0.5 : 1) * gh * (O.hp || 1), atk: K.slime.atk * t * x * (pk(G) === 'hunger' ? 1.3 : 1) * (G.slime.body === 'hive' ? 1 + (G.slime.stage >= 2 ? 0.07 : 0.05) * Math.min(15, G.kin.filter(q => q.kind !== 'spawn').length) : 1) * ga * (O.atk || 1), df: K.slime.df * t * x * ga * (O.df || 1) * (G.slime.body === 'idol' ? 1.4 : 1) };
   }
   // 뿌리내림: 지키라고 한 자리에서 보낸 밤마다 세진다. 옮기거나 풀어 주면 처음부터
   const holdBonus = m => m.pin && m.loc !== null ? K.hold.per * Math.min(K.hold.max, m.hold || 0) : 0;
