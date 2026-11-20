@@ -790,7 +790,16 @@ const NEST = (function () {
   const faithCap = G => K.faithCap + 20 * countRoom(G, 'chapel') + (G.faithBonus || 0) + (G.slime.body === 'idol' ? 20 : 0);
   const addFaith = (G, x) => { G.faith = clamp(G.faith + x, 0, faithCap(G)); };
   const addEss = (G, asp, x) => { G.slime.ess[asp] += G.star === 'glass' ? Math.round(x * 1.2) : x; };
-  const corpseCap = G => K.corpseCap + (hasRoom(G, 'table') ? 6 : 0);
+  // 처음 받은 몸이 둥지에 남기는 작은 버릇. 한 판 내내 간다
+  const SEEDN = {
+    drop: { text: '본체 체력과 공격 +4%', hp: 1.04, atk: 1.04 }, sliver: { text: '본체 공격 +10%, 체력 −5%', atk: 1.1, hp: 0.95 }, bead: { text: '본체 체력 +10%, 공격 −5%', hp: 1.1, atk: 0.95 },
+    husk: { text: '시작 진액 +35방울', gold: 35 }, mote: { text: '시작 진액 +25방울, 본체 체력 −3%', gold: 25, hp: 0.97 }, coil: { text: '본체 공격 +6%', atk: 1.06 },
+    eye: { text: '시작 신앙 +6', faith: 6 }, twin: { text: '시작 신앙 +4, 진액 +15방울', faith: 4, gold: 15 }, horn: { text: '본체 공격 +8%, 체력 −3%', atk: 1.08, hp: 0.97 },
+    sticky: { text: '먹이 창고 +2', corpse: 2 }, flat: { text: '본체 체력 +6%', hp: 1.06 }, glow: { text: '시작 진액 +50방울', gold: 50 },
+    spore: { text: '본체 체력 +5%', hp: 1.05 }, pod: { text: '시작 정수 +3', ess: 3 }, thorn: { text: '본체 체력과 공격 +4%', hp: 1.04, atk: 1.04 },
+  };
+  const seedN = (G, k, d) => { const q = G.slime && SEEDN[G.slime.look]; return q && q[k] != null ? q[k] : d; };
+  const corpseCap = G => K.corpseCap + (hasRoom(G, 'table') ? 6 : 0) + seedN(G, 'corpse', 0);
   const corpsePts = (G, kind) => Math.floor((G.origin === 'maw' ? 1.25 : 1) * INV[kind].g * 2) + wr(G, 'ess', 0) + (has(G, 'steelgut') ? 1 : 0) + (hasRoom(G, 'abattoir') ? 1 : 0) + (G.slime.stage >= 2 && (pk(G) === 'hunger' || G.slime.sub === 'hunger') ? 1 : 0);
   function addCorpse(G, kind) { G.corpses.push({ kind }); while (G.corpses.length > corpseCap(G)) G.corpses.shift(); }
   function eatN(G, n) { const out = {}; G.corpses.splice(0, n).forEach(c => { const a = INV[c.kind].asp, p = corpsePts(G, c.kind); addEss(G, a, p); out[a] = (out[a] || 0) + p; }); return Object.keys(out).map(a => ASP[a] + ' +' + out[a]).join(', '); }
@@ -859,7 +868,7 @@ const NEST = (function () {
       for (const a of ASPECTS) G.slime.ess[a] = Math.floor(e[a] * k);   // 멀리 자란 만큼 더 가져온다
       G.gold += -K.pro.goldBase + clamp(Math.round(pr.gold || 0), 0, K.pro.goldMax);
       (pr.kin || []).slice(0, 3).forEach(kind => { if (!KIN[kind] || kind === 'spawn') return; const m = { id: G.nextId++, name: NAMES[Math.floor(rng(G) * NAMES.length)], kind, lv: 1, exp: 0, loc: null, hurt: 0, skill: -1, rare: false, age: 0, unpaid: 0, split: true }; autoSkill(m); G.kin.push(m); });
-      if (pr.look) G.slime.look = String(pr.look).replace(/[^a-z0-9_]/gi, '').slice(0, 24);
+      if (pr.look) { G.slime.look = String(pr.look).replace(/[^a-z0-9_]/gi, '').slice(0, 24); G.gold += seedN(G, 'gold', 0); G.faith += seedN(G, 'faith', 0); G.slime.ess[startAsp] += seedN(G, 'ess', 0); }
       if (pr.mut && MUT[pr.mut] && !pr.fell && !G.slime.muts.includes(pr.mut)) G.slime.muts.push(pr.mut);   // 허물에 새긴 부위 하나가 변이로 남는다
       openTrail(G); G.pro = { size: pr.size || 1, time: Math.round(pr.time || 0), fell: !!pr.fell, skipped: !!pr.skipped, kin: (pr.kin || []).length, mut: G.slime.muts[0] || null, parts: (pr.parts || []).length }; G.slime.hp = slimeStats(G).hp * (pr.fell ? 0.6 : 1);
     }
@@ -925,7 +934,7 @@ const NEST = (function () {
   const grown = G => 1 + K.pro.body * (((G.pro && G.pro.size) || 3) - 3);
   function slimeStats(G) {
     const t = K.tier[G.slime.stage], m = G.slime.main;
-    const x = (G.star === 'lone' ? 1.2 : 1) * grown(G), g = hoardN(G, 'gulp'), gh = 1 + HOARD.gulp.hp * g, ga = 1 + HOARD.gulp.atk * g, O = ORIGIN[org(G)]; return { hp: K.slime.hp * t * x * (G.star === 'glass' ? 0.5 : 1) * gh * (O.hp || 1), atk: K.slime.atk * t * x * (pk(G) === 'hunger' ? 1.3 : 1) * (G.slime.body === 'hive' ? 1 + (G.slime.stage >= 2 ? 0.07 : 0.05) * Math.min(15, G.kin.filter(q => q.kind !== 'spawn').length) : 1) * ga * (O.atk || 1), df: K.slime.df * t * x * ga * (O.df || 1) * (G.slime.body === 'idol' ? 1.4 : 1) };
+    const x = (G.star === 'lone' ? 1.2 : 1) * grown(G), g = hoardN(G, 'gulp'), gh = 1 + HOARD.gulp.hp * g, ga = 1 + HOARD.gulp.atk * g, O = ORIGIN[org(G)]; return { hp: K.slime.hp * t * x * seedN(G, 'hp', 1) * (G.star === 'glass' ? 0.5 : 1) * gh * (O.hp || 1), atk: K.slime.atk * t * x * seedN(G, 'atk', 1) * (pk(G) === 'hunger' ? 1.3 : 1) * (G.slime.body === 'hive' ? 1 + (G.slime.stage >= 2 ? 0.07 : 0.05) * Math.min(15, G.kin.filter(q => q.kind !== 'spawn').length) : 1) * ga * (O.atk || 1), df: K.slime.df * t * x * ga * (O.df || 1) * (G.slime.body === 'idol' ? 1.4 : 1) };
   }
   // 뿌리내림: 지키라고 한 자리에서 보낸 밤마다 세진다. 옮기거나 풀어 주면 처음부터
   const holdBonus = m => m.pin && m.loc !== null ? K.hold.per * Math.min(K.hold.max, m.hold || 0) : 0;
@@ -1712,7 +1721,7 @@ const NEST = (function () {
   [EDICT, VILL, EVENTS, GUEST, SPOT, OMEN, ORIGIN, ACT_NAME, AVATAR, STAR, SIGN, PLOT, HOARD, ELDER].forEach(localize);
   return { lx, localize, folk, CAST, KASP, KTRAIT, leanOf, EDICT, RIVAL, edictChoices, setEdict, ELDER, fj, K, ASPECTS, ASP, COLS, ROWS, N, ENT, CORE, nbrs, lives, livesMax, migrate, trading, tradeOf, trustCap, HOARD, hoardN, hoardCost, hoardWhy, hoardBuy, ORIGIN, digCost, SIGN, TRAITS, traitReady, eventInfo, BODY, SUBADJ, bodyOf, pk, FUSE_PRE, fuseCost, fuseWhy, fuseKin, baseName, RECIPE, recipesOf, fusePreview, ROOM, TRAP, ZONE, PLOT, KIN, SKILL_LV, INV, GRADE_NAME, VILL, VIDS, FORM1, FORM2, FORM2UP, SUBTRAIT, AVATAR, MUT, DIFF, GRADES, EVENTS,
     newGame, actOf, cm, sm, isSettle, formId, formName, formTitle, SPECIES, essTotal, fearGrade, faithCap, corpseCap, corpsePts, slimeStats, kinStats, salary, upkeep, capacity, freeSlot, prisonCap, handsMax, spellCost, seesDetail, expNeed,
-    paths, sideRooms, estimate, partyBudget, canDig, digPreview, dig, toggleBlock, canBuild, buildCost, build, addTrap, trapUpCost, upTrap, setZone, setPlot, accept, acceptCost, dismiss, proResult, holdBonus, pinCap, pinned, START, openTrail, trailLeft, WRULE, moveKin, guard, release, autoPlace, breach, underRisk, WORLD, WORLD_IDS, applyWorld, setSkill, setStance, train, eat, rest,
+    paths, sideRooms, estimate, partyBudget, canDig, digPreview, dig, toggleBlock, canBuild, buildCost, build, addTrap, trapUpCost, upTrap, setZone, setPlot, accept, acceptCost, dismiss, SEEDN, proResult, holdBonus, pinCap, pinned, START, openTrail, trailLeft, WRULE, moveKin, guard, release, autoPlace, breach, underRisk, WORLD, WORLD_IDS, applyWorld, setSkill, setStance, train, eat, rest,
     SPOT, spotOptions, resolveSpot, ELDER, OMEN, OMEN_IDS, OMEN_DAY, CALM_COST, ACT_NAME, calm, COMBO, combos, BURIED, STAR, EVO, EVO_DESC, kinName, evoCost, evolveKin, GUEST, guestOptions, resolveGuest, convertKind, endKey, convertChance, ransomOf, sacEss, mutChance, dispose, raidInfo, raid, eventOptions, resolveEvent, endDay, beginNight, settle, luxury, avatarOf, score };
 })();
 if (typeof module !== 'undefined') module.exports = NEST;
@@ -3097,17 +3106,17 @@ FORMS.hunger4 = (K, st, P, Q, fr) => {         // 마지막 한 입: 구멍을 �
 // 그림은 FORMS.seed_<id>: 32×32, FORMS.base 와 같은 약속(P = 바탕 빛깔, fr = 0..3). 징조의 빛깔은 넣지 않는다(첫 허물 뒤에 물든다).
 const SEEDS = {
   drop: { name: '방울', say: '고르다. 쓰러져도 돋운 것을 잃지 않는다', mod: { keepPart: true }, top: [16, 13] },
-  sliver: { name: '별조각', say: '빠르다. 대신 둘레가 어둡다', mod: { sp: 1.08, light: 0.82 }, top: [15, 11] },
-  bead: { name: '구슬', say: '한 번 더 버틴다. 대신 느리다', mod: { hp: 1, sp: 0.88 }, top: [16, 17] },
-  husk: { name: '빈껍질', say: '물려도 하나만 흘린다. 대신 한 입이 작다', mod: { drop: 1, eat: 0.95 }, top: [16, 17] },
-  mote: { name: '티끌', say: '작아서 덜 들킨다. 대신 진액을 적게 줍는다', mod: { see: 0.82, bead: 0.75 }, top: [16, 20] },
-  coil: { name: '똬리', say: '처음부터 튕겨 달아난다. 대신 평소엔 굼뜨다', mod: { act: true, sp: 0.95 }, top: [17, 17] },
-  eye: { name: '눈방울', say: '둘레가 밝다. 대신 느리다', mod: { light: 1.22, sp: 0.95 }, top: [17, 16] },
-  twin: { name: '쌍눈', say: '묻힌 것이 보인다. 대신 멀리서도 들킨다', mod: { buried: true, see: 1.08 }, top: [16, 17] },
-  horn: { name: '뿔씨', say: '단단한 씨를 처음부터 깬다. 대신 긁는 소리에 들킨다', mod: { mouth: 1, see: 1.1 }, top: [13, 18] },
+  sliver: { name: '별조각', say: '빠르다. 대신 둘레가 어둡다', mod: { sp: 1.08, light: 0.85 }, top: [15, 11] },
+  bead: { name: '구슬', say: '한 번 더 버틴다. 대신 느리다', mod: { hp: 1, sp: 0.84 }, top: [16, 17] },
+  husk: { name: '빈껍질', say: '물려도 하나만 흘린다. 대신 조금 굼뜨다', mod: { drop: 1, sp: 0.98 }, top: [16, 17] },
+  mote: { name: '티끌', say: '작아서 덜 들킨다. 대신 진액을 적게 줍는다', mod: { see: 0.86, bead: 0.75 }, top: [16, 20] },
+  coil: { name: '똬리', say: '처음부터 튕겨 달아난다. 대신 평소엔 굼뜨다', mod: { act: true, sp: 0.98 }, top: [17, 17] },
+  eye: { name: '눈방울', say: '둘레가 밝다. 대신 느리다', mod: { light: 1.3, sp: 0.97 }, top: [17, 16] },
+  twin: { name: '쌍눈', say: '묻힌 것이 보인다. 대신 멀리서도 들킨다', mod: { buried: true, see: 1.04 }, top: [16, 17] },
+  horn: { name: '뿔씨', say: '단단한 씨를 처음부터 깬다. 대신 긁는 소리에 들킨다', mod: { mouth: 1, see: 1.06 }, top: [13, 18] },
   sticky: { name: '끈끈이', say: '가까운 알갱이가 붙어 온다. 대신 물리면 더 흘린다', mod: { pull: 20, drop: 4 }, top: [16, 14] },
   flat: { name: '납작이', say: '틈에 한 몸 더 오래 숨는다. 대신 어둡고 굼뜨다', mod: { fit: 1, light: 0.88, sp: 0.97 }, top: [15, 22] },
-  glow: { name: '빛씨', say: '진액 방울을 더 얻는다. 대신 빛나서 들킨다', mod: { bead: 1.5, light: 1.08, see: 1.06 }, top: [16, 16] },
+  glow: { name: '빛씨', say: '진액 방울을 더 얻는다. 대신 빛나서 들킨다', mod: { bead: 1.5, light: 1.12, see: 1.03 }, top: [16, 16] },
   spore: { name: '홀씨', say: '가만두면 상처가 아문다. 대신 한 입이 작다', mod: { mend: 40, eat: 0.95 }, top: [16, 13] },
   pod: { name: '알씨', say: '남긴 것을 더 가져간다. 대신 굼뜨다', mod: { ess: 0.15, sp: 0.94 }, top: [16, 14] },
   thorn: { name: '가시알', say: '나를 문 것이 잠깐 굳는다. 대신 굼뜨다', mod: { stun: 1, sp: 0.93 }, top: [16, 16] },
@@ -4609,7 +4618,7 @@ const PRO = (function () {
     { name: '파고드는 것', need: 125, R: 680, r: 13, sp: 78, sc: 2, zoom: 0.6, light: 140 },
     { name: '삼키는 것', need: 255, R: 980, r: 18, sp: 90, sc: 2.8, zoom: 0.47, light: 180 },
     { name: '다 자란 것', need: 430, R: 1340, r: 24, sp: 102, sc: 3.7, zoom: 0.37, light: 230 }];
-  const K = { maxT: 450, lives: 2, hp: 2, cost: [4, 9, 16], open: { mouth: 1, eye: 1, leg: 2, skin: 2, core: 3 }, bead: 4, goldCap: 120,
+  const K = { maxT: 450, lives: 2, hp: 2, cost: [4, 9, 16], eyeCost: [3, 7, 12], hintC: 1.9, hintF: 2.1, open: { mouth: 1, eye: 1, leg: 2, skin: 2, core: 3 }, bead: 4, goldCap: 120,
     essF: [0, 0.2, 0.22, 0.25, 0.28, 0.32], essCap: [0, 4, 8, 14, 22, 36], keepFrom: 3, settleFrom: 2, sweepStage: 120, sweepAll: 345 };
   // 사는 것들. st = 그것과 맞수가 되는 몸. 내 몸이 st 보다 작으면 못 이긴다, 같으면 피할 수 있다, 크면 먹이다
   const SP = {
@@ -4631,7 +4640,7 @@ const PRO = (function () {
   const CENSUS = [null,
     { mite: 5, leech: 2, lurker: 1 },   // 첫 몸에서는 떼이빨이 나오지 않는다. 사람 손으로는 첫 20초에 에워싸이면 배울 틈이 없다
     { mite: 3, leech: 2, lurker: 4, pack: 2, weaver: 3, grazer: 3, charger: 1, hunter: 3 },
-    { weaver: 2, grazer: 3, charger: 3, spitter: 3, hunter: 3, mimic: 4, stalker: 1, mother: 1 },
+    { weaver: 2, grazer: 3, charger: 3, spitter: 2, hunter: 3, mimic: 3, stalker: 1, mother: 1 },
     { charger: 2, spitter: 3, hunter: 3, mimic: 3, mother: 2, filter: 3, stalker: 3, blind: 1 },
     { spitter: 2, hunter: 3, mother: 2, filter: 3, stalker: 3, blind: 2 }];
   // 먹이. tier = 어느 몸의 먹이인가(두 몸 넘게 자라면 반밖에 안 된다), need = 입의 힘, chew = 서서 씹는 시간
@@ -4651,18 +4660,18 @@ const PRO = (function () {
   // ---------- 부위: 다섯 자리 × 다섯 징조. 한 자리에는 하나만. v = 단계별 세기 ----------
   const SLOTS = [['mouth', '입'], ['eye', '눈'], ['leg', '발'], ['skin', '겉'], ['core', '속']], SLOTK = { mouth: '입', eye: '눈', leg: '발', skin: '겉', core: '속' };
   const SLOTSAY = { mouth: '입이 클수록 큰 것을 삼키고 단단한 것을 깬다', eye: '어둠 속에 숨은 것을 알아본다', leg: '단추를 눌러 쓰는 재주가 생긴다', skin: '물리고 녹고 걸리는 것을 막는다', core: '몸속의 살림' };
-  const part = (slot, asp, name, mut, v, say, o) => Object.assign({ id: slot + '_' + asp, slot, asp, name, mut, v, say, cost: K.cost }, o || {});
+  const part = (slot, asp, name, mut, v, say, o) => Object.assign({ id: slot + '_' + asp, slot, asp, name, mut, v, say, cost: slot === 'eye' ? K.eyeCost : K.cost }, o || {});
   const CAT = [
     part('mouth', 'abyss', '빨판', 'tentacle', [24, 36, 50], v => `둘레 ${v} 안의 먹이가 빨려 온다`),
     part('mouth', 'nebula', '빛입', 'ring', [30, 55, 80], v => `먹을 때 ${v}%로 한 입 더 얻는다`),
     part('mouth', 'brood', '포자입', 'mouth', [35, 55, 75], v => `먹은 자리에 ${v}%로 알갱이가 돋는다`),
     part('mouth', 'dusk', '속삭입', 'whisper', [60, 90, 130], v => `둘레 ${v} 안의 먹잇감이 달아나지 않는다`),
     part('mouth', 'hunger', '톱니입', 'teeth', [1, 2, 3], (v, k) => ['입의 힘이 하나 더 세다. 지친 맞수를 삼킨다', '맞수를 언제든 삼킨다', '굳거나 엉킨 큰 것까지 삼킨다'][k]),
-    part('eye', 'abyss', '등불', 'gills', [25, 45, 70], v => `밝은 둘레 +${v}%`),
+    part('eye', 'abyss', '등불', 'gills', [35, 60, 90], (v, k) => `밝은 둘레 +${v}%. 빛 안에서는 묻힌 것` + (k ? '과 먹이인 척하는 것' : '') + '이 드러난다'),
     part('eye', 'nebula', '셋째눈', 'thirdeye', [1, 2, 3], (v, k) => ['묻힌 것과 먹이인 척하는 것이 보인다', '어둠 속과 화면 밖의 사나운 것이 보인다', '덮치기 전의 낌새가 더 일찍 보인다'][k]),
-    part('eye', 'brood', '더듬이', 'spore', [1, 2, 3], (v, k) => ['큰 먹이가 있는 쪽을 가리킨다', '빛갓과 알도 가리킨다', '진액과 틈도 가리킨다'][k]),
-    part('eye', 'dusk', '가면눈', 'maskm', [20, 35, 50], v => `사나운 것이 ${v}% 더 가까이 와야 나를 알아챈다`),
-    part('eye', 'hunger', '피눈', 'steelgut', [12, 20, 28], v => `삼킬 수 있는 것이 표시된다. 그 곁에서 ${v}% 빠르다`),
+    part('eye', 'brood', '더듬이', 'spore', [12, 22, 32], (v, k) => ['큰 먹이가 있는 쪽을 가리킨다', '빛갓과 알도 가리킨다', '진액과 틈도 가리킨다'][k] + `. 알갱이가 아닌 먹이 +${v}%`),
+    part('eye', 'dusk', '가면눈', 'maskm', [25, 40, 55], v => `사나운 것이 ${v}% 더 가까이 와야 나를 알아챈다`),
+    part('eye', 'hunger', '피눈', 'steelgut', [15, 25, 35], v => `삼킬 수 있는 것이 표시된다. 그 곁에서 ${v}% 빠르다`),
     part('leg', 'abyss', '물살발', 'gills', [5, 4, 3], (v, k) => `재주: 잠깐 세 배로 내달린다 (${v}초마다). 늘 ${[6, 10, 14][k]}% 빠르다`, { act: '내달리기' }),
     part('leg', 'nebula', '별뜀', 'ring', [6, 5, 4], (v, k) => `재주: 가는 쪽으로 ${[60, 85, 110][k]}만큼 건너뛴다 (${v}초마다)`, { act: '건너뛰기' }),
     part('leg', 'brood', '뿌리발', 'spore', [9, 8, 7], (v, k) => `재주: ${[1.6, 2.2, 2.8][k]}초 동안 흙에 박혀 아무것도 못 건드린다 (${v}초마다)`, { act: '파묻히기' }),
@@ -4684,7 +4693,7 @@ const PRO = (function () {
   // ---------- 처음 받는 몸: 판마다 열다섯 가운데 하나. 타고난 것이 조금씩 다르다 (seeds.js) ----------
   const SEEDS_ = (typeof SEEDS !== 'undefined' && SEEDS) || (typeof require !== 'undefined' ? require('./seeds.js') : {}), SEED_IDS = Object.keys(SEEDS_);
   const FORM0 = { sp: 1, light: 1, see: 1, eat: 1, ess: 0, bead: 1, hp: 0, pull: 0, mouth: 0, stun: 0, drop: 3, mend: 0, act: false, fit: 0, buried: false, keepPart: false };
-  const ACT0 = { name: '튕기기', cd: 9, dash: 0.3 };
+  const ACT0 = { name: '튕기기', cd: 7, dash: 0.3 };
   const pickLook = seed => SEED_IDS.length ? SEED_IDS[(Math.imul((seed >>> 0) ^ 0x9e3779b9, 0x85ebca6b) >>> 9) % SEED_IDS.length] : null;
 
   function makeSim(opts) {
@@ -4736,6 +4745,7 @@ const PRO = (function () {
     // ---------- 먹는다 ----------
     const gain = (asp, v, tier, x, y, live) => {
       let n = v * F.eat * (tier <= S.stage - 3 ? 0.25 : tier <= S.stage - 2 ? 0.5 : 1); if (live) n *= 1 + val('core_hunger') / 100;
+      if (v > 1.5) n *= 1 + val('eye_brood') / 100;
       if (lv('mouth_nebula') && rnd() * 100 < val('mouth_nebula')) n += Math.max(1, v * 0.3);
       S.purse[asp || home] += n; S.bio += n; S.stats.eaten += n; emit('eat', { x, y, asp: asp || home, n });
       if (lv('mouth_brood') && rnd() * 100 < val('mouth_brood')) S.drops.push({ x: x + rr(-8, 8), y: y + rr(-8, 8), asp: 'brood', at: S.t + 4 * TPS });
@@ -5049,6 +5059,7 @@ function runPrologue(opts) {
 
   // ---------- 그림 ----------
   const SPR = {}, spr = (key, make) => SPR[key] || (SPR[key] = make());
+  const NESTSAY = typeof NEST !== 'undefined' && NEST.SEEDN && NEST.SEEDN[sim.look] ? NEST.SEEDN[sim.look].text : '';
   const SEED = sim.seedOf, TOP = SEED && SEED.top ? SEED.top : [16, 13], TDX = TOP[0] - 16, TDY = TOP[1] - 13;
   const DROP = { origin: 'drop', stage: 0, main: null, sub: null, muts: [], ess: {}, look: sim.look };
   const flip = c => spr('f:' + (c.__id || (c.__id = Object.keys(SPR).length + 1)), () => { const f = document.createElement('canvas'); f.width = c.width; f.height = c.height; const x = f.getContext('2d'); x.translate(c.width, 0); x.scale(-1, 1); x.drawImage(c, 0, 0); return f; });
@@ -5131,15 +5142,17 @@ function runPrologue(opts) {
     core_dusk: (q, l, f, c) => { q(16, 24, 4, 3, c[2]); q(16, 24, 4, 1, c[1]); q(17, 25, 2, 1, c[1]); if (l >= 2) { q(22, 25, 1, 1, c[2]); q(24, 25, 1, 1, c[1]); q(16, 27, 4, 1, c[3]); } if (l >= 3) { q(26 + f, 25, 1, 1, c[3]); q(23, 23, 1, 1, c[2]); q(23, 27, 1, 1, c[2]); q(15, 25, 1, 1, c[3]); } },
     core_hunger: (q, l, f, c) => { q(13, 27, 8, 1, '#707890'); q(14, 28, 6, 1, '#3a3e54'); q(15, 27, 2, 1, '#c0c8e0'); if (l >= 2) { q(13, 26, 1, 1, '#c0c8e0'); q(20, 26, 1, 1, '#c0c8e0'); q(12, 27, 1, 1, '#3a3e54'); q(21, 27, 1, 1, '#3a3e54'); } if (l >= 3) { q(12, 25, 1, 1, '#707890'); q(21, 25, 1, 1, '#707890'); q(17, 26, 2, 1, '#c0c8e0'); q(16, 29, 2, 1, '#707890'); } },
   };
-  function paintParts(list, fr) {
+  // 부위는 두 겹으로 그린다: 발·겉·속은 몸 뒤에서 조금 크게(몸 둘레로 비어져 나온다), 입·눈은 몸 앞에. 그래야 처음 받은 몸의 꼴(뿔, 똬리, 대)이 가려지지 않는다
+  function paintParts(list, fr, only) {
     const c = document.createElement('canvas'); c.width = c.height = 32; const x = c.getContext('2d'), q = (a, b, w, h, col) => { const up = b < 19; x.fillStyle = col; x.fillRect(a + (up ? TDX : 0), b + (up ? TDY : 0), w, h); };
-    for (const s of ['leg', 'core', 'skin', 'mouth', 'eye']) { const w = list[s]; if (w && ART[w.id]) ART[w.id](q, w.lv, fr, C[PART[w.id].asp]); }
+    for (const s of (only || ['leg', 'core', 'skin', 'mouth', 'eye'])) { const w = list[s]; if (w && ART[w.id]) ART[w.id](q, w.lv, fr, C[PART[w.id].asp]); }
     const d = x.getImageData(0, 0, 32, 32), a = d.data, src = new Uint8Array(1024); for (let i = 0; i < 1024; i++) src[i] = a[i * 4 + 3] > 0 ? 1 : 0;
     for (let y = 0; y < 32; y++) for (let xx = 0; xx < 32; xx++) { const i = y * 32 + xx; if (src[i]) continue; if ((xx > 0 && src[i - 1]) || (xx < 31 && src[i + 1]) || (y > 0 && src[i - 32]) || (y < 31 && src[i + 32])) { a[i * 4] = 12; a[i * 4 + 1] = 8; a[i * 4 + 2] = 18; a[i * 4 + 3] = 215; } }
     x.putImageData(d, 0, 0); return c;
   }
   const wornKey = () => SLOTS.map(s => { const w = S.worn[s[0]]; return w ? w.id + w.lv : '-'; }).join('|');
-  const overlay = fr => spr('ov:' + wornKey() + ':' + fr, () => paintParts(S.worn, fr));
+  const overlay = fr => spr('ov:' + wornKey() + ':' + fr, () => paintParts(S.worn, fr, ['mouth', 'eye'])), underlay = fr => spr('un:' + wornKey() + ':' + fr, () => paintParts(S.worn, fr, ['leg', 'core', 'skin']));
+  const BACK = 1.22;
   const iconURL = (id, l) => spr('ic:' + id + (l || 2), () => { const c = document.createElement('canvas'); c.width = c.height = 28; const x = c.getContext('2d'); x.imageSmoothingEnabled = false; x.globalAlpha = 0.5; x.drawImage(slimeCanvas(DROP, 0), -2, -5); x.globalAlpha = 1; const o = {}; o[PART[id].slot] = { id, lv: l || 2 }; x.drawImage(paintParts(o, 0), -2, -5); return c.toDataURL(); });
 
   // ---------- 덮개 ----------
@@ -5244,8 +5257,8 @@ function runPrologue(opts) {
     for (const w of S.wrig) if (w.alive && w.ring <= S.stage && inView(w, 8)) { const c = wrigSpr(w.asp, fr2); img(w.vx < 0 ? flip(c) : c, w.x - 5, w.y - 5); }
     // 사는 것들
     for (const c of S.cre) { if (!c.alive || c.ring > S.stage || !inView(c, 40)) continue; const d = dist(c, P), host = sim.hostile(c), eat = sim.canEat(c);
-      if (c.mode === 'buried') { const born = sim.form.buried, seeIt = third || born || !host || d < 44; if (seeIt) { ctx.globalAlpha = third || born || !host ? 0.95 : 0.55; ctx.fillStyle = '#3a2e24'; ctx.beginPath(); ctx.ellipse(c.x, c.y + 2, 10, 5, 0, 0, 7); ctx.fill(); ctx.fillStyle = '#9a7a4a'; ctx.fillRect(Math.round(c.x) - 6, Math.round(c.y) - 1, 3, 2); ctx.fillRect(Math.round(c.x) + 3, Math.round(c.y) - 1, 3, 2); if (third) { ctx.fillStyle = RED; ctx.fillRect(Math.round(c.x) - 5, Math.round(c.y) - 1, 1, 1); ctx.fillRect(Math.round(c.x) + 4, Math.round(c.y) - 1, 1, 1); } ctx.globalAlpha = 1; } continue; }
-      if (c.mode === 'bait') { const fake = FSPR[c.look]((fr4 + c.id) % 4 === 0 ? 1 : 0); img(fake, c.x - fake.width / 2, c.y - fake.height / 2); if (third || !host || (t + c.id * 7) % 100 < 5) { ctx.fillStyle = '#fbf7ea'; ctx.fillRect(Math.round(c.x) - 3, Math.round(c.y) + 1, 1, 2); ctx.fillRect(Math.round(c.x) - 1, Math.round(c.y) + 1, 1, 2); ctx.fillRect(Math.round(c.x) + 1, Math.round(c.y) + 1, 1, 2); } if (third && host) { ctx.strokeStyle = 'rgba(255,95,87,' + (fr2 ? 0.8 : 0.4) + ')'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(c.x, c.y, 10, 0, 7); ctx.stroke(); } continue; }
+      if (c.mode === 'buried') { const born = sim.form.buried || (lv('eye_abyss') && d < R * 0.9), seeIt = third || born || !host || d < 44; if (seeIt) { ctx.globalAlpha = third || born || !host ? 0.95 : 0.55; ctx.fillStyle = '#3a2e24'; ctx.beginPath(); ctx.ellipse(c.x, c.y + 2, 10, 5, 0, 0, 7); ctx.fill(); ctx.fillStyle = '#9a7a4a'; ctx.fillRect(Math.round(c.x) - 6, Math.round(c.y) - 1, 3, 2); ctx.fillRect(Math.round(c.x) + 3, Math.round(c.y) - 1, 3, 2); if (third) { ctx.fillStyle = RED; ctx.fillRect(Math.round(c.x) - 5, Math.round(c.y) - 1, 1, 1); ctx.fillRect(Math.round(c.x) + 4, Math.round(c.y) - 1, 1, 1); } ctx.globalAlpha = 1; } continue; }
+      if (c.mode === 'bait') { const fake = FSPR[c.look]((fr4 + c.id) % 4 === 0 ? 1 : 0); img(fake, c.x - fake.width / 2, c.y - fake.height / 2); if (third || !host || (lv('eye_abyss') >= 2 && d < R * 0.9) || (t + c.id * 7) % 100 < 5) { ctx.fillStyle = '#fbf7ea'; ctx.fillRect(Math.round(c.x) - 3, Math.round(c.y) + 1, 1, 2); ctx.fillRect(Math.round(c.x) - 1, Math.round(c.y) + 1, 1, 2); ctx.fillRect(Math.round(c.x) + 1, Math.round(c.y) + 1, 1, 2); } if (third && host) { ctx.strokeStyle = 'rgba(255,95,87,' + (fr2 ? 0.8 : 0.4) + ')'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(c.x, c.y, 10, 0, 7); ctx.stroke(); } continue; }
       const sp0 = creSpr(c.k, c.stun > 0 ? 0 : fr2), ds0 = DSC[c.k] || 1, N = sp0.width * ds0, rise = c.mode === 'rise' ? 3 : 0; if (c.stun > 0) ctx.globalAlpha = 0.75; img(c.face < 0 ? flip(sp0) : sp0, c.x - N / 2, c.y - N / 2 - rise, ds0); ctx.globalAlpha = 1;
       if (c.stun > 0) { ctx.fillStyle = '#e0c8ff'; ctx.fillRect(Math.round(c.x - 4 + fr2 * 6), Math.round(c.y - N / 2 - 4), 2, 2); ctx.fillRect(Math.round(c.x + 2 - fr2 * 6), Math.round(c.y - N / 2 - 2), 2, 2); }
       if (!host && !SPC[c.k].calm) { ctx.fillStyle = eat ? 'rgba(111,208,140,' + (fr2 ? 0.95 : 0.55) + ')' : 'rgba(165,156,180,.7)'; ctx.fillRect(Math.round(c.x) - 1, Math.round(c.y - N / 2 - 5), 3, 3); }
@@ -5257,7 +5270,7 @@ function runPrologue(opts) {
     // 한 방울: 몸이 클수록 크게 그린다
     { const sc = g.sc, c = slimeCanvas(DROP, fr4), s = c.width * sc, ov = overlay(fr2), pxx = Math.round(P.x - s / 2), pyy = Math.round(P.y - s + g.r * 0.9 + Math.sin(now / 300) * 1);
       if (P.burrow > 0) { ctx.fillStyle = '#3a2e44'; ctx.beginPath(); ctx.ellipse(P.x, P.y, g.r * 1.3, g.r * 0.7, 0, 0, 7); ctx.fill(); ctx.fillStyle = '#5a4a68'; ctx.fillRect(Math.round(P.x - g.r * 0.6), Math.round(P.y - 2), Math.round(g.r * 1.2), 2); ctx.globalAlpha = 0.25; ctx.drawImage(c, pxx, pyy + s * 0.35, s, s * 0.65); ctx.globalAlpha = 1; }
-      else if (!(P.inv > 0 && Math.floor(now / 80) % 2)) { ctx.drawImage(P.face < 0 ? flip(c) : c, pxx, pyy, s, s); ctx.drawImage(P.face < 0 ? flip(ov) : ov, pxx, pyy, s, s); }
+      else if (!(P.inv > 0 && Math.floor(now / 80) % 2)) { const un = underlay(fr2), bs = s * BACK; ctx.drawImage(P.face < 0 ? flip(un) : un, Math.round(pxx - (bs - s) / 2), Math.round(pyy - (bs - s) * 0.78), bs, bs); ctx.drawImage(P.face < 0 ? flip(c) : c, pxx, pyy, s, s); ctx.drawImage(P.face < 0 ? flip(ov) : ov, pxx, pyy, s, s); }
       if (P.leech) { const lc = creSpr('leech', fr2); img(lc, P.x - P.face * g.r * 0.6 - 6, P.y - g.r - 8); }
       if (P.chew) { const f = P.chew.t / P.chew.need; ctx.fillStyle = '#05040a'; ctx.fillRect(Math.round(P.x - 12), Math.round(P.y - s * 0.8 - 6), 24, 4); ctx.fillStyle = '#e8c030'; ctx.fillRect(Math.round(P.x - 11), Math.round(P.y - s * 0.8 - 5), Math.round(22 * f), 2); }
       if (lv('skin_dusk') && t >= P.veilAt) { ctx.strokeStyle = 'rgba(255,224,160,' + (fr2 ? 0.55 : 0.3) + ')'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(P.x, P.y - g.r * 0.4, g.r + 6, 0, 7); ctx.stroke(); }
@@ -5275,8 +5288,8 @@ function runPrologue(opts) {
     { const gr = ctx.createRadialGradient(P.x, P.y - g.r * 0.3, R * 0.3, P.x, P.y - g.r * 0.3, R); gr.addColorStop(0, 'rgba(5,4,10,0)'); gr.addColorStop(0.62, 'rgba(5,4,10,.4)'); gr.addColorStop(1, 'rgba(5,4,10,.965)'); ctx.fillStyle = gr; ctx.fillRect(ox, oy, vw, vh); }
     // 어둠 속에서도 희미하게 보이는 것: 먹이의 빛, 사나운 것의 눈
     const dotS = Math.max(2, Math.round(2 / zoom));
-    for (const f of S.food) { if (!f.alive || f.ring > S.stage || !inView(f, 2)) continue; const d = dist(f, P); if (d < R * 0.8) continue; if (f.k === 'mote' && S.stage >= 3) continue; const big = f.k !== 'mote' && f.k !== 'bead' && f.k !== 'egg'; if (d < R * 2.4 || (feel && big) || (feel >= 2 && (f.k === 'cap' || f.k === 'egg')) || (feel >= 3 && f.k === 'bead')) { ctx.fillStyle = f.k === 'bead' ? '#e8c030' : f.k === 'cap' ? '#9fe8c0' : ASPCOL[f.asp] || '#a59cb4'; ctx.globalAlpha = (fr4 + f.ph) % 4 === 1 ? 0.35 : 0.8; ctx.fillRect(Math.round(f.x) - 1, Math.round(f.y) - 1, big ? dotS + 1 : dotS, big ? dotS + 1 : dotS); } } ctx.globalAlpha = 1;
-    for (const c of S.cre) { if (!c.alive || c.ring > S.stage || !inView(c, 6) || !sim.hostile(c)) continue; const d = dist(c, P); if (d < R * 0.78) continue; const hid = c.mode === 'buried' || c.mode === 'bait'; if (hid && !third) continue; const lit = c.mode === 'chase' || c.mode === 'dash' || c.mode === 'lunge' || c.mode === 'aim' || c.mode === 'tell' || c.mode === 'hunt' || c.mode === 'out'; if (third >= 2 || d < R * 2.4 || lit) { const e = Math.max(1, Math.round(1.2 / zoom)); ctx.fillStyle = c.k === 'stalker' ? '#ffd23a' : RED; ctx.globalAlpha = lit ? 1 : 0.55; if (c.k !== 'blind') { ctx.fillRect(Math.round(c.x + c.face * 2) - 2 * e, Math.round(c.y - 2), e, e); ctx.fillRect(Math.round(c.x + c.face * 2) + e, Math.round(c.y - 2), e, e); } else { ctx.strokeStyle = 'rgba(224,212,220,.5)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(c.x, c.y, c.r, 0, 7); ctx.stroke(); } ctx.globalAlpha = 1; if (third) { ctx.strokeStyle = 'rgba(255,95,87,' + (fr2 ? 0.7 : 0.35) + ')'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(Math.round(c.x), Math.round(c.y), c.r + 3, 0, 7); ctx.stroke(); } } }
+    for (const f of S.food) { if (!f.alive || f.ring > S.stage || !inView(f, 2)) continue; const d = dist(f, P); if (d < R * 0.8) continue; if (f.k === 'mote' && S.stage >= 3) continue; const big = f.k !== 'mote' && f.k !== 'bead' && f.k !== 'egg'; if (d < R * PRO.K.hintF || (feel && big) || (feel >= 2 && (f.k === 'cap' || f.k === 'egg')) || (feel >= 3 && f.k === 'bead')) { ctx.fillStyle = f.k === 'bead' ? '#e8c030' : f.k === 'cap' ? '#9fe8c0' : ASPCOL[f.asp] || '#a59cb4'; ctx.globalAlpha = (fr4 + f.ph) % 4 === 1 ? 0.35 : 0.8; ctx.fillRect(Math.round(f.x) - 1, Math.round(f.y) - 1, big ? dotS + 1 : dotS, big ? dotS + 1 : dotS); } } ctx.globalAlpha = 1;
+    for (const c of S.cre) { if (!c.alive || c.ring > S.stage || !inView(c, 6) || !sim.hostile(c)) continue; const d = dist(c, P); if (d < R * 0.78) continue; const hid = c.mode === 'buried' || c.mode === 'bait'; if (hid && !third) continue; const lit = c.mode === 'chase' || c.mode === 'dash' || c.mode === 'lunge' || c.mode === 'aim' || c.mode === 'tell' || c.mode === 'hunt' || c.mode === 'out'; if (third >= 2 || d < R * PRO.K.hintC || lit) { const e = Math.max(1, Math.round(1.2 / zoom)); ctx.fillStyle = c.k === 'stalker' ? '#ffd23a' : RED; ctx.globalAlpha = lit ? 1 : 0.55; if (c.k !== 'blind') { ctx.fillRect(Math.round(c.x + c.face * 2) - 2 * e, Math.round(c.y - 2), e, e); ctx.fillRect(Math.round(c.x + c.face * 2) + e, Math.round(c.y - 2), e, e); } else { ctx.strokeStyle = 'rgba(224,212,220,.5)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(c.x, c.y, c.r, 0, 7); ctx.stroke(); } ctx.globalAlpha = 1; if (third) { ctx.strokeStyle = 'rgba(255,95,87,' + (fr2 ? 0.7 : 0.35) + ')'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(Math.round(c.x), Math.round(c.y), c.r + 3, 0, 7); ctx.stroke(); } } }
     const sw = S.sweep;
     if (sw.st === 'run') { for (let j = 7; j >= 1; j--) { const bx = sw.x - sw.dx * j * sw.r, by = sw.y - sw.dy * j * sw.r, br = sw.r * (1 - j * 0.08); ctx.fillStyle = '#050308'; ctx.beginPath(); ctx.arc(bx, by, br + 1.5, 0, 7); ctx.fill(); ctx.fillStyle = j % 2 ? '#2a1a30' : '#3a2440'; ctx.beginPath(); ctx.arc(bx, by, br, 0, 7); ctx.fill(); } const c = sweepSpr(fr2), s = sw.r * 2.6 / 56; ctx.drawImage(c, sw.x - 28 * s, sw.y - 28 * s, 56 * s, 56 * s); }
     if (sw.st === 'warn') { const a = (t - sw.t0) / sw.warn, on = Math.floor(now / 140) % 2; ctx.strokeStyle = on ? 'rgba(255,95,87,.75)' : 'rgba(255,95,87,.3)'; ctx.lineWidth = 3 / zoom; ctx.setLineDash([8, 6]); ctx.beginPath(); ctx.moveTo(sw.sx, sw.sy); ctx.lineTo(sw.sx + sw.dx * 1300, sw.sy + sw.dy * 1300); ctx.stroke(); ctx.setLineDash([]); ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(255,95,87,' + (0.15 + a * 0.3) + ')'; ctx.beginPath(); ctx.moveTo(sw.sx - sw.dy * sw.r, sw.sy + sw.dx * sw.r); ctx.lineTo(sw.sx - sw.dy * sw.r + sw.dx * 1300, sw.sy + sw.dx * sw.r + sw.dy * 1300); ctx.moveTo(sw.sx + sw.dy * sw.r, sw.sy - sw.dx * sw.r); ctx.lineTo(sw.sx + sw.dy * sw.r + sw.dx * 1300, sw.sy - sw.dx * sw.r + sw.dy * 1300); ctx.stroke(); }
@@ -5312,7 +5325,7 @@ function runPrologue(opts) {
     const keepHtml = () => { const kp = sim.keep, k = r.parts.find(p => p.id === kp); return `<div class="pro-parts">${r.parts.map(p => `<button class="pro-keep${p.id === kp ? ' on' : ''}" data-keep="${p.id}" style="--c:${ASPCOL[p.asp]}"><img src="${iconURL(p.id, p.lv)}" alt="">${PART[p.id].name} ${pipsHtml(p.lv, ASPCOL[p.asp])}</button>`).join('')}</div>${k ? `<p>둥지에서 <b style="color:${ASPCOL[k.asp]}">${NEST.MUT[PART[k.id].mut].name}</b> — ${NEST.MUT[PART[k.id].mut].desc}</p>` : ''}`; };
     const el = document.createElement('div'); el.className = 'pro-end'; el.innerHTML = `<div class="pro-card" role="dialog" aria-label="땅속에서 얻은 것"><h2>${title}<small>${STG[S.stage].name} · ${Math.floor(r.time / 60)}분 ${r.time % 60}초 · 진액 ${r.gold}방울</small></h2>
       <div class="pro-bars">${ASPS.filter(a => r.ess[a] > 0).map(a => `<span style="color:${ASPCOL[a]}">${ASPK[a]}</span><span class="b"><i style="width:${Math.round(r.ess[a] / mx * 100)}%;background:${ASPCOL[a]}"></i></span><span>${r.ess[a]}</span>`).join('') || '<span class="pro-mute" style="grid-column:1/-1">남긴 것이 없다</span>'}</div>
-      ${SEED ? `<p class="pro-mute pro-seedline"><img src="${seedURL(0)}" alt=""><span>이번 몸 <b style="color:#ece6d6">${SEED.name}</b> · ${SEED.say}</span></p>` : ''}<p class="pro-mute">쓰지 않고 남긴 것이 정수가 된다 · 합 ${tot} (이 몸으로는 ${KK.essCap[S.stage]}까지)</p>${nextSay}
+      ${SEED ? `<p class="pro-mute pro-seedline"><img src="${seedURL(0)}" alt=""><span>이번 몸 <b style="color:#ece6d6">${SEED.name}</b> · ${SEED.say}${NESTSAY ? '<br>둥지에서 — ' + NESTSAY : ''}</span></p>` : ''}<p class="pro-mute">쓰지 않고 남긴 것이 정수가 된다 · 합 ${tot} (이 몸으로는 ${KK.essCap[S.stage]}까지)</p>${nextSay}
       ${r.fell ? (n ? '<p class="pro-warn">쓰러져서 돋운 부위를 허물에 새기지 못했다</p>' : '') : canKeep ? `<p><b style="color:#e8c030;font-family:var(--display,sans-serif);font-weight:400">허물에 새길 부위 하나를 골라</b></p><div id="pro-keepbox">${keepHtml()}</div>` : n ? `<p class="pro-mute">부위는 ${STG[KK.keepFrom].name}부터 허물에 새길 수 있다</p>` : '<p class="pro-mute">돋운 부위가 없다</p>'}
       <div class="pro-say"><img src="${spriteCanvas('slime', 'echo').toDataURL()}" width="40" height="40" alt=""><p><b style="color:#e8c030;font-family:var(--display,sans-serif);font-weight:400">잔향</b> ${line}${lean}</p></div>
       <button class="pro-b pri" id="pro-go">둥지를 튼다</button></div>`;
@@ -5326,7 +5339,7 @@ function runPrologue(opts) {
   function openIntro() {
     if (!SEED || intro || S.ended) return; intro = true; root.classList.add('pro-introing');
     const el = document.createElement('div'); el.className = 'pro-end pro-intro'; el.id = 'pro-intro';
-    el.innerHTML = `<div class="pro-card pro-seed" role="dialog" aria-label="이번 몸: ${SEED.name}"><p class="pro-mute">별에서 떨어진 것 · 이번 몸</p><img src="${seedURL(0)}" alt=""><h2>${SEED.name}</h2><p>${SEED.say}</p>${sim.form.act ? '<p class="pro-mute">오른쪽 아래 단추로 쓴다: ' + PRO.ACT0.name + '</p>' : ''}<button class="pro-b pri" id="pro-in-go">깨어난다</button></div>`;
+    el.innerHTML = `<div class="pro-card pro-seed" role="dialog" aria-label="이번 몸: ${SEED.name}"><p class="pro-mute">별에서 떨어진 것 · 이번 몸</p><img src="${seedURL(0)}" alt=""><h2>${SEED.name}</h2><p>${SEED.say}</p>${NESTSAY ? '<p class="pro-mute">둥지에서 — ' + NESTSAY + '</p>' : ''}${sim.form.act ? '<p class="pro-mute">오른쪽 아래 단추로 쓴다: ' + PRO.ACT0.name + '</p>' : ''}<button class="pro-b pri" id="pro-in-go">깨어난다</button></div>`;
     root.appendChild(el); let k = 0; const im = el.querySelector('img'); introIv = setInterval(() => { k = (k + 1) % 4; im.src = seedURL(k); }, 240);
     el.addEventListener('click', () => { say('click'); closeIntro(); }); try { el.querySelector('#pro-in-go').focus(); } catch (e) { /* 괜찮다 */ }
   }
@@ -5661,7 +5674,7 @@ function overview() {
   const by = {}; G.kin.forEach(m => { const k = m.loc === null ? 'bench' : m.loc; (by[k] = by[k] || []).push(m); });
   const keys = Object.keys(by).sort((a, b) => (a === 'bench' ? -1 : b === 'bench' ? 1 : 0)), O = NEST.ORIGIN[G.origin || 'drop'];
   return `<div class="ph"><h2>둥지</h2>${btn('log', null, '지난 일', 'sm')}</div>
-    <div class="card"><div class="slime-top sm">${slimeImg(G.slime, 56)}<div class="stack"><p class="h3">${esc(NEST.formName(G))} <small class="mute">${STAGE_NAME[G.slime.stage]}${G.slime.stage === 0 && G.slime.look && typeof SEEDS !== 'undefined' && SEEDS[G.slime.look] ? ' · ' + esc(SEEDS[G.slime.look].name) : ''}${G.origin && G.origin !== 'drop' ? ' · ' + O.name : ''}</small></p>${bar(G.slime.hp / NEST.slimeStats(G).hp)}<div class="row">${NEST.ASPECTS.filter(a => G.slime.ess[a] > 0).map(a => aspChip(a, NEST.ASP[a] + ' ' + G.slime.ess[a])).join('')}${btn('core', null, '본체 열기', 'sm')}</div></div></div></div>
+    <div class="card"><div class="slime-top sm">${slimeImg(G.slime, 56)}<div class="stack"><p class="h3">${esc(NEST.formName(G))} <small class="mute">${STAGE_NAME[G.slime.stage]}${G.slime.look && typeof SEEDS !== 'undefined' && SEEDS[G.slime.look] ? ` · <span title="${esc(NEST.SEEDN[G.slime.look] ? NEST.SEEDN[G.slime.look].text : '')}">${esc(SEEDS[G.slime.look].name)}</span>` : ''}${G.origin && G.origin !== 'drop' ? ' · ' + O.name : ''}</small></p>${bar(G.slime.hp / NEST.slimeStats(G).hp)}<div class="row">${NEST.ASPECTS.filter(a => G.slime.ess[a] > 0).map(a => aspChip(a, NEST.ASP[a] + ' ' + G.slime.ess[a])).join('')}${btn('core', null, '본체 열기', 'sm')}</div></div></div></div>
     ${G.sign && NEST.SIGN[G.sign] ? `<p class="small clamp2"><span class="chip" style="border-color:${ASPCOL[NEST.SIGN[G.sign].asp]};color:${ASPCOL[NEST.SIGN[G.sign].asp]}">${NEST.SIGN[G.sign].name}</span> ${esc(NEST.STAR[G.star].name + ': ' + NEST.STAR[G.star].desc)}</p>` : G.star && G.star !== 'none' ? `<p class="small clamp2"><span class="chip on">${NEST.STAR[G.star].name}</span> ${esc(NEST.STAR[G.star].desc)}</p>` : ''}
     ${G.world && NEST.WORLD[G.world] ? `<p class="small clamp2"><span class="chip on">${NEST.WORLD[G.world].name} · ${NEST.WORLD[G.world].rule.name}</span> ${esc(NEST.WORLD[G.world].rule.bane + ' · ' + NEST.WORLD[G.world].rule.boon)}</p>` : ''}
     ${G.gods || G.auto ? godsRow() : ''}

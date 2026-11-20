@@ -12,7 +12,7 @@ const PRO = (function () {
     { name: '파고드는 것', need: 125, R: 680, r: 13, sp: 78, sc: 2, zoom: 0.6, light: 140 },
     { name: '삼키는 것', need: 255, R: 980, r: 18, sp: 90, sc: 2.8, zoom: 0.47, light: 180 },
     { name: '다 자란 것', need: 430, R: 1340, r: 24, sp: 102, sc: 3.7, zoom: 0.37, light: 230 }];
-  const K = { maxT: 450, lives: 2, hp: 2, cost: [4, 9, 16], open: { mouth: 1, eye: 1, leg: 2, skin: 2, core: 3 }, bead: 4, goldCap: 120,
+  const K = { maxT: 450, lives: 2, hp: 2, cost: [4, 9, 16], eyeCost: [3, 7, 12], hintC: 1.9, hintF: 2.1, open: { mouth: 1, eye: 1, leg: 2, skin: 2, core: 3 }, bead: 4, goldCap: 120,
     essF: [0, 0.2, 0.22, 0.25, 0.28, 0.32], essCap: [0, 4, 8, 14, 22, 36], keepFrom: 3, settleFrom: 2, sweepStage: 120, sweepAll: 345 };
   // 사는 것들. st = 그것과 맞수가 되는 몸. 내 몸이 st 보다 작으면 못 이긴다, 같으면 피할 수 있다, 크면 먹이다
   const SP = {
@@ -34,7 +34,7 @@ const PRO = (function () {
   const CENSUS = [null,
     { mite: 5, leech: 2, lurker: 1 },   // 첫 몸에서는 떼이빨이 나오지 않는다. 사람 손으로는 첫 20초에 에워싸이면 배울 틈이 없다
     { mite: 3, leech: 2, lurker: 4, pack: 2, weaver: 3, grazer: 3, charger: 1, hunter: 3 },
-    { weaver: 2, grazer: 3, charger: 3, spitter: 3, hunter: 3, mimic: 4, stalker: 1, mother: 1 },
+    { weaver: 2, grazer: 3, charger: 3, spitter: 2, hunter: 3, mimic: 3, stalker: 1, mother: 1 },
     { charger: 2, spitter: 3, hunter: 3, mimic: 3, mother: 2, filter: 3, stalker: 3, blind: 1 },
     { spitter: 2, hunter: 3, mother: 2, filter: 3, stalker: 3, blind: 2 }];
   // 먹이. tier = 어느 몸의 먹이인가(두 몸 넘게 자라면 반밖에 안 된다), need = 입의 힘, chew = 서서 씹는 시간
@@ -54,18 +54,18 @@ const PRO = (function () {
   // ---------- 부위: 다섯 자리 × 다섯 징조. 한 자리에는 하나만. v = 단계별 세기 ----------
   const SLOTS = [['mouth', '입'], ['eye', '눈'], ['leg', '발'], ['skin', '겉'], ['core', '속']], SLOTK = { mouth: '입', eye: '눈', leg: '발', skin: '겉', core: '속' };
   const SLOTSAY = { mouth: '입이 클수록 큰 것을 삼키고 단단한 것을 깬다', eye: '어둠 속에 숨은 것을 알아본다', leg: '단추를 눌러 쓰는 재주가 생긴다', skin: '물리고 녹고 걸리는 것을 막는다', core: '몸속의 살림' };
-  const part = (slot, asp, name, mut, v, say, o) => Object.assign({ id: slot + '_' + asp, slot, asp, name, mut, v, say, cost: K.cost }, o || {});
+  const part = (slot, asp, name, mut, v, say, o) => Object.assign({ id: slot + '_' + asp, slot, asp, name, mut, v, say, cost: slot === 'eye' ? K.eyeCost : K.cost }, o || {});
   const CAT = [
     part('mouth', 'abyss', '빨판', 'tentacle', [24, 36, 50], v => `둘레 ${v} 안의 먹이가 빨려 온다`),
     part('mouth', 'nebula', '빛입', 'ring', [30, 55, 80], v => `먹을 때 ${v}%로 한 입 더 얻는다`),
     part('mouth', 'brood', '포자입', 'mouth', [35, 55, 75], v => `먹은 자리에 ${v}%로 알갱이가 돋는다`),
     part('mouth', 'dusk', '속삭입', 'whisper', [60, 90, 130], v => `둘레 ${v} 안의 먹잇감이 달아나지 않는다`),
     part('mouth', 'hunger', '톱니입', 'teeth', [1, 2, 3], (v, k) => ['입의 힘이 하나 더 세다. 지친 맞수를 삼킨다', '맞수를 언제든 삼킨다', '굳거나 엉킨 큰 것까지 삼킨다'][k]),
-    part('eye', 'abyss', '등불', 'gills', [25, 45, 70], v => `밝은 둘레 +${v}%`),
+    part('eye', 'abyss', '등불', 'gills', [35, 60, 90], (v, k) => `밝은 둘레 +${v}%. 빛 안에서는 묻힌 것` + (k ? '과 먹이인 척하는 것' : '') + '이 드러난다'),
     part('eye', 'nebula', '셋째눈', 'thirdeye', [1, 2, 3], (v, k) => ['묻힌 것과 먹이인 척하는 것이 보인다', '어둠 속과 화면 밖의 사나운 것이 보인다', '덮치기 전의 낌새가 더 일찍 보인다'][k]),
-    part('eye', 'brood', '더듬이', 'spore', [1, 2, 3], (v, k) => ['큰 먹이가 있는 쪽을 가리킨다', '빛갓과 알도 가리킨다', '진액과 틈도 가리킨다'][k]),
-    part('eye', 'dusk', '가면눈', 'maskm', [20, 35, 50], v => `사나운 것이 ${v}% 더 가까이 와야 나를 알아챈다`),
-    part('eye', 'hunger', '피눈', 'steelgut', [12, 20, 28], v => `삼킬 수 있는 것이 표시된다. 그 곁에서 ${v}% 빠르다`),
+    part('eye', 'brood', '더듬이', 'spore', [12, 22, 32], (v, k) => ['큰 먹이가 있는 쪽을 가리킨다', '빛갓과 알도 가리킨다', '진액과 틈도 가리킨다'][k] + `. 알갱이가 아닌 먹이 +${v}%`),
+    part('eye', 'dusk', '가면눈', 'maskm', [25, 40, 55], v => `사나운 것이 ${v}% 더 가까이 와야 나를 알아챈다`),
+    part('eye', 'hunger', '피눈', 'steelgut', [15, 25, 35], v => `삼킬 수 있는 것이 표시된다. 그 곁에서 ${v}% 빠르다`),
     part('leg', 'abyss', '물살발', 'gills', [5, 4, 3], (v, k) => `재주: 잠깐 세 배로 내달린다 (${v}초마다). 늘 ${[6, 10, 14][k]}% 빠르다`, { act: '내달리기' }),
     part('leg', 'nebula', '별뜀', 'ring', [6, 5, 4], (v, k) => `재주: 가는 쪽으로 ${[60, 85, 110][k]}만큼 건너뛴다 (${v}초마다)`, { act: '건너뛰기' }),
     part('leg', 'brood', '뿌리발', 'spore', [9, 8, 7], (v, k) => `재주: ${[1.6, 2.2, 2.8][k]}초 동안 흙에 박혀 아무것도 못 건드린다 (${v}초마다)`, { act: '파묻히기' }),
@@ -87,7 +87,7 @@ const PRO = (function () {
   // ---------- 처음 받는 몸: 판마다 열다섯 가운데 하나. 타고난 것이 조금씩 다르다 (seeds.js) ----------
   const SEEDS_ = (typeof SEEDS !== 'undefined' && SEEDS) || (typeof require !== 'undefined' ? require('./seeds.js') : {}), SEED_IDS = Object.keys(SEEDS_);
   const FORM0 = { sp: 1, light: 1, see: 1, eat: 1, ess: 0, bead: 1, hp: 0, pull: 0, mouth: 0, stun: 0, drop: 3, mend: 0, act: false, fit: 0, buried: false, keepPart: false };
-  const ACT0 = { name: '튕기기', cd: 9, dash: 0.3 };
+  const ACT0 = { name: '튕기기', cd: 7, dash: 0.3 };
   const pickLook = seed => SEED_IDS.length ? SEED_IDS[(Math.imul((seed >>> 0) ^ 0x9e3779b9, 0x85ebca6b) >>> 9) % SEED_IDS.length] : null;
 
   function makeSim(opts) {
@@ -139,6 +139,7 @@ const PRO = (function () {
     // ---------- 먹는다 ----------
     const gain = (asp, v, tier, x, y, live) => {
       let n = v * F.eat * (tier <= S.stage - 3 ? 0.25 : tier <= S.stage - 2 ? 0.5 : 1); if (live) n *= 1 + val('core_hunger') / 100;
+      if (v > 1.5) n *= 1 + val('eye_brood') / 100;
       if (lv('mouth_nebula') && rnd() * 100 < val('mouth_nebula')) n += Math.max(1, v * 0.3);
       S.purse[asp || home] += n; S.bio += n; S.stats.eaten += n; emit('eat', { x, y, asp: asp || home, n });
       if (lv('mouth_brood') && rnd() * 100 < val('mouth_brood')) S.drops.push({ x: x + rr(-8, 8), y: y + rr(-8, 8), asp: 'brood', at: S.t + 4 * TPS });

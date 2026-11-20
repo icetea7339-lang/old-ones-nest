@@ -8,9 +8,10 @@ const ROOT = path.join(__dirname, '..', '..'), html = fs.readFileSync('/home/use
   await p.route('http://nest.test/', r => r.fulfill({ contentType: 'text/html', body: html })); await p.route(/fonts\./, r => r.abort());
   await p.goto('http://nest.test/'); await p.waitForTimeout(300);
   // 부위를 얹은 모습은 실제 판에서 얻는다: 몸을 정해 시작하고, 부위를 쥐여 주고, 그 판의 덧그림을 그대로 쓴다
+  const STAGE = +(process.argv[3] || 3); await p.evaluate(st => { window.__sheetStage = st; }, STAGE);
   const worn = {};
   for (const id of Object.keys(SEEDS)) worn[id] = await p.evaluate(async id => {
-    if (window.__pro) window.__pro.end('skip'); runPrologue({ asp: 'abyss', seed: 3, look: id }); __pro.manual = true; const s = __pro.sim, S = s.S; S.stage = 3; S.worn = { mouth: { id: 'mouth_hunger', lv: 2 }, eye: { id: 'eye_abyss', lv: 2 }, leg: { id: 'leg_hunger', lv: 2 }, skin: { id: 'skin_nebula', lv: 2 } };
+    if (window.__pro) window.__pro.end('skip'); runPrologue({ asp: 'abyss', seed: 3, look: id }); __pro.manual = true; const s = __pro.sim, S = s.S; S.stage = +(window.__sheetStage || 3); S.worn = { mouth: { id: 'mouth_hunger', lv: 2 }, eye: { id: 'eye_abyss', lv: 2 }, leg: { id: 'leg_hunger', lv: 2 }, skin: { id: 'skin_nebula', lv: 2 }, core: { id: 'core_dusk', lv: 2 } };
     s.P.x = 0; s.P.y = 0; s.P.inv = 0; S.cap = null; S.cre.forEach(c => { c.alive = false; }); S.food.forEach(f => { f.alive = false; }); __pro.step(1); await new Promise(r => setTimeout(r, 120));
     const cv = document.querySelector('#pro canvas'), w = cv.width, h = cv.height, c = document.createElement('canvas'); c.width = 150; c.height = 150; c.getContext('2d').drawImage(cv, w / 2 - 75, h / 2 - 105, 150, 150, 0, 0, 150, 150); const out = c.toDataURL(); __pro.end('skip'); return out; }, id);
   const out = await p.evaluate(([SEEDS, Z, worn]) => {
@@ -19,6 +20,6 @@ const ROOT = path.join(__dirname, '..', '..'), html = fs.readFileSync('/home/use
     el.innerHTML = ids.map(id => `<div style="background:radial-gradient(circle at 50% 40%, #2a2236, #120e1a 70%);padding:8px;display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center"><div><img src="${url(id, 0)}" width="${32 * Z}" height="${32 * Z}" style="image-rendering:pixelated"><img src="${url(id, 2)}" width="${32 * Z}" height="${32 * Z}" style="image-rendering:pixelated"><img src="${worn[id]}" width="100" height="100" style="image-rendering:pixelated"></div><b style="font-family:var(--display,sans-serif);font-weight:400;font-size:16px">${SEEDS[id].name} <small style="color:#a59cb4;font-family:var(--body,sans-serif);font-size:11px">${id}</small></b><span style="color:#cfc6dc">${SEEDS[id].say}</span></div>`).join('');
     document.body.appendChild(el); return ids.length;
   }, [SEEDS, Z, worn]);
-  await p.waitForTimeout(300); await p.locator('#sheet').screenshot({ path: path.join(ROOT, 'seed_sheet.png') });
+  await p.waitForTimeout(300); await p.locator('#sheet').screenshot({ path: path.join(ROOT, 'seed_sheet_s' + STAGE + '.png') });
   console.log('몸', out, '개 ·', errs.length ? '오류: ' + errs.join(' / ') : 'no errors'); await b.close();
 })();
