@@ -88,7 +88,7 @@ const devName = process.argv[2], tag = devName ? devName.replace(/\s+/g, '') : '
     await p.evaluate(() => { const G = __nest.G; G.march.tonight = { vill: 'field', settle: false }; G.guest = null; G.event = null; __nest.META.pause = 'always'; });
     await tap('[data-a="endday"]'); await p.waitForTimeout(200); if (await has('[data-a="endday"]')) await tap('[data-a="endday"]');
     for (let i = 0; i < 120; i++) { await p.waitForTimeout(100); if (i === 15) await p.evaluate(() => { __nest.ST.speed = 8; }); if (await has('#hand [data-a="hand"]')) break; if (await has('#modal [data-a="close"]')) break; }
-    await check('night'); if (await has('#hand [data-a="hand"][data-k="whip"]')) await tap('#hand [data-a="hand"][data-k="whip"]');
+    await check('night'); if (await has('#hand [data-a="hand"][data-k="whip"]:not([disabled])')) await tap('#hand [data-a="hand"][data-k="whip"]:not([disabled])');
     for (let i = 0; i < 300; i++) { await p.waitForTimeout(70); await p.evaluate(() => { __nest.ST.skip = true; const h = document.querySelector('#hand:not([hidden]) [data-a="hand"][data-k="none"]'); if (h) h.click(); }); if (await has('#modal [data-a="close"]')) break; }
     await check('settle'); await closeM(); await p.waitForTimeout(300); if (await has('[data-a="sceneskip"]')) await tap('[data-a="sceneskip"]'); await closeM();
     // ---------- 포로 ----------

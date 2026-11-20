@@ -3,6 +3,7 @@
 //   node src/bot.js 300 all        전략 비교표
 //   node src/bot.js 1 trace        한 판을 날짜별로 출력
 const S = require('./logic.js'), STEWARD = require('./steward.js');
+if (process.env.BANSP) setTimeout(() => 0, 0);
 const N = +process.argv[2] || 200, MODE = process.argv[3] || 'mix';
 if (process.env.KSET) { const o = JSON.parse(process.env.KSET); for (const k in o) S.K[k] = typeof o[k] === 'object' ? Object.assign({}, S.K[k], o[k]) : o[k]; }   // 실험: 상수 바꿔 끼우기
 
@@ -21,10 +22,12 @@ const STRATS = {
   tacid: { captive: 'ransom', raid: 0, spend: 1, trapOnly: 'acid+spike' },
   tmix: { captive: 'ransom', raid: 0, spend: 1, trapOnly: 'mist+spike' },
   nohand: { captive: 'mix', raid: 1, spend: 1, nohand: true },
+  only: { captive: 'mix', raid: 1, spend: 1, only: process.env.SPELL || 'whip' },   // 실험: 주문 하나만 쓴다
   nocalm: { captive: 'mix', raid: 1, spend: 1, nocalm: true },
 };
 
 function play(seed, st, diff, trace, force) {
+  if (process.env.BANSP) st = Object.assign({}, st, { banSp: process.env.BANSP.split(',') });
   const asp = S.ASPECTS[seed % 5], G = S.newGame(seed, asp, { diff: diff || 1, forceOmen: force || null, open: !!process.env.OPEN, prologue: process.env.PRO === 'none' ? null : S.proResult(asp, process.env.PRO || 'avg'), origin: process.env.ORIGIN || 'drop', star: process.env.STAR || 'none' });
   const info = { reps: [], digs: 0 };
   let guard = 0;
@@ -34,7 +37,7 @@ function play(seed, st, diff, trace, force) {
       if (process.env.GIVE && G.day === +(process.env.GIVEDAY || 6) && !G._given) { G._given = 1; const pr = S.RECIPE[process.env.GIVE].pair, mk = pr[1] === null ? 'goblin' : pr[0], pk2 = pr[1] === null ? pr[0] : pr[1], host = G.kin.filter(m => m.loc !== null && m.kind !== 'spawn').sort((x, y) => y.lv - x.lv)[0];
         G.kin.push({ id: G.nextId++, name: '시험', kind: mk, lv: 3, exp: 0, loc: host ? host.loc : 'core', hurt: 0, skill: 0, age: 3, unpaid: 0, stance: 'hold', parts: [{ kind: pk2, lv: 3, name: '재료' }] }); }
     let st2 = st; if (process.env.EDICT) { const ch = S.edictChoices(G), want = process.env.EDICT, pick = ch.includes(want) ? want : ch[0]; S.setEdict(G, pick); st2 = Object.assign({}, st, S.EDICT[pick].st); }   // 교시: 아침마다 셋 중 하나. EDICT=이름 이면 나올 때마다 그것, 아니면 첫 번째
-    STEWARD.tasks(S, G, st2, { seed, pin: !!process.env.PIN, nofuse: !!process.env.NOFUSE, aggfuse: process.env.AGGFUSE, nohoard: !!process.env.NOHOARD, hoardOnly: process.env.ONLY ? process.env.ONLY.split(',') : null, onFuse: () => { info.fuses = (info.fuses || 0) + 1; }, onDig: () => { info.digs++; }, onHoard: () => { info.hoard = (info.hoard || 0) + 1; } }).forEach(t => t());
+    STEWARD.tasks(S, G, st2, { seed, pin: !!process.env.PIN, force: process.env.FORCE || null, ban: process.env.BAN ? process.env.BAN.split(',') : [], nofuse: !!process.env.NOFUSE, aggfuse: process.env.AGGFUSE, nohoard: !!process.env.NOHOARD, hoardOnly: process.env.ONLY ? process.env.ONLY.split(',') : null, onFuse: () => { info.fuses = (info.fuses || 0) + 1; }, onDig: () => { info.digs++; }, onHoard: () => { info.hoard = (info.hoard || 0) + 1; } }).forEach(t => t());
     if (G.sealed && S.paths(G).length && (G.under || 0) >= +(process.env.BREACH || 0)) S.breach(G);   // BREACH=n: 땅속에서 n밤을 보낸 뒤 뚫는다 (들키면 그 전에 뚫린다)
     const day = G.day, gold0 = G.gold;
     const r = S.endDay(G, STEWARD.decide(st2));
@@ -53,8 +56,10 @@ function run(name, n, diff, force) {
     o.gold += G.gold; o.score += sc.total; o.grades[sc.grade] = (o.grades[sc.grade] || 0) + 1; o.stage[G.slime.stage]++; o.forms[S.formName(G)] = 1;
     for (const k in G.stats.income) o.inc[k] = (o.inc[k] || 0) + G.stats.income[k];
     ['gifts', 'banes', 'bred', 'preached', 'rites'].forEach(k => { o['x_' + k] = (o['x_' + k] || 0) + (G.stats[k] || 0); }); o.godsum = o.godsum || {}; for (const g in (G.gods || {})) o.godsum[g] = (o.godsum[g] || 0) + G.gods[g];
+    o.sp = o.sp || {}; for (const k in (G.stats.spells || {})) o.sp[k] = (o.sp[k] || 0) + G.stats.spells[k];
     o.kills += G.stats.kills; o.caps += G.stats.captives; o.conv += G.stats.converts; o.battles += G.stats.battles; o.repel += G.stats.repels; o.stolen += G.stats.stolen; o.falls = (o.falls || 0) + (G.falls || 0); o.fz = (o.fz || 0) + (G.stats.fuses || 0); o.bd = o.bd || {}; o.bdw = o.bdw || {}; { const bk = G.slime.body || (G.slime.main ? '평범' : '허물 전'); o.bd[bk] = (o.bd[bk] || 0) + 1; if (G.over && G.over.win) o.bdw[bk] = (o.bdw[bk] || 0) + 1; } o.tr = o.tr || {}; o.tr[G.origin || 'drop'] = (o.tr[G.origin || 'drop'] || 0) + 1; o.trw = o.trw || {}; if (G.over && G.over.win) o.trw[G.origin || 'drop'] = (o.trw[G.origin || 'drop'] || 0) + 1; o.fellRuns = (o.fellRuns || 0) + (G.falls ? 1 : 0); o.fear += G.fear; o.dug += G.cells.filter(c => c.dug).length; o.kin += G.kin.length; o.muts += G.slime.muts.length;
   }
+  if (process.env.SPSTAT) console.log('손: ' + Object.keys(o.sp).sort((x, y) => o.sp[y] - o.sp[x]).map(k => S.SPELL[k].name + ' ' + (o.sp[k] / n).toFixed(1)).join(' · '));
   return o;
 }
 const pct = (a, b) => (b ? Math.round(a / b * 100) : 0) + '%';

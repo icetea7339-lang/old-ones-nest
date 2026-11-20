@@ -310,6 +310,45 @@ function drawFx(x, s, k) {
   else if (s.fx === 'net') { for (let n = -2; n <= 2; n++) { x.fillRect(s.x + n * 6, s.y - 14, 1, 28); x.fillRect(s.x - 14, s.y + n * 6, 28, 1); } }
   else if (s.fx === 'whip') { x.lineWidth = 3; x.beginPath(); x.moveTo(s.x0, s.y0); x.quadraticCurveTo((s.x0 + s.x) / 2, Math.min(s.y0, s.y) - 22 * (1 - k), s.x, s.y); x.stroke(); }
 }
+// 손 주문이 무대에 남기는 것. 주문마다 모양과 빛깔이 다르다
+const SPFX = { whip: ['tendril', '#fff3a0'], move: ['rings', '#ece6d6'], mark: ['xmark', '#ff5f57'], rock: ['fall', '#9a94a8'], wave: ['sweep', '#6fb8ff'], rift: ['crack', '#c8a8ff'], hatch: ['rings', '#6fd08c'], phantom: ['ghost', '#c8a8ff'], bite: ['teeth', '#f5f5f5'], call: ['rings', '#e8c030'], halo: ['halo', '#fff3a0'], flip: ['swirl', '#ece6d6'], tide: ['rise', '#8ad8c0'], star: ['stars', '#fff3a0'], flesh: ['rings', '#e89aa8'], charm: ['heart', '#e89aa8'], rise: ['hands', '#8fe05a'], scream: ['rings', '#ff9a92'], cocoon: ['net', '#ece6d6'], eclipse: ['dark', '#0b0911'], guard: ['shield', '#6fb8ff'], grip: ['tendril', '#8ad8c0'] };
+const SPSND = { rock: 'trap', bite: 'hit', tide: 'up', scream: 'mad', phantom: 'mad', charm: 'mad', whip: 'hit', cocoon: 'slide', guard: 'click', hatch: 'talk', rise: 'die' };
+function triD(x, col, cx, ty, hw, h) { x.fillStyle = col; for (let dy = 0; dy < h; dy += 2) { const hf = Math.max(1, Math.round(hw * (1 - dy / h))); x.fillRect(Math.round(cx - hf), Math.round(ty + dy), hf * 2, 2); } }
+function castFx(e) {
+  const f = SPFX[e.sp]; if (!f) return; const r = cellRect(locIdx(e.room)), u = e.u && ST.ents[e.u];
+  ST.spfx = { id: e.sp, fx: f[0], col: f[1], r, t0: now(), dur: 760, ux: u ? u.x + 8 * (u.scale || S) : r.x + r.w / 2, uy: u ? u.y + 8 * (u.scale || S) : floorY(r) - 24 };
+  if (e.sp === 'mark' && u) u.marked = true;
+  ST.floats.push({ x: r.x + r.w / 2, y: r.y + 34, s: NEST.SPELL[e.sp].name, col: f[1] === '#0b0911' ? '#fff3a0' : f[1], t0: now(), big: true });
+  if (['rock', 'wave', 'bite', 'scream'].includes(e.sp)) ST.shake = now() + 260;
+  sfx('spell'); if (SPSND[e.sp]) setTimeout(() => sfx(SPSND[e.sp]), 140);
+}
+function drawSpell(x, s, k, t) {
+  const r = s.r, fy = floorY(r), cx = r.x + r.w / 2, a = 1 - k; x.save(); x.beginPath(); x.rect(r.x + 2, r.y + 2, r.w - 4, r.h - 4); if (s.fx !== 'rise') x.clip(); x.globalAlpha = Math.min(1, a * 1.6); x.strokeStyle = s.col; x.fillStyle = s.col; x.lineWidth = 3;
+  if (s.fx === 'fall') for (let n = 0; n < 6; n++) { const px = r.x + 18 + n * (r.w - 36) / 5, py = r.y + 8 + Math.min(1, k * 1.7 + (n % 3) * 0.08) * (fy - r.y - 16); disc(x, '#3a3444', px, py, 9); disc(x, s.col, px, py - 1, 7); rect(x, '#d8d4e4', px - 4, py - 5, 4, 2); }
+  else if (s.fx === 'sweep') for (let n = 0; n < 4; n++) { const px = r.x + r.w - (k * 1.2 + n * 0.12) * r.w; rect(x, n % 2 ? '#d8f0ff' : s.col, px, fy - 44 + n * 8, 46, 6); rect(x, s.col, px + 8, fy - 6, 60, 4); }
+  else if (s.fx === 'crack') { x.beginPath(); x.moveTo(cx, r.y + 6); for (let n = 1; n <= 7; n++) x.lineTo(cx + (n % 2 ? 1 : -1) * (6 + 10 * k), r.y + 6 + n * (r.h - 12) / 7); x.stroke(); x.globalAlpha = a * 0.35; rect(x, s.col, cx - 14 * k - 3, r.y + 6, 28 * k + 6, r.h - 12); }
+  else if (s.fx === 'rings') for (let n = 0; n < 3; n++) { const kk = (k + n * 0.22) % 1; x.globalAlpha = (1 - kk) * a; x.beginPath(); x.ellipse(s.ux, s.id === 'hatch' || s.id === 'flesh' ? fy - 4 : s.uy, 10 + kk * 70, (s.id === 'hatch' || s.id === 'flesh' ? 4 : 10) + kk * (s.id === 'hatch' || s.id === 'flesh' ? 14 : 44), 0, 0, 7); x.stroke(); }
+  else if (s.fx === 'ghost') for (let n = 0; n < 4; n++) { const px = r.x + 24 + n * (r.w - 48) / 3, py = fy - 20 - k * 46 - (n % 2) * 8; x.globalAlpha = a * 0.8; disc(x, s.col, px, py, 9); rect(x, s.col, px - 8, py, 16, 12); rect(x, '#16121f', px - 5, py - 3, 3, 3); rect(x, '#16121f', px + 2, py - 3, 3, 3); }
+  else if (s.fx === 'teeth') { const g = 26 * (1 - Math.min(1, k * 2.2)); for (let n = -3; n <= 3; n++) { triD(x, s.col, s.ux + n * 7, s.uy - g - 10, 4, 12); tri(x, s.col, s.ux + n * 7, s.uy + g + 10, 4, 12); } rect(x, '#ff5f57', s.ux - 26, s.uy - g - 12, 52, 4); rect(x, '#ff5f57', s.ux - 26, s.uy + g + 10, 52, 4); }
+  else if (s.fx === 'xmark') { const z = 18 - 6 * Math.min(1, k * 3); x.beginPath(); x.moveTo(s.ux - z, s.uy - z); x.lineTo(s.ux + z, s.uy + z); x.moveTo(s.ux + z, s.uy - z); x.lineTo(s.ux - z, s.uy + z); x.stroke(); x.beginPath(); x.arc(s.ux, s.uy, z + 6, 0, 7); x.stroke(); }
+  else if (s.fx === 'halo') { x.beginPath(); x.ellipse(cx, r.y + 26 + k * 10, r.w * 0.4, 9, 0, 0, 7); x.stroke(); x.globalAlpha = a * 0.25; rect(x, s.col, r.x + 10, r.y + 26, r.w - 20, fy - r.y - 26); }
+  else if (s.fx === 'swirl') for (let n = 0; n < 2; n++) { x.beginPath(); x.arc(cx, fy - 30, 30 + n * 14, k * 7 + n * 3.14, k * 7 + n * 3.14 + 2.4); x.stroke(); }
+  else if (s.fx === 'rise') { x.globalAlpha = a * 0.5; for (let c = 0; c < 5; c++) for (let w = 0; w < 4; w++) { const q = cellRect(w * 5 + c); if (!G.cells[w * 5 + c].dug) continue; rect(x, s.col, q.x + 6, floorY(q) - k * 40, q.w - 12, 4); rect(x, '#f5f5f5', q.x + q.w / 2 - 2, floorY(q) - 30 - k * 20, 4, 12); rect(x, '#f5f5f5', q.x + q.w / 2 - 6, floorY(q) - 26 - k * 20, 12, 4); } }
+  else if (s.fx === 'stars') for (let n = 0; n < 7; n++) { const px = r.x + 16 + n * (r.w - 32) / 6, py = r.y + 14 + ((n * 37) % 22); if (Math.floor(t / 90 + n) % 2) { rect(x, s.col, px - 1, py - 5, 2, 10); rect(x, s.col, px - 5, py - 1, 10, 2); } x.globalAlpha = a * 0.3; rect(x, s.col, px, py, 2, fy - py); x.globalAlpha = a; }
+  else if (s.fx === 'heart') for (let n = 0; n < 3; n++) { const px = s.ux - 14 + n * 14, py = s.uy - 18 - k * 26 - (n % 2) * 6; disc(x, s.col, px - 3, py, 4); disc(x, s.col, px + 3, py, 4); triD(x, s.col, px, py + 1, 7, 8); }
+  else if (s.fx === 'hands') for (let n = 0; n < 4; n++) { const px = r.x + 30 + n * (r.w - 60) / 3, hh = Math.min(1, k * 2) * 26; rect(x, s.col, px, fy - hh, 6, hh); for (let q = -1; q <= 1; q++) rect(x, s.col, px + q * 5, fy - hh - 8, 3, 9); }
+  else if (s.fx === 'net') { for (let n = -2; n <= 2; n++) { rect(x, s.col, s.ux + n * 6, s.uy - 16, 2, 32); rect(x, s.col, s.ux - 16, s.uy + n * 6, 32, 2); } x.beginPath(); x.arc(s.ux, s.uy, 20, 0, 7); x.stroke(); }
+  else if (s.fx === 'dark') { x.globalAlpha = a * 0.7; rect(x, s.col, r.x + 2, r.y + 2, r.w - 4, r.h - 4); x.globalAlpha = a; disc(x, '#fff3a0', cx, r.y + 34, 14); disc(x, '#16121f', cx + 12 - k * 12, r.y + 34, 14); }
+  else if (s.fx === 'shield') { brk(x, s.col, r.x + 10, r.y + 12, r.w - 20, fy - r.y - 14); x.globalAlpha = a * 0.2; rect(x, s.col, r.x + 10, r.y + 12, r.w - 20, fy - r.y - 14); }
+  else if (s.fx === 'tendril') for (let n = 0; n < 3; n++) { x.beginPath(); x.moveTo(r.x + r.w - 20, fy - 6); x.quadraticCurveTo(cx, r.y + 10 + n * 14 + 30 * k, r.x + 18 + n * 22, fy - 30 + n * 8); x.stroke(); }
+  x.restore(); x.globalAlpha = 1;
+}
+// 과녁 고르기: 누를 수 있는 적과 방을 밝힌다
+function drawPick(x, t) {
+  const p = ST.pick, up = Math.floor(t / 220) % 2, col = up ? '#fff3a0' : '#6fb8ff';
+  if (p.kind === 'inv') p.ids.forEach(id => { const e = ST.ents && ST.ents[id]; if (!e || e.gone || e.dead) return; const sz = 16 * (e.scale || S); brk(x, col, e.x - 4, e.y - 4, sz + 8, sz + 8); triD(x, col, e.x + sz / 2, e.y - 24 + up * 3, 6, 8); });
+  else p.ids.forEach(k => { const r = cellRect(locIdx(k)); x.strokeStyle = col; x.lineWidth = 4; x.strokeRect(r.x + 5.5, r.y + 5.5, r.w - 11, r.h - 11); plate(x, '여기', r.x + r.w / 2, r.y + 22 + up * 3, col, 14); });
+}
 function atkFx(a, b, h) {
   const sa = 8 * (a.scale || S), sb = 8 * (b.scale || S), kind = a.id === 's' ? 'bite' : a.side === 'inv' ? 'slash' : (h.sd > 0 && !h.d ? 'beam' : FXKIND[a.kind] || 'slash');
   ST.sparks.push({ fx: kind, x0: a.x + sa, y0: a.y + sa, x: b.x + sb, y: b.y + sb, t0: now(), dur: kind === 'beam' ? 360 : kind === 'net' ? 420 : 250, col: kind === 'beam' ? '#c8a8ff' : kind === 'bite' ? '#f5f5f5' : kind === 'net' ? '#a0a8c0' : a.side === 'inv' ? '#ff9a92' : kind === 'whip' ? '#8ad8c0' : '#fff3a0' });
@@ -347,7 +386,10 @@ function drawUnder(x, t) {
   if (day && ST.hover && ST.hover.t === 'cell' && visible(ST.hover.i) && !(UI.sel && UI.sel.t === 'cell' && UI.sel.i === ST.hover.i)) mark(ST.hover.i, '#ece6d666');
   if (day && UI.sel && UI.sel.t === 'cell') mark(UI.sel.i, '#e8c030');
   if (ST.tutCell != null && day) { const r = cellRect(ST.tutCell), up = Math.floor(t / 300) % 2; mark(ST.tutCell, up ? '#e8c030' : '#fff3a0'); plate(x, '▼ 여기', r.x + r.w / 2, r.y + 22 + up * 4, '#fff3a0', 15); }
-  if (ST.focus != null) mark(ST.focus, Math.floor(t / 250) % 2 ? '#ff5f57' : '#fff3a0');
+  if (ST.ents) Object.values(ST.ents).forEach(e => { if (e.marked && !e.gone && !e.dead) { const sz = 16 * (e.scale || S), mx = Math.round(e.x + sz / 2), my = Math.round(e.y - 14); rect(x, '#ff5f57', mx - 5, my - 1, 10, 2); rect(x, '#ff5f57', mx - 1, my - 5, 2, 10); } });
+  if (ST.spfx) { const k = (t - ST.spfx.t0) / ST.spfx.dur; if (k >= 1) ST.spfx = null; else drawSpell(x, ST.spfx, k, t); }
+  if (ST.focus != null && !ST.pick) mark(ST.focus, Math.floor(t / 250) % 2 ? '#ff5f57' : '#fff3a0');
+  if (ST.pick && ST.mode === 'night') drawPick(x, t);
   if (ST.pulse && now() - ST.pulse.t0 < 700) mark(ST.pulse.i, Math.floor((now() - ST.pulse.t0) / 120) % 2 ? '#fff3a0' : '#e8c030');   // 권속이 방금 손댄 칸
 }
 
@@ -491,7 +533,7 @@ function drawStage() {
     x.fillStyle = '#ece6d6'; x.globalAlpha = 0.45 + 0.25 * Math.sin(t / 300); const tri = (px, d) => { x.beginPath(); x.moveTo(px, H / 2 - 16); x.lineTo(px + d * 14, H / 2); x.lineTo(px, H / 2 + 16); x.fill(); };
     if (ST.cam.x > 4) tri(18, -1); if (ST.cam.x < max - 4) tri(VW - 18, 1); x.globalAlpha = 1;
   }
-  if (ST.focus != null) plate(x, isMobile() ? '손을 쓸 차례 — 아래에서 고른다' : '손을 쓸 차례 — 오른쪽에서 고른다', VW / 2, 12, '#fff3a0', 16);
+  if (ST.focus != null) plate(x, ST.pick ? (ST.pick.kind === 'inv' ? '적을 누른다' : '방을 누른다') : isMobile() ? '손을 쓸 차례 — 아래에서 고른다' : '손을 쓸 차례 — 오른쪽에서 고른다', VW / 2, 12, '#fff3a0', 16);
   if (ST.label) { let fs = 34; x.font = fs + 'px "NestPix", "Do Hyeon", sans-serif'; let w = x.measureText(ST.label).width + 60; if (w > VW - 12) { fs = Math.floor(fs * (VW - 12) / w); x.font = fs + 'px "NestPix", "Do Hyeon", sans-serif'; w = x.measureText(ST.label).width + 40; } rect(x, '#0b0c16dd', VW / 2 - w / 2, H / 2 - 36, w, 64); rect(x, '#e8c030', VW / 2 - w / 2, H / 2 - 36, w, 3); txt(x, ST.label, VW / 2, H / 2 - 4 - fs / 2, '#ece6d6', Math.max(21, fs), 'center'); }
 }
 function drawTitle() {
@@ -520,7 +562,7 @@ const wait = ms => new Promise(res => ST.skip ? res() : setTimeout(res, ms / ST.
 const nlog = (s, cls) => { const el = $('nlog'); if (!el || !s) return; const p = document.createElement('p'); p.className = 'small' + (cls ? ' ' + cls : ''); p.textContent = NEST.fj(s); el.prepend(p); while (el.children.length > 12) el.lastChild.remove(); };
 function moveTo(e, p, dur) { e.fx = e.x; e.fy = e.y; e.tx = p.x; e.ty = p.y; e.t0 = now(); e.dur = Math.max(1, dur / ST.speed); }
 function prepareNight() {
-  const E = ST.ents = {}; ST.defs = {}; ST.floats = []; ST.sparks = []; ST.fire = {}; ST.sanfx = {};
+  const E = ST.ents = {}; ST.defs = {}; ST.floats = []; ST.sparks = []; ST.fire = {}; ST.sanfx = {}; ST.spfx = null; ST.pick = null;
   G.kin.forEach(m => { if (m.loc === null || m.hurt || m.strike) return; const list = ST.defs[m.loc] = ST.defs[m.loc] || [], sm = m.kind === 'spawn', p = defPos(m.loc, list.length, sm); E['k' + m.id] = { id: 'k' + m.id, kind: m.kind, side: 'def', can: m.parts && m.parts.length ? kinCanvasM(m) : kinCanvas(m.kind, m.evo), x: p.x - ((m.parts && m.parts.length) || (m.evo && !sm) ? 8 : m.evo ? 5 : 0), y: p.y - ((m.parts && m.parts.length) || (m.evo && !sm) ? 16 : m.evo ? 10 : 0), hp: 1, scale: (m.parts && m.parts.length) || (m.evo && !sm) ? 3 : sm ? (m.evo ? 1.625 : 1) : S }; list.push('k' + m.id); });
   const r = cellRect(NEST.CORE), sc = slimeScale(G.slime), size = 16 * sc;
   E.s = { id: 's', side: 'def', sl: JSON.parse(JSON.stringify(G.slime)), can: slimeCanvas(G.slime), x: r.x + r.w - 14 - size, y: floorY(r) - size + sc, hp: G.slime.hp / NEST.slimeStats(G).hp, scale: sc, bob: true };
@@ -576,7 +618,8 @@ async function playEvents(ev, from) {
       }
       if (e.k === 'decoy' && e.who) e.who.forEach(id => { const d = E[id]; if (d) { d.tag = { s: '푼돈', t0: now() }; moveTo(d, shaft, 500); setTimeout(() => { d.gone = true; }, 520 / ST.speed); } });
       if (e.k === 'shop') sfx('coin');
-      if (e.k === 'hand' || e.k === 'spell') { ST.flash = now() + 120; sfx('spell'); }
+      if (e.k === 'hand' || e.k === 'spell') { ST.flash = now() + 120; if (e.sp && e.room != null) { camTo(cellRect(locIdx(e.room)).x + CW / 2); castFx(e); await wait(360); } else sfx('spell'); }
+      if (e.k === 'star' && e.room != null) { ST.fire[locIdx(e.room)] = now(); sfx('spell'); }
       if (e.k === 'wave' || e.k === 'rift' || e.k === 'breach') ST.shake = now() + 200;
       await wait(e.k === 'heal' ? 60 : e.k === 'gone' ? 0 : 340);
     } else if (e.t === 'add') {

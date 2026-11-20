@@ -15,7 +15,7 @@ const STEWARD = (function () {
     });
     task('파 올라가기', A => { let n = 0; while (G.sealed && !S.paths(G).length && n++ < 8) { const i = S.START.slice().reverse().find(j => !G.cells[j].dug && !S.canDig(G, j)); if (i == null || !A(S.dig(G, i), i).ok) break; } });
     if (!(st.spend > 0)) return T;
-    let path = null; const onPath = i => path.includes(i);
+    let path = null; const onPath = i => path.includes(i), ban = opt.ban || [];
     task('포로', A => {
       for (let i = G.prison.length - 1; i >= 0; i--) {
         const p = G.prison[i]; let how = st.captive;
@@ -29,7 +29,8 @@ const STEWARD = (function () {
     task('짓기', A => {
       const want = st.trapOnly ? ['trap'] : ['post', 'trap', 'hall', 'ambush', 'hall', 'trap'];
       let wi = G.cells.filter((x, i) => x.dug && onPath(i) && x.type !== 'empty' && i !== S.CORE).length;
-      for (const i of path) { const x = G.cells[i]; if (i === S.CORE || x.type !== 'empty') continue; const t = want[wi % want.length], cost = S.buildCost(G, i, t); if (!S.canBuild(G, i, t) && can(cost)) { if (A(S.build(G, i, t), i).ok) wi++; } }
+      const forceP = opt.force && !S.ROOM[opt.force].side && !G.cells.some(x => x.dug && x.type === opt.force) ? opt.force : null;
+      for (const i of path) { const x = G.cells[i]; if (i === S.CORE || x.type !== 'empty') continue; let t = want[wi % want.length]; { const ap = !st.trapOnly && G.slime.main && wi >= 2 ? Object.keys(S.ROOM).find(k => S.ROOM[k].asp === G.slime.main && !S.ROOM[k].side && !S.canBuild(G, i, k) && !G.cells.some(q => q.dug && q.type === k)) : null; if (ap) t = ap; } if (forceP && !S.canBuild(G, i, forceP) && !G.cells.some(q => q.dug && q.type === forceP)) t = forceP; if (ban.includes(t)) t = ban.includes('post') ? 'trap' : 'post'; if (ban.includes(t)) { wi++; continue; } const cost = S.buildCost(G, i, t); if (!S.canBuild(G, i, t) && can(cost)) { if (A(S.build(G, i, t), i).ok) wi++; } }
     });
     task('함정', A => { G.cells.forEach((x, i) => { const cap = S.ROOM[x.type].traps || 0; while (x.dug && x.traps.length < cap) { const tk = st.trapOnly ? st.trapOnly.split('+') : null, k = tk ? tk[x.traps.length % tk.length] : G.slime.main === 'dusk' ? 'mist' : (x.traps.some(t => t.kind === 'spike') ? 'acid' : 'spike'); if (!can(S.TRAP[k].cost * c) || !A(S.addTrap(G, i, k), i).ok) break; } }); });
     task('배치', A => { S.autoPlace(G); if (opt.pin && !G.sealed) { const ks = G.kin.filter(m => m.kind !== 'spawn' && !m.pin && m.loc !== null && !m.hurt).sort((x, y) => S.kinStats(G, y).hp - S.kinStats(G, x).hp); for (const m of ks) { if (S.pinned(G) >= S.pinCap(G)) break; A(S.guard(G, m.id, m.loc), m.loc); } } });   // 권속은 제 자리를 제가 찾는다
@@ -40,7 +41,7 @@ const STEWARD = (function () {
     task('곁방', A => {
       if (!(G.day >= 3 && G.ap > 0)) return;
       const sides = S.sideRooms(G), empt = sides.filter(i => G.cells[i].type === 'empty');
-      const wantSide = ['prison', 'chapel'].concat(G.slime.main ? Object.keys(S.ROOM).filter(k => S.ROOM[k].asp === G.slime.main && S.ROOM[k].side) : []).concat(['altar', 'ritual', 'persuade']).filter(t => !G.cells.some(x => x.dug && x.type === t));
+      const wantSide = (opt.force && S.ROOM[opt.force].side ? [opt.force] : []).concat(['prison', 'chapel']).concat(G.slime.main ? Object.keys(S.ROOM).filter(k => S.ROOM[k].asp === G.slime.main && S.ROOM[k].side) : []).concat(['altar']).filter(t => !ban.includes(t) && !G.cells.some(x => x.dug && x.type === t));
       if (wantSide.length && sides.length < 2 + S.actOf(G) * 2 + (st.expand ? 2 : 0)) {
         if (!empt.length) { const cand = []; for (let i = 0; i < S.N; i++) if (!S.canDig(G, i) && !S.nbrs(i).includes(S.ENT)) cand.push(i); const keep = cand.filter(i => { G.cells[i].dug = true; const same = S.paths(G).length === 1 && S.paths(G)[0].length === path.length && !S.paths(G)[0].includes(i); G.cells[i].dug = false; return same; }); if (keep.length && can(40 * c)) { const ci = keep[seed % keep.length]; if (A(S.dig(G, ci), ci).ok) opt.onDig && opt.onDig(); } }
         const e2 = S.sideRooms(G).filter(i => G.cells[i].type === 'empty');
@@ -68,8 +69,37 @@ const STEWARD = (function () {
     });
     return T;
   }
-  // 밤의 개입: 큰 싸움이면 주문, 본체 방이면 호위를 부르고, 아니면 채찍
-  const decide = st => ctx => { if (st.nohand || st.spend === 0) return { k: 'none' }; const big = ctx.enemies >= 4 || ctx.cell === 'core'; if (ctx.spell && ctx.spell.ok && big) return { k: 'spell' }; if (ctx.cell === 'core' && ctx.from.length) return { k: 'move', from: ctx.from[0] }; return big ? { k: 'whip' } : { k: 'none' }; };
+  // 밤의 개입: 무리가 방에 들어설 때마다 묻는다. 큰 싸움과 본체 방에서만 손을 쓰고, 그 자리에 맞는 주문을 고른다
+  const decide = st => ctx => {
+    if (st.nohand || st.spend === 0) return { k: 'none' };
+    const o = {}; (ctx.opts || []).forEach(x => { if (x.ok && !(st.banSp && st.banSp.includes(x.id))) o[x.id] = x; });
+    const n = ctx.enemies, core = ctx.cell === 'core', def = ctx.def > 0, big = core || (n >= 4 && (def || ctx.traps > 0)) || (n >= 3 && def && ctx.hands >= 2);
+    if (st.only) return o[st.only] && (big || st.only === 'mark') ? { k: st.only, u: ctx.tough, from: ctx.from[0] } : { k: 'none' };
+    if (!big) return o.cocoon && n >= 2 ? { k: 'cocoon', u: o.cocoon.targets[0] } : { k: 'none' };
+    const strong = () => (ctx.units || []).slice().sort((a, b) => b.atk - a.atk)[0];
+    if (o.bite) return { k: 'bite', u: ctx.tough };
+    if (o.phantom) return { k: 'phantom' };
+    if (o.halo && (def || core)) return { k: 'halo' };
+    if (o.call) return { k: 'call' };
+    if (o.flip && n >= 3) return { k: 'flip' };
+    if (o.scream && ctx.weak >= 2) return { k: 'scream' };
+    if (o.cocoon) return { k: 'cocoon', u: o.cocoon.targets[0] };
+    if (o.rift && n >= 4) return { k: 'rift' };
+    if (o.wave && ctx.prevTraps > 0) return { k: 'wave' };
+    if (o.star && ctx.traps > 0) return { k: 'star' };
+    if (o.hatch) return { k: 'hatch' };
+    if (o.rise && (def || core)) return { k: 'rise' };
+    if (o.flesh && n >= 3) return { k: 'flesh' };
+    if (o.tide && ctx.hurt >= 2) return { k: 'tide' };
+    if (o.eclipse && (def || core)) return { k: 'eclipse' };
+    if (o.charm && n >= 3) return { k: 'charm', u: strong().uid };
+    if (o.grip && (def || core)) return { k: 'grip' };
+    if (o.rock && n >= 3) return { k: 'rock' };
+    if (core && o.move) return { k: 'move', from: o.move.targets[0] };
+    if (o.mark && ctx.faith >= 12 && (def || core)) return { k: 'mark', u: ctx.tough };
+    if (o.guard && n >= 5 && !o.whip) return { k: 'guard' };
+    return o.whip ? { k: 'whip' } : o.guard ? { k: 'guard' } : { k: 'none' };
+  };
   return { tasks, decide };
 })();
 if (typeof module !== 'undefined') module.exports = STEWARD;

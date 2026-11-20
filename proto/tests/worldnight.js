@@ -4,7 +4,7 @@ const NEED = { fantasy: ['불비', '깃발을 세운다'], wuxia: ['지목했다
 let bad = 0;
 for (const w of S.WORLD_IDS) {
   const found = {}, shown = [], kindsSeen = {}, fore = {};
-  for (let seed = 1; seed <= 12 && Object.keys(found).length < NEED[w].length; seed++) {
+  for (let seed = 1; seed <= 40 && Object.keys(found).length < NEED[w].length; seed++) {
     const G = S.newGame(seed * 7919, 'hunger', { diff: 2, prologue: S.proResult('hunger', 'avg') }); G.forceWorld = w; S.breach(G, true);
     const st = { captive: 'mix', raid: false, spend: 1 };
     for (let d = 0; d < 40 && !G.over; d++) {

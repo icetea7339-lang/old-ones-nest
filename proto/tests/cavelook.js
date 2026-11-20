@@ -30,10 +30,10 @@ const devName = process.argv[2] || '', only = (process.argv[3] || '').split(',')
   const allRooms = async (types, main, st) => { await p.evaluate(([types, main, st]) => { const G = __nest.G, S = __nest.NEST; G.slime.main = main; G.slime.stage = st; G.slime.sub = null; G.sealed = false; G.cells.forEach((c, i) => { if (i !== S.CORE) { c.dug = true; c.type = 'empty'; c.traps = []; c.block = false; } });
       const order = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 19]; types.forEach((t, k) => { const c = G.cells[order[k]]; c.type = t; if (t === 'trap' || t === 'ambush') c.traps = [{ kind: 'spike', lv: 1 }]; });
       G.kin = G.kin.slice(0, 3); G.kin.forEach((m, k) => { m.loc = order[k + 1]; m.pin = true; }); G.prison = [{ kind: 'militia', vill: 'gaet' }, { kind: 'priest', vill: 'bell' }]; G.corpses = [{ kind: 'villager' }, { kind: 'militia' }, { kind: 'villager' }]; __nest.ST.roam = {}; }, [types, main, st]); await p.waitForTimeout(300); };
-  if (want('r1')) { await allRooms(['trap', 'post', 'hall', 'bighall', 'ambush', 'decoy', 'shop', 'prison', 'chapel', 'ritual', 'persuade', 'altar'], null, 0); await shot('r1'); }
-  if (want('r2')) { await allRooms(['pool', 'sluice', 'library', 'warp', 'hatchery', 'fleshwall', 'stage', 'mirror', 'abattoir', 'table', 'prison', 'chapel'], null, 0); await shot('r2'); }
-  if (want('r3')) { await allRooms(['trap', 'post', 'hall', 'bighall', 'ambush', 'decoy', 'shop', 'prison', 'chapel', 'ritual', 'persuade', 'altar'], 'dusk', 3); await shot('r3'); }
-  if (want('r4')) { await allRooms(['pool', 'sluice', 'library', 'warp', 'hatchery', 'fleshwall', 'stage', 'mirror', 'abattoir', 'table', 'prison', 'chapel'], 'abyss', 3); await shot('r4'); }
+  if (want('r1')) { await allRooms(['trap', 'post', 'hall', 'bighall', 'ambush', 'decoy', 'shop', 'prison', 'chapel', 'altar'], null, 0); await shot('r1'); }
+  if (want('r2')) { await allRooms(['pool', 'sluice', 'library', 'warp', 'hatchery', 'fleshwall', 'stage', 'abattoir', 'prison', 'chapel'], null, 0); await shot('r2'); }
+  if (want('r3')) { await allRooms(['trap', 'post', 'hall', 'bighall', 'ambush', 'decoy', 'shop', 'prison', 'chapel', 'altar'], 'dusk', 3); await shot('r3'); }
+  if (want('r4')) { await allRooms(['pool', 'sluice', 'library', 'warp', 'hatchery', 'fleshwall', 'stage', 'abattoir', 'prison', 'chapel'], 'abyss', 3); await shot('r4'); }
 
   for (let k = 0; k < 5; k++) for (const st of [1, 2, 4]) { const n = AS[k] + st; if (!want(n)) continue; await setup(AS[k], st, st >= 2 ? AS[(k + 2) % 5] : null); await shot(n); }
   console.log(devName || 'pc', errs.length ? '오류: ' + [...new Set(errs)].slice(0, 4).join(' / ') : 'no errors'); await b.close();
