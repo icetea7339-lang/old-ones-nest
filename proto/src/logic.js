@@ -538,7 +538,7 @@ const NEST = (function () {
     if (k === 'life') return ok('허물을 하나 더 둘렀다. 목숨 ' + lives(G) + ' (−' + cost + '방울)');
     return ok('별을 가렸다. 마지막 밤의 무리가 약해진다 (−' + cost + '방울)');
   }
-  // 땅속에서 멀리 자란 몸일수록 굳세다: 3단계가 기준, 한 단계마다 체력과 공격 ±7%. 다 자란 몸(5단계)은 목숨이 하나 더 있다
+  // 땅속에서 멀리 자란 몸일수록 굳세다: 셋째 몸이 기준, 한 몸마다 체력과 공격 ±7%. 다 자란 몸(다섯째)은 목숨이 하나 더 있다
   const grown = G => 1 + K.pro.body * (((G.pro && G.pro.size) || 3) - 3);
   function slimeStats(G) {
     const t = K.tier[G.slime.stage], m = G.slime.main;

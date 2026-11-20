@@ -8,10 +8,10 @@ const PRO = (function () {
   // 다섯 번의 몸: need = 이 몸을 벗는 데 드는 몸집, R = 갈 수 있는 세상의 반지름, r = 몸의 반지름, sp = 빠르기, sc = 그림 배율, zoom = 화면 배율, light = 밝은 둘레
   const STG = [null,
     { name: '한 방울', need: 16, R: 250, r: 6, sp: 60, sc: 1, zoom: 1, light: 84 },
-    { name: '기는 것', need: 50, R: 440, r: 9, sp: 68, sc: 1.4, zoom: 0.78, light: 108 },
+    { name: '기는 것', need: 58, R: 440, r: 9, sp: 68, sc: 1.4, zoom: 0.78, light: 108 },
     { name: '파고드는 것', need: 125, R: 680, r: 13, sp: 78, sc: 2, zoom: 0.6, light: 140 },
-    { name: '삼키는 것', need: 255, R: 980, r: 18, sp: 90, sc: 2.8, zoom: 0.47, light: 180 },
-    { name: '다 자란 것', need: 430, R: 1340, r: 24, sp: 102, sc: 3.7, zoom: 0.37, light: 230 }];
+    { name: '삼키는 것', need: 265, R: 980, r: 18, sp: 90, sc: 2.8, zoom: 0.47, light: 180 },
+    { name: '다 자란 것', need: 450, R: 1340, r: 24, sp: 102, sc: 3.7, zoom: 0.37, light: 230 }];
   const K = { maxT: 450, lives: 2, hp: 2, cost: [4, 9, 16], eyeCost: [3, 7, 12], hintC: 1.9, hintF: 2.1, open: { mouth: 1, eye: 1, leg: 2, skin: 2, core: 3 }, bead: 4, goldCap: 120,
     essF: [0, 0.2, 0.22, 0.25, 0.28, 0.32], essCap: [0, 4, 8, 14, 22, 36], keepFrom: 3, settleFrom: 2, sweepStage: 120, sweepAll: 345 };
   // 사는 것들. st = 그것과 맞수가 되는 몸. 내 몸이 st 보다 작으면 못 이긴다, 같으면 피할 수 있다, 크면 먹이다
@@ -99,7 +99,8 @@ const PRO = (function () {
     const ev = [], emit = (k, o) => { if (ev.length < 240) ev.push(Object.assign({ k, t: S.t }, o || {})); };
     const S = { t: 0, stage: 1, stageT: 0, bio: 0, purse: zero(), spent: 0, gold: 0, worn: {}, hp: K.hp, lives: K.lives, falls: 0, ended: null, seen: {}, upAt: -999,
       food: [], wrig: [], cre: [], clusters: [], crev: [], webs: [], shots: [], puddles: [], snares: [], drops: [],
-      sweep: { st: 'idle', next: 0, x: 0, y: 0, dx: 0, dy: 0, sx: 0, sy: 0, t0: 0, warn: 0, n: 0 }, stats: { hits: 0, eaten: 0, swallowed: 0, acts: 0, bought: 0, defeats: 0, byKind: {} }, cap: null };
+      sweep: { st: 'idle', next: 0, x: 0, y: 0, dx: 0, dy: 0, sx: 0, sy: 0, t0: 0, warn: 0, n: 0 }, stats: { hits: 0, eaten: 0, swallowed: 0, acts: 0, bought: 0, defeats: 0, byKind: {} }, cap: null,
+      eco: { eats: 0, grew: 0, promo: 0, fights: 0, scav: 0, carc: 0, far: 0, tP: 0, tO: 0 } };
     S.hp = K.hp + F.hp;
     const P = { mendAt: F.mend * TPS, x: 0, y: 0, vx: 0, vy: 0, face: 1, inv: 45, aimX: 0, aimY: 0, aimOn: false, cd: 0, cd2: 0, dash: 0, burrow: 0, pounce: null, chew: null, leech: null, veilAt: 0, mossAt: 0, slow: 0, noise: 0, crev: null, kx: 0, ky: 0 };
     const G = () => STG[S.stage];
@@ -110,7 +111,8 @@ const PRO = (function () {
     const fits = q => S.stage <= q.fit + F.fit;
     const acidOK = () => lv('skin_brood') >= 1 || lv('skin_abyss') >= 2, webOK = () => lv('skin_dusk') >= 1 || lv('skin_nebula') >= 2, bitterOK = () => lv('skin_brood') >= 1 || lv('skin_hunger') >= 2;
     const hostile = c => !SP[c.k].calm && c.st >= S.stage, prey = c => c.st < S.stage;
-    const stuck = c => c.stun > 0 || c.mode === 'rest';
+    const stuck = c => c.stun > 0 || c.mode === 'rest' || c.mode === 'eat' || c.mode === 'fight';
+    const cval = c => Math.round(SP[c.k].val * (1 + 0.4 * (c.gr || 0)));
     const canEat = c => { const m = mouthLv(), a = SP[c.k].armor || 0, th = lv('mouth_hunger'); if (c.st < S.stage) return m >= c.st - 1 && m >= a; if (c.st === S.stage) return th >= 2 || (th >= 1 && stuck(c)); return th >= 3 && c.st === S.stage + 1 && c.stun > 0; };
     const held = () => S.cap && S.cap.hold > S.t;                                   // 자람·쓰러짐 알림은 잠깐 다른 말에 덮이지 않는다
     const caption = (s, sub, sec, hold) => { if (!hold && held()) return; S.cap = { s, sub: sub || '', until: S.t + (sec || 2.8) * TPS, hold: hold ? S.t + hold * TPS : 0 }; };
@@ -120,7 +122,7 @@ const PRO = (function () {
     const ringPos = k => { const r0 = k === 1 ? 44 : STG[k - 1].R + 16, r1 = STG[k].R - 16, a = rnd() * 6.2832, r = Math.sqrt(r0 * r0 + rnd() * (r1 * r1 - r0 * r0)); return { x: Math.cos(a) * r, y: Math.sin(a) * r }; };
     const spot = (k, minD, lists) => { let p = ringPos(k); for (let n = 0; n < 24; n++) { if (lists.every(L => L.every(o => dist(o, p) > minD))) return p; p = ringPos(k); } return p; };
     let nid = 1;
-    const mkCre = (k, ring, at, g) => { const d = SP[k], c = { id: nid++, k, st: d.st, r: d.r, ring, x: at.x, y: at.y, hx: at.x, hy: at.y, vx: 0, vy: 0, face: 1, alive: true, mode: 'idle', t: rnd() * 90, cd: 0, stun: 0, wa: rnd() * 6.28, asp: pickAsp(), g: g || 0, deadAt: 0, tx: 0, ty: 0, kids: 0 }; if (k === 'lurker') c.mode = 'buried'; if (k === 'mimic') { c.mode = 'bait'; c.look = rnd() < 0.5 ? 'cap' : 'seed'; } S.cre.push(c); return c; };
+    const mkCre = (k, ring, at, g) => { const d = SP[k], c = { id: nid++, k, st: d.st, r: d.r, ring, x: at.x, y: at.y, hx: at.x, hy: at.y, vx: 0, vy: 0, face: 1, alive: true, mode: 'idle', t: rnd() * 90, cd: 0, stun: 0, wa: rnd() * 6.28, asp: pickAsp(), g: g || 0, deadAt: 0, tx: 0, ty: 0, kids: 0, fed: 0, gr: 0, full: 0, tg: null, fd: null, nib: 0, foe: null, fleeT: 0, fleeFrom: null, on: '' }; if (k === 'lurker') c.mode = 'buried'; if (k === 'mimic') { c.mode = 'bait'; c.look = rnd() < 0.5 ? 'cap' : 'seed'; } S.cre.push(c); return c; };
     const mkFood = (k, ring, at, o) => { const f = Object.assign({ id: nid++, k, ring, x: at.x, y: at.y, alive: true, asp: k === 'bead' ? null : pickAsp(), ph: Math.floor(rnd() * 4), back: 0 }, o || {}); S.food.push(f); return f; };
     S.crev.push({ x: 0, y: 0, r: CREV[1].r, fit: CREV[1].fit, ring: 1 });
     for (let k = 1; k <= 5; k++) {
@@ -146,13 +148,14 @@ const PRO = (function () {
     };
     const eatFood = f => {
       const d = FOOD[f.k]; f.alive = false; f.back = S.t + (f.k === 'mote' ? 0 : f.k === 'bead' || f.k === 'egg' ? 1e9 : f.k === 'cap' ? 60 * TPS : 45 * TPS);
+      if (f.loose) f.back = 0;
       S.stats.byKind[f.k] = (S.stats.byKind[f.k] || 0) + 1;
       if (f.k === 'bead') { S.gold = Math.min(K.goldCap, S.gold + Math.round(K.bead * F.bead)); emit('gold', { x: f.x, y: f.y }); return; }
       if (f.k === 'cap') { if (S.hp < maxHp()) { S.hp++; emit('heal', { x: P.x, y: P.y }); once('cap', '빛갓', '상처 하나가 아물었다'); return; } }
       if (d.bitter && !bitterOK()) { once('bulb', '쓰다', '겉을 돋워야 탈 없이 먹는다', 3); hurt(null, true); gain(f.asp, d.val * 0.5, d.tier, f.x, f.y); return; }
-      gain(f.asp, d.val, d.tier, f.x, f.y);
+      gain(f.asp, f.val || d.val, f.tier || d.tier, f.x, f.y);
     };
-    const swallow = c => { c.alive = false; c.deadAt = S.t; S.stats.swallowed++; S.stats.byKind[c.k] = (S.stats.byKind[c.k] || 0) + 1; gain(c.asp, SP[c.k].val, c.st, c.x, c.y, true); emit('gulp', { x: c.x, y: c.y, kind: c.k }); if (P.leech === c.id) P.leech = null;
+    const swallow = c => { c.alive = false; c.deadAt = S.t; S.stats.swallowed++; S.stats.byKind[c.k] = (S.stats.byKind[c.k] || 0) + 1; gain(c.asp, cval(c), c.st, c.x, c.y, true); emit('gulp', { x: c.x, y: c.y, kind: c.k }); if (P.leech === c.id) P.leech = null;
       if (!S.seen['turn_' + c.k] && c.st >= 2) { S.seen['turn_' + c.k] = 1; caption(SP[c.k].name + '을 삼켰다', '널 쫓던 것이 이제 먹이다'); } };
 
     // ---------- 돋운다 ----------
@@ -217,6 +220,76 @@ const PRO = (function () {
     const touch = (c, pad) => dist(c, P) < c.r + G().r * 0.8 + (pad || 0);
     const bite = c => { if (c.cd <= 0 && touch(c) && !hidden(c)) { c.cd = 1.3 * TPS; hurt(c); return true; } return false; };
 
+    // ---------- 먹이사슬: 사는 것들은 나만 보지 않는다. 서로 쫓고, 먹고, 자라고, 주검을 남긴다 ----------
+    const BUSY = { aim: 1, dash: 1, rest: 1, tell: 1, lunge: 1, rise: 1, out: 1, inhale: 1, scared: 1, lured: 1 };
+    const feed = (c, v) => {
+      c.fed += v; c.full = S.t + 5 * TPS; const need = SP[c.k].val * (1.3 + c.gr);
+      if (c.gr < 2 && c.fed >= need) { c.fed -= need; c.gr++; c.r *= 1.16; S.eco.grew++; emit('grew', { x: c.x, y: c.y, kind: c.k }); if (c.gr === 2 && c.st < STG.length - 1 && SP[c.k].sp > 0) { c.st++; S.eco.promo++; } }
+    };
+    const kill = (c, q) => {
+      if (!q.k) { q.alive = false; q.back = S.t + 30 * TPS; c.tg = null; feed(c, 2); return; }
+      q.alive = false; q.deadAt = S.t; if (P.leech === q.id) P.leech = null; S.eco.eats++; const v = cval(q);
+      emit('prey', { x: q.x, y: q.y, by: c.k, kind: q.k });
+      if (q.st >= 2 || q.gr) { mkFood('carc', 1, { x: q.x, y: q.y }, { loose: true, val: Math.max(4, Math.round(v * 0.6)), tier: q.st, exp: S.t + 40 * TPS, asp: q.asp }); S.eco.carc++; }
+      c.mode = 'eat'; c.t = 2.4 * TPS; c.tg = null; c.foe = null; c.vx = c.vy = 0; feed(c, v);
+    };
+    // 내 몸과 닿았을 때: 삼키거나, 물리거나, 밀린다. 삼켰으면 true
+    const contact = c => {
+      if (P.burrow > 0 || !touch(c)) return false;
+      if (canEat(c)) { swallow(c); return true; }
+      if (hostile(c)) bite(c);
+      return false;
+    };
+    const retarget = (c, d, D) => {
+      c.tg = null; if (D.calm || c.full > S.t) return;
+      let best = null, bs = 1e9; if (hostile(c) && sees(c)) { bs = d; best = P; }
+      const R = Math.max(70, D.see * 0.8);
+      for (const q of S.cre) {
+        if (!q.alive || q === c || q.ring > S.stage || q.k === c.k || q.mode === 'buried' || q.mode === 'bait' || !SP[q.k].sp || (q.mom && q.mom === c.id)) continue;
+        const steal = q.st === c.st && q.mode === 'eat' && !SP[q.k].calm; if (!(q.st < c.st || steal)) continue; if (SP[q.k].calm && c.st < 3) continue;
+        const dq = dist(c, q); if (dq > R) continue; const sc = dq * (steal ? 0.7 : 0.8); if (sc < bs) { bs = sc; best = q; }
+      }
+      if (c.st <= 2) for (const w of S.wrig) { if (!w.alive || w.ring > S.stage) continue; const dq = dist(c, w); if (dq < 70 && dq * 0.9 < bs) { bs = dq * 0.9; best = w; } }
+      if (best && best !== P) { c.tg = best; if (best.k && best.st < c.st) { best.fleeFrom = c; best.fleeT = S.t + 45; } }
+    };
+    // 한 틱의 먹이사슬. 이 틱의 움직임을 여기서 끝냈으면 true
+    function ecoStep(c, d, D, lim) {
+      const t = S.t; c.on = '';
+      if (P.leech === c.id) return false;
+      if (c.mode === 'eat') { c.on = 'eat'; c.vx *= 0.7; c.vy *= 0.7; if (--c.t <= 0) c.mode = 'idle'; contact(c); return true; }
+      if (c.mode === 'fight') { c.on = 'fight'; const q = c.foe; c.vx = rr(-30, 30); c.vy = rr(-30, 30); moveIn(c, lim); if (!q || !q.alive || q.mode !== 'fight') { c.mode = 'idle'; c.foe = null; } else if (--c.t <= 0) { const win = rnd() < c.r / (c.r + q.r) ? c : q, lose = win === c ? q : c; lose.mode = 'idle'; kill(win, lose); } contact(c); return true; }
+      if (BUSY[c.mode]) return false;
+      if (c.mode === 'buried' || c.mode === 'bait') {   // 숨은 것은 위로 지나가는 작은 것도 문다. 그때 제 자리를 들킨다
+        if (t % 6 === c.id % 6) for (const q of S.cre) if (q.alive && q !== c && q.ring <= S.stage && q.st <= c.st && q.k !== c.k && SP[q.k].sp && !SP[q.k].calm && q.r < c.r && dist(c, q) < c.r + q.r) { emit(c.k === 'mimic' ? 'snap' : 'erupt', { x: c.x, y: c.y }); kill(c, q); c.t = 3.2 * TPS; return true; }
+        return false;
+      }
+      if (!D.sp) {   // 붙박인 큰 것: 닿은 작은 것을 삼킨다
+        if (t % 10 === c.id % 10) for (const q of S.cre) if (q.alive && q !== c && q.ring <= S.stage && q.st < c.st && q.mom !== c.id && SP[q.k].sp && dist(c, q) < c.r + q.r * 0.4) { const m0 = c.mode, t0 = c.t; kill(c, q); c.mode = m0; c.t = t0; break; }
+        return false;
+      }
+      if (c.fleeT > t && c.fleeFrom && c.fleeFrom.alive && dist(c, c.fleeFrom) < 150) { c.on = 'flee'; c.tg = null; c.fd = null; steer(c, c.x + (c.x - c.fleeFrom.x), c.y + (c.y - c.fleeFrom.y), D.sp * 1.04, 0.24); moveIn(c, lim); if (c.mode === 'chase') c.mode = 'home'; contact(c); return true; }
+      if (t % 12 === c.id % 12) retarget(c, d, D);
+      const q = c.tg;
+      if (q) {
+        if (!q.alive || dist(c, q) > Math.max(120, D.see * 1.5)) c.tg = null;
+        else { c.on = 'other'; S.eco.tO++; steer(c, q.x, q.y, D.sp * 0.94, 0.18); moveIn(c, lim);
+          if (dist(c, q) < c.r + (q.r || 3) * 0.6) { if (q.k && q.st === c.st) { if (q.mode !== 'fight') { c.mode = q.mode = 'fight'; c.t = q.t = 1.6 * TPS; c.foe = q; q.foe = c; c.tg = null; S.eco.fights++; emit('fight', { x: (c.x + q.x) / 2, y: (c.y + q.y) / 2 }); } } else kill(c, q); }
+          contact(c); return true; }
+      }
+      // 노릴 것이 없으면 먹을 것을 찾는다: 등딱지는 알갱이와 뿌리, 작은 것들은 주검과 알
+      const eyeing = hostile(c) && sees(c);
+      if (!eyeing && c.full <= t && t % 20 === c.id % 20 && !c.fd) { const wants = D.calm ? { mote: 1, root: 1, seed: 1 } : c.st <= 3 ? { carc: 1, egg: 1 } : { carc: 1 }; let bf = null, bd = 150; for (const f of S.food) { if (!f.alive || !wants[f.k] || f.ring > S.stage) continue; const dx = f.x - c.x, dy = f.y - c.y; if (Math.abs(dx) > bd || Math.abs(dy) > bd) continue; const df = Math.hypot(dx, dy); if (df < bd) { bd = df; bf = f; } } c.fd = bf; }
+      if (c.fd) {
+        const f = c.fd; if (!f.alive || eyeing) { c.fd = null; return false; }
+        c.on = D.calm ? 'graze' : 'scav'; steer(c, f.x, f.y, Math.max(14, D.sp * 0.6), 0.14); moveIn(c, lim);
+        if (dist(c, f) < c.r + 4) { c.vx *= 0.5; c.vy *= 0.5; if (++c.nib > (D.calm ? 2.2 : 3) * TPS) { c.nib = 0; S.eco.scav++; if (f.k === 'carc') { f.val = (f.val || FOOD.carc.val) - 5; feed(c, 5); if (f.val <= 0) { f.alive = false; f.back = f.loose ? 0 : S.t + 45 * TPS; } } else { f.alive = false; f.back = f.k === 'mote' ? 0 : S.t + 45 * TPS; feed(c, FOOD[f.k].val || 1); } c.fd = null; } }
+        if (contact(c)) return true;
+        if (D.calm && touch(c) && P.burrow <= 0) { const dd = d || 1, push = c.r + G().r * 0.8 - d; P.x += (P.x - c.x) / dd * push; P.y += (P.y - c.y) / dd * push; }
+        return true;
+      }
+      return false;
+    }
+
     // ---------- 한 틱 ----------
     function tick() {
       if (S.ended) return; S.t++; const g = G(), t = S.t;
@@ -244,6 +317,7 @@ const PRO = (function () {
       let chewing = false;
       for (const f of S.food) {
         if (!f.alive) { if (f.back && t >= f.back && f.k !== 'mote' && dist(f, P) > 160) f.alive = true; continue; }
+        if (f.exp && t > f.exp) { f.alive = false; f.back = 0; continue; }
         if (f.ring > S.stage) continue; const dx = f.x - P.x, dy = f.y - P.y; if (Math.abs(dx) > 90 || Math.abs(dy) > 90) continue; const d = Math.hypot(dx, dy), D = FOOD[f.k];
         if ((pull && d < pull + g.r && !D.chew && !D.need) || (ring && d < ring + g.r && (f.k === 'mote' || f.k === 'bead'))) { f.x -= dx / (d || 1) * 2.6; f.y -= dy / (d || 1) * 2.6; }
         if (d > reach + (D.chew ? 6 : 2) || P.burrow > 0) continue;
@@ -262,14 +336,19 @@ const PRO = (function () {
       // 사는 것들
       for (const c of S.cre) {
         if (c.ring > S.stage) continue;
-        if (!c.alive) { const wait = (c.st >= 4 ? 60 : c.st >= S.stage ? 45 : 50) * TPS; if (c.deadAt && t - c.deadAt > wait && Math.hypot(c.hx - P.x, c.hy - P.y) > lightR() + 120) { c.alive = true; c.x = c.hx; c.y = c.hy; c.vx = c.vy = 0; c.stun = 0; c.kids = 0; c.mode = c.k === 'lurker' ? 'buried' : c.k === 'mimic' ? 'bait' : 'idle'; } continue; }
-        if (Math.abs(c.x - P.x) > 620 || Math.abs(c.y - P.y) > 620) continue;
+        if (!c.alive) { const wait = (c.st >= 4 ? 60 : c.st >= S.stage ? 45 : 50) * TPS; if (c.deadAt && t - c.deadAt > wait && Math.hypot(c.hx - P.x, c.hy - P.y) > lightR() + 120) { c.alive = true; c.x = c.hx; c.y = c.hy; c.vx = c.vy = 0; c.stun = 0; c.kids = 0; c.st = SP[c.k].st; c.r = SP[c.k].r; c.gr = 0; c.fed = 0; c.full = 0; c.tg = null; c.fd = null; c.foe = null; c.fleeT = 0; c.mode = c.k === 'lurker' ? 'buried' : c.k === 'mimic' ? 'bait' : 'idle'; } continue; }
+        if (Math.abs(c.x - P.x) > 620 || Math.abs(c.y - P.y) > 620) {
+          if (t % 150 === c.id % 150 && SP[c.k].sp && !SP[c.k].calm && c.full <= t) { for (const q of S.cre) if (q.alive && q !== c && q.ring <= S.stage && q.st < c.st && q.k !== c.k && SP[q.k].sp && Math.abs(q.x - c.x) < 160 && Math.abs(q.y - c.y) < 160 && rnd() < 0.3) { q.alive = false; q.deadAt = t; S.eco.eats++; S.eco.far++; feed(c, cval(q)); break; } }
+          continue;
+        }
         if (c.cd > 0) c.cd--; if (c.stun > 0) { c.stun--; c.vx *= 0.6; c.vy *= 0.6; moveIn(c, STG[5].R); if (touch(c) && canEat(c) && P.burrow <= 0) swallow(c); continue; }
         const d = dist(c, P), D = SP[c.k], lim = STG[Math.min(5, c.ring)].R - c.r;
         // 덫
         for (let i = S.snares.length - 1; i >= 0; i--) { const s = S.snares[i]; if (c.r < 40 && !D.calm && D.sp && dist(s, c) < c.r + 9) { c.stun = s.hold; S.snares.splice(i, 1); emit('snared', { x: c.x, y: c.y }); } }
         // 덮치는 중에 닿은 것
         if (P.pounce && touch(c, 3)) { if (canEat(c)) { swallow(c); continue; } if (hostile(c) && c.st <= S.stage + 1 && c.r < 40) { c.stun = Math.max(c.stun, (c.st > S.stage ? 0.8 : [1.5, 2, 2.5][lv('leg_hunger') - 1]) * TPS); emit('snared', { x: c.x, y: c.y }); continue; } }
+        if (ecoStep(c, d, D, lim)) continue;
+        if (!c.alive) continue;
         // 먹이가 된 것: 달아난다. 닿으면 삼킨다(입이 모자라면 못 삼킨다)
         if (prey(c) || D.calm) {
           if (c.mode === 'bait' || c.mode === 'buried') { if (touch(c) && P.burrow <= 0) { if (canEat(c)) swallow(c); else once('small_' + c.k, '입이 작다', SP[c.k].name + '을 삼키려면 입을 돋워야 한다', 3); } continue; }
@@ -279,7 +358,8 @@ const PRO = (function () {
         // 사나운 것
         if (c.mode === 'scared') { steer(c, c.x + (c.x - P.x), c.y + (c.y - P.y), (D.sp || 60) * 1.1, 0.25); moveIn(c, lim); if (--c.t <= 0) c.mode = 'idle'; continue; }
         if (c.mode === 'lured') { steer(c, c.tx, c.ty, D.sp * 0.8, 0.15); moveIn(c, lim); if (sees(c) && d < SP[c.k].see * 0.7) c.mode = 'idle'; else if (--c.t <= 0 || Math.hypot(c.x - c.tx, c.y - c.ty) < 12) c.mode = 'idle'; bite(c); continue; }
-        const saw = sees(c);
+        const saw = sees(c) && !(c.full > t && d > D.see * 0.65);
+        if (saw && D.sp) { S.eco.tP++; c.on = 'you'; }
         if (saw && !S.seen['met_' + c.k] && d < lightR()) { S.seen['met_' + c.k] = 1; if (c.st > S.stage) caption(D.name + '이다', '너보다 크다. ' + D.say, 3); else caption(D.name, D.say, 2.6); emit('meet', { kind: c.k }); }
         switch (c.k) {
           case 'mite': case 'hunter': {
@@ -360,7 +440,7 @@ const PRO = (function () {
         else if (sw.st === 'run') { const v = (200 + S.stage * 40) / TPS; sw.x += sw.dx * v; sw.y += sw.dy * v; if (dist(sw, P) < sw.r + g.r * 0.7 && !(P.crev && fits(P.crev))) hurt({ x: sw.x, y: sw.y, k: 'sweeper', st: 9, r: sw.r, stun: 0 }); for (const c of S.cre) if (c.alive && c.r < 40 && c.ring <= S.stage && dist(sw, c) < sw.r + c.r) { c.alive = false; c.deadAt = t; emit('gone', { x: c.x, y: c.y }); } if (t - sw.t0 > 1150 / v) { sw.st = 'idle'; sw.next = t + Math.max(5, 10 - sw.n * 0.7) * TPS; } }
       }
       // 자란다
-      if (S.stage < 5 && S.bio >= g.need) { S.stage++; S.stageT = t; S.upAt = t; S.hp = Math.min(maxHp(), S.hp + 1); P.inv = Math.max(P.inv, 2 * TPS); sw.st = 'idle'; sw.next = t; sw.n = 0; emit('stage', { stage: S.stage }); caption(STG[S.stage].name, ['', '', '세상이 넓어졌다. 발과 겉이 돋는다', '속이 돋는다. 허물에 부위 하나를 새길 수 있다', '널 쫓던 것들이 작아 보인다', '마지막 허물이다. 다 자라면 가장 많이 가져간다'][S.stage], 4, 2.6); }
+      if (S.stage < 5 && S.bio >= g.need) { S.stage++; S.stageT = t; S.upAt = t; S.hp = Math.min(maxHp(), S.hp + 1); P.inv = Math.max(P.inv, 2 * TPS); sw.st = 'idle'; sw.next = t; sw.n = 0; emit('stage', { stage: S.stage }); caption(STG[S.stage].name, ['', '', '어른거리던 큰 것들이 이제 네 눈높이다. 발과 겉이 돋는다', '저 뒤의 것들과 겨룰 몸이다. 속이 돋고, 부위 하나를 새길 수 있다', '널 쫓던 것들이 작아 보인다', '마지막 허물이다. 다 자라면 가장 많이 가져간다'][S.stage], 4, 2.6); }
       else if (S.stage === 5 && S.bio >= g.need) return end('grown');
       if (t >= K.maxT * TPS) end('time');
     }
@@ -379,7 +459,7 @@ const PRO = (function () {
     }
     function end(kind) { if (S.ended) return; S.ended = kind; emit('end', { kind }); }
 
-    return { look, form: F, seedOf: look ? SEEDS_[look] : null, fits, actTotal, S, P, STG, SP, CAT, PART, SLOTS, home, ev, tick, act, buy, whyNot, priceOf, canAny, hurt, end, result, hostile, prey, canEat, lv, val, mouthLv, maxHp, lightR, acidOK, webOK, bitterOK, actName, actReady, essAt, essSum, hidden, caption,
+    return { look, form: F, seedOf: look ? SEEDS_[look] : null, cval, fits, actTotal, S, P, STG, SP, CAT, PART, SLOTS, home, ev, tick, act, buy, whyNot, priceOf, canAny, hurt, end, result, hostile, prey, canEat, lv, val, mouthLv, maxHp, lightR, acidOK, webOK, bitterOK, actName, actReady, essAt, essSum, hidden, caption,
       aim(x, y) { const lim = G().R - G().r, r = Math.hypot(x, y); if (r > lim) { x *= lim / r; y *= lim / r; } P.aimX = x; P.aimY = y; P.aimOn = true; }, stop() { P.aimOn = false; }, setKeep(id) { keep = id; }, get keep() { return keep; } };
   }
   return { TPS, ASPS, ASPK, STG, K, SP, FOOD, CENSUS, FCENSUS, CAT, PART, SLOTS, SLOTK, SLOTSAY, SEEDS: SEEDS_, SEED_IDS, FORM0, ACT0, pickLook, makeSim };

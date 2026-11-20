@@ -18,11 +18,11 @@ const SEEDS = {
   twin: { name: '쌍눈', say: '묻힌 것이 보인다. 대신 멀리서도 들킨다', mod: { buried: true, see: 1.04 }, top: [16, 17] },
   horn: { name: '뿔씨', say: '단단한 씨를 처음부터 깬다. 대신 긁는 소리에 들킨다', mod: { mouth: 1, see: 1.06 }, top: [13, 18] },
   sticky: { name: '끈끈이', say: '가까운 알갱이가 붙어 온다. 대신 물리면 더 흘린다', mod: { pull: 20, drop: 4 }, top: [16, 14] },
-  flat: { name: '납작이', say: '틈에 한 몸 더 오래 숨는다. 대신 어둡고 굼뜨다', mod: { fit: 1, light: 0.88, sp: 0.97 }, top: [15, 22] },
+  flat: { name: '납작이', say: '틈에 한 몸 더 오래 숨는다. 대신 어둡고 굼뜨다', mod: { fit: 1, light: 0.92, sp: 0.99 }, top: [15, 22] },
   glow: { name: '빛씨', say: '진액 방울을 더 얻는다. 대신 빛나서 들킨다', mod: { bead: 1.5, light: 1.12, see: 1.03 }, top: [16, 16] },
-  spore: { name: '홀씨', say: '가만두면 상처가 아문다. 대신 한 입이 작다', mod: { mend: 40, eat: 0.95 }, top: [16, 13] },
+  spore: { name: '홀씨', say: '가만두면 상처가 아문다. 대신 한 입이 작다', mod: { mend: 46, eat: 0.94 }, top: [16, 13] },
   pod: { name: '알씨', say: '남긴 것을 더 가져간다. 대신 굼뜨다', mod: { ess: 0.15, sp: 0.94 }, top: [16, 14] },
-  thorn: { name: '가시알', say: '나를 문 것이 잠깐 굳는다. 대신 굼뜨다', mod: { stun: 1, sp: 0.93 }, top: [16, 16] },
+  thorn: { name: '가시알', say: '나를 문 것이 잠깐 굳는다. 대신 굼뜨다', mod: { stun: 1.2, sp: 0.96 }, top: [16, 16] },
 };
 if (typeof FORMS !== 'undefined') (function () {
   const dot = (K, x, y) => { K.flat(K.el(x, y, 1.4, 2), INKY); K.px(x, y - 1, '#ffffff'); };

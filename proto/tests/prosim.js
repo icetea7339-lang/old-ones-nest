@@ -83,7 +83,7 @@ function play(kind, asp, seed, look) {
     sim.ev.length = 0;
   }
   const r = sim.result(), ess = ASPS.reduce((a, k) => a + r.ess[k], 0);
-  return { look: sim.look, stage: S.stage, end: S.ended || 'none', time: Math.round(S.t / TPS), defeats: S.stats.defeats, hits: S.stats.hits, parts: r.parts.reduce((a, p) => a + p.lv, 0), ess, gold: r.gold, mut: r.mut, bio: Math.round(S.bio), spent: Math.round(S.spent), acts: S.stats.acts, log, r, byKind: S.stats.byKind };
+  return { eco: S.eco, look: sim.look, stage: S.stage, end: S.ended || 'none', time: Math.round(S.t / TPS), defeats: S.stats.defeats, hits: S.stats.hits, parts: r.parts.reduce((a, p) => a + p.lv, 0), ess, gold: r.gold, mut: r.mut, bio: Math.round(S.bio), spent: Math.round(S.spent), acts: S.stats.acts, log, r, byKind: S.stats.byKind };
 }
 
 if (FORMS_MODE) {
@@ -104,6 +104,7 @@ for (const who of WHO) {
   const dist5 = [1, 2, 3, 4, 5].map(k => rs.filter(r => r.stage === k).length), avg = f => (rs.reduce((a, r) => a + f(r), 0) / rs.length).toFixed(1), ends = {}; rs.forEach(r => { ends[r.end] = (ends[r.end] || 0) + 1; });
   const tAt = k => { const xs = rs.map(r => r.log.stageAt[k]).filter(Boolean); return xs.length ? Math.round(xs.reduce((a, b) => a + b, 0) / xs.length) : '-'; }, killers = {}; rs.forEach(r => r.log.deaths.forEach(d => { killers[d] = (killers[d] || 0) + 1; }));
   console.log(who.padEnd(9), '닿은 몸 1~5:', dist5.join(' / '), '| 끝:', JSON.stringify(ends), '| 시간', avg(r => r.time), '쓰러짐', avg(r => r.defeats), '물림', avg(r => r.hits), '부위 단계', avg(r => r.parts), '정수', avg(r => r.ess), '진액', avg(r => r.gold), '재주', avg(r => r.acts));
+  { const e = k => rs.reduce((x, r) => x + r.eco[k], 0), per = k => (e(k) / rs.length).toFixed(1); console.log('          먹이사슬(판마다): 서로 먹음 ' + per('eats') + ' (그중 먼 곳 ' + per('far') + '), 자람 ' + per('grew') + ', 한 급 오름 ' + per('promo') + ', 맞붙음 ' + per('fights') + ', 주검 ' + per('carc') + ', 뜯어 먹음 ' + per('scav') + ' | 사나운 것이 나를 본 시간 ' + Math.round(100 * e('tP') / Math.max(1, e('tP') + e('tO'))) + '% · 다른 것을 쫓은 시간 ' + Math.round(100 * e('tO') / Math.max(1, e('tP') + e('tO'))) + '%'); }
   { const gr = rs.filter(r => r.end === 'grown'); if (gr.length) console.log('          다 자란 판: ' + gr.length + ', 걸린 시간 ' + Math.round(gr.reduce((a, r) => a + r.time, 0) / gr.length) + '초, 부위 단계 ' + (gr.reduce((a, r) => a + r.parts, 0) / gr.length).toFixed(1) + ', 정수 ' + (gr.reduce((a, r) => a + r.ess, 0) / gr.length).toFixed(1) + ', 쓰러짐 ' + (gr.reduce((a, r) => a + r.defeats, 0) / gr.length).toFixed(1)); }
   console.log('          몸 2~5 에 닿은 때(초):', [2, 3, 4, 5].map(tAt).join(' / '), '| 쓰러뜨린 것:', Object.keys(killers).sort((a, b) => killers[b] - killers[a]).slice(0, 8).map(k => k + '×' + killers[k]).join(' '));
   if (V) rs.slice(0, 6).forEach(r => console.log('    ', JSON.stringify({ st: r.stage, end: r.end, t: r.time, def: r.defeats, parts: r.r.parts.map(p => p.id + p.lv).join(','), ess: r.ess, at: r.log.stageAt.slice(2), ate: r.byKind })));
