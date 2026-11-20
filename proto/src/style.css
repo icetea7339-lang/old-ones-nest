@@ -152,6 +152,7 @@ img.ic { display: inline-block; vertical-align: -4px; margin-right: 4px; }
 .opt b { font-family: var(--display); font-weight: 400; font-size: var(--d1); max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .opt > span { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; line-height: 1.35; }
 .opts.c1 .opt > span { -webkit-line-clamp: 3; }
+.opt.evoc { gap: 3px; } .opt.evoc b { white-space: normal; overflow: visible; display: flex; flex-wrap: wrap; align-items: center; gap: 4px; } .opt.evoc > span { display: block; -webkit-line-clamp: unset; overflow: visible; } .opt.evoc .cost { color: var(--coin); }
 .opt.on { background: var(--panel2); border-color: var(--coin); color: var(--text); outline: 1px solid var(--coin); }
 .xp { height: 4px; background: var(--panel2); } .xp > i { display: block; height: 100%; background: var(--down); }
 .slime-top { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 10px; align-items: center; flex: none; }
@@ -369,3 +370,25 @@ h3, .h3, .tab, .btn, .btn.sm, .sec, .opt b, .pick6 .btn b, .pick5 .btn b, .capro
 @media (max-width: 760px) { .frow > span:nth-child(2n), .opt > span, .opts.c1 .opt > span, .board > span:nth-child(4n+2), #fore > span:nth-child(2n), .clamp1, .clamp2, .clamp3 { font-size: 12px; } .opt > span .small, .opt > span small, .frow small { font-size: 12px; } }
 /* 고른 탭(금빛 바탕) 안의 글은 징조 색을 버리고 어두운 글로: 금빛 위의 연보라·연두는 읽히지 않는다 */
 .tabs.wrap .tab.on span[style], .btn.on span[style], .btn.pri span[style] { color: var(--ink) !important; }
+/* 이야기 모드: 꿈, 다른 목소리, 목표 패널, 일곱 개의 바늘 */
+#scene .box.dream { border-color: #8a6fe0; background: linear-gradient(180deg, #171230, #0f0c20); box-shadow: 0 0 24px rgba(138, 111, 224, .35); }
+#scene .box.dream .who { color: #b8a4ff; letter-spacing: .2em; }
+#scene .box.dream .txt { color: #d8ccff; font-style: italic; }
+#scene .box.seeker { border-color: #9a8a5a; background: #16140e; }
+#scene .box.seeker .who { color: #d8c890; }
+#scene .box.cap { border-color: #a2a8c6; }
+#scene .box.cap .who { color: #ece6d6; }
+.goals { display: flex; flex-wrap: wrap; gap: 4px 10px; margin: 4px 0 2px; }
+.goal { font-size: var(--t2); color: #c8c2d6; white-space: nowrap; }
+.goal b { color: #ece6d6; font-weight: 400; }
+.goal.done { color: #8ad89a; }
+.goal.done b { color: #8ad89a; }
+.needles { display: block; width: min(100%, 320px); height: auto; margin: 4px auto 8px; }
+.needles .nfresh { animation: nfresh 1.2s ease-in-out infinite alternate; transform-origin: center; }
+@keyframes nfresh { from { opacity: .55; } to { opacity: 1; filter: drop-shadow(0 0 4px #fff3a0); } }
+.cleared { text-align: center; }
+.cleared p { margin: 6px 0; }
+.center { text-align: center; }
+.storylist .btn.opt { text-align: left; }
+.storylist .btn.opt small { display: block; }
+@media (max-width: 760px) { #right.open #coach2 .goals { display: none; } }

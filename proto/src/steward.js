@@ -13,7 +13,7 @@ const STEWARD = (function () {
       if (st.spend > 0 && !st.nocalm && G.omen && G.omen.tier !== 'boon' && !G.omen.calmed && G.faith >= S.CALM_COST + 8) A(S.calm(G));
       if (G.guest) { const o = S.guestOptions(G); let k = st.spend > 0 ? o.findIndex(x => !x.why && x.cost <= G.gold - 40 * c) : -1; if (k < 0) k = o.length - 1; A(S.resolveGuest(G, k)); if (G.guest) G.guest = null; }
     });
-    task('파 올라가기', A => { let n = 0; while (G.sealed && !S.paths(G).length && n++ < 8) { const i = S.START.slice().reverse().find(j => !G.cells[j].dug && !S.canDig(G, j)); if (i == null || !A(S.dig(G, i), i).ok) break; } });
+    task('파 올라가기', A => { let n = 0; while (G.sealed && !S.paths(G).length && n++ < 8) { const i = G.start.slice().reverse().find(j => !G.cells[j].dug && !S.canDig(G, j)); if (i == null || !A(S.dig(G, i), i).ok) break; } });
     if (!(st.spend > 0)) return T;
     let path = null; const onPath = i => path.includes(i), ban = opt.ban || [];
     task('포로', A => {
@@ -28,22 +28,28 @@ const STEWARD = (function () {
     task('돋는 것', A => { for (let i = G.applicants.length - 1; i >= 0; i--) { const a = G.applicants[i]; if (!st.trapOnly && (S.freeSlot(G, a.kind) !== null || st.acceptAll) && G.gold >= S.acceptCost(G, a) + 10 * c && G.kin.length < 14) A(S.accept(G, i)); } });
     task('짓기', A => {
       const want = st.trapOnly ? ['trap'] : ['post', 'trap', 'hall', 'ambush', 'hall', 'trap'];
-      let wi = G.cells.filter((x, i) => x.dug && onPath(i) && x.type !== 'empty' && i !== S.CORE).length;
+      let wi = G.cells.filter((x, i) => x.dug && onPath(i) && x.type !== 'empty' && i !== G.core).length;
       const forceP = opt.force && !S.ROOM[opt.force].side && !G.cells.some(x => x.dug && x.type === opt.force) ? opt.force : null;
-      for (const i of path) { const x = G.cells[i]; if (i === S.CORE || x.type !== 'empty') continue; let t = want[wi % want.length]; { const ap = !st.trapOnly && G.slime.main && wi >= 2 ? Object.keys(S.ROOM).find(k => S.ROOM[k].asp === G.slime.main && !S.ROOM[k].side && !S.canBuild(G, i, k) && !G.cells.some(q => q.dug && q.type === k)) : null; if (ap) t = ap; } if (forceP && !S.canBuild(G, i, forceP) && !G.cells.some(q => q.dug && q.type === forceP)) t = forceP; if (ban.includes(t)) t = ban.includes('post') ? 'trap' : 'post'; if (ban.includes(t)) { wi++; continue; } const cost = S.buildCost(G, i, t); if (!S.canBuild(G, i, t) && can(cost)) { if (A(S.build(G, i, t), i).ok) wi++; } }
+      for (const i of path) { const x = G.cells[i]; if (i === G.core || x.type !== 'empty') continue; let t = want[wi % want.length]; { const ap = !st.trapOnly && G.slime.main && wi >= 2 ? Object.keys(S.ROOM).find(k => S.ROOM[k].asp === G.slime.main && !S.ROOM[k].side && !S.canBuild(G, i, k) && !G.cells.some(q => q.dug && q.type === k)) : null; if (ap) t = ap; } if (forceP && !S.canBuild(G, i, forceP) && !G.cells.some(q => q.dug && q.type === forceP)) t = forceP; if (ban.includes(t)) t = ban.includes('post') ? 'trap' : 'post'; if (ban.includes(t)) { wi++; continue; } const cost = S.buildCost(G, i, t); if (!S.canBuild(G, i, t) && can(cost)) { if (A(S.build(G, i, t), i).ok) wi++; } }
     });
     task('함정', A => { G.cells.forEach((x, i) => { const cap = S.ROOM[x.type].traps || 0; while (x.dug && x.traps.length < cap) { const tk = st.trapOnly ? st.trapOnly.split('+') : null, k = tk ? tk[x.traps.length % tk.length] : G.slime.main === 'dusk' ? 'mist' : (x.traps.some(t => t.kind === 'spike') ? 'acid' : 'spike'); if (!can(S.TRAP[k].cost * c) || !A(S.addTrap(G, i, k), i).ok) break; } }); });
     task('배치', A => { S.autoPlace(G); if (opt.pin && !G.sealed) { const ks = G.kin.filter(m => m.kind !== 'spawn' && !m.pin && m.loc !== null && !m.hurt).sort((x, y) => S.kinStats(G, y).hp - S.kinStats(G, x).hp); for (const m of ks) { if (S.pinned(G) >= S.pinCap(G)) break; A(S.guard(G, m.id, m.loc), m.loc); } } });   // 권속은 제 자리를 제가 찾는다
-    task('합체', A => {
-      if (!opt.nofuse) G.kin.filter(m => m.loc === null && m.kind !== 'spawn' && !(m.parts && m.parts.length)).forEach(b => { if (S.freeSlot(G, b.kind) !== null) return; const hosts = G.kin.filter(m => m.loc !== null && m.kind !== 'spawn' && (m.parts || []).length < S.K.fuse.max).sort((x, y) => y.lv - x.lv); if (hosts.length && can(S.fuseCost(G) + 40 * c) && A(S.fuseKin(G, hosts[0].id, b.id), hosts[0].loc).ok) opt.onFuse && opt.onFuse(); });
-      if (opt.aggfuse) { let guard2 = 0; while (guard2++ < 6) { const ks = G.kin.filter(m => m.kind !== 'spawn'), mats = ks.filter(m => !(m.parts && m.parts.length)).sort((x, y) => x.lv - y.lv), hosts = ks.filter(m => m.loc !== null && (m.parts || []).length < S.K.fuse.max).sort((x, y) => y.lv - x.lv); if (ks.length <= +opt.aggfuse || !hosts.length || !mats.length || mats[0] === hosts[0] || !can(S.fuseCost(G) + 40 * c) || !A(S.fuseKin(G, hosts[0].id, mats[0].id)).ok) break; } }
+    // 비밀 진화를 노린다: 한도가 가까운 자란 것과 그 짝을 같은 자리에 붙든다 (SECRET=0 이면 하지 않는다)
+    task('짝 맞추기', A => {
+      if (opt.secret === false || G.sealed) return;
+      G.kin.filter(m => S.stageOf(m) === 1 && S.SECRET[m.kind] && m.lv >= S.lvCap(m) - 3 && !m.hurt && m.loc !== null).forEach(m => {
+        if (S.secretReady(G, m) || (m.pin && G.kin.some(x => x !== m && x.kind === S.secretPartner(m) && x.loc === m.loc && x.pin))) return;
+        const p = G.kin.filter(x => x !== m && x.kind === S.secretPartner(m) && !x.hurt && x.loc !== null).sort((x, y) => (y.loc === m.loc) - (x.loc === m.loc))[0]; if (!p) return;
+        if (S.pinned(G) + (m.pin ? 0 : 1) + (p.pin ? 0 : 1) > S.pinCap(G)) return;
+        if (A(S.guard(G, m.id, m.loc), m.loc).ok && !A(S.guard(G, p.id, m.loc), m.loc).ok) A(S.guard(G, p.id, p.loc), p.loc);
+      });
     });
     task('곁방', A => {
       if (!(G.day >= 3 && G.ap > 0)) return;
       const sides = S.sideRooms(G), empt = sides.filter(i => G.cells[i].type === 'empty');
       const wantSide = (opt.force && S.ROOM[opt.force].side ? [opt.force] : []).concat(['prison', 'chapel']).concat(G.slime.main ? Object.keys(S.ROOM).filter(k => S.ROOM[k].asp === G.slime.main && S.ROOM[k].side) : []).concat(['altar']).filter(t => !ban.includes(t) && !G.cells.some(x => x.dug && x.type === t));
       if (wantSide.length && sides.length < 2 + S.actOf(G) * 2 + (st.expand ? 2 : 0)) {
-        if (!empt.length) { const cand = []; for (let i = 0; i < S.N; i++) if (!S.canDig(G, i) && !S.nbrs(i).includes(S.ENT)) cand.push(i); const keep = cand.filter(i => { G.cells[i].dug = true; const same = S.paths(G).length === 1 && S.paths(G)[0].length === path.length && !S.paths(G)[0].includes(i); G.cells[i].dug = false; return same; }); if (keep.length && can(40 * c)) { const ci = keep[seed % keep.length]; if (A(S.dig(G, ci), ci).ok) opt.onDig && opt.onDig(); } }
+        if (!empt.length) { const cand = []; for (let i = 0; i < G.cells.length; i++) if (!S.canDig(G, i) && !S.nbrs(G, i).includes(G.ent)) cand.push(i); const keep = cand.filter(i => { G.cells[i].dug = true; const same = S.paths(G).length === 1 && S.paths(G)[0].length === path.length && !S.paths(G)[0].includes(i); G.cells[i].dug = false; return same; }); if (keep.length && can(40 * c)) { const ci = keep[seed % keep.length]; if (A(S.dig(G, ci), ci).ok) opt.onDig && opt.onDig(); } }
         const e2 = S.sideRooms(G).filter(i => G.cells[i].type === 'empty');
         if (e2.length) { const t = wantSide.find(t => !S.canBuild(G, e2[0], t)); if (t && can(S.buildCost(G, e2[0], t))) A(S.build(G, e2[0], t), e2[0]); }
       }
@@ -55,15 +61,15 @@ const STEWARD = (function () {
     task('탐식', A => { if (st.spend !== 0 && !opt.nohoard) for (const k of (opt.hoardOnly || ['life', 'seat', 'veil', 'gulp'])) { let n = 0; while (n++ < 4 && !S.hoardWhy(G, k) && G.gold - S.hoardCost(G, k) >= Math.max(reserve(), 250 * c)) { if (!A(S.hoardBuy(G, k)).ok) break; opt.onHoard && opt.onHoard(); } } });
     task('본체', A => {
       const ss = S.slimeStats(G);
-      if (G.slime.hp < ss.hp * (st.restMore ? 0.75 : 0.5) || G.kin.filter(m => m.hurt).length >= 2) A(S.rest(G), S.CORE);
-      if (G.corpses.length >= 3 || (S.isSettle(G) === false && G.corpses.length >= S.corpseCap(G) - 1) || ((st.eatMore || starving()) && G.corpses.length >= 1)) A(S.eat(G), S.CORE);
+      if (G.slime.hp < ss.hp * (st.restMore ? 0.75 : 0.5) || G.kin.filter(m => m.hurt).length >= 2) A(S.rest(G), G.core);
+      if (G.corpses.length >= 3 || (S.isSettle(G) === false && G.corpses.length >= S.corpseCap(G) - 1) || ((st.eatMore || starving()) && G.corpses.length >= 1)) A(S.eat(G), G.core);
     });
     task('지상', A => {
       if (st.raid && S.actOf(G) >= 2 && G.ap > 0) { let n = st.raid >= 3 ? 2 : (G.day % 2 === 0 ? 1 : 0); for (const v of S.VIDS) { if (n <= 0 || G.ap <= 0) break; const s = G.vill[v]; if (s.razed) continue; if (A(S.raid(G, v, st.raidKind != null ? st.raidKind : st.raid >= 3 ? 1 : (s.tribute ? 1 : 0))).ok) n--; } }
       if (G.spot && G.ap > 0 && G.day % 3 !== 0) A(S.resolveSpot(G, G.spot.type === 'cart' && G.fear > 60 ? 1 : 0));
     });
     task('단련', A => {
-      G.kin.forEach(m => { if (!m.evo && m.lv >= 5 && S.EVO[m.kind] && can(S.evoCost(G) + 60 * c)) A(S.evolveKin(G, m.id), m.loc); });
+      G.kin.forEach(m => { if (m.kind !== 'spawn' && S.stageOf(m) < 2 && m.lv >= S.lvCap(m) && S.EVO[m.kind] && can(S.evoCost(G, m) + 60 * c)) { const sec = opt.secret !== false && S.secretReady(G, m); if (A(S.evolveKin(G, m.id, sec), m.loc).ok && sec) opt.onSecret && opt.onSecret(); } });
       if (G.day >= 4 && G.ap > 0 && G.kin.length) { const locs = [...new Set(G.kin.map(m => m.loc).filter(l => l !== null))], amt = Math.floor(Math.min(G.gold - reserve() - 40 * c, (st.trainMore ? 120 : 60) * c)); if (amt >= 20 * c && locs.length) A(S.train(G, locs[G.day % locs.length], amt), locs[G.day % locs.length]); }
       if (G.ap > 0 || G.d.buildOps > 0) G.cells.forEach((x, i) => x.traps.forEach((t, j) => { if (t.lv < 3 && can(S.trapUpCost(G, t) + 100 * c)) A(S.upTrap(G, i, j), i); }));
     });

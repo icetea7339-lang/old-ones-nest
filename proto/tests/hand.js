@@ -21,8 +21,8 @@ const devName = process.argv[2], tag = devName ? devName.replace(/\s+/g, '') : '
     if (r.length) bad.push(label + ': ' + r.join(', '));
   };
   const stageTap = async (lx, ly) => {
-    await p.evaluate(lx => { const S = __nest.ST; S.cam.tx = S.cam.x = Math.max(0, Math.min(960 - S.viewW, lx - S.viewW / 2)); }, lx); await p.waitForTimeout(120);
-    const xy = await p.evaluate(([lx, ly]) => { const b = document.getElementById('stage').getBoundingClientRect(), u = b.height / 550, S = __nest.ST; return [b.left + (lx - S.cam.x + S.ox) * u, b.top + (ly - (S.cam.y || 0)) * u]; }, [lx, ly]);
+    await p.evaluate(([lx, ly]) => __nest.aim(lx, ly), [lx, ly]); await p.waitForTimeout(120);
+    const xy = await p.evaluate(([lx, ly]) => __nest.toClient(lx, ly), [lx, ly]);
     if (touch) await p.touchscreen.tap(xy[0], xy[1]); else await p.mouse.click(xy[0], xy[1]); await p.waitForTimeout(120);
   };
   const closeM = async () => { for (let i = 0; i < 6; i++) { if (await has('#modal [data-a="event"]:not([disabled])')) await tap('#modal [data-a="event"]:not([disabled])'); else if (await has('#modal [data-a="close"]')) await tap('#modal [data-a="close"]'); else break; } };
@@ -34,9 +34,9 @@ const devName = process.argv[2], tag = devName ? devName.replace(/\s+/g, '') : '
     // 판을 차린다: 성운 둘째 허물(손 +2), 길 위에 문턱·함정·싸움 굴, 곁에 기도 굴과 고치 굴
     const info = await p.evaluate(() => {
       const G = __nest.G, N = __nest.NEST, path = N.paths(G)[0]; G.gold = 5000; G.faith = 40; G.slime.main = 'nebula'; G.slime.sub = 'abyss'; G.slime.stage = 2; G.slime.body = null; G.event = null; G.guest = null;
-      const rooms = path.filter(i => i !== N.CORE); ['post', 'trap', 'hall'].forEach((t, k) => { const i = rooms[Math.min(k, rooms.length - 1)]; if (G.cells[i].type === 'empty' || k < rooms.length) G.cells[i].type = t; });
+      const rooms = path.filter(i => i !== G.core); ['post', 'trap', 'hall'].forEach((t, k) => { const i = rooms[Math.min(k, rooms.length - 1)]; if (G.cells[i].type === 'empty' || k < rooms.length) G.cells[i].type = t; });
       G.cells.forEach((c, i) => { if (c.type === 'trap') c.traps = [{ kind: 'spike', lv: 1 }, { kind: 'acid', lv: 1 }]; });
-      const free = []; for (let i = 0; i < N.N; i++) if (!G.cells[i].dug && !N.canDig(G, i)) free.push(i); free.slice(0, 2).forEach((i, k) => { G.cells[i].dug = true; G.cells[i].type = k ? 'prison' : 'chapel'; });
+      const free = []; for (let i = 0; i < G.cells.length; i++) if (!G.cells[i].dug && !N.canDig(G, i)) free.push(i); free.slice(0, 2).forEach((i, k) => { G.cells[i].dug = true; G.cells[i].type = k ? 'prison' : 'chapel'; });
       const mk = (kind, loc) => G.kin.push({ id: G.nextId++, name: '시험' + G.nextId, kind, lv: 3, exp: 0, loc, hurt: 0, skill: 0, age: 3, unpaid: 0, stance: 'hold' });
       G.kin.forEach(m => { m.loc = null; }); G.cells.forEach((c, i) => { if (c.type === 'post' || c.type === 'hall') { mk('goblin', i); mk('skeleton', i); } }); mk('goblin', 'core');
       G.march.tonight = { vill: 'field', settle: true }; __nest.META.pause = 'always';
@@ -65,7 +65,7 @@ const devName = process.argv[2], tag = devName ? devName.replace(/\s+/g, '') : '
       await tap(`#hand [data-a="hand"][data-k="${want}"]`);
       if (await has('#hand [data-a="handback"]')) {
         await p.waitForTimeout(260); if (!tshot) { tshot = true; await shot('3_target'); await check('target'); await tap('#hand [data-a="handback"]'); await p.waitForTimeout(150); if (!(await has('#hand [data-a="hand"][data-k="none"]'))) bad.push('취소 뒤 손 창이 돌아오지 않았다'); await tap(`#hand [data-a="hand"][data-k="${want}"]`); await p.waitForTimeout(200); }
-        const pt = await p.evaluate(() => { const S = __nest.ST, pk = S.pick; if (!pk) return null; if (pk.kind === 'inv') { const e = S.ents[pk.ids[0]], z = 8 * (e.scale || 2); return [e.x + z, e.y + z]; } const k = pk.ids[0], i = k === 'core' ? __nest.NEST.CORE : +k; return [20 + (i % 5) * 184 + 92, 48 + Math.floor(i / 5) * 124 + 62]; });
+        const pt = await p.evaluate(() => { const S = __nest.ST, pk = S.pick; if (!pk) return null; if (pk.kind === 'inv') { const e = S.ents[pk.ids[0]], z = 8 * (e.scale || 2); return [e.x + z, e.y + z]; } const k = pk.ids[0], i = k === 'core' ? __nest.G.core : +k; return __nest.cellAt(i); });
         if (!pt) { bad.push('과녁 고르기가 열리지 않았다: ' + want); continue; }
         await stageTap(pt[0], pt[1]); staged.push(want);
         if (await has('#hand [data-a="handback"]')) { bad.push('무대를 눌러도 고르지 못했다: ' + want); await tap('#hand [data-a="handback"]'); await tap('#hand [data-a="hand"][data-k="none"]'); continue; }

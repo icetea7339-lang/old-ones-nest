@@ -92,7 +92,7 @@ const PRO = (function () {
 
   function makeSim(opts) {
     opts = opts || {};
-    const home = ASPS.includes(opts.asp) ? opts.asp : 'abyss';
+    const home = ASPS.includes(opts.asp) ? opts.asp : 'abyss', STY = opts.story || null;   // 이야기 1장: 목표 크기, 넉넉한 목숨, 적은 짐승, 쓸고 가는 것 없음
     let seed = (opts.seed >>> 0) || 1; const look = SEEDS_[opts.look] ? opts.look : pickLook(seed), F = Object.assign({}, FORM0, look ? SEEDS_[look].mod : null); const rnd = () => { let t = (seed = (seed + 0x6D2B79F5) >>> 0); t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
     const rr = (a, b) => a + rnd() * (b - a), dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y), cl = (v, a, b) => Math.max(a, Math.min(b, v));
     const zero = () => ({ abyss: 0, nebula: 0, brood: 0, dusk: 0, hunger: 0 }), pickAsp = () => rnd() < 0.4 ? home : ASPS[Math.floor(rnd() * 5)];
@@ -101,7 +101,7 @@ const PRO = (function () {
       food: [], wrig: [], cre: [], clusters: [], crev: [], webs: [], shots: [], puddles: [], snares: [], drops: [],
       sweep: { st: 'idle', next: 0, x: 0, y: 0, dx: 0, dy: 0, sx: 0, sy: 0, t0: 0, warn: 0, n: 0 }, stats: { hits: 0, eaten: 0, swallowed: 0, acts: 0, bought: 0, defeats: 0, byKind: {} }, cap: null,
       eco: { eats: 0, grew: 0, promo: 0, fights: 0, scav: 0, carc: 0, far: 0, tP: 0, tO: 0 } };
-    S.hp = K.hp + F.hp;
+    S.hp = K.hp + F.hp; if (STY && STY.lives) S.lives = STY.lives;
     const P = { mendAt: F.mend * TPS, x: 0, y: 0, vx: 0, vy: 0, face: 1, inv: 45, aimX: 0, aimY: 0, aimOn: false, cd: 0, cd2: 0, dash: 0, burrow: 0, pounce: null, chew: null, leech: null, veilAt: 0, mossAt: 0, slow: 0, noise: 0, crev: null, kx: 0, ky: 0 };
     const G = () => STG[S.stage];
     // ---------- 부위를 읽는 손잡이 ----------
@@ -130,7 +130,7 @@ const PRO = (function () {
       const F = FCENSUS[k]; for (let n = 0; n < F.cl; n++) { const p = spot(k, 70, [S.clusters, k === 1 ? [{ x: 0, y: 0 }] : []]), asp = n < 2 ? home : ASPS[(n + k) % 5], c2 = { x: p.x, y: p.y, r: 20 + k * 4, asp, ring: k, cap: F.clN, grow: F.grow * TPS, at: 0, seed: nid++ }; S.clusters.push(c2); for (let j = 0; j < F.clN; j++) { const a = rnd() * 6.28, d = Math.sqrt(rnd()) * c2.r; mkFood('mote', k, { x: p.x + Math.cos(a) * d, y: p.y + Math.sin(a) * d * 0.7 }, { asp, cl: c2 }); } }
       for (let n = 0; n < (F.wrig || 0); n++) { const p = ringPos(k); S.wrig.push({ id: nid++, x: p.x, y: p.y, vx: 0, vy: 0, wa: rnd() * 6.28, asp: pickAsp(), alive: true, ring: k, back: 0 }); }
       for (const fk of ['bead', 'cap', 'seed', 'seed2', 'nut', 'bulb', 'root', 'carc']) for (let n = 0; n < (F[fk] || 0); n++) mkFood(fk, k, spot(k, 34, [S.food.filter(f => f.k !== 'mote')]));
-      const C = CENSUS[k]; for (const ck in C) for (let n = 0; n < C[ck]; n++) { const p = spot(k, ck === 'pack' ? 150 : 90, [S.cre, [{ x: 0, y: 0 }]]); if (ck === 'pack') { const g = nid++; for (let j = 0; j < 4; j++) mkCre('pack', k, { x: p.x + rr(-14, 14), y: p.y + rr(-14, 14) }, g); } else mkCre(ck, k, p); }
+      const C = (STY && STY.census && STY.census[k]) || CENSUS[k]; for (const ck in C) for (let n = 0; n < C[ck]; n++) { const p = spot(k, ck === 'pack' ? 150 : 90, [S.cre, [{ x: 0, y: 0 }]]); if (ck === 'pack') { const g = nid++; for (let j = 0; j < 4; j++) mkCre('pack', k, { x: p.x + rr(-14, 14), y: p.y + rr(-14, 14) }, g); } else mkCre(ck, k, p); }
       // 알은 지키는 것 곁에 놓인다
       const guards = S.cre.filter(c2 => c2.ring === k && (c2.k === 'mother' || c2.k === 'pack' || c2.k === 'hunter')); for (let n = 0; n < (F.egg || 0) && guards.length; n++) { const g = guards[Math.floor(rnd() * guards.length)]; for (let j = 0; j < 3; j++) mkFood('egg', k, { x: g.hx + rr(-12, 12) + (g.k === 'mother' ? 30 : 0), y: g.hy + rr(-10, 10) }); }
     }
@@ -185,7 +185,7 @@ const PRO = (function () {
     function defeat(c) {
       S.stats.defeats++; S.falls++;
       if (S.lives <= 0) return end('fell');
-      S.lives--; ASPS.forEach(a => { S.purse[a] = Math.floor(S.purse[a] * 2 / 3); });
+      S.lives--; if (!STY) ASPS.forEach(a => { S.purse[a] = Math.floor(S.purse[a] * 2 / 3); });
       const ws = Object.keys(S.worn).map(s => S.worn[s]).sort((a, b) => b.lv - a.lv)[0]; let lost = null; if (ws && !F.keepPart) { lost = PART[ws.id].name; if (ws.lv > 1) ws.lv--; else delete S.worn[PART[ws.id].slot]; }
       S.bio = S.stage > 1 ? STG[S.stage - 1].need : 0; S.hp = maxHp(); S.stageT = S.t;
       const cs = S.crev.filter(q => fits(q) && q.ring <= S.stage).sort((a, b) => dist(a, P) - dist(b, P)); const to = cs[0] || S.crev[0]; P.x = to.x; P.y = to.y; P.vx = P.vy = P.kx = P.ky = 0; P.inv = 3 * TPS; P.leech = null; P.chew = null; P.aimOn = false; P.aimX = P.x; P.aimY = P.y;
@@ -293,6 +293,7 @@ const PRO = (function () {
     // ---------- 한 틱 ----------
     function tick() {
       if (S.ended) return; S.t++; const g = G(), t = S.t;
+      if (t % TPS === 0 && (S.trace = S.trace || []).length < 600) S.trace.push([Math.round(P.x), Math.round(P.y)]);
       if (P.inv > 0) P.inv--; if (P.cd > 0) P.cd--; if (P.cd2 > 0) P.cd2--; if (P.dash > 0) P.dash--; if (P.burrow > 0) P.burrow--;
       // 한 방울
       P.crev = null; for (const q of S.crev) if (dist(q, P) < q.r) { P.crev = q; break; }
@@ -435,13 +436,14 @@ const PRO = (function () {
       // 깊은 것: 한 몸으로 너무 오래 머물거나 밤이 깊으면 쓸고 지나간다
       const sw = S.sweep, late = (S.stage >= 2 && t - S.stageT > K.sweepStage * TPS) || t > K.sweepAll * TPS;
       if (late) {
-        if (sw.st === 'idle' && t >= sw.next) { const a = rnd() * 6.2832; sw.dx = Math.cos(a); sw.dy = Math.sin(a); const px = -sw.dy, py = sw.dx, off = rr(-36, 36); sw.sx = P.x + px * off - sw.dx * 560; sw.sy = P.y + py * off - sw.dy * 560; sw.x = sw.sx; sw.y = sw.sy; sw.st = 'warn'; sw.t0 = t; sw.warn = (lv('eye_nebula') >= 3 ? 3.8 : 2.3) * TPS; sw.r = 16 + S.stage * 5; emit('sweepwarn', {}); if (!sw.n) caption('흙이 떨린다', '깊은 것이 지나간다. 붉은 줄에서 비켜', 3.2); sw.n++; }
+        if (sw.st === 'idle' && t >= sw.next && !(STY && STY.sweep === false)) { const a = rnd() * 6.2832; sw.dx = Math.cos(a); sw.dy = Math.sin(a); const px = -sw.dy, py = sw.dx, off = rr(-36, 36); sw.sx = P.x + px * off - sw.dx * 560; sw.sy = P.y + py * off - sw.dy * 560; sw.x = sw.sx; sw.y = sw.sy; sw.st = 'warn'; sw.t0 = t; sw.warn = (lv('eye_nebula') >= 3 ? 3.8 : 2.3) * TPS; sw.r = 16 + S.stage * 5; emit('sweepwarn', {}); if (!sw.n) caption('흙이 떨린다', '깊은 것이 지나간다. 붉은 줄에서 비켜', 3.2); sw.n++; }
         else if (sw.st === 'warn' && t - sw.t0 >= sw.warn) { sw.st = 'run'; sw.t0 = t; emit('sweep', {}); }
         else if (sw.st === 'run') { const v = (200 + S.stage * 40) / TPS; sw.x += sw.dx * v; sw.y += sw.dy * v; if (dist(sw, P) < sw.r + g.r * 0.7 && !(P.crev && fits(P.crev))) hurt({ x: sw.x, y: sw.y, k: 'sweeper', st: 9, r: sw.r, stun: 0 }); for (const c of S.cre) if (c.alive && c.r < 40 && c.ring <= S.stage && dist(sw, c) < sw.r + c.r) { c.alive = false; c.deadAt = t; emit('gone', { x: c.x, y: c.y }); } if (t - sw.t0 > 1150 / v) { sw.st = 'idle'; sw.next = t + Math.max(5, 10 - sw.n * 0.7) * TPS; } }
       }
       // 자란다
       if (S.stage < 5 && S.bio >= g.need) { S.stage++; S.stageT = t; S.upAt = t; S.hp = Math.min(maxHp(), S.hp + 1); P.inv = Math.max(P.inv, 2 * TPS); sw.st = 'idle'; sw.next = t; sw.n = 0; emit('stage', { stage: S.stage }); caption(STG[S.stage].name, ['', '', '어른거리던 큰 것들이 이제 네 눈높이다. 발과 겉이 돋는다', '저 뒤의 것들과 겨룰 몸이다. 속이 돋고, 부위 하나를 새길 수 있다', '널 쫓던 것들이 작아 보인다', '마지막 허물이다. 다 자라면 가장 많이 가져간다'][S.stage], 4, 2.6); }
       else if (S.stage === 5 && S.bio >= g.need) return end('grown');
+      if (STY && STY.goal && S.stage >= STY.goal) return end('story');
       if (t >= K.maxT * TPS) end('time');
     }
 
@@ -450,12 +452,18 @@ const PRO = (function () {
     const essAt = stage => { const e = {}, f = K.essF[stage] * (1 + F.ess) * (1 + val('core_brood') / 100); let tot = 0; ASPS.forEach(a => { e[a] = Math.round(S.purse[a] * f); tot += e[a]; }); const capN = K.essCap[stage]; if (tot > capN) { const k = capN / tot; let s = 0; ASPS.forEach(a => { e[a] = Math.floor(e[a] * k); s += e[a]; }); const top = ASPS.slice().sort((a, b) => e[b] - e[a])[0]; e[top] += capN - s; } return e; };
     const essSum = stage => { const e = essAt(stage); return ASPS.reduce((a, k) => a + e[k], 0); };
     let keep = null;
+    // 헤집고 다닌 자리: 둥지의 칸(가로 7 × 세로 5)에 옮겨 센다. 마지막 자리는 세 번 센다
+    function roamGrid() {
+      const T = (S.trace || []).concat([[Math.round(P.x), Math.round(P.y)], [Math.round(P.x), Math.round(P.y)], [Math.round(P.x), Math.round(P.y)]]), B = Math.max(120, ...T.map(q => Math.max(Math.abs(q[0]), Math.abs(q[1])))), C = 7, R = 5, o = new Array(C * R).fill(0);
+      T.forEach(q => { const c = Math.min(C - 1, Math.max(0, Math.floor((q[0] / B + 1) / 2 * C))), r = Math.min(R - 1, Math.max(0, Math.floor((q[1] / B + 1) / 2 * R))); o[r * C + c]++; });
+      return o;
+    }
     function result(kind) {
       kind = kind || S.ended || 'settle'; const fell = kind === 'fell', time = Math.round(S.t / TPS);
       if (kind === 'skip') { const e = zero(); e[home] = 12; const rest = ASPS.filter(a => a !== home); for (let k = 0; k < 6; k++) e[rest[k % rest.length]]++; return { ess: e, kin: [], gold: 60, size: 2, time, fell: false, skipped: true, parts: [], mut: null, look }; }
       const e = essAt(S.stage), parts = wornList(); if (fell) ASPS.forEach(a => { e[a] = Math.floor(e[a] / 2); });
       const best = parts.slice().sort((a, b) => b.lv - a.lv)[0], can = !fell && S.stage >= K.keepFrom && best;
-      return { ess: e, kin: [], gold: Math.min(K.goldCap, S.gold), size: S.stage, time, fell, skipped: false, ate: Object.assign({}, S.stats.byKind), parts, mut: can ? PART[keep && parts.some(p => p.id === keep) ? keep : best.id].mut : null, look };
+      return { ess: e, kin: [], gold: Math.min(K.goldCap, S.gold), size: S.stage, time, fell, skipped: false, ate: Object.assign({}, S.stats.byKind), roam: roamGrid(), parts, mut: can ? PART[keep && parts.some(p => p.id === keep) ? keep : best.id].mut : null, look };
     }
     function end(kind) { if (S.ended) return; S.ended = kind; emit('end', { kind }); }
 

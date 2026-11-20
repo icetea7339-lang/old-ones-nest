@@ -7,7 +7,7 @@ const html = fs.readFileSync('/home/user/slime-ipo-design/PLAY-GAME.html', 'utf8
   await p.goto('http://nest.test/'); await p.waitForTimeout(300); await p.evaluate(() => { __nest.META.tutDone = true; });
   const click = s => p.locator(s).locator('visible=true').first().click();
   await click('[data-a="new"]'); await click('[data-a="close"][data-v="go"]'); await click('[data-a="sceneskip"]'); await p.waitForTimeout(300); await click('#modal [data-a="close"]');
-  const cellXY = i => p.evaluate(i => { const b = document.getElementById('stage').getBoundingClientRect(), u = b.height / 550, S = __nest.ST; return [b.left + (20 + (i % 5) * 184 + 92 - S.cam.x + S.ox) * u, b.top + (48 + Math.floor(i / 5) * 124 + 62) * u]; }, i);
+  const cellXY = i => p.evaluate(i => { const c = __nest.cellAt(i); return __nest.toClient(c[0], c[1]); }, i);
   const lockedIn = async () => { const o = {}; for (const v of ['fight', 'trick', 'home']) { await click(`[data-a="tab"][data-g="cell"][data-v="${v}"]`); await p.waitForTimeout(100); o[v] = await p.$$eval('#view .opt', es => es.map(e => (e.classList.contains('lockd') ? '🔒' : '') + e.querySelector('b').textContent.replace(/\s*[\d,]+G/, '').trim())); } return o; };
   await p.mouse.click(...await cellXY(1)); await p.waitForTimeout(250);
   const a = await lockedIn(); console.log('처음:'); for (const k in a) console.log('  ' + k + ': ' + a[k].join(', '));

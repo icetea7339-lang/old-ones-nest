@@ -258,7 +258,13 @@ const WLOOK = {
   },
 };
 const _wcv = {};
+// 24×24 그림은 heroart.js (HEROART.draw) 가 이 차림표를 읽어 그린다. 옛 16×16 그림은 invCanvas16 으로 남겨 둔다
 function invCanvasW(world, kind) {
+  const w = WLOOK[world] ? world : 'fantasy', key = 'h:' + w + ':' + kind; if (_wcv[key]) return _wcv[key];
+  const d = WLOOK[w][kind] || WLOOK.fantasy[kind] || WLOOK.fantasy.villager;
+  return (_wcv[key] = HEROART.draw(w, kind, d));
+}
+function invCanvas16(world, kind) {
   const w = WLOOK[world] ? world : 'fantasy', key = w + ':' + kind; if (_wcv[key]) return _wcv[key];
   const c = document.createElement('canvas'); c.width = c.height = 16; const x = c.getContext('2d'), q = (a, b, ww, h, col) => { x.fillStyle = col; x.fillRect(a, b, ww, h); };
   const d = WLOOK[w][kind] || WLOOK.fantasy[kind] || WLOOK.fantasy.villager; if (d.beast) WBEAST[d.beast](q, d); else wman(q, d);

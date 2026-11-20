@@ -36,11 +36,14 @@ const devName = process.argv[2], tag = devName ? devName.replace(/\s+/g, '') : '
   const closeM = async () => { for (let i = 0; i < 6; i++) { if (await has('#modal [data-a="event"]:not([disabled])')) await tap('#modal [data-a="event"]:not([disabled])'); else if (await has('#modal [data-a="close"]')) await tap('#modal [data-a="close"]'); else break; } };
   const tabs = async (g, label) => { const vs = await p.$$eval(`#modal [data-a="tab"][data-g="${g}"], #view [data-a="tab"][data-g="${g}"]`, es => es.filter(e => e.offsetParent).map(e => e.dataset.v)); for (const v of vs) { await tap(`[data-a="tab"][data-g="${g}"][data-v="${v}"]`); await check(label + '_' + v); } return vs.length; };
   const stageTap = async (lx, ly) => {
-    await p.evaluate(lx => { const S = __nest.ST; S.cam.tx = S.cam.x = Math.max(0, Math.min(960 - S.viewW, lx - S.viewW / 2)); }, lx); await p.waitForTimeout(120);
-    const xy = await p.evaluate(([lx, ly]) => { const b = document.getElementById('stage').getBoundingClientRect(), u = b.height / 550, S = __nest.ST; return [b.left + (lx - S.cam.x + S.ox) * u, b.top + (ly - (S.cam.y || 0)) * u]; }, [lx, ly]);
+    await p.evaluate(([lx, ly]) => __nest.aim(lx, ly), [lx, ly]); await p.waitForTimeout(120);
+    const xy = await p.evaluate(([lx, ly]) => __nest.toClient(lx, ly), [lx, ly]);
     if (touch) await p.touchscreen.tap(xy[0], xy[1]); else await p.mouse.click(xy[0], xy[1]); await p.waitForTimeout(260);
   };
-  const cell = i => stageTap(20 + (i % 5) * 184 + 92, 48 + Math.floor(i / 5) * 124 + 62);
+  const cell = async i => { const c = await p.evaluate(i => __nest.cellAt(i), i); return stageTap(c[0], c[1]); };
+  // 판마다 지도가 다르다: 길 위의 빈 굴 k번째, 팔 수 있는 바위, 본체 방, 입구
+  const pathCell = k => p.evaluate(k => { const G = __nest.G, S = __nest.NEST; return (S.paths(G)[0] || []).filter(i => i !== G.ent && i !== G.core)[k]; }, k);
+  const rockCell = () => p.evaluate(() => { const G = __nest.G, S = __nest.NEST; return G.cells.findIndex((c, i) => !c.dug && !S.canDig(G, i)); });
   const closeSheet = async () => { if (await has('#sheetclose')) await tap('#sheetclose'); await p.waitForTimeout(150); };
   const log = (...a) => console.log(...a);
   try {
@@ -65,16 +68,16 @@ const devName = process.argv[2], tag = devName ? devName.replace(/\s+/g, '') : '
     await check('sealed'); await tap('[data-a="breach"]'); await check('breach_confirm'); await tap('#modal [data-a="close"][data-v="go"]'); await p.waitForTimeout(500); await check('reveal'); for (let i = 0; i < 6 && await has('[data-a="sceneskip"]'); i++) await tap('[data-a="sceneskip"]'); await p.waitForTimeout(400); await check('surface_first'); await tap('[data-a="view"][data-v="under"]'); await p.waitForTimeout(2800);   // 뚫었다는 알림이 맨 윗줄 칸을 가리는 동안 기다린다
     await check('day1');
     // ---------- 빈 굴: 추천 → 초소 → 세우기 ----------
-    await cell(1); await check('cell_rec'); log('추천:', (await p.$$eval('#view .opts .opt b', es => es.map(e => e.textContent.trim()))).join(' | '));
+    await cell(await pathCell(0)); await check('cell_rec'); log('추천:', (await p.$$eval('#view .opts .opt b', es => es.map(e => e.textContent.trim()))).join(' | '));
     await tap('[data-a="build"][data-v="post"]'); await check('cell_post'); if (await has('#view [data-a="place"]')) { await tap('#view [data-a="place"]'); if (await has('#view [data-a="place"]')) await tap('#view [data-a="place"]'); }
     log('초소 주둔', await p.evaluate(() => __nest.G.kin.filter(m => m.loc === 1).length)); await check('cell_post_placed');
     for (const v of ['fight', 'trick', 'home']) { await tap(`[data-a="tab"][data-g="cell"][data-v="${v}"]`); await check('cell_' + v); }
     log('잠긴 시설 표시', await p.$$eval('#view .opt.lockd', e => e.length)); await closeSheet();
-    await cell(6); await tap('[data-a="build"][data-v="trap"]'); await check('cell_trap'); if (await has('[data-a="trap"][data-v="spike"]')) await tap('[data-a="trap"][data-v="spike"]'); if (await has('[data-a="trap"][data-v="rock"]')) await tap('[data-a="trap"][data-v="rock"]'); await check('cell_trap_full'); await closeSheet();
+    await cell(await pathCell(1)); await tap('[data-a="build"][data-v="trap"]'); await check('cell_trap'); if (await has('[data-a="trap"][data-v="spike"]')) await tap('[data-a="trap"][data-v="spike"]'); if (await has('[data-a="trap"][data-v="rock"]')) await tap('[data-a="trap"][data-v="rock"]'); await check('cell_trap_full'); await closeSheet();
     // ---------- 바위 파기 ----------
     await p.evaluate(() => { __nest.G.gold = 3000; __nest.G.ap = 2; });
-    await cell(14); await check('rock'); await tap('[data-a="dig"]'); await check('dug'); if (await has('[data-a="build"][data-v="prison"]')) await tap('[data-a="build"][data-v="prison"]'); await check('prison'); await closeSheet();
-    await cell(18); await check('core_by_cell'); await closeSheet();
+    await cell(await rockCell()); await check('rock'); await tap('[data-a="dig"]'); await check('dug'); if (await has('[data-a="build"][data-v="prison"]')) await tap('[data-a="build"][data-v="prison"]'); await check('prison'); await closeSheet();
+    await cell(await p.evaluate(() => __nest.G.core)); await check('core_by_cell'); await closeSheet();
     // ---------- 본체 ----------
     await tap('[data-a="core"]'); await check('core'); log('본체 탭', await tabs('core', 'core')); await tap('[data-a="tab"][data-g="core"][data-v="hoard"]'); await tap('[data-a="hoard"][data-k="gulp"]'); await check('core_gulp'); await closeSheet();
     // ---------- 지상 ----------
@@ -92,7 +95,7 @@ const devName = process.argv[2], tag = devName ? devName.replace(/\s+/g, '') : '
     for (let i = 0; i < 300; i++) { await p.waitForTimeout(70); await p.evaluate(() => { __nest.ST.skip = true; const h = document.querySelector('#hand:not([hidden]) [data-a="hand"][data-k="none"]'); if (h) h.click(); }); if (await has('#modal [data-a="close"]')) break; }
     await check('settle'); await closeM(); await p.waitForTimeout(300); if (await has('[data-a="sceneskip"]')) await tap('[data-a="sceneskip"]'); await closeM();
     // ---------- 포로 ----------
-    await p.evaluate(() => { const G = __nest.G; G.prison = []; for (let k = 0; k < 4; k++) G.prison.push({ kind: ['villager', 'militia', 'fisher', 'villager'][k], vill: 'field' }); G.event = null; }); await p.waitForTimeout(500); await closeM(); await cell(0); await closeSheet();
+    await p.evaluate(() => { const G = __nest.G; G.prison = []; for (let k = 0; k < 4; k++) G.prison.push({ kind: ['villager', 'militia', 'fisher', 'villager'][k], vill: 'field' }); G.event = null; }); await p.waitForTimeout(500); await closeM(); await cell(await p.evaluate(() => __nest.G.ent)); await closeSheet();
     await tap('[data-a="open"][data-v="captives"]'); await check('captives'); await tap('#modal [data-a="dispose"][data-how="convert"]'); await tap('#modal [data-a="disposeall"]'); await check('captives_after'); await closeM();
     log('포로 처분 뒤:', await p.evaluate(() => 'G.prison ' + __nest.G.prison.length + ', 권속 ' + __nest.G.kin.length));
     // ---------- 끝까지 ----------
@@ -114,7 +117,7 @@ const devName = process.argv[2], tag = devName ? devName.replace(/\s+/g, '') : '
         const G = __nest.G, S = __nest.NEST, c = S.cm(G); G.gold = Math.max(G.gold, 400 * c);
         for (let i = G.applicants.length - 1; i >= 0; i--) if (S.freeSlot(G, G.applicants[i].kind) !== null) S.accept(G, i);
         const path = S.paths(G)[0], want = ['hall', 'trap', 'hall', 'ambush', 'hall']; let wi = 0;
-        for (const i of path) if (i !== S.CORE && G.cells[i].type === 'empty') { S.build(G, i, want[wi++ % 5]); }
+        for (const i of path) if (i !== G.core && G.cells[i].type === 'empty') { S.build(G, i, want[wi++ % 5]); }
         G.cells.forEach((x, i) => { while (x.traps.length < (S.ROOM[x.type].traps || 0)) if (!S.addTrap(G, i, x.traps.length ? 'rock' : 'spike').ok) break; });
         for (let i = G.prison.length - 1; i >= 0; i--) S.dispose(G, i, 'sacrifice');
         G.kin.forEach(m => { if (m.loc === null) { const f = S.freeSlot(G, m.kind); if (f !== null) S.moveKin(G, m.id, f); } if (!m.evo && m.lv >= 5) S.evolveKin(G, m.id); });

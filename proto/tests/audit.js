@@ -27,7 +27,7 @@ const VPS = [['pc1366', { width: 1366, height: 768 }], ['pc1280', { width: 1280,
       (table[label] = table[label] || {})[name] = m; await p.screenshot({ path: path.join(out, name + '_' + label + '.png') });
     };
     const closeM = async () => { for (let i = 0; i < 4; i++) { const c = await p.$('#modal:not([hidden]) [data-a="close"]'); if (!c) break; await c.evaluate(e => e.click()); await p.waitForTimeout(120); } };
-    const cellXY = i => p.evaluate(i => { const b = document.getElementById('stage').getBoundingClientRect(), u = b.height / 550, S = __nest.ST; return [b.left + (20 + (i % 5) * 184 + 92 - S.cam.x + S.ox) * u, b.top + (48 + Math.floor(i / 5) * 124 + 62) * u]; }, i);
+    const cellXY = i => p.evaluate(i => { const c = __nest.cellAt(i); return __nest.toClient(c[0], c[1]); }, i);
     const sel = async (t, i) => { await p.evaluate(([t, i]) => { const el = document.createElement('button'); el.dataset.a = 'sel'; el.dataset.t = t; el.dataset.i = i; el.hidden = true; document.getElementById('game').appendChild(el); el.click(); el.remove(); }, [t, i]); };
     try {
       await measure('01title');

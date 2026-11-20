@@ -303,7 +303,16 @@ function kinBase(kind) {
   if (!KDRAW[kind]) return spriteCanvas(KINSPR[kind][0], KINSPR[kind][1]); const key = 'kb:' + kind; if (cv[key]) return cv[key];
   const c = document.createElement('canvas'); c.width = c.height = 16; const x = c.getContext('2d'); KDRAW[kind]((a, b, w, h, col) => { x.fillStyle = col; x.fillRect(a, b, w, h); }, PAL[KINSPR[kind][1]] || PAL.base); return (cv[key] = c);
 }
-function kinCanvas(kind, evo) {
+// 다 자란 것(진화 2단계)과 비밀 진화의 그림: kinart.js 가 채운다. 둘 다 (K, P, kind) => K 위에 그린다. K 는 Sculpt(32)
+//   KDRAW3[kind]                      다 자란 것
+//   KSECRET[recipe + ':' + kind]      비밀 진화 (없으면 KSECRET[recipe])
+// 빠진 것은 자란 것을 키워 테와 가시를 두른 그림으로 대신한다
+const KDRAW3 = {}, KSECRET = {};
+function kinCanvas(kind, evo, secret) {
+  const stg = evo === true ? 1 : (evo | 0);
+  if (stg >= 2 || secret) { const key = 'k3:' + kind + ':' + (secret || ''); if (cv[key]) return cv[key]; const fn = secret ? KSECRET[secret + ':' + kind] || KSECRET[secret] : KDRAW3[kind];
+    if (fn) { const K = Sculpt(32); fn(K, PAL[KINSPR[kind][1]] || PAL.base, kind); return (cv[key] = K.canvas()); } return (cv[key] = kinCanvas3(kind, secret)); }
+  evo = stg > 0;
   if (evo && KEVO2[kind]) { const k2 = 'evo5:' + kind; if (cv[k2]) return cv[k2]; const K = Sculpt(24); KEVO2[kind](K, PAL[KINSPR[kind][1]] || PAL.base); return (cv[k2] = K.canvas()); }   // 진화하면 다른 것이 된다
   if (!evo || !KEVO[kind]) return kinBase(kind); const key = 'evo4:' + kind; if (cv[key]) return cv[key];
   const c = document.createElement('canvas'); c.width = c.height = 21; const x = c.getContext('2d'), q = (a, b, w, h, col) => { x.fillStyle = col; x.fillRect(a, b, w, h); }, P = PAL[KINSPR[kind][1]] || PAL.base;
@@ -363,21 +372,22 @@ function endingScene(c, key, tier, sl, fr) {
   }
 }
 const toImg = (c, key, size, alt) => `<img class="px" src="${urls[key] || (urls[key] = c.toDataURL())}" width="${size}" height="${size}" alt="${esc(alt || '')}">`;
-// 합체: 붙은 것들이 어깨 뒤로 비죽 나온다. 24×24, 숙주는 아래 가운데
-function kinCanvasM(m) {
-  const parts = (m.parts || []); if (!parts.length) return kinCanvas(m.kind, m.evo);
-  const key = 'fz:' + m.kind + (m.evo ? 'e' : '') + ':' + parts.map(p => p.kind + (p.evo ? 'e' : '')).join('+'); if (cv[key]) return cv[key];
-  const host = kinCanvas(m.kind, m.evo), c = document.createElement('canvas'); c.width = c.height = 24; const x = c.getContext('2d'); x.imageSmoothingEnabled = false;
-  const hx = Math.round((24 - host.width) / 2), hy = 24 - host.height;
-  parts.forEach((p, k) => { const pc = kinCanvas(p.kind, false), w = Math.round(pc.width * 0.7), px0 = k === 0 ? Math.max(0, hx - 5) : Math.min(24 - w, hx + host.width - w + 5), py0 = Math.max(0, hy - 6 + k * 2); x.drawImage(pc, px0, py0, w, w);
-    x.fillStyle = '#5a0c14'; for (let i = 0; i < 4; i++) x.fillRect(px0 + Math.round(w / 2) + (k ? -i : i), py0 + w - 2 + i, 2, 1); x.fillStyle = '#e8505a'; x.fillRect(px0 + Math.round(w / 2) + (k ? -1 : 1), py0 + w - 1, 1, 1); });
+// 다 자란 것의 대신 그림: 자란 몸에 성향 빛깔의 테와 등뼈 가시가 돋는다. 비밀 진화는 그 조합의 표식을 단다. 32×32, 몸은 아래 가운데
+function kinCanvas3(kind, secret) {
+  const host = kinCanvas(kind, true), c = document.createElement('canvas'); c.width = c.height = 32; const x = c.getContext('2d'); x.imageSmoothingEnabled = false;
+  const hx = Math.round((32 - host.width) / 2), hy = 32 - host.height, col = secret ? '#f4d868' : ASPCOL[NEST.KASP[kind]] || '#cfeee0';
+  const tint = document.createElement('canvas'); tint.width = host.width; tint.height = host.height; const tx = tint.getContext('2d'); tx.drawImage(host, 0, 0); tx.globalCompositeOperation = 'source-in'; tx.fillStyle = col; tx.fillRect(0, 0, tint.width, tint.height);
+  x.globalAlpha = 0.55; [[-1, 0], [1, 0], [0, -1], [-1, -1], [1, -1]].forEach(d => x.drawImage(tint, hx + d[0], hy + d[1])); x.globalAlpha = 1;
+  const cx = hx + Math.floor(host.width / 2), top = Math.max(1, hy - 1);
+  [[-6, 3], [-3, 5], [0, 6], [3, 5], [6, 3]].forEach(([dx, h]) => { x.fillStyle = '#1a1020'; x.fillRect(cx + dx - 1, top + 6 - h, 3, h); x.fillStyle = col; x.fillRect(cx + dx, top + 6 - h, 1, h - 1); });
   x.drawImage(host, hx, hy);
-  NEST.recipesOf(m).forEach(r => rcpMark(x, r, hx, hy, host.width, host.height));
-  return (cv[key] = c);
+  if (secret) rcpMark(x, secret, hx, hy, host.width, host.height);
+  return c;
 }
+const kinCanvasM = m => kinCanvas(m.kind, NEST.stageOf(m), m.secret);
 // 특별한 합체의 표식: 조합마다 몸에 한 가지가 더 붙는다
 function rcpMark(x, r, hx, hy, w, h) {
-  const cx = hx + Math.floor(w / 2), P = (col, pts) => { x.fillStyle = col; pts.forEach(p => x.fillRect(p[0], p[1], p[2] || 1, p[3] || 1)); }, top = Math.max(0, hy - 3), bot = 23;
+  const cx = hx + Math.floor(w / 2), P = (col, pts) => { x.fillStyle = col; pts.forEach(p => x.fillRect(p[0], p[1], p[2] || 1, p[3] || 1)); }, top = Math.max(0, hy - 3), bot = hy + h - 1;
   if (r === 'pray') P('#f4d868', [[cx - 3, top, 6, 1], [cx - 4, top + 1], [cx + 3, top + 1], [cx - 3, top + 2, 6, 1]]);
   if (r === 'twice') { P('#c8c8dc', [[cx - 3, top, 2, 1], [cx + 1, top, 2, 1], [cx - 4, top + 1], [cx + 3, top + 1], [cx - 3, top + 2, 3, 1]]); P('#e8505a', [[cx, top + 1]]); }
   if (r === 'read') P('#7fe0ff', [[cx - 3, hy + Math.floor(h / 2)], [cx - 1, hy + Math.floor(h / 2) + 1], [cx + 1, hy + Math.floor(h / 2)], [cx + 3, hy + Math.floor(h / 2) + 1]]);
@@ -391,7 +401,7 @@ function rcpMark(x, r, hx, hy, w, h) {
   if (r === 'ledger') { P('#3a2a10', [[hx + w - 2, bot - 5, 5, 5]]); P('#f0c040', [[hx + w - 1, bot - 4, 3, 3]]); P('#fff0a0', [[hx + w - 1, bot - 4, 1, 1]]); }
   if (r === 'record') { P('#101018', [[cx - 3, top, 6, 4]]); P('#f0f0f8', [[cx - 2, top + 1, 4, 2]]); P('#7030c0', [[cx - 1, top + 1, 2, 2]]); }
 }
-const kinImgM = (m, size) => m.parts && m.parts.length ? toImg(kinCanvasM(m), 'fz:' + m.kind + (m.evo ? 'e' : '') + ':' + m.parts.map(p => p.kind + (p.evo ? 'e' : '')).join('+'), size, NEST.kinName(m)) : kinImg(m.kind, size, m.evo);
+const kinImgM = (m, size) => NEST.stageOf(m) >= 2 || m.secret ? toImg(kinCanvasM(m), 'k3:' + m.kind + ':' + (m.secret || ''), size, NEST.kinName(m)) : kinImg(m.kind, size, NEST.stageOf(m) > 0);
 const kinImg = (kind, size, evo) => toImg(kinCanvas(kind, evo), (evo ? 'evo5:' : 'kin3:') + kind, size, NEST.KIN[kind].name);
 const invImg = (kind, size) => toImg(invCanvas(kind), 'inv:' + ((typeof G !== 'undefined' && G && G.world) || 'fantasy') + ':' + kind, size, NEST.INV[kind].name);
 // 본체 그림은 점이 뭉개지지 않게 정수배로만 키운다. 자리는 size 그대로 잡고 그 안 바닥에 세운다

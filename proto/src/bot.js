@@ -28,16 +28,13 @@ const STRATS = {
 
 function play(seed, st, diff, trace, force) {
   if (process.env.BANSP) st = Object.assign({}, st, { banSp: process.env.BANSP.split(',') });
-  const asp = S.ASPECTS[seed % 5], G = S.newGame(seed, asp, { diff: diff || 1, forceOmen: force || null, open: !!process.env.OPEN, prologue: process.env.PRO === 'none' ? null : S.proResult(asp, process.env.PRO || 'avg'), origin: process.env.ORIGIN || 'drop', star: process.env.STAR || 'none' });
+  const asp = S.ASPECTS[seed % 5], G = S.newGame(seed, asp, { diff: diff || 1, forceOmen: force || null, open: !!process.env.OPEN, prologue: process.env.PRO === 'none' ? null : S.proResult(asp, process.env.PRO || 'avg'), origin: process.env.ORIGIN || 'drop', layout: process.env.LAYOUT || null, star: process.env.STAR || 'none' });
   const info = { reps: [], digs: 0 };
   let guard = 0;
   while (!G.over && guard++ < 60) {
     const c = S.cm(G);
-      // 실험: GIVE=조합 이름 → 6일째에 그 조합의 합체 권속 하나를 쥐여 준다 (NORCP=1 이면 같은 몸에 조합 효과만 끈다)
-      if (process.env.GIVE && G.day === +(process.env.GIVEDAY || 6) && !G._given) { G._given = 1; const pr = S.RECIPE[process.env.GIVE].pair, mk = pr[1] === null ? 'goblin' : pr[0], pk2 = pr[1] === null ? pr[0] : pr[1], host = G.kin.filter(m => m.loc !== null && m.kind !== 'spawn').sort((x, y) => y.lv - x.lv)[0];
-        G.kin.push({ id: G.nextId++, name: '시험', kind: mk, lv: 3, exp: 0, loc: host ? host.loc : 'core', hurt: 0, skill: 0, age: 3, unpaid: 0, stance: 'hold', parts: [{ kind: pk2, lv: 3, name: '재료' }] }); }
     let st2 = st; if (process.env.EDICT) { const ch = S.edictChoices(G), want = process.env.EDICT, pick = ch.includes(want) ? want : ch[0]; S.setEdict(G, pick); st2 = Object.assign({}, st, S.EDICT[pick].st); }   // 교시: 아침마다 셋 중 하나. EDICT=이름 이면 나올 때마다 그것, 아니면 첫 번째
-    STEWARD.tasks(S, G, st2, { seed, pin: !!process.env.PIN, force: process.env.FORCE || null, ban: process.env.BAN ? process.env.BAN.split(',') : [], nofuse: !!process.env.NOFUSE, aggfuse: process.env.AGGFUSE, nohoard: !!process.env.NOHOARD, hoardOnly: process.env.ONLY ? process.env.ONLY.split(',') : null, onFuse: () => { info.fuses = (info.fuses || 0) + 1; }, onDig: () => { info.digs++; }, onHoard: () => { info.hoard = (info.hoard || 0) + 1; } }).forEach(t => t());
+    STEWARD.tasks(S, G, st2, { seed, pin: !!process.env.PIN, force: process.env.FORCE || null, ban: process.env.BAN ? process.env.BAN.split(',') : [], secret: process.env.SECRET !== '0', nohoard: !!process.env.NOHOARD, hoardOnly: process.env.ONLY ? process.env.ONLY.split(',') : null, onDig: () => { info.digs++; }, onHoard: () => { info.hoard = (info.hoard || 0) + 1; } }).forEach(t => t());
     if (G.sealed && S.paths(G).length && (G.under || 0) >= +(process.env.BREACH || 0)) S.breach(G);   // BREACH=n: 땅속에서 n밤을 보낸 뒤 뚫는다 (들키면 그 전에 뚫린다)
     const day = G.day, gold0 = G.gold;
     const r = S.endDay(G, STEWARD.decide(st2));
@@ -57,7 +54,7 @@ function run(name, n, diff, force) {
     for (const k in G.stats.income) o.inc[k] = (o.inc[k] || 0) + G.stats.income[k];
     ['gifts', 'banes', 'bred', 'preached', 'rites'].forEach(k => { o['x_' + k] = (o['x_' + k] || 0) + (G.stats[k] || 0); }); o.godsum = o.godsum || {}; for (const g in (G.gods || {})) o.godsum[g] = (o.godsum[g] || 0) + G.gods[g];
     o.sp = o.sp || {}; for (const k in (G.stats.spells || {})) o.sp[k] = (o.sp[k] || 0) + G.stats.spells[k];
-    o.kills += G.stats.kills; o.caps += G.stats.captives; o.conv += G.stats.converts; o.battles += G.stats.battles; o.repel += G.stats.repels; o.stolen += G.stats.stolen; o.falls = (o.falls || 0) + (G.falls || 0); o.fz = (o.fz || 0) + (G.stats.fuses || 0); o.bd = o.bd || {}; o.bdw = o.bdw || {}; { const bk = G.slime.body || (G.slime.main ? '평범' : '허물 전'); o.bd[bk] = (o.bd[bk] || 0) + 1; if (G.over && G.over.win) o.bdw[bk] = (o.bdw[bk] || 0) + 1; } o.tr = o.tr || {}; o.tr[G.origin || 'drop'] = (o.tr[G.origin || 'drop'] || 0) + 1; o.trw = o.trw || {}; if (G.over && G.over.win) o.trw[G.origin || 'drop'] = (o.trw[G.origin || 'drop'] || 0) + 1; o.fellRuns = (o.fellRuns || 0) + (G.falls ? 1 : 0); o.fear += G.fear; o.dug += G.cells.filter(c => c.dug).length; o.kin += G.kin.length; o.muts += G.slime.muts.length;
+    o.kills += G.stats.kills; o.caps += G.stats.captives; o.conv += G.stats.converts; o.battles += G.stats.battles; o.repel += G.stats.repels; o.stolen += G.stats.stolen; o.falls = (o.falls || 0) + (G.falls || 0); o.fz = (o.fz || 0) + (G.stats.secrets || 0); o.kst = o.kst || [0, 0, 0]; G.kin.forEach(k => { if (k.kind !== 'spawn') o.kst[S.stageOf(k)]++; }); o.bd = o.bd || {}; o.bdw = o.bdw || {}; { const bk = G.slime.body || (G.slime.main ? '평범' : '허물 전'); o.bd[bk] = (o.bd[bk] || 0) + 1; if (G.over && G.over.win) o.bdw[bk] = (o.bdw[bk] || 0) + 1; } o.tr = o.tr || {}; o.tr[G.origin || 'drop'] = (o.tr[G.origin || 'drop'] || 0) + 1; o.trw = o.trw || {}; if (G.over && G.over.win) o.trw[G.origin || 'drop'] = (o.trw[G.origin || 'drop'] || 0) + 1; o.fellRuns = (o.fellRuns || 0) + (G.falls ? 1 : 0); o.fear += G.fear; o.dug += G.cells.filter(c => c.dug).length; o.kin += G.kin.length; o.muts += G.slime.muts.length;
   }
   if (process.env.SPSTAT) console.log('손: ' + Object.keys(o.sp).sort((x, y) => o.sp[y] - o.sp[x]).map(k => S.SPELL[k].name + ' ' + (o.sp[k] / n).toFixed(1)).join(' · '));
   return o;
@@ -70,7 +67,7 @@ function report(name, n, diff) {
   console.log(`클리어 ${pct(o.win, m)} | 평균 진액 ${Math.round(o.gold / m)} 점수 ${Math.round(o.score / m)} 공포 ${Math.round(o.fear / m)} | 등급 ${Object.entries(o.grades).map(e => e.join(':')).join(' ')}`);
   console.log(`진화 단계 0/1/2/3/4: ${o.stage.map(x => pct(x, m)).join(' / ')} | 본 형태 ${Object.keys(o.forms).length}종 | 변이 ${(o.muts / m).toFixed(1)}`);
   console.log(`수입 비중: ${Object.entries(o.inc).sort((a, b) => b[1] - a[1]).map(e => e[0] + ' ' + pct(e[1], tot)).join(', ')} | 침입자 몫 ${pct(inv, tot)}`);
-  console.log('판당 합체 ' + ((o.fz || 0) / m).toFixed(1) + '회');
+  console.log('판당 비밀 진화 ' + ((o.fz || 0) / m).toFixed(2) + '회 | 판끝 권속 단계 0/1/2: ' + (o.kst || [0, 0, 0]).map(x => (x / m).toFixed(1)).join(' / '));
   console.log('판당 선물 ' + ((o.x_gifts || 0) / m).toFixed(1) + ' 벌 ' + ((o.x_banes || 0) / m).toFixed(1) + ' | 번식 ' + ((o.x_bred || 0) / m).toFixed(1) + ' 포교 ' + ((o.x_preached || 0) / m).toFixed(1) + ' 의식 정수 ' + ((o.x_rites || 0) / m).toFixed(1) + ' | 끝날 때 신격 ' + Object.keys(o.godsum || {}).map(g => g + ' ' + (o.godsum[g] / m).toFixed(1)).join(', '));
   console.log('본체: ' + Object.keys(o.bd || {}).map(k => k + ' ' + o.bd[k] + '판(클리어 ' + Math.round(((o.bdw || {})[k] || 0) / o.bd[k] * 100) + '%)').join(', '));
   console.log('형질: ' + Object.keys(o.tr || {}).map(k => k + ' ' + o.tr[k] + '판(클리어 ' + Math.round(((o.trw || {})[k] || 0) / o.tr[k] * 100) + '%)').join(', '));

@@ -7,7 +7,7 @@ const devName = process.argv[2] || '', only = (process.argv[3] || '').split(',')
   if (devName) { const dev = Object.assign({}, pw.devices[devName]); delete dev.defaultBrowserType; ctx = await b.newContext(dev); } else ctx = await b.newContext({ viewport: { width: 1366, height: 768 }, deviceScaleFactor: 2 });
   const p = await ctx.newPage(), errs = []; p.setDefaultTimeout(7000); p.on('pageerror', e => errs.push(e.message)); p.on('console', m => { if (m.type() === 'error') errs.push(m.text().slice(0, 200)); });
   await p.route('http://nest.test/', r => r.fulfill({ contentType: 'text/html', body: html })); await p.route(/fonts\./, r => r.abort());
-  await p.goto('http://nest.test/'); await p.waitForTimeout(400); await p.evaluate(() => { __nest.META.tutDone = true; });
+  await p.goto('http://nest.test/'); await p.waitForTimeout(400); await p.evaluate(() => { __nest.META.tutDone = true; window.__layout = 'old'; });
   const want = n => !only.length || only.includes(n);
   const shot = async n => { if (!want(n)) return; await p.waitForTimeout(350); if (devName) await p.screenshot({ path: path.join(OUT, 'cave_m_' + n + '.png') }); else await p.locator('#stage').screenshot({ path: path.join(OUT, 'cave_' + n + '.png') }); };
   const click = async s => { await p.locator(s).locator('visible=true').first().evaluate(e => e.click()); await p.waitForTimeout(200); };
@@ -27,7 +27,7 @@ const devName = process.argv[2] || '', only = (process.argv[3] || '').split(',')
   await setup(null, 0, null); await shot('c_s0');
   const AS = ['abyss', 'nebula', 'brood', 'dusk', 'hunger'];
   // 방 종류를 전부 한 번씩: 두 장으로 나눠 찍는다
-  const allRooms = async (types, main, st) => { await p.evaluate(([types, main, st]) => { const G = __nest.G, S = __nest.NEST; G.slime.main = main; G.slime.stage = st; G.slime.sub = null; G.sealed = false; G.cells.forEach((c, i) => { if (i !== S.CORE) { c.dug = true; c.type = 'empty'; c.traps = []; c.block = false; } });
+  const allRooms = async (types, main, st) => { await p.evaluate(([types, main, st]) => { const G = __nest.G, S = __nest.NEST; G.slime.main = main; G.slime.stage = st; G.slime.sub = null; G.sealed = false; G.cells.forEach((c, i) => { if (i !== G.core) { c.dug = true; c.type = 'empty'; c.traps = []; c.block = false; } });
       const order = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 19]; types.forEach((t, k) => { const c = G.cells[order[k]]; c.type = t; if (t === 'trap' || t === 'ambush') c.traps = [{ kind: 'spike', lv: 1 }]; });
       G.kin = G.kin.slice(0, 3); G.kin.forEach((m, k) => { m.loc = order[k + 1]; m.pin = true; }); G.prison = [{ kind: 'militia', vill: 'gaet' }, { kind: 'priest', vill: 'bell' }]; G.corpses = [{ kind: 'villager' }, { kind: 'militia' }, { kind: 'villager' }]; __nest.ST.roam = {}; }, [types, main, st]); await p.waitForTimeout(300); };
   if (want('r1')) { await allRooms(['trap', 'post', 'hall', 'bighall', 'ambush', 'decoy', 'shop', 'prison', 'chapel', 'altar'], null, 0); await shot('r1'); }

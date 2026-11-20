@@ -72,11 +72,14 @@ const PRO_CSS = `#pro { position: fixed; top: 0; right: 0; bottom: 0; left: 0; z
 `;
 
 function runPrologue(opts) {
-  opts = opts || {};
+  opts = opts || {}; typeof music === 'function' && music('pro');
   const sim = PRO.makeSim(opts), S = sim.S, P = sim.P, STG = PRO.STG, SPC = PRO.SP, CAT = PRO.CAT, PART = PRO.PART, SLOTS = PRO.SLOTS, SLOTK = PRO.SLOTK, ASPS = PRO.ASPS, ASPK = PRO.ASPK, TPS = PRO.TPS, KK = PRO.K, home = sim.home;
   const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y), clampN = (v, a, b) => Math.max(a, Math.min(b, v)), lv = sim.lv, val = sim.val;
   const say = k => { try { sfx(k); } catch (e) { /* 소리는 없어도 된다 */ } };
   const G = () => STG[S.stage];
+  // 이야기 1장: 잔향이 그때그때 한마디씩 한다 (lines: start eat buy big). 자리 잡기·건너뛰기는 없다
+  const STY = opts.story || null, LN = (STY && STY.lines) || {}, sayQ = [], tell = k => { if (STY && LN[k] && !S.seen['st_' + k]) { S.seen['st_' + k] = 1; sayQ.push(LN[k]); } };
+  let canAt = 0;
 
   // ---------- 그림 ----------
   const SPR = {}, spr = (key, make) => SPR[key] || (SPR[key] = make());
@@ -238,13 +241,16 @@ function runPrologue(opts) {
       $p('pro-row').innerHTML = `<b>${g.name}</b><span class="pro-pips sz" title="몸">${[1, 2, 3, 4, 5].map(k => `<i class="${k <= S.stage ? 'on' : ''}"></i>`).join('')}</span><span class="pro-pips hp" title="버틸 수 있는 횟수">${Array.from({ length: mh }, (_, k) => `<i class="${k < S.hp ? 'on' : ''}"></i>`).join('')}</span><span class="pro-pips lf" title="다시 일어날 기회">${Array.from({ length: KK.lives }, (_, k) => `<i class="${k < S.lives ? 'on' : ''}"></i>`).join('')}</span>`;
       $p('pro-row2').innerHTML = `<span>${Math.floor(time / 60)}:${String(time % 60).padStart(2, '0')}</span><span style="color:#e8c030">진액 ${S.gold}</span><span class="pro-ess">${ASPS.filter(a => wal(a) > 0).map(a => `<span><i style="background:${ASPCOL[a]}"></i>${wal(a)}</span>`).join('') || '<span style="color:#a59cb4">아직 모은 것이 없다</span>'}</span>`;
       $p('pro-grow').classList.toggle('can', can);
-      const sb = $p('pro-settle'), okS = S.stage >= KK.settleFrom && !S.ended; sb.hidden = !okS; if (okS) { const nx = S.stage < 5 ? `더 자라면 ${KK.essCap[S.stage + 1]}까지${S.stage + 1 === KK.keepFrom ? ' · 부위 새김' : ''}` : '다 자라면 가장 많다'; sb.innerHTML = sureOn ? '한 번 더: 자리를 잡는다' : `자리를 잡는다<small>지금 정수 ${sim.essSum(S.stage)}${S.stage >= KK.keepFrom ? ' · 부위 새김' : ''}<br>${nx}</small>`; sb.classList.toggle('pri', sureOn); }
+      const sb = $p('pro-settle'), okS = S.stage >= KK.settleFrom && !S.ended && !STY; sb.hidden = !okS; if (okS) { const nx = S.stage < 5 ? `더 자라면 ${KK.essCap[S.stage + 1]}까지${S.stage + 1 === KK.keepFrom ? ' · 부위 새김' : ''}` : '다 자라면 가장 많다'; sb.innerHTML = sureOn ? '한 번 더: 자리를 잡는다' : `자리를 잡는다<small>지금 정수 ${sim.essSum(S.stage)}${S.stage >= KK.keepFrom ? ' · 부위 새김' : ''}<br>${nx}</small>`; sb.classList.toggle('pri', sureOn); }
       const ab = $p('pro-act'); ab.classList.toggle('off', !an); ab.querySelector('span').textContent = an || '재주'; ab.setAttribute('aria-label', an ? '재주: ' + an : '재주 (발을 돋우면 생긴다)'); }
     const need = g.need; $p('pro-prog').style.width = clampN((S.bio - base) / (need - base), 0, 1) * 100 + '%';
     { const ab = $p('pro-act'), tot = sim.actTotal(); if (tot) { const f = clampN(P.cd / tot, 0, 1); ab.style.setProperty('--cd', Math.round(f * 360) + 'deg'); ab.classList.toggle('wait', f > 0); } else ab.style.setProperty('--cd', '0deg'); }
     const c = S.cap, capEl = $p('pro-cap'); if (c && S.t < c.until && !shop && !intro) { const html = c.s + (c.sub ? '<small>' + c.sub + '</small>' : ''); if (capEl.dataset.h !== html) { capEl.dataset.h = html; capEl.innerHTML = html; capEl.classList.toggle('big', S.t - S.upAt < 5 * TPS && c.s === g.name); } capEl.style.opacity = 1; } else capEl.style.opacity = 0;
     $p('pro-grow').hidden = !!S.ended; $p('pro-act').hidden = !!S.ended;
-    if (!shopSeen && !manual && !intro && !S.ended && can && S.t > 2 * TPS && P.inv <= 0) openShop(true);   // 처음 살 수 있게 됐을 때 한 번은 스스로 뜬다
+    if (STY && can && !canAt) { canAt = S.t; tell('buy'); }
+    if (STY && !S.seen.st_big && Object.keys(S.seen).some(k => k.startsWith('met_') && SPC[k.slice(4)] && SPC[k.slice(4)].st > S.stage)) tell('big');
+    if (STY && sayQ.length && !shop && !intro && !S.ended && !(S.cap && S.cap.hold > S.t)) sim.caption('잔향', sayQ.shift(), 5, 3.5);
+    if (!shopSeen && !manual && !intro && !S.ended && can && S.t > 2 * TPS && P.inv <= 0 && (!STY || S.t - canAt > 4 * TPS)) openShop(true);   // 처음 살 수 있게 됐을 때 한 번은 스스로 뜬다
   }
 
   // ---------- 일어난 일을 소리와 반짝임으로 ----------
@@ -252,6 +258,7 @@ function runPrologue(opts) {
   let eatN = 0;
   function drain() {
     for (const e of sim.ev) { if (e.k === 'alert') say({ pack: 'hit', blind: 'down', hunter: 'trap', mite: 'click' }[e.kind] || 'step'); else if (SND[e.k]) say(SND[e.k]); else if (e.k === 'eat' && (eatN++ % 2 === 0)) say('step');
+      if (e.k === 'eat') tell('eat');
       if (e.k === 'stage') { flash = S.t; hudKey = ''; if (S.stage === 2 && !S.seen.legtip) S.seen.legtip = 1; }
       if (e.k === 'hurt' || e.k === 'respawn') shake = S.t; if (e.k === 'respawn') flash = S.t;
       if (e.k === 'buy') { hudKey = ''; if (PART[e.id].slot === 'leg' && !S.seen.acttip) { S.seen.acttip = 1; sim.caption('재주가 생겼다: ' + PART[e.id].act, '오른쪽 아래 단추를 눌러. 쫓길 때 써', 4); } }
@@ -377,6 +384,7 @@ function runPrologue(opts) {
   function finish(kind) {
     if (ended) return; ended = true; closeIntro(); closeShop(); if (!S.ended) sim.end(kind); result = sim.result(kind); hudKey = ''; hud(); $p('pro-settle').hidden = true; $p('pro-skip').hidden = true; $p('pro-grow').hidden = true; $p('pro-act').hidden = true; $p('pro-cap').style.opacity = 0;
     if (kind === 'skip') { say('click'); return close(); }
+    if (STY) { say(kind === 'story' ? 'up' : 'down'); return setTimeout(close, kind === 'story' ? 900 : 500); }
     say(kind === 'fell' ? 'down' : 'up');
     const r = result, tot = ASPS.reduce((a, k) => a + r.ess[k], 0), topA = ASPS.slice().sort((a, b) => r.ess[b] - r.ess[a])[0], mx = Math.max(1, r.ess[topA]), n = r.parts.length, canKeep = !r.fell && S.stage >= KK.keepFrom && n > 0;
     if (canKeep) sim.setKeep(r.parts.slice().sort((a, b) => b.lv - a.lv)[0].id);
@@ -405,7 +413,7 @@ function runPrologue(opts) {
     root.appendChild(el); let k = 0; const im = el.querySelector('img'); introIv = setInterval(() => { k = (k + 1) % 4; im.src = seedURL(k); }, 240);
     el.addEventListener('click', () => { say('click'); closeIntro(); }); try { el.querySelector('#pro-in-go').focus(); } catch (e) { /* 괜찮다 */ }
   }
-  if (opts.tut) sim.caption('손가락이 가는 쪽으로 움직여', '색 있는 알갱이를 먹어. 붉은 눈은 피해', 5); else sim.caption('땅속의 한 방울', '먹고, 자라고, 살아남아라', 3.4);
+  if (STY) { $p('pro-skip').hidden = true; sim.caption('잔향', LN.start || '먹어라', 6, 4); } else if (opts.tut) sim.caption('손가락이 가는 쪽으로 움직여', '색 있는 알갱이를 먹어. 붉은 눈은 피해', 5); else sim.caption('땅속의 한 방울', '먹고, 자라고, 살아남아라', 3.4);
 
   // 시험용 손잡이
   const API = { get look() { return sim.look; }, get form() { return Object.assign({}, sim.form); }, get intro() { return intro; }, closeIntro() { closeIntro(); },
