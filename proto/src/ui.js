@@ -135,7 +135,6 @@ const nextSoft = () => { const i = NEST.START.slice().reverse().find(j => !G.cel
 const tutEmpty = () => (NEST.paths(G)[0] || []).find(i => i !== NEST.CORE && i !== NEST.ENT && G.cells[i].type === 'empty');
 const TUT = [
   { t: () => modalKind === 'applicants' ? '마음에 드는 것을 돋워. 둘쯤이면 좋아. 행동은 들지 않아. 다 돋웠으면 "나중에"를 눌러 창을 닫아.' : '아래 띠에서 "돋는 것"을 눌러 봐. 네 몸에서 돋으려는 것들이야.', sel: '[data-a="open"][data-v="applicants"], #modal [data-a="accept"], #modal [data-a="close"]', done: () => G.kin.length >= 1 && $('modal').hidden },
-  { t: () => '너는 지금 땅속 깊은 동굴 한 칸에 있어. 떨어지며 지나온 자국은 흙이 물러. 깜빡이는 칸을 누르고 "파기"를 눌러. 맨 위 칸에 닿을 때까지 ' + NEST.trailLeft(G) + '칸 남았어.', cell: nextSoft, sel: '[data-a="dig"]', done: () => NEST.paths(G).length > 0 },
   { t: () => '이제 싸울 자리를 만들자. 지도의 점선이 땅 위의 것들이 걸어 내려올 길이야. 깜빡이는 빈 굴을 눌러.', cell: tutEmpty, done: () => G.cells.some(c => c.type === 'post' || c.type === 'hall') || (UI.sel && UI.sel.t === 'cell' && G.cells[UI.sel.i].dug && G.cells[UI.sel.i].type === 'empty') },
   { t: () => (isMobile() ? '올라온 창의 ' : '오른쪽 패널의 ') + '"추천"에서 "문턱"을 지어. 건설 행동 한 번이면 파기·짓기·함정 같은 작업을 세 번 할 수 있어.', sel: '[data-a="build"][data-v="post"]', done: () => G.cells.some(c => c.type === 'post' || c.type === 'hall') },
   { t: () => '권속은 제 자리를 알아서 찾아. 먼저 돋은 것들은 본체 곁을 지키고, 나머지는 길목 앞에서부터 서. 지금 문턱은 비어 있으니 하나를 불러 세우자. 방금 지은 문턱을 누르고 "여기를 지켜라" 옆의 이름을 눌러.', cell: () => G.cells.findIndex(c => c.type === 'post' || c.type === 'hall'), sel: '[data-a="place"]', done: () => G.kin.some(m => m.pin && typeof m.loc === 'number') },
@@ -144,7 +143,7 @@ const TUT = [
   { t: () => '준비 끝. "밤을 맞는다"를 눌러. 행동이 남았으면 한 번 더 누르면 돼. 싸움은 권속과 함정이 알아서 해.', sel: '[data-a="endday"]', done: () => G.day >= 2 },
   { t: () => '첫 밤을 넘겼어. 쓰러뜨린 것은 먹이가 돼. "본체" 단추를 누르거나, 지도에서 깜빡이는 본체 방을 눌러.', cell: () => NEST.CORE, done: () => !G.corpses.length || (G.stats.eats || 0) >= 1 || (UI.sel && UI.sel.t === 'cell' && UI.sel.i === NEST.CORE) },
   { t: () => '"포식"을 눌러. 먹은 것의 징조가 쌓이고, ' + NEST.K.act + '일째 밤에 정수가 ' + NEST.K.thresh[1] + '을 넘으면 그 징조의 몸으로 허물을 벗어.', sel: '[data-a="eat"], [data-a="core"]', done: () => !G.corpses.length || (G.stats.eats || 0) >= 1 },
-  { t: () => '기본은 여기까지야. 꿇은 인간은 "포로"에서 처분하고, 바위를 눌러 굴을 넓혀. 위쪽 숫자를 누르면 뜻이 나와.', end: true, done: () => false },
+  { t: () => '기본은 여기까지야. 권속은 "돋는 것"에서 더 돋우고, 꿇은 것은 "포로"에서 처분해. 위쪽 숫자를 누르면 뜻이 나와.', end: true, done: () => false },
 ];
 function coach() {
   const on = !!G && G.tut != null && !G.over; ['coach', 'coach2'].forEach(id => { $(id).hidden = !on; });
@@ -531,7 +530,7 @@ function codexHtml() {
   return M(`도감 <small class="mute">깨어난 횟수 ${META.clears}</small>`, b + '</div>', closeBtn());
 }
 const HELP = [
-  ['under', '땅속과 뚫기', '처음에는 땅속 깊은 동굴 한 칸뿐이다. 파지 않은 곳은 보이지 않는다. 떨어지며 지나온 자국(무른 흙)은 진액 없이 팔 수 있고, 맨 위 칸까지 닿아야 땅 위로 뚫을 수 있다. 뚫기 전에는 아무도 오지 않지만 먹이도 없다. "땅 위로 뚫는다"를 누르면 그때부터 밤마다 내려오고, 위가 어떤 세상인지(판타지·무협·현대·미래)도 그때 정해진다. 세상마다 규칙이 하나씩 다르다(둥지 창에 적힌다). 숨어 있는 밤마다 정수를 조금 얻지만 날은 흘러가고, 오래 숨을수록 먼저 들킬 위험이 커진다. 들키면 그 밤에 바로 온다.'],
+  ['under', '땅속과 뚫기', '새 판은 「땅속의 한 방울」로 시작한다. 어두운 흙 속을 직접 움직이며 먹고 자란다. 먹은 알갱이의 빛깔이 첫 정수가 되고, 커질 때마다 갈라져 나온 것이 첫 권속이 되고, 헤집고 다닌 자리가 굴이 된다. 큰 것에게 세 번 물리면 반만 건지고 숨는다. 자리를 잡은 뒤에도 파지 않은 곳은 보이지 않는다. 뚫기 전에는 아무도 오지 않지만 먹이도 없다. "땅 위로 뚫는다"를 누르면 그때부터 밤마다 내려오고, 위가 어떤 세상인지(판타지·무협·현대·미래)도 그때 정해진다. 세상마다 규칙이 하나씩 다르다(둥지 창에 적힌다). 숨어 있는 밤마다 정수를 조금 얻지만 날은 흘러가고, 오래 숨을수록 먼저 들킬 위험이 커진다. 들키면 그 밤에 바로 온다.'],
   ['kin', '권속', '권속은 몸에서 돋는다. 제 자리는 제가 찾는다: 먼저 돋은 것이 본체 곁, 나머지는 길목 앞에서부터. 낮에는 굴을 돌아다니고 밤이 오면 자리로 간다. 권속을 눌러 "지켜라"고 시키면 그 자리에 뿌리를 내려, 거기서 보낸 밤마다 능력이 6%씩(최대 30%) 오른다. 옮기거나 풀어 주면 처음부터다. 붙들어 둘 수 있는 권속은 둘에서 시작해 허물을 벗을 때마다 하나씩 는다. "풀어 준다"를 누르면 다시 제멋대로 다닌다.'],
   ['goal', '목표', `${NEST.K.days}일 동안 본체를 지킨다. ${NEST.K.act}일마다 "달이 기우는 밤"에 큰 무리가 오고, 넘기면 모은 정수에 따라 허물을 벗는다(네 번까지). 마지막 밤에는 가장 센 무리가 우두머리를 앞세워 온다. 권속도 레벨 5가 되면 진액을 들여 한 번 진화시킬 수 있다.`],
   ['day', '낮', '행동은 하루 두 번. 건설 행동 한 번이면 파기·짓기·함정 같은 작업을 세 번 한다. 포식, 휴식, 훈련, 습격은 행동 하나씩. 돋는 것 들이기, 포로 처분, 탐식은 행동이 들지 않는다. 행동을 남기고 밤을 맞으면 본체가 그만큼 쉰다.'],
@@ -630,8 +629,14 @@ async function newRun() {
   for (;;) { const p = modal(setupHtml(o), true, null); modalKind = 'setup'; UI.setup = o; const v = await p; if (v === 'go') break; if (v === 'redraw') continue; return; }
   const legacy = META.roster.filter(r => o.bring.includes(r.rid)).map(r => ({ name: rosterName(r), kind: r.kind, lv: r.lv, skill: r.skill, rare: r.rare, stance: r.stance, rid: r.rid, evo: r.evo, parts: r.parts || [] }));
   const sk = curSign(), sg = NEST.SIGN[sk]; META.last = { diff: o.diff };
-  G = NEST.newGame((Date.now() ^ (Math.random() * 1e9)) >>> 0, sg.asp, { diff: o.diff, legacy, star: sg.star, sign: sk }); G.auto = false; if (o.tut) { G.tut = 0; [13, 12, 7, 6].forEach(i => { G.cells[i].dug = true; }); }   // 길잡이 판은 두 칸만 남기고 파여 있다 META.runs++; saveMeta(); store.del('run');
-  showGame(); await scene([N_(sg.name + '에서 별 하나가 떨어졌다. ' + sg.text)].concat(STORY.intro).concat(G.auto ? [E_('여기서는 권속들이 알아서 굴을 파고 싸워. 너는 아침마다 뜻 하나만 내리면 돼.'), E_('어떤 뜻을 내리느냐에 따라 하늘의 큰 것 다섯이 너를 달리 본다. 흡족하면 선물을, 언짢으면 벌을 내려.')] : [])); morningFlow();
+  // 땅속의 한 방울: 굴을 틀기 전에 직접 움직이며 먹고 자란다. 먹은 것이 첫 정수, 갈라져 나온 것이 첫 권속, 헤집은 자리가 굴이 된다.
+  // (자동 시험에서는 건너뛰고 보통 결과를 쓴다. window.__forcePro 를 켜면 시험에서도 한다)
+  const seed = (Date.now() ^ (Math.random() * 1e9)) >>> 0, played = typeof runPrologue === 'function' && !(navigator.webdriver && !window.__forcePro);
+  let pr = NEST.proResult(sg.asp, 'avg'); if (played) { try { const r = await runPrologue({ asp: sg.asp, seed, tut: !!o.tut, speed: 1 }); if (r && !r.skipped) pr = r; else pr.skipped = true; } catch (e) { console.error(e); } }   // 건너뛰면 보통 결과
+  G = NEST.newGame(seed, sg.asp, { diff: o.diff, legacy, star: sg.star, sign: sk, prologue: pr }); G.auto = false; if (o.tut) G.tut = 0;
+  META.runs++; saveMeta(); store.del('run');
+  const born = (pr.kin || []).length, after = !played || pr.skipped ? [] : [N_(pr.fell ? '쫓기던 한 방울은 겨우 바위틈에 숨었다. 상처가 깊다.' : '한 방울은 헤집고 다닌 굴 끝에 자리를 잡았다.' + (born ? ' 갈라져 나온 것 ' + ['', '하나가', '둘이', '셋이'][born] + ' 곁에 있다.' : ''))];
+  showGame(); await scene([N_(sg.name + '에서 별 하나가 떨어졌다. ' + sg.text)].concat(after, STORY.intro)); morningFlow();
 }
 // 땅 위로 뚫는다: 되돌릴 수 없다. 어떤 세상인지 이때 처음 본다
 const WHY = { fantasy: '무엇이든 낫게 하는 영약', wuxia: '내공을 끌어올리는 영단', modern: '값을 매길 수 없는 약의 원료', future: '바닥나지 않는 연료' };
