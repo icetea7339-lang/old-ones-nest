@@ -128,7 +128,9 @@ const lockText = k => { const f = FEATS.find(x => x[0] === LOCK[k]); return '잠
 const featGain = f => f[3] === '별가루' ? '별가루 +15' : f[3] + ' 열림';
 function checkFeats() {
   if (!G) return; const got = FEATS.filter(f => !META.feats[f[0]] && f[4]()); if (!got.length) return;
-  got.forEach(f => { META.feats[f[0]] = 1; META.dust += 15; }); saveMeta(); sfx('up');
+  got.forEach(f => { META.feats[f[0]] = 1; META.dust += 15; }); saveMeta();
+  if (G.story) { UI.storyFeats = (UI.storyFeats || []).concat(got); return; }
+  sfx('up');
   UI.featNew = (UI.featNew || []).concat(got); UI.featMsg = '새 흔적 「' + got[0][1] + '」 — ' + featGain(got[0]) + (got.length > 1 ? ' 외 ' + (got.length - 1) : '');
 }
 
@@ -429,7 +431,7 @@ function evoTabHtml(m) {
   const normal = card(kinImgM({ kind: m.kind, evo: 2 }, 32), NEST.evoName(m, 2, null), EVO_TXT(m), mul[2], false, at && !poor);
   const secret = !sec ? '' : ready || META.codex.secret[m.kind] ? card(kinImgM({ kind: m.kind, evo: 2, secret: sec }, 32), NEST.evoName(m, 2, sec) + (ready ? '' : ' (아직)'), NEST.RECIPE[sec].desc, +(mul[2] * NEST.K.kevo.secret).toFixed(2), true, ready && at && !poor)
     : `<div class="btn opt evoc lockd" aria-disabled="true"><b>?? <small>비밀 진화</small></b><span class="small mute">${seen ? esc(NEST.KIN[partner].name) + '을(를) 곁에 두고, 지키라고 해서 사흘 뿌리내린 채로 자라면…' : '무언가를 곁에 두고 오래 지키게 하면…'}</span></div>`;
-  return b + `<div class="opts">${normal}${secret}</div>${sec ? `<p class="small mute">비밀 갈래: 짝 ${here ? '●' : '○'} · 뿌리내림 ${hold}/${NEST.K.kevo.hold}</p>` : ''}<p class="small mute">${why}</p>`;
+  return b + `<div class="opts">${normal}${secret}</div>${sec ? `<p class="small ${NEST.bonded && NEST.bonded(G, m) ? 'okc' : 'mute'}">비밀 갈래: 짝 ${here ? '●' : '○'} · 뿌리내림 ${hold}/${NEST.K.kevo.hold} · 짝지음 ${NEST.bonded && NEST.bonded(G, m) ? '능력 +' + Math.round(NEST.K.kevo.bond * 100) + '%' : '(짝과 사흘 뿌리내리면 자라기 전부터 +' + Math.round(NEST.K.kevo.bond * 100) + '%)'}</p>` : ''}<p class="small mute">${why}</p>`;
 }
 const EVO_TXT = m => (NEST.EVO_DESC[m.kind] || '') + '. 몸이 한 번 더 커진다';
 function kinHtml(id) {
@@ -483,7 +485,7 @@ function evoHtml(st, before) {
   if (sl.stage === 2) { lines.push(NEST.FORM2UP[bk]); lines.push(NEST.ASP[sl.sub] + ' 섞임: ' + NEST.SUBTRAIT[sl.sub]); }
   if (sl.stage === 3) lines.push('허물 속에서 나온 것은 아까의 그것이 아니다. 체력·공격·방어가 크게 오른다');
   if (sl.stage === 4) lines.push('다 자랐다. 굴 하나가 몸으로 가득 찬다. 체력·공격·방어가 다시 크게 오른다');
-  return `<div class="mbody evo" style="align-items:center;text-align:center"><p class="mute">${STAGE_NAME[sl.stage]}</p><div class="row" style="justify-content:center;gap:20px">${slimeImg(before, isMobile() ? 80 : 96, '이전 모습')}<span class="h3 mute">→</span>${slimeImg(sl, isMobile() ? 112 : 128, NEST.formName(G))}</div><h2 style="font-size:var(--d2);color:${ASPCOL[sl.main]}">${esc(NEST.formName(G))}</h2>${NEST.formTitle(G) ? `<p class="small mute">「${esc(NEST.formTitle(G))}」</p>` : ''}<div class="row" style="justify-content:center">${aspChip(sl.main, '주 ' + NEST.ASP[sl.main])}${sl.sub ? aspChip(sl.sub, '부 ' + NEST.ASP[sl.sub]) : ''}</div>${lines.map(l => `<p class="small">${esc(l)}</p>`).join('')}${st.mut ? `<p class="small">${aspChip(NEST.MUT[st.mut].asp, '변이: ' + NEST.MUT[st.mut].name)} ${esc(NEST.MUT[st.mut].desc)}</p>` : ''}<p class="small up">인간들 사이에 소문이 돈다. 공포 +10</p></div><div class="mfoot">${btn('close', null, '좋다', 'pri big')}</div>`;
+  return `<div class="mbody evo" style="align-items:center;text-align:center"><p class="mute">${STAGE_NAME[sl.stage]}</p><div class="row morphrow fx-run" style="justify-content:center;gap:20px">${slimeImg(before, isMobile() ? 80 : 96, '이전 모습')}<span class="h3 mute">→</span>${slimeImg(sl, isMobile() ? 112 : 128, NEST.formName(G))}</div><h2 style="font-size:var(--d2);color:${ASPCOL[sl.main]}">${esc(NEST.formName(G))}</h2>${NEST.formTitle(G) ? `<p class="small mute">「${esc(NEST.formTitle(G))}」</p>` : ''}<div class="row" style="justify-content:center">${aspChip(sl.main, '주 ' + NEST.ASP[sl.main])}${sl.sub ? aspChip(sl.sub, '부 ' + NEST.ASP[sl.sub]) : ''}</div>${lines.map(l => `<p class="small">${esc(l)}</p>`).join('')}${st.mut ? `<p class="small">${aspChip(NEST.MUT[st.mut].asp, '변이: ' + NEST.MUT[st.mut].name)} ${esc(NEST.MUT[st.mut].desc)}</p>` : ''}<p class="small up">인간들 사이에 소문이 돈다. 공포 +10</p></div><div class="mfoot">${btn('close', null, '좋다', 'pri big')}</div>`;
 }
 function resultHtml(sc, unlocked) {
   const win = G.over.win, av = NEST.avatarOf(G), key = !win ? null : NEST.endKey(G), tier = endTier(sc.grade), e3 = win && ENDING3[key] ? ENDING3[key][tier].map(NEST.lx) : null;
@@ -588,6 +590,8 @@ function codexHtml() {
   return M(`도감 <small class="mute">깨어난 횟수 ${META.clears}</small>`, b + '</div>', closeBtn());
 }
 const HELP = [
+  ['story', '이야기', '처음이라면 이야기부터. 장마다 한 가지씩 새로 열리고, 그 장에서 꼭 써 보게 된다. 지는 일은 거의 없다. 일곱 장이 다 열리면 깊은 곳의 것이 깨어난다.'],
+  ['free', '자유', '익숙한 사람용. 처음부터 모든 것이 열린 채로 40일을 버티며 점수를 겨룬다. 별자리·난이도를 고를 수 있고, 이야기와 달리 진다.'],
   ['under', '땅속의 한 방울', '새 판은 「땅속의 한 방울」로 시작한다. 어두운 흙 속을 직접 움직이며 먹고 자란다. 몸은 다섯 번 자라고(한 방울 → 기는 것 → 파고드는 것 → 삼키는 것 → 다 자란 것), 자랄 때마다 굴이 넓어지고 새 것들이 나온다. 나보다 큰 것은 피하고, 더 커지면 그것이 먹이가 된다. 뒤에서 어른거리는 큰 그림자는 다음 몸에서 만날 것들이다. 저들은 저희끼리도 쫓고 먹고 자란다: 먹는 중인 놈은 한눈을 팔고, 남긴 주검은 가로챌 수 있다.'],
   ['parts', '부위와 쓰러짐', '먹은 알갱이로 부위를 돋우고 올린다(입·눈·발·겉·속). 입이 세야 먹을 수 있는 것, 눈이 있어야 보이는 것이 있다. 발 부위는 오른쪽 아래 단추로 쓰는 재주를 준다. 두 번 물리면 쓰러지고, 두 번까지는 틈에 숨어 그 몸에서 다시 시작한다(남긴 것 3분의 1과 부위 한 단계를 잃는다). 세 번째는 끝이다.'],
   ['grown', '자란 만큼', '둘째 몸부터 자리를 잡을 수 있지만 멀리 자랄수록 더 가져온다: 남긴 알갱이가 첫 정수가 되고, 셋째 몸부터는 부위 하나가 변이로 남고, 본체의 체력과 공격이 한 몸마다 7%씩 달라지며(셋째 몸이 기준), 다 자라면 목숨이 하나 더 붙는다. 권속은 굴을 튼 뒤에 돋는다.'],
@@ -619,7 +623,7 @@ function helpHtml() {
   return M('어떻게 하나', tabsHtml('help', HELP.map(x => [x[0], x[1]]), tab, true) + `<div class="card in"><p class="h3 coin">${cur[1]}</p><p>${esc(cur[2])}</p>${tab === 'worlds' ? NEST.WORLD_IDS.map(id => { const w = NEST.WORLD[id]; return `<p class="small"><span class="chip on">${esc(w.name)}</span> ${esc(w.beat[0] + ' · ' + w.only.map(k => NEST.INV[k].name).join(', '))}</p>`; }).join('') : ''}</div><p class="small mute only-pc">단축키: <kbd>Tab</kbd> 지상·지하 · <kbd>E</kbd> 밤 맞기 · <kbd>Esc</kbd> 닫기 · 밤에 <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> 속도, <kbd>S</kbd> 건너뛰기, <kbd>Space</kbd> 그냥 둔다</p><p class="small mute only-m">지도는 좌우로 밀어서 본다. 칸을 누르면 할 일이 올라오고, ✕로 닫는다.</p>`, closeBtn());
 }
 function settingsHtml() {
-  return M('설정', `<div class="row"><span class="grow">소리</span>${btn('set', { k: 'sound', v: 1 }, '켬', 'sm' + (META.sound ? ' on' : ''))}${btn('set', { k: 'sound', v: 0 }, '끔', 'sm' + (META.sound ? '' : ' on'))}</div><div class="row"><span class="grow">음악</span>${btn('set', { k: 'music', v: 1 }, '켬', 'sm' + (META.music !== false ? ' on' : ''))}${btn('set', { k: 'music', v: 0 }, '끔', 'sm' + (META.music !== false ? '' : ' on'))}</div>
+  return M('설정', `<div class="row"><span class="grow">소리</span>${btn('set', { k: 'sound', v: 1 }, '켬', 'sm' + (META.sound ? ' on' : ''))}${btn('set', { k: 'sound', v: 0 }, '끔', 'sm' + (META.sound ? '' : ' on'))}</div><div class="row"><span class="grow">음악</span>${btn('set', { k: 'music', v: 1 }, '켬', 'sm' + (META.music !== false ? ' on' : ''))}${btn('set', { k: 'music', v: 0 }, '끔', 'sm' + (META.music !== false ? '' : ' on'))}</div><div class="row"><span class="grow">기록 보내기 <small class="mute">판이 어디서 끝났는지만 이름 없이</small></span>${btn('set', { k: 'trace', v: 1 }, '켬', 'sm' + (META.trace !== false ? ' on' : ''))}${btn('set', { k: 'trace', v: 0 }, '끔', 'sm' + (META.trace !== false ? '' : ' on'))}</div><div class="row"><span class="grow">흔들림 <small class="mute">화면 흔들림·번쩍임</small></span>${btn('set', { k: 'shake', v: 1 }, '켬', 'sm' + (META.shake !== false ? ' on' : ''))}${btn('set', { k: 'shake', v: 0 }, '끔', 'sm' + (META.shake !== false ? '' : ' on'))}</div>
     <div class="row"><span class="grow">밤에 멈춰서 손을 쓸 때</span>${[['settle', '보통'], ['always', '방마다'], ['never', '안 멈춤']].map(([k, l]) => btn('set', { k: 'pause', v: k }, l, 'sm' + (META.pause === k ? ' on' : ''))).join('')}</div>
     <p class="small mute">보통: 달이 기우는 밤은 방마다, 다른 밤은 큰 싸움에서 한 번 멈춘다.</p>
     <div class="row"><span class="grow">해금</span>${btn('set', { k: 'open', v: 0 }, '흔적으로 연다', 'sm' + (META.openAll ? '' : ' on'))}${btn('set', { k: 'open', v: 1 }, '전부 열어 둔다', 'sm' + (META.openAll ? ' on' : ''))}</div>
@@ -803,6 +807,7 @@ async function storyPrologue() {
   for (let k = 0; k < 20; k++) {
     let r = null; try { r = await runPrologue({ asp: so.asp, seed: storySeed(), speed: 1, story: Object.assign({}, NEST.STORYCH[1].pro, { lines: STX[1].pro }) }); } catch (e) { console.error(e); }
     if (r && !r.fell && (r.size || 1) >= NEST.STORYCH[1].pro.goal) { so.pr = r; break; }
+    typeof traceEnd === 'function' && traceEnd('ch1fall', { ch: 1, size: r ? r.size || 1 : 0, time: r ? Math.round(r.time || 0) : 0 });
     await scene(STX[1].again);
   }
   saveMeta(); await scene(STX[1].end); return chapterClear(1);
@@ -810,15 +815,19 @@ async function storyPrologue() {
 async function storyFinish() {
   busy = true; store.del('run'); const ch = G.story.ch, win = G.over.win;
   if (win) { await scene(STX[ch].end); busy = false; return chapterClear(ch); }
+  typeof traceEnd === 'function' && traceEnd('fail', { why: G.over.why || '' });
   await scene([N_('한 방울은 다시 바위틈으로 스며들었다.'), E_('괜찮아. 처음부터 다시 해 보자.')]); busy = false;
   const v = await modal(M(ch + '장 · ' + esc(NEST.STORYCH[ch].title), `<p>${esc(G.over.why)}</p>`, btn('close', { v: 'retry' }, '다시 한다', 'pri') + btn('close', { v: 'title' }, '처음 화면')), false, 'static');
   if (v === 'retry') return startChapter(ch); showTitle();
 }
 // 장을 넘긴 화면: 바늘 하나가 더 꽂힌다
 async function chapterClear(ch) {
+  typeof traceEnd === 'function' && traceEnd('clear', { ch });
   const so = storyMeta(); so.clear[ch] = 1; if (ch === 2 && G) { const sn = JSON.parse(JSON.stringify(G)); sn.over = null; so.snap = sn; } saveMeta(); sfx('evo');
   const d = NEST.STORYCH[ch], nx = NEST.STORYCH[ch + 1], open = nx && !nx.soon;
-  const v = await modal(M(ch + '장 · ' + esc(d.title), `<div class="cleared">${needlesSvg(ch, true)}<p class="h3 coin">${ORD[ch]}째 바늘이 꽂혔다</p><p class="small mute">일곱 개가 다 꽂히면 깊은 곳에서 자는 것이 깨어난다.</p>${nx ? `<p class="small">다음 · ${ch + 1}장 「${esc(nx.title)}」${nx.soon ? ' · 곧 열린다' : ''}</p>` : ''}${!open ? '<p class="small mute">그동안 「자유」에서 마음껏 둥지를 키울 수 있다.</p>' : ''}</div>`, (open ? btn('close', { v: 'next' }, '다음 장', 'pri') : btn('close', { v: 'free' }, '자유로 하기', 'pri')) + btn('close', { v: 'title' }, '처음 화면')), false, 'static');
+  const sf = (UI.storyFeats || []).splice(0), sfh = sf.length ? `<div class="stack" style="gap:2px">${sf.map(f => `<p class="okc small">새 흔적 「${f[1]}」 — ${featGain(f)}</p>`).join('')}</div>` : '';
+  const pv = modal(M(ch + '장 · ' + esc(d.title), `<div class="cleared">${needlesSvg(ch, true)}<p class="h3 coin">${ORD[ch]}째 바늘이 꽂혔다</p>${sfh}<p class="small mute">일곱 개가 다 꽂히면 깊은 곳에서 자는 것이 깨어난다.</p>${nx ? `<p class="small">다음 · ${ch + 1}장 「${esc(nx.title)}」${nx.soon ? ' · 곧 열린다' : ''}</p>` : ''}${!open ? '<p class="small mute">그동안 「자유」에서 마음껏 둥지를 키울 수 있다.</p>' : ''}</div>`, (open ? btn('close', { v: 'next' }, '다음 장', 'pri') : btn('close', { v: 'free' }, '자유로 하기', 'pri')) + btn('close', { v: 'title' }, '처음 화면')), false, 'static');
+  FX.chapter(document.querySelector('#modal .cleared .needles')); const v = await pv;
   if (v === 'next') return startChapter(ch + 1); showTitle(); if (v === 'free') newRun();
 }
 // 땅 위로 뚫는다: 되돌릴 수 없다. 어떤 세상인지 이때 처음 본다
@@ -834,11 +843,11 @@ async function doBreach() {
   if (!$('modal').hidden) closeModal(); setSheet(false);
   const v = await modal(M('땅 위로 뚫는다', `<p>굴을 열면 되돌릴 수 없다. 그때부터 땅 위의 것들이 밤마다 내려온다.</p><p class="small mute">저들이 먹이다. 먹지 못하면 허물을 벗지 못한다. 위가 어떤 세상인지는 뚫어 봐야 안다.</p><p class="small mute">더 숨어 있으면 밤마다 정수 +${NEST.K.deep.ess}을 얻고 권속을 더 돋울 수 있다. 대신 날은 흘러가고, 오래 숨을수록 먼저 들킬 위험이 커진다 (${NEST.K.deep.risk.map(r => Math.round(r * 100) + '%').join(' → ')}). 들키면 그 밤에 바로 내려온다.</p>`, btn('close', { v: 'go' }, '뚫는다', 'pri') + closeBtn('아직')));
   if (v !== 'go' || !G || !G.sealed) return;
-  const r = NEST.breach(G); if (G.tut != null) { G.guest = null; G.march.tonight = { vill: 'field', settle: false, thin: true }; }
+  const r = NEST.breach(G); FX.breach(); if (G.tut != null) { G.guest = null; G.march.tonight = { vill: 'field', settle: false, thin: true }; }
   UI.sel = null; UI.confirmEnd = false; busy = true; setScreen('surface'); render(); await revealWorld(false); busy = false; saveRun(); render(); toast(r);
 }
 async function morningFlow() {
-  busy = true; render();
+  busy = true; render(); typeof traceLive === 'function' && traceLive({ start: G.day === 1 });
   const A = NEST.K.act, sc = { [A + 1]: 'act2', [2 * A + 1]: 'act3', [3 * A + 1]: 'act4', [4 * A + 1]: 'act5', [NEST.K.days]: 'last' }[G.day]; if (sc && !G.story && G.sceneDay !== G.day) { G.sceneDay = G.day; await scene(STORY[sc].concat(G.day === NEST.OMEN_DAY && G.eld ? [E_('그리고 하나 더. 네가 허물 벗는 걸 「' + NEST.ELDER[G.eld.id].name + '」이(가) 봤어. 너보다 훨씬 먼저 다 자란 옛 것이야.'), E_('밤마다 그것이 뒤척이면 다음 날의 규칙이 하나 바뀐다. 좋아하는 짓을 하면 좋은 쪽만, 싫어하는 짓을 하면 나쁜 쪽만 와. 나쁜 쪽은 신앙을 바치면 달랠 수 있어.')] : [])); }
   saveRun(); busy = false; render();
   if (G.story) { await storyBeats(); return; }
@@ -882,9 +891,9 @@ async function endDay() {
   const st = NEST.settle(G, rep); checkFeats();
   ST.ents = null; ST.hud = null; ST.skip = false; ST.focus = null; setNight(false); setScreen('under'); render(); typeof music === 'function' && music('day');
   sfx(rep && rep.result !== 'repel' ? 'down' : 'coin');
-  await modal(settleHtml(rep, st, day));
+  { const firstCap = rep && rep.captives && rep.captives.length && G.stats.captives === rep.captives.length, pm = modal(settleHtml(rep, st, day)); if (firstCap) setTimeout(() => FX.captive(document.querySelector('#modal .card')), 140); await pm; }
   if (st.found && !G.over) await revealWorld(true);
-  if (st.evolved) { sfx('evo'); ST.flash = now() + 300; await modal(evoHtml(st, before)); }
+  if (st.evolved) { sfx('evo'); const pm = modal(evoHtml(st, before)); FX.molt(ASPCOL[G.slime.main]); await pm; }
   if (rep && rep.result === 'stolen' && rep.fell) await scene(rep.lives > 1 ? (rep.fell === 1 ? STORY.fell : STORY.fell.slice(0, 2)) : rep.fell === 1 ? STORY.fell.slice(0, 2).concat(STORY.fell2) : STORY.fell2);
   if (G.over) return finishRun();
   busy = false; saveRun(); morningFlow();
@@ -905,7 +914,7 @@ async function finishRun() {
   G.kin.forEach(m => { const r = m.rid && META.roster.find(x => x.rid === m.rid); if (!r) return; const lv = Math.min(ROSTER_LV, Math.max(r.lv, Math.floor((r.lv + m.lv) / 2))); if (lv > r.lv) UI.grown.push(rosterName(r) + ' Lv' + r.lv + ' → ' + lv); r.lv = lv; r.skill = m.skill; r.stance = m.stance; delete r.parts; r.evo = Math.max(NEST.stageOf(r), NEST.stageOf(m)); if (m.secret) r.secret = m.secret; r.runs = (r.runs || 0) + 1; });
   checkFeats(); (UI.featNew || []).forEach(f => { if (f[3] !== '별가루' && !f[3].includes('별자리')) unlocked.push(f[3] + ' (흔적 「' + f[1] + '」)'); }); UI.featNew = []; UI.featMsg = '';
   rollSign(); saveMeta(); cloudSubmit(sc, win); sfx(win ? 'evo' : 'down');
-  { typeof music === 'function' && music(G.over.win ? 'win' : 'lose'); UI.tab.result = null; UI.endSc = sc; const pr = openM(() => resultHtml(sc, unlocked), true); modalKind = 'result'; startEnding(sc); await pr; UI.endSc = null; }
+  { typeof music === 'function' && music(G.over.win ? 'win' : 'lose'); typeof traceEnd === 'function' && traceEnd(G.over.win ? 'win' : 'lose', { why: G.over.why || '', score: sc.total }); UI.tab.result = null; UI.endSc = sc; const pr = openM(() => resultHtml(sc, unlocked), true); modalKind = 'result'; startEnding(sc); FX.end(!!G.over.win); await pr; UI.endSc = null; }
   const ks = G.kin.filter(m => m.kind !== 'spawn' && !m.rid), room = Math.min(2, ROSTER_MAX - META.roster.length);
   if (ks.length && room > 0) {
     const pickd = []; UI.legacy = pickd; UI.legacyMax = room; for (;;) { const p = modal(legacyHtml(pickd), true); modalKind = 'legacy'; const v = await p; if (v !== 'redraw') break; }
@@ -940,7 +949,7 @@ function onAction(el) {
   if (a === 'release') { if (!el.dataset.sure) { el.dataset.sure = 1; el.textContent = '정말 보낸다'; return; } META.roster = META.roster.filter(r => r.rid !== num('id')); META.dust += 20; saveMeta(); UI.drawRes = null; redrawM(); return; }
   if (a === 'share') { try { navigator.clipboard.writeText(d.v).then(() => { el.textContent = '복사했다'; }, () => { el.textContent = '복사하지 못했다'; }); } catch (e) { el.textContent = '복사하지 못했다'; } return; }
   if (a === 'settings') return void openM(settingsHtml, false);
-  if (a === 'set') { if (d.k === 'sound') META.sound = d.v === '1'; if (d.k === 'music') { META.music = d.v === '1'; typeof musicSet === 'function' && musicSet(META.music); } if (d.k === 'pause') META.pause = d.v; if (d.k === 'open') { META.openAll = d.v === '1'; if (G) render(); } saveMeta(); sfx('click'); redrawM(); return; }
+  if (a === 'set') { if (d.k === 'sound') META.sound = d.v === '1'; if (d.k === 'shake') META.shake = d.v === '1'; if (d.k === 'trace') META.trace = d.v === '1'; if (d.k === 'music') { META.music = d.v === '1'; typeof musicSet === 'function' && musicSet(META.music); } if (d.k === 'pause') META.pause = d.v; if (d.k === 'open') { META.openAll = d.v === '1'; if (G) render(); } saveMeta(); sfx('click'); redrawM(); return; }
   if (a === 'wipe') { if (el.dataset.sure) { store.del('meta'); store.del('run'); META = META0(); closeModal(); if (!G) showTitle(); } else { el.dataset.sure = 1; el.textContent = '정말 지운다'; } return; }
   if (a === 'new') return void newRun();
   if (a === 'story') return void storyMenu();
@@ -984,7 +993,7 @@ function onAction(el) {
   if (a === 'accept') return void act(NEST.accept, num('i'));
   if (a === 'dismiss') { if (el.dataset.sure) { act(NEST.dismiss, num('id')); closeModal(); } else { el.dataset.sure = 1; el.textContent = '정말 삼킨다'; } return; }
   if (a === 'place') return void act(NEST.moveKin, num('id'), d.loc === 'bench' ? null : d.loc === 'core' ? 'core' : +d.loc);
-  if (a === 'kinevo') { const r = act(NEST.evolveKin, num('id'), num('s') === 1); if (r.ok) { if (r.secret) { const m = G.kin.find(x => x.id === num('id')); if (m) META.codex.secret[m.kind] = 1; saveMeta(); } sfx('evo'); ST.flash = now() + (r.secret ? 450 : 200); } return; }
+  if (a === 'kinevo') { const m0 = G.kin.find(x => x.id === num('id')), bimg = m0 ? kinImgM(m0, 56) : ''; const r = act(NEST.evolveKin, num('id'), num('s') === 1); if (r.ok) { const m = G.kin.find(x => x.id === num('id')); if (r.secret && m) { META.codex.secret[m.kind] = 1; saveMeta(); } if (m) FX.kinEvo(m, bimg, !!r.secret); } return; }
   if (a === 'skill') return void act(NEST.setSkill, num('id'), num('i'));
   if (a === 'stance') return void act(NEST.setStance, num('id'), d.v);
   if (a === 'train') return void act(NEST.train, d.loc === 'core' ? 'core' : +d.loc, num('amt'));

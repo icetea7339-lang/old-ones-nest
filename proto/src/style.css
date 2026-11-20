@@ -392,3 +392,34 @@ h3, .h3, .tab, .btn, .btn.sm, .sec, .opt b, .pick6 .btn b, .pick5 .btn b, .capro
 .storylist .btn.opt { text-align: left; }
 .storylist .btn.opt small { display: block; }
 @media (max-width: 760px) { #right.open #coach2 .goals { display: none; } }
+/* 결정적 순간의 연출 (fx.js). 움직임 줄이기를 원하면 흔들림 없이 짧게만 */
+#fxlayer { position: fixed; inset: 0; pointer-events: none; z-index: 90; }
+#fxcv { position: absolute; inset: 0; width: 100%; height: 100%; }
+#fxlayer::before { content: ''; position: absolute; inset: 0; background: var(--fxc, #fff3a088); opacity: 0; }
+#fxlayer.fl::before { animation: fxfl var(--fxd, 300ms) ease-out forwards; }
+@keyframes fxfl { 0% { opacity: 1; } 100% { opacity: 0; } }
+body.fx-shake1 #game, body.fx-shake1 #modal .sheet { animation: fxsh1 300ms linear; }
+body.fx-shake2 #game, body.fx-shake2 #modal .sheet { animation: fxsh2 500ms linear; }
+@keyframes fxsh1 { 0%, 100% { transform: none; } 20% { transform: translate(-3px, 2px); } 40% { transform: translate(3px, -2px); } 60% { transform: translate(-2px, -1px); } 80% { transform: translate(2px, 1px); } }
+@keyframes fxsh2 { 0%, 100% { transform: none; } 10% { transform: translate(-6px, 3px); } 25% { transform: translate(6px, -4px); } 40% { transform: translate(-5px, -2px); } 55% { transform: translate(4px, 3px); } 70% { transform: translate(-3px, 1px); } 85% { transform: translate(2px, -1px); } }
+.fx-morph { position: fixed; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; background: radial-gradient(circle, color-mix(in srgb, var(--mc) 28%, #0b0c16f0) 0%, #0b0c16f0 70%); pointer-events: none; z-index: 5; animation: fxmo 1050ms ease forwards; border-radius: inherit; }
+.fx-morph.strong { animation-duration: 1200ms; }
+.fx-morph .mm { position: relative; width: 96px; height: 96px; display: grid; place-items: center; }
+.fx-morph .mm > span { position: absolute; inset: 0; display: grid; place-items: center; }
+.fx-morph .mm img, .fx-morph .mm canvas { width: 72px; height: 72px; image-rendering: pixelated; }
+.fx-morph .m0 { animation: fxm0 560ms ease-in forwards; }
+.fx-morph .m1 { opacity: 0; animation: fxm1 520ms 520ms cubic-bezier(.2, 1.6, .4, 1) forwards; }
+.fx-morph .mr { position: absolute; inset: 8px; border: 3px solid var(--mc); border-radius: 50%; opacity: 0; animation: fxmr 600ms 480ms ease-out forwards; }
+.fx-morph .mt { color: var(--mc); font-size: 15px; font-weight: 700; opacity: 0; animation: fxm1 400ms 600ms ease forwards; text-align: center; padding: 0 10px; }
+.fx-morph.strong .mr { border-width: 4px; box-shadow: 0 0 18px var(--mc); }
+@keyframes fxmo { 0% { opacity: 0; } 10% { opacity: 1; } 85% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes fxm0 { 0% { filter: none; transform: scale(1); } 45% { filter: brightness(0) drop-shadow(0 0 6px var(--mc)); transform: scale(1.08); } 70% { filter: brightness(0) drop-shadow(0 0 12px var(--mc)); transform: scale(.94); } 100% { filter: brightness(0) drop-shadow(0 0 18px var(--mc)); transform: scale(1.15); opacity: 0; } }
+@keyframes fxm1 { 0% { opacity: 0; transform: scale(.6); } 100% { opacity: 1; transform: scale(1); } }
+@keyframes fxmr { 0% { opacity: 1; transform: scale(.4); } 100% { opacity: 0; transform: scale(1.6); } }
+.morphrow.fx-run > :first-child { animation: fxrow0 900ms ease forwards; }
+.morphrow.fx-run > :last-child { opacity: 0; animation: fxm1 520ms 520ms cubic-bezier(.2, 1.6, .4, 1) forwards; }
+@keyframes fxrow0 { 0% { filter: none; } 50% { filter: brightness(0) drop-shadow(0 0 10px #fff3a0); } 100% { filter: brightness(.6) grayscale(1); opacity: .55; } }
+.fx-done, .fx-done * { animation-duration: 1ms !important; animation-delay: 0ms !important; }
+.fx-morph.fx-done { display: none; }
+@media (prefers-reduced-motion: reduce) { body.fx-shake1 #game, body.fx-shake2 #game, body.fx-shake1 #modal .sheet, body.fx-shake2 #modal .sheet { animation: none; } }
+#modal .sheet { position: relative; }

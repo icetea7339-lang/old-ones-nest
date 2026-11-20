@@ -11,7 +11,7 @@ const VPOS = { gaet: { x: 92, y: 214 }, field: { x: 258, y: 146 }, bell: { x: 48
 const PPOS = [{ x: 244, y: 348 }, { x: 480, y: 322 }, { x: 716, y: 348 }], CAVE = { x: 480, y: 486 };
 const SPOS = [{ x: 120, y: 440 }, { x: 362, y: 424 }, { x: 600, y: 424 }, { x: 842, y: 440 }];
 const ST = { screen: 'under', p: 1, mode: 'day', ents: null, defs: {}, floats: [], sparks: [], cam: { x: 0, tx: 0 }, camMem: { surface: 240, under: 0 }, viewW: W, ox: 0, fm: 1, fire: {}, sanfx: {}, shake: 0, flash: 0, speed: 1, skip: false, label: '', hud: null, hover: null, focus: null, march: null };
-const now = () => performance.now();
+const now = () => ST.freezeAt || performance.now() - (ST.debt || 0);
 function rect(x, col, a, b, w, h) { x.fillStyle = col; x.fillRect(Math.round(a), Math.round(b), Math.round(w), Math.round(h)); }
 function txt(x, s, px, py, col, size, align) { const z = size || 13, sz = z <= 20 ? Math.round(z * ST.fm) : z; x.font = sz + 'px "NestPix", "Do Hyeon", "Malgun Gothic", sans-serif'; x.textAlign = align || 'left'; x.textBaseline = 'top'; x.fillStyle = '#0b0c16'; x.fillText(s, px + 1, py + 1); x.fillStyle = col || '#ece6d6'; x.fillText(s, px, py); }
 function tagL(x, s, px, py, col, size, accent) { const z = Math.round((size || 13) * ST.fm); x.font = z + 'px "NestPix", "Do Hyeon", "Malgun Gothic", sans-serif'; const w = x.measureText(s).width + 12; rect(x, '#07050cd0', px - 4, py - 3, w, z + 7); if (accent) rect(x, accent, px - 4, py - 3, 2, z + 7); txt(x, s, px + 2, py, col, size); }
@@ -186,16 +186,19 @@ function drawRoom(x, c, i, r, t) {
   const bead = (cx, cy, col) => { disc(x, mixc(col, '#000000', 0.5), cx, cy, 5); disc(x, col, cx, cy - 1, 4); rect(x, mixc(col, '#ffffff', 0.6), cx - 3, cy - 4, 2, 2); };
   const dots = (x0, y0, x1, y1, col) => { const n = Math.max(1, Math.round(Math.hypot(x1 - x0, y1 - y0) / 5)); for (let k = 1; k < n; k++) rect(x, col, x0 + (x1 - x0) * k / n, y0 + (y1 - y0) * k / n, 2, 2); };
   // 문턱: 엄니 둘이 마주 휘어 낮은 문을 이룬다. 그 사이를 지나야 한다
-  if (type === 'post') { tusk(mx - 46, 46, 1, 8); tusk(mx - 4, 46, -1, 8); rect(x, BD, mx - 44, fy - 2, 44, 2); thread(mx - 23, fy - 50, fy - 42, SN); bead(mx - 22, fy - 38, '#5b9bff'); }
+  if (type === 'trap') { for (let n = 0; n < 6; n++) { const px = r.x + 22 + n * 24; rect(x, '#2a2430', px, fy - 3, 20, 3); rect(x, (Math.floor(t / 900) + n) % 6 === 0 ? '#e8c030' : '#5a4a3a', px + 7, fy - 3, 6, 1); } for (const sx of [r.x + 10, r.x + r.w - 20]) { skull(sx + 4, fy - 6); } }
+  if (type === 'post') { tusk(mx - 64, 74, 1, 11); tusk(mx + 6, 74, -1, 11); rect(x, BD, mx - 60, fy - 3, 120, 3); for (let n = 0; n < 7; n++) { const vx = mx - 27 + n * 9; rect(x, BD, vx, fy - 82, 7, 6); rect(x, BN, vx + 1, fy - 82, 5, 4); rect(x, BH, vx + 1, fy - 82, 2, 1); }
+    for (let n = 0; n < 4; n++) { const cx = mx - 21 + n * 14, sw = Math.round(Math.sin(t / 520 + n) * 2); thread(cx, fy - 76, fy - 62 - (n % 2) * 6, SN); rect(x, BN, cx - 1 + sw, fy - 62 - (n % 2) * 6, 3, 8); rect(x, BH, cx - 1 + sw, fy - 62 - (n % 2) * 6, 1, 3); } eyeball(mx - 1, fy - 38, 7, '#5b9bff', Math.round(Math.sin(t / 900) * 2), Math.sin(t / 2600) > 0.93); }
   // 싸움 굴: 벽에 발톱 자국, 바닥에 이빨 그루터기, 꼬챙이에 꿴 머리 하나
   const slashes = (sx, sy, col) => { for (let q = 0; q < 3; q++) for (let n = 0; n < 9; n++) { rect(x, '#0b0911', sx + q * 8 + n * 2, sy + n * 3, 3, 3); rect(x, col, sx + q * 8 + n * 2 + 2, sy + n * 3, 1, 3); } };
   const stubs = (x0, n, gap) => { for (let q = 0; q < n; q++) { const hh = 4 + (q % 3) * 2; rect(x, BD, x0 + q * gap, fy - hh, 4, hh); rect(x, BN, x0 + q * gap, fy - hh, 2, hh); rect(x, BH, x0 + q * gap, fy - hh, 2, 2); } };
-  if (type === 'hall') { slashes(mx - 60, r.y + 30, '#b8303a'); slashes(mx + 6, r.y + 26, '#b8303a'); stubs(r.x + 18, 9, 18); rect(x, BD, mx - 26, fy - 34, 3, 34); rect(x, BN, mx - 26, fy - 34, 1, 34); skull(mx - 24, fy - 38); }
+  if (type === 'hall') { x.fillStyle = '#5a1a22'; x.beginPath(); x.ellipse(mx, fy - 1, 64, 6, 0, 0, 7); x.fill(); x.fillStyle = '#8a2430'; x.beginPath(); x.ellipse(mx - 6, fy - 1, 40, 3.5, 0, 0, 7); x.fill(); slashes(mx - 60, r.y + 30, '#b8303a'); slashes(mx + 6, r.y + 26, '#b8303a'); stubs(r.x + 18, 9, 18);
+    for (const [sx, h, lean] of [[mx - 40, 44, -3], [mx + 34, 52, 3]]) { for (let n = 0; n < h; n += 2) { rect(x, BD, sx + Math.round(lean * n / h), fy - n - 2, 3, 2); rect(x, BN, sx + Math.round(lean * n / h), fy - n - 2, 1, 2); } rect(x, BH, sx + lean - 2, fy - h - 8, 7, 3); rect(x, BH, sx + lean - 1, fy - h - 11, 5, 3); rect(x, BH, sx + lean, fy - h - 13, 3, 2); } skull(mx - 4, fy - 12); }
   // 큰 싸움 굴: 갈비가 천장까지 맞닿은 아치, 머리 무더기
   if (type === 'bighall') { tusk(r.x + 16, 78, 1, 12); tusk(r.x + r.w - 28, 78, -1, 12); tusk(r.x + 44, 56, 1, 8); tusk(r.x + r.w - 52, 56, -1, 8); slashes(mx - 18, r.y + 28, '#e8c030'); skull(mx - 14, fy - 6); skull(mx + 2, fy - 6); skull(mx - 6, fy - 16); bead(mx - 6, r.y + 22, '#e8c030'); }
   // 매복굴: 거미줄 친 돌무더기. 틈에서 눈이 내다본다
   if (type === 'ambush') { const ax = r.x + r.w - 104; disc(x, '#1a1622', ax + 8, fy - 4, 12); disc(x, '#3a3444', ax + 6, fy - 6, 10); disc(x, '#1a1622', ax + 26, fy - 8, 16); disc(x, '#4a4458', ax + 24, fy - 10, 14); disc(x, '#1a1622', ax + 44, fy - 2, 10); disc(x, '#3a3444', ax + 42, fy - 4, 8); rect(x, '#0b0911', ax + 14, fy - 12, 20, 6); dots(ax - 6, r.y + 14, ax + 20, fy - 22, SK1); dots(ax + 52, r.y + 14, ax + 30, fy - 24, SK1); dots(ax, fy - 12, ax + 46, fy - 10, SK0); if (Math.floor(t / 700 + i) % 4) { rect(x, '#9fe86a', ax + 16, fy - 10, 3, 2); rect(x, '#9fe86a', ax + 26, fy - 10, 3, 2); } }
-  if (type === 'decoy') { rect(x, SN, mx - 1, fy - 34, 2, 14); glow(x, '#e8c030', mx, fy - 14, 26, 0.35 + 0.1 * Math.sin(t / 300)); disc(x, '#8a6a1c', mx, fy - 12, 12); disc(x, '#e8c030', mx, fy - 13, 10); rect(x, '#fff3a0', mx - 6, fy - 20, 4, 4); }
+  if (type === 'decoy') { { const sw = Math.sin(t / 700) * 4; for (let n = 0; n < 9; n++) { const k = n / 8; rect(x, '#6a4a72', Math.round(mx + 30 - k * 30 + Math.sin(k * 3) * 8 + sw * k), r.y + 8 + n * 7, 3, 8); rect(x, '#9a72a2', Math.round(mx + 30 - k * 30 + Math.sin(k * 3) * 8 + sw * k), r.y + 8 + n * 7, 1, 8); } glow(x, '#fff3a0', mx + sw, r.y + 70, 18, 0.45 + 0.2 * Math.sin(t / 260)); disc(x, '#e8c030', mx + sw, r.y + 70, 5); disc(x, '#fff3a0', mx + sw - 1, r.y + 69, 3); } for (let n = 0; n < 12; n++) { const cx = mx - 44 + (n * 17) % 64 + (n > 5 ? 26 : 0), cy = fy - 3 - (n % 4) * 3; disc(x, '#8a6a1c', cx, cy, 4); disc(x, n % 2 ? '#e8c030' : '#d8dcec', cx, cy - 1, 3); if ((Math.floor(t / 260) + n) % 7 === 0) rect(x, '#ffffff', cx - 1, cy - 6, 2, 4); } rect(x, SN, mx - 1, fy - 34, 2, 14); glow(x, '#e8c030', mx, fy - 14, 26, 0.35 + 0.1 * Math.sin(t / 300)); disc(x, '#8a6a1c', mx, fy - 12, 12); disc(x, '#e8c030', mx, fy - 13, 10); rect(x, '#fff3a0', mx - 6, fy - 20, 4, 4); }
   if (type === 'shop') { disc(x, '#5a2a34', mx, fy + 2, 30); rect(x, '#5a2a34', mx - 30, fy - 4, 60, 6); for (let n = 0; n < 3; n++) { const sx = mx - 22 + n * 22, sy = fy - 16 - (n === 1 ? 8 : 0); disc(x, '#b85a6a', sx, sy, 9); disc(x, '#e89aa8', sx, sy - 1, 7); disc(x, '#3a1418', sx, sy, 3); } rect(x, '#e8c030', mx - 2 + Math.round(Math.sin(t / 250) * 8), fy - 6 + (Math.floor(t / 200) % 3) * 2, 2, 4); }
   // 고치 굴: 잡힌 것은 실에 감겨 천장에 매달린다. 빈 고치는 홀쭉하다
   if (type === 'prison') { const n = Math.min(4, G.prison.length); dots(r.x + 30, r.y + 14, r.x + 58, r.y + 40, SK0); dots(r.x + 30, r.y + 30, r.x + 70, r.y + 16, SK0); dots(r.x + r.w - 20, r.y + 16, r.x + r.w - 46, r.y + 44, SK0); for (let k = 0; k < 4; k++) { const full = k < n, cx = mx - 30 + k * 24; cocoon(cx, r.y + 22 + (k % 2) * 6, full ? 40 : 20, full ? 16 : 8, full, full ? Math.round(Math.sin(t / 600 + k * 1.7) * 1.5) : 0); } }
@@ -206,8 +209,16 @@ function drawRoom(x, c, i, r, t) {
   // 속삭임 굴: 진으로 굳힌 자리 하나, 그 위에서 입이 달린 꼬투리가 속삭인다
   if (type === 'persuade') { ell(x, '#3a2a18', mx - 8, fy, 22, 14, true); ell(x, RS, mx - 9, fy, 19, 12, true); ell(x, RH, mx - 12, fy - 6, 9, 4, true); rect(x, '#3a2a18', mx - 14, fy - 12, 12, 3); for (const d of [-24, 6]) rect(x, RS, mx + d, fy - 2, 3, 2); const px0 = mx + 24, py0 = r.y + 40, open = Math.floor(t / 260) % 3; thread(px0, r.y + 12, py0 - 10, SN); glow(x, '#f0a04a', px0, py0, 24, 0.26); disc(x, '#3a2028', px0, py0, 11); disc(x, '#7a4a52', px0, py0 - 1, 9); rect(x, '#a86a72', px0 - 6, py0 - 7, 4, 2); rect(x, '#12060a', px0 - 6, py0, 12, 2 + open * 2); for (let q = 0; q < 3; q++) rect(x, BH, px0 - 5 + q * 4, py0, 2, 2); for (let q = 0; q < 3; q++) { const ph = ((t / 900) + q / 3) % 1; x.globalAlpha = 1 - ph; rect(x, '#ffe0a0', px0 - 14 - ph * 18, py0 + 8 + ph * 16, 4, 2); x.globalAlpha = 1; } }
   // 달맞이 굴: 천장 틈으로 달빛이 내려와 조개 그릇에 고인다
-  if (type === 'altar') { const ac = ASPCOL[main || G.startAsp], ph = 0.5 + 0.5 * Math.sin(t / 500); rect(x, '#0b0911', mx - 12, r.y + 6, 24, 10); disc(x, '#e8ecff', mx, r.y + 20, 8); disc(x, '#0b0911', mx + 4, r.y + 18, 7); for (let n = 0; n < fy - r.y - 30; n += 4) { const wd = 12 + n * 0.34; rect(x, 'rgba(232,236,255,' + (0.05 + 0.03 * ph) + ')', mx - wd / 2, r.y + 26 + n, wd, 4); } glow(x, ac, mx, fy - 10, 26, 0.3 + 0.15 * ph); rect(x, BD, mx - 20, fy - 6, 40, 6); rect(x, BN, mx - 22, fy - 10, 44, 4); rect(x, BH, mx - 22, fy - 10, 44, 1); rect(x, BD, mx - 14, fy - 2, 28, 2); rect(x, ac, mx - 18, fy - 12, 36, 3); rect(x, mixc(ac, '#ffffff', 0.6), mx - 14 + Math.round(ph * 14), fy - 12, 8, 1); for (let k = 0; k < 3; k++) { const p2 = (t / 1800 + k / 3) % 1; x.globalAlpha = 1 - p2; rect(x, mixc(ac, '#ffffff', 0.5), mx - 10 + k * 10, fy - 16 - p2 * 30, 2, 2); x.globalAlpha = 1; } }
-  if (type === 'pool') { rect(x, '#0c3a50', r.x + 26, fy - 4, r.w - 52, 12); rect(x, '#3fb8d0', r.x + 30, fy - 5 + Math.sin(t / 250) * 1.5, r.w - 60, 9); rect(x, '#9fe8f0', r.x + 50 + (t / 30 % 60), fy - 4, 10, 2); }
+  if (type === 'altar') { const ac = ASPCOL[main || G.startAsp], ph = 0.5 + 0.5 * Math.sin(t / 500); for (const sx of [mx - 58, mx + 44]) { rect(x, '#2a2836', sx, fy - 58, 14, 58); rect(x, '#4a4658', sx + 2, fy - 58, 8, 3); rect(x, '#1a1824', sx + 11, fy - 56, 3, 56); for (let n = 0; n < 4; n++) { const on = Math.sin(t / 400 + n + sx) > 0.2; rect(x, on ? ac : mixc(ac, '#1a1824', 0.7), sx + 4, fy - 50 + n * 11, 5, 6); } } rect(x, '#0b0911', mx - 12, r.y + 6, 24, 10); disc(x, '#e8ecff', mx, r.y + 20, 8); disc(x, '#0b0911', mx + 4, r.y + 18, 7); for (let n = 0; n < fy - r.y - 30; n += 4) { const wd = 12 + n * 0.34; rect(x, 'rgba(232,236,255,' + (0.05 + 0.03 * ph) + ')', mx - wd / 2, r.y + 26 + n, wd, 4); } glow(x, ac, mx, fy - 10, 26, 0.3 + 0.15 * ph); rect(x, BD, mx - 20, fy - 6, 40, 6); rect(x, BN, mx - 22, fy - 10, 44, 4); rect(x, BH, mx - 22, fy - 10, 44, 1); rect(x, BD, mx - 14, fy - 2, 28, 2); rect(x, ac, mx - 18, fy - 12, 36, 3); rect(x, mixc(ac, '#ffffff', 0.6), mx - 14 + Math.round(ph * 14), fy - 12, 8, 1); for (let k = 0; k < 3; k++) { const p2 = (t / 1800 + k / 3) % 1; x.globalAlpha = 1 - p2; rect(x, mixc(ac, '#ffffff', 0.5), mx - 10 + k * 10, fy - 16 - p2 * 30, 2, 2); x.globalAlpha = 1; } }
+  if (type === 'pool') { // 고인 웅덩이: 돌로 두른 깊은 물. 물 밑에서 커다란 눈이 떴다 감는다. 거품이 오른다
+    const L = r.x + 22, Rw = r.w - 44, top = fy - 30, op = Math.sin(t / 1800) > -0.2, lk = Math.round(Math.sin(t / 700) * 5);
+    for (let n = 0; n < 5; n++) { const h = 14 + (n % 2) * 8; rect(x, '#3a3848', L - 8 + n * 3, fy - h, 10, h + 2); rect(x, '#5a5670', L - 7 + n * 3, fy - h, 6, 2); rect(x, '#3a3848', L + Rw - 2 - n * 3, fy - h, 10, h + 2); rect(x, '#5a5670', L + Rw - n * 3, fy - h, 6, 2); }
+    rect(x, '#041822', L, top, Rw, 32); rect(x, '#0a3448', L + 2, top + 2, Rw - 4, 28);
+    disc(x, '#06202e', mx, top + 16, 13); if (op) { disc(x, '#a8e0e0', mx, top + 16, 11); disc(x, '#1a5a70', mx + lk, top + 16, 7); rect(x, '#041822', mx + lk - 1, top + 10, 3, 12); rect(x, '#ffffff', mx + lk - 4, top + 12, 2, 2); } else { rect(x, '#3fb8d0', mx - 11, top + 15, 22, 2); }
+    rect(x, '#3fb8d0', L + 2, top + Math.round(Math.sin(t / 250) * 1.5), Rw - 4, 3); rect(x, '#9fe8f0', L + 10 + (t / 30 % (Rw - 30)), top, 12, 2);
+    for (let n = 0; n < 5; n++) { const ph = ((t / 1600) + n * 0.21) % 1; x.globalAlpha = 1 - ph; rect(x, '#9fe8f0', L + 14 + n * (Rw - 28) / 4, top - ph * 46, 3, 3); x.globalAlpha = 1; }
+    x.globalAlpha = 0.18 + 0.08 * Math.sin(t / 500); rect(x, '#3fb8d0', L, top - 26, Rw, 26); x.globalAlpha = 1;
+  }
   // 물목: 조개 판이 겹쳐 선 목. 사이로 물이 샌다
   if (type === 'sluice') { rect(x, '#0c3a50', mx - 32, fy - 6, 64, 8); rect(x, '#3fb8d0', mx - 30, fy - 6 + Math.sin(t / 250) * 1, 60, 5); for (let q = 0; q < 5; q++) { const cy = r.y + 22 + q * 17, wob = q % 2 ? 2 : -2; disc(x, '#0b1a22', mx + wob, cy, 15); disc(x, '#1f4a5a', mx + wob, cy, 13); disc(x, '#3a6a7a', mx + wob - 1, cy - 2, 10); rect(x, '#7fa8b8', mx + wob - 8, cy - 8, 6, 2); rect(x, '#0b1a22', mx + wob - 10, cy + 6, 20, 2); rect(x, '#9fe8f0', mx + wob - 6 + ((Math.floor(t / 240) + q) % 4) * 3, cy + 8, 2, 4); } for (const [dx, dy] of [[-16, 30], [14, 52], [-14, 70]]) { rect(x, '#cfc8b4', mx + dx, r.y + dy, 4, 4); rect(x, '#0b1a22', mx + dx + 1, r.y + dy + 1, 2, 2); } }
   // 별자리 굴: 벽에 긁어 새긴 별과 그 사이를 이은 금. 책은 없다
@@ -386,7 +397,7 @@ function drawUnder(x, t) {
     x.drawImage(slimeCanvas(G.slime, Math.floor(t / 240)), r.x + r.w - 14 - size, Math.round(floorY(r) - size + sc + Math.sin(t / 400) * 2), size, size);
     const hp = G.slime.hp / NEST.slimeStats(G).hp; if (hp < 0.999) { rect(x, '#0b0c16', r.x + r.w - 15 - size, floorY(r) - size - 9, size + 2, 6); rect(x, '#6fd08c', r.x + r.w - 14 - size, floorY(r) - size - 8, size * hp, 4); }
   }
-  ST.sparks = ST.sparks.filter(s => t - s.t0 < s.dur); ST.sparks.forEach(s => { const k = (t - s.t0) / s.dur; x.globalAlpha = 1 - k; if (s.fx) drawFx(x, s, k); else if (s.ring) { x.strokeStyle = s.col; x.lineWidth = 2; x.beginPath(); x.arc(s.x, s.y, 6 + k * 18, 0, 7); x.stroke(); } else for (let n = 0; n < 6; n++) { const a = n * 1.047 + s.rot, r0 = 4 + k * 6, r1 = 9 + k * 16; x.strokeStyle = s.col; x.lineWidth = 2; x.beginPath(); x.moveTo(s.x + Math.cos(a) * r0, s.y + Math.sin(a) * r0); x.lineTo(s.x + Math.cos(a) * r1, s.y + Math.sin(a) * r1); x.stroke(); } x.globalAlpha = 1; });
+  ST.sparks = ST.sparks.filter(s => t - s.t0 < s.dur); ST.sparks.forEach(s => { const k = (t - s.t0) / s.dur; x.globalAlpha = 1 - k; if (s.fx) drawFx(x, s, k); else if (s.dot) { const dt = t - s.t0; x.globalAlpha = 1 - k * k; rect(x, s.col, Math.round(s.x + s.vx * dt), Math.round(s.y + s.vy * dt + 0.00012 * dt * dt), s.sz, s.sz); } else if (s.ring) { x.strokeStyle = s.col; x.lineWidth = s.r1 ? 3 : 2; x.beginPath(); x.arc(s.x, s.y, 6 + k * (s.r1 || 18), 0, 7); x.stroke(); } else for (let n = 0; n < 6; n++) { const a = n * 1.047 + s.rot, r0 = 4 + k * 6, r1 = 9 + k * 16; x.strokeStyle = s.col; x.lineWidth = 2; x.beginPath(); x.moveTo(s.x + Math.cos(a) * r0, s.y + Math.sin(a) * r0); x.lineTo(s.x + Math.cos(a) * r1, s.y + Math.sin(a) * r1); x.stroke(); } x.globalAlpha = 1; });
   const mark = (loc, col) => { const r = cellRect(locIdx(loc)); x.strokeStyle = col; x.lineWidth = 3; x.strokeRect(r.x + 3.5, r.y + 3.5, r.w - 7, r.h - 7); };
   if (day && ST.hover && ST.hover.t === 'cell' && visible(ST.hover.i) && !(UI.sel && UI.sel.t === 'cell' && UI.sel.i === ST.hover.i)) mark(ST.hover.i, '#ece6d666');
   if (day && UI.sel && UI.sel.t === 'cell') mark(UI.sel.i, '#e8c030');
@@ -457,6 +468,7 @@ function drawVillage(x, v, p, t, night) {
     ell(x, '#3a2a20', p.x + 3, p.y + 12, 9, 9, true); rect(x, '#3a2a20', p.x - 6, p.y + 12, 18, 8); for (let n = 0; n < 3; n++) rect(x, '#6a6478', p.x - 4 + n * 6, p.y + 6, 2, 14);
   }
 }
+const shownVills = () => { const c = G && G.story && NEST.storyOf ? NEST.storyOf(G) : null; return c && c.vname ? NEST.VIDS.filter(v => v in c.vname) : NEST.VIDS; };
 function drawSurface(x, t) {
   const night = ST.mode === 'night'; x.drawImage(surfBgW((G && G.world) || 'fantasy'), 0, 0);
   if (night) { rect(x, 'rgba(8,10,40,.62)', 0, 0, W, H); for (let k = 0; k < 40; k++) rect(x, k % 7 ? '#ffffff' : '#fff3a0', (k * 97) % W, (k * 53) % 200, 2, 2); disc(x, '#e8ecff', 706, 92, 22); disc(x, '#1c1a3e', 716, 86, 18); }
@@ -469,7 +481,7 @@ function drawSurface(x, t) {
     x.globalAlpha = 1; plate(x, '「' + NEST.ELDER[G.eld.id].name + '」', ex, ey + 30, c, 12);
   }
   // 마을
-  NEST.VIDS.forEach(v => {
+  shownVills().forEach(v => {
     const p = VPOS[v], d = NEST.VILL[v], s = G.vill[v], sel = UI.sel && UI.sel.t === 'vill' && UI.sel.v === v, hov = ST.hover && ST.hover.t === 'vill' && ST.hover.v === v;
     if (s.razed) { if (!razedW(x, G && G.world, p, t)) for (let k = 0; k < 5; k++) rect(x, '#4a4a58', p.x - 34 + k * 14, p.y + 8 - (k % 2) * 8, 12, 10 + (k % 2) * 8); for (let k = 0; k < 3; k++) rect(x, '#8a829688', p.x - 10 + k * 8 + Math.sin(t / 300 + k) * 4, p.y - 20 - ((t / 40 + k * 20) % 40), 8, 8); }
     else drawVillageW(x, (G && G.world) || 'fantasy', v, p, t, night);
@@ -530,12 +542,12 @@ function drawStage() {
     ST.cam.y = ST.cam.y || 0; ST.cam.y += (ty - ST.cam.y) * 0.22; if (Math.abs(ty - ST.cam.y) < 0.5) ST.cam.y = ty;
   }
   x.save(); x.translate(Math.round(ST.ox - ST.cam.x), -Math.round(ST.cam.y || 0));
-  if (ST.shake > t) x.translate((Math.random() - 0.5) * 8, (Math.random() - 0.5) * 6);
+  ST.shook = 0; if (ST.shake > t && motionOk()) { const m = ST.shakeMag || 1; ST.shook = m; x.translate((Math.random() - 0.5) * 8 * m, (Math.random() - 0.5) * 6 * m); } else if (ST.shake <= t) ST.shakeMag = 0;
   if (ST.p < 0.999) { x.save(); x.translate(0, Math.round(-H * ST.p)); drawSurface(x, t); x.restore(); }
   if (ST.p > 0.001) { x.save(); x.translate(0, Math.round(H * (1 - ST.p) - (ST.cam.v || 0))); drawUnder(x, t); ST.floats = ST.floats.filter(f => t - f.t0 < 800); ST.floats.forEach(f => { const k = (t - f.t0) / 800; x.globalAlpha = 1 - k; txt(x, f.s, f.x, f.y - k * 26, f.col, f.big ? 20 : 14, 'center'); x.globalAlpha = 1; }); x.restore(); }
   x.restore();
   { const g = x.createRadialGradient(VW / 2, VH / 2, VH * 0.42, VW / 2, VH / 2, Math.max(VW, VH) * 0.78); g.addColorStop(0, 'rgba(5,3,12,0)'); g.addColorStop(1, 'rgba(5,3,12,' + (0.22 + 0.36 * ST.p).toFixed(2) + ')'); x.fillStyle = g; x.fillRect(0, 0, VW + 1, H); }
-  if (ST.flash > t) rect(x, '#ffffff55', 0, 0, VW + 1, VH);
+  if (ST.flash > t) rect(x, ST.flashCol || (motionOk() ? '#ffffff55' : '#ffffff1a'), 0, 0, VW + 1, VH); else ST.flashCol = null;
   if (max > 1 && ST.mode === 'day') { // 좌우로 더 있다는 표시
     x.fillStyle = '#ece6d6'; x.globalAlpha = 0.45 + 0.25 * Math.sin(t / 300); const tri = (px, d) => { x.beginPath(); x.moveTo(px, VH / 2 - 16); x.lineTo(px + d * 14, VH / 2); x.lineTo(px, VH / 2 + 16); x.fill(); };
     if (ST.cam.x > 4) tri(18, -1); if (ST.cam.x < max - 4) tri(VW - 18, 1); x.globalAlpha = 1;
@@ -561,7 +573,7 @@ function loop() { try { if (!$('title').hidden) drawTitle(); else drawStage(); }
 function hitTest(cx, cy) {
   if (ST.screen === 'under') { const col = Math.floor((cx - GX) / CW), row = Math.floor((cy - GY) / CH), er = cellRect(G.ent); if (cy < GY && cx > er.x + 20 && cx < er.x + 200) return G.sealed ? null : { t: 'up' }; if (col < 0 || col >= G.cols || row < 0 || row >= G.rows) return null; return visible(row * G.cols + col) ? { t: 'cell', i: row * G.cols + col } : null; }   // 보이지 않는 칸은 누를 수 없다
   if (G.spot) { const p = SPOS[G.spot.pos]; if (Math.abs(cx - p.x) < 48 && cy > p.y - 46 && cy < p.y + 34) return { t: 'spot' }; }
-  for (const v of NEST.VIDS) { const p = VPOS[v]; if (cx > p.x - 48 && cx < p.x + 60 && cy > p.y - 30 && cy < p.y + 72) return { t: 'vill', v }; }
+  for (const v of shownVills()) { const p = VPOS[v]; if (cx > p.x - 48 && cx < p.x + 60 && cy > p.y - 30 && cy < p.y + 72) return { t: 'vill', v }; }
   for (let k = 0; k < 3; k++) { const p = PPOS[k]; if (Math.abs(cx - p.x) < 48 && Math.abs(cy - p.y) < 30) return { t: 'plot', p: k }; }
   if (Math.abs(cx - CAVE.x) < 76 && cy > CAVE.y - 44) return { t: 'down' };
   return null;
@@ -586,13 +598,16 @@ function applyHit(h) {
   if (h.k) ST.sparks.push({ x: e.x + size / 2, y: e.y + size / 2, t0: now(), dur: 420, col: '#ece6d6', ring: true });
   if (h.d > 0) ST.floats.push({ x: e.x + size / 2, y: e.y - 6, s: '-' + h.d, col: e.side === 'inv' ? '#fff3a0' : '#ff9a92', t0: now(), big: h.tag === 'coin' });
   if (h.sd > 0) ST.floats.push({ x: e.x + size / 2 + 12, y: e.y - 18, s: '정신 -' + h.sd, col: '#c8a8ff', t0: now() });
-  if (h.k) { if (e.side === 'inv' || e.wall || e.temp) { e.dead = now(); sfx('die'); } else if (e.id !== 's') e.down = true; }
+  if (h.k) { if (e.side === 'inv' || e.wall || e.temp) { e.dead = now(); sfx('die'); if (e.side === 'inv') ST.stopP = FX.kill(e); } else if (e.id !== 's') { e.down = true; FX.kinDown(e); } }
 }
 async function playEvents(ev, from) {
-  const E = ST.ents, shaft = { x: cellRect(G.ent).x + 32, y: -50 };
+  const bp = G.sealed && NEST.beastPath ? NEST.beastPath(G) : null, far = bp && bp.length ? cellRect(bp[0]) : null, E = ST.ents, shaft = far ? { x: far.x + 24, y: floorY(far) - 36 } : { x: cellRect(G.ent).x + 32, y: -50 };
   for (let n = from; n < ev.length; n++) {
     const e = ev[n]; if (e.txt) nlog(e.txt, e.t === 'fx' && ['kneel', 'flee', 'infight'].includes(e.k) ? 'mad' : e.t === 'fx' && ['hand', 'spell'].includes(e.k) ? 'hand' : '');
-    if (e.t === 'march') {
+    if (e.t === 'march' && far) {
+      e.party.forEach((u, j) => { E[u.uid] = { id: u.uid, kind: u.kind, side: 'inv', can: invCanvas(u.kind), x: shaft.x + j * 10, y: shaft.y, hp: 1, sp: 1, scale: S }; });
+      setScreen('under'); camCell(bp[0]); ST.label = e.txt || ''; burst(far.x + far.w / 2, floorY(far) - 10, ['#8a6a4a', '#5a4a3a', '#ece6d6'], 18, 0.9, 600); jolt(240, 1); sfx('trap'); await wait(900); ST.label = '';
+    } else if (e.t === 'march') {
       UI.sel = null; setScreen('surface'); $('nparty').innerHTML = e.party.map(u => invImg(u.kind, 32)).join(''); ST.label = NEST.VILL[e.vill].name + ' · ' + e.gname + ' ' + e.party.length + '명'; await wait(700);
       ST.march = { t0: now(), dur: 1300 / ST.speed, est: { vill: e.vill, count: e.party.length, kinds: e.party.map(u => u.kind), grade: 1 } }; await wait(1350); ST.label = '';
       e.party.forEach((u, j) => { E[u.uid] = { id: u.uid, kind: u.kind, side: 'inv', can: invCanvas(u.kind), x: shaft.x, y: shaft.y - j * 14, hp: 1, sp: 1, scale: u.kind === 'sealer' ? 3 : S }; });
@@ -605,7 +620,7 @@ async function playEvents(ev, from) {
       const idx = e.room != null ? locIdx(e.room) : null; if (idx != null) camCell(idx);
       if (e.kind === 'san') { if (idx != null) ST.sanfx[idx] = now(); sfx('mad'); } else { if (idx != null) ST.fire[idx] = now(); sfx('trap'); }
       if (e.kind === 'boom' || e.kind === 'bite') { ST.shake = now() + 300; ST.flash = now() + 100; }
-      e.hits.forEach(applyHit); await wait(430);
+      e.hits.forEach(applyHit); if (ST.stopP) { await ST.stopP; ST.stopP = null; } await wait(430);
     } else if (e.t === 'round') {
       if (e.room != null) camCell(locIdx(e.room));
       for (const side of ['inv', 'def']) {
@@ -614,7 +629,7 @@ async function playEvents(ev, from) {
         const gap = Math.min(55, 230 / hs.length);
         if (hs.some(h => h.tag === 'aoe')) ST.shake = now() + 120;
         sfx(hs.some(h => h.sd > 0) && !hs.some(h => h.d > 0) ? 'mad' : 'hit');
-        for (let k = 0; k < hs.length; k++) { const h = hs[k], a = E[h.a], b = E[h.b]; if (a && b && !h.tag && !a.wall && !['shot', 'beam'].includes(FXKIND[a.kind])) a.lunge = { t0: now(), dx: Math.sign(b.x - a.x) * 16 }; applyHit(h); if (a && b && !a.wall) atkFx(a, b, h); if (!h.tag && k < hs.length - 1 && hs.length > 1) await wait(gap); }
+        for (let k = 0; k < hs.length; k++) { const h = hs[k], a = E[h.a], b = E[h.b]; if (a && b && !h.tag && !a.wall && !['shot', 'beam'].includes(FXKIND[a.kind])) a.lunge = { t0: now(), dx: Math.sign(b.x - a.x) * 16 }; applyHit(h); if (ST.stopP) { await ST.stopP; ST.stopP = null; } if (a && b && !a.wall) atkFx(a, b, h); if (!h.tag && k < hs.length - 1 && hs.length > 1) await wait(gap); }
         await wait(140);
       }
     } else if (e.t === 'fx') {
@@ -646,7 +661,7 @@ async function playEvents(ev, from) {
       if (e.amt > 0) { const r = cellRect(G.core); ST.floats.push({ x: r.x + r.w / 2, y: r.y + 40, s: '-' + e.amt + '방울', col: '#ff5f57', t0: now(), big: true }); sfx('down'); }
       await wait(600);
     } else if (e.t === 'end') {
-      ST.label = { repel: '격퇴!', stolen: '쓰러졌다… 진액을 털렸다', core: '본체가 쓰러졌다' }[e.result]; sfx(e.result === 'repel' ? 'up' : 'down'); await wait(1000); ST.label = '';
+      ST.label = { repel: '격퇴!', stolen: '쓰러졌다… 진액을 털렸다', core: '본체가 쓰러졌다' }[e.result]; sfx(e.result === 'repel' ? 'up' : 'down'); FX.nightEnd(e.result); await wait(1000); ST.label = '';
     }
   }
   return ev.length;

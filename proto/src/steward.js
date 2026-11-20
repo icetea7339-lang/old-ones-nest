@@ -37,7 +37,7 @@ const STEWARD = (function () {
     // 비밀 진화를 노린다: 한도가 가까운 자란 것과 그 짝을 같은 자리에 붙든다 (SECRET=0 이면 하지 않는다)
     task('짝 맞추기', A => {
       if (opt.secret === false || G.sealed) return;
-      G.kin.filter(m => S.stageOf(m) === 1 && S.SECRET[m.kind] && m.lv >= S.lvCap(m) - 3 && !m.hurt && m.loc !== null).forEach(m => {
+      G.kin.filter(m => S.stageOf(m) < 2 && S.SECRET[m.kind] && !m.hurt && m.loc !== null).sort((x, y) => y.lv - x.lv).forEach(m => {
         if (S.secretReady(G, m) || (m.pin && G.kin.some(x => x !== m && x.kind === S.secretPartner(m) && x.loc === m.loc && x.pin))) return;
         const p = G.kin.filter(x => x !== m && x.kind === S.secretPartner(m) && !x.hurt && x.loc !== null).sort((x, y) => (y.loc === m.loc) - (x.loc === m.loc))[0]; if (!p) return;
         if (S.pinned(G) + (m.pin ? 0 : 1) + (p.pin ? 0 : 1) > S.pinCap(G)) return;
@@ -83,7 +83,7 @@ const STEWARD = (function () {
     if (st.only) return o[st.only] && (big || st.only === 'mark') ? { k: st.only, u: ctx.tough, from: ctx.from[0] } : { k: 'none' };
     if (!big) return o.cocoon && n >= 2 ? { k: 'cocoon', u: o.cocoon.targets[0] } : { k: 'none' };
     const strong = () => (ctx.units || []).slice().sort((a, b) => b.atk - a.atk)[0];
-    if (o.guard && n >= 5 && def && !core) return { k: 'guard' };
+    if (o.guard && n >= 4 && def && !core) return { k: 'guard' };
     if (o.bite) return { k: 'bite', u: ctx.tough };
     if (o.phantom) return { k: 'phantom' };
     if (o.halo && (def || core)) return { k: 'halo' };

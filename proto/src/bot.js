@@ -7,6 +7,10 @@ if (process.env.BANSP) setTimeout(() => 0, 0);
 const N = +process.argv[2] || 200, MODE = process.argv[3] || 'mix';
 if (process.env.KSET) { const o = JSON.parse(process.env.KSET); for (const k in o) S.K[k] = typeof o[k] === 'object' ? Object.assign({}, S.K[k], o[k]) : o[k]; }   // 실험: 상수 바꿔 끼우기
 
+// 재기만 하는 스위치: ANYROOM=1 징조 전용 방도 아무 판에서나 짓게, FORCE_KNOW=id,id 그 주문을 첫날부터 안다
+if (process.env.ANYROOM) S.K.anyRoom = true;
+if (process.env.ROOMSET) { const o = JSON.parse(process.env.ROOMSET); for (const k in o) Object.assign(S.ROOM[k], o[k]); }   // 실험: 방 표 바꿔 끼우기
+if (process.env.FORCE_KNOW) S.K.know = process.env.FORCE_KNOW.split(',');
 const STRATS = {
   mix: { captive: 'mix', raid: 1, spend: 1 },        // 사람이 할 법한 평범한 운영
   ransom: { captive: 'ransom', raid: 1, spend: 1 },  // 포로는 전부 몸값
@@ -53,9 +57,11 @@ function run(name, n, diff, force) {
     o.gold += G.gold; o.score += sc.total; o.grades[sc.grade] = (o.grades[sc.grade] || 0) + 1; o.stage[G.slime.stage]++; o.forms[S.formName(G)] = 1;
     for (const k in G.stats.income) o.inc[k] = (o.inc[k] || 0) + G.stats.income[k];
     ['gifts', 'banes', 'bred', 'preached', 'rites'].forEach(k => { o['x_' + k] = (o['x_' + k] || 0) + (G.stats[k] || 0); }); o.godsum = o.godsum || {}; for (const g in (G.gods || {})) o.godsum[g] = (o.godsum[g] || 0) + G.gods[g];
+    o.rm = o.rm || {}; o.rmw = o.rmw || {}; new Set(G.cells.filter(x => x.dug).map(x => x.type)).forEach(t => { o.rm[t] = (o.rm[t] || 0) + 1; if (G.over && G.over.win) o.rmw[t] = (o.rmw[t] || 0) + 1; });
     o.sp = o.sp || {}; for (const k in (G.stats.spells || {})) o.sp[k] = (o.sp[k] || 0) + G.stats.spells[k];
     o.kills += G.stats.kills; o.caps += G.stats.captives; o.conv += G.stats.converts; o.battles += G.stats.battles; o.repel += G.stats.repels; o.stolen += G.stats.stolen; o.falls = (o.falls || 0) + (G.falls || 0); o.fz = (o.fz || 0) + (G.stats.secrets || 0); o.kst = o.kst || [0, 0, 0]; G.kin.forEach(k => { if (k.kind !== 'spawn') o.kst[S.stageOf(k)]++; }); o.bd = o.bd || {}; o.bdw = o.bdw || {}; { const bk = G.slime.body || (G.slime.main ? '평범' : '허물 전'); o.bd[bk] = (o.bd[bk] || 0) + 1; if (G.over && G.over.win) o.bdw[bk] = (o.bdw[bk] || 0) + 1; } o.tr = o.tr || {}; o.tr[G.origin || 'drop'] = (o.tr[G.origin || 'drop'] || 0) + 1; o.trw = o.trw || {}; if (G.over && G.over.win) o.trw[G.origin || 'drop'] = (o.trw[G.origin || 'drop'] || 0) + 1; o.fellRuns = (o.fellRuns || 0) + (G.falls ? 1 : 0); o.fear += G.fear; o.dug += G.cells.filter(c => c.dug).length; o.kin += G.kin.length; o.muts += G.slime.muts.length;
   }
+  if (process.env.ROOMSTAT) console.log('방(판끝): ' + Object.keys(o.rm).sort((x, y) => o.rm[y] - o.rm[x]).map(k => S.ROOM[k].name + ' ' + o.rm[k] + '판(클리어 ' + Math.round((o.rmw[k] || 0) / o.rm[k] * 100) + '%)').join(' · '));
   if (process.env.SPSTAT) console.log('손: ' + Object.keys(o.sp).sort((x, y) => o.sp[y] - o.sp[x]).map(k => S.SPELL[k].name + ' ' + (o.sp[k] / n).toFixed(1)).join(' · '));
   return o;
 }
