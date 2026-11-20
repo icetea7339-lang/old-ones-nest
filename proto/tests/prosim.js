@@ -1,7 +1,8 @@
 // 땅속의 한 방울: 화면 없이 봇으로 돌려 균형을 잰다.   node tests/prosim.js [판 수=25] [봇들=careless,nobuy,greedy,planned] [-v]
+//   node tests/prosim.js 20 planned,nobuy forms   처음 받는 몸 열다섯을 하나씩 정해 놓고 잰다 (몸마다 [판 수]판)
 // 봇은 어둠 속의 것도 다 안다(사람보다 유리하다). 눈 부위의 값은 그래서 여기서는 재지 못한다.
 const PRO = require('../src/prologue.js');
-const N = +(process.argv[2] || 25), WHO = (process.argv[3] || 'careless,nobuy,greedy,planned').split(','), V = process.argv.includes('-v');
+const N = +(process.argv[2] || 25), WHO = (process.argv[3] || 'careless,nobuy,greedy,planned').split(','), V = process.argv.includes('-v'), FORMS_MODE = process.argv.includes('forms');
 const TPS = PRO.TPS, ASPS = PRO.ASPS;
 
 function census() {   // 고리마다 무엇이 사는가
@@ -10,8 +11,8 @@ function census() {   // 고리마다 무엇이 사는가
   return out.join('\n');
 }
 
-function play(kind, asp, seed) {
-  const sim = PRO.makeSim({ asp, seed }), S = sim.S, P = sim.P, careful = kind !== 'careless', buys = kind === 'greedy' || kind === 'planned' || kind === 'planned_early';
+function play(kind, asp, seed, look) {
+  const sim = PRO.makeSim({ asp, seed, look }), S = sim.S, P = sim.P, careful = kind !== 'careless', buys = kind === 'greedy' || kind === 'planned' || kind === 'planned_early';
   const log = { stageAt: [0, 0], deaths: [], firstBuy: 0 };
   const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
   let target = null, retarget = 0;
@@ -48,7 +49,7 @@ function play(kind, asp, seed) {
       const blind = careful && S.cre.find(c => c.alive && c.k === 'blind' && c.ring <= S.stage && sim.hostile(c) && dist(c, P) < 330);
       if (careful && danger > 0.05) { const k = Math.min(1, danger * 2.2); ax = ax * (1 - k) + rx; ay = ay * (1 - k) + ry; }
       // 쫓기면 몸이 들어가는 틈으로 달아난다. 틈 안에서는 쫓던 것이 물러갈 때까지 기다린다
-      if (careful) { const chased = S.cre.some(c => c.alive && c.ring <= S.stage && sim.hostile(c) && (c.mode === 'chase' || c.mode === 'out') && dist(c, P) < 150 && c.r > 4.2 && PRO.SP[c.k].sp >= g.sp); const cv = S.crev.filter(q => q.fit >= S.stage && q.ring <= S.stage).sort((a, b) => dist(a, P) - dist(b, P))[0];
+      if (careful) { const chased = S.cre.some(c => c.alive && c.ring <= S.stage && sim.hostile(c) && (c.mode === 'chase' || c.mode === 'out') && dist(c, P) < 150 && c.r > 4.2 && PRO.SP[c.k].sp >= g.sp); const cv = S.crev.filter(q => sim.fits(q) && q.ring <= S.stage).sort((a, b) => dist(a, P) - dist(b, P))[0];
         if (chased && cv && dist(cv, P) < 170) { const d = dist(cv, P); if (d < cv.r * 0.5) { ax = 0; ay = 0; } else { ax = (cv.x - P.x) / d + rx * 0.3; ay = (cv.y - P.y) / d + ry * 0.3; } } }
       const L = Math.hypot(ax, ay);
       if (blind && danger < 0.5 && dist(blind, P) < 300) sim.stop();                               // 눈먼 큰것 곁에서는 멈춘다
@@ -57,15 +58,28 @@ function play(kind, asp, seed) {
       if (careful && buys && sim.actReady() && (danger > 0.55 || P.leech) && S.worn.leg && S.worn.leg.id !== 'leg_hunger') sim.act();
       if (buys && sim.actReady() && S.worn.leg && S.worn.leg.id === 'leg_hunger' && target && target.k && PRO.SP[target.k] && dist(target, P) < 80) sim.act();
       if (careful && buys && sim.lv('core_dusk') && P.cd2 <= 0 && danger > 0.6) sim.act();
+      if (careful && !S.worn.leg && sim.form.act && sim.actReady() && (danger > 0.55 || P.leech)) sim.act();   // 타고난 재주(똬리)
     }
     const st0 = S.stage, d0 = S.stats.defeats; sim.tick(); if (S.stage !== st0) log.stageAt[S.stage] = Math.round(S.t / TPS);
     if (S.stats.defeats !== d0) { const e = sim.ev.slice().reverse().find(q => q.k === 'hurt'); log.deaths.push((e ? e.kind : '?') + '@' + st0); }
     sim.ev.length = 0;
   }
   const r = sim.result(), ess = ASPS.reduce((a, k) => a + r.ess[k], 0);
-  return { stage: S.stage, end: S.ended || 'none', time: Math.round(S.t / TPS), defeats: S.stats.defeats, hits: S.stats.hits, parts: r.parts.reduce((a, p) => a + p.lv, 0), ess, gold: r.gold, mut: r.mut, bio: Math.round(S.bio), spent: Math.round(S.spent), acts: S.stats.acts, log, r, byKind: S.stats.byKind };
+  return { look: sim.look, stage: S.stage, end: S.ended || 'none', time: Math.round(S.t / TPS), defeats: S.stats.defeats, hits: S.stats.hits, parts: r.parts.reduce((a, p) => a + p.lv, 0), ess, gold: r.gold, mut: r.mut, bio: Math.round(S.bio), spent: Math.round(S.spent), acts: S.stats.acts, log, r, byKind: S.stats.byKind };
 }
 
+if (FORMS_MODE) {
+  // 몸마다: 닿은 몸의 분포, 다 자란 비율, 첫 몸에서 끝난 판, 평균 시간·쓰러짐·정수
+  for (const who of WHO) {
+    console.log('== ' + who + ' · 몸마다 ' + N + '판'); const rows = [];
+    for (const look of PRO.SEED_IDS) { const rs = []; for (let n = 0; n < N; n++) rs.push(play(who, ASPS[n % 5], 1000 + n * 37, look));
+      const d5 = [1, 2, 3, 4, 5].map(k => rs.filter(r => r.stage === k).length), grown = rs.filter(r => r.end === 'grown').length, avg = f => rs.reduce((a, r) => a + f(r), 0) / rs.length;
+      rows.push({ look, name: PRO.SEEDS[look].name, d5, grown, rate: grown / N * 100, t: avg(r => r.time), def: avg(r => r.defeats), ess: avg(r => r.ess), gold: avg(r => r.gold), t2: (() => { const xs = rs.map(r => r.log.stageAt[2]).filter(Boolean); return xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0; })() }); }
+    const mean = rows.reduce((a, r) => a + r.rate, 0) / rows.length;
+    rows.forEach(r => console.log((r.look + ' ' + r.name).padEnd(14), '닿은 몸 1~5:', r.d5.join(' / ').padEnd(22), '다 자람', String(Math.round(r.rate)).padStart(3) + '%', '(평균과 ' + (r.rate - mean >= 0 ? '+' : '') + Math.round(r.rate - mean) + ')', '둘째 몸 ' + Math.round(r.t2) + '초', '시간 ' + Math.round(r.t), '쓰러짐 ' + r.def.toFixed(1), '정수 ' + r.ess.toFixed(1), '진액 ' + r.gold.toFixed(0)));
+    console.log('   평균 다 자람 ' + mean.toFixed(1) + '% · 가장 낮은 ' + Math.round(Math.min(...rows.map(r => r.rate))) + '% · 가장 높은 ' + Math.round(Math.max(...rows.map(r => r.rate))) + '% · 첫 몸에서 끝난 판 ' + rows.reduce((a, r) => a + r.d5[0], 0) + '/' + rows.length * N);
+  }
+} else {
 console.log(census()); console.log('');
 for (const who of WHO) {
   const rs = []; for (let n = 0; n < N; n++) rs.push(play(who, ASPS[n % 5], 1000 + n * 37));
@@ -75,4 +89,6 @@ for (const who of WHO) {
   { const gr = rs.filter(r => r.end === 'grown'); if (gr.length) console.log('          다 자란 판: ' + gr.length + ', 걸린 시간 ' + Math.round(gr.reduce((a, r) => a + r.time, 0) / gr.length) + '초, 부위 단계 ' + (gr.reduce((a, r) => a + r.parts, 0) / gr.length).toFixed(1) + ', 정수 ' + (gr.reduce((a, r) => a + r.ess, 0) / gr.length).toFixed(1) + ', 쓰러짐 ' + (gr.reduce((a, r) => a + r.defeats, 0) / gr.length).toFixed(1)); }
   console.log('          몸 2~5 에 닿은 때(초):', [2, 3, 4, 5].map(tAt).join(' / '), '| 쓰러뜨린 것:', Object.keys(killers).sort((a, b) => killers[b] - killers[a]).slice(0, 8).map(k => k + '×' + killers[k]).join(' '));
   if (V) rs.slice(0, 6).forEach(r => console.log('    ', JSON.stringify({ st: r.stage, end: r.end, t: r.time, def: r.defeats, parts: r.r.parts.map(p => p.id + p.lv).join(','), ess: r.ess, at: r.log.stageAt.slice(2), ate: r.byKind })));
+}
+
 }

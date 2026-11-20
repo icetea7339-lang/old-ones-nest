@@ -1,5 +1,5 @@
 // 옛 것의 둥지 — 땅속의 한 방울 (화면). 규칙은 prologue.js 의 PRO.makeSim.
-//   runPrologue({ asp, seed, tut, speed }) → Promise<{ ess, kin: [], gold, size(닿은 몸 1~5), time, fell, skipped, parts, mut }>
+//   runPrologue({ asp, seed, tut, speed, look }) → Promise<{ ess, kin: [], gold, size(닿은 몸 1~5), time, fell, skipped, parts, mut, look(처음 받은 몸) }>
 // 덮개(#pro) 하나를 스스로 만들고 끝나면 지운다. 도는 동안 window.__pro 를 내놓는다(시험용).
 // 조작: 누르거나 끄는 쪽으로 간다 / 오른쪽 아래 단추 = 재주(Space) / 왼쪽 아래 = 돋운다(Q) / 자리를 잡는다.
 const PRO_CSS = `#pro { position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 15; background: #05040a; overflow: hidden; touch-action: none; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
@@ -31,7 +31,10 @@ const PRO_CSS = `#pro { position: fixed; top: 0; right: 0; bottom: 0; left: 0; z
 .pro-b[disabled] { opacity: .5; cursor: default; }
 .pro-b:focus-visible, .pro-cell:focus-visible, .pro-keep:focus-visible, .pro-act:focus-visible { outline: 2px solid #ece6d6; outline-offset: 2px; }
 @media (min-width: 900px) { .pro-hud { font-size: 15px; } .pro-row b { font-size: 18px; } .pro-pips i { width: 12px; height: 12px; } .pro-ess i { width: 9px; height: 9px; } .pro-bar { height: 7px; width: 420px; } .pro-cap { font-size: 20px; } .pro-cap.big { font-size: 34px; } .pro-cap small { font-size: 15px; } .pro-b { font-size: 14px; } .pro-act { width: 84px; height: 84px; font-size: 14px; } }
-.pro-end, .pro-shop { position: absolute; top: 0; right: 0; bottom: 0; left: 0; display: flex; align-items: center; justify-content: center; padding: calc(env(safe-area-inset-top, 0px) + 10px) 12px calc(env(safe-area-inset-bottom, 0px) + 10px); background: rgba(5, 4, 10, .8); }
+.pro-intro { z-index: 4; } .pro-introing .pro-skip { z-index: 5; }
+.pro-seed { align-items: center; text-align: center; width: min(100%, 320px); gap: 6px; } .pro-seed img { width: 128px; height: 128px; image-rendering: pixelated; } .pro-seed h2 { font-size: 26px; } .pro-seed > .pro-b.pri { align-self: center; margin-top: 4px; }
+.pro-seedline { display: flex; align-items: center; gap: 6px; } .pro-seedline img { flex: none; width: 24px; height: 24px; image-rendering: pixelated; }
+.pro-end, .pro-intro, .pro-shop { position: absolute; top: 0; right: 0; bottom: 0; left: 0; display: flex; align-items: center; justify-content: center; padding: calc(env(safe-area-inset-top, 0px) + 10px) 12px calc(env(safe-area-inset-bottom, 0px) + 10px); background: rgba(5, 4, 10, .8); }
 .pro-shop[hidden] { display: none; }
 .pro-card { width: min(100%, 440px); max-height: 100%; background: #1d1826; border: 2px solid #e8c030; box-shadow: inset 0 0 0 2px #07050a; padding: 14px; display: flex; flex-direction: column; gap: 8px; color: #ece6d6; font-family: var(--body, sans-serif); font-size: 14px; line-height: 1.45; word-break: keep-all; }
 .pro-card h2 { margin: 0; font-family: var(--display, sans-serif); font-weight: 400; font-size: 20px; line-height: 1.2; } .pro-card h2 small { font-family: var(--body, sans-serif); font-size: 13px; color: #a59cb4; margin-left: 6px; }
@@ -63,7 +66,8 @@ function runPrologue(opts) {
 
   // ---------- 그림 ----------
   const SPR = {}, spr = (key, make) => SPR[key] || (SPR[key] = make());
-  const DROP = { origin: 'drop', stage: 0, main: null, sub: null, muts: [], ess: {} };
+  const SEED = sim.seedOf, TOP = SEED && SEED.top ? SEED.top : [16, 13], TDX = TOP[0] - 16, TDY = TOP[1] - 13;
+  const DROP = { origin: 'drop', stage: 0, main: null, sub: null, muts: [], ess: {}, look: sim.look };
   const flip = c => spr('f:' + (c.__id || (c.__id = Object.keys(SPR).length + 1)), () => { const f = document.createElement('canvas'); f.width = c.width; f.height = c.height; const x = f.getContext('2d'); x.translate(c.width, 0); x.scale(-1, 1); x.drawImage(c, 0, 0); return f; });
   const BN = ['#1b1d2a', '#e4dfd0', '#ffffff', '#a8a294'], RED = '#ff5f57';
   const PALS = { mite: ['#1a120c', '#8a6a48', '#c8a880', '#4a3420'], leech: ['#1a0a10', '#7a2a3a', '#c86a78', '#40121c'], pack: ['#14121a', '#b8b0a0', '#f0ead8', '#6a6458'], lurker: ['#1a140c', '#9a7a4a', '#d8b880', '#5a4424'], weaver: ['#1c1008', '#b87a2a', '#f0c070', '#6a4010'], grazer: ['#0e1a14', '#5a7a68', '#a8c8b0', '#2e4a3c'],
@@ -145,7 +149,7 @@ function runPrologue(opts) {
     core_hunger: (q, l, f, c) => { q(13, 27, 8, 1, '#707890'); q(14, 28, 6, 1, '#3a3e54'); q(15, 27, 2, 1, '#c0c8e0'); if (l >= 2) { q(13, 26, 1, 1, '#c0c8e0'); q(20, 26, 1, 1, '#c0c8e0'); q(12, 27, 1, 1, '#3a3e54'); q(21, 27, 1, 1, '#3a3e54'); } if (l >= 3) { q(12, 25, 1, 1, '#707890'); q(21, 25, 1, 1, '#707890'); q(17, 26, 2, 1, '#c0c8e0'); q(16, 29, 2, 1, '#707890'); } },
   };
   function paintParts(list, fr) {
-    const c = document.createElement('canvas'); c.width = c.height = 32; const x = c.getContext('2d'), q = (a, b, w, h, col) => { x.fillStyle = col; x.fillRect(a, b, w, h); };
+    const c = document.createElement('canvas'); c.width = c.height = 32; const x = c.getContext('2d'), q = (a, b, w, h, col) => { const up = b < 19; x.fillStyle = col; x.fillRect(a + (up ? TDX : 0), b + (up ? TDY : 0), w, h); };
     for (const s of ['leg', 'core', 'skin', 'mouth', 'eye']) { const w = list[s]; if (w && ART[w.id]) ART[w.id](q, w.lv, fr, C[PART[w.id].asp]); }
     const d = x.getImageData(0, 0, 32, 32), a = d.data, src = new Uint8Array(1024); for (let i = 0; i < 1024; i++) src[i] = a[i * 4 + 3] > 0 ? 1 : 0;
     for (let y = 0; y < 32; y++) for (let xx = 0; xx < 32; xx++) { const i = y * 32 + xx; if (src[i]) continue; if ((xx > 0 && src[i - 1]) || (xx < 31 && src[i + 1]) || (y > 0 && src[i - 32]) || (y < 31 && src[i + 32])) { a[i * 4] = 12; a[i * 4 + 1] = 8; a[i * 4 + 2] = 18; a[i * 4 + 3] = 215; } }
@@ -161,7 +165,7 @@ function runPrologue(opts) {
   root.innerHTML = '<canvas class="pro-cv"></canvas><div class="pro-hud"><div class="pro-row" id="pro-row"></div><div class="pro-row pro-row2" id="pro-row2"></div><div class="pro-bar"><i id="pro-prog"></i></div></div><div class="pro-cap" id="pro-cap" aria-live="polite"></div><button class="pro-b pro-skip" id="pro-skip">건너뛴다</button><button class="pro-b big pro-grow" id="pro-grow">돋운다</button><div class="pro-right"><button class="pro-b pro-settle" id="pro-settle" hidden></button><button class="pro-act off" id="pro-act" aria-label="재주"><i></i><span>재주</span></button></div><div class="pro-shop" id="pro-shop" hidden></div>';
   document.body.appendChild(root);
   const cv0 = root.querySelector('canvas'), ctx = cv0.getContext('2d'), $p = id => root.querySelector('#' + id);
-  let Zb = 2, zoom = STG[1].zoom, vw = 200, vh = 300, bw = 300, bh = 500, dpr = 1, cam = { x: 0, y: 0 }, hudKey = '', raf = 0, last = 0, acc = 0, alive = true, result = null, onDone = null, sel = null, manual = false, shop = false, shopSeen = false, flash = -99, shake = -99, ended = false;
+  let Zb = 2, zoom = STG[1].zoom, vw = 200, vh = 300, bw = 300, bh = 500, dpr = 1, cam = { x: 0, y: 0 }, hudKey = '', raf = 0, last = 0, acc = 0, alive = true, result = null, onDone = null, sel = null, manual = false, shop = false, shopSeen = false, flash = -99, shake = -99, ended = false, intro = false, introIv = 0;
   const keys = {}, FX = [];
   function fit() { const b = root.getBoundingClientRect(); bw = b.width; bh = b.height; dpr = Math.min(3, window.devicePixelRatio || 1); Zb = clampN(Math.min(b.width, b.height) / 232, 1.6, 4); cv0.width = Math.round(b.width * dpr); cv0.height = Math.round(b.height * dpr); }
   const toWorld = e => { const b = cv0.getBoundingClientRect(), Z = Zb * zoom; return { x: cam.x - b.width / Z / 2 + (e.clientX - b.left) / Z, y: cam.y - b.height / Z / 2 + (e.clientY - b.top) / Z }; };
@@ -174,7 +178,8 @@ function runPrologue(opts) {
   const noScroll = e => e.preventDefault(); root.addEventListener('touchmove', noScroll, { passive: false }); root.addEventListener('contextmenu', noScroll);
   const KEYMAP = { ArrowLeft: 'left', a: 'left', A: 'left', 'ㅁ': 'left', ArrowRight: 'right', d: 'right', D: 'right', 'ㅇ': 'right', ArrowUp: 'up', w: 'up', W: 'up', 'ㅈ': 'up', ArrowDown: 'down', s: 'down', S: 'down', 'ㄴ': 'down' };
   const doAct = () => { if (S.ended || shop) return; if (sim.act()) { if (!S.seen.acted) S.seen.acted = 1; } else say('click'); };
-  const onKey = e => { if (!alive) return; const k = KEYMAP[e.key]; e.stopPropagation(); if (e.type === 'keydown' && !S.ended) { if (e.key === 'q' || e.key === 'Q' || e.key === 'ㅂ' || (e.key === 'Escape' && shop)) { e.preventDefault(); return shop ? closeShop() : openShop(); } if (e.key === ' ' && !e.repeat) { e.preventDefault(); return shop ? closeShop() : doAct(); } } if (k && !shop) { keys[k] = e.type === 'keydown'; e.preventDefault(); } else if (e.key === 'Tab' || e.key === ' ') e.preventDefault(); };   // 게임 쪽 단축키가 먹지 않게 막는다
+  const onKey = e => { if (!alive) return; const k = KEYMAP[e.key]; e.stopPropagation(); if (e.type === 'keydown' && intro) { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); if (!e.repeat) closeIntro(); } return; }
+    if (e.type === 'keydown' && !S.ended) { if (e.key === 'q' || e.key === 'Q' || e.key === 'ㅂ' || (e.key === 'Escape' && shop)) { e.preventDefault(); return shop ? closeShop() : openShop(); } if (e.key === ' ' && !e.repeat) { e.preventDefault(); return shop ? closeShop() : doAct(); } } if (k && !shop) { keys[k] = e.type === 'keydown'; e.preventDefault(); } else if (e.key === 'Tab' || e.key === ' ') e.preventDefault(); };   // 게임 쪽 단축키가 먹지 않게 막는다
   window.addEventListener('keydown', onKey, true); window.addEventListener('keyup', onKey, true); window.addEventListener('resize', fit);
   $p('pro-skip').addEventListener('click', () => finish('skip')); $p('pro-grow').addEventListener('click', () => { say('click'); openShop(); }); $p('pro-act').addEventListener('click', doAct);
   let sure = 0; $p('pro-settle').addEventListener('click', () => { const now = performance.now(); if (now - sure < 2600) return sim.end('settle'); sure = now; hudKey = ''; say('click'); setTimeout(() => { hudKey = ''; }, 2650); });
@@ -185,7 +190,7 @@ function runPrologue(opts) {
   function shopHtml(tip) {
     if (!sel || !PART[sel]) { const open = CAT.filter(d => !sim.whyNot(d.id) && !(S.worn[d.slot] && S.worn[d.slot].id !== d.id)); sel = (open[0] || CAT.find(d => d.asp === home)).id; }
     const d = PART[sel], w = S.worn[d.slot], mine = w && w.id === sel ? w.lv : 0, price = sim.priceOf(sel), why = sim.whyNot(sel), col = ASPCOL[d.asp];
-    let h = `<div class="pro-card" role="dialog" aria-label="부위를 돋운다"><div class="pro-top"><h2>돋운다<small>먹은 것으로 몸을 바꾼다</small></h2><button class="pro-b" data-x="close">닫는다</button></div>${tip ? `<p class="pro-mute">${tip}</p>` : ''}<div class="pro-grid"><span></span>${ASPS.map(a => `<span class="pro-gh" title="${ASPK[a]}"><i style="background:${ASPCOL[a]}"></i>${wal(a)}</span>`).join('')}`;
+    let h = `<div class="pro-card" role="dialog" aria-label="부위를 돋운다"><div class="pro-top"><h2>돋운다<small${SEED ? ` title="${SEED.say}"` : ''}>${SEED ? SEED.name + '의 몸을 바꾼다' : '먹은 것으로 몸을 바꾼다'}</small></h2><button class="pro-b" data-x="close">닫는다</button></div>${tip ? `<p class="pro-mute">${tip}</p>` : ''}<div class="pro-grid"><span></span>${ASPS.map(a => `<span class="pro-gh" title="${ASPK[a]}"><i style="background:${ASPCOL[a]}"></i>${wal(a)}</span>`).join('')}`;
     for (const s of SLOTS) { const locked = S.stage < KK.open[s[0]]; h += `<span class="pro-gl">${s[1]}${locked ? `<small>${STG[KK.open[s[0]]].name}</small>` : ''}</span>`; for (const a of ASPS) { const id = s[0] + '_' + a, ww = S.worn[s[0]], own = ww && ww.id === id ? ww.lv : 0; h += `<button class="pro-cell${own ? ' own' : ''}${locked ? ' lock' : ''}${!sim.whyNot(id) ? ' can' : ''}${id === sel ? ' sel' : ''}" style="--c:${ASPCOL[a]}" data-id="${id}" aria-label="${s[1]} · ${PART[id].name}${own ? ' ' + own + '단계' : ''}${locked ? ' (잠김)' : ''}"><img src="${iconURL(id)}" alt="">${pipsHtml(own, ASPCOL[a])}</button>`; } }
     const now = mine ? d.say(d.v[mine - 1], mine - 1) : null, next = mine < 3 ? d.say(d.v[mine], mine) : null, swap = w && w.id !== sel;
     const power = d.slot === 'mouth' ? `<p class="pro-mute">입의 힘 ${Math.min(4, (mine || 0) + (d.id === 'mouth_hunger' && mine ? 1 : 0))}${mine < 3 ? ' → ' + (mine + 1 + (d.id === 'mouth_hunger' ? 1 : 0)) : ''}: 힘만큼 큰 먹잇감을 삼키고 굳은 것을 깬다</p>` : `<p class="pro-mute">${PRO.SLOTSAY[d.slot]}</p>`;
@@ -209,10 +214,10 @@ function runPrologue(opts) {
       const sb = $p('pro-settle'), okS = S.stage >= KK.settleFrom && !S.ended; sb.hidden = !okS; if (okS) { const nx = S.stage < 5 ? `더 자라면 ${KK.essCap[S.stage + 1]}까지${S.stage + 1 === KK.keepFrom ? ' · 부위 새김' : ''}` : '다 자라면 가장 많다'; sb.innerHTML = sureOn ? '한 번 더: 자리를 잡는다' : `자리를 잡는다<small>지금 정수 ${sim.essSum(S.stage)}${S.stage >= KK.keepFrom ? ' · 부위 새김' : ''}<br>${nx}</small>`; sb.classList.toggle('pri', sureOn); }
       const ab = $p('pro-act'); ab.classList.toggle('off', !an); ab.querySelector('span').textContent = an || '재주'; ab.setAttribute('aria-label', an ? '재주: ' + an : '재주 (발을 돋우면 생긴다)'); }
     const need = g.need; $p('pro-prog').style.width = clampN((S.bio - base) / (need - base), 0, 1) * 100 + '%';
-    { const ab = $p('pro-act'), w = S.worn.leg; if (w) { const tot = PART[w.id].v[w.lv - 1] * TPS, f = clampN(P.cd / tot, 0, 1); ab.style.setProperty('--cd', Math.round(f * 360) + 'deg'); ab.classList.toggle('wait', f > 0); } else ab.style.setProperty('--cd', '0deg'); }
-    const c = S.cap, capEl = $p('pro-cap'); if (c && S.t < c.until && !shop) { const html = c.s + (c.sub ? '<small>' + c.sub + '</small>' : ''); if (capEl.dataset.h !== html) { capEl.dataset.h = html; capEl.innerHTML = html; capEl.classList.toggle('big', S.t - S.upAt < 5 * TPS && c.s === g.name); } capEl.style.opacity = 1; } else capEl.style.opacity = 0;
+    { const ab = $p('pro-act'), tot = sim.actTotal(); if (tot) { const f = clampN(P.cd / tot, 0, 1); ab.style.setProperty('--cd', Math.round(f * 360) + 'deg'); ab.classList.toggle('wait', f > 0); } else ab.style.setProperty('--cd', '0deg'); }
+    const c = S.cap, capEl = $p('pro-cap'); if (c && S.t < c.until && !shop && !intro) { const html = c.s + (c.sub ? '<small>' + c.sub + '</small>' : ''); if (capEl.dataset.h !== html) { capEl.dataset.h = html; capEl.innerHTML = html; capEl.classList.toggle('big', S.t - S.upAt < 5 * TPS && c.s === g.name); } capEl.style.opacity = 1; } else capEl.style.opacity = 0;
     $p('pro-grow').hidden = !!S.ended; $p('pro-act').hidden = !!S.ended;
-    if (!shopSeen && !manual && !S.ended && can && S.t > 2 * TPS && P.inv <= 0) openShop(true);   // 처음 살 수 있게 됐을 때 한 번은 스스로 뜬다
+    if (!shopSeen && !manual && !intro && !S.ended && can && S.t > 2 * TPS && P.inv <= 0) openShop(true);   // 처음 살 수 있게 됐을 때 한 번은 스스로 뜬다
   }
 
   // ---------- 일어난 일을 소리와 반짝임으로 ----------
@@ -242,7 +247,7 @@ function runPrologue(opts) {
       for (let j = 1; j < S.stage; j++) { ctx.strokeStyle = 'rgba(74,60,88,.35)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(0, 0, STG[j].R, 0, 7); ctx.stroke(); } }
     for (const c of S.clusters) if (c.ring <= S.stage && inView(c, c.r + 20)) { const b = backdrop(c); img(b, c.x - b.width / 2, c.y - b.height / 2); }
     // 틈: 몸이 들어가면 큰 것들이 못 따라온다
-    for (const q of S.crev) if (q.ring <= S.stage && inView(q, q.r + 4)) { const fits = S.stage <= q.fit; ctx.fillStyle = '#05040a'; ctx.beginPath(); ctx.ellipse(q.x, q.y, q.r, q.r * 0.62, 0.4, 0, 7); ctx.fill(); ctx.strokeStyle = fits ? (fr2 ? '#8a7a98' : '#6a5a78') : '#3a2e44'; ctx.lineWidth = 1.5; ctx.setLineDash(fits ? [] : [3, 3]); ctx.beginPath(); ctx.ellipse(q.x, q.y, q.r, q.r * 0.62, 0.4, 0, 7); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle = '#17111e'; ctx.fillRect(Math.round(q.x - q.r * 0.5), Math.round(q.y - 1), Math.round(q.r), 2); }
+    for (const q of S.crev) if (q.ring <= S.stage && inView(q, q.r + 4)) { const fits = sim.fits(q); ctx.fillStyle = '#05040a'; ctx.beginPath(); ctx.ellipse(q.x, q.y, q.r, q.r * 0.62, 0.4, 0, 7); ctx.fill(); ctx.strokeStyle = fits ? (fr2 ? '#8a7a98' : '#6a5a78') : '#3a2e44'; ctx.lineWidth = 1.5; ctx.setLineDash(fits ? [] : [3, 3]); ctx.beginPath(); ctx.ellipse(q.x, q.y, q.r, q.r * 0.62, 0.4, 0, 7); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle = '#17111e'; ctx.fillRect(Math.round(q.x - q.r * 0.5), Math.round(q.y - 1), Math.round(q.r), 2); }
     // 실, 녹은 자리, 덫
     ctx.lineWidth = 1; for (const w of S.webs) if (inView(w, w.r)) { ctx.strokeStyle = 'rgba(240,220,180,.42)'; for (let j = 0; j < 3; j++) { const a = j * 1.05 + w.x; ctx.beginPath(); ctx.moveTo(w.x - Math.cos(a) * w.r, w.y - Math.sin(a) * w.r); ctx.lineTo(w.x + Math.cos(a) * w.r, w.y + Math.sin(a) * w.r); ctx.stroke(); } ctx.strokeStyle = 'rgba(240,220,180,.25)'; ctx.beginPath(); ctx.arc(w.x, w.y, w.r * 0.6, 0, 7); ctx.stroke(); }
     for (const q of S.puddles) { const a = Math.min(1, (q.until - t) / 20); ctx.fillStyle = 'rgba(184,208,48,' + 0.55 * a + ')'; ctx.beginPath(); ctx.ellipse(q.x, q.y, q.r, q.r * 0.66, 0, 0, 7); ctx.fill(); ctx.fillStyle = 'rgba(240,248,160,' + 0.8 * a + ')'; ctx.fillRect(Math.round(q.x - 4 + fr2 * 3), Math.round(q.y - 2), 2, 2); ctx.fillRect(Math.round(q.x + 5 - fr2 * 2), Math.round(q.y + 3), 2, 2); }
@@ -256,7 +261,7 @@ function runPrologue(opts) {
     for (const w of S.wrig) if (w.alive && w.ring <= S.stage && inView(w, 8)) { const c = wrigSpr(w.asp, fr2); img(w.vx < 0 ? flip(c) : c, w.x - 5, w.y - 5); }
     // 사는 것들
     for (const c of S.cre) { if (!c.alive || c.ring > S.stage || !inView(c, 40)) continue; const d = dist(c, P), host = sim.hostile(c), eat = sim.canEat(c);
-      if (c.mode === 'buried') { const seeIt = third || !host || d < 44; if (seeIt) { ctx.globalAlpha = third || !host ? 0.95 : 0.55; ctx.fillStyle = '#3a2e24'; ctx.beginPath(); ctx.ellipse(c.x, c.y + 2, 10, 5, 0, 0, 7); ctx.fill(); ctx.fillStyle = '#9a7a4a'; ctx.fillRect(Math.round(c.x) - 6, Math.round(c.y) - 1, 3, 2); ctx.fillRect(Math.round(c.x) + 3, Math.round(c.y) - 1, 3, 2); if (third) { ctx.fillStyle = RED; ctx.fillRect(Math.round(c.x) - 5, Math.round(c.y) - 1, 1, 1); ctx.fillRect(Math.round(c.x) + 4, Math.round(c.y) - 1, 1, 1); } ctx.globalAlpha = 1; } continue; }
+      if (c.mode === 'buried') { const born = sim.form.buried, seeIt = third || born || !host || d < 44; if (seeIt) { ctx.globalAlpha = third || born || !host ? 0.95 : 0.55; ctx.fillStyle = '#3a2e24'; ctx.beginPath(); ctx.ellipse(c.x, c.y + 2, 10, 5, 0, 0, 7); ctx.fill(); ctx.fillStyle = '#9a7a4a'; ctx.fillRect(Math.round(c.x) - 6, Math.round(c.y) - 1, 3, 2); ctx.fillRect(Math.round(c.x) + 3, Math.round(c.y) - 1, 3, 2); if (third) { ctx.fillStyle = RED; ctx.fillRect(Math.round(c.x) - 5, Math.round(c.y) - 1, 1, 1); ctx.fillRect(Math.round(c.x) + 4, Math.round(c.y) - 1, 1, 1); } ctx.globalAlpha = 1; } continue; }
       if (c.mode === 'bait') { const fake = FSPR[c.look]((fr4 + c.id) % 4 === 0 ? 1 : 0); img(fake, c.x - fake.width / 2, c.y - fake.height / 2); if (third || !host || (t + c.id * 7) % 100 < 5) { ctx.fillStyle = '#fbf7ea'; ctx.fillRect(Math.round(c.x) - 3, Math.round(c.y) + 1, 1, 2); ctx.fillRect(Math.round(c.x) - 1, Math.round(c.y) + 1, 1, 2); ctx.fillRect(Math.round(c.x) + 1, Math.round(c.y) + 1, 1, 2); } if (third && host) { ctx.strokeStyle = 'rgba(255,95,87,' + (fr2 ? 0.8 : 0.4) + ')'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(c.x, c.y, 10, 0, 7); ctx.stroke(); } continue; }
       const sp0 = creSpr(c.k, c.stun > 0 ? 0 : fr2), ds0 = DSC[c.k] || 1, N = sp0.width * ds0, rise = c.mode === 'rise' ? 3 : 0; if (c.stun > 0) ctx.globalAlpha = 0.75; img(c.face < 0 ? flip(sp0) : sp0, c.x - N / 2, c.y - N / 2 - rise, ds0); ctx.globalAlpha = 1;
       if (c.stun > 0) { ctx.fillStyle = '#e0c8ff'; ctx.fillRect(Math.round(c.x - 4 + fr2 * 6), Math.round(c.y - N / 2 - 4), 2, 2); ctx.fillRect(Math.round(c.x + 2 - fr2 * 6), Math.round(c.y - N / 2 - 2), 2, 2); }
@@ -274,7 +279,7 @@ function runPrologue(opts) {
       if (P.chew) { const f = P.chew.t / P.chew.need; ctx.fillStyle = '#05040a'; ctx.fillRect(Math.round(P.x - 12), Math.round(P.y - s * 0.8 - 6), 24, 4); ctx.fillStyle = '#e8c030'; ctx.fillRect(Math.round(P.x - 11), Math.round(P.y - s * 0.8 - 5), Math.round(22 * f), 2); }
       if (lv('skin_dusk') && t >= P.veilAt) { ctx.strokeStyle = 'rgba(255,224,160,' + (fr2 ? 0.55 : 0.3) + ')'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(P.x, P.y - g.r * 0.4, g.r + 6, 0, 7); ctx.stroke(); }
       if (lv('core_nebula')) { const a = now / 260, rr0 = val('core_nebula') * 0.5 + g.r; ctx.fillStyle = '#fff3a0'; ctx.fillRect(Math.round(P.x + Math.cos(a) * rr0) - 1, Math.round(P.y - g.r * 0.4 + Math.sin(a) * rr0 * 0.6) - 1, 2, 2); ctx.fillStyle = '#e8c030'; ctx.fillRect(Math.round(P.x + Math.cos(a + 3.14) * rr0) - 1, Math.round(P.y - g.r * 0.4 + Math.sin(a + 3.14) * rr0 * 0.6) - 1, 2, 2); }
-      if (P.crev && S.stage <= P.crev.fit) { ctx.fillStyle = 'rgba(5,4,10,.45)'; ctx.beginPath(); ctx.ellipse(P.crev.x, P.crev.y, P.crev.r, P.crev.r * 0.62, 0.4, 0, 7); ctx.fill(); } }
+      if (P.crev && sim.fits(P.crev)) { ctx.fillStyle = 'rgba(5,4,10,.45)'; ctx.beginPath(); ctx.ellipse(P.crev.x, P.crev.y, P.crev.r, P.crev.r * 0.62, 0.4, 0, 7); ctx.fill(); } }
     for (let i = FX.length - 1; i >= 0; i--) { const f = FX[i], a = (t - f.t) / TPS; if (a > 0.8 || a < 0) { FX.splice(i, 1); continue; } const q = 1 - a / 0.8;
       if (f.k === 'eat') { ctx.fillStyle = ASPCOL[f.asp]; ctx.globalAlpha = q; ctx.fillRect(Math.round(f.x + (P.x - f.x) * a / 0.8), Math.round(f.y + (P.y - f.y) * a / 0.8) - 1, 2, 2); ctx.globalAlpha = 1; }
       else if (f.k === 'gold') { ctx.fillStyle = '#fff3a0'; ctx.globalAlpha = q; ctx.fillRect(Math.round(f.x) - 3, Math.round(f.y - a * 18), 7, 1); ctx.fillRect(Math.round(f.x), Math.round(f.y - a * 18) - 3, 1, 7); ctx.globalAlpha = 1; }
@@ -296,14 +301,14 @@ function runPrologue(opts) {
     { const topY = 96 / Z, botY = 96 / Z, dot = (o, col, s) => { const pxx = clampN(o.x, ox + 6, ox + vw - 9), pyy = clampN(o.y, oy + topY, oy + vh - botY); ctx.fillStyle = '#05040a'; ctx.fillRect(Math.round(pxx) - 1, Math.round(pyy) - 1, s + 2, s + 2); ctx.fillStyle = col; ctx.globalAlpha = fr2 ? 1 : 0.6; ctx.fillRect(Math.round(pxx), Math.round(pyy), s, s); ctx.globalAlpha = 1; }, ds = Math.max(3, Math.round(3 / zoom));
       if (S.stage <= 2) S.clusters.filter(c => c.ring <= S.stage && !inView(c, -6)).sort((a, b) => dist(a, P) - dist(b, P)).slice(0, 3).forEach(c => dot(c, ASPCOL[c.asp], ds));
       if (feel) S.food.filter(f => f.alive && f.ring <= S.stage && !inView(f, -6) && (f.k === 'root' || f.k === 'carc' || f.k === 'seed' || f.k === 'seed2' || f.k === 'nut' || (feel >= 2 && f.k === 'cap') || (feel >= 3 && f.k === 'bead'))).sort((a, b) => dist(a, P) - dist(b, P)).slice(0, 4).forEach(f => dot(f, f.k === 'cap' ? '#9fe8c0' : f.k === 'bead' ? '#e8c030' : '#d8a860', ds));
-      if (feel >= 3 || S.hp <= 1) { const q = S.crev.filter(c => c.fit >= S.stage && c.ring <= S.stage && !inView(c, -6)).sort((a, b) => dist(a, P) - dist(b, P))[0]; if (q) dot(q, '#8a7a98', ds + 1); }
+      if (feel >= 3 || S.hp <= 1) { const q = S.crev.filter(c => sim.fits(c) && c.ring <= S.stage && !inView(c, -6)).sort((a, b) => dist(a, P) - dist(b, P))[0]; if (q) dot(q, '#8a7a98', ds + 1); }
       if (third >= 2) S.cre.filter(c => c.alive && c.ring <= S.stage && sim.hostile(c) && !inView(c, -6) && dist(c, P) < 520 / zoom * 0.5 + 200).forEach(c => dot(c, RED, ds + 1)); }
     if (t - flash < 12) { ctx.fillStyle = 'rgba(255,255,255,' + (0.6 * (1 - (t - flash) / 12)) + ')'; ctx.fillRect(ox, oy, vw, vh); }
   }
   function loop(now) {
     if (!alive) return; raf = requestAnimationFrame(loop);
     const dt = Math.min(0.1, (now - (last || now)) / 1000); last = now;
-    if (!document.hidden && !manual && !S.ended && !shop) {
+    if (!document.hidden && !manual && !S.ended && !shop && !intro) {
       let kx = (keys.right ? 1 : 0) - (keys.left ? 1 : 0), ky = (keys.down ? 1 : 0) - (keys.up ? 1 : 0); if (kx || ky) { const L = Math.hypot(kx, ky); sim.aim(P.x + kx / L * 70, P.y + ky / L * 70); }
       const slowmo = S.t - S.upAt < 28 ? 0.4 : 1; acc += dt * (opts.speed || 1) * slowmo; let n = 0; while (acc >= 1 / TPS && n++ < 8) { acc -= 1 / TPS; sim.tick(); } }
     try { drain(); draw(now); hud(); if (S.ended && !ended) finish(S.ended); } catch (e) { console.error(e); }
@@ -312,7 +317,7 @@ function runPrologue(opts) {
   // ---------- 끝 ----------
   function close() { alive = false; cancelAnimationFrame(raf); window.removeEventListener('keydown', onKey, true); window.removeEventListener('keyup', onKey, true); window.removeEventListener('resize', fit); document.removeEventListener('visibilitychange', onVis); if (root.parentNode) root.parentNode.removeChild(root); if (window.__pro === API) delete window.__pro; onDone(result); }
   function finish(kind) {
-    if (ended) return; ended = true; closeShop(); if (!S.ended) sim.end(kind); result = sim.result(kind); hudKey = ''; hud(); $p('pro-settle').hidden = true; $p('pro-skip').hidden = true; $p('pro-grow').hidden = true; $p('pro-act').hidden = true; $p('pro-cap').style.opacity = 0;
+    if (ended) return; ended = true; closeIntro(); closeShop(); if (!S.ended) sim.end(kind); result = sim.result(kind); hudKey = ''; hud(); $p('pro-settle').hidden = true; $p('pro-skip').hidden = true; $p('pro-grow').hidden = true; $p('pro-act').hidden = true; $p('pro-cap').style.opacity = 0;
     if (kind === 'skip') { say('click'); return close(); }
     say(kind === 'fell' ? 'down' : 'up');
     const r = result, tot = ASPS.reduce((a, k) => a + r.ess[k], 0), topA = ASPS.slice().sort((a, b) => r.ess[b] - r.ess[a])[0], mx = Math.max(1, r.ess[topA]), n = r.parts.length, canKeep = !r.fell && S.stage >= KK.keepFrom && n > 0;
@@ -324,7 +329,7 @@ function runPrologue(opts) {
     const keepHtml = () => { const kp = sim.keep, k = r.parts.find(p => p.id === kp); return `<div class="pro-parts">${r.parts.map(p => `<button class="pro-keep${p.id === kp ? ' on' : ''}" data-keep="${p.id}" style="--c:${ASPCOL[p.asp]}"><img src="${iconURL(p.id, p.lv)}" alt="">${PART[p.id].name} ${pipsHtml(p.lv, ASPCOL[p.asp])}</button>`).join('')}</div>${k ? `<p>둥지에서 <b style="color:${ASPCOL[k.asp]}">${NEST.MUT[PART[k.id].mut].name}</b> — ${NEST.MUT[PART[k.id].mut].desc}</p>` : ''}`; };
     const el = document.createElement('div'); el.className = 'pro-end'; el.innerHTML = `<div class="pro-card" role="dialog" aria-label="땅속에서 얻은 것"><h2>${title}<small>${STG[S.stage].name} · ${Math.floor(r.time / 60)}분 ${r.time % 60}초 · 진액 ${r.gold}방울</small></h2>
       <div class="pro-bars">${ASPS.filter(a => r.ess[a] > 0).map(a => `<span style="color:${ASPCOL[a]}">${ASPK[a]}</span><span class="b"><i style="width:${Math.round(r.ess[a] / mx * 100)}%;background:${ASPCOL[a]}"></i></span><span>${r.ess[a]}</span>`).join('') || '<span class="pro-mute" style="grid-column:1/-1">남긴 것이 없다</span>'}</div>
-      <p class="pro-mute">쓰지 않고 남긴 것이 정수가 된다 · 합 ${tot} (이 몸으로는 ${KK.essCap[S.stage]}까지)</p>${nextSay}
+      ${SEED ? `<p class="pro-mute pro-seedline"><img src="${seedURL(0)}" alt=""><span>이번 몸 <b style="color:#ece6d6">${SEED.name}</b> · ${SEED.say}</span></p>` : ''}<p class="pro-mute">쓰지 않고 남긴 것이 정수가 된다 · 합 ${tot} (이 몸으로는 ${KK.essCap[S.stage]}까지)</p>${nextSay}
       ${r.fell ? (n ? '<p class="pro-warn">쓰러져서 돋운 부위를 허물에 새기지 못했다</p>' : '') : canKeep ? `<p><b style="color:#e8c030;font-family:var(--display,sans-serif);font-weight:400">허물에 새길 부위 하나를 골라</b></p><div id="pro-keepbox">${keepHtml()}</div>` : n ? `<p class="pro-mute">부위는 ${STG[KK.keepFrom].name}부터 허물에 새길 수 있다</p>` : '<p class="pro-mute">돋운 부위가 없다</p>'}
       <div class="pro-say"><img src="${spriteCanvas('slime', 'echo').toDataURL()}" width="40" height="40" alt=""><p><b style="color:#e8c030;font-family:var(--display,sans-serif);font-weight:400">잔향</b> ${line}${lean}</p></div>
       <button class="pro-b pri" id="pro-go">둥지를 튼다</button></div>`;
@@ -332,10 +337,21 @@ function runPrologue(opts) {
     const go = el.querySelector('#pro-go'); go.addEventListener('click', () => { say('click'); result = sim.result(kind); close(); }); try { go.focus(); } catch (e) { /* 괜찮다 */ }
   }
   const onVis = () => { last = 0; acc = 0; }; document.addEventListener('visibilitychange', onVis);
+  // 이번 몸: 시작할 때 한 번 알린다. 누르면 흙 속이 흐르기 시작한다
+  const seedURL = fr => spr('seed:' + fr, () => slimeCanvas(DROP, fr).toDataURL());
+  function closeIntro() { if (!intro) return; intro = false; clearInterval(introIv); root.classList.remove('pro-introing'); const el = $p('pro-intro'); if (el && el.parentNode) el.parentNode.removeChild(el); last = 0; acc = 0; hudKey = ''; }
+  function openIntro() {
+    if (!SEED || intro || S.ended) return; intro = true; root.classList.add('pro-introing');
+    const el = document.createElement('div'); el.className = 'pro-end pro-intro'; el.id = 'pro-intro';
+    el.innerHTML = `<div class="pro-card pro-seed" role="dialog" aria-label="이번 몸: ${SEED.name}"><p class="pro-mute">별에서 떨어진 것 · 이번 몸</p><img src="${seedURL(0)}" alt=""><h2>${SEED.name}</h2><p>${SEED.say}</p>${sim.form.act ? '<p class="pro-mute">오른쪽 아래 단추로 쓴다: ' + PRO.ACT0.name + '</p>' : ''}<button class="pro-b pri" id="pro-in-go">깨어난다</button></div>`;
+    root.appendChild(el); let k = 0; const im = el.querySelector('img'); introIv = setInterval(() => { k = (k + 1) % 4; im.src = seedURL(k); }, 240);
+    el.addEventListener('click', () => { say('click'); closeIntro(); }); try { el.querySelector('#pro-in-go').focus(); } catch (e) { /* 괜찮다 */ }
+  }
   if (opts.tut) sim.caption('손가락이 가는 쪽으로 움직여', '색 있는 알갱이를 먹어. 붉은 눈은 피해', 5); else sim.caption('땅속의 한 방울', '먹고, 자라고, 살아남아라', 3.4);
 
   // 시험용 손잡이
-  const API = { get player() { const g = G(); return { x: P.x, y: P.y, size: S.stage, stage: S.stage, hp: S.hp, maxHp: sim.maxHp(), r: g.r, inv: P.inv, speed: g.sp, cd: P.cd }; }, get stage() { return S.stage; }, get lives() { return S.lives; }, get time() { return S.t / TPS; }, get bio() { return S.bio; }, get spent() { return S.spent; }, get splits() { return S.stage - 1; }, get ended() { return S.ended; }, get stats() { return Object.assign({}, S.stats); },
+  const API = { get look() { return sim.look; }, get form() { return Object.assign({}, sim.form); }, get intro() { return intro; }, closeIntro() { closeIntro(); },
+    get player() { const g = G(); return { x: P.x, y: P.y, size: S.stage, stage: S.stage, hp: S.hp, maxHp: sim.maxHp(), r: g.r, inv: P.inv, speed: g.sp, cd: P.cd }; }, get stage() { return S.stage; }, get lives() { return S.lives; }, get time() { return S.t / TPS; }, get bio() { return S.bio; }, get spent() { return S.spent; }, get splits() { return S.stage - 1; }, get ended() { return S.ended; }, get stats() { return Object.assign({}, S.stats); },
     get motes() { return S.food.filter(f => f.alive && f.k === 'mote' && f.ring <= S.stage).map(f => ({ x: f.x, y: f.y, kind: f.asp, size: 0 })); }, get beads() { return S.food.filter(f => f.alive && f.k === 'bead' && f.ring <= S.stage).map(f => ({ x: f.x, y: f.y, kind: 'bead', size: 0 })); },
     get food() { return S.food.filter(f => f.alive && f.ring <= S.stage).map(f => ({ x: f.x, y: f.y, kind: f.k, asp: f.asp, need: PRO.FOOD[f.k].need || 0 })); },
     get creatures() { const out = S.cre.filter(c => c.alive && c.ring <= S.stage).map(c => ({ id: c.id, kind: c.k, species: c.k, x: c.x, y: c.y, size: c.st, st: c.st, r: c.r, hostile: sim.hostile(c), edible: sim.canEat(c), mode: c.mode, stun: c.stun })); if (S.sweep.st !== 'idle') out.push({ kind: 'sweeper', species: 'sweeper', x: S.sweep.x, y: S.sweep.y, size: 9, st: 9, hostile: true, state: S.sweep.st, dx: S.sweep.dx, dy: S.sweep.dy }); return out; },
@@ -344,9 +360,9 @@ function runPrologue(opts) {
     get wallet() { const o = {}; ASPS.forEach(a => { o[a] = wal(a); }); return o; }, get parts() { const o = {}; SLOTS.forEach(s => { const w = S.worn[s[0]]; if (w) o[w.id] = w.lv; }); return o; }, get shopOpen() { return shop; },
     catalog: CAT.map(d => ({ id: d.id, slot: d.slot, asp: d.asp, name: d.name, cost: d.cost.slice(), mut: d.mut, openAt: KK.open[d.slot], act: d.act || null, text: [0, 1, 2].map(k => d.say(d.v[k], k)) })),
     buy(id) { const ok = sim.buy(id); if (ok) redrawShop(); return ok; }, why(id) { return sim.whyNot(id); }, price(id) { return PART[id] ? sim.priceOf(id) : null; }, openShop(tip) { openShop(tip); }, closeShop() { closeShop(); }, select(id) { if (PART[id]) { sel = id; redrawShop(); } },
-    set manual(v) { manual = !!v; }, get manual() { return manual; }, sim,
+    set manual(v) { manual = !!v; if (manual) closeIntro(); }, get manual() { return manual; }, sim,
     step(n) { for (let k = 0; k < (n || 1) && !S.ended; k++) sim.tick(); return S.ended; }, aim(x, y) { sim.aim(x, y); }, act() { return sim.act(); }, end(kind) { sim.end(kind || 'settle'); if (manual) finish(S.ended); }, world: { r: STG[5].R }, home };
   window.__pro = API;
-  return new Promise(res => { onDone = res; fit(); hud(); raf = requestAnimationFrame(loop); });
+  return new Promise(res => { onDone = res; fit(); hud(); openIntro(); raf = requestAnimationFrame(loop); });
 }
 window.runPrologue = runPrologue;

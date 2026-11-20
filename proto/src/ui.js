@@ -310,7 +310,7 @@ function overview() {
   const by = {}; G.kin.forEach(m => { const k = m.loc === null ? 'bench' : m.loc; (by[k] = by[k] || []).push(m); });
   const keys = Object.keys(by).sort((a, b) => (a === 'bench' ? -1 : b === 'bench' ? 1 : 0)), O = NEST.ORIGIN[G.origin || 'drop'];
   return `<div class="ph"><h2>둥지</h2>${btn('log', null, '지난 일', 'sm')}</div>
-    <div class="card"><div class="slime-top sm">${slimeImg(G.slime, 56)}<div class="stack"><p class="h3">${esc(NEST.formName(G))} <small class="mute">${STAGE_NAME[G.slime.stage]}${G.origin && G.origin !== 'drop' ? ' · ' + O.name : ''}</small></p>${bar(G.slime.hp / NEST.slimeStats(G).hp)}<div class="row">${NEST.ASPECTS.filter(a => G.slime.ess[a] > 0).map(a => aspChip(a, NEST.ASP[a] + ' ' + G.slime.ess[a])).join('')}${btn('core', null, '본체 열기', 'sm')}</div></div></div></div>
+    <div class="card"><div class="slime-top sm">${slimeImg(G.slime, 56)}<div class="stack"><p class="h3">${esc(NEST.formName(G))} <small class="mute">${STAGE_NAME[G.slime.stage]}${G.slime.stage === 0 && G.slime.look && typeof SEEDS !== 'undefined' && SEEDS[G.slime.look] ? ' · ' + esc(SEEDS[G.slime.look].name) : ''}${G.origin && G.origin !== 'drop' ? ' · ' + O.name : ''}</small></p>${bar(G.slime.hp / NEST.slimeStats(G).hp)}<div class="row">${NEST.ASPECTS.filter(a => G.slime.ess[a] > 0).map(a => aspChip(a, NEST.ASP[a] + ' ' + G.slime.ess[a])).join('')}${btn('core', null, '본체 열기', 'sm')}</div></div></div></div>
     ${G.sign && NEST.SIGN[G.sign] ? `<p class="small clamp2"><span class="chip" style="border-color:${ASPCOL[NEST.SIGN[G.sign].asp]};color:${ASPCOL[NEST.SIGN[G.sign].asp]}">${NEST.SIGN[G.sign].name}</span> ${esc(NEST.STAR[G.star].name + ': ' + NEST.STAR[G.star].desc)}</p>` : G.star && G.star !== 'none' ? `<p class="small clamp2"><span class="chip on">${NEST.STAR[G.star].name}</span> ${esc(NEST.STAR[G.star].desc)}</p>` : ''}
     ${G.world && NEST.WORLD[G.world] ? `<p class="small clamp2"><span class="chip on">${NEST.WORLD[G.world].name} · ${NEST.WORLD[G.world].rule.name}</span> ${esc(NEST.WORLD[G.world].rule.bane + ' · ' + NEST.WORLD[G.world].rule.boon)}</p>` : ''}
     ${G.gods || G.auto ? godsRow() : ''}
@@ -635,7 +635,7 @@ async function newRun() {
   // 땅속의 한 방울: 굴을 틀기 전에 직접 움직이며 먹고 자란다. 먹은 것이 첫 정수, 갈라져 나온 것이 첫 권속, 헤집은 자리가 굴이 된다.
   // (자동 시험에서는 건너뛰고 보통 결과를 쓴다. window.__forcePro 를 켜면 시험에서도 한다)
   const seed = (Date.now() ^ (Math.random() * 1e9)) >>> 0, played = typeof runPrologue === 'function' && !(navigator.webdriver && !window.__forcePro);
-  let pr = NEST.proResult(sg.asp, 'avg'); if (played) { try { const r = await runPrologue({ asp: sg.asp, seed, tut: !!o.tut, speed: 1 }); if (r && !r.skipped) pr = r; else pr.skipped = true; } catch (e) { console.error(e); } }   // 건너뛰면 보통 결과
+  let pr = NEST.proResult(sg.asp, 'avg'); if (played) { try { const r = await runPrologue({ asp: sg.asp, seed, tut: !!o.tut, speed: 1 }); if (r && !r.skipped) pr = r; else { pr.skipped = true; if (r && r.look) pr.look = r.look; } } catch (e) { console.error(e); } }   // 건너뛰면 보통 결과
   G = NEST.newGame(seed, sg.asp, { diff: o.diff, legacy, star: sg.star, sign: sk, prologue: pr }); G.auto = false; if (o.tut) G.tut = 0;
   META.runs++; saveMeta(); store.del('run');
   const kept = G.pro && G.pro.mut && NEST.MUT[G.pro.mut] ? NEST.MUT[G.pro.mut].name : '', after = !played || pr.skipped ? [] : [N_(pr.fell ? '쫓기던 한 방울은 겨우 바위틈에 숨었다. 상처가 깊고, 돋운 것들은 떨어져 나갔다.' : '한 방울은 헤집고 다닌 굴 끝에 자리를 잡았다.' + (kept ? ' 허물에 「' + kept + '」이(가) 새겨졌다.' : ''))];

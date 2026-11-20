@@ -92,9 +92,10 @@ function spriteCanvas(name, pal) {
 // 본체: 주 징조 = 색, 부 징조 = 덧그림, 변이 = 부위, 성체 = 빛나는 눈
 // 본체: 32×32 위에 부품을 조립해 그린다. 주 징조 = 몸의 구조, 단계 = 크기와 부위 수, 부 징조 = 다른 색의 덧붙은 기관, 변이 = 부위.
 function slimeCanvas(sl, frame) {
-  const fr = (frame || 0) % 4, ph = fr * 1.57, key = 'sl4:' + (sl.origin || 'drop') + ':' + (sl.body || '') + ':' + (sl.main || 'base') + ':' + (sl.sub || '') + ':' + sl.stage + ':' + (sl.muts || []).join(',') + ':' + fr; if (cv[key]) return cv[key];
+  const fr = (frame || 0) % 4, ph = fr * 1.57, key = 'sl4:' + (sl.origin || 'drop') + ':' + (sl.look || '') + ':' + (sl.body || '') + ':' + (sl.main || 'base') + ':' + (sl.sub || '') + ':' + sl.stage + ':' + (sl.muts || []).join(',') + ':' + fr; if (cv[key]) return cv[key];
   const P = PAL[sl.main] || PAL.base, Q = (sl.sub && PAL[sl.sub]) || P, st = sl.main ? Math.max(1, sl.stage) : 0, DK = '#1a0508', WH = '#f5f5f5';
-  const NEW = FORMS[st ? (sl.body || sl.main) + st : 'base'], N = NEW ? [32, 32, 40, 48, 52][st] : 32;   // 새 모습은 허물을 벗을 때마다 캔버스가 커진다
+  const seedForm = !st && sl.look && FORMS['seed_' + sl.look] ? 'seed_' + sl.look : 'base';   // 첫 허물 전의 꼴: 땅속에서 처음 받은 몸 (seeds.js)
+  const NEW = FORMS[st ? (sl.body || sl.main) + st : seedForm], N = NEW ? [32, 32, 40, 48, 52][st] : 32;   // 새 모습은 허물을 벗을 때마다 캔버스가 커진다
   const c = document.createElement('canvas'); c.width = c.height = N; const x = c.getContext('2d');
   const px = (a, b, w, h, col) => { x.fillStyle = col; x.fillRect(Math.round(a), Math.round(b), w || 1, h || 1); };
   const disc = (cx, cy, rx, ry, col) => { x.fillStyle = col; rx = Math.max(0.5, rx); ry = Math.max(0.5, ry); for (let j = -Math.ceil(ry); j <= Math.ceil(ry); j++) { const q = 1 - (j * j) / (ry * ry); if (q < 0) continue; const w = Math.round(rx * Math.sqrt(q)); x.fillRect(Math.round(cx) - w, Math.round(cy) + j, w * 2 + 1, 1); } };

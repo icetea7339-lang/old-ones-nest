@@ -859,6 +859,7 @@ const NEST = (function () {
       for (const a of ASPECTS) G.slime.ess[a] = Math.floor(e[a] * k);   // 멀리 자란 만큼 더 가져온다
       G.gold += -K.pro.goldBase + clamp(Math.round(pr.gold || 0), 0, K.pro.goldMax);
       (pr.kin || []).slice(0, 3).forEach(kind => { if (!KIN[kind] || kind === 'spawn') return; const m = { id: G.nextId++, name: NAMES[Math.floor(rng(G) * NAMES.length)], kind, lv: 1, exp: 0, loc: null, hurt: 0, skill: -1, rare: false, age: 0, unpaid: 0, split: true }; autoSkill(m); G.kin.push(m); });
+      if (pr.look) G.slime.look = String(pr.look).replace(/[^a-z0-9_]/gi, '').slice(0, 24);
       if (pr.mut && MUT[pr.mut] && !pr.fell && !G.slime.muts.includes(pr.mut)) G.slime.muts.push(pr.mut);   // 허물에 새긴 부위 하나가 변이로 남는다
       openTrail(G); G.pro = { size: pr.size || 1, time: Math.round(pr.time || 0), fell: !!pr.fell, skipped: !!pr.skipped, kin: (pr.kin || []).length, mut: G.slime.muts[0] || null, parts: (pr.parts || []).length }; G.slime.hp = slimeStats(G).hp * (pr.fell ? 0.6 : 1);
     }
@@ -1887,9 +1888,10 @@ function spriteCanvas(name, pal) {
 // 본체: 주 징조 = 색, 부 징조 = 덧그림, 변이 = 부위, 성체 = 빛나는 눈
 // 본체: 32×32 위에 부품을 조립해 그린다. 주 징조 = 몸의 구조, 단계 = 크기와 부위 수, 부 징조 = 다른 색의 덧붙은 기관, 변이 = 부위.
 function slimeCanvas(sl, frame) {
-  const fr = (frame || 0) % 4, ph = fr * 1.57, key = 'sl4:' + (sl.origin || 'drop') + ':' + (sl.body || '') + ':' + (sl.main || 'base') + ':' + (sl.sub || '') + ':' + sl.stage + ':' + (sl.muts || []).join(',') + ':' + fr; if (cv[key]) return cv[key];
+  const fr = (frame || 0) % 4, ph = fr * 1.57, key = 'sl4:' + (sl.origin || 'drop') + ':' + (sl.look || '') + ':' + (sl.body || '') + ':' + (sl.main || 'base') + ':' + (sl.sub || '') + ':' + sl.stage + ':' + (sl.muts || []).join(',') + ':' + fr; if (cv[key]) return cv[key];
   const P = PAL[sl.main] || PAL.base, Q = (sl.sub && PAL[sl.sub]) || P, st = sl.main ? Math.max(1, sl.stage) : 0, DK = '#1a0508', WH = '#f5f5f5';
-  const NEW = FORMS[st ? (sl.body || sl.main) + st : 'base'], N = NEW ? [32, 32, 40, 48, 52][st] : 32;   // 새 모습은 허물을 벗을 때마다 캔버스가 커진다
+  const seedForm = !st && sl.look && FORMS['seed_' + sl.look] ? 'seed_' + sl.look : 'base';   // 첫 허물 전의 꼴: 땅속에서 처음 받은 몸 (seeds.js)
+  const NEW = FORMS[st ? (sl.body || sl.main) + st : seedForm], N = NEW ? [32, 32, 40, 48, 52][st] : 32;   // 새 모습은 허물을 벗을 때마다 캔버스가 커진다
   const c = document.createElement('canvas'); c.width = c.height = N; const x = c.getContext('2d');
   const px = (a, b, w, h, col) => { x.fillStyle = col; x.fillRect(Math.round(a), Math.round(b), w || 1, h || 1); };
   const disc = (cx, cy, rx, ry, col) => { x.fillStyle = col; rx = Math.max(0.5, rx); ry = Math.max(0.5, ry); for (let j = -Math.ceil(ry); j <= Math.ceil(ry); j++) { const q = 1 - (j * j) / (ry * ry); if (q < 0) continue; const w = Math.round(rx * Math.sqrt(q)); x.fillRect(Math.round(cx) - w, Math.round(cy) + j, w * 2 + 1, 1); } };
@@ -3084,6 +3086,150 @@ FORMS.hunger4 = (K, st, P, Q, fr) => {         // 마지막 한 입: 구멍을 �
   K.px(14, 46, '#bfe8ff'); K.px(14, 48 + (fr % 2), '#bfe8ff'); K.px(30, 47, '#bfe8ff');
   return { cx: 26, cy: 28, R: 17, top: 4, bot: 49, head: [23, 6], back: [[42, 11], [47, 26], [34, 5]], belly: [42, 40], side: [46, 36], under: [[10, 50], [26, 50], [42, 50]] };
 };
+// 옛 것의 둥지 — 처음 받는 몸 열다섯. 별에서 떨어진 것은 판마다 꼴이 다르다. 아직 아무것도 아닌 작은 것들이다.
+// SEEDS[id] = { name, say, mod, top }
+//   say: 타고난 것을 한 줄로.  top: 머리 위에 돋는 부위(등불, 더듬이)가 붙는 자리 [x, y] (방울은 [16, 13])
+//   mod: 땅속의 한 방울(prologue.js)이 읽는 타고난 것. 부위와 겹치는 법:
+//     sp(빠르기)·light(밝은 둘레)·see(들키는 거리)·eat(한 입의 값)·ess(남긴 것의 정수)·bead(진액 방울) 은 부위의 효과에 곱한다
+//     hp(버팀) 는 더한다.  pull(끌려 오는 둘레)·mouth(입의 힘)·stun(문 것이 굳는 초) 은 부위와 견주어 큰 쪽을 쓴다
+//     drop(물리면 흘리는 수)·mend(상처가 아무는 초) 은 그 일을 하는 부위(닻주머니·가시, 이끼)가 있으면 부위의 값을 쓴다
+//     act(타고난 재주) 는 발을 돋우면 그 발의 재주로 바뀐다.  fit(틈에 숨는 몸)·buried(묻힌 것이 보임)·keepPart 는 늘 그대로다
+// 그림은 FORMS.seed_<id>: 32×32, FORMS.base 와 같은 약속(P = 바탕 빛깔, fr = 0..3). 징조의 빛깔은 넣지 않는다(첫 허물 뒤에 물든다).
+const SEEDS = {
+  drop: { name: '방울', say: '고르다. 쓰러져도 돋운 것을 잃지 않는다', mod: { keepPart: true }, top: [16, 13] },
+  sliver: { name: '별조각', say: '빠르다. 대신 둘레가 어둡다', mod: { sp: 1.08, light: 0.82 }, top: [15, 11] },
+  bead: { name: '구슬', say: '한 번 더 버틴다. 대신 느리다', mod: { hp: 1, sp: 0.88 }, top: [16, 17] },
+  husk: { name: '빈껍질', say: '물려도 하나만 흘린다. 대신 한 입이 작다', mod: { drop: 1, eat: 0.95 }, top: [16, 17] },
+  mote: { name: '티끌', say: '작아서 덜 들킨다. 대신 진액을 적게 줍는다', mod: { see: 0.82, bead: 0.75 }, top: [16, 20] },
+  coil: { name: '똬리', say: '처음부터 튕겨 달아난다. 대신 평소엔 굼뜨다', mod: { act: true, sp: 0.95 }, top: [17, 17] },
+  eye: { name: '눈방울', say: '둘레가 밝다. 대신 느리다', mod: { light: 1.22, sp: 0.95 }, top: [17, 16] },
+  twin: { name: '쌍눈', say: '묻힌 것이 보인다. 대신 멀리서도 들킨다', mod: { buried: true, see: 1.08 }, top: [16, 17] },
+  horn: { name: '뿔씨', say: '단단한 씨를 처음부터 깬다. 대신 긁는 소리에 들킨다', mod: { mouth: 1, see: 1.1 }, top: [13, 18] },
+  sticky: { name: '끈끈이', say: '가까운 알갱이가 붙어 온다. 대신 물리면 더 흘린다', mod: { pull: 20, drop: 4 }, top: [16, 14] },
+  flat: { name: '납작이', say: '틈에 한 몸 더 오래 숨는다. 대신 어둡고 굼뜨다', mod: { fit: 1, light: 0.88, sp: 0.97 }, top: [15, 22] },
+  glow: { name: '빛씨', say: '진액 방울을 더 얻는다. 대신 빛나서 들킨다', mod: { bead: 1.5, light: 1.08, see: 1.06 }, top: [16, 16] },
+  spore: { name: '홀씨', say: '가만두면 상처가 아문다. 대신 한 입이 작다', mod: { mend: 40, eat: 0.95 }, top: [16, 13] },
+  pod: { name: '알씨', say: '남긴 것을 더 가져간다. 대신 굼뜨다', mod: { ess: 0.15, sp: 0.94 }, top: [16, 14] },
+  thorn: { name: '가시알', say: '나를 문 것이 잠깐 굳는다. 대신 굼뜨다', mod: { stun: 1, sp: 0.93 }, top: [16, 16] },
+};
+if (typeof FORMS !== 'undefined') (function () {
+  const dot = (K, x, y) => { K.flat(K.el(x, y, 1.4, 2), INKY); K.px(x, y - 1, '#ffffff'); };
+  const boneOf = P => [P[0], mixh(P[2], '#ffffff', 0.45), '#ffffff', mixh(P[1], P[3], 0.45)];
+  // 방울: 지금까지의 한 방울 그대로
+  FORMS.seed_drop = (K, st, P, Q, fr) => { const a = FORMS.base(K, st, P, Q, fr); return Object.assign({ top: 13, bot: 28 }, a); };
+  // 별조각: 비스듬히 선 가늘고 모난 조각
+  FORMS.seed_sliver = (K, st, P, Q, fr) => {
+    const b = fr % 2; K.shadow(16, 5);
+    K.G([[13, 29], [10.5, 23], [14.5, 10 - b], [18, 14], [21.5, 24], [18.5, 29]], P);
+    for (let y = 14; y <= 27; y++) K.px(15 + (y - 14) * 0.1, y, mixh(P[1], P[2], 0.65));
+    K.px(13, 20, P[2]); K.px(19, 22, P[3]); dot(K, 13.5, 24); K.spark(15, 11 - b, P[2], fr === 1);
+    return { cx: 16, cy: 23, R: 5, top: 10, bot: 29 };
+  };
+  // 구슬: 꿴 구멍이 난 둥근 알
+  FORMS.seed_bead = (K, st, P, Q, fr) => {
+    const b = fr % 2; K.shadow(16, 7.5);
+    K.B(16, 23 + b * 0.5, 7, 6.5 - b * 0.5, P); K.rect(15, 17 + b, 3, 1, P[0]); K.px(16, 18 + b, mixh(P[3], P[0], 0.5));
+    K.px(12, 20 + b, '#ffffff'); K.px(11, 21 + b, '#ffffff'); K.px(20, 27, P[2]); dot(K, 13.5, 24);
+    return { cx: 16, cy: 23, R: 6, top: 17, bot: 29 };
+  };
+  // 빈껍질: 위가 깨져 나간 껍데기. 어두운 것이 안에서 내다본다
+  FORMS.seed_husk = (K, st, P, Q, fr) => {
+    const b = fr % 2, zig = [1, 2, 0, 2, 1, 0, 2, 1, 0, 2, 0, 1, 2, 0, 1], dk = mixh(P[3], P[0], 0.85); K.shadow(16, 7.5);
+    K.flat(K.el(16, 20.5 - b * 0.5, 4.6, 3.4), dk, P[0]);
+    K.flat(K.el(16, 22, 6.2, 2.4), dk, P[0]);
+    K.ball(K.cut(K.el(16, 24, 7, 5.6), (x, y) => y >= 21 + zig[(x + 6) % 15]), 16, 24, 7, 5.6, P);
+    K.rect(13, 19 - b, 2, 2, '#ffffff'); K.px(14, 20 - b, INKY); K.rect(17, 19 - b, 2, 2, '#ffffff'); K.px(18, 20 - b, INKY);
+    K.px(18, 25, P[0]); K.px(19, 26, P[0]); K.px(18, 27, P[0]); K.px(12, 26, P[2]);
+    K.G([[24, 29.5], [25, 26.5], [27.5, 28.5]], P);
+    return { cx: 16, cy: 24, R: 6, top: 17, bot: 29 };
+  };
+  // 티끌: 아주 작은 알과 곁을 떠도는 먼지
+  FORMS.seed_mote = (K, st, P, Q, fr) => {
+    const b = fr % 2; K.shadow(16, 4.5);
+    K.B(16, 25.5 + b * 0.5, 4.4, 3.9 - b * 0.3, P); K.flat(K.el(15, 25.5, 1, 1.5), INKY); K.px(15, 24.5, '#ffffff');
+    [[9, 21], [23, 19], [19, 14], [12, 15], [25, 25], [7, 27]].forEach((q, i) => { const up = (fr + i) % 4 < 2 ? 0 : -1; if (i < 2) { K.rect(q[0], q[1] + up, 2, 2, P[0]); K.px(q[0], q[1] + up, P[2]); K.px(q[0] + 1, q[1] + 1 + up, P[1]); } else K.px(q[0], q[1] + up, i % 2 ? P[2] : P[1]); });
+    return { cx: 16, cy: 25.5, R: 4, top: 21, bot: 29 };
+  };
+  // 똬리: 돌돌 감긴 채 떨어진 것. 고개만 내밀고, 튕기듯 늘었다 준다
+  FORMS.seed_coil = (K, st, P, Q, fr) => {
+    const s = [0, 1, 2, 1][fr], hx = 7 - s * 0.6, hy = 22.6 - s * 0.3, line = mixh(P[3], P[0], 0.4); K.shadow(16, 8);
+    K.L([[12, 27], [8.6 - s * 0.4, 26], [hx, hy]], 2, 1.6, P);
+    K.B(17, 23.5, 6.3, 5.8, P);
+    for (let a = 0; a < 13.4; a += 0.16) { const r = 0.7 + a * 0.36; K.px(17 + Math.cos(a + 1) * r, 23.5 + Math.sin(a + 1) * r * 0.93, line); }
+    K.px(14, 20, '#ffffff'); K.flat(K.el(hx + 0.2, hy, 0.9, 1.2), INKY); K.px(hx + 0.2, hy - 1, '#ffffff');
+    return { cx: 16, cy: 23.5, R: 6, top: 17, bot: 29 };
+  };
+  // 눈방울: 몸의 거의 전부가 눈 하나
+  FORMS.seed_eye = (K, st, P, Q, fr) => {
+    const b = fr % 2; K.shadow(16, 7);
+    K.L([[19, 19], [21.5, 15.5], [20.5, 12.5 - b]], 1.8, 0.7, P);
+    K.B(16, 23.5 + b * 0.4, 6.6, 6 - b * 0.4, P); K.eye(15 + (fr === 2 ? 1 : 0), 23.5, 3.6, mixh(P[3], P[0], 0.3), false, 0);
+    return { cx: 16, cy: 23.5, R: 6, top: 12, bot: 29 };
+  };
+  // 쌍눈: 실 한 가닥으로 이어진 두 알
+  FORMS.seed_twin = (K, st, P, Q, fr) => {
+    const b = fr % 2; K.shadow(16, 9);
+    K.L([[11.5, 20.5], [16, 17 - b], [20.5, 21]], 0.8, 0.8, P);
+    K.B(20.8, 24.9 - b * 0.4, 4.2, 4.1, P); K.B(11.6, 24.2 + b * 0.4, 4.9, 4.7, P);
+    dot(K, 10.6 + (fr === 2 ? 1 : 0), 24.4 + b * 0.4); K.flat(K.el(20.4 + (fr === 2 ? 1 : 0), 25 - b * 0.4, 1.2, 1.7), INKY); K.px(20.4 + (fr === 2 ? 1 : 0), 24 - b * 0.4, '#ffffff');
+    return { cx: 16, cy: 24.5, R: 6, top: 17, bot: 29 };
+  };
+  // 뿔씨: 앞으로 뻗은 단단한 뿔 하나
+  FORMS.seed_horn = (K, st, P, Q, fr) => {
+    const b = fr % 2, bone = boneOf(P); K.shadow(15.5, 6.5);
+    K.B(14.5, 24.5 + b * 0.4, 5.6, 4.8 - b * 0.4, P);
+    K.L([[17, 22], [21.5, 18], [25.5, 12.5 - b]], 2.2, 0.6, bone); K.px(20, 20, bone[3]); K.px(22, 17, bone[3]); K.px(24, 14, bone[3]);
+    dot(K, 12.5, 24.6);
+    return { cx: 15, cy: 24.5, R: 5, top: 12, bot: 29 };
+  };
+  // 끈끈이: 진득한 덩이에서 끈이 늘어나고 끝마다 방울이 맺혔다
+  FORMS.seed_sticky = (K, st, P, Q, fr) => {
+    K.shadow(16, 8.5);
+    [[12, 23, 9.5, 17.5], [16, 22, 16, 13.5], [20, 23, 23, 18]].forEach((q, i) => { const up = i === fr % 3 ? -1 : 0; K.L([[q[0], q[1]], [q[2], q[3] + up]], 1, 0.6, P); K.B(q[2], q[3] + up, 1.7, 1.7, P); K.px(q[2] - 1, q[3] - 1 + up, '#ffffff'); });
+    K.B(16, 25.6, 7.5, 4.1, P); K.px(10, 29, P[1]); K.px(10, 30, P[3]); K.px(22, 29, P[3]); dot(K, 13.6, 25.6);
+    return { cx: 16, cy: 25.5, R: 6, top: 13, bot: 29 };
+  };
+  // 납작이: 바닥에 퍼진 얇은 것. 한쪽 끝이 말려 올라갔다
+  FORMS.seed_flat = (K, st, P, Q, fr) => {
+    const b = fr % 2; K.shadow(16, 11);
+    K.L([[23.5, 26.8], [26.2, 25.2], [25.6, 23.4 - b]], 1.2, 0.6, P);
+    K.B(16, 27.2, 10, 2.5, P); K.B(15, 25.4 - b * 0.3, 5.4, 2.5, P);
+    K.flat(K.el(13.5, 25.2 - b * 0.3, 1.3, 1.4), INKY); K.px(13.5, 24.4 - b * 0.3, '#ffffff'); K.px(8, 27, P[2]);
+    return { cx: 16, cy: 26, R: 5, top: 23, bot: 29 };
+  };
+  // 빛씨: 속에 불씨를 품은 알. 빛이 새어 나온다
+  FORMS.seed_glow = (K, st, P, Q, fr) => {
+    const lit = mixh(P[4], '#ffffff', 0.35); K.shadow(16, 6);
+    for (let i = 0; i < 8; i++) { const a = i * 0.7854 + 0.2, long = (i + fr) % 2 === 0, r0 = 6.6, r1 = long ? 9.4 : 7.8; if (Math.sin(a) > 0.75) continue; for (let r = r0; r <= r1; r += 0.9) K.px(16 + Math.cos(a) * r, 23.5 + Math.sin(a) * r * 0.95, r > 8.4 ? P[4] : lit); }
+    K.B(16, 23.5, 5, 5, P); K.flat(K.el(17.6, 23.6, 2, 2.2), P[4], mixh(P[1], P[4], 0.5)); K.px(17, 23, '#ffffff'); K.px(18, 23, lit); K.px(17, 24, lit);
+    K.flat(K.el(13, 24, 1, 1.6), INKY); K.px(13, 23, '#ffffff');
+    return { cx: 16, cy: 23.5, R: 5, top: 15, bot: 29 };
+  };
+  // 홀씨: 가는 자루 끝에 솜털이 핀 씨
+  FORMS.seed_spore = (K, st, P, Q, fr) => {
+    const b = fr % 2, ty = 14 - b, fl = [P[0], mixh(P[2], '#ffffff', 0.3), '#ffffff', P[2]]; K.shadow(16, 4.5);
+    for (let i = 0; i <= 8; i++) { const a = Math.PI * (1 + i / 8), ex = 16 + Math.cos(a) * 6.6, ey = ty + Math.sin(a) * 5.6 - (i % 2 ? 0 : 0.6); K.L([[16, ty], [ex, ey]], 0.5, 0.5, fl, null); K.px(ex, ey, '#ffffff'); }
+    K.L([[16, 24], [16.6, 19], [16, ty]], 0.7, 0.6, P);
+    K.B(16, 26.4, 3.7, 3.2, P); K.flat(K.el(15, 26.4, 1, 1.5), INKY); K.px(15, 25.4, '#ffffff');
+    return { cx: 16, cy: 26, R: 4, top: 8, bot: 29 };
+  };
+  // 알씨: 꼭지 위에 선 길쭉한 알
+  FORMS.seed_pod = (K, st, P, Q, fr) => {
+    const b = fr % 2; K.shadow(16, 6);
+    K.G([[10.5, 28.5], [12.5, 26.3], [14.5, 28.6], [16, 26.3], [17.5, 28.6], [19.5, 26.3], [21.5, 28.5], [16, 30.5]], [P[0], P[3], P[1], mixh(P[3], P[0], 0.5)]);
+    K.B(16, 21.6 + b * 0.4, 5, 7 - b * 0.4, P); K.px(18, 18 + b, P[3]); K.px(19, 24, P[3]); K.px(13, 26, P[3]); K.px(17, 21, P[2]); K.px(14, 17 + b, P[2]);
+    dot(K, 14, 22.4);
+    return { cx: 16, cy: 22, R: 5, top: 14, bot: 30 };
+  };
+  // 가시알: 온몸에 가시가 돋은 밤송이
+  FORMS.seed_thorn = (K, st, P, Q, fr) => {
+    const bone = boneOf(P); K.shadow(16, 7.5);
+    for (let i = 0; i < 10; i++) { const a = i * 0.6283 + 0.15, ca = Math.cos(a), sa = Math.sin(a); if (sa > 0.72) continue; const L = 8.6 + ((i + fr) % 2) * 0.7; K.L([[16 + ca * 3.6, 24 + sa * 3.2], [16 + ca * L, 24 + sa * L * 0.92]], 1.1, 0.4, bone); }
+    K.B(16, 24, 5, 4.6, P); dot(K, 14, 24.2); K.px(18, 22, P[2]); K.px(19, 26, P[3]);
+    return { cx: 16, cy: 24, R: 5, top: 15, bot: 29 };
+  };
+})();
+if (typeof module !== 'undefined') module.exports = SEEDS;
 // 옛 것의 둥지 — 권속의 모습. 전부 옛 것의 몸에서 돋았거나, 옛 것이 고쳐 놓은 것이다.
 // 살, 눈, 촉수, 껍데기, 이빨. 빛깔은 징조를 따른다(심연 청록, 성운 보라, 번식 초록, 황혼 주황, 기아 빨강). 징조가 없는 것은 본체의 처음 빛깔(창백한 잿빛 살)과 뼈.
 // 사람이었던 셋(신도, 돌아선 자, 꺾인 믿음)만 사람 꼴이 남아 있다. 어느 시대의 사람인지는 그리지 않는다.
@@ -4535,22 +4681,30 @@ const PRO = (function () {
   ];
   const PART = {}; CAT.forEach(c => { PART[c.id] = c; });
 
+  // ---------- 처음 받는 몸: 판마다 열다섯 가운데 하나. 타고난 것이 조금씩 다르다 (seeds.js) ----------
+  const SEEDS_ = (typeof SEEDS !== 'undefined' && SEEDS) || (typeof require !== 'undefined' ? require('./seeds.js') : {}), SEED_IDS = Object.keys(SEEDS_);
+  const FORM0 = { sp: 1, light: 1, see: 1, eat: 1, ess: 0, bead: 1, hp: 0, pull: 0, mouth: 0, stun: 0, drop: 3, mend: 0, act: false, fit: 0, buried: false, keepPart: false };
+  const ACT0 = { name: '튕기기', cd: 9, dash: 0.3 };
+  const pickLook = seed => SEED_IDS.length ? SEED_IDS[(Math.imul((seed >>> 0) ^ 0x9e3779b9, 0x85ebca6b) >>> 9) % SEED_IDS.length] : null;
+
   function makeSim(opts) {
     opts = opts || {};
     const home = ASPS.includes(opts.asp) ? opts.asp : 'abyss';
-    let seed = (opts.seed >>> 0) || 1; const rnd = () => { let t = (seed = (seed + 0x6D2B79F5) >>> 0); t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+    let seed = (opts.seed >>> 0) || 1; const look = SEEDS_[opts.look] ? opts.look : pickLook(seed), F = Object.assign({}, FORM0, look ? SEEDS_[look].mod : null); const rnd = () => { let t = (seed = (seed + 0x6D2B79F5) >>> 0); t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
     const rr = (a, b) => a + rnd() * (b - a), dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y), cl = (v, a, b) => Math.max(a, Math.min(b, v));
     const zero = () => ({ abyss: 0, nebula: 0, brood: 0, dusk: 0, hunger: 0 }), pickAsp = () => rnd() < 0.4 ? home : ASPS[Math.floor(rnd() * 5)];
     const ev = [], emit = (k, o) => { if (ev.length < 240) ev.push(Object.assign({ k, t: S.t }, o || {})); };
     const S = { t: 0, stage: 1, stageT: 0, bio: 0, purse: zero(), spent: 0, gold: 0, worn: {}, hp: K.hp, lives: K.lives, falls: 0, ended: null, seen: {}, upAt: -999,
       food: [], wrig: [], cre: [], clusters: [], crev: [], webs: [], shots: [], puddles: [], snares: [], drops: [],
       sweep: { st: 'idle', next: 0, x: 0, y: 0, dx: 0, dy: 0, sx: 0, sy: 0, t0: 0, warn: 0, n: 0 }, stats: { hits: 0, eaten: 0, swallowed: 0, acts: 0, bought: 0, defeats: 0, byKind: {} }, cap: null };
-    const P = { x: 0, y: 0, vx: 0, vy: 0, face: 1, inv: 45, aimX: 0, aimY: 0, aimOn: false, cd: 0, cd2: 0, dash: 0, burrow: 0, pounce: null, chew: null, leech: null, veilAt: 0, mossAt: 0, slow: 0, noise: 0, crev: null, kx: 0, ky: 0 };
+    S.hp = K.hp + F.hp;
+    const P = { mendAt: F.mend * TPS, x: 0, y: 0, vx: 0, vy: 0, face: 1, inv: 45, aimX: 0, aimY: 0, aimOn: false, cd: 0, cd2: 0, dash: 0, burrow: 0, pounce: null, chew: null, leech: null, veilAt: 0, mossAt: 0, slow: 0, noise: 0, crev: null, kx: 0, ky: 0 };
     const G = () => STG[S.stage];
     // ---------- 부위를 읽는 손잡이 ----------
     const lv = id => { const w = S.worn[PART[id].slot]; return w && w.id === id ? w.lv : 0; }, val = id => { const k = lv(id); return k ? PART[id].v[k - 1] : 0; };
-    const mouthLv = () => { const w = S.worn.mouth; return w ? w.lv + (w.id === 'mouth_hunger' ? 1 : 0) : 0; };
-    const maxHp = () => K.hp + val('skin_abyss'), lightR = () => G().light * (1 + val('eye_abyss') / 100);
+    const mouthLv = () => { const w = S.worn.mouth; return Math.max(F.mouth, w ? w.lv + (w.id === 'mouth_hunger' ? 1 : 0) : 0); };
+    const maxHp = () => K.hp + F.hp + val('skin_abyss'), lightR = () => G().light * F.light * (1 + val('eye_abyss') / 100);
+    const fits = q => S.stage <= q.fit + F.fit;
     const acidOK = () => lv('skin_brood') >= 1 || lv('skin_abyss') >= 2, webOK = () => lv('skin_dusk') >= 1 || lv('skin_nebula') >= 2, bitterOK = () => lv('skin_brood') >= 1 || lv('skin_hunger') >= 2;
     const hostile = c => !SP[c.k].calm && c.st >= S.stage, prey = c => c.st < S.stage;
     const stuck = c => c.stun > 0 || c.mode === 'rest';
@@ -4581,7 +4735,7 @@ const PRO = (function () {
 
     // ---------- 먹는다 ----------
     const gain = (asp, v, tier, x, y, live) => {
-      let n = v * (tier <= S.stage - 3 ? 0.25 : tier <= S.stage - 2 ? 0.5 : 1); if (live) n *= 1 + val('core_hunger') / 100;
+      let n = v * F.eat * (tier <= S.stage - 3 ? 0.25 : tier <= S.stage - 2 ? 0.5 : 1); if (live) n *= 1 + val('core_hunger') / 100;
       if (lv('mouth_nebula') && rnd() * 100 < val('mouth_nebula')) n += Math.max(1, v * 0.3);
       S.purse[asp || home] += n; S.bio += n; S.stats.eaten += n; emit('eat', { x, y, asp: asp || home, n });
       if (lv('mouth_brood') && rnd() * 100 < val('mouth_brood')) S.drops.push({ x: x + rr(-8, 8), y: y + rr(-8, 8), asp: 'brood', at: S.t + 4 * TPS });
@@ -4589,7 +4743,7 @@ const PRO = (function () {
     const eatFood = f => {
       const d = FOOD[f.k]; f.alive = false; f.back = S.t + (f.k === 'mote' ? 0 : f.k === 'bead' || f.k === 'egg' ? 1e9 : f.k === 'cap' ? 60 * TPS : 45 * TPS);
       S.stats.byKind[f.k] = (S.stats.byKind[f.k] || 0) + 1;
-      if (f.k === 'bead') { S.gold = Math.min(K.goldCap, S.gold + K.bead); emit('gold', { x: f.x, y: f.y }); return; }
+      if (f.k === 'bead') { S.gold = Math.min(K.goldCap, S.gold + Math.round(K.bead * F.bead)); emit('gold', { x: f.x, y: f.y }); return; }
       if (f.k === 'cap') { if (S.hp < maxHp()) { S.hp++; emit('heal', { x: P.x, y: P.y }); once('cap', '빛갓', '상처 하나가 아물었다'); return; } }
       if (d.bitter && !bitterOK()) { once('bulb', '쓰다', '겉을 돋워야 탈 없이 먹는다', 3); hurt(null, true); gain(f.asp, d.val * 0.5, d.tier, f.x, f.y); return; }
       gain(f.asp, d.val, d.tier, f.x, f.y);
@@ -4615,8 +4769,9 @@ const PRO = (function () {
       S.hp--; S.stats.hits++; P.inv = (lv('skin_abyss') >= 2 ? 1.9 : 1.2) * TPS; P.chew = null; P.pounce = null; emit('hurt', { x: P.x, y: P.y, kind: c ? c.k : 'self' });
       if (c) { const d = dist(c, P) || 1; P.kx = (P.x - c.x) / d * 150; P.ky = (P.y - c.y) / d * 150;
         if (lv('skin_nebula')) c.stun = Math.max(c.stun, val('skin_nebula') * TPS);
+        if (F.stun && c.r < 40) c.stun = Math.max(c.stun, F.stun * TPS);
         if (lv('skin_hunger')) { if (c.st <= S.stage && c.st <= 2) { c.alive = false; c.deadAt = S.t; emit('gone', { x: c.x, y: c.y }); } else c.stun = Math.max(c.stun, 1.2 * TPS); } }
-      if (!(lv('skin_hunger') >= 3)) { let drop = lv('core_abyss') ? [2, 1, 0][lv('core_abyss') - 1] : 3; while (drop-- > 0) { const a = ASPS.slice().sort((p, q) => S.purse[q] - S.purse[p])[0]; if (S.purse[a] < 1) break; S.purse[a] -= 1; S.drops.push({ x: P.x + rr(-22, 22), y: P.y + rr(-22, 22), asp: a, at: S.t + 12 }); } }
+      if (!(lv('skin_hunger') >= 3)) { let drop = lv('core_abyss') ? [2, 1, 0][lv('core_abyss') - 1] : F.drop; while (drop-- > 0) { const a = ASPS.slice().sort((p, q) => S.purse[q] - S.purse[p])[0]; if (S.purse[a] < 1) break; S.purse[a] -= 1; S.drops.push({ x: P.x + rr(-22, 22), y: P.y + rr(-22, 22), asp: a, at: S.t + 12 }); } }
       if (S.hp <= 0) defeat(c);
       return true;
     }
@@ -4624,23 +4779,27 @@ const PRO = (function () {
       S.stats.defeats++; S.falls++;
       if (S.lives <= 0) return end('fell');
       S.lives--; ASPS.forEach(a => { S.purse[a] = Math.floor(S.purse[a] * 2 / 3); });
-      const ws = Object.keys(S.worn).map(s => S.worn[s]).sort((a, b) => b.lv - a.lv)[0]; let lost = null; if (ws) { lost = PART[ws.id].name; if (ws.lv > 1) ws.lv--; else delete S.worn[PART[ws.id].slot]; }
+      const ws = Object.keys(S.worn).map(s => S.worn[s]).sort((a, b) => b.lv - a.lv)[0]; let lost = null; if (ws && !F.keepPart) { lost = PART[ws.id].name; if (ws.lv > 1) ws.lv--; else delete S.worn[PART[ws.id].slot]; }
       S.bio = S.stage > 1 ? STG[S.stage - 1].need : 0; S.hp = maxHp(); S.stageT = S.t;
-      const cs = S.crev.filter(q => q.fit >= S.stage && q.ring <= S.stage).sort((a, b) => dist(a, P) - dist(b, P)); const to = cs[0] || S.crev[0]; P.x = to.x; P.y = to.y; P.vx = P.vy = P.kx = P.ky = 0; P.inv = 3 * TPS; P.leech = null; P.chew = null; P.aimOn = false; P.aimX = P.x; P.aimY = P.y;
+      const cs = S.crev.filter(q => fits(q) && q.ring <= S.stage).sort((a, b) => dist(a, P) - dist(b, P)); const to = cs[0] || S.crev[0]; P.x = to.x; P.y = to.y; P.vx = P.vy = P.kx = P.ky = 0; P.inv = 3 * TPS; P.leech = null; P.chew = null; P.aimOn = false; P.aimX = P.x; P.aimY = P.y;
       S.cre.forEach(q => { if (q.alive && q.ring <= S.stage + 1) { q.mode = q.k === 'lurker' ? 'buried' : q.k === 'mimic' ? 'bait' : 'idle'; if (SP[q.k].sp || q.k === 'blind') { q.x = q.hx; q.y = q.hy; } q.vx = q.vy = 0; q.stun = 0; q.t = 0; } }); S.shots.length = 0; S.puddles.length = 0; S.sweep.st = 'idle'; S.sweep.next = S.t + 20 * TPS;
-      emit('respawn', { x: P.x, y: P.y, lost, by: c ? c.k : null }); caption('쓰러졌다. 틈으로 기어들었다', '모은 것의 삼분의 일' + (lost ? '과 ' + lost + ' 한 단계' : '') + '를 잃었다 · 남은 기회 ' + S.lives, 4, 3);
+      emit('respawn', { x: P.x, y: P.y, lost, by: c ? c.k : null }); caption('쓰러졌다. 틈으로 기어들었다', (lost ? '모은 것의 삼분의 일과 ' + lost + ' 한 단계를 잃었다' : '모은 것의 삼분의 일을 잃었다') + ' · 남은 기회 ' + S.lives, 4, 3);
     }
 
     // ---------- 재주 ----------
-    const actName = () => { const w = S.worn.leg; return w ? PART[w.id].act : null; }, actReady = () => !!S.worn.leg && P.cd <= 0 && P.burrow <= 0 && !P.pounce;
+    const actName = () => { const w = S.worn.leg; return w ? PART[w.id].act : F.act ? ACT0.name : null; }, actReady = () => (!!S.worn.leg || F.act) && P.cd <= 0 && P.burrow <= 0 && !P.pounce;
+    const actTotal = () => { const w = S.worn.leg; return w ? PART[w.id].v[w.lv - 1] * TPS : F.act ? ACT0.cd * TPS : 0; };
+    // 재주를 쓰면 붙어 있던 달라붙이가 떨어진다. 떨어진 것은 한동안 다시 붙지 못한다
+    const shake = () => { if (!P.leech) return; const c = S.cre.find(q => q.id === P.leech); if (c) { c.mode = 'idle'; c.cd = 5 * TPS; } P.leech = null; };
     function act() {
       if (S.ended) return false; let did = false; const w = S.worn.leg, k = w ? w.lv - 1 : 0, dx0 = P.aimOn ? P.aimX - P.x : P.face, dy0 = P.aimOn ? P.aimY - P.y : 0, dl = Math.hypot(dx0, dy0) || 1, ux = dx0 / dl, uy = dy0 / dl;
-      if (w && P.cd <= 0 && P.burrow <= 0 && !P.pounce) { did = true; P.cd = PART[w.id].v[k] * TPS; P.chew = null; P.leech = null;
+      if (w && P.cd <= 0 && P.burrow <= 0 && !P.pounce) { did = true; P.cd = PART[w.id].v[k] * TPS; P.chew = null; shake();
         if (w.id === 'leg_abyss') { P.dash = 0.5 * TPS; emit('dash', { x: P.x, y: P.y }); }
         if (w.id === 'leg_nebula') { const d = [60, 85, 110][k], fx = P.x, fy = P.y; P.x += ux * d; P.y += uy * d; const rr0 = Math.hypot(P.x, P.y), lim = G().R - G().r; if (rr0 > lim) { P.x *= lim / rr0; P.y *= lim / rr0; } P.inv = Math.max(P.inv, 6); emit('blink', { x: fx, y: fy, tx: P.x, ty: P.y }); }
         if (w.id === 'leg_brood') { P.burrow = [1.6, 2.2, 2.8][k] * TPS; P.vx = P.vy = 0; emit('burrow', { x: P.x, y: P.y }); }
         if (w.id === 'leg_dusk') { S.snares.push({ x: P.x, y: P.y, until: S.t + 9 * TPS, hold: [2, 3, 4][k] * TPS }); emit('snare', { x: P.x, y: P.y }); }
         if (w.id === 'leg_hunger') { const d = [70, 90, 110][k]; P.pounce = { ux, uy, left: 9, sp: d / 9 * TPS }; emit('pounce', { x: P.x, y: P.y }); } }
+      if (!w && F.act && P.cd <= 0 && P.burrow <= 0) { did = true; P.cd = ACT0.cd * TPS; P.chew = null; shake(); P.dash = ACT0.dash * TPS; emit('dash', { x: P.x, y: P.y }); }
       if (lv('core_dusk') && P.cd2 <= 0) { did = true; P.cd2 = val('core_dusk') * TPS; const R = [110, 140, 180][lv('core_dusk') - 1]; S.cre.forEach(c => { if (c.alive && hostile(c) && dist(c, P) < R + c.r && c.k !== 'filter' && c.k !== 'mother') { c.mode = 'scared'; c.t = 2.6 * TPS; } }); emit('pulse', { x: P.x, y: P.y, r: R }); }
       if (did) S.stats.acts++; return did;
     }
@@ -4649,8 +4808,8 @@ const PRO = (function () {
     const steer = (o, tx, ty, sp, k) => { const d = Math.hypot(tx - o.x, ty - o.y) || 1; o.vx += ((tx - o.x) / d * sp - o.vx) * (k || 0.2); o.vy += ((ty - o.y) / d * sp - o.vy) * (k || 0.2); };
     const moveIn = (o, R) => { o.x += o.vx / TPS; o.y += o.vy / TPS; const r = Math.hypot(o.x, o.y); if (r > R) { o.x *= R / r; o.y *= R / r; } if (Math.abs(o.vx) > 2) o.face = o.vx < 0 ? -1 : 1; };
     const wander = (c, sp, leash) => { c.wa += rr(-0.3, 0.3); if (Math.hypot(c.x - c.hx, c.y - c.hy) > leash) steer(c, c.hx, c.hy, sp, 0.1); else steer(c, c.x + Math.cos(c.wa) * 40, c.y + Math.sin(c.wa) * 40, sp, 0.06); };
-    const hidden = c => { if (P.burrow > 0) return true; const q = P.crev; return !!(q && S.stage <= q.fit && c.r > q.r * 0.3); };
-    const sees = c => !hidden(c) && dist(c, P) < SP[c.k].see * (1 - val('eye_dusk') / 100) + G().r;
+    const hidden = c => { if (P.burrow > 0) return true; const q = P.crev; return !!(q && fits(q) && c.r > q.r * 0.3); };
+    const sees = c => !hidden(c) && dist(c, P) < SP[c.k].see * F.see * (1 - val('eye_dusk') / 100) + G().r;
     const touch = (c, pad) => dist(c, P) < c.r + G().r * 0.8 + (pad || 0);
     const bite = c => { if (c.cd <= 0 && touch(c) && !hidden(c)) { c.cd = 1.3 * TPS; hurt(c); return true; } return false; };
 
@@ -4660,7 +4819,7 @@ const PRO = (function () {
       if (P.inv > 0) P.inv--; if (P.cd > 0) P.cd--; if (P.cd2 > 0) P.cd2--; if (P.dash > 0) P.dash--; if (P.burrow > 0) P.burrow--;
       // 한 방울
       P.crev = null; for (const q of S.crev) if (dist(q, P) < q.r) { P.crev = q; break; }
-      let sp = g.sp * (1 + (lv('leg_abyss') ? [6, 10, 14][lv('leg_abyss') - 1] : 0) / 100), slow = 1;
+      let sp = g.sp * F.sp * (1 + (lv('leg_abyss') ? [6, 10, 14][lv('leg_abyss') - 1] : 0) / 100), slow = 1;
       if (!webOK()) { for (const w of S.webs) if (Math.abs(w.x - P.x) < w.r && Math.abs(w.y - P.y) < w.r && dist(w, P) < w.r) { slow = 0.42; once('web', '실에 걸렸다', '겉을 돋우면 걸리지 않는다'); break; } } else for (let i = S.webs.length - 1; i >= 0; i--) if (dist(S.webs[i], P) < S.webs[i].r) S.webs.splice(i, 1);
       if (P.leech) slow *= 0.85; if (P.dash > 0) sp *= 3;
       if (lv('eye_hunger')) { for (const c of S.cre) if (c.alive && canEat(c) && dist(c, P) < 90) { sp *= 1 + val('eye_hunger') / 100; break; } }
@@ -4673,10 +4832,11 @@ const PRO = (function () {
       if (Math.hypot(P.x, P.y) > g.R - g.r - 2 && S.stage < 5) once('wall', '흙이 단단하다', '더 자라야 밖으로 나간다');
       // 이끼
       if (lv('skin_brood') && S.hp < maxHp() && t >= P.mossAt) { S.hp++; P.mossAt = t + val('skin_brood') * TPS; emit('heal', { x: P.x, y: P.y }); } else if (lv('skin_brood') && S.hp >= maxHp()) P.mossAt = Math.max(P.mossAt, t + val('skin_brood') * TPS * 0.5);
+      if (F.mend && !lv('skin_brood')) { if (S.hp < maxHp() && t >= P.mendAt) { S.hp++; P.mendAt = t + F.mend * TPS; emit('heal', { x: P.x, y: P.y }); } else if (S.hp >= maxHp()) P.mendAt = Math.max(P.mendAt, t + F.mend * TPS * 0.5); }
       // 달라붙이
-      if (P.leech) { const c = S.cre.find(q => q.id === P.leech); if (!c || !c.alive || (P.crev && S.stage <= P.crev.fit)) P.leech = null; else { c.x = P.x - P.face * g.r * 0.6; c.y = P.y - g.r * 0.5; c.t++; if (c.t % 36 === 0) { const a = ASPS.slice().sort((p, q) => S.purse[q] - S.purse[p])[0]; if (S.purse[a] >= 1) { S.purse[a] -= 1; emit('drain', { x: P.x, y: P.y, asp: a }); } } if (c.t > 9 * TPS) { P.leech = null; c.mode = 'idle'; c.cd = 5 * TPS; } } }
+      if (P.leech) { const c = S.cre.find(q => q.id === P.leech); if (!c || !c.alive || (P.crev && fits(P.crev))) P.leech = null; else { c.x = P.x - P.face * g.r * 0.6; c.y = P.y - g.r * 0.5; c.t++; if (c.t % 36 === 0) { const a = ASPS.slice().sort((p, q) => S.purse[q] - S.purse[p])[0]; if (S.purse[a] >= 1) { S.purse[a] -= 1; emit('drain', { x: P.x, y: P.y, asp: a }); } } if (c.t > 9 * TPS) { P.leech = null; c.mode = 'idle'; c.cd = 5 * TPS; } } }
       // 먹이: 닿으면 먹는다. 굳은 것은 입의 힘이 있어야, 질긴 것은 서서 씹어야
-      const reach = g.r + 3, pull = val('mouth_abyss'), ring = val('core_nebula'), m = mouthLv();
+      const reach = g.r + 3, pull = Math.max(F.pull, val('mouth_abyss')), ring = val('core_nebula'), m = mouthLv();
       let chewing = false;
       for (const f of S.food) {
         if (!f.alive) { if (f.back && t >= f.back && f.k !== 'mote' && dist(f, P) > 160) f.alive = true; continue; }
@@ -4793,7 +4953,7 @@ const PRO = (function () {
       if (late) {
         if (sw.st === 'idle' && t >= sw.next) { const a = rnd() * 6.2832; sw.dx = Math.cos(a); sw.dy = Math.sin(a); const px = -sw.dy, py = sw.dx, off = rr(-36, 36); sw.sx = P.x + px * off - sw.dx * 560; sw.sy = P.y + py * off - sw.dy * 560; sw.x = sw.sx; sw.y = sw.sy; sw.st = 'warn'; sw.t0 = t; sw.warn = (lv('eye_nebula') >= 3 ? 3.8 : 2.3) * TPS; sw.r = 16 + S.stage * 5; emit('sweepwarn', {}); if (!sw.n) caption('흙이 떨린다', '깊은 것이 지나간다. 붉은 줄에서 비켜', 3.2); sw.n++; }
         else if (sw.st === 'warn' && t - sw.t0 >= sw.warn) { sw.st = 'run'; sw.t0 = t; emit('sweep', {}); }
-        else if (sw.st === 'run') { const v = (200 + S.stage * 40) / TPS; sw.x += sw.dx * v; sw.y += sw.dy * v; if (dist(sw, P) < sw.r + g.r * 0.7 && !(P.crev && S.stage <= P.crev.fit)) hurt({ x: sw.x, y: sw.y, k: 'sweeper', st: 9, r: sw.r, stun: 0 }); for (const c of S.cre) if (c.alive && c.r < 40 && c.ring <= S.stage && dist(sw, c) < sw.r + c.r) { c.alive = false; c.deadAt = t; emit('gone', { x: c.x, y: c.y }); } if (t - sw.t0 > 1150 / v) { sw.st = 'idle'; sw.next = t + Math.max(5, 10 - sw.n * 0.7) * TPS; } }
+        else if (sw.st === 'run') { const v = (200 + S.stage * 40) / TPS; sw.x += sw.dx * v; sw.y += sw.dy * v; if (dist(sw, P) < sw.r + g.r * 0.7 && !(P.crev && fits(P.crev))) hurt({ x: sw.x, y: sw.y, k: 'sweeper', st: 9, r: sw.r, stun: 0 }); for (const c of S.cre) if (c.alive && c.r < 40 && c.ring <= S.stage && dist(sw, c) < sw.r + c.r) { c.alive = false; c.deadAt = t; emit('gone', { x: c.x, y: c.y }); } if (t - sw.t0 > 1150 / v) { sw.st = 'idle'; sw.next = t + Math.max(5, 10 - sw.n * 0.7) * TPS; } }
       }
       // 자란다
       if (S.stage < 5 && S.bio >= g.need) { S.stage++; S.stageT = t; S.upAt = t; S.hp = Math.min(maxHp(), S.hp + 1); P.inv = Math.max(P.inv, 2 * TPS); sw.st = 'idle'; sw.next = t; sw.n = 0; emit('stage', { stage: S.stage }); caption(STG[S.stage].name, ['', '', '세상이 넓어졌다. 발과 겉이 돋는다', '속이 돋는다. 허물에 부위 하나를 새길 수 있다', '널 쫓던 것들이 작아 보인다', '마지막 허물이다. 다 자라면 가장 많이 가져간다'][S.stage], 4, 2.6); }
@@ -4803,26 +4963,26 @@ const PRO = (function () {
 
     // ---------- 끝과 셈 ----------
     const wornList = () => SLOTS.map(s => S.worn[s[0]]).filter(Boolean).map(w => ({ id: w.id, asp: PART[w.id].asp, slot: PART[w.id].slot, lv: w.lv }));
-    const essAt = stage => { const e = {}, f = K.essF[stage] * (1 + val('core_brood') / 100); let tot = 0; ASPS.forEach(a => { e[a] = Math.round(S.purse[a] * f); tot += e[a]; }); const capN = K.essCap[stage]; if (tot > capN) { const k = capN / tot; let s = 0; ASPS.forEach(a => { e[a] = Math.floor(e[a] * k); s += e[a]; }); const top = ASPS.slice().sort((a, b) => e[b] - e[a])[0]; e[top] += capN - s; } return e; };
+    const essAt = stage => { const e = {}, f = K.essF[stage] * (1 + F.ess) * (1 + val('core_brood') / 100); let tot = 0; ASPS.forEach(a => { e[a] = Math.round(S.purse[a] * f); tot += e[a]; }); const capN = K.essCap[stage]; if (tot > capN) { const k = capN / tot; let s = 0; ASPS.forEach(a => { e[a] = Math.floor(e[a] * k); s += e[a]; }); const top = ASPS.slice().sort((a, b) => e[b] - e[a])[0]; e[top] += capN - s; } return e; };
     const essSum = stage => { const e = essAt(stage); return ASPS.reduce((a, k) => a + e[k], 0); };
     let keep = null;
     function result(kind) {
       kind = kind || S.ended || 'settle'; const fell = kind === 'fell', time = Math.round(S.t / TPS);
-      if (kind === 'skip') { const e = zero(); e[home] = 12; const rest = ASPS.filter(a => a !== home); for (let k = 0; k < 6; k++) e[rest[k % rest.length]]++; return { ess: e, kin: [], gold: 60, size: 2, time, fell: false, skipped: true, parts: [], mut: null }; }
+      if (kind === 'skip') { const e = zero(); e[home] = 12; const rest = ASPS.filter(a => a !== home); for (let k = 0; k < 6; k++) e[rest[k % rest.length]]++; return { ess: e, kin: [], gold: 60, size: 2, time, fell: false, skipped: true, parts: [], mut: null, look }; }
       const e = essAt(S.stage), parts = wornList(); if (fell) ASPS.forEach(a => { e[a] = Math.floor(e[a] / 2); });
       const best = parts.slice().sort((a, b) => b.lv - a.lv)[0], can = !fell && S.stage >= K.keepFrom && best;
-      return { ess: e, kin: [], gold: Math.min(K.goldCap, S.gold), size: S.stage, time, fell, skipped: false, parts, mut: can ? PART[keep && parts.some(p => p.id === keep) ? keep : best.id].mut : null };
+      return { ess: e, kin: [], gold: Math.min(K.goldCap, S.gold), size: S.stage, time, fell, skipped: false, parts, mut: can ? PART[keep && parts.some(p => p.id === keep) ? keep : best.id].mut : null, look };
     }
     function end(kind) { if (S.ended) return; S.ended = kind; emit('end', { kind }); }
 
-    return { S, P, STG, SP, CAT, PART, SLOTS, home, ev, tick, act, buy, whyNot, priceOf, canAny, hurt, end, result, hostile, prey, canEat, lv, val, mouthLv, maxHp, lightR, acidOK, webOK, bitterOK, actName, actReady, essAt, essSum, hidden, caption,
+    return { look, form: F, seedOf: look ? SEEDS_[look] : null, fits, actTotal, S, P, STG, SP, CAT, PART, SLOTS, home, ev, tick, act, buy, whyNot, priceOf, canAny, hurt, end, result, hostile, prey, canEat, lv, val, mouthLv, maxHp, lightR, acidOK, webOK, bitterOK, actName, actReady, essAt, essSum, hidden, caption,
       aim(x, y) { const lim = G().R - G().r, r = Math.hypot(x, y); if (r > lim) { x *= lim / r; y *= lim / r; } P.aimX = x; P.aimY = y; P.aimOn = true; }, stop() { P.aimOn = false; }, setKeep(id) { keep = id; }, get keep() { return keep; } };
   }
-  return { TPS, ASPS, ASPK, STG, K, SP, FOOD, CENSUS, FCENSUS, CAT, PART, SLOTS, SLOTK, SLOTSAY, makeSim };
+  return { TPS, ASPS, ASPK, STG, K, SP, FOOD, CENSUS, FCENSUS, CAT, PART, SLOTS, SLOTK, SLOTSAY, SEEDS: SEEDS_, SEED_IDS, FORM0, ACT0, pickLook, makeSim };
 })();
 if (typeof module !== 'undefined') module.exports = PRO;
 // 옛 것의 둥지 — 땅속의 한 방울 (화면). 규칙은 prologue.js 의 PRO.makeSim.
-//   runPrologue({ asp, seed, tut, speed }) → Promise<{ ess, kin: [], gold, size(닿은 몸 1~5), time, fell, skipped, parts, mut }>
+//   runPrologue({ asp, seed, tut, speed, look }) → Promise<{ ess, kin: [], gold, size(닿은 몸 1~5), time, fell, skipped, parts, mut, look(처음 받은 몸) }>
 // 덮개(#pro) 하나를 스스로 만들고 끝나면 지운다. 도는 동안 window.__pro 를 내놓는다(시험용).
 // 조작: 누르거나 끄는 쪽으로 간다 / 오른쪽 아래 단추 = 재주(Space) / 왼쪽 아래 = 돋운다(Q) / 자리를 잡는다.
 const PRO_CSS = `#pro { position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 15; background: #05040a; overflow: hidden; touch-action: none; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
@@ -4854,7 +5014,10 @@ const PRO_CSS = `#pro { position: fixed; top: 0; right: 0; bottom: 0; left: 0; z
 .pro-b[disabled] { opacity: .5; cursor: default; }
 .pro-b:focus-visible, .pro-cell:focus-visible, .pro-keep:focus-visible, .pro-act:focus-visible { outline: 2px solid #ece6d6; outline-offset: 2px; }
 @media (min-width: 900px) { .pro-hud { font-size: 15px; } .pro-row b { font-size: 18px; } .pro-pips i { width: 12px; height: 12px; } .pro-ess i { width: 9px; height: 9px; } .pro-bar { height: 7px; width: 420px; } .pro-cap { font-size: 20px; } .pro-cap.big { font-size: 34px; } .pro-cap small { font-size: 15px; } .pro-b { font-size: 14px; } .pro-act { width: 84px; height: 84px; font-size: 14px; } }
-.pro-end, .pro-shop { position: absolute; top: 0; right: 0; bottom: 0; left: 0; display: flex; align-items: center; justify-content: center; padding: calc(env(safe-area-inset-top, 0px) + 10px) 12px calc(env(safe-area-inset-bottom, 0px) + 10px); background: rgba(5, 4, 10, .8); }
+.pro-intro { z-index: 4; } .pro-introing .pro-skip { z-index: 5; }
+.pro-seed { align-items: center; text-align: center; width: min(100%, 320px); gap: 6px; } .pro-seed img { width: 128px; height: 128px; image-rendering: pixelated; } .pro-seed h2 { font-size: 26px; } .pro-seed > .pro-b.pri { align-self: center; margin-top: 4px; }
+.pro-seedline { display: flex; align-items: center; gap: 6px; } .pro-seedline img { flex: none; width: 24px; height: 24px; image-rendering: pixelated; }
+.pro-end, .pro-intro, .pro-shop { position: absolute; top: 0; right: 0; bottom: 0; left: 0; display: flex; align-items: center; justify-content: center; padding: calc(env(safe-area-inset-top, 0px) + 10px) 12px calc(env(safe-area-inset-bottom, 0px) + 10px); background: rgba(5, 4, 10, .8); }
 .pro-shop[hidden] { display: none; }
 .pro-card { width: min(100%, 440px); max-height: 100%; background: #1d1826; border: 2px solid #e8c030; box-shadow: inset 0 0 0 2px #07050a; padding: 14px; display: flex; flex-direction: column; gap: 8px; color: #ece6d6; font-family: var(--body, sans-serif); font-size: 14px; line-height: 1.45; word-break: keep-all; }
 .pro-card h2 { margin: 0; font-family: var(--display, sans-serif); font-weight: 400; font-size: 20px; line-height: 1.2; } .pro-card h2 small { font-family: var(--body, sans-serif); font-size: 13px; color: #a59cb4; margin-left: 6px; }
@@ -4886,7 +5049,8 @@ function runPrologue(opts) {
 
   // ---------- 그림 ----------
   const SPR = {}, spr = (key, make) => SPR[key] || (SPR[key] = make());
-  const DROP = { origin: 'drop', stage: 0, main: null, sub: null, muts: [], ess: {} };
+  const SEED = sim.seedOf, TOP = SEED && SEED.top ? SEED.top : [16, 13], TDX = TOP[0] - 16, TDY = TOP[1] - 13;
+  const DROP = { origin: 'drop', stage: 0, main: null, sub: null, muts: [], ess: {}, look: sim.look };
   const flip = c => spr('f:' + (c.__id || (c.__id = Object.keys(SPR).length + 1)), () => { const f = document.createElement('canvas'); f.width = c.width; f.height = c.height; const x = f.getContext('2d'); x.translate(c.width, 0); x.scale(-1, 1); x.drawImage(c, 0, 0); return f; });
   const BN = ['#1b1d2a', '#e4dfd0', '#ffffff', '#a8a294'], RED = '#ff5f57';
   const PALS = { mite: ['#1a120c', '#8a6a48', '#c8a880', '#4a3420'], leech: ['#1a0a10', '#7a2a3a', '#c86a78', '#40121c'], pack: ['#14121a', '#b8b0a0', '#f0ead8', '#6a6458'], lurker: ['#1a140c', '#9a7a4a', '#d8b880', '#5a4424'], weaver: ['#1c1008', '#b87a2a', '#f0c070', '#6a4010'], grazer: ['#0e1a14', '#5a7a68', '#a8c8b0', '#2e4a3c'],
@@ -4968,7 +5132,7 @@ function runPrologue(opts) {
     core_hunger: (q, l, f, c) => { q(13, 27, 8, 1, '#707890'); q(14, 28, 6, 1, '#3a3e54'); q(15, 27, 2, 1, '#c0c8e0'); if (l >= 2) { q(13, 26, 1, 1, '#c0c8e0'); q(20, 26, 1, 1, '#c0c8e0'); q(12, 27, 1, 1, '#3a3e54'); q(21, 27, 1, 1, '#3a3e54'); } if (l >= 3) { q(12, 25, 1, 1, '#707890'); q(21, 25, 1, 1, '#707890'); q(17, 26, 2, 1, '#c0c8e0'); q(16, 29, 2, 1, '#707890'); } },
   };
   function paintParts(list, fr) {
-    const c = document.createElement('canvas'); c.width = c.height = 32; const x = c.getContext('2d'), q = (a, b, w, h, col) => { x.fillStyle = col; x.fillRect(a, b, w, h); };
+    const c = document.createElement('canvas'); c.width = c.height = 32; const x = c.getContext('2d'), q = (a, b, w, h, col) => { const up = b < 19; x.fillStyle = col; x.fillRect(a + (up ? TDX : 0), b + (up ? TDY : 0), w, h); };
     for (const s of ['leg', 'core', 'skin', 'mouth', 'eye']) { const w = list[s]; if (w && ART[w.id]) ART[w.id](q, w.lv, fr, C[PART[w.id].asp]); }
     const d = x.getImageData(0, 0, 32, 32), a = d.data, src = new Uint8Array(1024); for (let i = 0; i < 1024; i++) src[i] = a[i * 4 + 3] > 0 ? 1 : 0;
     for (let y = 0; y < 32; y++) for (let xx = 0; xx < 32; xx++) { const i = y * 32 + xx; if (src[i]) continue; if ((xx > 0 && src[i - 1]) || (xx < 31 && src[i + 1]) || (y > 0 && src[i - 32]) || (y < 31 && src[i + 32])) { a[i * 4] = 12; a[i * 4 + 1] = 8; a[i * 4 + 2] = 18; a[i * 4 + 3] = 215; } }
@@ -4984,7 +5148,7 @@ function runPrologue(opts) {
   root.innerHTML = '<canvas class="pro-cv"></canvas><div class="pro-hud"><div class="pro-row" id="pro-row"></div><div class="pro-row pro-row2" id="pro-row2"></div><div class="pro-bar"><i id="pro-prog"></i></div></div><div class="pro-cap" id="pro-cap" aria-live="polite"></div><button class="pro-b pro-skip" id="pro-skip">건너뛴다</button><button class="pro-b big pro-grow" id="pro-grow">돋운다</button><div class="pro-right"><button class="pro-b pro-settle" id="pro-settle" hidden></button><button class="pro-act off" id="pro-act" aria-label="재주"><i></i><span>재주</span></button></div><div class="pro-shop" id="pro-shop" hidden></div>';
   document.body.appendChild(root);
   const cv0 = root.querySelector('canvas'), ctx = cv0.getContext('2d'), $p = id => root.querySelector('#' + id);
-  let Zb = 2, zoom = STG[1].zoom, vw = 200, vh = 300, bw = 300, bh = 500, dpr = 1, cam = { x: 0, y: 0 }, hudKey = '', raf = 0, last = 0, acc = 0, alive = true, result = null, onDone = null, sel = null, manual = false, shop = false, shopSeen = false, flash = -99, shake = -99, ended = false;
+  let Zb = 2, zoom = STG[1].zoom, vw = 200, vh = 300, bw = 300, bh = 500, dpr = 1, cam = { x: 0, y: 0 }, hudKey = '', raf = 0, last = 0, acc = 0, alive = true, result = null, onDone = null, sel = null, manual = false, shop = false, shopSeen = false, flash = -99, shake = -99, ended = false, intro = false, introIv = 0;
   const keys = {}, FX = [];
   function fit() { const b = root.getBoundingClientRect(); bw = b.width; bh = b.height; dpr = Math.min(3, window.devicePixelRatio || 1); Zb = clampN(Math.min(b.width, b.height) / 232, 1.6, 4); cv0.width = Math.round(b.width * dpr); cv0.height = Math.round(b.height * dpr); }
   const toWorld = e => { const b = cv0.getBoundingClientRect(), Z = Zb * zoom; return { x: cam.x - b.width / Z / 2 + (e.clientX - b.left) / Z, y: cam.y - b.height / Z / 2 + (e.clientY - b.top) / Z }; };
@@ -4997,7 +5161,8 @@ function runPrologue(opts) {
   const noScroll = e => e.preventDefault(); root.addEventListener('touchmove', noScroll, { passive: false }); root.addEventListener('contextmenu', noScroll);
   const KEYMAP = { ArrowLeft: 'left', a: 'left', A: 'left', 'ㅁ': 'left', ArrowRight: 'right', d: 'right', D: 'right', 'ㅇ': 'right', ArrowUp: 'up', w: 'up', W: 'up', 'ㅈ': 'up', ArrowDown: 'down', s: 'down', S: 'down', 'ㄴ': 'down' };
   const doAct = () => { if (S.ended || shop) return; if (sim.act()) { if (!S.seen.acted) S.seen.acted = 1; } else say('click'); };
-  const onKey = e => { if (!alive) return; const k = KEYMAP[e.key]; e.stopPropagation(); if (e.type === 'keydown' && !S.ended) { if (e.key === 'q' || e.key === 'Q' || e.key === 'ㅂ' || (e.key === 'Escape' && shop)) { e.preventDefault(); return shop ? closeShop() : openShop(); } if (e.key === ' ' && !e.repeat) { e.preventDefault(); return shop ? closeShop() : doAct(); } } if (k && !shop) { keys[k] = e.type === 'keydown'; e.preventDefault(); } else if (e.key === 'Tab' || e.key === ' ') e.preventDefault(); };   // 게임 쪽 단축키가 먹지 않게 막는다
+  const onKey = e => { if (!alive) return; const k = KEYMAP[e.key]; e.stopPropagation(); if (e.type === 'keydown' && intro) { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); if (!e.repeat) closeIntro(); } return; }
+    if (e.type === 'keydown' && !S.ended) { if (e.key === 'q' || e.key === 'Q' || e.key === 'ㅂ' || (e.key === 'Escape' && shop)) { e.preventDefault(); return shop ? closeShop() : openShop(); } if (e.key === ' ' && !e.repeat) { e.preventDefault(); return shop ? closeShop() : doAct(); } } if (k && !shop) { keys[k] = e.type === 'keydown'; e.preventDefault(); } else if (e.key === 'Tab' || e.key === ' ') e.preventDefault(); };   // 게임 쪽 단축키가 먹지 않게 막는다
   window.addEventListener('keydown', onKey, true); window.addEventListener('keyup', onKey, true); window.addEventListener('resize', fit);
   $p('pro-skip').addEventListener('click', () => finish('skip')); $p('pro-grow').addEventListener('click', () => { say('click'); openShop(); }); $p('pro-act').addEventListener('click', doAct);
   let sure = 0; $p('pro-settle').addEventListener('click', () => { const now = performance.now(); if (now - sure < 2600) return sim.end('settle'); sure = now; hudKey = ''; say('click'); setTimeout(() => { hudKey = ''; }, 2650); });
@@ -5008,7 +5173,7 @@ function runPrologue(opts) {
   function shopHtml(tip) {
     if (!sel || !PART[sel]) { const open = CAT.filter(d => !sim.whyNot(d.id) && !(S.worn[d.slot] && S.worn[d.slot].id !== d.id)); sel = (open[0] || CAT.find(d => d.asp === home)).id; }
     const d = PART[sel], w = S.worn[d.slot], mine = w && w.id === sel ? w.lv : 0, price = sim.priceOf(sel), why = sim.whyNot(sel), col = ASPCOL[d.asp];
-    let h = `<div class="pro-card" role="dialog" aria-label="부위를 돋운다"><div class="pro-top"><h2>돋운다<small>먹은 것으로 몸을 바꾼다</small></h2><button class="pro-b" data-x="close">닫는다</button></div>${tip ? `<p class="pro-mute">${tip}</p>` : ''}<div class="pro-grid"><span></span>${ASPS.map(a => `<span class="pro-gh" title="${ASPK[a]}"><i style="background:${ASPCOL[a]}"></i>${wal(a)}</span>`).join('')}`;
+    let h = `<div class="pro-card" role="dialog" aria-label="부위를 돋운다"><div class="pro-top"><h2>돋운다<small${SEED ? ` title="${SEED.say}"` : ''}>${SEED ? SEED.name + '의 몸을 바꾼다' : '먹은 것으로 몸을 바꾼다'}</small></h2><button class="pro-b" data-x="close">닫는다</button></div>${tip ? `<p class="pro-mute">${tip}</p>` : ''}<div class="pro-grid"><span></span>${ASPS.map(a => `<span class="pro-gh" title="${ASPK[a]}"><i style="background:${ASPCOL[a]}"></i>${wal(a)}</span>`).join('')}`;
     for (const s of SLOTS) { const locked = S.stage < KK.open[s[0]]; h += `<span class="pro-gl">${s[1]}${locked ? `<small>${STG[KK.open[s[0]]].name}</small>` : ''}</span>`; for (const a of ASPS) { const id = s[0] + '_' + a, ww = S.worn[s[0]], own = ww && ww.id === id ? ww.lv : 0; h += `<button class="pro-cell${own ? ' own' : ''}${locked ? ' lock' : ''}${!sim.whyNot(id) ? ' can' : ''}${id === sel ? ' sel' : ''}" style="--c:${ASPCOL[a]}" data-id="${id}" aria-label="${s[1]} · ${PART[id].name}${own ? ' ' + own + '단계' : ''}${locked ? ' (잠김)' : ''}"><img src="${iconURL(id)}" alt="">${pipsHtml(own, ASPCOL[a])}</button>`; } }
     const now = mine ? d.say(d.v[mine - 1], mine - 1) : null, next = mine < 3 ? d.say(d.v[mine], mine) : null, swap = w && w.id !== sel;
     const power = d.slot === 'mouth' ? `<p class="pro-mute">입의 힘 ${Math.min(4, (mine || 0) + (d.id === 'mouth_hunger' && mine ? 1 : 0))}${mine < 3 ? ' → ' + (mine + 1 + (d.id === 'mouth_hunger' ? 1 : 0)) : ''}: 힘만큼 큰 먹잇감을 삼키고 굳은 것을 깬다</p>` : `<p class="pro-mute">${PRO.SLOTSAY[d.slot]}</p>`;
@@ -5032,10 +5197,10 @@ function runPrologue(opts) {
       const sb = $p('pro-settle'), okS = S.stage >= KK.settleFrom && !S.ended; sb.hidden = !okS; if (okS) { const nx = S.stage < 5 ? `더 자라면 ${KK.essCap[S.stage + 1]}까지${S.stage + 1 === KK.keepFrom ? ' · 부위 새김' : ''}` : '다 자라면 가장 많다'; sb.innerHTML = sureOn ? '한 번 더: 자리를 잡는다' : `자리를 잡는다<small>지금 정수 ${sim.essSum(S.stage)}${S.stage >= KK.keepFrom ? ' · 부위 새김' : ''}<br>${nx}</small>`; sb.classList.toggle('pri', sureOn); }
       const ab = $p('pro-act'); ab.classList.toggle('off', !an); ab.querySelector('span').textContent = an || '재주'; ab.setAttribute('aria-label', an ? '재주: ' + an : '재주 (발을 돋우면 생긴다)'); }
     const need = g.need; $p('pro-prog').style.width = clampN((S.bio - base) / (need - base), 0, 1) * 100 + '%';
-    { const ab = $p('pro-act'), w = S.worn.leg; if (w) { const tot = PART[w.id].v[w.lv - 1] * TPS, f = clampN(P.cd / tot, 0, 1); ab.style.setProperty('--cd', Math.round(f * 360) + 'deg'); ab.classList.toggle('wait', f > 0); } else ab.style.setProperty('--cd', '0deg'); }
-    const c = S.cap, capEl = $p('pro-cap'); if (c && S.t < c.until && !shop) { const html = c.s + (c.sub ? '<small>' + c.sub + '</small>' : ''); if (capEl.dataset.h !== html) { capEl.dataset.h = html; capEl.innerHTML = html; capEl.classList.toggle('big', S.t - S.upAt < 5 * TPS && c.s === g.name); } capEl.style.opacity = 1; } else capEl.style.opacity = 0;
+    { const ab = $p('pro-act'), tot = sim.actTotal(); if (tot) { const f = clampN(P.cd / tot, 0, 1); ab.style.setProperty('--cd', Math.round(f * 360) + 'deg'); ab.classList.toggle('wait', f > 0); } else ab.style.setProperty('--cd', '0deg'); }
+    const c = S.cap, capEl = $p('pro-cap'); if (c && S.t < c.until && !shop && !intro) { const html = c.s + (c.sub ? '<small>' + c.sub + '</small>' : ''); if (capEl.dataset.h !== html) { capEl.dataset.h = html; capEl.innerHTML = html; capEl.classList.toggle('big', S.t - S.upAt < 5 * TPS && c.s === g.name); } capEl.style.opacity = 1; } else capEl.style.opacity = 0;
     $p('pro-grow').hidden = !!S.ended; $p('pro-act').hidden = !!S.ended;
-    if (!shopSeen && !manual && !S.ended && can && S.t > 2 * TPS && P.inv <= 0) openShop(true);   // 처음 살 수 있게 됐을 때 한 번은 스스로 뜬다
+    if (!shopSeen && !manual && !intro && !S.ended && can && S.t > 2 * TPS && P.inv <= 0) openShop(true);   // 처음 살 수 있게 됐을 때 한 번은 스스로 뜬다
   }
 
   // ---------- 일어난 일을 소리와 반짝임으로 ----------
@@ -5065,7 +5230,7 @@ function runPrologue(opts) {
       for (let j = 1; j < S.stage; j++) { ctx.strokeStyle = 'rgba(74,60,88,.35)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(0, 0, STG[j].R, 0, 7); ctx.stroke(); } }
     for (const c of S.clusters) if (c.ring <= S.stage && inView(c, c.r + 20)) { const b = backdrop(c); img(b, c.x - b.width / 2, c.y - b.height / 2); }
     // 틈: 몸이 들어가면 큰 것들이 못 따라온다
-    for (const q of S.crev) if (q.ring <= S.stage && inView(q, q.r + 4)) { const fits = S.stage <= q.fit; ctx.fillStyle = '#05040a'; ctx.beginPath(); ctx.ellipse(q.x, q.y, q.r, q.r * 0.62, 0.4, 0, 7); ctx.fill(); ctx.strokeStyle = fits ? (fr2 ? '#8a7a98' : '#6a5a78') : '#3a2e44'; ctx.lineWidth = 1.5; ctx.setLineDash(fits ? [] : [3, 3]); ctx.beginPath(); ctx.ellipse(q.x, q.y, q.r, q.r * 0.62, 0.4, 0, 7); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle = '#17111e'; ctx.fillRect(Math.round(q.x - q.r * 0.5), Math.round(q.y - 1), Math.round(q.r), 2); }
+    for (const q of S.crev) if (q.ring <= S.stage && inView(q, q.r + 4)) { const fits = sim.fits(q); ctx.fillStyle = '#05040a'; ctx.beginPath(); ctx.ellipse(q.x, q.y, q.r, q.r * 0.62, 0.4, 0, 7); ctx.fill(); ctx.strokeStyle = fits ? (fr2 ? '#8a7a98' : '#6a5a78') : '#3a2e44'; ctx.lineWidth = 1.5; ctx.setLineDash(fits ? [] : [3, 3]); ctx.beginPath(); ctx.ellipse(q.x, q.y, q.r, q.r * 0.62, 0.4, 0, 7); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle = '#17111e'; ctx.fillRect(Math.round(q.x - q.r * 0.5), Math.round(q.y - 1), Math.round(q.r), 2); }
     // 실, 녹은 자리, 덫
     ctx.lineWidth = 1; for (const w of S.webs) if (inView(w, w.r)) { ctx.strokeStyle = 'rgba(240,220,180,.42)'; for (let j = 0; j < 3; j++) { const a = j * 1.05 + w.x; ctx.beginPath(); ctx.moveTo(w.x - Math.cos(a) * w.r, w.y - Math.sin(a) * w.r); ctx.lineTo(w.x + Math.cos(a) * w.r, w.y + Math.sin(a) * w.r); ctx.stroke(); } ctx.strokeStyle = 'rgba(240,220,180,.25)'; ctx.beginPath(); ctx.arc(w.x, w.y, w.r * 0.6, 0, 7); ctx.stroke(); }
     for (const q of S.puddles) { const a = Math.min(1, (q.until - t) / 20); ctx.fillStyle = 'rgba(184,208,48,' + 0.55 * a + ')'; ctx.beginPath(); ctx.ellipse(q.x, q.y, q.r, q.r * 0.66, 0, 0, 7); ctx.fill(); ctx.fillStyle = 'rgba(240,248,160,' + 0.8 * a + ')'; ctx.fillRect(Math.round(q.x - 4 + fr2 * 3), Math.round(q.y - 2), 2, 2); ctx.fillRect(Math.round(q.x + 5 - fr2 * 2), Math.round(q.y + 3), 2, 2); }
@@ -5079,7 +5244,7 @@ function runPrologue(opts) {
     for (const w of S.wrig) if (w.alive && w.ring <= S.stage && inView(w, 8)) { const c = wrigSpr(w.asp, fr2); img(w.vx < 0 ? flip(c) : c, w.x - 5, w.y - 5); }
     // 사는 것들
     for (const c of S.cre) { if (!c.alive || c.ring > S.stage || !inView(c, 40)) continue; const d = dist(c, P), host = sim.hostile(c), eat = sim.canEat(c);
-      if (c.mode === 'buried') { const seeIt = third || !host || d < 44; if (seeIt) { ctx.globalAlpha = third || !host ? 0.95 : 0.55; ctx.fillStyle = '#3a2e24'; ctx.beginPath(); ctx.ellipse(c.x, c.y + 2, 10, 5, 0, 0, 7); ctx.fill(); ctx.fillStyle = '#9a7a4a'; ctx.fillRect(Math.round(c.x) - 6, Math.round(c.y) - 1, 3, 2); ctx.fillRect(Math.round(c.x) + 3, Math.round(c.y) - 1, 3, 2); if (third) { ctx.fillStyle = RED; ctx.fillRect(Math.round(c.x) - 5, Math.round(c.y) - 1, 1, 1); ctx.fillRect(Math.round(c.x) + 4, Math.round(c.y) - 1, 1, 1); } ctx.globalAlpha = 1; } continue; }
+      if (c.mode === 'buried') { const born = sim.form.buried, seeIt = third || born || !host || d < 44; if (seeIt) { ctx.globalAlpha = third || born || !host ? 0.95 : 0.55; ctx.fillStyle = '#3a2e24'; ctx.beginPath(); ctx.ellipse(c.x, c.y + 2, 10, 5, 0, 0, 7); ctx.fill(); ctx.fillStyle = '#9a7a4a'; ctx.fillRect(Math.round(c.x) - 6, Math.round(c.y) - 1, 3, 2); ctx.fillRect(Math.round(c.x) + 3, Math.round(c.y) - 1, 3, 2); if (third) { ctx.fillStyle = RED; ctx.fillRect(Math.round(c.x) - 5, Math.round(c.y) - 1, 1, 1); ctx.fillRect(Math.round(c.x) + 4, Math.round(c.y) - 1, 1, 1); } ctx.globalAlpha = 1; } continue; }
       if (c.mode === 'bait') { const fake = FSPR[c.look]((fr4 + c.id) % 4 === 0 ? 1 : 0); img(fake, c.x - fake.width / 2, c.y - fake.height / 2); if (third || !host || (t + c.id * 7) % 100 < 5) { ctx.fillStyle = '#fbf7ea'; ctx.fillRect(Math.round(c.x) - 3, Math.round(c.y) + 1, 1, 2); ctx.fillRect(Math.round(c.x) - 1, Math.round(c.y) + 1, 1, 2); ctx.fillRect(Math.round(c.x) + 1, Math.round(c.y) + 1, 1, 2); } if (third && host) { ctx.strokeStyle = 'rgba(255,95,87,' + (fr2 ? 0.8 : 0.4) + ')'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(c.x, c.y, 10, 0, 7); ctx.stroke(); } continue; }
       const sp0 = creSpr(c.k, c.stun > 0 ? 0 : fr2), ds0 = DSC[c.k] || 1, N = sp0.width * ds0, rise = c.mode === 'rise' ? 3 : 0; if (c.stun > 0) ctx.globalAlpha = 0.75; img(c.face < 0 ? flip(sp0) : sp0, c.x - N / 2, c.y - N / 2 - rise, ds0); ctx.globalAlpha = 1;
       if (c.stun > 0) { ctx.fillStyle = '#e0c8ff'; ctx.fillRect(Math.round(c.x - 4 + fr2 * 6), Math.round(c.y - N / 2 - 4), 2, 2); ctx.fillRect(Math.round(c.x + 2 - fr2 * 6), Math.round(c.y - N / 2 - 2), 2, 2); }
@@ -5097,7 +5262,7 @@ function runPrologue(opts) {
       if (P.chew) { const f = P.chew.t / P.chew.need; ctx.fillStyle = '#05040a'; ctx.fillRect(Math.round(P.x - 12), Math.round(P.y - s * 0.8 - 6), 24, 4); ctx.fillStyle = '#e8c030'; ctx.fillRect(Math.round(P.x - 11), Math.round(P.y - s * 0.8 - 5), Math.round(22 * f), 2); }
       if (lv('skin_dusk') && t >= P.veilAt) { ctx.strokeStyle = 'rgba(255,224,160,' + (fr2 ? 0.55 : 0.3) + ')'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(P.x, P.y - g.r * 0.4, g.r + 6, 0, 7); ctx.stroke(); }
       if (lv('core_nebula')) { const a = now / 260, rr0 = val('core_nebula') * 0.5 + g.r; ctx.fillStyle = '#fff3a0'; ctx.fillRect(Math.round(P.x + Math.cos(a) * rr0) - 1, Math.round(P.y - g.r * 0.4 + Math.sin(a) * rr0 * 0.6) - 1, 2, 2); ctx.fillStyle = '#e8c030'; ctx.fillRect(Math.round(P.x + Math.cos(a + 3.14) * rr0) - 1, Math.round(P.y - g.r * 0.4 + Math.sin(a + 3.14) * rr0 * 0.6) - 1, 2, 2); }
-      if (P.crev && S.stage <= P.crev.fit) { ctx.fillStyle = 'rgba(5,4,10,.45)'; ctx.beginPath(); ctx.ellipse(P.crev.x, P.crev.y, P.crev.r, P.crev.r * 0.62, 0.4, 0, 7); ctx.fill(); } }
+      if (P.crev && sim.fits(P.crev)) { ctx.fillStyle = 'rgba(5,4,10,.45)'; ctx.beginPath(); ctx.ellipse(P.crev.x, P.crev.y, P.crev.r, P.crev.r * 0.62, 0.4, 0, 7); ctx.fill(); } }
     for (let i = FX.length - 1; i >= 0; i--) { const f = FX[i], a = (t - f.t) / TPS; if (a > 0.8 || a < 0) { FX.splice(i, 1); continue; } const q = 1 - a / 0.8;
       if (f.k === 'eat') { ctx.fillStyle = ASPCOL[f.asp]; ctx.globalAlpha = q; ctx.fillRect(Math.round(f.x + (P.x - f.x) * a / 0.8), Math.round(f.y + (P.y - f.y) * a / 0.8) - 1, 2, 2); ctx.globalAlpha = 1; }
       else if (f.k === 'gold') { ctx.fillStyle = '#fff3a0'; ctx.globalAlpha = q; ctx.fillRect(Math.round(f.x) - 3, Math.round(f.y - a * 18), 7, 1); ctx.fillRect(Math.round(f.x), Math.round(f.y - a * 18) - 3, 1, 7); ctx.globalAlpha = 1; }
@@ -5119,14 +5284,14 @@ function runPrologue(opts) {
     { const topY = 96 / Z, botY = 96 / Z, dot = (o, col, s) => { const pxx = clampN(o.x, ox + 6, ox + vw - 9), pyy = clampN(o.y, oy + topY, oy + vh - botY); ctx.fillStyle = '#05040a'; ctx.fillRect(Math.round(pxx) - 1, Math.round(pyy) - 1, s + 2, s + 2); ctx.fillStyle = col; ctx.globalAlpha = fr2 ? 1 : 0.6; ctx.fillRect(Math.round(pxx), Math.round(pyy), s, s); ctx.globalAlpha = 1; }, ds = Math.max(3, Math.round(3 / zoom));
       if (S.stage <= 2) S.clusters.filter(c => c.ring <= S.stage && !inView(c, -6)).sort((a, b) => dist(a, P) - dist(b, P)).slice(0, 3).forEach(c => dot(c, ASPCOL[c.asp], ds));
       if (feel) S.food.filter(f => f.alive && f.ring <= S.stage && !inView(f, -6) && (f.k === 'root' || f.k === 'carc' || f.k === 'seed' || f.k === 'seed2' || f.k === 'nut' || (feel >= 2 && f.k === 'cap') || (feel >= 3 && f.k === 'bead'))).sort((a, b) => dist(a, P) - dist(b, P)).slice(0, 4).forEach(f => dot(f, f.k === 'cap' ? '#9fe8c0' : f.k === 'bead' ? '#e8c030' : '#d8a860', ds));
-      if (feel >= 3 || S.hp <= 1) { const q = S.crev.filter(c => c.fit >= S.stage && c.ring <= S.stage && !inView(c, -6)).sort((a, b) => dist(a, P) - dist(b, P))[0]; if (q) dot(q, '#8a7a98', ds + 1); }
+      if (feel >= 3 || S.hp <= 1) { const q = S.crev.filter(c => sim.fits(c) && c.ring <= S.stage && !inView(c, -6)).sort((a, b) => dist(a, P) - dist(b, P))[0]; if (q) dot(q, '#8a7a98', ds + 1); }
       if (third >= 2) S.cre.filter(c => c.alive && c.ring <= S.stage && sim.hostile(c) && !inView(c, -6) && dist(c, P) < 520 / zoom * 0.5 + 200).forEach(c => dot(c, RED, ds + 1)); }
     if (t - flash < 12) { ctx.fillStyle = 'rgba(255,255,255,' + (0.6 * (1 - (t - flash) / 12)) + ')'; ctx.fillRect(ox, oy, vw, vh); }
   }
   function loop(now) {
     if (!alive) return; raf = requestAnimationFrame(loop);
     const dt = Math.min(0.1, (now - (last || now)) / 1000); last = now;
-    if (!document.hidden && !manual && !S.ended && !shop) {
+    if (!document.hidden && !manual && !S.ended && !shop && !intro) {
       let kx = (keys.right ? 1 : 0) - (keys.left ? 1 : 0), ky = (keys.down ? 1 : 0) - (keys.up ? 1 : 0); if (kx || ky) { const L = Math.hypot(kx, ky); sim.aim(P.x + kx / L * 70, P.y + ky / L * 70); }
       const slowmo = S.t - S.upAt < 28 ? 0.4 : 1; acc += dt * (opts.speed || 1) * slowmo; let n = 0; while (acc >= 1 / TPS && n++ < 8) { acc -= 1 / TPS; sim.tick(); } }
     try { drain(); draw(now); hud(); if (S.ended && !ended) finish(S.ended); } catch (e) { console.error(e); }
@@ -5135,7 +5300,7 @@ function runPrologue(opts) {
   // ---------- 끝 ----------
   function close() { alive = false; cancelAnimationFrame(raf); window.removeEventListener('keydown', onKey, true); window.removeEventListener('keyup', onKey, true); window.removeEventListener('resize', fit); document.removeEventListener('visibilitychange', onVis); if (root.parentNode) root.parentNode.removeChild(root); if (window.__pro === API) delete window.__pro; onDone(result); }
   function finish(kind) {
-    if (ended) return; ended = true; closeShop(); if (!S.ended) sim.end(kind); result = sim.result(kind); hudKey = ''; hud(); $p('pro-settle').hidden = true; $p('pro-skip').hidden = true; $p('pro-grow').hidden = true; $p('pro-act').hidden = true; $p('pro-cap').style.opacity = 0;
+    if (ended) return; ended = true; closeIntro(); closeShop(); if (!S.ended) sim.end(kind); result = sim.result(kind); hudKey = ''; hud(); $p('pro-settle').hidden = true; $p('pro-skip').hidden = true; $p('pro-grow').hidden = true; $p('pro-act').hidden = true; $p('pro-cap').style.opacity = 0;
     if (kind === 'skip') { say('click'); return close(); }
     say(kind === 'fell' ? 'down' : 'up');
     const r = result, tot = ASPS.reduce((a, k) => a + r.ess[k], 0), topA = ASPS.slice().sort((a, b) => r.ess[b] - r.ess[a])[0], mx = Math.max(1, r.ess[topA]), n = r.parts.length, canKeep = !r.fell && S.stage >= KK.keepFrom && n > 0;
@@ -5147,7 +5312,7 @@ function runPrologue(opts) {
     const keepHtml = () => { const kp = sim.keep, k = r.parts.find(p => p.id === kp); return `<div class="pro-parts">${r.parts.map(p => `<button class="pro-keep${p.id === kp ? ' on' : ''}" data-keep="${p.id}" style="--c:${ASPCOL[p.asp]}"><img src="${iconURL(p.id, p.lv)}" alt="">${PART[p.id].name} ${pipsHtml(p.lv, ASPCOL[p.asp])}</button>`).join('')}</div>${k ? `<p>둥지에서 <b style="color:${ASPCOL[k.asp]}">${NEST.MUT[PART[k.id].mut].name}</b> — ${NEST.MUT[PART[k.id].mut].desc}</p>` : ''}`; };
     const el = document.createElement('div'); el.className = 'pro-end'; el.innerHTML = `<div class="pro-card" role="dialog" aria-label="땅속에서 얻은 것"><h2>${title}<small>${STG[S.stage].name} · ${Math.floor(r.time / 60)}분 ${r.time % 60}초 · 진액 ${r.gold}방울</small></h2>
       <div class="pro-bars">${ASPS.filter(a => r.ess[a] > 0).map(a => `<span style="color:${ASPCOL[a]}">${ASPK[a]}</span><span class="b"><i style="width:${Math.round(r.ess[a] / mx * 100)}%;background:${ASPCOL[a]}"></i></span><span>${r.ess[a]}</span>`).join('') || '<span class="pro-mute" style="grid-column:1/-1">남긴 것이 없다</span>'}</div>
-      <p class="pro-mute">쓰지 않고 남긴 것이 정수가 된다 · 합 ${tot} (이 몸으로는 ${KK.essCap[S.stage]}까지)</p>${nextSay}
+      ${SEED ? `<p class="pro-mute pro-seedline"><img src="${seedURL(0)}" alt=""><span>이번 몸 <b style="color:#ece6d6">${SEED.name}</b> · ${SEED.say}</span></p>` : ''}<p class="pro-mute">쓰지 않고 남긴 것이 정수가 된다 · 합 ${tot} (이 몸으로는 ${KK.essCap[S.stage]}까지)</p>${nextSay}
       ${r.fell ? (n ? '<p class="pro-warn">쓰러져서 돋운 부위를 허물에 새기지 못했다</p>' : '') : canKeep ? `<p><b style="color:#e8c030;font-family:var(--display,sans-serif);font-weight:400">허물에 새길 부위 하나를 골라</b></p><div id="pro-keepbox">${keepHtml()}</div>` : n ? `<p class="pro-mute">부위는 ${STG[KK.keepFrom].name}부터 허물에 새길 수 있다</p>` : '<p class="pro-mute">돋운 부위가 없다</p>'}
       <div class="pro-say"><img src="${spriteCanvas('slime', 'echo').toDataURL()}" width="40" height="40" alt=""><p><b style="color:#e8c030;font-family:var(--display,sans-serif);font-weight:400">잔향</b> ${line}${lean}</p></div>
       <button class="pro-b pri" id="pro-go">둥지를 튼다</button></div>`;
@@ -5155,10 +5320,21 @@ function runPrologue(opts) {
     const go = el.querySelector('#pro-go'); go.addEventListener('click', () => { say('click'); result = sim.result(kind); close(); }); try { go.focus(); } catch (e) { /* 괜찮다 */ }
   }
   const onVis = () => { last = 0; acc = 0; }; document.addEventListener('visibilitychange', onVis);
+  // 이번 몸: 시작할 때 한 번 알린다. 누르면 흙 속이 흐르기 시작한다
+  const seedURL = fr => spr('seed:' + fr, () => slimeCanvas(DROP, fr).toDataURL());
+  function closeIntro() { if (!intro) return; intro = false; clearInterval(introIv); root.classList.remove('pro-introing'); const el = $p('pro-intro'); if (el && el.parentNode) el.parentNode.removeChild(el); last = 0; acc = 0; hudKey = ''; }
+  function openIntro() {
+    if (!SEED || intro || S.ended) return; intro = true; root.classList.add('pro-introing');
+    const el = document.createElement('div'); el.className = 'pro-end pro-intro'; el.id = 'pro-intro';
+    el.innerHTML = `<div class="pro-card pro-seed" role="dialog" aria-label="이번 몸: ${SEED.name}"><p class="pro-mute">별에서 떨어진 것 · 이번 몸</p><img src="${seedURL(0)}" alt=""><h2>${SEED.name}</h2><p>${SEED.say}</p>${sim.form.act ? '<p class="pro-mute">오른쪽 아래 단추로 쓴다: ' + PRO.ACT0.name + '</p>' : ''}<button class="pro-b pri" id="pro-in-go">깨어난다</button></div>`;
+    root.appendChild(el); let k = 0; const im = el.querySelector('img'); introIv = setInterval(() => { k = (k + 1) % 4; im.src = seedURL(k); }, 240);
+    el.addEventListener('click', () => { say('click'); closeIntro(); }); try { el.querySelector('#pro-in-go').focus(); } catch (e) { /* 괜찮다 */ }
+  }
   if (opts.tut) sim.caption('손가락이 가는 쪽으로 움직여', '색 있는 알갱이를 먹어. 붉은 눈은 피해', 5); else sim.caption('땅속의 한 방울', '먹고, 자라고, 살아남아라', 3.4);
 
   // 시험용 손잡이
-  const API = { get player() { const g = G(); return { x: P.x, y: P.y, size: S.stage, stage: S.stage, hp: S.hp, maxHp: sim.maxHp(), r: g.r, inv: P.inv, speed: g.sp, cd: P.cd }; }, get stage() { return S.stage; }, get lives() { return S.lives; }, get time() { return S.t / TPS; }, get bio() { return S.bio; }, get spent() { return S.spent; }, get splits() { return S.stage - 1; }, get ended() { return S.ended; }, get stats() { return Object.assign({}, S.stats); },
+  const API = { get look() { return sim.look; }, get form() { return Object.assign({}, sim.form); }, get intro() { return intro; }, closeIntro() { closeIntro(); },
+    get player() { const g = G(); return { x: P.x, y: P.y, size: S.stage, stage: S.stage, hp: S.hp, maxHp: sim.maxHp(), r: g.r, inv: P.inv, speed: g.sp, cd: P.cd }; }, get stage() { return S.stage; }, get lives() { return S.lives; }, get time() { return S.t / TPS; }, get bio() { return S.bio; }, get spent() { return S.spent; }, get splits() { return S.stage - 1; }, get ended() { return S.ended; }, get stats() { return Object.assign({}, S.stats); },
     get motes() { return S.food.filter(f => f.alive && f.k === 'mote' && f.ring <= S.stage).map(f => ({ x: f.x, y: f.y, kind: f.asp, size: 0 })); }, get beads() { return S.food.filter(f => f.alive && f.k === 'bead' && f.ring <= S.stage).map(f => ({ x: f.x, y: f.y, kind: 'bead', size: 0 })); },
     get food() { return S.food.filter(f => f.alive && f.ring <= S.stage).map(f => ({ x: f.x, y: f.y, kind: f.k, asp: f.asp, need: PRO.FOOD[f.k].need || 0 })); },
     get creatures() { const out = S.cre.filter(c => c.alive && c.ring <= S.stage).map(c => ({ id: c.id, kind: c.k, species: c.k, x: c.x, y: c.y, size: c.st, st: c.st, r: c.r, hostile: sim.hostile(c), edible: sim.canEat(c), mode: c.mode, stun: c.stun })); if (S.sweep.st !== 'idle') out.push({ kind: 'sweeper', species: 'sweeper', x: S.sweep.x, y: S.sweep.y, size: 9, st: 9, hostile: true, state: S.sweep.st, dx: S.sweep.dx, dy: S.sweep.dy }); return out; },
@@ -5167,10 +5343,10 @@ function runPrologue(opts) {
     get wallet() { const o = {}; ASPS.forEach(a => { o[a] = wal(a); }); return o; }, get parts() { const o = {}; SLOTS.forEach(s => { const w = S.worn[s[0]]; if (w) o[w.id] = w.lv; }); return o; }, get shopOpen() { return shop; },
     catalog: CAT.map(d => ({ id: d.id, slot: d.slot, asp: d.asp, name: d.name, cost: d.cost.slice(), mut: d.mut, openAt: KK.open[d.slot], act: d.act || null, text: [0, 1, 2].map(k => d.say(d.v[k], k)) })),
     buy(id) { const ok = sim.buy(id); if (ok) redrawShop(); return ok; }, why(id) { return sim.whyNot(id); }, price(id) { return PART[id] ? sim.priceOf(id) : null; }, openShop(tip) { openShop(tip); }, closeShop() { closeShop(); }, select(id) { if (PART[id]) { sel = id; redrawShop(); } },
-    set manual(v) { manual = !!v; }, get manual() { return manual; }, sim,
+    set manual(v) { manual = !!v; if (manual) closeIntro(); }, get manual() { return manual; }, sim,
     step(n) { for (let k = 0; k < (n || 1) && !S.ended; k++) sim.tick(); return S.ended; }, aim(x, y) { sim.aim(x, y); }, act() { return sim.act(); }, end(kind) { sim.end(kind || 'settle'); if (manual) finish(S.ended); }, world: { r: STG[5].R }, home };
   window.__pro = API;
-  return new Promise(res => { onDone = res; fit(); hud(); raf = requestAnimationFrame(loop); });
+  return new Promise(res => { onDone = res; fit(); hud(); openIntro(); raf = requestAnimationFrame(loop); });
 }
 window.runPrologue = runPrologue;
 // 옛 것의 둥지 — 화면 3/3: 글, 패널, 창, 낮과 밤의 흐름, 입력
@@ -5485,7 +5661,7 @@ function overview() {
   const by = {}; G.kin.forEach(m => { const k = m.loc === null ? 'bench' : m.loc; (by[k] = by[k] || []).push(m); });
   const keys = Object.keys(by).sort((a, b) => (a === 'bench' ? -1 : b === 'bench' ? 1 : 0)), O = NEST.ORIGIN[G.origin || 'drop'];
   return `<div class="ph"><h2>둥지</h2>${btn('log', null, '지난 일', 'sm')}</div>
-    <div class="card"><div class="slime-top sm">${slimeImg(G.slime, 56)}<div class="stack"><p class="h3">${esc(NEST.formName(G))} <small class="mute">${STAGE_NAME[G.slime.stage]}${G.origin && G.origin !== 'drop' ? ' · ' + O.name : ''}</small></p>${bar(G.slime.hp / NEST.slimeStats(G).hp)}<div class="row">${NEST.ASPECTS.filter(a => G.slime.ess[a] > 0).map(a => aspChip(a, NEST.ASP[a] + ' ' + G.slime.ess[a])).join('')}${btn('core', null, '본체 열기', 'sm')}</div></div></div></div>
+    <div class="card"><div class="slime-top sm">${slimeImg(G.slime, 56)}<div class="stack"><p class="h3">${esc(NEST.formName(G))} <small class="mute">${STAGE_NAME[G.slime.stage]}${G.slime.stage === 0 && G.slime.look && typeof SEEDS !== 'undefined' && SEEDS[G.slime.look] ? ' · ' + esc(SEEDS[G.slime.look].name) : ''}${G.origin && G.origin !== 'drop' ? ' · ' + O.name : ''}</small></p>${bar(G.slime.hp / NEST.slimeStats(G).hp)}<div class="row">${NEST.ASPECTS.filter(a => G.slime.ess[a] > 0).map(a => aspChip(a, NEST.ASP[a] + ' ' + G.slime.ess[a])).join('')}${btn('core', null, '본체 열기', 'sm')}</div></div></div></div>
     ${G.sign && NEST.SIGN[G.sign] ? `<p class="small clamp2"><span class="chip" style="border-color:${ASPCOL[NEST.SIGN[G.sign].asp]};color:${ASPCOL[NEST.SIGN[G.sign].asp]}">${NEST.SIGN[G.sign].name}</span> ${esc(NEST.STAR[G.star].name + ': ' + NEST.STAR[G.star].desc)}</p>` : G.star && G.star !== 'none' ? `<p class="small clamp2"><span class="chip on">${NEST.STAR[G.star].name}</span> ${esc(NEST.STAR[G.star].desc)}</p>` : ''}
     ${G.world && NEST.WORLD[G.world] ? `<p class="small clamp2"><span class="chip on">${NEST.WORLD[G.world].name} · ${NEST.WORLD[G.world].rule.name}</span> ${esc(NEST.WORLD[G.world].rule.bane + ' · ' + NEST.WORLD[G.world].rule.boon)}</p>` : ''}
     ${G.gods || G.auto ? godsRow() : ''}
@@ -5810,7 +5986,7 @@ async function newRun() {
   // 땅속의 한 방울: 굴을 틀기 전에 직접 움직이며 먹고 자란다. 먹은 것이 첫 정수, 갈라져 나온 것이 첫 권속, 헤집은 자리가 굴이 된다.
   // (자동 시험에서는 건너뛰고 보통 결과를 쓴다. window.__forcePro 를 켜면 시험에서도 한다)
   const seed = (Date.now() ^ (Math.random() * 1e9)) >>> 0, played = typeof runPrologue === 'function' && !(navigator.webdriver && !window.__forcePro);
-  let pr = NEST.proResult(sg.asp, 'avg'); if (played) { try { const r = await runPrologue({ asp: sg.asp, seed, tut: !!o.tut, speed: 1 }); if (r && !r.skipped) pr = r; else pr.skipped = true; } catch (e) { console.error(e); } }   // 건너뛰면 보통 결과
+  let pr = NEST.proResult(sg.asp, 'avg'); if (played) { try { const r = await runPrologue({ asp: sg.asp, seed, tut: !!o.tut, speed: 1 }); if (r && !r.skipped) pr = r; else { pr.skipped = true; if (r && r.look) pr.look = r.look; } } catch (e) { console.error(e); } }   // 건너뛰면 보통 결과
   G = NEST.newGame(seed, sg.asp, { diff: o.diff, legacy, star: sg.star, sign: sk, prologue: pr }); G.auto = false; if (o.tut) G.tut = 0;
   META.runs++; saveMeta(); store.del('run');
   const kept = G.pro && G.pro.mut && NEST.MUT[G.pro.mut] ? NEST.MUT[G.pro.mut].name : '', after = !played || pr.skipped ? [] : [N_(pr.fell ? '쫓기던 한 방울은 겨우 바위틈에 숨었다. 상처가 깊고, 돋운 것들은 떨어져 나갔다.' : '한 방울은 헤집고 다닌 굴 끝에 자리를 잡았다.' + (kept ? ' 허물에 「' + kept + '」이(가) 새겨졌다.' : ''))];

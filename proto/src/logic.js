@@ -467,6 +467,7 @@ const NEST = (function () {
       for (const a of ASPECTS) G.slime.ess[a] = Math.floor(e[a] * k);   // 멀리 자란 만큼 더 가져온다
       G.gold += -K.pro.goldBase + clamp(Math.round(pr.gold || 0), 0, K.pro.goldMax);
       (pr.kin || []).slice(0, 3).forEach(kind => { if (!KIN[kind] || kind === 'spawn') return; const m = { id: G.nextId++, name: NAMES[Math.floor(rng(G) * NAMES.length)], kind, lv: 1, exp: 0, loc: null, hurt: 0, skill: -1, rare: false, age: 0, unpaid: 0, split: true }; autoSkill(m); G.kin.push(m); });
+      if (pr.look) G.slime.look = String(pr.look).replace(/[^a-z0-9_]/gi, '').slice(0, 24);
       if (pr.mut && MUT[pr.mut] && !pr.fell && !G.slime.muts.includes(pr.mut)) G.slime.muts.push(pr.mut);   // 허물에 새긴 부위 하나가 변이로 남는다
       openTrail(G); G.pro = { size: pr.size || 1, time: Math.round(pr.time || 0), fell: !!pr.fell, skipped: !!pr.skipped, kin: (pr.kin || []).length, mut: G.slime.muts[0] || null, parts: (pr.parts || []).length }; G.slime.hp = slimeStats(G).hp * (pr.fell ? 0.6 : 1);
     }
