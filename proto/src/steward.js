@@ -77,6 +77,7 @@ const STEWARD = (function () {
     if (st.only) return o[st.only] && (big || st.only === 'mark') ? { k: st.only, u: ctx.tough, from: ctx.from[0] } : { k: 'none' };
     if (!big) return o.cocoon && n >= 2 ? { k: 'cocoon', u: o.cocoon.targets[0] } : { k: 'none' };
     const strong = () => (ctx.units || []).slice().sort((a, b) => b.atk - a.atk)[0];
+    if (o.guard && n >= 5 && def && !core) return { k: 'guard' };
     if (o.bite) return { k: 'bite', u: ctx.tough };
     if (o.phantom) return { k: 'phantom' };
     if (o.halo && (def || core)) return { k: 'halo' };

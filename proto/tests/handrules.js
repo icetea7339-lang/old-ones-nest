@@ -8,8 +8,8 @@ let bad = 0; const ok = (c, m) => { if (!c) { bad++; console.log('실패:', m); 
   ok(G.gold > g0, '자리가 없는 방은 진액으로 돌려준다'); ok(!G.cells.some(c => !S.ROOM[c.type]), '모르는 방이 남았다'); }
 // 2) 쥐기와 내려놓기
 { const G = S.newGame(11, 'dusk', { diff: 1 }); const h0 = S.handOf(G); ok(h0.includes('whip') && h0.includes('move') && h0.includes('rock') && h0.includes('mark'), '처음 손 ' + h0.join(','));
-  ok(S.setHand(G, 'rock').ok && !S.handOf(G).includes('rock'), '내려놓기'); ok(!S.setHand(G, 'phantom').ok, '모르는 주문은 못 쥔다'); ok(S.setHand(G, 'rock').ok && S.handOf(G).includes('rock'), '다시 쥐기');
-  G.slime.main = 'dusk'; G.slime.stage = 2; G.slime.sub = 'abyss'; ok(S.spellKnown(G, 'phantom') && S.spellKnown(G, 'charm') && !S.spellKnown(G, 'wave'), '허물로 배우는 주문'); ok(S.handSlots(G) === 4, '둘째 허물부터 자리 넷'); }
+  ok(S.setHand(G, 'rock').ok && !S.handOf(G).includes('rock'), '내려놓기'); ok(!S.setHand(G, 'charm').ok, '모르는 주문은 못 쥔다'); ok(S.spellKnown(G, S.SPELL_IDS.find(id => S.SPELL[id].asp === G.startAsp && S.SPELL[id].st === 1)), '처음 정수의 주문은 첫날부터 안다'); ok(S.setHand(G, 'rock').ok && S.handOf(G).includes('rock'), '다시 쥐기');
+  G.slime.main = 'dusk'; G.slime.stage = 2; G.slime.sub = 'abyss'; ok(S.spellKnown(G, 'phantom') && S.spellKnown(G, 'charm') && S.spellKnown(G, 'wave') && !S.spellKnown(G, 'tide'), '허물로 배우는 주문'); ok(S.handSlots(G) === 4, '둘째 허물부터 자리 넷'); }
 // 3) 빈손(주문을 하나도 쥐지 않음)과, 주문 하나만 쓰는 판이 끝까지 돈다
 const play = (seed, st, prep) => { const asp = S.ASPECTS[seed % 5], G = S.newGame(seed, asp, { diff: 1, prologue: S.proResult(asp, 'avg') }); let n = 0; if (prep) prep(G);
   while (!G.over && n++ < 60) { STEWARD.tasks(S, G, st, { seed }).forEach(f => f()); if (G.sealed && S.paths(G).length && (G.under || 0) >= 1) S.breach(G); S.endDay(G, STEWARD.decide(st)); } return G; };

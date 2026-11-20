@@ -5,8 +5,8 @@ const NEST = (function () {
   const K = {
     days: 40, act: 8, cost: [0, 1, 2, 4, 7, 11], stat: [0, 1, 1.5, 2.4, 3.6, 5], size: [0, 1, 1.3, 1.8, 2.4, 3],
     ap: 2, startGold: 300, faithCap: 30, thresh: [0, 50, 150, 300, 480], tier: [1, 2.5, 6, 11, 18],
-    slime: { hp: 80, atk: 7, df: 5 }, budget: 56, settle: 1.7, rob: 0.5, falls: [0, 2, 2, 2], smell: 0.8, wary: 0.5, tithe: 3, brood: { own: 0.2, other: 0.1, cap: 14 }, preach: { base: 6, grow: 2 }, gift: { ess: 2, on: 1, boon: 1, bane: 1 }, lean: { on: 1, add: 1.2, mul: 2.5, off: 0.5 }, ktrait: { abyss: 1, nebula: 1, hunger: 1, dusk: 1 }, fuse: { max: 2, share: 0.5, cost: 60 }, trustMax: 5, trustGain: 0.4, trustCap: [0, 5, 4, 2, 0], trustKills: 3,
-    deep: { risk: [0, 0.25, 0.5, 1], ess: 3 }, wbeat: { fantasy: [1.06, 0.87], wuxia: [1.15], modern: [1, 22, 6, 0.97], future: [0.7, 1.2] }, pro: { essCap: [0, 4, 8, 14, 22, 36], goldBase: 30, goldMax: 90, body: 0.07, life: 5 }, hold: { per: 0.06, max: 5, pins: 2 }, lvGrowth: 1.15, expBase: 10, expGrowth: 1.3, trainEff: 1.5, hands: 2, hands2: 1, shopAtk: 0.9, decoy: 0.1, hallDf: 0.95, rockDmg: 0.06, mark: 1.35, whip: 1.3, corpseCap: 9,
+    slime: { hp: 80, atk: 7, df: 5 }, budget: 61, settle: 1.7, rob: 0.5, falls: [0, 2, 2, 2], smell: 0.8, wary: 0.5, tithe: 3, brood: { own: 0.2, other: 0.1, cap: 14 }, preach: { base: 6, grow: 2 }, gift: { ess: 2, on: 1, boon: 1, bane: 1 }, lean: { on: 1, add: 1.2, mul: 2.5, off: 0.5 }, ktrait: { abyss: 1, nebula: 1, hunger: 1, dusk: 1 }, fuse: { max: 2, share: 0.5, cost: 60 }, trustMax: 5, trustGain: 0.4, trustCap: [0, 5, 4, 2, 0], trustKills: 3,
+    deep: { risk: [0, 0.25, 0.5, 1], ess: 3 }, wbeat: { fantasy: [1.06, 0.87], wuxia: [1.15], modern: [1, 22, 6, 0.97], future: [0.7, 1.2] }, pro: { essCap: [0, 4, 8, 14, 22, 36], goldBase: 30, goldMax: 90, body: 0.07, life: 5 }, hold: { per: 0.06, max: 5, pins: 2 }, lvGrowth: 1.15, expBase: 10, expGrowth: 1.3, trainEff: 1.5, hands: 3, hands2: 1, shopAtk: 0.9, decoy: 0.1, hallDf: 0.88, faithDay: 2, rockDmg: 0.06, mark: 1.35, whip: 1.3, corpseCap: 9,
   };
   const ASPECTS = ['abyss', 'nebula', 'brood', 'dusk', 'hunger'];
   const ASP = { abyss: '심연', nebula: '성운', brood: '번식', dusk: '황혼', hunger: '기아' };
@@ -17,13 +17,13 @@ const NEST = (function () {
     empty: { name: '빈 굴', cost: 0, desc: '아무것도 없다. 적이 그냥 지나간다' },
     trap: { name: '함정 굴', cost: 30, traps: 2, desc: '함정 2개' },
     post: { name: '문턱', cost: 25, def: 2, desc: '권속 2. 한 명이 적 2명까지 막고 나머지는 지나간다' },
-    hall: { name: '싸움 굴', cost: 60, def: 3, block: true, desc: '권속 3. 적 전원과 싸운다. 피해 −5%. 주문 「버팀」' },
+    hall: { name: '싸움 굴', cost: 60, def: 3, block: true, desc: '권속 3. 적 전원과 싸운다. 피해 −12%. 주문 「버팀」' },
     ambush: { name: '매복굴', cost: 50, def: 2, traps: 1, desc: '함정 1개가 터진 뒤 권속 2가 덮친다' },
-    bighall: { name: '큰 싸움 굴', cost: 140, def: 5, block: true, act: 2, desc: '권속 5. 적 전원과 싸운다. 피해 −5%. 2막부터' },
+    bighall: { name: '큰 싸움 굴', cost: 140, def: 5, block: true, act: 2, desc: '권속 5. 적 전원과 싸운다. 피해 −12%. 2막부터' },
     decoy: { name: '미끼 굴', cost: 50, max: 1, desc: '들어온 적 몇이 진액 한 줌을 훔쳐 들고 돌아간다. 하나만' },
     shop: { name: '빨판 굴', cost: 40, desc: '지나가는 적의 진액과 힘을 빤다. 빨린 적 공격 −10%' },
     prison: { name: '고치 굴', cost: 40, side: true, desc: '고치에 싸 둔다. 포로 자리 +4. 주문 「고치」' },
-    chapel: { name: '기도 굴', cost: 60, side: true, desc: '매일 신앙 +2, 상한 +20. 주문 「비명」' },
+    chapel: { name: '기도 굴', cost: 60, side: true, desc: '매일 신앙 +2, 상한 +20. 개종 +10%p. 주문 「비명」' },
     altar: { name: '달맞이 굴', cost: 80, side: true, max: 1, desc: '기우는 밤 정수 +8, 제물 정수 +1. 주문 「달가림」' },
     pool: { name: '고인 웅덩이', cost: 60, asp: 'abyss', ess: true, side: true, desc: '이웃 칸 아군이 매 라운드 체력 5% 회복. 매일 심연 정수 +2. 비늘지기가 돋는다' },
     sluice: { name: '물목', cost: 70, asp: 'abyss', desc: '지나가는 무리를 하룻밤 한 번 앞 칸으로 되돌린다' },
@@ -630,22 +630,22 @@ const NEST = (function () {
   const SPELL = {
     whip: { name: '채찍', cost: 0, free: true, per: 9, src: '처음부터', desc: '이 방 권속의 공격 +30%' },
     move: { name: '옮기기', cost: 0, free: true, per: 9, tgt: 'room', src: '처음부터', desc: '고른 방의 권속을 이 방으로 부른다' },
-    wave: { name: '해일', cost: 6, asp: 'abyss', st: 1, desc: '무리를 앞 칸으로 밀어낸다. 그 칸을 다시 치른다' },
-    rift: { name: '틈', cost: 6, asp: 'nebula', st: 1, desc: '무리의 절반을 입구로 되돌린다' },
-    hatch: { name: '부화', cost: 5, asp: 'brood', st: 1, desc: '이 방에 움 셋이 돋아 싸운다' },
-    phantom: { name: '환영', cost: 8, asp: 'dusk', st: 1, desc: '무리 전원의 정신력을 크게 깎는다' },
-    bite: { name: '한 입', cost: 8, asp: 'hunger', st: 1, tgt: 'inv', desc: '고른 적을 본체가 문다(공격 4배). 쓰러지면 먹는다' },
-    call: { name: '부름', cost: 5, body: 'hive', desc: '이 방 권속의 공격 +50%' },
-    halo: { name: '후광', cost: 7, body: 'idol', desc: '무리 전원이 두 라운드 멈춘다' },
-    flip: { name: '뒤집기', cost: 6, body: 'mix', desc: '무리의 절반이 옆 사람을 친다' },
-    tide: { name: '밀물', cost: 5, asp: 'abyss', st: 2, desc: '둥지의 모든 권속이 체력 40%를 되찾는다' },
-    star: { name: '별점', cost: 4, asp: 'nebula', st: 2, desc: '이 무리가 만나는 다음 함정이 두 번 터진다' },
-    flesh: { name: '살벽', cost: 6, asp: 'brood', st: 2, desc: '이 방에 살의 벽이 솟아 무리를 붙잡는다' },
-    charm: { name: '홀림', cost: 7, asp: 'dusk', st: 2, tgt: 'inv', desc: '고른 적이 제 편 둘을 치고 세 라운드 멍하니 선다' },
-    rise: { name: '시체떼', cost: 4, asp: 'hunger', st: 2, desc: '먹이 3구까지 일어나 이 방에서 싸운다' },
-    scream: { name: '비명', cost: 5, room: ['chapel'], desc: '약해진 적(체력·정신 40% 아래)이 달아난다' },
-    cocoon: { name: '고치', cost: 4, room: ['prison'], tgt: 'inv', desc: '체력 절반 아래인 적 하나를 산 채로 싼다' },
-    eclipse: { name: '달가림', cost: 5, room: ['altar'], desc: '이 방의 적이 한 라운드 멈추고 재주를 잃는다' },
+    wave: { name: '해일', cost: 4, asp: 'abyss', st: 1, desc: '무리를 앞 칸으로 밀어낸다. 그 칸을 다시 치른다' },
+    rift: { name: '틈', cost: 4, asp: 'nebula', st: 1, desc: '무리의 절반을 입구로 되돌린다' },
+    hatch: { name: '부화', cost: 4, asp: 'brood', st: 1, desc: '이 방에 움 셋이 돋아 싸운다' },
+    phantom: { name: '환영', cost: 6, asp: 'dusk', st: 1, desc: '무리 전원의 정신력을 크게 깎는다' },
+    bite: { name: '한 입', cost: 6, asp: 'hunger', st: 1, tgt: 'inv', desc: '고른 적을 본체가 문다(공격 4배). 쓰러지면 먹는다' },
+    call: { name: '부름', cost: 4, body: 'hive', desc: '이 방 권속의 공격 +50%' },
+    halo: { name: '후광', cost: 5, body: 'idol', desc: '무리 전원이 두 라운드 멈춘다' },
+    flip: { name: '뒤집기', cost: 4, body: 'mix', desc: '무리의 절반이 옆 사람을 친다' },
+    tide: { name: '밀물', cost: 4, asp: 'abyss', st: 2, desc: '둥지의 모든 권속이 체력 40%를 되찾는다' },
+    star: { name: '별점', cost: 3, asp: 'nebula', st: 2, desc: '이 무리가 만나는 다음 함정이 두 번 터진다' },
+    flesh: { name: '살벽', cost: 4, asp: 'brood', st: 2, desc: '이 방에 살의 벽이 솟아 무리를 붙잡는다' },
+    charm: { name: '홀림', cost: 5, asp: 'dusk', st: 2, tgt: 'inv', desc: '고른 적이 제 편 둘을 치고 세 라운드 멍하니 선다' },
+    rise: { name: '시체떼', cost: 3, asp: 'hunger', st: 2, desc: '먹이 3구까지 일어나 이 방에서 싸운다' },
+    scream: { name: '비명', cost: 4, room: ['chapel'], desc: '약해진 적(체력·정신 40% 아래)이 달아난다' },
+    cocoon: { name: '고치', cost: 3, room: ['prison'], tgt: 'inv', desc: '체력 절반 아래인 적 하나를 산 채로 싼다' },
+    eclipse: { name: '달가림', cost: 4, room: ['altar'], desc: '이 방의 적이 한 라운드 멈추고 재주를 잃는다' },
     guard: { name: '버팀', cost: 3, room: ['hall', 'bighall'], desc: '이 싸움에서 이 방 권속이 받는 피해 −40%' },
     grip: { name: '휘감기', cost: 3, mut: 'tentacle', desc: '앞의 셋을 두 라운드 붙든다' },
     rock: { name: '낙석', cost: 3, src: '처음부터', desc: '이 방의 적 전원이 체력의 6%를 잃는다. 맨 앞은 두 배' },
@@ -655,12 +655,12 @@ const NEST = (function () {
   function spellKnown(G, id) {
     const d = SPELL[id], sl = G.slime; if (!d) return false;
     if (d.body) return sl.body === d.body && sl.stage >= 1;
-    if (d.asp) return d.st === 1 ? ((pk(G) === d.asp && sl.stage >= 1) || (sl.sub === d.asp && sl.stage >= 3)) : (sl.main === d.asp && sl.stage >= 2);
+    if (d.asp) return d.st === 1 ? (G.startAsp === d.asp || (pk(G) === d.asp && sl.stage >= 1) || (sl.sub === d.asp && sl.stage >= 2)) : (sl.main === d.asp && sl.stage >= 2);
     if (d.room) return G.cells.some(c => c.dug && d.room.includes(c.type));
     if (d.mut) return has(G, d.mut);
     return true;
   }
-  const spellSrc = id => { const d = SPELL[id]; return d.body ? '숨은 몸 「' + FORM1[d.body].name + '」' : d.asp ? ASP[d.asp] + (d.st === 1 ? ' 첫 허물 (섞인 징조는 셋째 허물)' : ' 둘째 허물') : d.room ? d.room.map(r => ROOM[r].name).join('·') + '을 지으면' : d.mut ? '변이 「' + MUT[d.mut].name + '」' : d.src; };
+  const spellSrc = id => { const d = SPELL[id]; return d.body ? '숨은 몸 「' + FORM1[d.body].name + '」' : d.asp ? ASP[d.asp] + (d.st === 1 ? ' 정수로 시작하거나 첫 허물 (섞인 징조는 둘째 허물)' : ' 둘째 허물') : d.room ? d.room.map(r => ROOM[r].name).join('·') + '을 지으면' : d.mut ? '변이 「' + MUT[d.mut].name + '」' : d.src; };
   const handSlots = G => 3 + (G.slime.stage >= 2 ? 1 : 0);
   // 쥔 손: 고른 것 먼저, 남는 자리는 아는 것으로 채운다 (한 번도 고르지 않아도 빈손이 아니다)
   function handOf(G) {
@@ -903,7 +903,7 @@ const NEST = (function () {
   function rest(G) { if (!useAp(G)) return fail('행동이 남지 않았다'); note(G, 'rest'); const s = slimeStats(G); G.slime.hp = Math.min(s.hp, G.slime.hp + s.hp * (has(G, 'gills') ? 0.7 : 0.4)); G.kin.forEach(m => { m.hurt = 0; }); return ok('휴식: 본체 회복, 다친 권속 복귀'); }
 
   // ---------- 포로 ----------
-  function convertChance(G, kind) { return clamp(0.70 + (G.origin === 'lamp' ? 0.2 : 0) - 0.15 * (Math.min(4, INV[kind].g) - 1) + (combo(G, 'confess') ? 0.15 : 0) + (G.slime.stage >= 2 && G.slime.sub === 'dusk' ? 0.2 : 0) + (has(G, 'whisper') ? 0.15 : 0), 0.05, 0.95); }
+  function convertChance(G, kind) { return clamp(0.70 + (G.origin === 'lamp' ? 0.2 : 0) - 0.15 * (Math.min(4, INV[kind].g) - 1) + (combo(G, 'confess') ? 0.15 : 0) + (hasRoom(G, 'chapel') ? 0.1 : 0) + (G.slime.stage >= 2 && G.slime.sub === 'dusk' ? 0.2 : 0) + (has(G, 'whisper') ? 0.15 : 0), 0.05, 0.95); }
   const ransomOf = (G, kind, bonus) => Math.round(INV[kind].g * 20 * cm(G) * wr(G, 'ransom', 1) * (G.kin.some(m => does(m, 'warden')) ? 1.25 : 1) * (G.origin === 'chain' ? 1.3 : 1) * (bonus || 1));
   const sacEss = (G, kind) => Math.ceil((INV[kind].g * 4 + (hasRoom(G, 'altar') ? 1 : 0) + (combo(G, 'queue') ? 2 : 0)) * (G.origin === 'chain' ? 0.5 : 1));
   const mutChance = (G, kind) => clamp(0.1 * INV[kind].g + (hasRoom(G, 'altar') ? 0.15 : 0), 0, 0.9);
@@ -1407,7 +1407,7 @@ const NEST = (function () {
     G.plots.forEach(p => { if (p === 'garden' && !G.off.garden) earn(G, 8 * c, PLOT.garden.name); });
     // 신앙과 정수
     const cult = G.kin.filter(m => m.kind === 'cultist'), choir = G.kin.filter(m => recipesOf(m).includes('choir')).length; if (cult.length + choir) earn(G, Math.round(K.tithe * cm(G) * (cult.length + choir)), '바침'); if (choir) addFaith(G, 3 * choir); if (G.origin === 'lamp') addFaith(G, 3); if (G.slime.body === 'idol') addFaith(G, 2); addFaith(G, cult.length + cult.filter(m => m.skill === 2).length + 2 * cult.filter(m => m.evo).length);
-    G.cells.forEach((x, i) => { if (!x.dug || G.off[i]) return; if (x.type === 'chapel') addFaith(G, 2); const d = ROOM[x.type]; if (d.ess) { addEss(G, d.asp, 2); rep.ess[d.asp] = (rep.ess[d.asp] || 0) + 2; } if (x.type === 'hatchery') addSpawn(G); });
+    G.cells.forEach((x, i) => { if (!x.dug || G.off[i]) return; if (x.type === 'chapel') addFaith(G, 2); if (i === CORE) addFaith(G, K.faithDay); const d = ROOM[x.type]; if (d.ess) { addEss(G, d.asp, 2); rep.ess[d.asp] = (rep.ess[d.asp] || 0) + 2; } if (x.type === 'hatchery') addSpawn(G); });
     if (hasRoom(G, 'abattoir') && G.corpses.length) eatN(G, 2);
     rep.faith = G.faith - f0;
     if (G.star === 'quiet' && G.d.fear0 != null && G.fear > G.d.fear0) G.fear = G.d.fear0 + (G.fear - G.d.fear0) / 2;
