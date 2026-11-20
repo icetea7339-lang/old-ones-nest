@@ -355,7 +355,7 @@ function drawUnder(x, t) {
 function pathPoint(v, f) { const a = VPOS[v], b = PPOS[NEST.VILL[v].plot], c = CAVE; if (f < 0.5) { const k = f / 0.5; return { x: a.x + (b.x - a.x) * k, y: a.y + 34 + (b.y - a.y - 34) * k }; } const k = (f - 0.5) / 0.5; return { x: b.x + (c.x - b.x) * k, y: b.y + (c.y - b.y) * k }; }
 function drawParty(x, t, est, f, label, col) {
   const p = pathPoint(est.vill, f), n = Math.min(7, est.count);
-  for (let k = 0; k < n; k++) { const kind = est.kinds ? est.kinds[k % est.kinds.length] : 'shade'; x.drawImage(kind === 'shade' ? spriteCanvas('human', 'shade') : invCanvas(kind), Math.round(p.x - n * 9 + k * 18), Math.round(p.y - 30 + Math.sin(t / 200 + k) * 2), 32, 32); }
+  for (let k = 0; k < n; k++) { const kind = est.kinds ? est.kinds[k % est.kinds.length] : (est.only && k < est.only.length ? est.only[k] : 'shade'); x.drawImage(kind === 'shade' ? spriteCanvas('human', 'shade') : invCanvas(kind), Math.round(p.x - n * 9 + k * 18), Math.round(p.y - 30 + Math.sin(t / 200 + k) * 2), 32, 32); }
   if (label) { const s = label + ' · ' + NEST.GRADE_NAME[est.grade] + ' ' + (est.kinds ? '' : '약 ') + est.count + '명'; const z = Math.round(14 * ST.fm); x.font = z + 'px "NestPix", "Do Hyeon", sans-serif'; const w = x.measureText(s).width + 14; rect(x, '#0b0c16cc', p.x - w / 2, p.y - 42 - z, w, z + 8); rect(x, col, p.x - w / 2, p.y - 42 - z, 4, z + 8); txt(x, s, p.x + 2, p.y - 38 - z, '#ece6d6', 14, 'center'); }
 }
 // 계단 모양 도형: 타원(반쪽 가능), 세모, 고른 것의 모서리 표시

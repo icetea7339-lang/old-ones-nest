@@ -187,6 +187,8 @@ const WLOOK = {
     handler: { c: '#5a4630', l: '#3a2a20', t: '#3f6b46', h: ['floppy', '#3f6b46', W_RD], r: ['leash'] },
     sapper: { c: '#6a5a2a', l: '#3a3020', b: 'bulk', t: '#a89040', h: ['beardcap', '#8a8a96', W_GD], f: 'beard', fc: '#c86a2a', r: ['pick'] },
     torch: { c: '#6a3a2a', l: '#3a2a20', h: ['cap', '#8a2a2a'], r: ['torch'] },
+    firemage: { c: '#a8301a', b: 'robe', t: W_YL, hem: '#6a1a10', col: W_OR, h: ['wizard', '#a8301a', W_YL], r: ['orb', W_OR], x: [[13, 0, 1, 1, W_YL], [14, 1, 1, 1, W_OR]] },
+    banner: { c: '#3a5a9a', l: '#2a3a5a', b: 'armor', t: W_GD, h: ['kettle', '#8a92aa', W_STH], r: ['spear'], x: [[14, 1, 2, 4, W_OL], [14, 1, 2, 3, W_RD], [14, 2, 2, 1, W_GD]] },
   },
   wuxia: {
     villager: { c: '#8a7a5a', b: 'robe', t: '#5a4a30', hem: '#6a5a3a', h: ['cone', '#c8a860', '#e8d090'], r: ['hoe'] },
@@ -207,6 +209,8 @@ const WLOOK = {
     handler: { c: '#6a5a3a', l: '#3a3020', t: '#a8845a', h: ['furhat', '#7a5a3a', '#b89a7a'], r: ['hawk'] },
     sapper: { c: '#4a5a4a', l: '#2a3a2a', b: 'bulk', t: '#a8a040', h: ['band', '#34303e', W_YL], f: 'stache', r: ['hammer', '#8a8a96'], lf: ['pack', '#7a5a3a', W_ST] },
     torch: { c: '#7a3a2a', b: 'robe', t: '#3a2a20', h: ['band', '#34303e', W_OR], r: ['torch'] },
+    master: { c: '#f0f0f0', b: 'robe', t: '#1b1d2a', hem: '#c8c8d0', col: '#1b1d2a', h: ['topknot', '#d8d8e0', W_RD], f: 'beard', fc: '#e8e8f0', r: ['fan'] },
+    shadow: { c: '#22202c', b: 'robe', t: '#5a1a2a', hem: '#16141e', h: ['hood', '#22202c', '#16141e'], f: 'mask', fc: '#22202c', r: ['dagger'] },
   },
   modern: {
     villager: { c: '#5a8ab0', l: '#3a4a6a', b: 'tunic', h: ['cap', '#c83030', W_WH], r: ['bat'] },
@@ -227,6 +231,8 @@ const WLOOK = {
     handler: { c: '#2a3a5a', l: '#2a2a3a', b: 'armor', t: '#4a5a7a', belt: W_BK, h: ['cap', '#2a3a5a', W_GD], r: ['leash', W_ST] },
     sapper: { c: '#5a6a4a', l: '#4a5a3a', b: 'bulk', t: '#3a4a2a', g: '#3a4a2a', h: ['bomb', '#5a6a4a', '#7a8a6a'], r: ['cutter'], x: [[6, 10, 4, 2, '#3a4a2a']] },
     torch: { c: '#4a5a8a', l: '#3a4a6a', b: 'tunic', t: '#6a5a3a', g: '#8a6a3a', h: ['weld', '#5a5a64'], r: ['welder'], lf: ['tank', '#5a7ab0'] },
+    crowd: { c: '#c8a040', l: '#3a4a6a', b: 'tunic', t: '#8a6a2a', h: ['hair', '#3a2a20'], r: ['flash'] },
+    lightcrew: { c: '#e8c030', l: '#3a3a44', b: 'vest', t: W_OR, h: ['hardhat', W_YL, W_WH], r: ['flash'], lf: ['lamp', W_WH] },
   },
   future: {
     villager: { c: '#d8782a', l: '#a85a1a', b: 'suit', t: W_WH, h: ['visor', '#e8e0d0', W_OR], r: ['wrench'] },
@@ -247,6 +253,8 @@ const WLOOK = {
     handler: { c: '#4a5a4a', l: '#3a4a3a', b: 'suit', t: W_RD, h: ['visor', '#4a5a4a', W_RD, '#4a5a4a'], r: ['remote'] },
     sapper: { c: '#a8882a', l: '#7a6220', b: 'bulk', t: W_BK, g: W_STD, h: ['dome', '#a8882a', W_YL], r: ['tool', W_YL], lf: ['pack', '#3a3a44', W_YL], x: [[6, 10, 4, 1, W_BK]] },
     torch: { c: '#8a3a2a', l: '#5a2a20', b: 'suit', t: '#5f8fe0', h: ['visor', '#8a3a2a', '#5f8fe0'], r: ['flamer'], lf: ['tank', '#5f8fe0'] },
+    sentry: { sk: '#8a90a8', c: '#6a7088', l: '#4a5068', b: 'bulk', t: W_RD, g: '#4a5068', h: ['dome', '#8a90a8', W_RD], r: ['blaster'], x: [[6, 5, 1, 1, W_RD], [9, 5, 1, 1, W_RD]] },
+    shielder: { c: '#3a6a8a', l: '#2a4a6a', b: 'suit', t: W_CY, h: ['visor', '#3a6a8a', W_CY], r: ['stun'], lf: ['eshield', W_CY] },
   },
 };
 const _wcv = {};
