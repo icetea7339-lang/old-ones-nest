@@ -344,8 +344,18 @@ function runPrologue(opts) {
     const dt = Math.min(0.1, (now - (last || now)) / 1000); last = now;
     if (!document.hidden && !manual && !S.ended && !shop && !intro) {
       let kx = (keys.right ? 1 : 0) - (keys.left ? 1 : 0), ky = (keys.down ? 1 : 0) - (keys.up ? 1 : 0); if (kx || ky) { const L = Math.hypot(kx, ky); sim.aim(P.x + kx / L * 70, P.y + ky / L * 70); }
-      const slowmo = S.t - S.upAt < 28 ? 0.4 : 1; acc += dt * (opts.speed || 1) * slowmo; let n = 0; while (acc >= 1 / TPS && n++ < 8) { acc -= 1 / TPS; sim.tick(); } }
-    try { drain(); draw(now); hud(); if (S.ended && !ended) finish(S.ended); } catch (e) { console.error(e); }
+      const slowmo = S.t - S.upAt < 28 ? 0.4 : 1; acc += dt * (opts.speed || 1) * slowmo; let n = 0;
+      try { while (acc >= 1 / TPS && n++ < 8) { acc -= 1 / TPS; sim.tick(); } } catch (e) { acc = 0; trouble(e, 'tick'); } }
+    try { drain(); draw(now); hud(); if (S.ended && !ended) finish(S.ended); } catch (e) { trouble(e, 'draw'); }
+  }
+  // 문제가 생기면 멈춰 서지 않는다: 무슨 일인지 적어 두고, 거듭되면 지금까지 얻은 것으로 자리를 잡는다
+  let troubles = 0;
+  function trouble(e, where) {
+    console.error(e); troubles++;
+    const msg = where + ': ' + (e && e.message ? e.message : String(e)) + ' @ ' + String((e && e.stack) || '').split('\n').slice(1, 3).join(' | ').slice(0, 240) + ' [몸 ' + S.stage + ', ' + Math.round(S.t / TPS) + '초]';
+    try { localStorage.setItem('oldnest.err', JSON.stringify(msg)); } catch (e2) { /* 저장 못 해도 계속 */ }
+    if (troubles < 4 || ended) return;
+    try { finish('time'); } catch (e3) { console.error(e3); const r = (() => { try { return sim.result('time'); } catch (e4) { return null; } })(); close(); if (onDone) onDone(r || { skipped: true }); }
   }
 
   // ---------- 끝 ----------
