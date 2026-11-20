@@ -3,7 +3,7 @@
 const N_ = text => ({ narr: true, text }), E_ = text => ({ text: NEST.fj(text) });
 const STORY = {
   intro: [N_('떨어진 자리에는 손바닥만 한 무언가와, 그 밑에 고인 끈적한 진액 한 줌이 남았다.'), E_('…들리나? 좋아. 나는 잔향이야. 네가 예전에 얼마나 컸는지 기억하는 마지막 메아리지.'), E_('지금 네 이름은 「옛 것?」이야. 물음표가 붙었지. 네가 정말 그것이었는지 아무도 몰라. ' + NEST.K.days + '일 뒤, 별들이 한 줄로 서는 밤까지 살아남으면 물음표가 떨어져.'), E_('굴을 파 올라가고, 몸에서 돋는 것들을 거느리고, 굴이 열리면 밤마다 내려오는 것들을 막아. 쓰러뜨린 것은 먹이고, 겁에 질려 무릎 꿇은 것은… 쓸모가 많지.'), E_('먹은 대로 변한다는 것만 기억해. 그리고 진액. 네 몸에서 배어 나와 둥지를 돌리는 피야. 땅 위의 것들에게는 그게 약이고 보물이라, 많이 고일수록 냄새를 맡고 더 많이 와.'), E_('우선 몸에서 돋으려는 것들부터 돋워. 혼자서는 첫 주도 못 넘겨.')],
-  act2: [E_('첫 허물을 벗었네. 이제 지상으로 손을 뻗을 수 있어. Tab으로 올라가서 마을을 봐.'), E_('겁만 줄지, 털지, 지도에서 지울지는 네 마음이야. 다만 무서운 소문은 더 무서운 인간을 데려와.')],
+  act2: [E_('첫 허물을 벗었네. 이제 지상으로 손을 뻗을 수 있어. Tab으로 올라가서 {마을}을(를) 봐.'), E_('겁만 줄지, 털지, 지도에서 지울지는 네 마음이야. 다만 무서운 소문은 더 무서운 인간을 데려와.')],
   get act3() { return [E_('인간들이 널 부르는 이름이 생겼어. 좋은 뜻은 아니야.'), E_('이제 ' + NEST.GRADE_NAME[3] + '이(가) 온다. ' + NEST.INV.scholar.name + '은(는) 네 능력을 봉하고, ' + NEST.INV.priest.name + '은(는) 겁먹은 자를 다독여. 누구부터 치울지 생각해.')]; },
   get act4() { return [E_('세 번째 허물이야. 이제 네 몸은 굴 하나로는 다 안 보여.'), E_('저들이 ' + NEST.GRADE_NAME[4] + '을(를) 보내기 시작했어. ' + NEST.INV.soldier.name + '은(는) 벽을 뚫고 들어오고, ' + NEST.INV.chaplain.name + '은(는) 겁먹은 자들을 붙든다. 아직 밤이 ' + NEST.K.act * 2 + '번 남았어.')]; },
   get act5() { return [E_('밤이 ' + NEST.K.act + '번 남았어. 인간들도 그걸 알아.'), E_('마지막 밤엔 ' + NEST.INV.sealer.name + '이(가) 온다. 함정은 절반만 듣고, 한 번에 두 번 친다. 쓸 수 있는 건 전부 써.')]; },
@@ -17,28 +17,28 @@ const STORY = {
 const ENDING = {
   abyss: '해안선이 조금씩 안쪽으로 옮겨 갔다. 물가 사람들은 이제 물에 손을 담그기 전에 먼저 절을 한다.',
   nebula: '밤하늘에 못 보던 별자리가 하나 생겼다. 아는 자들은 이름을 붙이려다 그만두었다. 부르면 돌아본다는 소문 때문에.',
-  brood: '숲이 마을 쪽으로 걸어오고 있다. 하루에 한 뼘씩. 서두르지 않는다.',
-  dusk: '마을마다 같은 꿈을 꾼다. 막이 오르고, 다들 박수를 친다. 아침에 깨면 손바닥이 얼얼하다.',
-  hunger: '지도에서 마을 몇 개가 지워졌다. 지도 제작자는 실수라고 했다. 그 뒤로는 지도 제작자도 보이지 않는다.',
+  brood: '숲이 {마을} 쪽으로 걸어오고 있다. 하루에 한 뼘씩. 서두르지 않는다.',
+  dusk: '{마을}마다 같은 꿈을 꾼다. 막이 오르고, 다들 박수를 친다. 아침에 깨면 손바닥이 얼얼하다.',
+  hunger: '지도에서 {마을} 몇 곳이 지워졌다. 지도 제작자는 실수라고 했다. 그 뒤로는 지도 제작자도 보이지 않는다.',
   none: '별은 섰지만 몸은 그대로였다. 한 방울은 한 방울인 채로 조금 더 오래 살아남았다.',
   h_abyss: '물 한 방울 고이게 한 적 없이 깊어졌다. 바다는 그 자리에 그대로 있는데, 물가 사람들은 이제 그물 대신 빈 통을 내린다. 올라오는 것은 없다.',
   h_nebula: '한 번도 손을 대지 않고 지켜보기만 했다. 별은 섰고, 그것은 끝내 눈을 뜨지 않았다. 별을 세는 자들은 그 자리를 비워 두고 별자리를 다시 그렸다.',
   h_brood: '불어나는 것이 불어나지 않았다. 숲은 자라지 않았고, 그 한가운데 나무 한 그루만 하늘에 닿았다.',
   h_dusk: '죽은 자가 거의 없었다. 다들 제 발로 걸어 나가 제 입으로 이야기했다. 막은 아직 내려오지 않았다.',
   h_hunger: '먹지 않고 다 자랐다. 인간들은 그것을 무서워해야 할지 본받아야 할지 정하지 못했고, 그 사이 접시는 계속 비어 있다.',
-  child: '아무도 바치지 않았고, 길 잃은 아이는 빵을 다 먹고 집에 갔다. 스무 해 뒤 그 아이가 동굴 앞에 첫 돌을 놓았다. 제단이 아니라 식탁이었다.',
+  child: '아무도 바치지 않았고, 길 잃은 아이는 {빵}을(를) 다 먹고 집에 갔다. 스무 해 뒤 그 아이가 동굴 앞에 첫 돌을 놓았다. 제단이 아니라 식탁이었다.',
   pure: '아무도 바치지 않고 깨어났다. 인간들은 그것을 뭐라 불러야 할지 아직 정하지 못했다. 신이라기엔 얌전하고, 괴물이라기엔 예의가 바르다.',
 };
 // 최종 모습마다 세 갈래: 점수 등급이 낮으면 조짐, 중간이면 번짐, 높으면 끝
 const ENDING3 = {
   hive: [['하나 더', '사람들은 저녁마다 식구 수를 센다. 셀 때마다 하나가 많다. 누가 남는 하나인지는 아무도 짚지 못한다. 그래서 밥은 늘 모자라지 않게 짓는다.'],
-    ['같은 대답', '장터에서 누군가를 부르면 여럿이 돌아본다. 서로 다른 얼굴들이 같은 순간에, 같은 각도로. 사람들은 이름 부르기를 그만두었다. 그래도 밤이면 온 마을이 한 사람처럼 숨 쉬는 소리가 난다.'],
+    ['같은 대답', '장터에서 누군가를 부르면 여럿이 돌아본다. 서로 다른 얼굴들이 같은 순간에, 같은 각도로. 사람들은 이름 부르기를 그만두었다. 그래도 밤이면 온 {마을}이(가) 한 사람처럼 숨 쉬는 소리가 난다.'],
     ['우리', '어느 아침부터 아무도 "나"라고 말하지 않았다. 말하려 하면 혀가 다른 낱말을 찾았다. 도시들은 서로의 꿈을 꾸고, 한 곳에서 다친 손가락을 대륙 저편에서 감싸 쥔다. 외로운 사람은 이제 없다. 혼자였던 적이 있다는 것을 기억하는 것은, 굴 깊은 곳에서 돌고 있는 빈 가운데뿐이다.']],
   idol: [['돌 하나', '갈림길에 못 보던 돌이 서 있다. 누가 세웠는지 아는 사람이 없다. 지나가는 이들은 까닭 없이 걸음을 늦추고, 몇몇은 돌 앞에 가진 것을 조금 내려놓는다. 다음 날이면 내려놓은 것은 없다.'],
-    ['무릎', '집집마다 한 귀퉁이가 비워졌다. 무엇을 모시느냐고 물으면 사람들은 웃으며 비워 둔 자리를 본다. 종은 치는 사람 없이 울리고, 그때마다 온 마을의 무릎이 같은 쪽으로 꺾인다. 아이들은 걷기 전에 엎드리는 법부터 배운다.'],
+    ['무릎', '집집마다 한 귀퉁이가 비워졌다. 무엇을 모시느냐고 물으면 사람들은 웃으며 비워 둔 자리를 본다. 종은 치는 사람 없이 울리고, 그때마다 온 {마을}의 무릎이 같은 쪽으로 꺾인다. 아이들은 걷기 전에 엎드리는 법부터 배운다.'],
     ['올려다보는 세계', '사람들은 더는 일하지 않는다. 씨 뿌릴 밭도 지킬 문도 그대로 두고, 모두가 한 방향을 향해 앉아 있다. 굶어 쓰러지는 이들조차 고개는 떨구지 않는다. 그들이 보는 곳에는 아무것도 없다. 다만 하늘의 그 자리에만 별이 뜨지 않고, 그 자리는 해마다 조금씩 넓어진다.']],
   mix: [['어긋난 것들', '둥지 가까운 숲에서 뿔 달린 토끼가 잡혔다. 다음 달에는 깃털 난 물고기가 잡혔다. 잡은 이들은 웃으며 술안주로 삼았다. 그 고기를 먹은 이들의 손톱이 조금 다른 빛깔로 자라기 전까지는.'],
-    ['이음매', '마을의 담이 나무와 붙어 자란다. 문고리는 따뜻하고, 바닥에서는 맥이 뛴다. 사람들은 자는 사이 옆 사람과 손이 붙지 않도록 떨어져 눕지만, 아침마다 누군가는 이불에서 팔을 떼어 내느라 운다.'],
+    ['이음매', '{마을}의 담이 나무와 붙어 자란다. 문고리는 따뜻하고, 바닥에서는 맥이 뛴다. 사람들은 자는 사이 옆 사람과 손이 붙지 않도록 떨어져 눕지만, 아침마다 누군가는 이불에서 팔을 떼어 내느라 운다.'],
     ['하나의 살', '이제 숲과 짐승과 사람을 가르는 낱말은 쓰이지 않는다. 가리킬 것이 남지 않았기 때문이다. 산등성이는 천천히 숨을 쉬고, 강은 핏줄처럼 갈라져 그것을 먹인다. 무엇이든 될 수 있던 것이 마침내 전부가 되었다. 그 한가운데에, 처음 떨어진 한 방울만이 아직 어느 것과도 섞이지 않은 채 남아 있다.']],
   get abyss() { return [['젖은 발자국', NEST.VILL.gaet.name + ' 사람들은 아침마다 문 앞에서 젖은 발자국을 본다. 바다 쪽에서 와서 바다 쪽으로 돌아간 발자국이다. 아무도 누구 것인지 묻지 않는다. 묻지 않는 한, 아직은 모르는 일이니까.'],
     ['밀려오는 것', '밀물이 썰물보다 조금씩 길어졌다. 마시는 물에서 짠맛이 나고, 아이들은 가르친 적 없는 노래를 부른다. 어른들은 가사를 알아듣지 못한다. 알아들은 이들은 밤에 물가로 걸어 나갔다.'],
@@ -49,11 +49,11 @@ const ENDING3 = {
   get brood() { return [['이끼', NEST.VILL.field.name + '의 담장에 못 보던 이끼가 꼈다. 긁어내면 다음 날 다시 있다. ' + NEST.VILL.field.chief[0] + '의 말로는 별일 아니라고 했다. ' + NEST.VILL.field.chief[0] + '의 손톱 밑이 초록색인 것을 본 사람은 아무 말도 하지 않았다.'],
     ['걸어 다니는 밭', '병이 돈다고들 했다. 병이 아니었다. 앓고 일어난 사람들은 전보다 건강했고, 말수가 줄었고, 해가 지면 다 같이 밭에 나가 서 있었다. 뿌리를 내리는 것처럼. 아침이면 돌아와 식구들에게 웃어 보였다. 웃는 법이 모두 똑같았다.'],
     ['끝없이 낳는 숲', '마지막까지 남은 도시는 문을 걸어 잠갔다. 담 밖에서는 이웃이었던 것들이 천천히, 아주 참을성 있게 걸어온다. 썩지 않는다. 오히려 피어 있다. 그들은 문을 두드리지 않는다. 기다릴 뿐이다. 담 안의 누군가가 기침을 하고, 손등에 돋은 싹을 소매로 가릴 때까지.']]; },
-  dusk: [['같은 꿈', '마을마다 같은 꿈을 꾼다. 막이 오르고, 다들 박수를 친다. 아침에 깨면 손바닥이 얼얼하다. 무대에 무엇이 있었는지는 아무도 기억하지 못한다.'],
+  dusk: [['같은 꿈', '{마을}마다 같은 꿈을 꾼다. 막이 오르고, 다들 박수를 친다. 아침에 깨면 손바닥이 얼얼하다. 무대에 무엇이 있었는지는 아무도 기억하지 못한다.'],
     ['가면', '사람들이 얼굴을 가리기 시작했다. 처음엔 부끄러워서라고 했다. 가면 아래를 본 이는 그날로 문을 닫아걸었다. 그는 말한다. 아래에 아무것도 없는 게 아니었다고. 아래에도 가면이 있었다고.'],
     ['마지막 막', '어느 저녁 온 세상의 종이 한꺼번에 울렸다. 사람들은 하던 일을 놓고 줄지어 앉았다. 들판에, 지붕에, 바다 위에. 같은 쪽을 보고서. 무대는 보이지 않는다. 박수 소리만 들린다. 박수는 그치지 않고 아무도 일어서지 않는다. 막이 내리면 무엇이 끝나는지 다들 알기 때문이다.']],
   hunger: [['빈 접시', '식탁에 차린 것이 자꾸 모자란다. 세어 보면 맞는데, 먹고 나면 모자란다. 사람들은 조금씩 야위어 가고, 누구도 그 까닭을 입 밖에 내지 않는다. 말이 씨가 될까 봐서가 아니다. 말도 먹힐까 봐서다.'],
-    ['지워진 마을', '지도에서 마을 몇 개가 지워졌다. 지도 제작자는 실수라고 했다. 그 뒤로는 지도 제작자도 보이지 않는다. 그 마을에 친척이 있던 사람들은 친척의 이름을 떠올리지 못한다. 이름이 있던 자리만 혀끝에 남아 있다.'],
+    ['지워진 {마을}', '지도에서 {마을} 몇 곳이 지워졌다. 지도 제작자는 실수라고 했다. 그 뒤로는 지도 제작자도 보이지 않는다. 그 {마을}에 친척이 있던 사람들은 친척의 이름을 떠올리지 못한다. 이름이 있던 자리만 혀끝에 남아 있다.'],
     ['마지막 한 입', '달이 한쪽부터 줄어들었다. 그믐이 아니었다. 잇자국이 보였다. 산이 사라진 자리에는 구덩이가 아니라 아무것도 없었다. 사람들은 이제 안다. 세상이 둥근 것은 무언가의 입안에 들어 있기 때문이라는 것을. 그리고 그 입이 아주 천천히 닫히는 중이라는 것을.']],
 };
 const endTier = g => ['D', 'C'].includes(g) ? 0 : ['B', 'A'].includes(g) ? 1 : 2;
@@ -63,7 +63,7 @@ function startEnding(sc) {
 }
 const GRADE_SAY = { SSS: '별들이 줄을 서서 구경했어. 이 정도면 나도 필요 없겠다.', SS: '예전의 너와 거의 같아. 거의.', S: '훌륭해. 인간들이 지도를 다시 그려야겠네.', A: '무난하게 깨어났어. 다음엔 더 크게.', B: '깨어나긴 했어. 하품부터 하고 있지만.', C: '간신히. 별이 조금만 덜 섰어도 못 깼을 거야.', D: '…다음 별을 기다리자.' };
 const STAGE_NAME = ['한 방울', '첫 허물', '두 번째 허물', '세 번째 허물', '성체'];
-const guideLine = () => NEST.fj(guideLine0());
+const guideLine = () => NEST.lx(guideLine0());
 function guideLine0() {
   const d = G.day, bench = G.kin.filter(m => m.loc === null).length;
   if (G.sealed && !NEST.paths(G).length) return !G.kin.length ? '여기는 땅속 깊은 동굴 한 칸이야. 먼저 "돋는 것"을 눌러 권속을 돋워. 그다음 위로 파 올라가자.' : '금이 간 무른 흙을 눌러서 파. 진액은 안 들어. 맨 위 왼쪽 칸까지 ' + NEST.trailLeft(G) + '칸 남았어. 닿아야 땅 위로 뚫을 수 있어.';
@@ -81,7 +81,7 @@ function guideLine0() {
   if (d < 6 && NEST.sideRooms(G).length === 0) return '길에서 벗어난 칸을 파면 적이 지나가지 않는 곁방이 돼. 고치 굴이나 기도 굴은 거기에 지어.';
   if (NEST.isSettle(G)) return '달이 기우는 밤이야. 큰 무리가 오고, 넘기면 정수대로 허물을 벗어. 밤에 손도 쓸 수 있어.';
   if (G.gold > 500 * NEST.cm(G)) return '진액 냄새를 맡고 더 많이 올 거야. "본체"의 탐식으로 삼키면 몸이 불고, 털리지도 않아.';
-  if (NEST.actOf(G) >= 2 && !Object.values(G.vill).some(s => s.tribute || s.razed)) return '지상의 마을을 눌러 봐. 위협하면 공물을 바치고, 털면 한몫 잡지만 그 마을이 벼른다.';
+  if (NEST.actOf(G) >= 2 && !Object.values(G.vill).some(s => s.tribute || s.razed)) return '지상의 {마을}을(를) 눌러 봐. 위협하면 공물을 바치고, 털면 한몫 잡지만 그 {마을}이(가) 벼른다.';
   return '먹은 대로 변해. 본체 방에서 어떤 징조가 앞서는지 봐.';
 }
 
@@ -93,7 +93,7 @@ const FEATS = [
   ['first_sacrifice', '첫 제물', '포로를 제물로 바친다', '제물 굴', () => G.sacrifices >= 1],
   ['first_convert', '첫 신도', '포로를 개종시킨다', '환각 안개', () => G.stats.converts >= 1],
   ['first_evo', '첫 허물', '첫 허물을 벗는다', '달맞이 굴·징조의 방', () => G.slime.stage >= 1],
-  ['first_raid', '지상에 손을 뻗다', '마을을 습격한다', '야영지, 망루', () => (G.stats.raids || 0) >= 1],
+  ['first_raid', '지상에 손을 뻗다', '{마을}을(를) 습격한다', '미끼 둔덕, 눈자루', () => (G.stats.raids || 0) >= 1],
   ['hands3', '손을 쓰다', '한 판에 세 번 개입한다', '산성 웅덩이', () => (G.stats.hands || 0) >= 3],
   ['day12', '열두 밤', '12일째에 닿는다', '큰 싸움 굴, 빨판 굴', () => G.day >= 12],
   ['first_end', '첫 낙하의 끝', '한 판을 끝까지 한다 (이기든 지든)', '별자리 셋 (닻, 주머니, 솥)', () => !!G.over],
@@ -139,8 +139,8 @@ const TUT = [
   { t: () => '이제 싸울 자리를 만들자. 지도의 점선이 땅 위의 것들이 걸어 내려올 길이야. 깜빡이는 빈 굴을 눌러.', cell: tutEmpty, done: () => G.cells.some(c => c.type === 'post' || c.type === 'hall') || (UI.sel && UI.sel.t === 'cell' && G.cells[UI.sel.i].dug && G.cells[UI.sel.i].type === 'empty') },
   { t: () => (isMobile() ? '올라온 창의 ' : '오른쪽 패널의 ') + '"추천"에서 "문턱"을 지어. 건설 행동 한 번이면 파기·짓기·함정 같은 작업을 세 번 할 수 있어.', sel: '[data-a="build"][data-v="post"]', done: () => G.cells.some(c => c.type === 'post' || c.type === 'hall') },
   { t: () => '권속은 제 자리를 알아서 찾아. 먼저 돋은 것들은 본체 곁을 지키고, 나머지는 길목 앞에서부터 서. 지금 문턱은 비어 있으니 하나를 불러 세우자. 방금 지은 문턱을 누르고 "여기를 지켜라" 옆의 이름을 눌러.', cell: () => G.cells.findIndex(c => c.type === 'post' || c.type === 'hall'), sel: '[data-a="place"]', done: () => G.kin.some(m => m.pin && typeof m.loc === 'number') },
-  { t: () => '좋아. 지키라고 한 권속은 깃발을 달고 그 자리에 붙박여. 풀어 주면 다시 제멋대로 다녀. 이제 굴을 열자. ' + (isMobile() ? '✕로 창을 닫고 아래의 "뚫기"를 눌러.' : '오른쪽 아래 "땅 위로 뚫는다"를 눌러.'), sel: '#sheetclose, [data-a="breach"], #modal [data-a="close"]', done: () => !G.sealed && $('modal').hidden && $('scene').hidden && !busy },
-  { t: () => '굴이 뚫렸어. 여기가 땅 위야. 붉은 표시가 오늘 밤 올 무리고, 마을과 길목도 눌러 볼 수 있어. 다 봤으면 "지하"로 돌아와.', sel: '[data-a="view"][data-v="under"]', done: () => ST.screen === 'under' },
+  { t: () => '좋아. 지키라고 한 권속은 깃발을 달고 그 자리에 뿌리를 내려. 거기서 보낸 밤마다 조금씩 세져. 대신 붙들어 둘 수 있는 수는 정해져 있어. 이제 굴을 열자. ' + (isMobile() ? '✕로 창을 닫고 아래의 "뚫기"를 눌러.' : '오른쪽 아래 "땅 위로 뚫는다"를 눌러.'), sel: '#sheetclose, [data-a="breach"], #modal [data-a="close"]', done: () => !G.sealed && $('modal').hidden && $('scene').hidden && !busy },
+  { t: () => '굴이 뚫렸어. 여기가 땅 위야. 붉은 표시가 오늘 밤 올 무리고, {마을}와(과) 길목도 눌러 볼 수 있어. 다 봤으면 "지하"로 돌아와.', sel: '[data-a="view"][data-v="under"]', done: () => ST.screen === 'under' },
   { t: () => '준비 끝. "밤을 맞는다"를 눌러. 행동이 남았으면 한 번 더 누르면 돼. 싸움은 권속과 함정이 알아서 해.', sel: '[data-a="endday"]', done: () => G.day >= 2 },
   { t: () => '첫 밤을 넘겼어. 쓰러뜨린 것은 먹이가 돼. "본체" 단추를 누르거나, 지도에서 깜빡이는 본체 방을 눌러.', cell: () => NEST.CORE, done: () => !G.corpses.length || (G.stats.eats || 0) >= 1 || (UI.sel && UI.sel.t === 'cell' && UI.sel.i === NEST.CORE) },
   { t: () => '"포식"을 눌러. 먹은 것의 징조가 쌓이고, ' + NEST.K.act + '일째 밤에 정수가 ' + NEST.K.thresh[1] + '을 넘으면 그 징조의 몸으로 허물을 벗어.', sel: '[data-a="eat"], [data-a="core"]', done: () => !G.corpses.length || (G.stats.eats || 0) >= 1 },
@@ -151,7 +151,7 @@ function coach() {
   document.querySelectorAll('.tut-glow').forEach(e => e.classList.remove('tut-glow')); ST.tutCell = null; $('recent').style.display = on ? 'none' : '';
   if (!on) return;
   let guard = 0; while (G.tut < TUT.length - 1 && TUT[G.tut].done() && guard++ < 20) { G.tut++; sfx('up'); }
-  const st = TUT[G.tut], html = `<div class="row nw">${echoImg(28)}<span class="grow"><b class="coin h3">잔향</b> <small class="mute">길잡이 ${G.tut + 1}/${TUT.length}</small></span>${btn('tutend', null, st.end ? '알겠어' : '그만 보기', 'sm' + (st.end ? ' pri' : ''))}</div><p>${esc(st.t())}</p>`;
+  const st = TUT[G.tut], html = `<div class="row nw">${echoImg(28)}<span class="grow"><b class="coin h3">잔향</b> <small class="mute">길잡이 ${G.tut + 1}/${TUT.length}</small></span>${btn('tutend', null, st.end ? '알겠어' : '그만 보기', 'sm' + (st.end ? ' pri' : ''))}</div><p>${esc(NEST.lx(st.t()))}</p>`;
   ['coach', 'coach2'].forEach(id => { if ($(id).dataset.h !== html) { $(id).innerHTML = html; $(id).dataset.h = html; } });
   if (st.sel && ST.mode === 'day') document.querySelectorAll(st.sel).forEach(e => { if (!e.disabled) e.classList.add('tut-glow'); });
   if (st.cell && ST.screen === 'under') ST.tutCell = st.cell();
@@ -283,7 +283,7 @@ function cellPanel(i) {
   return h + '</div>';
 }
 function villPanel(v) {
-  const d = NEST.VILL[v], s = G.vill[v], open = NEST.actOf(G) >= 2, done = G.d.raided && G.d.raided[v], list = [['info', '마을'], ['raid', '습격']], tab = curTab('vill', list), cap = NEST.trustCap(G);
+  const d = NEST.VILL[v], s = G.vill[v], open = NEST.actOf(G) >= 2, done = G.d.raided && G.d.raided[v], list = [['info', NEST.folk(G)], ['raid', '습격']], tab = curTab('vill', list), cap = NEST.trustCap(G);
   let h = phead(d.name, villState(v), aspChip(d.asp)) + tabsHtml('vill', list, tab) + '<div class="tb">';
   if (tab === 'info') {
     h += `<p class="small mute">길목 ${d.plot + 1}을 지나 온다 · 보내는 자: ${d.x.map(k => NEST.INV[k].name).filter((x, k, a) => a.indexOf(x) === k).join(', ')}</p><p class="small"><b class="h3">${d.chief[0]}</b> ${esc(d.chief[1])}</p>`;
@@ -291,11 +291,11 @@ function villPanel(v) {
     h += `<div class="kv"><span class="small">적의</span><span class="row nw">${bar(s.host / 100, '#ff5f57')}<span class="num small">${Math.round(s.host)}</span></span>
       <span class="small">섬김</span><span class="row"><b class="coin">${'●'.repeat(s.trust || 0)}</b><span class="mute">${'○'.repeat(Math.max(0, cap - (s.trust || 0)))}</span><span class="mute" style="opacity:.35">${'×'.repeat(NEST.K.trustMax - Math.max(cap, s.trust || 0))}</span><span class="small ${NEST.trading(G, v) ? 'coin' : 'mute'}">${NEST.trading(G, v) ? '오늘 밤 +' + R(NEST.tradeOf(G, v)) + '방울' : s.tribute ? '공물 중에는 쉰다' : '끊김'}</span></span>
       ${s.tribute ? `<span class="small">공물</span><span class="coin small">매일 ${R(s.tribute * (1 + 0.25 * (NEST.fearGrade(G) - 1)))}방울${s.pause ? ` (${s.pause}일 끊김)` : ''}</span>` : ''}</div>
-      <p class="small mute">적의가 높은 마을에서 더 자주 온다(매일 −3, 몸값 받고 돌려보내면 −5). 적의 15 미만이면 날마다 섬김 신뢰가 쌓여 수입이 ${Math.round(NEST.K.trustGain * 100)}%씩 커진다. 하룻밤에 이 마을 사람 ${NEST.K.trustKills}명 이상을 죽이거나 습격하면 처음부터. 공포가 높을수록 쌓을 수 있는 칸(○)이 준다.</p>`;
+      <p class="small mute">적의가 높은 ${NEST.folk(G)}에서 더 자주 온다(매일 −3, 몸값 받고 돌려보내면 −5). 적의 15 미만이면 날마다 섬김 신뢰가 쌓여 수입이 ${Math.round(NEST.K.trustGain * 100)}%씩 커진다. 하룻밤에 이 ${NEST.folk(G)} 사람 ${NEST.K.trustKills}명 이상을 죽이거나 습격하면 처음부터. 공포가 높을수록 쌓을 수 있는 칸(○)이 준다.</p>`;
   } else {
     if (s.razed) h += '<p class="mute">남은 것이 없다.</p>';
     else if (!open) h += '<p class="mute">습격은 첫 허물을 벗은 뒤(2막)부터 할 수 있다.</p>';
-    else h += `<p class="small mute">행동 1 · 그날 밤 본체 방어 −20%${done ? ' · <span class="warnc">오늘은 이미 다녀왔다</span>' : ''}</p><div class="opts c1">${[0, 1, 2].map(l => { const r = NEST.raidInfo(G, v, l); return opt('raid', { v, l }, ['위협', '약탈', '초토화'][l] + ` +${R(r.gold)}방울`, 0, `${NEST.ASP[d.asp]} 정수 +${r.ess}, 공포 +${r.fear}. ` + ['매일 공물 ' + R(r.tribute) + '방울을 바치게 된다. 적의 +15', '공물이 3일 끊기고, 오늘 밤 이 마을에서 온다. 적의 +35', '마을이 사라진다. 오늘 밤 30% 더 많이 온다'][l], done); }).join('')}</div>`;
+    else h += `<p class="small mute">행동 1 · 그날 밤 본체 방어 −20%${done ? ' · <span class="warnc">오늘은 이미 다녀왔다</span>' : ''}</p><div class="opts c1">${[0, 1, 2].map(l => { const r = NEST.raidInfo(G, v, l); return opt('raid', { v, l }, ['위협', '약탈', '초토화'][l] + ` +${R(r.gold)}방울`, 0, `${NEST.ASP[d.asp]} 정수 +${r.ess}, 공포 +${r.fear}. ` + ['매일 공물 ' + R(r.tribute) + '방울을 바치게 된다. 적의 +15', '공물이 3일 끊기고, 오늘 밤 이 ' + NEST.folk(G) + '에서 온다. 적의 +35', NEST.lx('{마을}이(가) 사라진다. 오늘 밤 30% 더 많이 온다')][l], done); }).join('')}</div>`;
   }
   return h + '</div>';
 }
@@ -317,7 +317,7 @@ function overview() {
     ${G.gods || G.auto ? godsRow() : ''}
     <div class="sec">권속 ${G.kin.length}명 <small>하루 끼니 ${R(G.kin.reduce((a, m) => a + NEST.salary(G, m), 0))}방울 · 방 유지 ${R(NEST.upkeep(G))}방울</small></div>
     <div class="rooms">${keys.map(k => `<span class="small ${k === 'bench' ? 'warnc' : 'mute'}">${k === 'bench' ? '대기 (안 싸움)' : esc(locName(k === 'core' ? 'core' : +k))}</span><div class="units">${by[k].map(kinMini).join('')}</div>`).join('') || '<span class="mute small" style="grid-column:1/-1">아직 아무도 없다. 아침마다 몸에서 돋으려는 것이 생긴다.</span>'}</div>
-    <p class="small mute">지도에서 칸·마을·길목을 누르면 여기에 할 일이 나온다. <kbd>Tab</kbd> 지상·지하 · <kbd>E</kbd> 밤 맞기 · <kbd>Esc</kbd> 선택 해제</p>`;
+    <p class="small mute">지도에서 칸·${G.sealed ? '땅 위' : NEST.folk(G)}·길목을 누르면 여기에 할 일이 나온다. <kbd>Tab</kbd> 지상·지하 · <kbd>E</kbd> 밤 맞기 · <kbd>Esc</kbd> 선택 해제</p>`;
 }
 function view() {
   const s = UI.sel; let h;
@@ -352,7 +352,7 @@ function applicantsHtml() {
 function captivesHtml() {
   if (!G.prison.length) return M('포로', '<p class="mute">남은 포로가 없다.</p>', closeBtn());
   return M(`포로 <small class="mute">${G.prison.length}/${NEST.prisonCap(G)} · 밥값 하루 한 명당 ${NEST.cm(G)}방울 · 처분에 행동은 들지 않는다</small>`,
-    `<p class="small mute"><b class="coin">몸값</b> 진액을 받고 그 마을의 적의 −5, 섬김 신뢰 +1 · <b style="color:#c8a8ff">제물</b> 정수·신앙·공포, 변이 기회 · <b class="okc">개종</b> 성공하면 권속이 되고 실패하면 달아난다</p>` +
+    `<p class="small mute"><b class="coin">몸값</b> 진액을 받고 그 ${NEST.folk(G)}의 적의 −5, 섬김 신뢰 +1 · <b style="color:#c8a8ff">제물</b> 정수·신앙·공포, 변이 기회 · <b class="okc">개종</b> 성공하면 권속이 되고 실패하면 달아난다</p>` +
     pager('cap', G.prison.map((p, i) => [p, i]), isMobile() ? 7 : 9, items => `<div class="stack" style="gap:4px">${items.map(([p, i]) => { const d = NEST.INV[p.kind]; return `<div class="caprow">${invImg(p.kind, 32)}<span class="clamp1"><b class="h3">${d.name}</b> <small class="only-pc" style="color:${ASPCOL[d.asp]}">${NEST.ASP[d.asp]}</small> <small class="mute only-pc">${p.vill ? NEST.VILL[p.vill].name : ''}</small></span>${btn('dispose', { i, how: 'ransom' }, `<span class="coin">+${NEST.ransomOf(G, p.kind, (p.bonus || 1) * (p.vill === 'gaet' ? 1.5 : 1))}방울</span>`, '')}${btn('dispose', { i, how: 'sacrifice' }, `<span style="color:${ASPCOL[d.asp]}">제물<span class="only-pc"> ${NEST.ASP[d.asp]} +${NEST.sacEss(G, p.kind)}</span></span>`, '')}${btn('dispose', { i, how: 'convert' }, `<span class="okc">개종 ${Math.round(NEST.convertChance(G, p.kind) * 100)}%</span>`, '')}</div>`; }).join('')}</div>`),
     btn('disposeall', null, '전부 몸값 받고 풀어 준다', '') + closeBtn());
 }
@@ -370,8 +370,8 @@ function kinHtml(id) {
   const d = NEST.KIN[m.kind], s = NEST.kinStats(G, m), cap = NEST.capacity(G);
   const slots = Object.keys(cap).map(k => k === 'core' ? k : +k).filter(k => !(m.pin && k === m.loc) && G.kin.filter(x => x !== m && x.loc === k && x.kind !== 'spawn' && x.pin).length < cap[k]);
   const list = [['move', '자리'], ['skill', '기술·방침'], ['evo', '진화'], ['fuse', '합체', (m.parts || []).length + '/' + NEST.K.fuse.max]], tab = curTab('kin', list);
-  let b = `<div class="slime-top sm">${kinImgM(m, 56)}<div class="stack" style="gap:3px"><div class="xp"><i style="width:${Math.min(100, m.exp / NEST.expNeed(m.lv) * 100)}%"></i></div><p class="small">체력 ${R(s.hp)} · 공격 ${R(s.atk)} · 방어 ${R(s.df)}${s.satk ? ' · 정신 ' + R(s.satk) : ''} · 끼니 ${R(NEST.salary(G, m))}방울${d.eat ? ' + 먹이' : ''}</p><p class="small mute clamp2">${esc(d.note || '')}</p>${NEST.recipesOf(m).map(r => `<p class="small"><span class="chip on">★ ${NEST.RECIPE[r].name}</span> ${esc(NEST.RECIPE[r].desc)}</p>`).join('')}<p class="small">지금 <b>${esc(locName(m.loc))}</b>${m.kind === 'spawn' ? '' : m.pin ? ' <span class="chip on">지킴</span>' : ' <span class="chip">제멋대로</span>'}${m.hurt ? ' · <span class="up">부상 ' + m.hurt + '일 (휴식하면 복귀)</span>' : ''}${m.strike ? ' · <span class="warnc">끼니를 못 받아 오늘 밤 쉰다</span>' : ''}</p></div></div>${tabsHtml('kin', list, tab)}<div class="tb">`;
-  if (tab === 'move') b += m.kind === 'spawn' ? '<p class="small mute">움은 본체 곁에 붙어 있다. 시킬 수 없다.</p>' : `<p class="small ${m.pin ? 'coin' : 'mute'}">${m.pin ? (m.loc === null ? '쉬라고 해 두었다. 싸우지 않는다.' : '지키라고 한 자리에 붙박여 있다.') : '제 마음대로 다닌다. 밤이 오면 스스로 자리를 잡는다. 꼭 지킬 곳이 있으면 시켜라. 작업은 들지 않는다.'}</p><div class="opts">${m.pin ? btn('release', { id: m.id }, '풀어 준다 <small>제 자리를 찾아간다</small>', 'on') : ''}${slots.map(k => btn('place', { id: m.id, loc: k }, '지켜라 · ' + esc(locName(k)), '')).join('')}${m.pin && m.loc === null ? '' : btn('place', { id: m.id, loc: 'bench' }, '쉬어라', '')}</div>`;
+  let b = `<div class="slime-top sm">${kinImgM(m, 56)}<div class="stack" style="gap:3px"><div class="xp"><i style="width:${Math.min(100, m.exp / NEST.expNeed(m.lv) * 100)}%"></i></div><p class="small">체력 ${R(s.hp)} · 공격 ${R(s.atk)} · 방어 ${R(s.df)}${s.satk ? ' · 정신 ' + R(s.satk) : ''} · 끼니 ${R(NEST.salary(G, m))}방울${d.eat ? ' + 먹이' : ''}</p><p class="small mute clamp2">${esc(d.note || '')}</p>${NEST.recipesOf(m).map(r => `<p class="small"><span class="chip on">★ ${NEST.RECIPE[r].name}</span> ${esc(NEST.RECIPE[r].desc)}</p>`).join('')}<p class="small">지금 <b>${esc(locName(m.loc))}</b>${m.kind === 'spawn' ? '' : m.pin ? ` <span class="chip on">지킴${m.loc !== null && NEST.holdBonus(m) ? ' +' + Math.round(NEST.holdBonus(m) * 100) + '%' : ''}</span>` : ' <span class="chip">제멋대로</span>'}${m.hurt ? ' · <span class="up">부상 ' + m.hurt + '일 (휴식하면 복귀)</span>' : ''}${m.strike ? ' · <span class="warnc">끼니를 못 받아 오늘 밤 쉰다</span>' : ''}</p></div></div>${tabsHtml('kin', list, tab)}<div class="tb">`;
+  if (tab === 'move') b += m.kind === 'spawn' ? '<p class="small mute">움은 본체 곁에 붙어 있다. 시킬 수 없다.</p>' : `<p class="small ${m.pin ? 'coin' : 'mute'}">${m.pin ? (m.loc === null ? '쉬라고 해 두었다. 싸우지 않는다.' : `지키라고 한 자리에 뿌리를 내렸다. 뿌리내림 ${Math.min(NEST.K.hold.max, m.hold || 0)}/${NEST.K.hold.max} · 능력 +${Math.round(NEST.holdBonus(m) * 100)}%. 밤마다 +${Math.round(NEST.K.hold.per * 100)}%씩, 옮기거나 풀어 주면 처음부터다.`) : `제 마음대로 다닌다. 밤이 오면 스스로 자리를 잡는다. 지키라고 시키면 그 자리에 뿌리를 내려 밤마다 +${Math.round(NEST.K.hold.per * 100)}%씩 세진다 (최대 +${Math.round(NEST.K.hold.per * NEST.K.hold.max * 100)}%). 붙들어 둔 권속 ${NEST.pinned(G)}/${NEST.pinCap(G)}.`}</p><div class="opts">${m.pin ? btn('release', { id: m.id }, '풀어 준다 <small>제 자리를 찾아간다</small>', 'on') : ''}${slots.map(k => btn('place', { id: m.id, loc: k }, '지켜라 · ' + esc(locName(k)), '')).join('')}${m.pin && m.loc === null ? '' : btn('place', { id: m.id, loc: 'bench' }, '쉬어라', '')}</div>`;
   if (tab === 'skill') b += `${d.skills.length ? `<div class="opts c1">${d.skills.map((k, i) => `<button class="btn opt${m.skill === i ? ' on' : ''}" data-a="skill" data-id="${m.id}" data-i="${i}"${m.lv < NEST.SKILL_LV[i] ? ' disabled' : ''}><b>${esc(k[0])} <small class="mute">Lv${NEST.SKILL_LV[i]}부터</small></b><span class="small mute">${esc(k[1])}</span></button>`).join('')}</div>` : '<p class="small mute">기술이 없다.</p>'}${m.kind !== 'spawn' ? `<div class="row nw">${btn('stance', { id: m.id, v: 'careful' }, '신중 <small>체력 30%에 물러남</small>', 'grow' + (m.stance !== 'hold' ? ' on' : ''))}${btn('stance', { id: m.id, v: 'hold' }, '사수 <small>끝까지</small>', 'grow' + (m.stance === 'hold' ? ' on' : ''))}</div>` : ''}`;
   if (tab === 'evo') b += m.kind === 'spawn' ? `<p class="${m.evo ? 'okc' : 'mute'}">${m.evo ? '큰 움으로 자랐다. 능력치 1.5배.' : '나흘을 살아남으면 저절로 큰 움으로 자란다. 지금 ' + (m.age || 0) + '일째.'}</p>` : !NEST.EVO[m.kind] ? '<p class="mute">더 자라지 않는다.</p>' : m.evo ? `<p class="okc"><b>${NEST.EVO[m.kind]}</b> — ${esc(NEST.EVO_DESC[m.kind])}. 능력치·끼니 1.5배.</p>` : `<div class="row nw">${kinImg(m.kind, 56, true)}<p class="grow"><b class="h3">${NEST.EVO[m.kind]}</b><br><span class="small ${m.lv < 5 ? 'mute' : 'okc'}">${esc(NEST.EVO_DESC[m.kind])}. 능력치와 끼니 1.5배.</span></p></div><div class="row">${btn('kinevo', { id: m.id }, `진화시킨다 ${NEST.evoCost(G)}방울`, 'pri', m.lv < 5 || G.gold < NEST.evoCost(G))}<span class="small mute">${m.lv < 5 ? '레벨 5부터. 지금 Lv' + m.lv : '행동은 들지 않는다'}</span></div>`;
   if (tab === 'fuse') {
@@ -426,7 +426,7 @@ function evoHtml(st, before) {
   return `<div class="mbody evo" style="align-items:center;text-align:center"><p class="mute">${STAGE_NAME[sl.stage]}</p><div class="row" style="justify-content:center;gap:20px">${slimeImg(before, isMobile() ? 80 : 96, '이전 모습')}<span class="h3 mute">→</span>${slimeImg(sl, isMobile() ? 112 : 128, NEST.formName(G))}</div><h2 style="font-size:var(--d2);color:${ASPCOL[sl.main]}">${esc(NEST.formName(G))}</h2>${NEST.formTitle(G) ? `<p class="small mute">「${esc(NEST.formTitle(G))}」</p>` : ''}<div class="row" style="justify-content:center">${aspChip(sl.main, '주 ' + NEST.ASP[sl.main])}${sl.sub ? aspChip(sl.sub, '부 ' + NEST.ASP[sl.sub]) : ''}</div>${lines.map(l => `<p class="small">${esc(l)}</p>`).join('')}${st.mut ? `<p class="small">${aspChip(NEST.MUT[st.mut].asp, '변이: ' + NEST.MUT[st.mut].name)} ${esc(NEST.MUT[st.mut].desc)}</p>` : ''}<p class="small up">인간들 사이에 소문이 돈다. 공포 +10</p></div><div class="mfoot">${btn('close', null, '좋다', 'pri big')}</div>`;
 }
 function resultHtml(sc, unlocked) {
-  const win = G.over.win, av = NEST.avatarOf(G), key = !win ? null : NEST.endKey(G), tier = endTier(sc.grade), e3 = win && ENDING3[key] ? ENDING3[key][tier] : null;
+  const win = G.over.win, av = NEST.avatarOf(G), key = !win ? null : NEST.endKey(G), tier = endTier(sc.grade), e3 = win && ENDING3[key] ? ENDING3[key][tier].map(NEST.lx) : null;
   const list = win ? [['end', '결말'], ['score', '점수']] : [['score', '점수']], tab = curTab('result', list);
   let b = (win ? tabsHtml('result', list, tab) : '') + '<div class="tb" style="align-items:center;text-align:center">';
   if (tab === 'end') b += `${G.slime.main ? '<canvas id="endcv" class="px" width="192" height="108"></canvas>' : slimeImg(G.slime, 128)}<h2 style="font-size:var(--d2)">${esc(av)}</h2>${e3 ? `<p class="h3 coin">결말 · ${e3[0]}</p><p class="endtxt small">${esc(e3[1])}</p><p class="small mute">${['점수가 더 높으면 이 일은 더 멀리 번진다.', '점수가 더 높으면 이 일은 끝까지 간다.', '이 모습으로 갈 수 있는 가장 먼 곳.'][tier]}</p>` : `<p class="endtxt small">${esc(ENDING[key])}</p>`}`;
@@ -527,20 +527,20 @@ function codexHtml() {
     if (ca === 'hid') b += tabsHtml('codexHid', HB.map(k => [k, seen[k] ? NEST.FORM1[k].name : '???']), hb, true) + `<div class="codex c4">${line(hb, NEST.ASPECTS[(HB.indexOf(hb) * 2) % 5], hb)}</div><p class="small">${seen[hb] ? esc(NEST.BODY[hb].hint) + ' · <span class="okc">' + esc(NEST.FORM1[hb].skill) + '</span>' : '<span class="mute">아직 이 몸으로 허물을 벗어 본 적이 없다</span>'}</p><p class="small mute">징조가 아니라 첫 허물을 벗을 때의 형편이 정하는 몸. 색은 가장 많이 먹은 징조를 따른다.</p>`;
     else b += `<div class="codex c4">${line(ca, ca, null)}</div><div class="row"><span class="small mute">섞인 징조의 이명</span>${NEST.ASPECTS.filter(x => x !== ca).map(x => seen[ca + '_' + x] ? aspChip(x, NEST.FORM2[ca + '_' + x]) : '<span class="chip mute">???</span>').join('')}</div><p class="small mute">허물을 벗을 때마다 다른 것이 된다. 첫 허물은 가장 많이 먹은 징조가 정하고, 두 번째부터는 그다음으로 많은 징조가 몸 한 군데에 돋는다.</p>`; }
   if (tab === 'mut') b += `<div class="sec">변이 <small>${Object.keys(META.codex.muts).length}/${Object.keys(NEST.MUT).length}</small></div><div class="row">${Object.keys(NEST.MUT).map(m => META.codex.muts[m] ? aspChip(NEST.MUT[m].asp, NEST.MUT[m].name) : '<span class="chip mute">???</span>').join('')}</div><div class="sec">특별한 합체 <small>${Object.keys(META.codex.rcp || {}).length}/${Object.keys(NEST.RECIPE).length}</small></div><div class="row">${Object.keys(NEST.RECIPE).map(k => META.codex.rcp[k] ? `<span class="chip on" title="${esc(NEST.RECIPE[k].desc)}">${NEST.RECIPE[k].name}</span>` : '<span class="chip mute">???</span>').join('')}</div><div class="sec">합체 <small>${Object.keys(META.codex.fuse || {}).length}가지를 만들어 봤다</small></div><div class="row">${Object.keys(META.codex.fuse || {}).slice(-10).map(k => { const [a2, b2] = k.split('+'); return `<span class="chip">${NEST.FUSE_PRE[b2]} ${NEST.KIN[a2].name}</span>`; }).join('') || '<span class="small mute">아직 없다. 권속 창의 합체 탭에서 둘을 합친다.</span>'}</div><div class="sec">방 조합</div><div class="row">${Object.keys(NEST.COMBO).map(k => META.codex.combos[k] ? `<span class="chip on">${NEST.COMBO[k].name}</span>` : '<span class="chip mute">???</span>').join('')}</div>`;
-  if (tab === 'end') b += `<p class="small mute">같은 모습이라도 점수에 따라 결말이 셋으로 갈린다.</p>${NEST.ASPECTS.map(a => `<p class="small row"><span style="color:${ASPCOL[a]}">${NEST.ASP[a]}</span> ${ENDING3[a].map((e, i) => META.codex.ends[a + i] ? `<span class="chip on">${e[0]}</span>` : '<span class="chip mute">???</span>').join(' ')}</p>`).join('')}${Object.keys(NEST.BODY).map(k => `<p class="small row"><span class="mute">${META.codex.forms[k] ? NEST.FORM1[k].name : '숨은 몸'}</span> ${ENDING3[k].map((e, i) => META.codex.ends[k + i] ? `<span class="chip on">${e[0]}</span>` : '<span class="chip mute">???</span>').join(' ')}</p>`).join('')}<div class="sec">깨어난 모습</div><div class="row">${Object.keys(NEST.AVATAR).map(k => META.codex.ends[k] ? `<span class="chip on">${NEST.AVATAR[k]}</span>` : '<span class="chip mute">???</span>').join('')}</div>`;
+  if (tab === 'end') b += `<p class="small mute">같은 모습이라도 점수에 따라 결말이 셋으로 갈린다.</p>${NEST.ASPECTS.map(a => `<p class="small row"><span style="color:${ASPCOL[a]}">${NEST.ASP[a]}</span> ${ENDING3[a].map((e, i) => META.codex.ends[a + i] ? `<span class="chip on">${NEST.lx(e[0])}</span>` : '<span class="chip mute">???</span>').join(' ')}</p>`).join('')}${Object.keys(NEST.BODY).map(k => `<p class="small row"><span class="mute">${META.codex.forms[k] ? NEST.FORM1[k].name : '숨은 몸'}</span> ${ENDING3[k].map((e, i) => META.codex.ends[k + i] ? `<span class="chip on">${NEST.lx(e[0])}</span>` : '<span class="chip mute">???</span>').join(' ')}</p>`).join('')}<div class="sec">깨어난 모습</div><div class="row">${Object.keys(NEST.AVATAR).map(k => META.codex.ends[k] ? `<span class="chip on">${NEST.AVATAR[k]}</span>` : '<span class="chip mute">???</span>').join('')}</div>`;
   return M(`도감 <small class="mute">깨어난 횟수 ${META.clears}</small>`, b + '</div>', closeBtn());
 }
 const HELP = [
   ['under', '땅속과 뚫기', '처음에는 땅속 깊은 동굴 한 칸뿐이다. 파지 않은 곳은 보이지 않는다. 떨어지며 지나온 자국(무른 흙)은 진액 없이 팔 수 있고, 맨 위 칸까지 닿아야 땅 위로 뚫을 수 있다. 뚫기 전에는 아무도 오지 않지만 먹이도 없다. "땅 위로 뚫는다"를 누르면 그때부터 밤마다 내려오고, 위가 어떤 세상인지(판타지·무협·현대·미래)도 그때 정해진다. 세상마다 규칙이 하나씩 다르다(둥지 창에 적힌다). 숨어 있는 밤마다 정수를 조금 얻지만 날은 흘러가고, 오래 숨을수록 먼저 들킬 위험이 커진다. 들키면 그 밤에 바로 온다.'],
-  ['kin', '권속', '권속은 몸에서 돋는다. 제 자리는 제가 찾는다: 먼저 돋은 것이 본체 곁, 나머지는 길목 앞에서부터. 낮에는 굴을 돌아다니고 밤이 오면 자리로 간다. 꼭 지킬 곳이 있으면 권속을 눌러 "지켜라"고 시킨다. "풀어 준다"를 누르면 다시 제멋대로 다닌다.'],
+  ['kin', '권속', '권속은 몸에서 돋는다. 제 자리는 제가 찾는다: 먼저 돋은 것이 본체 곁, 나머지는 길목 앞에서부터. 낮에는 굴을 돌아다니고 밤이 오면 자리로 간다. 권속을 눌러 "지켜라"고 시키면 그 자리에 뿌리를 내려, 거기서 보낸 밤마다 능력이 6%씩(최대 30%) 오른다. 옮기거나 풀어 주면 처음부터다. 붙들어 둘 수 있는 권속은 둘에서 시작해 허물을 벗을 때마다 하나씩 는다. "풀어 준다"를 누르면 다시 제멋대로 다닌다.'],
   ['goal', '목표', `${NEST.K.days}일 동안 본체를 지킨다. ${NEST.K.act}일마다 "달이 기우는 밤"에 큰 무리가 오고, 넘기면 모은 정수에 따라 허물을 벗는다(네 번까지). 마지막 밤에는 가장 센 무리가 우두머리를 앞세워 온다. 권속도 레벨 5가 되면 진액을 들여 한 번 진화시킬 수 있다.`],
   ['day', '낮', '행동은 하루 두 번. 건설 행동 한 번이면 파기·짓기·함정 같은 작업을 세 번 한다. 포식, 휴식, 훈련, 습격은 행동 하나씩. 돋는 것 들이기, 포로 처분, 탐식은 행동이 들지 않는다. 행동을 남기고 밤을 맞으면 본체가 그만큼 쉰다.'],
   ['under', '지하', '인간은 입구에서 본체 방까지 가장 짧은 길(점선)로 온다. 길 위에는 싸울 자리와 함정을, 길에서 벗어난 곁방에는 고치 굴·기도 굴 같은 살림을 둔다. 칸을 파서 길을 바꿀 수 있다. 진액은 둥지를 돌리는 피이고, 땅 위의 것들에게는 어느 세상에서든 약이자 보물이다. 그래서 많이 고일수록 냄새가 멀리 퍼져 더 많이 온다. 다만 본체가 깔고 앉아 있어서, 본체를 쓰러뜨리기 전에는 한 방울도 못 가져간다.'],
   ['life', '목숨', '본체가 쓰러지면 진액 절반을 털리고 체력 30%로 다시 일어난다. 일어날 수 있는 횟수가 목숨이다. 목숨이 하나 남았을 때 쓰러지면 끝이고, 마지막 밤에는 목숨과 상관없이 쓰러지면 끝이다.'],
   ['trap', '함정', '무리는 함정에 익숙해진다. 같은 종류의 함정은 그날 밤 터질 때마다 절반씩 약해진다(100% → 50% → 25%…). 종류를 섞어 깔고, 함정이 깎아 놓은 적은 권속이 마무리해야 한다. 함정만으로는 못 막는다.'],
   ['san', '정신력', '침입자에게는 체력(빨강)과 정신력(보라)이 있다. 정신력이 바닥나면 달아나거나, 자기 편을 치거나, 무릎을 꿇는다. 무릎 꿇은 자는 포로가 된다: 몸값, 제물, 개종 가운데 고른다. 개종시킨 신도는 매일 신앙을 올리고 제 것을 조금 바친다.'],
-  ['surf', '지상', '다섯 마을이 길목 셋을 지나 둥지로 온다. 오늘 밤과 내일 밤 올 무리가 지도에 보인다. 2막부터 마을을 습격할 수 있다: 위협하면 공물을 바치고, 약탈하면 한몫 잡지만 그 마을이 벼른다.'],
-  ['trade', '섬김', '너를 두려워하면서도 미워하지 않는 마을은 너를 섬기기 시작한다. 날마다 섬김(●)이 쌓이고, 쌓인 만큼 바치는 것이 커진다. 하룻밤에 그 마을 사람을 여럿 죽이거나 습격하면 처음부터다. 죽이는 대신 무릎 꿇리고, 미치게 해 쫓아내고, 몸값 받고 돌려보내면 싸우면서도 섬김이 자란다. 돋는 것 가운데 "생포"가 붙은 권속(신도, 가면 쓴 것, 별보는 눈, 실뽑이…)이 그런 싸움을 한다. 공포가 높을수록 쌓을 수 있는 신뢰가 준다. 죽여서 먹으면 빨리 자라고, 살려 보내면 진액이 고인다.'],
+  ['surf', '지상', '{마을} 다섯 곳이 길목 셋을 지나 둥지로 온다. 오늘 밤과 내일 밤 올 무리가 지도에 보인다. 2막부터 {마을}을(를) 습격할 수 있다: 위협하면 공물을 바치고, 약탈하면 한몫 잡지만 그 {마을}이(가) 벼른다.'],
+  ['trade', '섬김', '너를 두려워하면서도 미워하지 않는 {마을}은(는) 너를 섬기기 시작한다. 날마다 섬김(●)이 쌓이고, 쌓인 만큼 바치는 것이 커진다. 하룻밤에 그 {마을} 사람을 여럿 죽이거나 습격하면 처음부터다. 죽이는 대신 무릎 꿇리고, 미치게 해 쫓아내고, 몸값 받고 돌려보내면 싸우면서도 섬김이 자란다. 돋는 것 가운데 "생포"가 붙은 권속(신도, 가면 쓴 것, 별보는 눈, 실뽑이…)이 그런 싸움을 한다. 공포가 높을수록 쌓을 수 있는 신뢰가 준다. 죽여서 먹으면 빨리 자라고, 살려 보내면 진액이 고인다.'],
   ['hoard', '탐식', '본체 창에서 진액을 쓴다. 삼키면 본체가 불어나고(값이 매번 오른다), 호위 자리와 목숨을 살 수 있고, 4막부터는 마지막 밤의 무리를 약하게 만들 수 있다. 쌓아만 둔 진액은 인간을 부르고 쓰러지면 절반을 털린다.'],
   ['fuse', '합체', '권속 창의 "합체" 탭에서 권속 하나에 다른 권속을 붙인다. 붙은 쪽은 사라지고 그 능력의 절반이 남는다. 한 몸에 둘까지 붙는다. 방의 자리는 한정되어 있으니, 자리가 없어 서성이는 권속을 싸우는 권속에게 붙이면 한 자리에서 둘, 셋 몫을 싸운다. 정신 공격을 하는 권속을 붙이면 정신 공격도 옮겨 온다. 붙은 것 하나마다 적 하나를 더 붙잡는다. 어떤 둘은 한 몸이 되면 특별한 것이 된다(★). 무엇이 그런지는 해 봐야 알고, 찾은 것은 도감에 남는다. 명부에 올려도 붙은 채로 남는다. 되돌릴 수 없다.'],
   ['omen', '징조', `${NEST.OMEN_DAY}일째부터 다 자란 옛 것 하나가 지켜본다. 밤이 지나면 내일의 징조가 정해진다. 징조는 좋은 쪽과 나쁜 쪽이 한 쌍이고, 그것이 좋아하는 짓을 하면 좋은 쪽만, 싫어하는 짓을 하면 나쁜 쪽만 온다. 나쁜 쪽은 신앙 6으로 달랠 수 있다.`],
@@ -550,6 +550,7 @@ const HELP = [
   ['lock', '흔적과 해금', '처음에는 일부 시설·함정·별자리·깊이가 잠겨 있다. 처음 해 보는 일(첫 포로, 첫 진화…)이 흔적으로 남아 그것들을 연다. 무엇이 무엇을 여는지는 타이틀의 "기록 → 흔적"에 있다. 설정에서 전부 열어 둘 수도 있다.'],
   ['etc', '그 밖에', '어떤 시설은 맞닿게 지으면 하나처럼 움직인다(건설 목록의 ★). 굴을 파다 보면 묻힌 것이 나온다. 가끔은 싸우러 오지 않는 밤 손님이 온다. 큰 밤의 우두머리는 판마다 다르고, 미리 보인다. 위쪽 숫자(진액·신앙·공포…)를 누르면 뜻이 나온다.'],
 ];
+[ENDING, ENDING3, FEATS, HELP].forEach(NEST.localize);   // 글 속의 {마을} 같은 자리표를 세계가 바뀔 때마다 다시 쓴다
 function helpHtml() {
   const tab = HELP.some(x => x[0] === UI.tab.help) ? UI.tab.help : 'goal', cur = HELP.find(x => x[0] === tab);
   return M('어떻게 하나', tabsHtml('help', HELP.map(x => [x[0], x[1]]), tab, true) + `<div class="card in"><p class="h3 coin">${cur[1]}</p><p>${esc(cur[2])}</p></div><p class="small mute only-pc">단축키: <kbd>Tab</kbd> 지상·지하 · <kbd>E</kbd> 밤 맞기 · <kbd>Esc</kbd> 닫기 · 밤에 <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> 속도, <kbd>S</kbd> 건너뛰기, <kbd>Space</kbd> 그냥 둔다</p><p class="small mute only-m">지도는 좌우로 밀어서 본다. 칸을 누르면 할 일이 올라오고, ✕로 닫는다.</p>`, closeBtn());
@@ -572,6 +573,7 @@ function scene(lines) {
       $('scene').innerHTML = `<div class="box${narr ? ' narr' : ''}">${narr ? '' : echoImg(96)}<div class="stack"><span class="who">${narr ? '' : '잔향'}</span><p class="txt" id="stxt"></p><p class="small mute">클릭 또는 <kbd>Space</kbd> · <button class="btn sm" data-a="sceneskip">건너뛰기</button></p></div></div>`;
       $('scene').hidden = false; let n = 0; full = false; clearInterval(timer);
       if (TOUCH) L.text = L.text.replace('Tab으로 올라가서', "지도 위 '지상' 버튼으로 올라가서");
+      L.text = NEST.lx(L.text);
       timer = setInterval(() => { n += 2; const el = $('stxt'); if (el) el.textContent = L.text.slice(0, n); if (n % 6 === 0) sfx('talk'); if (n >= L.text.length) { full = true; clearInterval(timer); } }, 22);
     };
     const end = () => { clearInterval(timer); $('scene').hidden = true; sceneNext = null; done(); };
