@@ -1,0 +1,500 @@
+// 옛 것의 둥지 — 카드로 짓는 판의 화면 (규칙은 cardmode.js, 카드는 cards2.js).
+// 낮: 아침마다 받은 다섯 장을 아래에 펼친다. 카드를 누르면 놓을 수 있는 칸이 빛나고, 굴 카드는 칸을 눌러 자리를 보고(↻ 돌리기) 놓는다.
+// 밤: 원래 게임의 밤 그대로. 무리가 방에 들어 멈추면 쥔 기술 카드가 아래에 카드로 나온다.
+// 같은 밤을 두 번 돈다: 화면에서 한 번(보여 주고 답을 적는다), 규칙에서 한 번(적은 답으로). 씨앗이 같으니 결과도 같다.
+const CMU = { run: null, sel: null, place: null, alts: [], altI: 0, tapCell: null, hint: null, hintKey: '', hints: [], ov: null, raf: 0, sheet: null, learnedN: 0, bodyKey: '', body: null, set0: null, down: null, lpT: 0, lpFired: false, egg: null, look: null, asp: null, nres: null, codexTab: 'card', codexAsp: 'all', deckTab: 'all', eggLaid: false };
+const cmMeta = () => { if (!META.cards) META.cards = CARDMODE.newMeta(); const m = META.cards; m.eggs = m.eggs || []; m.forms = m.forms || {}; m.marks = m.marks || {}; return m; };
+const cmDef = id => CARDS2.BY[id];
+const cmCard = uid => CMU.run ? CMU.run.deck.find(c => c.uid === uid) : null;
+const cmOn = () => !!(CMU.run && G && G.cardMode && CMU.run.G === G && !$('game').hidden);
+const cmCol = a => (typeof ASPCOL !== 'undefined' && ASPCOL[a]) || '#c8c0b0';
+const cmTagName = t => (typeof TRAITS !== 'undefined' && TRAITS.TAGS[t] ? TRAITS.TAGS[t].name : t);
+
+// ---- 저장: 판 전체(덱·손·둥지)를 'cardrun' 에. 원래 게임의 저장이 카드 판을 'run' 에 덮어쓰지 않게 막는다 ----
+(function () { const set0 = store.set; CMU.set0 = set0; store.set = function (k, v) { if (k === 'run' && v && v.cardMode) { cmSave(); return; } return set0.call(store, k, v); }; })();
+function cmSave() { const run = CMU.run; if (!run || run.phase === 'over' || (run.G && run.G.over)) return; try { CMU.set0.call(store, 'cardrun', Object.assign({}, run, { meta: null })); } catch (e) { /* 저장 못 해도 판은 계속 */ } }
+function cmLoad() { const r = store.get('cardrun'); if (!r || !r.G || !r.deck) return null; r.meta = cmMeta(); return r; }
+
+// ---- 본체의 몸: 게놈으로 그린다 ----
+function cmGenome() {
+  const run = CMU.run; if (!run) return null;
+  if (typeof CARDMODE.genome === 'function') { try { const g = CARDMODE.genome(run); if (g) return g; } catch (e) { /* 아래 */ } }
+  return cmGenomeNow(run, G.slime.stage);
+}
+// 게놈 단계가 아직 없을 때: 지금까지 한 일로 몸을 짐작한다
+function cmGenomeNow(run, stage) {
+  if (typeof TRAITS === 'undefined') return null; const g0 = run.G;
+  const g = TRAITS.newGenome({ aspect: g0.slime.main || run.aspect, sub: g0.slime.sub || null, stage: Math.min(5, (stage || 0) + 1), seed: run.seed, lineage: run.egg ? [run.egg] : [] });
+  const b = CARDMODE.behaviour(run), num = {}; for (const k in b) if (typeof b[k] === 'number') num[k] = b[k];
+  TRAITS.addBehaviour(g, num); return g;
+}
+const cmGKey = g => g ? [g.aspect, g.sub || '', g.stage, g.seed, Object.keys(g.tags || {}).sort().map(t => t + Math.round(g.tags[t])).join(',')].join(':') : '';
+function cmBodyCanvas(g) { if (!g || typeof BODYGEN === 'undefined') return null; try { return BODYGEN.build(g); } catch (e) { return null; } }
+function cmBodyImg(g, size) { const c = cmBodyCanvas(g); return c ? toImg(c, 'gb:' + cmGKey(g), size, '본체') : ''; }
+function cmBody() { const g = cmGenome(), k = cmGKey(g) + ':' + G.day; if (k !== CMU.bodyKey) { CMU.bodyKey = k; CMU.body = cmBodyCanvas(g); cmForgetSlime(); } return CMU.body; }
+// slimeImg 는 본체 그림을 겉모습 열쇠로 기억한다: 카드 판의 몸이 바뀌거나 판을 나가면 그 기억을 지운다
+function cmForgetSlime() { Object.keys(urls).forEach(k => { if (k.indexOf('sl5:') === 0) delete urls[k]; }); }
+// 카드 판에서는 본체를 그릴 때 게놈 몸을 쓴다 (지도·본체 창·밤 무대)
+{ const sc0 = slimeCanvas; slimeCanvas = function (sl, fr) { if (G && G.cardMode && CMU.run && CMU.run.G === G) { const c = cmBody(); if (c) return c; } return sc0(sl, fr); }; }
+
+// ---- 카드 그림: 꼬리표로 무늬를 고른다 (권속은 권속 그림, 굴은 모양) ----
+const CMART = {}, CMDARK = { abyss: '#0d3a48', nebula: '#2e2250', brood: '#21401a', dusk: '#4a2c10', hunger: '#4a1418', none: '#3a3640' };
+const CMMOTIF = { maw: 'maw', tongue: 'maw', spore: 'spore', egg: 'egg', swarm: 'egg', eye: 'eye', star: 'star', light: 'pulse', water: 'wave', tentacle: 'tent', root: 'tent', bone: 'shell', shell: 'shell', horn: 'teeth', thorn: 'teeth', digest: 'drop', face: 'brand', shadow: 'brand', mirror: 'eye', wing: 'wave', trap: 'teeth', alone: 'brand' };
+function cmArtCanvas(v) {
+  const d = cmDef(v.id) || {}, key = v.type === 'kin' ? 'k:' + d.kin : v.type === 'shape' ? 's:' + v.id : v.id;
+  if (CMART[key]) return CMART[key];
+  if (v.type === 'kin' && d.kin && typeof kinCanvas === 'function') { try { return (CMART[key] = kinCanvas(d.kin, 0, null)); } catch (e) { /* 아래 그림으로 */ } }
+  const c = document.createElement('canvas'); c.width = c.height = 24; const x = c.getContext('2d'), col = cmCol(v.asp), dk = CMDARK[v.asp] || CMDARK.none;
+  const r = (a, b, w, h, k) => { x.fillStyle = k; x.fillRect(a, b, w, h); }, disc = (cx, cy, rr, k) => { x.fillStyle = k; for (let j = -rr; j <= rr; j++) { const w = Math.round(Math.sqrt(rr * rr - j * j)); x.fillRect(cx - w, cy + j, w * 2 + 1, 1); } };
+  if (v.type === 'shape' && d.cells) {
+    const xs = d.cells.map(p => p[0]), ys = d.cells.map(p => p[1]), mx = Math.min(...xs), my = Math.min(...ys), w = Math.max(...xs) - mx + 1, h = Math.max(...ys) - my + 1, s = Math.floor(22 / Math.max(w, h, 2)), ox = Math.floor((24 - w * s) / 2), oy = Math.floor((24 - h * s) / 2);
+    d.cells.forEach(([a, b]) => { r(ox + (a - mx) * s, oy + (b - my) * s, s - 1, s - 1, '#8a6a4a'); r(ox + (a - mx) * s, oy + (b - my) * s, s - 1, 2, '#c8a070'); });
+    if (d.asp && d.asp !== 'none') r(ox, oy + h * s - 2, w * s - 1, 2, col);
+    return (CMART[key] = c);
+  }
+  if (v.type === 'shape') { r(3, 10, 18, 4, '#8a6a4a'); r(10, 3, 4, 18, d.op === 'block' ? '#5a4a3a' : '#8a6a4a'); if (d.op === 'block') r(4, 4, 16, 16, '#3a3040'); return (CMART[key] = c); }
+  const m = v.type === 'curse' ? 'thorn' : CMMOTIF[(d.tags || [])[0]] || (v.type === 'organ' ? 'maw' : 'star');
+  if (v.type === 'organ') { disc(12, 13, 10, '#120e18'); disc(12, 13, 9, dk); }
+  if (m === 'maw') { disc(12, 13, 8, '#07050a'); disc(12, 13, 6, '#2a0a10'); for (let k = 0; k < 6; k++) { r(6 + k * 2, 7 + (k % 2), 1, 3, '#f5efe0'); r(6 + k * 2, 17 - (k % 2), 1, 3, '#f5efe0'); } r(9, 12, 6, 2, '#c8303a'); }
+  if (m === 'teeth') { for (let k = 0; k < 5; k++) { x.fillStyle = '#f5efe0'; x.beginPath(); x.moveTo(3 + k * 4, 20); x.lineTo(5 + k * 4, 6 + (k % 2) * 3); x.lineTo(7 + k * 4, 20); x.fill(); } r(2, 20, 20, 2, col); }
+  if (m === 'spore') { [[7, 8, 3], [15, 7, 2], [12, 14, 4], [6, 17, 2], [18, 16, 3]].forEach(([a, b, s]) => { disc(a, b, s, col); disc(a - 1, b - 1, Math.max(1, s - 2), '#fff3a0'); }); }
+  if (m === 'egg') { [[8, 14], [15, 12], [12, 18]].forEach(([a, b]) => { disc(a, b, 4, '#e8e0c0'); disc(a, b, 3, col); r(a - 1, b - 2, 1, 1, '#fff'); }); }
+  if (m === 'eye') { disc(12, 12, 9, '#e8e0d0'); disc(12, 12, 5, col); r(11, 8, 2, 8, '#07050a'); r(9, 9, 2, 1, '#ffffff'); }
+  if (m === 'wave') { for (let k = 0; k < 3; k++) for (let i = 0; i < 20; i++) r(2 + i, 7 + k * 5 + Math.round(Math.sin(i * 0.6 + k) * 2), 1, 2, k === 1 ? '#ffffff' : col); }
+  if (m === 'tent') { for (let k = 0; k < 3; k++) for (let i = 0; i < 18; i++) disc(5 + k * 7 + Math.round(Math.sin(i * 0.5 + k) * 2), 21 - i, Math.max(1, 2 - Math.floor(i / 8)), i % 4 ? col : dk); }
+  if (m === 'pulse') { disc(12, 13, 7, col); disc(12, 13, 4, '#fff3a0'); r(2, 12, 6, 2, col); r(16, 12, 6, 2, col); }
+  if (m === 'shell') { disc(12, 13, 9, '#cfc8b4'); disc(12, 13, 7, dk); for (let k = 0; k < 4; k++) r(5, 8 + k * 3, 14, 1, '#cfc8b4'); }
+  if (m === 'star') { r(11, 2, 2, 20, col); r(2, 11, 20, 2, col); r(7, 7, 10, 10, dk); disc(12, 12, 3, '#fff3a0'); }
+  if (m === 'drop') { for (let j = 0; j < 14; j++) r(12 - Math.round(j / 2), 4 + j, Math.round(j) + 1, 1, col); disc(12, 17, 6, col); r(9, 13, 2, 3, '#ffffff'); }
+  if (m === 'brand') { disc(12, 12, 9, dk); r(11, 4, 2, 16, col); r(5, 11, 14, 2, col); disc(12, 12, 3, '#fff3a0'); }
+  if (m === 'thorn') { for (let k = 0; k < 6; k++) { x.strokeStyle = k % 2 ? '#5a2a3a' : '#2a1018'; x.lineWidth = 2; x.beginPath(); x.moveTo(12, 12); x.lineTo(12 + Math.cos(k) * 11, 12 + Math.sin(k) * 11); x.stroke(); } disc(12, 12, 4, '#07050a'); r(11, 11, 2, 2, '#c8303a'); }
+  return (CMART[key] = c);
+}
+const cmArtUrl = v => { const c = cmArtCanvas(v); return c.__u || (c.__u = c.toDataURL()); };
+// 카드 앞면 (.dkc 꼴을 그대로 쓴다)
+const CMTYPE = { shape: '굴', organ: '기관', trap: '부위', kin: '권속', skill: '기술', boon: '축복', curse: '저주' };
+function cmFace(v, o) {
+  o = o || {}; if (!v) return ''; const d = cmDef(v.id) || {}, cost = o.cost != null ? o.cost : v.cost;
+  const cls = 'dkc asp-' + (v.asp || 'none') + ' rar-' + (v.type === 'curse' ? 'x' : v.rar) + ' t-' + v.type + (o.cls ? ' ' + o.cls : '');
+  const tx = o.text != null ? o.text : v.type === 'skill' && !o.night ? '밤에 쓴다 · ' + v.text : v.text;
+  return `<div class="${cls}"${o.c ? ` data-c="${o.c}"` : ''}${o.uid != null ? ` data-uid="${o.uid}"` : ''}${o.i != null ? ` data-i="${o.i}"` : ''} data-id="${v.id}"><b class="dkc-cost${o.faith ? ' faith' : ''}">${v.type === 'curse' ? '✕' : v.type === 'skill' && !o.faith ? '夜' : cost}</b><i class="dkc-gem"></i><span class="dkc-art"><img src="${cmArtUrl(v)}" alt=""></span><b class="dkc-nm">${esc(v.name)}</b><span class="dkc-tx">${esc(tx)}</span><i class="dkc-ty">${CMTYPE[v.type] || ''}${d.asp && d.asp !== 'none' ? ' · ' + CARDS2.ASPN[d.asp] : ''}</i></div>`;
+}
+const cmDefView = (id, up) => CMU.run ? CARDMODE.view(CMU.run, { uid: 0, id, up: up || 0 }) : cmBareView(id, up);
+function cmBareView(id, up) { const d = cmDef(id); return { uid: 0, id, name: d.name + (up ? '+' : ''), type: d.type, asp: d.asp, rar: d.rar, cost: d.type === 'skill' ? 0 : d.cost, text: d.text, more: d.more, up: up || 0 }; }
+const CMUPTXT = { shape: '진액이 덜 든다', organ: '방이 한 단계 높게 돋는다', trap: '함정 단계 +1', kin: '권속이 두 단계 높게 든다', skill: '세기 ×1.3, 신앙이 덜 든다', boon: '효과가 커진다' };
+
+// ---- 뼈대 ----
+function cmMount() {
+  if ($('cm-ov')) return;
+  const ov = document.createElement('div'); ov.id = 'cm-ov'; ov.hidden = true; document.body.appendChild(ov);
+  const sh = document.createElement('div'); sh.id = 'cm-sheet'; sh.hidden = true; document.body.appendChild(sh);
+  const tt = document.createElement('div'); tt.id = 'cm-toast'; tt.hidden = true; document.body.appendChild(tt);
+  const cv = document.createElement('canvas'); cv.id = 'cmov'; $('stagewrap').insertBefore(cv, $('mapchips')); CMU.ov = cv;
+  const hb = document.createElement('div'); hb.id = 'chand'; hb.hidden = true; $('handbar').insertBefore(hb, $('hand'));
+  document.addEventListener('click', cmClick);
+  document.addEventListener('pointerdown', e => { const el = e.target.closest && e.target.closest('.dkc'); CMU.down = { x: e.clientX, y: e.clientY }; if (!el || !cmOnScreen()) return; clearTimeout(CMU.lpT); CMU.lpT = setTimeout(() => { CMU.lpEl = el; CMU.lpAt = Date.now(); cmDetail(el.dataset.id, el.dataset.uid); }, 480); });
+  ['pointerup', 'pointercancel'].forEach(k => document.addEventListener(k, () => clearTimeout(CMU.lpT)));
+  document.addEventListener('contextmenu', e => { if (e.target.closest && e.target.closest('.dkc') && cmOnScreen()) e.preventDefault(); });
+  // 카드를 들고 있을 때 지도를 누르면: 원래 게임의 칸 고르기보다 먼저 받는다
+  window.addEventListener('click', e => {
+    if (e.target.id !== 'stage' || !cmOn() || ST.mode !== 'day' || CMU.sel == null || busy) return;
+    if (CMU.down && Math.hypot(e.clientX - CMU.down.x, e.clientY - CMU.down.y) > 10) return;
+    const [sx, sy] = stagePoint(e), col = Math.floor((sx - GX) / CW), row = Math.floor((sy - GY) / CH);
+    if (col < 0 || row < 0 || col >= G.cols || row >= G.rows || ST.screen !== 'under') return;
+    e.stopImmediatePropagation(); e.preventDefault(); cmTapCell(row * G.cols + col);
+  }, true);
+  document.addEventListener('keydown', e => { if (!cmOnScreen()) return; if (e.key === 'Escape') { if (CMU.sheet) cmSheet(null); else if (CMU.sel != null) { cmSelect(null); } } if ((e.key === 'r' || e.key === 'R') && CMU.place) cmRotate(); });
+}
+const cmOnScreen = () => !!CMU.run && ($('cm-ov') && (!$('cm-ov').hidden || !$('game').hidden));
+function cmOv(html, cls) { const o = $('cm-ov'); if (!html) { o.hidden = true; o.innerHTML = ''; o.className = ''; return; } o.className = cls || ''; o.innerHTML = html; o.hidden = false; o.scrollTop = 0; }
+function cmSheet(kind, html) { const s = $('cm-sheet'); CMU.sheet = kind; if (!kind) { s.hidden = true; s.innerHTML = ''; return; } s.innerHTML = `<div class="dk-grab"></div><button class="btn sm dk-x" data-c="close" aria-label="닫기">✕</button>${html}`; s.hidden = false; s.scrollTop = 0; }
+let cmToastT = 0;
+function cmToast(s) { const t = $('cm-toast'); if (!t) return; t.textContent = s; t.hidden = false; clearTimeout(cmToastT); cmToastT = setTimeout(() => { t.hidden = true; }, 2600); }
+const cmSnd = k => { try { sfx(k); } catch (e) { /* 소리는 없어도 된다 */ } };
+
+// ---- 시작 ----
+const CMASP = ['abyss', 'nebula', 'brood', 'dusk', 'hunger'];
+function cardOpen() {
+  cmMount(); cmMeta(); $('title').hidden = true; $('game').hidden = true; G = null; CMU.run = null;
+  CMU.asp = CMU.asp || 'brood'; CMU.look = CMU.look || 'drop'; CMU.egg = null; cmStart();
+}
+function cmStart() {
+  const m = cmMeta(), a = CMU.asp, saved = store.get('cardrun'), looks = Object.keys(SEEDS).slice(0, 15), start = CARDS2.START[a] || [];
+  const eggs = m.eggs.slice(-3).reverse();
+  cmOv(`<div class="dk-start cm-start"><h2>카드로 짓는 둥지 <small>시험판</small></h2><p class="dk-sub">아침마다 다섯 장 · 굴로 넓히고 · 밤은 저절로</p>
+<p class="dk-lab">빛깔</p><div class="dk-asps">${CMASP.map(x => `<button class="dk-asp${x === a ? ' on' : ''}" style="--c:${cmCol(x)}" data-c="asp" data-v="${x}"><i></i>${NEST.ASP[x]}</button>`).join('')}</div>
+<p class="dk-lab">처음 덱 ${start.length}장</p><div class="dk-row dk-mini">${start.map(id => cmFace(cmBareView(id), { cls: 'mini' })).join('')}</div>
+<p class="dk-lab">처음 몸</p><div class="cm-looks">${looks.map(k => `<button class="cm-look${k === CMU.look ? ' on' : ''}" data-c="look" data-v="${k}" title="${esc(SEEDS[k].say || '')}">${toImg(slimeCanvas({ origin: 'drop', look: k, stage: 0, main: null, sub: null, body: null, muts: [] }, 0), 'cmlook:' + k, 32, SEEDS[k].name)}<span>${esc(SEEDS[k].name)}</span></button>`).join('')}</div>
+${eggs.length ? `<p class="dk-lab">남긴 알</p><div class="cm-eggs"><button class="cm-egg${CMU.egg == null ? ' on' : ''}" data-c="egg" data-v="-1"><span>없이</span></button>${eggs.map((e, k) => { const g = cmEggGenome(e); return `<button class="cm-egg${CMU.egg === k ? ' on' : ''}" data-c="egg" data-v="${k}">${cmBodyImg(g, 40)}<span>${esc(e.name || '알')}</span><small>${Object.keys(e.tags || {}).sort((p, q) => e.tags[q] - e.tags[p]).slice(0, 2).map(cmTagName).join(' · ')}</small></button>`; }).join('')}</div>` : ''}
+<button class="btn pri dk-wide" data-c="begin">시작</button>
+<div class="dk-row2">${saved && saved.G && !saved.G.over ? `<button class="btn" data-c="cont">이어하기 <small>${saved.G.day}일</small></button>` : ''}<button class="btn" data-c="codex">도감</button><button class="btn" data-c="home">돌아가기</button></div></div>`, 'dk-full');
+}
+function cmEggGenome(e) { if (typeof TRAITS === 'undefined') return null; const g = TRAITS.newGenome({ aspect: e.aspect || 'brood', stage: 2, seed: TRAITS.hash ? TRAITS.hash(String(e.name || 'egg')) : 7 }); g.tags = Object.assign({}, e.tags || {}); return g; }
+function cmBegin() {
+  const m = cmMeta(), egg = CMU.egg != null ? m.eggs.slice(-3).reverse()[CMU.egg] : null, seed = (Date.now() ^ (Math.random() * 1e9)) >>> 0;
+  const run = CARDMODE.newRun(seed, { aspect: CMU.asp, look: CMU.look, meta: m, egg: egg || undefined, diff: 2 });
+  if (egg) run.egg = egg;
+  cmGo(run); cmToast('카드를 누르면 놓을 곳이 빛난다');
+}
+function cmGo(run) {
+  CMU.run = run; G = run.G; CMU.sel = null; CMU.place = null; CMU.learnedN = (run.learned || []).length; CMU.eggLaid = false; cmOv(null); cmSheet(null);
+  showGame(); busy = false; cmSave();
+  if (!CMU.raf) CMU.raf = requestAnimationFrame(cmLoop);
+  if (run.phase === 'reward') setTimeout(() => cmAfterNightReward(), 200);
+}
+function cmContinue() { const run = cmLoad(); if (!run) return cmStart(); cmGo(run); }
+
+// ---- 위쪽 줄과 아래 줄 (ui.js 의 hud/tray 대신) ----
+function cardHud() {
+  const g = cmGenome();
+  $('hud').innerHTML = `<button class="hbar" data-a="panel" data-v="status" title="상태 보기"><span class="cm-por">${g ? cmBodyImg(g, 26) : ''}</span><span class="hud-turn">${G.day}일 <small class="mute">/${NEST.K.days}<span class="cm-act"> · ${NEST.actOf(G)}막</span></small></span><span class="hstat">${iconImg('gold')}<b class="num coin">${R((ST.hud || G).gold)}</b></span><span class="hstat cm-faith">${iconImg('faith')}<b class="num">${Math.floor((ST.hud || G).faith)}</b></span><span class="hstat">${lifePips()}</span></button><button class="btn sm hmenu" data-a="menu" aria-label="메뉴" title="메뉴">≡</button>`;
+  document.documentElement.style.setProperty('--hud-h', $('hud').offsetHeight + 'px');
+}
+function cardTray() {
+  const run = CMU.run; if (!run) return;
+  const cmb = NEST.cardCombos(G), names = [...new Set(cmb.map(c => c.name))], ch = [];
+  ch.push(`<button class="chip cm-deckchip" data-c="deck">덱 ${run.deck.length} <small class="mute">· 남은 ${run.drawP.length}</small></button>`);
+  names.forEach(n => ch.push(`<button class="chip cm-cmb" data-c="combos">◇ ${esc(n)}</button>`));
+  const h = cmHints()[0]; if (h && CMU.sel == null) ch.push(`<button class="chip cm-hint" data-c="hint">한 장 더면 ${esc(h.name)}</button>`);
+  if (run.needleOffer) ch.push(`<button class="chip todo hot" data-c="needle">✦ 바늘 점</button>`);
+  if (G.march.tonight) ch.push(`<button class="chip nightchip" data-a="panel" data-v="goal">${nightChip()}</button>`);
+  $('mapchips').innerHTML = ST.mode === 'day' ? ch.join('') : '';
+  const ib = (c, v, icon, label, extra, cls) => `<button class="btn ib ${cls || ''}" data-c="${c}"${v ? ` data-v="${v}"` : ''}>${icon}<span>${label}</span>${extra || ''}</button>`;
+  $('game').classList.add('cm');
+  $('mnav').innerHTML = ib('deck', null, '<span class="gl">▤</span>', '덱') + ib('shop', null, iconImg('gold', 20), '상점') + ib('up', null, '<span class="gl">✚</span>', '강화') + ib('rm', null, '<span class="gl">✕</span>', '빼기') + `<button class="btn ib" data-a="core">${slimeImg(G.slime, 22)}<span>본체</span></button>` + `<button class="btn pri end" data-c="night"><span>밤 맞기</span></button>`;
+}
+// 아래 손: 낮에는 받은 카드, 밤에는 쥔 기술 카드(흐리게)
+function cmHand() {
+  const el = $('chand'), run = CMU.run; if (!el || !run) return;
+  if (ST.mode === 'night') {
+    const held = (G.cardHeld || []).filter(h => !h.used).map(h => cmCard(h.uid)).filter(Boolean);
+    el.hidden = !held.length || !$('hand').hidden; el.innerHTML = held.length ? `<div class="dk-hand cm-held" style="--n:${held.length}">${held.map(c => cmFace(CARDMODE.view(run, c), { cls: 'mini dim', night: true })).join('')}</div>` : '';
+    return;
+  }
+  const hv = CARDMODE.handView(run); el.hidden = false;
+  const sel = hv.find(v => v.uid === CMU.sel);
+  let bar = '';
+  if (sel) {
+    if (sel.type === 'skill') bar = `<p class="cm-tip">밤에 무리가 방에 들면 쓴다</p><div class="cm-acts">${btn('x', null, '닫기', 'sm')}</div>`;
+    else if (sel.target === 'shape') bar = CMU.place ? `<div class="cm-acts"><button class="btn" data-c="rot">↻ 돌리기</button><button class="btn pri" data-c="put">놓기 ${sel.cost}</button><button class="btn" data-c="unsel">취소</button></div>` : `<p class="cm-tip">빛나는 칸을 누른다</p><div class="cm-acts"><button class="btn" data-c="unsel">취소</button></div>`;
+    else if (sel.target === 'cell') bar = `<p class="cm-tip">${sel.can ? '빛나는 칸을 누른다' : esc(sel.why)}</p><div class="cm-acts"><button class="btn" data-c="unsel">취소</button></div>`;
+    else bar = `<div class="cm-acts">${sel.can ? `<button class="btn pri" data-c="put">내기 ${sel.cost || ''}</button>` : `<span class="cm-tip">${esc(sel.why)}</span>`}<button class="btn" data-c="unsel">취소</button></div>`;
+  }
+  el.innerHTML = `${bar}<div class="dk-hand cm-hand" style="--n:${hv.length}">${hv.map(v => cmFace(v, { c: 'card', uid: v.uid, cls: (isMobile() ? 'mini ' : '') + (v.uid === CMU.sel ? 'lift' : '') + (v.can || v.type === 'skill' ? '' : ' no') })).join('') || '<p class="small mute">손이 비었다 · 밤을 맞는다</p>'}</div>`;
+}
+function cardRender() { cmHand(); }
+
+// ---- 고르고 놓기 ----
+function cmSelect(uid) { CMU.sel = uid; CMU.place = null; CMU.alts = []; CMU.altI = 0; CMU.tapCell = null; if (uid != null && ST.screen !== 'under') setScreen('under'); UI.sel = null; render(); }
+function cmTapCell(i) {
+  const run = CMU.run, v = CARDMODE.handView(run).find(x => x.uid === CMU.sel); if (!v) return;
+  if (v.target === 'cell') { if ((v.cellsCan || []).includes(i)) return cmPlay(v.uid, { cell: i }); cmToast('그 칸에는 못 놓는다'); cmSnd('down'); return; }
+  if (v.target === 'shape') {
+    const alts = cmPlaces(v).filter(p => p.cells.includes(i)); if (!alts.length) { cmToast('그 자리에는 못 판다'); cmSnd('down'); return; }
+    if (CMU.tapCell === i && CMU.alts.length) { CMU.altI = (CMU.altI + 1) % CMU.alts.length; } else { CMU.alts = alts; CMU.altI = 0; CMU.tapCell = i; }
+    CMU.place = CMU.alts[CMU.altI]; cmSnd('click'); render(); return;
+  }
+}
+// 굴 카드가 놓일 수 있는 자리들 ({ cells, rot })
+const cmPlaces = v => CARDMODE.shapePlacements(CMU.run, cmDef(v.id));
+function cmRotate() { if (!CMU.alts.length) return; CMU.altI = (CMU.altI + 1) % CMU.alts.length; CMU.place = CMU.alts[CMU.altI]; cmSnd('click'); render(); }
+function cmPlay(uid, tgt) {
+  const run = CMU.run, c = cmCard(uid), d = c && cmDef(c.id), r = CARDMODE.play(run, uid, tgt || {});
+  if (!r.ok) { cmToast(r.msg || '놓을 수 없다'); cmSnd('down'); return; }
+  CMU.sel = null; CMU.place = null; CMU.alts = []; CMU.tapCell = null; CMU.hintKey = '';
+  cmSnd(d && d.type === 'shape' ? 'dig' : d && d.type === 'kin' ? 'up' : 'trap'); cmToast(r.msg);
+  const before = CMU.cmbN || 0, now = NEST.cardCombos(G).length; if (now > before) { const n = NEST.cardCombos(G).slice(-1)[0]; if (n) cmBanner('◇ ' + n.name); } CMU.cmbN = now;
+  cmSave(); render();
+}
+function cmBanner(s) { const b = document.createElement('div'); b.className = 'cm-banner'; b.textContent = s; $('stagewrap').appendChild(b); setTimeout(() => b.remove(), 1700); cmSnd('evo'); }
+
+// ---- 한 장 더면: 손의 기관·부위 카드를 칸마다 놓아 보고, 새 배치 족보가 생기는지 본다 ----
+function cmHints() {
+  const run = CMU.run; if (!run || run.phase !== 'day') return [];
+  const key = run.hand.join(',') + '|' + G.cells.map(c => (c.dug ? 1 : 0) + c.type.slice(0, 2) + c.traps.length + (c.casp || '')).join('') + '|' + G.kin.map(m => m.loc).join(',');
+  if (key === CMU.hintKey) return CMU.hints; CMU.hintKey = key;
+  const base = new Set(NEST.cardCombos(G).map(x => x.id + ':' + (x.cells || []).join('.'))), out = [];
+  for (const v of CARDMODE.handView(run)) {
+    if (!v.can || (v.type !== 'organ' && v.type !== 'trap')) continue; const d = cmDef(v.id);
+    for (const i of (v.cellsCan || [])) {
+      const c = G.cells[i], t0 = c.type, a0 = c.casp;
+      if (v.type === 'organ') { c.type = d.room; c.casp = d.asp === 'none' ? null : d.asp; } else c.traps.push({ kind: d.trap, lv: 1, pow: 1, asp: d.asp });
+      let found = null; try { found = NEST.cardCombos(G).find(x => !base.has(x.id + ':' + (x.cells || []).join('.'))); } catch (e) { found = null; }
+      if (v.type === 'organ') { c.type = t0; c.casp = a0; } else c.traps.pop();
+      if (found) { out.push({ uid: v.uid, cell: i, name: found.name, card: v.name }); break; }
+    }
+    if (out.length >= 2) break;
+  }
+  CMU.hints = out; return out;
+}
+
+// ---- 지도 위에 덧그리기: 빛나는 칸, 굴 모양 그림자, 배치 족보 ----
+function cmLoop(t) {
+  CMU.raf = 0; if (!CMU.run) return; CMU.raf = requestAnimationFrame(cmLoop);
+  const cv = CMU.ov; if (!cv || !cmOn()) { if (cv) cv.getContext('2d').clearRect(0, 0, cv.width, cv.height); return; }
+  const st = $('stage'), b = st.getBoundingClientRect(), dpr = window.devicePixelRatio || 1, W = Math.round(b.width * dpr), Hh = Math.round(b.height * dpr);
+  if (cv.width !== W || cv.height !== Hh) { cv.width = W; cv.height = Hh; }
+  const x = cv.getContext('2d'); x.setTransform(1, 0, 0, 1, 0, 0); x.clearRect(0, 0, W, Hh);
+  if (ST.mode !== 'day' || ST.screen !== 'under' || ST.p < 0.98) return;
+  const u = b.height / (ST.vh || H) * dpr, ox = (ST.ox - ST.cam.x), oy = -(ST.cam.y || 0) - (ST.cam.v || 0);
+  const rc = i => { const r = cellRect(i); return { x: (r.x + ox) * u, y: (r.y + oy) * u, w: r.w * u, h: r.h * u }; };
+  const box = (i, fill, line, lw, inset) => { const r = rc(i), k = (inset || 4) * u; if (fill) { x.fillStyle = fill; x.fillRect(r.x + k, r.y + k, r.w - 2 * k, r.h - 2 * k); } if (line) { x.strokeStyle = line; x.lineWidth = (lw || 2) * u; x.strokeRect(r.x + k, r.y + k, r.w - 2 * k, r.h - 2 * k); } };
+  const pulse = 0.55 + 0.35 * Math.sin(t / 260);
+  // 배치 족보: 이어진 칸을 금빛 테두리로
+  NEST.cardCombos(G).forEach(cb => { (cb.cells || []).forEach(i => { const ii = i === 'core' ? G.core : i; if (typeof ii === 'number') box(ii, null, 'rgba(232,192,48,.55)', 2, 8); }); });
+  const run = CMU.run, v = CMU.sel != null ? CARDMODE.handView(run).find(z => z.uid === CMU.sel) : null;
+  if (v && v.target === 'cell') (v.cellsCan || []).forEach(i => box(i, `rgba(255,243,160,${0.12 + 0.12 * pulse})`, `rgba(255,243,160,${0.5 + 0.4 * pulse})`, 3));
+  if (v && v.target === 'shape') {
+    const can = new Set(); (v.places || []).forEach(p => p.forEach(i => can.add(i))); can.forEach(i => box(i, 'rgba(200,160,112,.10)', `rgba(232,168,96,${0.35 + 0.3 * pulse})`, 2));
+    if (CMU.place) CMU.place.cells.forEach(i => { box(i, 'rgba(138,106,74,.72)', '#fff3a0', 3, 2); const r = rc(i); x.fillStyle = 'rgba(200,160,112,.9)'; x.fillRect(r.x + 8 * u, r.y + r.h - 14 * u, r.w - 16 * u, 4 * u); });
+  }
+  const h = !v && cmHints()[0]; if (h) box(h.cell, null, `rgba(176,143,255,${0.4 + 0.4 * pulse})`, 2, 10);
+}
+
+// ---- 칸 창 (ui.js cellPanel 대신): 무엇이 있는지만 보인다 ----
+function cardCellPanel(i) {
+  if (i === G.core) return slimePanel();
+  const c = G.cells[i], room = NEST.ROOM[c.type], ks = G.kin.filter(m => m.loc === i), cmb = NEST.cardCombos(G).filter(x => (x.cells || []).includes(i));
+  if (!c.dug) return phead('안 판 칸', coord(i)) + '<p class="small mute">굴 카드로 판다</p>';
+  return phead(esc(room ? room.name : '빈 굴'), coord(i) + (c.casp ? ' · ' + NEST.ASP[c.casp] : '') + (c.lv > 1 ? ' · Lv' + c.lv : '')) +
+    (room && room.desc && c.type !== 'empty' ? `<p class="small">${esc(room.desc)}</p>` : '') +
+    (c.traps.length ? `<p class="small coin">함정</p><div class="stack">${c.traps.map(t => `<span class="chip">${esc(t.name || (NEST.TRAP[t.kind] && NEST.TRAP[t.kind].name) || t.kind)} <small>${t.lv || 1}단계</small></span>`).join('')}</div>` : '') +
+    (ks.length ? `<p class="small coin">권속</p><div class="units g3">${ks.map(kinChip).join('')}</div>` : '') +
+    (cmb.length ? `<p class="small okc">◇ ${cmb.map(x => esc(x.name)).join(' · ')}</p>` : '') +
+    (c.block ? '<p class="small up">흙벽으로 막혔다</p>' : '');
+}
+
+// ---- 낮 끝: 남길 카드 고르기 → 밤 ----
+function cmNightAsk() {
+  const run = CMU.run; if (busy || !run || run.phase !== 'day') return;
+  const hand = run.hand.map(cmCard).filter(c => c && cmDef(c.id).type !== 'curse');
+  if (hand.length <= run.retain) return cardNight(hand.map(c => c.uid));
+  CMU.keep = hand.filter(c => cmDef(c.id).type === 'skill').slice(0, run.retain).map(c => c.uid); cmKeepView();
+}
+function cmKeepView() {
+  const run = CMU.run, hand = run.hand.map(cmCard).filter(c => c && cmDef(c.id).type !== 'curse');
+  cmOv(`<div class="dk-reward"><h2>밤을 맞는다</h2><p class="dk-sub">남길 카드 ${CMU.keep.length}/${run.retain} · 나머지는 버린다</p><div class="dk-grid cm-keepg">${hand.map(c => cmFace(CARDMODE.view(run, c), { c: 'keep', uid: c.uid, cls: 'mini' + (CMU.keep.includes(c.uid) ? ' cm-kept' : '') })).join('')}</div>
+<div class="dk-row2"><button class="btn pri" data-c="go">밤 맞기</button><button class="btn" data-c="ovx">돌아가기</button></div></div>`, 'dk-dim');
+}
+async function cardNight(keep) {
+  const run = CMU.run; if (busy || !G || G.over || !run || run.phase !== 'day') return;
+  cmOv(null); cmSheet(null); busy = true; CMU.sel = null; CMU.place = null; UI.sel = null; UI.confirmEnd = false; if (!$('modal').hidden) closeModal(); toast(null); setSheet(false);
+  CARDMODE.syncHeld(run);
+  const snap = JSON.stringify(G), day = G.day, tonight = G.march.tonight, g0 = cmGenome(), stage0 = G.slime.stage;
+  // 규칙이 밤 앞에 하는 일 중 싸움에 닿는 것을 화면 쪽에도 똑같이 한다 (화난 무리, 밤 세금)
+  run.hand.map(cmCard).filter(c => c && cmDef(c.id).type === 'curse').forEach(c => { const f = cmDef(c.id).fx || {}; if (f.angry && tonight) tonight.angry = true; if (f.nightTax) G.gold -= Math.round(f.nightTax * NEST.cm(G)); });
+  ST.hud = { gold: G.gold, faith: G.faith, fear: G.fear }; ST.skip = false; ST.asked = false; ST.pick = null; setNight(true); hud(); cmHand();
+  { const e = NEST.estimate(G, 'tonight'); typeof music === 'function' && music(e && e.boss && e.boss !== 'captain' ? 'boss' : 'night'); }
+  const answers = [], it = NEST.beginNight(G); prepareNight(); let rep = null;
+  if (!tonight) { it.next(); nlog('아무도 오지 않았다.'); ST.label = '조용한 밤'; await wait(1100); ST.label = ''; }
+  else { let r = it.next(), played = 0; while (!r.done) { played = await playEvents(r.value.ev, played); const ans = await askHand(r.value); answers.push(ans); cmHand(); r = it.next(ans); } rep = r.value; await playEvents(rep.ev, played); await wait(300); }
+  const uiSt = NEST.settle(G, rep), uiKey = G.day + ':' + Math.round(G.gold) + ':' + G.kin.length;
+  // 되돌리고, 적은 답으로 규칙을 돌린다 (덱·손·보상·말 배우기는 규칙이 한다)
+  const fresh = JSON.parse(snap); Object.keys(G).forEach(k => { delete G[k]; }); Object.assign(G, fresh);
+  const res = CARDMODE.endDay(run, () => (answers.length ? answers.shift() : { k: 'none' }), keep), night = (res && res.night) || {}, st = night.settle || uiSt, bat = night.battle || rep;
+  if (G.day + ':' + Math.round(G.gold) + ':' + G.kin.length !== uiKey) console.warn('카드 밤: 화면과 규칙이 다르게 끝났다', uiKey, G.day, G.gold, G.kin.length);
+  ST.ents = null; ST.hud = null; ST.skip = false; ST.focus = null; setNight(false); setScreen('under'); CMU.hintKey = ''; CMU.cmbN = NEST.cardCombos(G).length; render(); typeof music === 'function' && music('day');
+  cmSnd(bat && bat.result !== 'repel' ? 'down' : 'coin');
+  if (st) { const firstCap = bat && bat.captives && bat.captives.length && G.stats.captives === bat.captives.length, pm = modal(settleHtml(bat, st, day)); if (firstCap) setTimeout(() => FX.captive(document.querySelector('#modal .card')), 140); await pm; }
+  if (st && st.found && !G.over) await revealWorld(true);
+  if (typeof CARDMODE.moltPending === 'function' && CARDMODE.moltPending(run)) { const m = CARDMODE.molt(run); if (m) await cmMoltScreen(m); }
+  else if (st && st.evolved && !G.over) await cmMoltScreen(cmMoltGuess(g0, stage0));
+  if (run.phase === 'over' || G.over) return cardFinish();
+  cmLearned();
+  if (run.phase === 'reward') await cmAfterNightReward();
+  if (run.needleOffer) cmToast('바늘 점이 열렸다 · 지도 위 ✦');
+  busy = false; cmSave(); render();
+}
+function cmLearned() { const run = CMU.run, L = run.learned || []; const fresh = L.slice(CMU.learnedN); CMU.learnedN = L.length; fresh.forEach((w, k) => setTimeout(() => cmToast('기억을 삼켰다: ' + w.from + ' → ' + w.to), 300 + k * 2700)); }
+
+// ---- 허물: 옛 몸 → 그림자 → 새 몸, 네가 한 일, 바뀐 카드 ----
+function cmMoltGuess(g0, stage0) {
+  const run = CMU.run, g1 = cmGenomeNow(run, G.slime.stage), top0 = g0 && TRAITS.topTags ? TRAITS.topTags(g0, 3) : [], top1 = g1 && TRAITS.topTags ? TRAITS.topTags(g1, 3) : [];
+  const nm = g1 && TRAITS.nameOf ? TRAITS.nameOf(g1) : { name: NEST.formName(G), title: '' };
+  return { before: g0 || cmGenomeNow(run, stage0), after: g1, lines: g1 && TRAITS.describe ? TRAITS.describe(g1) : [], gained: top1.filter(t => !top0.includes(t)), combos: g1 && TRAITS.combosOf ? TRAITS.combosOf(g1) : [], landmark: g1 && TRAITS.landmarkOf ? TRAITS.landmarkOf(g1) : null, name: nm, mutated: [] };
+}
+const cmTagList = a => (a || []).map(t => typeof t === 'string' ? t : t && (t.id || t.tag || t.name)).filter(Boolean);
+function cmMoltScreen(m) {
+  return new Promise(res => {
+    const run = CMU.run, before = m.before, after = m.after || cmGenome(), nm = m.name || {}, lm = m.landmark;
+    const lmName = lm ? (typeof lm === 'string' ? ((TRAITS.LANDMARKS.find(x => x.id === lm) || {}).name || lm) : lm.name) : '';
+    const lmText = lm && typeof lm === 'object' ? lm.text : lm ? (TRAITS.LANDMARKS.find(x => x.id === lm) || {}).text : '';
+    const mut = (m.mutated || []).slice(0, 8);
+    cmOv(`<div class="cm-molt"><p class="dk-lab" style="text-align:center">허물을 벗었다</p>${lm ? `<p class="cm-lm">★ ${esc(lmName)}${lmText ? `<small>${esc(lmText)}</small>` : ''}</p>` : ''}
+<div class="cm-morph" id="cm-morph"><span class="cm-b0">${cmBodyImg(before, 96)}</span><span class="cm-ar">→</span><span class="cm-b1">${cmBodyImg(after, 128)}</span></div>
+<h2>${esc(nm.name || '')}${nm.title ? `<small>「${esc(nm.title)}」</small>` : ''}</h2>
+<div class="dk-list">${(m.lines || []).slice(0, 3).map(s => `<div class="dk-li">${esc(s)}</div>`).join('')}</div>
+${cmTagList(m.gained).length ? `<div class="dk-row cm-tags">${cmTagList(m.gained).map(t => `<span class="chip on">+ ${esc(cmTagName(t))}</span>`).join('')}</div>` : ''}
+${mut.length ? `<p class="dk-lab">몸이 바뀌자 카드도 바뀌었다</p><div class="cm-muts">${mut.map(x => `<div class="dk-uprow">${cmFace(cmDefView(x.from), { cls: 'mini' })}<span class="dk-arrow">→</span>${cmFace(cmDefView(x.to), { cls: 'mini' })}</div>`).join('')}</div>` : ''}
+<button class="btn pri dk-wide" data-c="moltok">좋다</button></div>`, 'dk-full cm-moltov');
+    CMU.moltRes = () => { CMU.moltRes = null; cmOv(null); res(); };
+    const host = $('cm-morph'), col = cmCol((after && after.aspect) || G.slime.main);
+    if (typeof morphOver === 'function' && host) morphOver(host, cmBodyImg(before, 96), cmBodyImg(after, 128), col, !!lm, lm ? '★ ' + esc(lmName) : '');
+    if (typeof domFlash === 'function') domFlash(col + 'aa', lm ? 800 : 600); if (typeof domShake === 'function') domShake(2); cmSnd('evo');
+    if (typeof cmMoltHook === 'function') cmMoltHook(m);
+  });
+}
+
+// ---- 보상: 셋 중 하나 ----
+function cmAfterNightReward() {
+  return new Promise(res => { CMU.rewardRes = () => { CMU.rewardRes = null; cmOv(null); res(); }; cmRewardView(); });
+}
+function cmRewardView() {
+  const run = CMU.run; if (!run || run.phase !== 'reward' || !run.offer) { if (CMU.rewardRes) CMU.rewardRes(); return; }
+  const rr = Math.round(CARDMODE.K.reroll * NEST.cm(G));
+  cmOv(`<div class="dk-reward"><h2>${run.offer.boss ? '우두머리를 넘겼다' : '밤을 넘겼다'}</h2><p class="dk-sub">덱에 넣을 카드 하나</p><div class="dk-pick3">${run.offer.cards.map((id, k) => cmFace(cmDefView(id), { c: 'reward', i: k, cls: 'pick' })).join('')}</div>
+<div class="dk-row2"><button class="btn" data-c="reroll"${G.gold < rr ? ' disabled' : ''}>다시 뽑기 ${rr}</button><button class="btn" data-c="rskip">안 받기</button></div><p class="dk-mute">길게 누르면 자세히</p></div>`, 'dk-full');
+}
+
+// ---- 창: 덱 · 상점 · 강화 · 빼기 · 배치 족보 ----
+function cmDeckSheet() {
+  const run = CMU.run, dv = CARDMODE.deckView(run), tabs = [['all', '모두'], ['hand', '손'], ['draw', '남은'], ['disc', '버림']], t = CMU.deckTab;
+  const list = dv.filter(v => t === 'all' || v.where === t).sort((a, b) => a.type.localeCompare(b.type) || a.name.localeCompare(b.name));
+  cmSheet('deck', `<h3>덱 ${run.deck.length}장 <small>남은 ${run.drawP.length} · 버림 ${run.disc.length} · 손에 남기는 ${run.retain}</small></h3><div class="dk-tabs">${tabs.map(([k, n]) => `<button class="dk-tab${k === t ? ' on' : ''}" data-c="dtab" data-v="${k}">${n}</button>`).join('')}</div><div class="dk-grid">${list.map(v => `<div class="dk-cell">${cmFace(v, { cls: 'mini', uid: v.uid })}</div>`).join('')}</div>`);
+}
+function cmShopSheet() {
+  const run = CMU.run, sh = run.shop || [];
+  cmSheet('shop', `<h3>상점 <small>진액 ${R(G.gold)}</small></h3><div class="dk-grid">${sh.map((s, i) => `<div class="dk-cell${s.sold ? ' sold' : ''}">${cmFace(cmDefView(s.id), { cls: 'mini' })}<button class="btn sm" data-c="buy" data-i="${i}"${s.sold || G.gold < s.price ? ' disabled' : ''}>${s.sold ? '팔림' : '사기 ' + s.price}</button></div>`).join('') || '<p class="dk-mute">오늘은 없다</p>'}</div>`);
+}
+function cmUpSheet() {
+  const run = CMU.run, k = CARDMODE.upCost(run), list = run.deck.filter(c => !c.up && cmDef(c.id).type !== 'curse');
+  cmSheet('up', `<h3>강화 <small>한 장 ${k} · 진액 ${R(G.gold)}</small></h3><div class="dk-list">${list.map(c => { const v = CARDMODE.view(run, c), u = CARDMODE.view(run, Object.assign({}, c, { up: 1 })); return `<div class="dk-uprow">${cmFace(v, { cls: 'mini' })}<span class="dk-arrow">→</span>${cmFace(u, { cls: 'mini', text: CMUPTXT[v.type] || u.text })}<div class="dk-col"><button class="btn sm" data-c="doup" data-uid="${c.uid}"${G.gold < k ? ' disabled' : ''}>강화 ${k}</button></div></div>`; }).join('') || '<p class="dk-mute">강화할 카드가 없다</p>'}</div>`);
+}
+function cmRmSheet() {
+  const run = CMU.run, k = CARDMODE.rmCost(run);
+  cmSheet('rm', `<h3>빼기 <small>한 장 ${k} · 진액 ${R(G.gold)}</small></h3><div class="dk-grid">${run.deck.map(c => `<div class="dk-cell">${cmFace(CARDMODE.view(run, c), { cls: 'mini' })}<button class="btn sm" data-c="dorm" data-uid="${c.uid}"${G.gold < k ? ' disabled' : ''}>빼기</button></div>`).join('')}</div>`);
+}
+function cmCombosSheet() {
+  const now = NEST.cardCombos(G), ids = new Set(now.map(x => x.id));
+  cmSheet('combos', `<h3>배치 족보 <small>지도 위 칸을 이어 만든다</small></h3><div class="dk-list">${Object.keys(NEST.CMB).map(k => `<div class="dk-li${ids.has(k) ? ' cm-on' : ''}"><b>${ids.has(k) ? '◆' : '◇'} ${esc(NEST.CMB[k].name)}</b><span class="dk-mute">${esc(NEST.CMB[k].text || NEST.CMB[k].desc || '')}</span></div>`).join('')}</div>`);
+}
+function cmDetail(id, uid) {
+  if (!id) return; const run = CMU.run, c = uid ? cmCard(+uid) : null, v = c ? CARDMODE.view(run, c) : cmDefView(id), d = cmDef(id), un = d.unlock && CARDS2.UNLOCK[d.unlock];
+  cmSheet('detail', `<div class="dk-detail">${cmFace(v, { cls: 'big' })}<div class="dk-dt"><p><b>${esc(v.name)}</b> <span class="dk-tag" style="--c:${cmCol(d.asp)}">${CMTYPE[d.type]}${d.asp !== 'none' ? ' · ' + CARDS2.ASPN[d.asp] : ''}</span></p><p>${esc(d.more || d.text)}</p>${d.type !== 'curse' ? `<p class="dk-mute">강화하면: ${esc(CMUPTXT[d.type] || '세진다')}</p>` : ''}${(d.tags || []).length ? `<p class="dk-mute">몸의 꼬리표: ${d.tags.map(cmTagName).join(' · ')}</p>` : ''}${un ? `<p class="dk-lock">${un.hard ? '<span class="dk-hard">도전</span> ' : ''}${esc(un.text)}</p>` : ''}</div></div>`);
+}
+
+// ---- 바늘 점 ----
+const CMSIGN = ['〰', '◉', '⬮', '◐', '▼', '⊓', '│', '▲', '⋔', '≀', '△', '◯', '⋀'];
+function cmStar(s, hidden) { if (!s || hidden) return '<div class="dk-star back"><i></i></div>'; const col = s.asp === 'none' ? '#e8e0d0' : cmCol(s.asp); return `<div class="dk-star" style="--c:${col}"><b>${CMSIGN[s.sign] || '✦'}</b><span>${esc(CARDMODE.SIGNS[s.sign] || '')}</span><em>${s.asp === 'none' ? '바늘' : CARDS2.ASPN[s.asp]}</em></div>`; }
+function cmNeedle(op, v, uid) {
+  const run = CMU.run; let res = null;
+  if (op === 'start') { const r = CARDMODE.needleStart(run); if (!r.ok) { cmToast(r.msg); return; } CMU.nres = null; cmSave(); }
+  if (op === 'bet') { const r = CARDMODE.needleBet(run, v === 'card' ? { kind: 'card', uid } : v === 'faith' ? { kind: 'faith', n: 3 } : { kind: 'ess', n: 10 }); if (!r.ok) cmToast(r.msg || '걸 것이 없다'); else cmSnd('coin'); }
+  if (op === 'open') { const r = CARDMODE.needleReveal(run); if (!r.ok) cmToast(r.msg || '먼저 건다'); else { cmSnd('trap'); if (r.result) res = r; } }
+  if (op === 'fold') { CARDMODE.needleFold(run); cmOv(null); cmToast('접었다'); cmSave(); render(); return; }
+  if (res) CMU.nres = res;
+  const n = res ? res.needle : CARDMODE.needlePublic(run); if (!n) return;
+  const shown = n.stars.length, stars = []; for (let k = 0; k < 5; k++) stars.push(cmStar(n.stars[k], k >= shown));
+  const holes = (n.hole || [null, null]).map(h => cmStar(h, !h)).join(''), kin = run.deck.filter(c => cmDef(c.id).type === 'kin'), st = n.stake, done = !!res;
+  const out = done ? (res.result.pay > 0 ? `<p class="dk-pay win">${esc(res.result.name)} · 진액 +${res.result.pay}${res.result.gifts.length ? ' · 선물 ' + res.result.gifts.length : ''}</p>` : `<p class="dk-pay lose">${esc(res.result.name)} · 잃었다${res.result.curse ? ' · 저주가 붙었다' : ''}</p>`) : '';
+  if (done) { cmSnd(res.result.pay > 0 ? 'evo' : 'down'); cmSave(); render(); }
+  cmOv(`<div class="dk-needle"><h2>바늘 점</h2><p class="dk-sub">별 다섯 + 내 바늘 둘 · 가장 좋은 다섯</p><div class="dk-sky">${stars.join('')}</div><p class="dk-lab">내 바늘</p><div class="dk-sky holes">${holes}</div>
+<p class="dk-stake">건 것 · 진액 ${st.ess} · 신앙 ${st.faith} · 권속 ${(st.cards || []).length} <b>(값 ${st.value})</b></p>${out}
+${done ? '<button class="btn pri dk-wide" data-c="ndone">좋다</button>' : `<div class="dk-row2"><button class="btn" data-c="nbet" data-v="ess"${G.gold < 1 ? ' disabled' : ''}>진액 10</button><button class="btn" data-c="nbet" data-v="faith"${G.faith < 1 ? ' disabled' : ''}>신앙 3</button>${kin.length ? `<button class="btn" data-c="nbet" data-v="card" data-uid="${kin[0].uid}">권속 1</button>` : ''}</div><div class="dk-row2"><button class="btn pri" data-c="nopen"${st.value > 0 ? '' : ' disabled'}>${n.step === 0 ? '별을 연다' : '다음 별'}</button><button class="btn" data-c="nfold">접는다</button></div>`}
+<button class="btn sm dk-paybtn" data-c="paytbl">족보와 몫</button></div>`, 'dk-full needle');
+}
+
+// ---- 판 끝 ----
+function cardFinish() {
+  const run = CMU.run; busy = true; const o = run.over || { win: false, score: 0, unlocks: [], why: '' }, g = cmGenome(), m = cmMeta();
+  store.del('cardrun');
+  if (g && typeof TRAITS !== 'undefined') { const nm = TRAITS.nameOf(g), lm = TRAITS.landmarkOf(g); m.forms[nm.name] = { aspect: g.aspect, sub: g.sub, stage: g.stage, seed: g.seed, tags: g.tags, title: nm.title || '', lm: lm ? (lm.id || lm) : null, at: Date.now() }; if (lm) m.marks[lm.id || lm] = 1; }
+  saveMeta(); typeof music === 'function' && music(o.win ? 'win' : 'lose'); if (FX && FX.end) FX.end(!!o.win);
+  const un = o.unlocks || [], nm = g && TRAITS.nameOf ? TRAITS.nameOf(g) : { name: '', title: '' };
+  cmOv(`<div class="dk-over ${o.win ? 'win' : 'lose'}"><h2>${o.win ? '일곱째 바늘이 돌아섰다' : '본체가 쓰러졌다'}</h2><p class="dk-sub">${CARDS2.ASPN[run.aspect]} · ${o.day || G.day}일 · 점수 <b>${R(o.score || 0)}</b>${o.grade ? ' · ' + o.grade : ''}</p>
+<div class="cm-final">${cmBodyImg(g, 128)}<p class="h3">${esc(nm.name)}${nm.title ? ` <small>「${esc(nm.title)}」</small>` : ''}</p></div>
+<button class="btn dk-wide" data-c="egg-lay"${CMU.eggLaid ? ' disabled' : ''}>${CMU.eggLaid ? '알을 남겼다' : '알을 남긴다'}</button>
+${un.length ? `<p class="dk-lab">새로 열린 카드</p>${un.map(u => `<div class="dk-un"><p class="dk-mute">${u.hard ? '<span class="dk-hard">도전</span> ' : ''}${esc(u.text)}</p><div class="dk-row">${(u.cards || []).map(id => cmFace(cmBareView(id), { cls: 'mini' })).join('')}</div></div>`).join('')}` : '<p class="dk-mute">이번에는 새로 열린 카드가 없다</p>'}${(m.queue || []).length ? `<p class="dk-lab">다음 판에 더 열린다 ${m.queue.length}</p>` : ''}
+<div class="dk-row2"><button class="btn pri" data-c="again">다시 한다</button><button class="btn" data-c="codex">도감</button><button class="btn" data-c="home">처음 화면</button></div></div>`, 'dk-full');
+}
+function cmLayEgg() {
+  const run = CMU.run, m = cmMeta(); if (CMU.eggLaid) return;
+  if (typeof CARDMODE.layEgg === 'function') { try { CARDMODE.layEgg(run); } catch (e) { /* 아래 */ } }
+  else { const g = cmGenome(); if (g) { const e = TRAITS.inherit(g); e.at = Date.now(); m.eggs.push(e); m.eggs = m.eggs.slice(-6); } }
+  CMU.eggLaid = true; saveMeta(); cmSnd('up'); cmToast('알을 남겼다 · 다음 판에 고를 수 있다'); cardFinish();
+}
+
+// ---- 도감: 카드 / 형태 ----
+function cmCodex() {
+  const m = cmMeta(), tab = CMU.codexTab;
+  let body = '';
+  if (tab === 'card') {
+    const a = CMU.codexAsp, list = CARDS2.LIST.filter(d => d.type !== 'curse' && (a === 'all' || d.asp === a)), open = list.filter(d => CARDS2.isOpen(d, m)).length;
+    body = `<div class="dk-tabs">${[['all', '모두']].concat(CMASP.map(x => [x, NEST.ASP[x]]), [['none', '무색']]).map(([k, n]) => `<button class="dk-tab${k === a ? ' on' : ''}" data-c="casp" data-v="${k}">${n}</button>`).join('')}</div><p class="dk-mute">열림 ${open}/${list.length}</p>
+<div class="dk-grid">${list.map(d => { const op = CARDS2.isOpen(d, m), un = d.unlock && CARDS2.UNLOCK[d.unlock]; return `<div class="dk-cell">${cmFace(cmBareView(d.id), { cls: 'mini' + (op ? '' : ' locked') })}${op ? '' : `<span class="dk-lockt">${un && un.hard ? '도전 · ' : ''}${esc(un ? un.text : d.part ? '이야기에서 그 부위를 단다' : '')}</span>`}</div>`; }).join('')}</div>`;
+  } else {
+    const cx = typeof CARDMODE.codex === 'function' ? (function () { try { return CARDMODE.codex(m); } catch (e) { return null; } })() : null;
+    const forms = Object.keys(m.forms).map(n => Object.assign({ name: n }, m.forms[n])), lms = typeof TRAITS !== 'undefined' ? TRAITS.LANDMARKS : [], found = cx && cx.landmarksFound != null ? cx.landmarksFound : Object.keys(m.marks).length;
+    body = `<p class="dk-mute">찾은 형태 ${cx && cx.found != null ? cx.found : forms.length} · 숨은 형태 ${found}/${lms.length}</p>
+<div class="dk-grid cm-forms">${forms.map(f => { const g = TRAITS.newGenome({ aspect: f.aspect, sub: f.sub, stage: f.stage, seed: f.seed }); g.tags = f.tags || {}; return `<div class="dk-cell cm-form">${cmBodyImg(g, 56)}<span>${esc(f.name)}</span></div>`; }).join('') || '<p class="dk-mute">아직 찾은 형태가 없다</p>'}</div>
+<p class="dk-lab">숨은 형태</p><div class="dk-grid cm-forms">${lms.map(l => m.marks[l.id] ? `<div class="dk-cell cm-form on"><b class="cm-lmk">★</b><span>${esc(l.name)}</span></div>` : '<div class="dk-cell cm-form off"><b class="cm-lmk">?</b><span>???</span></div>').join('')}</div>`;
+  }
+  cmOv(`<div class="dk-codex"><h2>도감</h2><div class="dk-tabs"><button class="dk-tab${tab === 'card' ? ' on' : ''}" data-c="ctab" data-v="card">카드</button><button class="dk-tab${tab === 'form' ? ' on' : ''}" data-c="ctab" data-v="form">형태</button></div>${body}<button class="btn dk-wide" data-c="cback">돌아가기</button></div>`, 'dk-full');
+}
+
+// ---- 밤에 멈췄을 때: 쥔 기술 카드를 카드로 (ui.js askHand 가 부른다) ----
+function cardAskHtml(ctx) {
+  const run = CMU.run, held = G.cardHeld || [], faces = [], free = []; if ($('chand')) $('chand').hidden = true;
+  ctx.opts.forEach(o => {
+    const h = held.find(x => x.spell === o.id && !x.used), c = h && cmCard(h.uid);
+    if (c) { faces.push(`<button class="cm-cbtn" data-a="hand" data-k="${o.id}"${o.ok ? '' : ' disabled'} title="${esc(o.why || o.desc || '')}">${cmFace(CARDMODE.view(run, c), { cost: Math.ceil(o.cost || 0), faith: true, night: true, cls: 'mini' + (o.ok ? '' : ' no') })}</button>`); return; }
+    if (NEST.SPELL[o.id] && NEST.SPELL[o.id].free) free.push(btn('hand', { k: o.id }, spellImg(o.id) + ' ' + o.name + (o.tgt ? ' ◎' : ''), 'sm', !o.ok));
+  });
+  return `<p class="h3">손을 쓸까? <small class="mute">신앙 ${Math.floor(ctx.faith)} · 적 ${ctx.enemies}</small></p>${faces.length ? `<div class="dk-hand cm-nhand" style="--n:${faces.length}">${faces.join('')}</div>` : '<p class="small mute">쥔 기술 카드가 없다</p>'}<div class="row cm-nfree">${free.join('')}${btn('hand', { k: 'none' }, '그냥 둔다', 'pri')}</div>`;
+}
+function cardMorning() { busy = false; render(); if (G.event) openModal('event'); }
+
+// ---- 누르기 ----
+function cmClick(e) {
+  const el = e.target.closest && e.target.closest('[data-c]'); if (!el || !CMU.run && !['asp', 'look', 'egg', 'begin', 'cont', 'codex', 'home', 'ctab', 'casp', 'cback'].includes(el.dataset.c)) return;
+  // 길게 누른 뒤 손을 뗄 때 오는 누름은 넘긴다 (그 카드에서 온 것만)
+  if (CMU.lpEl) { const same = e.target.closest('.dkc') === CMU.lpEl && Date.now() - CMU.lpAt < 900; CMU.lpEl = null; if (same) return; }
+  const c = el.dataset.c, v = el.dataset.v, run = CMU.run;
+  if (c === 'asp') { CMU.asp = v; cmSnd('click'); return cmStart(); }
+  if (c === 'look') { CMU.look = v; cmSnd('click'); return cmStart(); }
+  if (c === 'egg') { CMU.egg = +v < 0 ? null : +v; cmSnd('click'); return cmStart(); }
+  if (c === 'begin') return cmBegin();
+  if (c === 'cont') return cmContinue();
+  if (c === 'codex') { CMU.codexFrom = run && run.phase === 'over' ? 'over' : run ? 'game' : 'start'; return cmCodex(); }
+  if (c === 'ctab') { CMU.codexTab = v; return cmCodex(); }
+  if (c === 'casp') { CMU.codexAsp = v; return cmCodex(); }
+  if (c === 'cback') { if (CMU.codexFrom === 'over') return cardFinish(); if (CMU.codexFrom === 'game') return cmOv(null); return cmStart(); }
+  if (c === 'home') { $('game').classList.remove('cm'); cmOv(null); cmSheet(null); CMU.run = null; G = null; busy = false; cmForgetSlime(); return showTitle(); }
+  if (c === 'again') { cmOv(null); CMU.run = null; G = null; busy = false; cmForgetSlime(); $('game').hidden = true; return cmStart(); }
+  if (c === 'close') return cmSheet(null);
+  if (c === 'egg-lay') return cmLayEgg();
+  if (!run) return;
+  if (c === 'moltok') { if (CMU.moltRes) CMU.moltRes(); return; }
+  if (c === 'reward') { const r = CARDMODE.takeReward(run, +el.dataset.i); if (r.ok) { cmSnd('up'); cmToast(r.msg || '덱에 넣었다'); } if (CMU.rewardRes) CMU.rewardRes(); return; }
+  if (c === 'rskip') { CARDMODE.skipReward(run); if (CMU.rewardRes) CMU.rewardRes(); return; }
+  if (c === 'reroll') { const r = CARDMODE.rerollReward(run); if (!r.ok) cmToast(r.msg); else cmSnd('click'); hud(); return cmRewardView(); }
+  if (c === 'keep') { const u = +el.dataset.uid, k = CMU.keep.indexOf(u); if (k >= 0) CMU.keep.splice(k, 1); else if (CMU.keep.length < run.retain) CMU.keep.push(u); else { CMU.keep.shift(); CMU.keep.push(u); } cmSnd('click'); return cmKeepView(); }
+  if (c === 'go') return cardNight(CMU.keep.slice());
+  if (c === 'ovx') return cmOv(null);
+  if (c === 'ndone' || c === 'nfold') { if (c === 'nfold') return cmNeedle('fold'); CMU.nres = null; cmOv(null); render(); return; }
+  if (c === 'nbet') return cmNeedle('bet', v, +el.dataset.uid);
+  if (c === 'nopen') return cmNeedle('open');
+  if (c === 'paytbl') return cmSheet('pay', `<h3>바늘 점 · 족보와 몫</h3><div class="dk-list">${CARDMODE.NHANDS.slice(1).map(h => `<div class="dk-li"><b>${esc(h.name)}</b><span class="dk-mute">건 값 ×${h.pay}${h.extra ? ' · 선물' : ''}</span></div>`).join('')}</div>`);
+  if (c === 'needle') return cmNeedle('start');
+  if (busy || ST.mode !== 'day') return;
+  if (c === 'card') { const u = +el.dataset.uid; cmSnd('click'); if (CMU.sel === u) { const vv = CARDMODE.handView(run).find(z => z.uid === u); if (vv && vv.target === 'none' && vv.can) return cmPlay(u, {}); return cmSelect(null); } return cmSelect(u); }
+  if (c === 'unsel' || c === 'x') return cmSelect(null);
+  if (c === 'rot') return cmRotate();
+  if (c === 'put') { if (CMU.place) return cmPlay(CMU.sel, { cells: CMU.place.cells }); return cmPlay(CMU.sel, {}); }
+  if (c === 'hint') { const h = cmHints()[0]; if (h) { cmSelect(h.uid); cmToast(h.card + ' · 보라 테두리 칸'); CMU.hintFocus = h.cell; } return; }
+  if (c === 'deck') return cmDeckSheet();
+  if (c === 'dtab') { CMU.deckTab = v; return cmDeckSheet(); }
+  if (c === 'shop') return cmShopSheet();
+  if (c === 'buy') { const r = CARDMODE.shopBuy(run, +el.dataset.i); cmToast(r.msg || (r.ok ? '샀다' : '못 산다')); if (r.ok) cmSnd('coin'); render(); cmSave(); return cmShopSheet(); }
+  if (c === 'up') return cmUpSheet();
+  if (c === 'doup') { const r = CARDMODE.upgrade(run, +el.dataset.uid); cmToast(r.msg || (r.ok ? '강화했다' : '못 한다')); if (r.ok) cmSnd('up'); render(); cmSave(); return cmUpSheet(); }
+  if (c === 'rm') return cmRmSheet();
+  if (c === 'dorm') { const r = CARDMODE.removeCard(run, +el.dataset.uid); cmToast(r.msg || (r.ok ? '뺐다' : '못 뺀다')); if (r.ok) cmSnd('click'); render(); cmSave(); return cmRmSheet(); }
+  if (c === 'combos') return cmCombosSheet();
+  if (c === 'night') return cmNightAsk();
+}
+
+// 시험용
+window.__card = { get run() { return CMU.run; }, CMU, CARDMODE, open: cardOpen, begin: cmBegin, select: cmSelect, tap: cmTapCell, play: cmPlay, night: cardNight, finish: cardFinish, molt: cmMoltScreen, guess: cmMoltGuess, genome: cmGenome, needle: cmNeedle, codex: cmCodex, hints: cmHints, rect: i => cellRect(i), render: () => render(), cam: i => camCell(i, true), get META() { return META; }, get ST() { return ST; },
+  // 칸 i 의 가운데를 화면 좌표로 (시험에서 지도를 누를 때)
+  pt(i) { const b = $('stage').getBoundingClientRect(), u = b.height / (ST.vh || H), r = cellRect(i); return { x: b.left + (r.x + r.w / 2 + ST.ox - ST.cam.x) * u, y: b.top + (r.y + r.h / 2 - (ST.cam.y || 0) - (ST.cam.v || 0)) * u }; } };

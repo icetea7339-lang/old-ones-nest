@@ -667,3 +667,59 @@ button.dk-chip { cursor: pointer; }
 .dk-hand .dkc { align-items: flex-start; padding-left: 6px; }
 .dk-hand .dkc .dkc-art { margin-left: 22px; }
 .dk-hand .dkc .dkc-nm, .dk-hand .dkc .dkc-tx { text-align: left; }
+/* ===== 카드로 짓는 판 (cardui.js) ===== */
+#cm-ov { position: fixed; inset: 0; z-index: 60; overflow-y: auto; display: flex; flex-direction: column; align-items: center; padding: calc(env(safe-area-inset-top, 0px) + 14px) 12px calc(env(safe-area-inset-bottom, 0px) + 16px); }
+#cm-ov.dk-full { background: var(--ink); }
+#cm-ov.dk-dim { background: rgba(7,5,10,.82); justify-content: center; }
+#cm-ov h2 { font: 700 22px var(--display); margin: 6px 0 2px; text-align: center; word-break: keep-all; } #cm-ov h2 small { display: block; font-size: 14px; color: var(--mute); font-weight: 400; }
+#cm-sheet { position: fixed; left: 0; right: 0; bottom: 0; max-height: 72%; overflow-y: auto; background: var(--panel); border-top: 2px solid var(--coin); padding: 10px 12px calc(env(safe-area-inset-bottom, 0px) + 14px); z-index: 55; box-shadow: 0 -10px 30px rgba(0,0,0,.5); animation: dkup .18s ease-out; }
+#cm-sheet h3 { margin: 4px 40px 10px 0; font: 700 17px var(--display); word-break: keep-all; } #cm-sheet h3 small { font: 400 13px var(--body); color: var(--mute); }
+#cm-toast { position: fixed; left: 50%; top: calc(var(--hud-h, 48px) + 50px); transform: translateX(-50%); max-width: calc(100% - 24px); background: #2c3256; border: 1px solid var(--coin); padding: 8px 12px; font-weight: 700; font-size: 14px; z-index: 70; text-align: center; word-break: keep-all; pointer-events: none; }
+#cm-ov[hidden], #cm-sheet[hidden], #cm-toast[hidden], #chand[hidden] { display: none !important; }
+@media (min-width: 900px) { #cm-sheet { left: auto; top: 0; width: 440px; max-height: none; border-top: 0; border-left: 2px solid var(--coin); } }
+#cmov { position: absolute; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; }
+#chand { padding: 4px 6px 0; background: var(--panel); border-top: 1px solid var(--line); }
+#chand .dk-hand { min-height: 138px; padding-top: 14px; }
+#chand .cm-held { min-height: 0; padding-top: 4px; opacity: .55; }
+.cm-acts { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin: 2px 0 0; }
+.cm-acts .btn { min-width: 74px; }
+.cm-tip { text-align: center; color: #fff3a0; font-weight: 700; font-size: 14px; margin: 2px 0; word-break: keep-all; }
+.dkc-cost.faith { background: radial-gradient(circle at 35% 35%, #f0e0ff, #b08fff 60%, #5a3c9a); color: #14172a; }
+.dkc.dim { filter: grayscale(.4) brightness(.8); }
+.cm-cbtn { background: none; border: 0; padding: 0; cursor: pointer; color: inherit; font: inherit; }
+.cm-cbtn[disabled] { cursor: not-allowed; }
+#hand .cm-nhand { min-height: 0; padding-top: 8px; justify-content: center; }
+#hand .cm-nfree { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin-top: 6px; }
+#hand .cm-nfree .btn { white-space: nowrap; }
+.cm-banner { position: absolute; left: 0; right: 0; top: 36%; text-align: center; font: 700 22px var(--display); color: #fff3a0; text-shadow: 0 2px 0 #07050a, 0 0 18px rgba(0,0,0,.8); pointer-events: none; z-index: 4; animation: dkban 1.6s ease-out forwards; }
+#mapchips .cm-cmb { border-color: var(--coin); color: #fff3a0; }
+#mapchips .cm-hint { border-color: #b08fff; color: #e0d0ff; }
+.hbar .cm-por { display: inline-flex; width: 26px; height: 26px; align-items: center; justify-content: center; }
+.hbar .cm-por img { width: 26px; height: 26px; image-rendering: pixelated; }
+.hbar .cm-faith b { color: #c8a8ff; }
+.cm-start { max-width: 620px; }
+.cm-looks, .cm-eggs { display: grid; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 6px; width: 100%; }
+.cm-look, .cm-egg { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 2px; background: var(--panel2); border: 2px solid var(--line); color: var(--text); font: 700 12px var(--body); cursor: pointer; word-break: keep-all; text-align: center; }
+.cm-look.on, .cm-egg.on { border-color: var(--coin); background: #2a2410; }
+.cm-egg small { font-weight: 400; color: var(--mute); font-size: 11px; }
+.cm-kept { box-shadow: 0 0 0 3px #fff3a0, 0 8px 18px rgba(0,0,0,.6) !important; }
+.cm-molt { width: 100%; max-width: 520px; display: flex; flex-direction: column; align-items: center; }
+.cm-morph { display: flex; align-items: center; justify-content: center; gap: 14px; margin: 10px 0; min-height: 140px; }
+.cm-morph img { image-rendering: pixelated; }
+.cm-b0 { opacity: .55; filter: grayscale(.5); }
+.cm-ar { color: var(--coin); font-size: 22px; font-weight: 700; }
+.cm-lm { color: #fff3a0; font: 700 18px var(--display); text-align: center; margin: 4px 0; text-shadow: 0 0 14px #e8c030; } .cm-lm small { display: block; font: 400 13px var(--body); color: var(--mute); text-shadow: none; }
+.cm-tags { margin: 8px 0; }
+.cm-muts { display: flex; flex-direction: column; gap: 6px; align-items: center; }
+.cm-final { display: flex; flex-direction: column; align-items: center; gap: 4px; margin: 8px 0; } .cm-final img { image-rendering: pixelated; }
+.cm-forms .cm-form { width: 100%; padding: 6px 2px; background: var(--panel2); border: 1px solid var(--line); text-align: center; font-size: 12px; word-break: keep-all; }
+.cm-form.off { opacity: .45; } .cm-form.on { border-color: var(--coin); }
+.cm-lmk { display: block; font-size: 26px; color: #fff3a0; line-height: 1.4; } .cm-form.off .cm-lmk { color: var(--mute); }
+.dk-li.cm-on { border-left-color: #fff3a0; background: #2a2410; }
+#game.night #chand .cm-held { display: flex; }
+#game.cm #mnav .ib { min-width: 48px; padding-inline: 2px; }
+#game.cm #mnav .end { min-width: 72px; }
+@media (max-width: 400px) { #game.cm #mnav { gap: 4px; } #game.cm #mnav .ib { min-width: 44px; } }
+#cm-sheet .dk-x { position: sticky; top: 0; float: right; z-index: 3; margin: -2px -2px 0 8px; }
+.cm-keepg { width: 100%; max-width: 520px; margin: 8px 0; }
+@media (max-width: 420px) { .hbar .cm-act { display: none; } .hbar .cm-por { width: 22px; } .hbar .cm-por img { width: 22px; height: 22px; } }
