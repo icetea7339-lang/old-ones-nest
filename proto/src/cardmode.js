@@ -11,7 +11,7 @@ const CARDMODE = (function () {
     rarW: { c: 60, u: 32, r: 8 }, pity: 3, shopN: 4, shopPrice: { c: 34, u: 58, r: 96 }, unlockCap: 8, words: 3,
     needleDig: 0.05, infMax: 3, burn: 15,
     // 빛깔마다 처음 진액이 조금 다르다: 기아는 굶은 채로, 황혼은 사람들이 바친 것을 들고 온다
-    goldBy: { hunger: -50, dusk: 45 },
+    goldBy: (typeof process !== 'undefined' && process.env && process.env.GOLDBY ? JSON.parse(process.env.GOLDBY) : { hunger: -35, dusk: 55 }),
   };
   // ---- 씨앗 ----
   const rnd = R => { let t = (R.rs = (R.rs + 0x6D2B79F5) >>> 0); t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
@@ -32,7 +32,8 @@ const CARDMODE = (function () {
   // ---- 판 ----
   function newMeta() { return { runs: 0, actBy: {}, winBy: {}, words: {}, worlds: {}, unlocked: {}, parts: {}, tot: {}, queue: [] }; }
   function newRun(seed, o) {
-    o = o || {}; const aspect = ASPS.includes(o.aspect) ? o.aspect : ASPS[seed % 5], meta = o.meta || newMeta();
+    o = o || {}; const ps = o.proSeed || null, aspect = ASPS.includes(o.aspect) ? o.aspect : ps && ASPS.includes(ps.aspect) ? ps.aspect : ASPS[seed % 5], meta = o.meta || newMeta();
+    if (ps && !o.look && ps.look) o.look = ps.look;
     const pr = Object.assign(N.proResult(aspect, 'avg'), { kin: [], skipped: true });
     const G = N.newGame(seed, aspect, { cards: true, diff: o.diff || 1, world: o.world || undefined, prologue: pr });
     if (o.look) G.slime.look = String(o.look);
@@ -40,6 +41,8 @@ const CARDMODE = (function () {
     const R = { seed, rs: (seed ^ 0x5bd1e995) >>> 0, G, meta, aspect, deck: [], drawP: [], hand: [], disc: [], nextUid: 1, retain: K.retain, phase: 'day', offer: null, shop: null, needle: null, needleOffer: false, needlePity: 0, pity: 0, learned: [], log: [], over: null,
       st: { kills: 0, swallow: 0, infRise: 0, spawned: 0, skills: 0, nightsWon: 0, captives: 0, kinEvo: 0, secrets: 0, digs: 0, shapes: 0, organs: 0, traps: 0, digestEss: 0, needleWins: 0, needleBig: 0, blocks: 0, bossWon: 0, limbKills: 0, curses: 0, maxGold: K.startGold } };
     CD.START[aspect].forEach(id => addCard(R, id));
+    // 한 방울에서 단 부위: 기억해 두고(팔다리 카드가 열린다), 가장 높은 둘은 처음 덱에 팔다리 카드로 든다
+    if (ps) { R.proSeed = ps; const parts = (ps.parts || []).filter(p => p && p.id); rememberParts(meta, parts.map(p => p.id)); parts.slice().sort((a, b) => (b.lv || 1) - (a.lv || 1)).slice(0, 2).forEach(p => { if (CD.BY['lb_' + p.id]) addCard(R, 'lb_' + p.id); }); }
     if (GEN()) GEN().start(R, o.egg || null);
     R.drawP = shuffle(R, R.deck.map(c => c.uid));
     // 첫 아침에는 권속 둘과 굴 하나가 먼저 온다
@@ -182,20 +185,29 @@ const CARDMODE = (function () {
 
   // ---- 밤 ----
   // decide 는 logic.js 의 밤 물음을 받는 함수 (steward.decide 와 같다). keep = 손에 남길 카드 uid (R.retain 장까지)
-  function endDay(R, decide, keep) {
+  // 밤은 셋으로 나뉜다: 밤 앞(nightBegin) → 원래 게임의 밤(N.beginNight 또는 N.endDay) → 밤 뒤(nightEnd).
+  // 화면은 밤 앞·뒤를 이 함수로 부르고 가운데만 보여 주며 돈다. 규칙이 밤을 한 번만 돌리므로 화면과 규칙이 어긋날 수 없다.
+  // 카드 판의 허물은 달력(정산일 정수)이 아니라 한 일의 양으로 온다: 밤 동안 정수를 잠시 비워 원래 게임의 허물을 막는다.
+  function nightBegin(R) {
     if (R.phase !== 'day') return fail('낮이 아니다');
     const G = R.G; while (R.moltQ && GEN()) GEN().molt(R); syncHeld(R);
     const cmb = N.cardCombos(G), mt = G.march.tonight; cmb.forEach(x => { R.st['cmb_' + x.id] = (R.st['cmb_' + x.id] || 0) + 1; gs(G, 'cmb', x.id); }); G.stats.combos = (G.stats.combos || 0) + cmb.length;
-    const kin0 = G.kin.filter(m => m.kind !== 'spawn').map(m => m.id), hp0 = G.slime.hp; if (mt && G.kin.filter(m => m.kind !== 'spawn' && m.loc !== null).length <= 1) G.stats.nightsAlone = (G.stats.nightsAlone || 0) + 1;
+    if (mt && G.kin.filter(m => m.kind !== 'spawn' && m.loc !== null).length <= 1) G.stats.nightsAlone = (G.stats.nightsAlone || 0) + 1;
     const curse = inHand(R, d => d.type === 'curse');
     if (mt && curse.some(c => def(c).fx.angry)) mt.angry = true;
     curse.forEach(c => { if (def(c).fx.nightTax) G.gold -= Math.round(def(c).fx.nightTax * cmG(R)); });
-    const st0 = G.slime.stage, r = N.endDay(G, decide || (() => ({ k: 'none' })));
-    if (G.slime.stage > st0) R.moltQ = (R.moltQ || 0) + (G.slime.stage - st0);
+    const ess = Object.assign({}, G.slime.ess); Object.keys(G.slime.ess).forEach(a => { G.slime.ess[a] = 0; });
+    R.night0 = { kin0: G.kin.filter(m => m.kind !== 'spawn').map(m => m.id), hp0: G.slime.hp, st0: G.slime.stage, ess };
+    return ok('밤');
+  }
+  function nightEnd(R, r, keep) {
+    const G = R.G, n0 = R.night0 || { kin0: [], hp0: G.slime.hp, st0: G.slime.stage, ess: {} }; R.night0 = null; r = r || { battle: null, settle: null };
+    Object.keys(n0.ess || {}).forEach(a => { G.slime.ess[a] = (n0.ess[a] || 0) + (G.slime.ess[a] || 0); });
+    if (G.slime.stage > n0.st0) R.moltQ = (R.moltQ || 0) + (G.slime.stage - n0.st0);
     (G.cardUsed || []).forEach(uid => { const c = R.deck.find(x => x.uid === uid), d = c && def(c); if (d) (d.tags || []).forEach(t => gs(G, 'cardTags', t)); discard(R, uid); }); G.cardUsed = []; G.cardHeld = [];
-    { const now = new Set(G.kin.map(m => m.id)), lost = kin0.filter(id => !now.has(id)).length; if (lost) G.stats.kinLost = (G.stats.kinLost || 0) + lost; if (r.battle) G.stats.coreDamage = (G.stats.coreDamage || 0) + Math.max(0, Math.round(hp0 - G.slime.hp)); }
+    { const now = new Set(G.kin.map(m => m.id)), lost = n0.kin0.filter(id => !now.has(id)).length; if (lost) G.stats.kinLost = (G.stats.kinLost || 0) + lost; if (r.battle) G.stats.coreDamage = (G.stats.coreDamage || 0) + Math.max(0, Math.round(n0.hp0 - G.slime.hp)); }
     if (r.battle) { G.stats.routs = (G.stats.routs || 0) + (r.battle.fled || 0); if (!G.over && !r.battle.party.some(u => ['torch', 'lightcrew'].includes(u.kind) || (N.INV[u.kind] && N.INV[u.kind].flood))) G.stats.nightsDark = (G.stats.nightsDark || 0) + 1; }
-    syncCounters(R); if (GEN() && R.genome) GEN().feed(R, behaviour(R));
+    syncCounters(R); if (GEN() && R.genome) { GEN().feed(R, behaviour(R)); if (!G.over && GEN().ripe) GEN().ripe(R); }
     R.st.skills = G.stats.skills || 0;
     // 손은 R.retain 장까지 남긴다 (고르지 않았으면 기술 먼저)
     const want = (keep || R.hand.slice().sort((a, b) => (def(card(R, b)).type === 'skill') - (def(card(R, a)).type === 'skill'))).filter(u => R.hand.includes(u) && def(card(R, u)).type !== 'curse').slice(0, R.retain);
@@ -211,6 +223,25 @@ const CARDMODE = (function () {
     if (G.over) { endRun(R); return Object.assign({ ok: true }, { night: r }); }
     if (R.phase === 'day') morning(R);
     return { ok: true, night: r };
+  }
+  function endDay(R, decide, keep) {
+    const b = nightBegin(R); if (!b.ok) return b;
+    const r = N.endDay(R.G, decide || (() => ({ k: 'none' })));
+    return nightEnd(R, r, keep);
+  }
+  // 오늘 밤을 미리 굴려 본다 (판을 건드리지 않는다): 손을 쓰지 않으면 어떻게 끝나나
+  function foresee(R) {
+    const G0 = R.G; if (!G0.march.tonight || R.phase !== 'day') return null;
+    let G; try { G = JSON.parse(JSON.stringify(G0)); } catch (e) { return null; }
+    G.cardHeld = []; const hp0 = G.slime.hp, falls0 = G.falls || 0;
+    Object.keys(G.slime.ess).forEach(a => { G.slime.ess[a] = 0; });
+    let r; try { r = N.endDay(G, () => ({ k: 'none' })); } catch (e) { return null; }
+    const b = r && r.battle; if (!b) return null;
+    const n = b.party.length || b.count || 0, stopped = Math.min(n, (b.kills || 0) + (b.fled || 0) + ((b.captives || []).length)), fell = !!b.fell || (G.falls || 0) > falls0 || !!G.over;
+    const lost = Math.max(0, hp0 - G.slime.hp) / Math.max(1, hp0);
+    const level = fell ? 'fatal' : (b.result === 'repel' && lost < 0.15 ? 'safe' : 'risk');
+    const cnt = {}; b.party.forEach(u => { cnt[u.kind] = (cnt[u.kind] || 0) + 1; });
+    return { n, stopped, fell, lost: +lost.toFixed(2), level, result: b.result, kinds: Object.keys(cnt), count: cnt };
   }
 
   // ---- 보상: 셋 중 하나 ----
@@ -347,6 +378,7 @@ const CARDMODE = (function () {
   const moltPending = R => !!(R.moltQ && R.genome);
   const molt = R => (GEN() ? GEN().molt(R) : null);
   const layEgg = R => (GEN() ? GEN().layEgg(R) : null);
+  const evoBar = R => (GEN() && GEN().evoBar ? GEN().evoBar(R) : null);
   const codex = meta => (GEN() ? GEN().codex(meta) : { found: 0, list: [], landmarksFound: 0, landmarks: [], total: 30 });
   function genomeSummary(R) { const T = typeof TRAITS !== 'undefined' ? TRAITS : require('./traits.js'); return R.genome ? T.summary(R.genome) : null; }
 
@@ -355,7 +387,7 @@ const CARDMODE = (function () {
   function deckView(R) { return R.deck.map(c => Object.assign(view(R, c), { where: R.hand.includes(c.uid) ? 'hand' : R.drawP.includes(c.uid) ? 'draw' : 'disc' })); }
   function dayView(R) { return { day: R.G.day, phase: R.phase, gold: R.G.gold, faith: R.G.faith, hand: handView(R), drawN: R.drawP.length, discN: R.disc.length, deckN: R.deck.length, retain: R.retain, combos: N.cardCombos(R.G), shop: (R.shop || []).map((s, i) => Object.assign({ i }, s, { card: view(R, { uid: 0, id: s.id, up: 0 }) })), offer: R.offer ? R.offer.cards.map(id => view(R, { uid: 0, id, up: 0 })) : null, needleOffer: R.needleOffer, upCost: upCost(R), rmCost: rmCost(R), log: R.log.splice(0), learned: R.learned.slice() }; }
 
-  return { K, ALIEN, SIGNS, NHANDS, newMeta, newRun, addCard, costOf, view, canPlay, play, cellsFor, shapePlacements, endDay, morning, syncHeld, draw,
+  return { K, ALIEN, SIGNS, NHANDS, newMeta, newRun, addCard, costOf, view, canPlay, play, cellsFor, shapePlacements, endDay, nightBegin, nightEnd, foresee, evoBar, morning, syncHeld, draw,
     takeReward, skipReward, rerollReward, shopOffer, shopBuy, upgrade, removeCard, upCost, rmCost,
     needleStart, needleBet, needleReveal, needleFold, needlePublic, needleEval, needleBest,
     registerMutator, clearMutators, mutateDeck, behaviour, syncCounters, COUNTERS,

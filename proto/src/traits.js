@@ -102,7 +102,7 @@ const TRAITS = (function () {
     { id: 'plague', name: '역병 그 자체', text: '닿는 것마다 자기 것이 된다', f: ['spore'], fx: g => cnt(g, 'infections') >= 100, when: g => cnt(g, 'infections') >= 100 && shr(g, 'spore') > 0.36 && shr(g, 'root') < 0.1 },
     { id: 'scarred', name: '흉터투성이', text: '받은 상처가 다 갑옷이 됐다', f: ['shell', 'spike'], fx: g => cnt(g, 'coreDamage') >= 2500, when: g => cnt(g, 'coreDamage') >= 2000 && cnt(g, 'coreKills') >= 40 && shr(g, 'shell') + shr(g, 'spike') + shr(g, 'bone') > 0.46 },
     { id: 'echo', name: '위대한 것의 메아리', text: '다섯 빛깔이 다 섞였다. 저 아래의 것을 가장 닮았다', when: g => g.stage >= 5 && TAG_IDS.filter(t => share(g, t) > 0.045).length >= (g.norm ? 10 : 9) && Math.max.apply(null, TAG_IDS.map(t => share(g, t))) < (g.norm ? 0.105 : 0.15) },
-    { id: 'tiny', name: '작은 채로 다 큰 것', text: '끝까지 작았지만 누구보다 오래 살았다', when: g => g.stage <= 3 && cnt(g, 'bossKills') >= 2 },
+    { id: 'tiny', name: '작은 채로 다 큰 것', text: '끝까지 작았지만 누구보다 오래 살았다', when: g => g.stage <= 3 && cnt(g, 'bossKills') >= 4 },
     { id: 'hollow', name: '속이 빈 것', text: '먹어도 먹어도 비어 있다', f: ['gut', 'alone'], when: g => shr(g, 'gut') > 0.3 && shr(g, 'alone') > 0.25 },
     { id: 'crowned', name: '뼈 왕관을 쓴 것', text: '우두머리들의 뿔을 이어 붙였다', f: ['horn'], fx: g => cnt(g, 'bossKills') >= 2, when: g => shr(g, 'horn') > 0.3 && cnt(g, 'bossKills') >= 3 },
     { id: 'patient', name: '기다리는 것', text: '한 자리에서 움직이지 않고 다 먹었다', f: ['maw', 'root'], when: g => classOf(g).loco === 'root' && shr(g, 'maw') > 0.18 && shr(g, 'maw') + shr(g, 'trap') > 0.48 },
@@ -131,7 +131,35 @@ const TRAITS = (function () {
   // 같은 셈도 시드에 따라 아주 조금 흔들린다: 비슷하게 놀아도 판마다 조금씩 다른 쪽으로 기운다
   const hash = (s) => { let h = 2166136261 >>> 0; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; } return h >>> 0; };
   const rng = seed => { let s = (seed >>> 0) || 1; return () => { s = (s + 0x6D2B79F5) >>> 0; let t = s; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; };
-  function newGenome(o) { o = o || {}; return { norm: !!o.norm, aspect: o.aspect || 'abyss', sub: o.sub || null, stage: o.stage || 1, tags: {}, seed: (o.seed >>> 0) || 1, lineage: o.lineage || [], feed: {}, seen: {} }; }
+  // 처음 몸(seeds.js 의 열다섯): 고른 몸이 첫날의 몸이 된다. 작은 씨앗 형질로 들어가 놀이가 쌓이면 묻힌다
+  const LOOKSEED = { drop: { water: 1 }, sliver: { star: 1, wing: 0.5 }, bead: { shell: 1 }, husk: { shell: 0.6, bone: 0.7 }, mote: { shadow: 1 }, coil: { tent: 1 }, eye: { eye: 1.2 }, twin: { eye: 0.7, face: 0.6 },
+    horn: { horn: 1.2 }, sticky: { tongue: 1 }, flat: { shadow: 0.6, shell: 0.6 }, glow: { glow: 1.2 }, spore: { spore: 1.2 }, pod: { egg: 1.2 }, thorn: { spike: 1.2 } };
+  const LOOKW = 1.6, LOOKF = typeof process !== 'undefined' && process.env && process.env.LOOKF ? +process.env.LOOKF : 0.14;
+  // 서술(문어체 과거형): 무엇을 했나(앞 절, "-고") → 몸 어디에 무엇이 돋았나(뒤 절). 숫자는 접어 둔 곳에만
+  const DID = { trapKills: '덫에 걸려 죽은 것들의 맛이 살갗에 배었고', kinKills: '권속이 물어 온 피가 몸 안을 돌았고', coreKills: '그것이 몸소 짓이긴 것들이 속에 남았고', swallows: '통째로 삼킨 것들이 아직 안에서 꿈틀거렸고', infections: '포자를 옮겨 받은 몸들이 굴 밖에서 썩어 갔고',
+    risen: '감염된 것들이 다시 일어섰고', captives: '산 채로 붙든 것들의 떨림이 굴 벽을 타고 전해졌고', converts: '그것을 믿게 된 자들의 기도가 어둠에 쌓였고', eaten: '먹어 치운 살이 그것의 살이 되었고', kinLost: '잃어버린 살붙이의 빈자리가 식어 갔고',
+    nightsAlone: '곁에 아무도 없는 밤이 이어졌고', kinMade: '살이 거듭 갈라져 나갔고', spawns: '움이 쉬지 않고 돋았고', skillsUsed: '밤마다 그것의 손길이 굴 안을 더듬었고', wordsLearned: '삼킨 자들의 말이 안에서 웅얼거렸고', coreDamage: '찢긴 상처가 아물지 않은 채 굳었고',
+    digestKills: '위액에 녹은 것들이 굴 바닥에 고였고', waterKills: '물에 잠긴 자들이 다시 떠오르지 않았고', pulled: '끌려온 것들의 발버둥이 흙에 새겨졌고', madness: '미쳐 버린 눈동자들이 그것을 비추었고', routs: '달아난 자들의 겁에 질린 냄새가 굴에 남았고', shapesPlaced: '굴은 깊고 길게 뻗어 나갔고',
+    organsPlaced: '굴 벽마다 새 기관이 박동했고', trapsPlaced: '굴 곳곳에 그것의 일부가 덫으로 매달렸고', combos: '굴의 모양이 어떤 오래된 무늬와 맞물렸고', nightsDark: '빛 한 줄기 없는 밤이 이어졌고', bossKills: '쓰러진 우두머리의 무게가 그것을 짓눌렀고',
+    ess_abyss: '깊은 물의 기운이 스며들었고', ess_nebula: '별 사이의 빛이 스며들었고', ess_brood: '번식의 기운이 스며들었고', ess_dusk: '황혼의 기운이 스며들었고', ess_hunger: '굶주림이 스며들었고' };
+  const GREW = { maw: '배에 새 아가리가 벌어졌다', spore: '등에 포자 주머니가 부풀어 올랐다', eye: '살갗 위로 눈이 하나둘 떠올랐다', water: '몸이 젖은 지느러미로 덮였다', bone: '안쪽에서부터 뼈가 굳어 갔다', tent: '옆구리에서 촉수가 뻗어 나왔다',
+    egg: '배 밑에 알이 매달렸다', spike: '등에 가시가 돋았다', face: '몸 한쪽에 사람의 얼굴이 떠올랐다', gut: '속이 위액 주머니로 채워졌다', shadow: '몸 둘레에 그림자가 엉겨 붙었다', star: '살 속에 별빛 같은 점이 박혔다',
+    trap: '피부 한 곳이 덫처럼 오므라드는 기관으로 바뀌었다', alone: '살은 홀로 서기 위해 굳어 갔다', swarm: '몸이 여럿으로 나뉘어 서로 붙었다', shell: '등이 단단한 껍질로 덮였다', wing: '팔 사이에 얇은 막이 펼쳐졌다',
+    glow: '살갗 아래로 희미한 빛이 번졌다', root: '발밑에서 뿌리가 흙을 파고들었다', mirror: '살갗이 거울처럼 매끈해졌다', tongue: '입 밖으로 긴 혀가 늘어졌다', horn: '머리에 뿔이 솟았다' };
+  // 한 형질이 왜 돋았나를 한 문장으로 (원인 셈이 없으면 결과만)
+  function tell(t, k) {
+    const g = GREW[t] || '몸이 조금 달라졌다';
+    if (!k) return '어느새 ' + g + '.';
+    if (k.indexOf('look:') === 0) return '떨어질 때 받은 모양이 아직 남아 있었고, ' + g + '.';
+    if (k.indexOf('pro:') === 0) return ['한 방울이던 때 삼킨 것들이 아직 몸 안에 남아 있었고', '흙 속을 기어 다니던 날들이 살에 새겨졌고', '처음 깨어난 어둠의 맛이 가시지 않았고'][TAG_IDS.indexOf(t) % 3] + ', ' + g + '.';
+    if (k.indexOf('tag:') === 0) { const tn = TAGS[k.slice(4)] ? TAGS[k.slice(4)].name : ''; return (tn ? tn + '의 기운을 거듭 불러낸 버릇이 몸에 배었고, ' : '같은 것을 거듭 불러낸 버릇이 몸에 배었고, ') + g + '.'; }
+    return (DID[k] || '굴에서 일어난 일들이 몸에 남았고') + ', ' + g + '.';
+  }
+  // 허물의 "왜": 위쪽 형질 셋을 이야기로
+  function narrate(g, n) { return topTags(g, n || 3).map(t => { const f = (g.feed[t] || [])[0]; return tell(t, f ? f[0] : null); }); }
+  // 하루 사이 가장 크게 자란 형질과 그 까닭
+  function grewMost(g0, g1) { let best = null, bv = 0; for (const t of TAG_IDS) { const d = (g1.tags[t] || 0) - ((g0 && g0.tags[t]) || 0); if (d > bv) { bv = d; best = t; } } if (!best) return null; const f = (g1.feed[best] || [])[0]; return { tag: best, gain: +bv.toFixed(2), line: tell(best, f ? f[0] : null) }; }
+  function newGenome(o) { o = o || {}; return { norm: !!o.norm, aspect: o.aspect || 'abyss', sub: o.sub || null, stage: o.stage || 1, tags: {}, seed: (o.seed >>> 0) || 1, lineage: o.lineage || [], feed: {}, seen: {}, look: o.look && LOOKSEED[o.look] ? o.look : null, pro: o.pro || null }; }
   function addBehaviour(g, counters) {
     const seen = g.seen = Object.assign({}, g.seen || {});
     for (const k in counters) seen[k] = (seen[k] || 0) + (+counters[k] || 0);
@@ -144,6 +172,10 @@ const TRAITS = (function () {
       if (w > 0) { tags[t] = +(w * (0.94 + 0.12 * rng(hash(t + g.seed))())).toFixed(3); feed[t] = from.sort((a, b) => b[2] - a[2]).slice(0, 2).map(x => [x[0], x[1]]); }
     }
     for (const l of g.lineage || []) for (const t in (l.tags || {})) tags[t] = +((tags[t] || 0) + l.tags[t] * 0.15).toFixed(3);
+    // 한 방울이던 때 얻은 형질: 첫 몸의 바탕으로 그대로 남는다
+    if (g.pro) for (const t in g.pro) { if (!TAGS[t]) continue; tags[t] = +((tags[t] || 0) + g.pro[t]).toFixed(3); if (!feed[t] || !feed[t].length) feed[t] = [['pro:' + t, 1]]; }
+    // 처음 몸은 판 내내 남는다: 쌓인 형질 전체의 일정 몫만큼 (고른 몸이 끝까지 보이게)
+    if (g.look && LOOKSEED[g.look]) { const ls = LOOKSEED[g.look], tot = Object.values(tags).reduce((x, y) => x + y, 0); for (const t in ls) { tags[t] = +((tags[t] || 0) + ls[t] * Math.max(LOOKW, LOOKF * tot)).toFixed(3); if (!feed[t]) feed[t] = [['look:' + g.look, 1]]; } }
     g.tags = tags; g.feed = feed; return g;
   }
   const topTags = (g, n) => TAG_IDS.filter(t => g.tags[t] > 0).sort((a, b) => g.tags[b] - g.tags[a] || a.localeCompare(b)).slice(0, n || 3);
@@ -159,7 +191,8 @@ const TRAITS = (function () {
   const focusOk = (g, l) => { if (g.stage < 3) return false; const top = topTags(g, 6); if (!l.f.every(t => top.includes(t))) return false; const k = l.f.length === 1 ? 1 : 0.92; return l.f.reduce((a, t) => a + deckShare(g, t) / (FTHR[t] || 0.5), 0) / l.f.length >= k * LM_K && (!l.fx || l.fx(g)); };
   function landmarkOf(g) { for (const l of LANDMARKS) { try { if (g.norm && l.f ? focusOk(g, l) : l.when(g)) return l; } catch (e) { /* 조건이 아직 셀 수 없는 것 */ } } return null; }
   const landmarkOk = (g, l) => { try { return g.norm && l.f ? focusOk(g, l) : !!l.when(g); } catch (e) { return false; } };
-  const pickBy = (tbl, rnd) => { const ks = Object.keys(tbl); let best = ks[0], bv = -1; for (const k of ks) { const v = tbl[k] + rnd() * 0.35; if (v > bv) { bv = v; best = k; } } return best; };
+  const PICKN = typeof process !== 'undefined' && process.env && process.env.PICKN ? +process.env.PICKN : 0.7;
+  const pickBy = (tbl, rnd) => { const ks = Object.keys(tbl); let best = ks[0], bv = -1; for (const k of ks) { const v = tbl[k] + rnd() * PICKN; if (v > bv) { bv = v; best = k; } } return best; };
   function classOf(g) {
     const r = rng(hash('cls' + g.seed + g.aspect)), lo = {}, po = {}, sy = {};
     Object.keys(LOCO).forEach(k => { lo[k] = 0; }); Object.keys(POST).forEach(k => { po[k] = 0; }); Object.keys(SYM).forEach(k => { sy[k] = 0; });
@@ -193,13 +226,13 @@ const TRAITS = (function () {
   }
   function describe(g) {
     const out = [];
-    for (const t of topTags(g, 3)) { const f = (g.feed[t] || [])[0]; if (f) out.push((f[0].indexOf('tag:') === 0 ? TAGS[f[0].slice(4)].name + ' 카드를 냄' : COUNTERS[f[0]]) + ' ' + f[1] + ' → ' + TAGS[t].name); else out.push('물려받은 것 → ' + TAGS[t].name); }
+    for (const t of topTags(g, 3)) { const f = (g.feed[t] || [])[0]; if (f && f[0].indexOf('look:') === 0) out.push('처음 받은 몸 → ' + TAGS[t].name); else if (f && f[0].indexOf('pro:') === 0) out.push('한 방울 때 얻은 것 → ' + TAGS[t].name); else if (f) out.push((f[0].indexOf('tag:') === 0 ? TAGS[f[0].slice(4)].name + ' 카드를 냄' : COUNTERS[f[0]]) + ' ' + f[1] + ' → ' + TAGS[t].name); else out.push('물려받은 것 → ' + TAGS[t].name); }
     return out;
   }
   // 판의 결과로 다음 판에 남길 것: 위쪽 형질 셋의 무게
   function inherit(g) { const t = {}; topTags(g, 3).forEach(k => { t[k] = g.tags[k]; }); return { tags: t, aspect: g.aspect, name: nameOf(g).name }; }
   function summary(g) { const c = classOf(g), n = nameOf(g), lm = landmarkOf(g); return { name: n.name, title: n.title, cls: c, clsText: [POST[c.post], LOCO[c.loco], PLAN[c.plan], SYM[c.sym]].join(' · '), top: topTags(g, 3).map(t => TAGS[t].name), combos: combosOf(g).map(x => x.name), landmark: lm ? lm.name : null, lines: describe(g), hints: topTags(g, 3).map(t => TAGS[t].hint) }; }
 
-  return { ASPS, ASPN, COUNTERS, TAGS, TAG_IDS, LOCO, POST, SYM, PLAN, COMBOS, LANDMARKS, newGenome, addBehaviour, topTags, combosOf, landmarkOf, landmarkOk, classOf, nameOf, describe, inherit, summary, share, hash, rng };
+  return { LOOKSEED, tell, narrate, grewMost, ASPS, ASPN, COUNTERS, TAGS, TAG_IDS, LOCO, POST, SYM, PLAN, COMBOS, LANDMARKS, newGenome, addBehaviour, topTags, combosOf, landmarkOf, landmarkOk, classOf, nameOf, describe, inherit, summary, share, hash, rng };
 })();
 if (typeof module !== 'undefined') module.exports = TRAITS;

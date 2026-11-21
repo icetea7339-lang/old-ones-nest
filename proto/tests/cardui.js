@@ -88,6 +88,13 @@ const dev = process.argv[2] || '', tag = (dev ? dev.replace(/\s+/g, '') : 'pc') 
   await tap('#cm-ov [data-c="again"]'); await shot('start_egg');
   const eggs = await p.evaluate(() => (__card.META.cards.eggs || []).length); if (!eggs) bad.push('알이 남지 않았다');
   await tap('#cm-ov [data-c="home"]'); await shot('back_title');
+  // 처음 하는 사람의 시작: 여는 이야기 → 짧은 한 방울 → 그 씨앗으로 첫 판 (한 방울은 실제로 돌리지 않고 같은 꼴의 씨앗을 돌려준다)
+  { const seed = { aspect: 'nebula', sub: 'brood', look: 'eye', tags: { eye: 3.2, star: 1.5, spore: 0.8 }, top: ['eye', 'star', 'spore'], parts: [{ id: 'eye_nebula', lv: 2, slot: 'eye', asp: 'nebula' }], ess: {}, time: 140, fell: false, stage: 3 };
+    await p.evaluate(seed => { const m = __card.META.cards; m.opened = 0; m.runs = 0; localStorage.removeItem('oldnest.cardrun'); window.__forceOpening = true; window.__openingCalls = 0; window.playOpening = async o => { window.__openingCalls++; window.__openingOpts = o; return seed; }; }, seed);
+    await tap('[data-a="deck"]'); await p.waitForTimeout(500); await shot('opening_day1');
+    const got = await p.evaluate(() => { const R = __card.run; return R ? { calls: window.__openingCalls, asp: R.aspect, look: R.G.slime.look, eye: (R.genome && R.genome.tags.eye) || 0, star: (R.genome && R.genome.tags.star) || 0, limb: R.deck.some(c => c.id === 'lb_eye_nebula'), top: TRAITS.topTags(R.genome, 1)[0] } : null; });
+    if (!got || got.calls !== 1) bad.push('처음 판에 한 방울이 열리지 않았다'); else { if (got.asp !== 'nebula' || got.look !== 'eye') bad.push('한 방울의 빛깔·몸이 판에 오지 않았다'); if (!(got.eye >= 3.2 && got.star >= 1.5) || got.top !== 'eye') bad.push('한 방울의 형질이 첫 몸에 오지 않았다 ' + JSON.stringify(got)); if (!got.limb) bad.push('한 방울의 부위가 팔다리 카드로 오지 않았다'); }
+    await p.evaluate(() => { window.__forceOpening = false; }); }
   await b.close();
   if (warns.length) console.log(tag, '밤 되돌려 다시 돌리기 차이:', warns.join(' | '));
   console.log(tag, '화면 ' + n + ' 개 · ' + (bad.length ? '문제 ' + bad.length + '\n  ' + bad.join('\n  ') : '잘린 글 없음') + ' · ' + (errs.length ? 'ERR ' + errs.join(' | ') : 'no errors'));

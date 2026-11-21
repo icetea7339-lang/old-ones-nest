@@ -76,8 +76,9 @@ const GENOME = (function () {
   // ---- 판의 게놈 ----
   const snap = g => JSON.parse(JSON.stringify(g));
   function start(R, egg) {
-    const G = R.G, g = T.newGenome({ norm: true, aspect: R.aspect, seed: (R.seed ^ 0x2c1b3c6d) >>> 0, stage: 1, lineage: egg ? [egg] : [] });
-    if (egg) { T.addBehaviour(g, {}); R.egg = egg; }
+    const G = R.G, ps = R.proSeed || null, pro = {}; if (ps && ps.tags) { const tw = Object.values(ps.tags).reduce((a, b) => a + b, 0) || 1, k = 1 + 0.5 * Math.min(1, (ps.stage || 1) / 3); for (const t in ps.tags) if (T.TAGS[t]) pro[t] = +(ps.tags[t] * k * Math.max(1, 6 / tw)).toFixed(3); }
+    const g = T.newGenome({ norm: true, aspect: R.aspect, sub: ps && ps.sub || null, seed: (R.seed ^ 0x2c1b3c6d) >>> 0, stage: 1, lineage: egg ? [egg] : [], look: G.slime.look || null, pro: Object.keys(pro).length ? pro : null });
+    T.addBehaviour(g, {}); if (egg) R.egg = egg; g.evo = 0;
     R.genome = g; R.geneLast = {}; R.moltQ = 0; R.molts = [];
     R.st.molts = 0; R.st.landmarks = 0; R.st.forms = 0; R.st.eggRun = egg ? 1 : 0; R.st.geneCards = 0;
     // 물려받은 형질 가운데 가장 큰 것이 처음 덱의 두 장을 다시 쓴다
@@ -89,7 +90,10 @@ const GENOME = (function () {
     const g = R.genome; if (!g) return; const now = {}, d = {}; let any = false;
     for (const k in T.COUNTERS) { now[k] = +(behaviour[k] || 0); const x = now[k] - (R.geneLast[k] || 0); if (x > 0) { d[k] = x; any = true; } }
     const ct = behaviour.cardTags || {}; T.TAG_IDS.forEach(t => { const k = 'tag:' + t; now[k] = +(ct[t] || 0); const x = now[k] - (R.geneLast[k] || 0); if (x > 0) { d[k] = x; any = true; } });
+    const s0 = Object.values(g.tags).reduce((a, b) => a + b, 0);
     R.geneLast = now; if (any) T.addBehaviour(g, d);
+    // 진화의 정수: 하룻밤 사이 형질이 자란 만큼 (늘 조금은 차오른다). 문턱을 넘으면 허물이 익는다(ripe)
+    const s1 = Object.values(g.tags).reduce((a, b) => a + b, 0); g.evo = +((g.evo || 0) + (EVO.asp[g.aspect] || 1) * (EVO.base + EVO.k * Math.max(0, s1 - s0))).toFixed(3);
     // 덱 = 유전자: 밤마다 덱에 어떤 꼬리표가 얼마나 들었는지 쌓는다 (일부러 한 갈래를 모았는지 보는 잣대)
     const dt = {}; let dn = 0; R.deck.forEach(c => { const dd = CD.BY[c.id] || (typeof ensure === 'function' ? ensure(c.id) : null); if (!dd || dd.type === 'shape' || dd.type === 'curse') return; dn++; (dd.tags || []).forEach(t => { dt[t] = (dt[t] || 0) + 1; }); });
     g.deckN = (g.deckN || 0) + dn; g.deckT = g.deckT || {}; for (const t in dt) g.deckT[t] = (g.deckT[t] || 0) + dt[t];
@@ -122,6 +126,25 @@ const GENOME = (function () {
     return fx;
   }
 
+  // ---- 허물이 익는다: 달력이 아니라 한 일의 양으로 ----
+  // need = 허물마다 넘어야 할 진화의 정수(쌓인 값). 본체(원래 게임의 몸)도 함께 한 단계 큰다: 첫 허물에 바탕 징조, 둘째에 섞인 징조
+  const envN = (k, d) => (typeof process !== 'undefined' && process.env && process.env[k] != null ? +process.env[k] : d);
+  // 빛깔마다 몸이 바뀌는 빠르기가 다르다 (성운은 별처럼 빨리 일그러지고, 심연은 느리게 가라앉는다)
+  const EVO = { asp: (typeof process !== 'undefined' && process.env && process.env.EVOA ? JSON.parse(process.env.EVOA) : { abyss: 0.78, nebula: 1.3, brood: 1.25, dusk: 0.95, hunger: 1.1 }), base: envN('EVOB', 1), k: envN('EVOK', 0.5), need: (typeof process !== 'undefined' && process.env && process.env.EVON ? process.env.EVON.split(',').map(Number) : [70, 430, 720, 1000]) };
+  function moltNeed(R) { return EVO.need[(R.molts || []).length + (R.moltQ || 0)]; }
+  function protMolt(G) {
+    if (G.slime.stage >= 4) return false; const order = N.moltOrder(G);
+    if (G.slime.stage === 0) { G.slime.main = order[0]; const b = N.bodyOf ? N.bodyOf(G) : null; if (b) { G.slime.body = b; G.stats.body = b; } }
+    if (G.slime.stage === 1) G.slime.sub = order.filter(a => a !== G.slime.main)[0];
+    const f = G.slime.hp / Math.max(1, N.slimeStats(G).hp); G.slime.stage++; G.slime.hp = Math.round(N.slimeStats(G).hp * Math.min(1, f + 0.15)); return true;
+  }
+  function ripe(R) {
+    const g = R.genome, G = R.G; if (!g || G.over) return false; const need = moltNeed(R);
+    if (need == null || (g.evo || 0) < need || G.slime.stage >= 4) return false;
+    if (!protMolt(G)) return false; R.moltQ = (R.moltQ || 0) + 1; return true;
+  }
+  const evoBar = R => { const g = R.genome; if (!g) return null; const need = moltNeed(R), prev = (R.molts || []).length + (R.moltQ || 0) ? EVO.need[(R.molts || []).length + (R.moltQ || 0) - 1] || 0 : 0; return need == null || R.G.slime.stage >= 4 ? { done: true } : { cur: +(g.evo || 0).toFixed(2), need, prev, frac: Math.max(0, Math.min(1, ((g.evo || 0) - prev) / Math.max(0.01, need - prev))) }; };
+
   // ---- 허물: 몸이 한 단계 크고, 형질이 덱을 다시 쓴다 ----
   function molt(R) {
     if (!R.genome || !R.moltQ) return null;
@@ -136,7 +159,7 @@ const GENOME = (function () {
     const fx = R.noGene ? null : applyBody(R), lm = T.landmarkOf(g), nm = T.nameOf(g);
     R.st.molts = (R.st.molts || 0) + 1; if (lm) R.st.landmarks = (R.st.landmarks || 0) + 1;
     record(R, g);
-    const res = { before, after: g, lines: T.describe(g), gained, combos: combos.map(c => ({ id: c.id, name: c.name, text: c.text })), landmark: lm ? { id: lm.id, name: lm.name, title: lm.title || lm.text || '' } : null, name: nm, mutated, body: fx, stage: g.stage };
+    const res = { before, after: g, lines: T.narrate ? T.narrate(g) : T.describe(g), nums: T.describe(g), gained, combos: combos.map(c => ({ id: c.id, name: c.name, text: c.text })), landmark: lm ? { id: lm.id, name: lm.name, title: lm.title || lm.text || '' } : null, name: nm, mutated, body: fx, stage: g.stage };
     R.molts.push({ stage: g.stage, name: nm.name, landmark: res.landmark ? res.landmark.id : null }); R.lastMolt = res;
     return res;
   }
@@ -159,6 +182,6 @@ const GENOME = (function () {
     const inh = T.inherit(g), egg = Object.assign(inh, { stage: g.stage, seed: g.seed, day: R.G.day, win: !!(R.G.over && R.G.over.win), landmark: (T.landmarkOf(g) || {}).id || null, t: (m.runs || 0) });
     m.eggs = (m.eggs || []).concat([egg]).slice(-6); R.eggLaid = egg; record(R, g); return egg;
   }
-  return { RW, BB, ensure, start, feed, molt, applyBody, bodyFx, codex, layEgg, formKey, rwText, GENE, canRewrite };
+  return { EVO, ripe, evoBar, moltNeed, RW, BB, ensure, start, feed, molt, applyBody, bodyFx, codex, layEgg, formKey, rwText, GENE, canRewrite };
 })();
 if (typeof module !== 'undefined') module.exports = GENOME;

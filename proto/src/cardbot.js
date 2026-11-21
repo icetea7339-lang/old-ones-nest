@@ -76,7 +76,8 @@ function needlePlay(R) {
 }
 function play(seed, aspect, diff, mode, meta, egg) {
   if (process.env.STYLE && STYLES[process.env.STYLE]) aspect = T.TAGS[STYLES[process.env.STYLE][0]].asp[0];
-  const R = CM.newRun(seed, { aspect, diff, meta, egg: egg || null }), G = R.G, st = { captive: 'mix', raid: 1, spend: 1 }, base = STEWARD.decide(st);
+  const LOOKS = Object.keys(T.LOOKSEED || {}), look = process.env.NOLOOK || !LOOKS.length ? undefined : LOOKS[(seed >>> 3) % LOOKS.length];
+  const R = CM.newRun(seed, { aspect, diff, meta, egg: egg || null, look }), G = R.G, st = { captive: 'mix', raid: 1, spend: 1 }, base = STEWARD.decide(st);
   if (mode === 'nogene') R.noGene = true; if (!process.env.NOPERSONA) R.persona = (process.env.STYLE && styleOf(process.env.STYLE)) || persona(seed);
   const pr = R.persona, rr0 = T.rng(T.hash('d' + seed));
   const decide = mode === 'noskill' ? ctx => { const r = base(Object.assign({}, ctx, { opts: (ctx.opts || []).filter(o => S.SPELL[o.id] && S.SPELL[o.id].free) })); return r; } : pr ? ctx => { const r = base(ctx); return r && r.k && r.k !== 'none' && S.SPELL[r.k] && !S.SPELL[r.k].free && rr0() > pr.skill ? { k: 'none' } : r; } : base;
@@ -89,7 +90,7 @@ function play(seed, aspect, diff, mode, meta, egg) {
     dayPlay(R);
     if (mode === 'nocombo') { G.cardCombosOff = true; }
     const T = process.env.TRACE ? { d: G.day, kin: G.kin.filter(m => m.kind !== 'spawn').length, sp: G.kin.length, org: G.cells.filter((c, i) => c.dug && c.type !== 'empty' && i !== G.core).map(c => c.type).join('+'), tr: G.cells.reduce((a, c) => a + c.traps.length, 0), g: Math.round(G.gold), hp: Math.round(G.slime.hp), st: G.slime.stage, path: (S.paths(G)[0] || []).length, hand: R.hand.length } : null;
-    const rr = CM.endDay(R, decide); while (CM.moltPending(R)) CM.molt(R);
+    const rr = CM.endDay(R, decide); if (R.genome) (R.evoLog = R.evoLog || []).push([G.day, R.genome.evo || 0]); { const mq = (R.molts || []).length + (R.moltQ || 0); R.moltDays = R.moltDays || []; while (R.moltDays.length < mq) R.moltDays.push(G.day); } while (CM.moltPending(R)) CM.molt(R);
     if (T) { const b = rr.night && rr.night.battle; console.log(JSON.stringify(T) + (b ? ' | 밤 ' + b.count + '명 ' + b.result + ' 처치 ' + b.kills : ' | 조용') + ' → hp ' + Math.round(G.slime.hp) + (G.over ? ' 끝: ' + G.over.why : '')); }
   }
   return R;
@@ -100,12 +101,14 @@ if (require.main === module) {
   const n = +(process.argv[2] || 100), which = process.argv[3] || 'all', diff = +(process.argv[4] || 1), mode = process.argv[5] || '', keep = process.env.META === 'keep';
   const asps = which === 'all' ? CD.ASPS : [which], res = {}, cardWin = {}, cmb = {}; let meta = keep ? CM.newMeta() : null, unlockLog = [];
   const bodies = {}, lms = {}, top1 = {}; let molts = 0, geneCards = 0;
+  const moltDay = [[], [], [], []]; let noMolt = 0;
   let snapN = 0, snapW = 0, wins = 0, tot = 0, days = 0, skills = 0, nightsWon = 0, actEnd = [0, 0, 0, 0, 0, 0], kinEnd = 0, cardsEnd = 0;
   for (let s = 1; s <= n; s++) {
     const a = asps[(s - 1) % asps.length], seed = s * 7919 + 13; let R;
     const fresh = () => { const m = CM.newMeta(); if (process.env.ALL) Object.keys(CD.UNLOCK).forEach(id => { m.unlocked[id] = 1; }); return m; };
     try { R = play(seed, a, diff, mode, keep ? meta : fresh()); } catch (e) { console.log('오류 seed', seed, e.stack.split('\n').slice(0, 4).join('\n')); continue; }
     { const g = R.genome; if (g) { const c = T.classOf(g), k = c.loco + '/' + c.post + '/' + c.plan + '/' + c.sym + ':' + T.topTags(g, 3).join('+'); bodies[k] = (bodies[k] || 0) + 1; const l = T.landmarkOf(g); if (l) lms[l.name] = (lms[l.name] || 0) + 1; molts += R.st.molts || 0; geneCards += R.st.geneCards || 0; top1[T.topTags(g, 1)[0]] = (top1[T.topTags(g, 1)[0]] || 0) + 1; } }
+    (R.moltDays || []).slice(0, 4).forEach((d, k) => moltDay[k].push(d)); if (!(R.moltDays || []).length) noMolt++;
     const w = !!R.over.win; tot++; wins += w; days += R.G.day; skills += R.st.skills; nightsWon += R.st.nightsWon; kinEnd += R.G.kin.length; cardsEnd += R.deck.length;
     actEnd[w ? 5 : Math.min(5, Math.floor((R.G.day - 1) / 8) + 1)]++;
     res[a] = res[a] || { n: 0, w: 0 }; res[a].n++; res[a].w += w;
@@ -119,6 +122,7 @@ if (require.main === module) {
   console.log('끝난 막 (1~4막에서 짐, 5=이김): ' + actEnd.slice(1).join(' / '));
   console.log('족보(판당): ' + Object.keys(cmb).map(k => S.CMB[k.slice(4)].name + ' ' + (cmb[k] / tot).toFixed(1)).join(' · '));
   console.log('몸: 허물 ' + (molts / tot).toFixed(1) + '번 · 다시 쓴 카드 ' + (geneCards / tot).toFixed(1) + '장 · 서로 다른 몸(꼴+위 형질 셋) ' + Object.keys(bodies).length + ' · 이정표 ' + Object.keys(lms).length + '가지: ' + Object.keys(lms).map(k => k + ' ' + lms[k]).join(', '));
+  { const med = a => { if (!a.length) return '-'; const b = a.slice().sort((x, y) => x - y); return b[Math.floor(b.length / 2)]; }; console.log('허물 날(가운데 값) 1~4번째: ' + moltDay.map(med).join(' / ') + ' · 첫 허물 4일째까지 ' + pc(moltDay[0].filter(d => d <= 4).length, tot) + '% · 허물 없이 끝 ' + pc(noMolt, tot) + '%'); }
   console.log('가장 큰 형질: ' + Object.keys(top1).sort((a, b) => top1[b] - top1[a]).map(k => T.TAGS[k].name + ' ' + top1[k]).join(' · '));
   if (keep) console.log('판마다 새로 연 조건: ' + unlockLog.join(' '));
   if (process.argv.includes('cards')) { const avg = snapW / Math.max(1, snapN); console.log('12일째까지 산 판 ' + snapN + ' · 그중 이김 ' + pc(snapW, snapN) + '% (카드 값은 12일째 덱 기준)'); rows = Object.keys(cardWin).filter(id => cardWin[id].n >= (+process.env.MINN || 30)).map(id => ({ id, n: cardWin[id].n, d: Math.round(100 * (cardWin[id].w / cardWin[id].n - avg)) })).sort((a, b) => b.d - a.d); console.log('잰 카드 ' + rows.length + '장 (덱 ' + (+process.env.MINN || 30) + '개 이상) · 가장 높은 ' + (rows[0] ? rows[0].d : 0) + ' · 가장 낮은 ' + (rows.length ? rows[rows.length - 1].d : 0)); console.log('덱에 있을 때 승률 차 (높은 것): ' + rows.slice(0, 8).map(r => CD.BY[r.id].name + ' ' + (r.d > 0 ? '+' : '') + r.d + '(' + r.n + ')').join(' · ')); console.log('낮은 것: ' + rows.slice(-8).map(r => CD.BY[r.id].name + ' ' + r.d + '(' + r.n + ')').join(' · ')); }
