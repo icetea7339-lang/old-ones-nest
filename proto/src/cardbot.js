@@ -38,7 +38,9 @@ function bestCell(R, h) {
   if (d.type === 'organ') {
     const R0 = S.ROOM[d.room], empty = cs.filter(i => G.cells[i].type === 'empty');
     if (R0.side) return empty.filter(i => side.has(i))[0] ?? empty.filter(i => !pos.has(i))[0] ?? null;
-    return empty.filter(i => pos.has(i) && i !== G.core).sort((a, b) => pos.get(a) - pos.get(b))[0] ?? null;
+    const e1 = empty.filter(i => pos.has(i) && i !== G.core).sort((a, b) => pos.get(a) - pos.get(b))[0]; if (e1 != null) return e1;
+    const grow = cs.filter(i => G.cells[i].type === d.room).sort((a, b) => (G.cells[a].lv || 1) - (G.cells[b].lv || 1))[0]; if (grow != null) return grow;
+    return empty[0] ?? null;
   }
   if (d.type === 'trap') { const on = cs.filter(i => pos.has(i)); on.sort((a, b) => (G.cells[b].type === 'trap' || G.cells[b].type === 'ambush') - (G.cells[a].type === 'trap' || G.cells[a].type === 'ambush') || pos.get(a) - pos.get(b)); return on[0] ?? null; }
   return cs[0];
@@ -84,7 +86,7 @@ function dayPlay(R, onlyCards) {
   if (G.gold > 260 * k) { const c = R.deck.filter(x => !x.up && def(x.id).type !== 'curse').sort((a, b) => scoreCard(R, b.id) - scoreCard(R, a.id))[0]; if (c) CM.upgrade(R, c.uid); }
   if (R.persona && R.persona.style && G.gold > 150 * k && R.deck.length > 10) { const off = R.deck.filter(x => { const d = def(x.id); return d.type !== 'shape' && !(d.tags || []).some(t => R.persona.tags.includes(t)); }).sort((a, b) => scoreCard(R, a.id) - scoreCard(R, b.id))[0]; if (off) CM.removeCard(R, off.uid); }
   // 남은 진액은 쓴다: 허물 재촉 → 권속 먹이기 → 한 장 더 (진액이 쌓이지 않게)
-  if (CM.buySink && !process.env.NOSINK) { let g2 = 0; while (g2++ < (G.gold > 400 * k ? 14 : 6)) { const o = CM.sinkOptions(R).filter(x => x.ok && x.cost < G.gold - 90 * k); const pickS = o.find(x => x.id === 'hurry') || o.find(x => x.id === 'feed') || (R.hand.length < 6 ? o.find(x => x.id === 'draw') : null); if (!pickS || !CM.buySink(R, pickS.id).ok) break; if (pickS.id === 'draw') dayPlay0(R); } }
+  if (CM.buySink && !process.env.NOSINK) { let g2 = 0; while (g2++ < (G.gold > 400 * k ? 14 : 6)) { const keep = Math.max(90 * k, CM.upkeepWarn ? CM.upkeepWarn(R).perDay * 1.6 : 0), o = CM.sinkOptions(R).filter(x => x.ok && x.cost < G.gold - keep); const pickS = o.find(x => x.id === 'delve') || o.find(x => x.id === 'hurry') || o.find(x => x.id === 'feed') || (R.hand.length < 6 ? o.find(x => x.id === 'draw') : null); if (!pickS || !CM.buySink(R, pickS.id).ok) break; if (pickS.id === 'draw') dayPlay0(R); } }
   if (G.gold > 200 * k) { const cu = R.deck.find(x => def(x.id).type === 'curse') || (R.deck.length > 16 ? R.deck.find(x => x.id === 'sh_one') : null); if (cu) CM.removeCard(R, cu.uid); }
 }
 function needlePlay(R) {

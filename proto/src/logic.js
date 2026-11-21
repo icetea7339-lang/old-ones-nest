@@ -5,7 +5,7 @@ const NEST = (function () {
   const K = {
     days: 40, act: 8, cost: [0, 1, 2, 4, 7, 11], stat: [0, 1, 1.5, 2.4, 3.6, 5], size: [0, 1, 1.3, 1.8, 2.4, 3],
     ap: 2, startGold: 300, faithCap: 30, thresh: [0, 50, 150, 300, 480], tier: [1, 2.5, 6, 11, 18],
-    slime: { hp: 80, atk: 7, df: 5 }, budget: 70, cardBud: [0.25, 0.065], cardCalm: 2, card: Object.assign({ curve: [0.32, 0.0165, 0.00014], cap: 30, horde: [6, 0.14, 5, 0.25, 0.35], asp: { abyss: 1.4, nebula: 0.92, brood: 0.52, dusk: 0.9, hunger: 1.9 }, statPow: 1, loot: 0.45, lootCap: [40, 6], quiet: 0.88, fear: 300, settle: 1.35, final: 0.75, tier: [1, 2.2, 4, 6.5, 9] }, typeof process !== 'undefined' && process.env && process.env.CARDK ? JSON.parse(process.env.CARDK) : {}), kevo: { cap: [6, 12, 30], cost: [50, 120], mul: [1, 1.5, 2], pay: [1, 1.3, 1.6], secret: 1.1, hold: 3, bond: 0.25 }, settle: 1.7, rob: 0.5, falls: [0, 2, 2, 2], smell: 0.8, wary: 0.5, tithe: 3, brood: { own: 0.2, other: 0.1, cap: 14 }, preach: { base: 6, grow: 2 }, gift: { ess: 2, on: 1, boon: 1, bane: 1 }, lean: { on: 1, add: 1.2, mul: 2.5, off: 0.5 }, ktrait: { abyss: 1, nebula: 1, hunger: 1, dusk: 1 }, trustMax: 5, trustGain: 0.4, trustCap: [0, 5, 4, 2, 0], trustKills: 3,
+    slime: { hp: 80, atk: 7, df: 5 }, budget: 70, cardBud: [0.25, 0.065], cardCalm: 2, card: Object.assign({ curve: [0.38, 0.026, 0.00036], cap: 30, horde: [6, 0.14, 5, 0.25, 0.35], asp: { abyss: 1.55, nebula: 1.05, brood: 0.58, dusk: 1.35, hunger: 1.45 }, statPow: 1, asks: 4, capA: 5, capB: 0.5, loot: 0.45, lootCap: [40, 6], quiet: 0.88, fear: 300, settle: 1.35, final: 0.75, tier: [1, 2.2, 4, 6.5, 9] }, typeof process !== 'undefined' && process.env && process.env.CARDK ? JSON.parse(process.env.CARDK) : {}), kevo: { cap: [6, 12, 30], cost: [50, 120], mul: [1, 1.5, 2], pay: [1, 1.3, 1.6], secret: 1.1, hold: 3, bond: 0.25 }, settle: 1.7, rob: 0.5, falls: [0, 2, 2, 2], smell: 0.8, wary: 0.5, tithe: 3, brood: { own: 0.2, other: 0.1, cap: 14 }, preach: { base: 6, grow: 2 }, gift: { ess: 2, on: 1, boon: 1, bane: 1 }, lean: { on: 1, add: 1.2, mul: 2.5, off: 0.5 }, ktrait: { abyss: 1, nebula: 1, hunger: 1, dusk: 1 }, trustMax: 5, trustGain: 0.4, trustCap: [0, 5, 4, 2, 0], trustKills: 3,
     deep: { risk: [0, 0.25, 0.5, 1], ess: 3 }, wbeat: { fantasy: [1.06, 0.87], wuxia: [1.15], modern: [1, 22, 6, 0.97], future: [0.7, 1.2] }, pro: { essCap: [0, 4, 8, 14, 22, 36], goldBase: 30, goldMax: 90, body: 0.07, life: 5 }, hold: { per: 0.06, max: 5, pins: 2 }, lvGrowth: 1.15, expBase: 10, expGrowth: 1.3, trainEff: 1.5, hands: 3, hands2: 1, shopAtk: 0.9, decoy: 0.2, hallDf: 0.88, faithDay: 2, rockDmg: 0.08, poolHeal: 0.1, kexp: 1, mark: 1.5, whip: 1.3, corpseCap: 9,
   };
   const ASPECTS = ['abyss', 'nebula', 'brood', 'dusk', 'hunger'];
@@ -789,6 +789,9 @@ const NEST = (function () {
   function fearGradeAt(G, settle) { return settle ? Math.min(4, Math.max(fearGrade(G), actOf(G) + 1)) : Math.max(fearGrade(G), actOf(G) - 1); }
   // 카드 판의 침입 세기: 날이 갈수록 매끄럽게 오른다 (막이 바뀔 때 계단처럼 뛰지 않는다)
   const cardCurve = d => { const c = K.card.curve; return c[0] + c[1] * d + c[2] * d * d; };
+  // 카드 판 한 밤의 몸 수 상한: 날마다 고르게 는다 (넘치는 세기는 몸을 단단하게)
+  const cardCap = d => Math.max(6, Math.min(K.card.cap, Math.round(K.card.capA + K.card.capB * d)));
+  const CTHEME = { swarm: '떼', heavy: '무거운 무리', hunt: '사냥', siege: '불과 곡괭이' }, CTHEME_IDS = Object.keys(CTHEME), CBOSS = ['captain', 'handler', 'sapper'];
   function partyBudget(G, v, settle) {
     const plot = G.plots[VILL[v].plot];
     if (G.cardMode) return K.budget * ((K.card.asp || {})[G.startAsp] || 1) * cardCurve(G.day) * (1 + Math.min(90, G.fear) / K.card.fear) * (settle ? K.card.settle : 1) * DIFF[G.diff].mult * G.detBonus * wr(G, 'count', 1);
@@ -796,7 +799,7 @@ const NEST = (function () {
   }
   function partyKinds(G, v, settle, thin, day) {
     day = day || G.day; const alt = !!(G.bossAlt && G.bossAlt[day]); const final = day === K.days, g = final ? Math.max(3, fearGradeAt(G, true)) : fearGradeAt(G, settle), x = VILL[v].x;
-    let B = partyBudget(G, v, settle) * (thin ? 0.7 : 1) * (G.cardMode && final ? K.card.final : 1); const kinds = [];
+    let B = partyBudget(G, v, G.cardMode ? false : settle) * (thin ? 0.7 : 1) * (G.cardMode && final ? K.card.final : 1); const kinds = [];
     if (final) { kinds.push('sealer'); B -= 60; } else if (settle && day === K.act && alt) { kinds.push('handler', 'hound', 'hound', 'hound'); B -= 44; } else if (settle && day === 2 * K.act && alt) { kinds.push('sapper'); B -= 34; } else if (settle && g === 2) { kinds.push('captain'); B -= 30; }
     const seq = [null, [x[0]], ['militia', x[1], 'militia'], ['warrior', x[2], 'torch', x[1]], ['soldier', x[2], 'chaplain', 'warrior']][g].slice();
     const w = G.world, big = settle || final, wb = K.wbeat;
@@ -808,6 +811,17 @@ const NEST = (function () {
     for (let i = 0; B >= INV[seq[i % seq.length]].b || kinds.length === n0; i++) { const k = seq[i % seq.length]; kinds.push(k); B -= INV[k].b; }
     if (w === 'fantasy' && big && g >= 2) kinds.push('banner');
     if (w === 'modern') { const n = Math.min(wb.modern[2], wb.modern[0] + Math.floor(G.fear / wb.modern[1])); for (let i = 0; i < n; i++) kinds.unshift('crowd'); }
+    if (G.cardMode && !final) {
+      // 3막: 닷새마다 우두머리 하나. 9일째부터 밤마다 무리의 결이 다르다
+      if (day > 2 * K.act && day % 5 === 0 && !kinds.some(k => INV[k].boss)) kinds.unshift(CBOSS[Math.floor(day / 5) % CBOSS.length]);
+      const th = day >= 9 && !settle ? CTHEME_IDS[(((G.seed >>> 0) ^ Math.imul(day, 2654435761)) >>> 0) % CTHEME_IDS.length] : null;
+      if (th === 'hunt') for (let i = 1; i < kinds.length; i += 3) { if (!INV[kinds[i]].boss) kinds[i] = 'hound'; }
+      if (th === 'siege') for (let i = 2; i < kinds.length; i += 4) { if (!INV[kinds[i]].boss) kinds[i] = 'torch'; }
+      let f = settle ? K.card.settle : 1;
+      if (th === 'heavy') { const keep = kinds.slice().sort((a, b) => (INV[b].boss ? 99 : INV[b].b) - (INV[a].boss ? 99 : INV[a].b)).slice(0, Math.max(2, Math.ceil(kinds.length * 0.55))); f = kinds.length / keep.length; kinds.length = 0; keep.forEach(k => kinds.push(k)); }
+      const cap = cardCap(day); if (kinds.length > cap) { f *= kinds.length / cap; const keep = kinds.filter(k => INV[k].boss || INV[k].only).concat(kinds.filter(k => !(INV[k].boss || INV[k].only))).slice(0, cap); kinds.length = 0; keep.forEach(k => kinds.push(k)); }
+      return { g, kinds, elite: f > 1 ? +f.toFixed(3) : undefined, theme: th };
+    }
     if (G.cardMode && kinds.length > K.card.cap) { const f = kinds.length / K.card.cap, keep = kinds.filter(k => INV[k].boss || INV[k].only).concat(kinds.filter(k => !(INV[k].boss || INV[k].only))).slice(0, K.card.cap); return { g: final ? 5 : g, kinds: keep, elite: +f.toFixed(3) }; }
     return { g: final ? 5 : g, kinds };
   }
@@ -948,7 +962,7 @@ const NEST = (function () {
   const cardTrapCap = c => c.type === 'core' ? 0 : c.type === 'trap' ? 3 : c.type === 'ambush' ? 2 : 1;
   function cardTrap(G, i, tr) {
     const c = G.cells[i]; if (!c || !c.dug || i === G.core) return fail('달 수 없는 칸이다'); if (c.traps.length >= cardTrapCap(c)) return fail('이 칸은 함정이 가득 찼다');
-    c.traps.push({ kind: tr.kind, lv: tr.lv || 1, pow: tr.pow || 1, asp: tr.asp || null, name: tr.name || TRAP[tr.kind].name, cid: tr.cid || null }); return ok((tr.name || TRAP[tr.kind].name) + ' 달기');
+    c.traps.push({ kind: tr.kind, lv: tr.lv || 1, pow: tr.pow || 1, asp: tr.asp || null, name: tr.name || TRAP[tr.kind].name, cid: tr.cid || null, also: tr.also || null }); return ok((tr.name || TRAP[tr.kind].name) + ' 달기');
   }
   function cardKin(G, kind, o) {
     o = o || {}; if (!KIN[kind]) return fail('없는 권속이다'); G.stats.kinMade = (G.stats.kinMade || 0) + 1; if (kind === 'spawn') G.stats.spawns = (G.stats.spawns || 0) + 1; const lv = Math.max(1, actOf(G) * 3 - 2) + (o.lv || 0);
@@ -1229,10 +1243,10 @@ const NEST = (function () {
 
   function* nightGen(G) {
     const mt = G.march.tonight; if (!mt) return null;
-    const pk = mt.kinds ? { g: 1, kinds: mt.kinds.slice() } : partyKinds(G, mt.vill, mt.settle, mt.thin), party = pk.kinds.map((k, i) => mkInv(G, k, i, mt.vill));
+    const pk = mt.kinds ? { g: 1, kinds: mt.kinds.slice() } : partyKinds(G, mt.vill, mt.settle, mt.thin), party = pk.kinds.map((k, i) => mkInv(G, k, i, mt.vill)); if (G.cardMode && pk.theme) mt.theme = pk.theme;
     if (pk.elite > 1) party.forEach(u => { if (INV[u.kind].boss) return; const f = pk.elite; u.hp *= f; u.mhp *= f; u.san *= f; u.msan *= f; u.atk *= Math.pow(f, 0.85); u.elite = +f.toFixed(2); });
     // 카드 판의 떼: 날이 갈수록 같은 세기를 더 많은 몸으로 나눠 보낸다 (뒤로 갈수록 떼처럼 몰려온다, 몸 하나하나는 약해진다)
-    if (G.cardMode && !mt.beast && !mt.camp && K.card.horde) { const hz = K.card.horde, mul = 1 + Math.max(0, G.day - hz[0]) * hz[1], base = party.filter(u => !INV[u.kind].boss && !u.elite), room = Math.max(0, K.card.cap - party.length);
+    if (G.cardMode && !mt.beast && !mt.camp && K.card.horde && pk.theme !== 'heavy') { const hz = K.card.horde, mul = 1 + Math.max(0, G.day - hz[0]) * hz[1], base = party.filter(u => !INV[u.kind].boss && (!u.elite || u.elite < 1.6)), room = Math.max(0, cardCap(G.day) - party.length);
       let s = Math.min(hz[2], Math.max(1, Math.floor(mul)), base.length ? 1 + Math.floor(room / base.length) : 1); const extra = mul - Math.floor(mul);
       if (s > 1 || extra > 0) { const add = []; base.forEach((u, i) => { const k = Math.min(s + (i / Math.max(1, base.length) < extra && s < hz[2] ? 1 : 0), 1 + Math.floor((room - add.length) / 1)); if (k <= 1) return; const f = Math.pow(k, hz[3]); u.hp /= f; u.mhp /= f; u.atk /= Math.pow(k, hz[4]); u.san /= f; u.msan /= f; u.horde = k; for (let j = 1; j < k && add.length < room; j++) { const c = Object.assign({}, u, { uid: u.uid + 'h' + j }); add.push(c); } }); add.forEach(c => party.push(c)); } }
     if (mt.beast && SC(G) && SC(G).beastName) party.forEach(u => { u.name = SC(G).beastName; });
@@ -1295,7 +1309,7 @@ const NEST = (function () {
     }
     // 괴물 몸 함정. 레벨만큼 쓰는 것(아가리·속삭이는 벽·부위)은 밤마다 센다
     function cardTrapFire(t, ti, tg, liv, mult, wv, wt, half) {
-      const d0 = liv.filter(u => u.hp <= 0).length; cardTrapFire0(t, ti, tg, liv, mult, wv, wt, half); const dk = liv.filter(u => u.hp <= 0).length - d0; if (dk > 0) { G.stats.trapKillBy = G.stats.trapKillBy || {}; G.stats.trapKillBy[t.kind] = (G.stats.trapKillBy[t.kind] || 0) + dk; if (t.kind === 'digest') G.stats.digestKills = (G.stats.digestKills || 0) + dk; if (t.kind === 'drown') G.stats.waterKills = (G.stats.waterKills || 0) + dk; }
+      const d0 = liv.filter(u => u.hp <= 0).length; cardTrapFire0(t, ti, tg, liv, mult, wv, wt, half); if (t.also) [].concat(t.also).forEach(k => { if (TRAP[k] && alive(liv).length) cardTrapFire0(Object.assign({}, t, { kind: k, pow: (t.pow || 1) * 0.6, also: null }), ti, tg, alive(liv), mult, wv, wt, half); }); const dk = liv.filter(u => u.hp <= 0).length - d0; if (dk > 0) { G.stats.trapKillBy = G.stats.trapKillBy || {}; G.stats.trapKillBy[t.kind] = (G.stats.trapKillBy[t.kind] || 0) + dk; if (t.kind === 'digest') G.stats.digestKills = (G.stats.digestKills || 0) + dk; if (t.kind === 'drown') G.stats.waterKills = (G.stats.waterKills || 0) + dk; }
     }
     function cardTrapFire0(t, ti, tg, liv, mult, wv, wt, half) {
       const nm = t.name || TRAP[t.kind].name, lim = (k, n) => { st.tch[k] = (st.tch[k] || 0) + 1; return st.tch[k] <= n; };
@@ -1453,8 +1467,10 @@ const NEST = (function () {
         return { id, name: d.name, cost, tgt: d.tgt || null, ok: !why, why, targets, desc: d.desc };
       });
       const body = opts.find(o => o.id === BODYSPELL[pkn]), tough = liv.reduce((a, b) => a.hp > b.hp ? a : b);
-      const ans = yield { cell: here, enemies: liv.length, hands: st.hands, faith: G.faith, opts, def: dl, traps: cell ? cell.traps.length : 0, prevTraps: prev != null ? G.cells[prev].traps.length : 0, hurt: hurtN, weak: weak.length, tough: tough.uid, n: st.asked++, key: isCore || (dl > 0 && liv.length >= 3),
-        units: liv.map(u => ({ uid: u.uid, hp: hpf(u), atk: u.atk })), spell: body ? { name: body.name, cost: body.cost, ok: body.ok } : null, from: others, ev, settle: !!mt.settle };
+      let ask = isCore || (dl > 0 && liv.length >= 3);
+      if (G.cardMode) { st.askN = st.askN || 0; st.askRoom = st.askRoom || {}; const bossIn = liv.some(u => INV[u.kind] && INV[u.kind].boss), big = dl > 0 && liv.length >= 3 && !st.askRoom[here]; ask = st.askN < K.card.asks && (isCore || bossIn || big || st.asked === 0) && opts.some(o => o.ok); if (ask) { st.askN++; st.askRoom[here] = 1; } }
+      const ans = yield { cell: here, enemies: liv.length, hands: st.hands, faith: G.faith, opts, def: dl, traps: cell ? cell.traps.length : 0, prevTraps: prev != null ? G.cells[prev].traps.length : 0, hurt: hurtN, weak: weak.length, tough: tough.uid, n: st.asked++, key: ask, ask,
+        units: liv.map(u => ({ uid: u.uid, hp: hpf(u), atk: u.atk })), spell: body ? { name: body.name, cost: body.cost, ok: body.ok } : null, from: others, ev, settle: G.cardMode ? ask && !!mt.settle : !!mt.settle };
       if (!ans || ans.k === 'none') return ctx;
       const id = ans.k === 'spell' ? BODYSPELL[pkn] : ans.k, o = opts.find(x => x.id === id); if (!o || !o.ok) return ctx;
       const hc = held(id), d = SPELL[id], lib = (hasRoom(G, 'library') ? 1.25 : 1) * (G.kin.some(k => k.kind === 'scribe' && k.evo) ? 1.25 : 1) * (hc ? hc.pow || 1 : 1);
@@ -1599,14 +1615,16 @@ const NEST = (function () {
   function settle(G, battle) {
     const rep = { notes: [], evolved: null, evoCheck: null, ess: {}, faith: 0 }; if (G.over) return rep;
     const c = cm(G), f0 = G.faith;
-    spend(G, upkeep(G), '방 유지');
-    if (G.prison.length && hasRoom(G, 'prison')) earn(G, G.prison.length * c, '고치에서 짠 것'); else if (G.prison.length && !combo(G, 'confess')) spend(G, G.prison.length * c, '포로 밥값');
+    if (G.cardMode) spend(G, Math.min(Math.max(0, G.gold), upkeep(G)), '굴 유지'); else spend(G, upkeep(G), '방 유지');
+    if (G.cardMode) { if (G.prison.length && hasRoom(G, 'prison')) earn(G, G.prison.length * c, '고치에서 짠 것'); } else if (G.prison.length && hasRoom(G, 'prison')) earn(G, G.prison.length * c, '고치에서 짠 것'); else if (G.prison.length && !combo(G, 'confess')) spend(G, G.prison.length * c, '포로 밥값');
     if (G.spy) spend(G, 5 * c, '첩자 몫'); if (G.leak && isSettle(G)) G.leak = false;
     for (const m of G.kin) { const s = salary(G, m) * (ox(G, 'sprout') ? 2 : 1); m.strike = 0; if (!s) continue; if (G.gold >= s) { spend(G, s, '끼니'); m.unpaid = 0; } else { m.unpaid = (m.unpaid || 0) + 1; m.strike = 1; rep.notes.push(m.name + ' 끼니를 받지 못함 (내일 밤 불참)'); } }
     // 먹이를 먹는 권속
     G.hungry = (G.hungry || 0) + G.kin.reduce((a, m) => a + (KIN[m.kind].eat || 0), 0);
     while (G.hungry >= 1) { G.hungry -= 1; if (G.corpses.length) G.corpses.shift(); else { const eater = G.kin.find(m => KIN[m.kind].eat && !m.strike); if (eater) { if (eater.kind === 'hunger' && G.gold >= 4 * c) spend(G, 4 * c, '끼니'); else { eater.unpaid = (eater.unpaid || 0) + 1; eater.strike = 1; rep.notes.push(fj(eater.name + '이(가) 굶었다')); } } } }
-    const gone = SC(G) ? [] : G.kin.filter(m => m.unpaid >= 2); if (gone.length) { G.kin = G.kin.filter(m => !(m.unpaid >= 2)); rep.notes.push(fj(gone.map(m => m.name).join(', ') + '이(가) 떠났다')); }
+    const gone = SC(G) ? [] : G.cardMode ? G.kin.filter(m => m.unpaid >= 3).sort((a, b) => b.unpaid - a.unpaid).slice(0, 2) : G.kin.filter(m => m.unpaid >= 2); if (gone.length) { const gs = new Set(gone); G.kin = G.kin.filter(m => !gs.has(m)); rep.notes.push(fj(G.cardMode ? '진액이 바닥나 ' + gone.map(m => m.name).join(', ') + '이(가) 둥지를 떠났다' : gone.map(m => m.name).join(', ') + '이(가) 떠났다')); }
+    if (G.cardMode && gone.length) G.stats.kinLeft = (G.stats.kinLeft || 0) + gone.length;
+    if (G.cardMode && G.gold < 0) G.gold = 0;
     // 징조에 물든 권속들이 제 방식으로 둥지를 불린다
     { const main = G.slime.main, of = a => G.kin.filter(m => KASP[m.kind] === a && m.kind !== 'spawn' && !m.strike), head = () => G.kin.filter(x => x.kind !== 'spawn').length, lone = G.star === 'lone';
       const join = (kind, lv) => { const m = { id: G.nextId++, name: NAMES[Math.floor(rng(G) * NAMES.length)], kind, lv, exp: 0, loc: freeSlot(G, kind), hurt: 0, skill: -1, rare: false, age: 0, unpaid: 0 }; autoSkill(m); G.kin.push(m); return m; };
@@ -1697,7 +1715,7 @@ const NEST = (function () {
   [EDICT, VILL, EVENTS, GUEST, SPOT, OMEN, ORIGIN, ACT_NAME, AVATAR, STAR, SIGN, PLOT, HOARD, ELDER].forEach(localize);
   return { STORYCH, storyOf: SC, storyLock, storyAllows, storyGoal, storyStart, beastPath, lx, localize, folk, CAST, KASP, KTRAIT, leanOf, EDICT, RIVAL, edictChoices, setEdict, ELDER, fj, K, ASPECTS, ASP, OLD, LAY, nbrs, colOf, rowOf, makeLayout, oldLayout, lives, livesMax, migrate, trading, tradeOf, trustCap, HOARD, hoardN, hoardCost, hoardWhy, hoardBuy, ORIGIN, digCost, SIGN, TRAITS, traitReady, eventInfo, BODY, SUBADJ, bodyOf, pk, FUSE_PRE, baseName, RECIPE, recipesOf, ROOM, TRAP, ZONE, PLOT, KIN, SKILL_LV, INV, GRADE_NAME, VILL, VIDS, FORM1, FORM2, FORM2UP, SUBTRAIT, AVATAR, MUT, DIFF, GRADES, EVENTS,
     newGame, actOf, cm, sm, isSettle, formId, formName, formTitle, SPECIES, essTotal, fearGrade, faithCap, corpseCap, corpsePts, slimeStats, kinStats, salary, upkeep, capacity, freeSlot, prisonCap, handsMax, spellCost, seesDetail, expNeed,
-    cardDig, cardBuild, cardTrap, cardTrapCap, cardKin, cardCombos, cardCmbEffects, CMB, unearth,
+    cardDig, cardBuild, cardTrap, cardTrapCap, cardKin, CTHEME, cardCap, cardCombos, cardCmbEffects, CMB, unearth,
     paths, sideRooms, estimate, partyBudget, canDig, digPreview, dig, toggleBlock, canBuild, buildCost, build, addTrap, trapUpCost, upTrap, setZone, setPlot, SPELL, SPELL_IDS, BODYSPELL, spellKnown, spellSrc, handSlots, handOf, setHand, accept, acceptCost, dismiss, onlyOf, partyKinds, BODYFX, bodyPart, bodyLv, moltLean, moltOrder, ATEKIN, SEEDN, proResult, holdBonus, pinCap, pinned, openTrail, trailLeft, WRULE, moveKin, guard, release, autoPlace, breach, underRisk, WORLD, WORLD_IDS, applyWorld, setSkill, setStance, train, eat, rest,
     SPOT, spotOptions, resolveSpot, ELDER, OMEN, OMEN_IDS, OMEN_DAY, CALM_COST, ACT_NAME, calm, COMBO, combos, BURIED, STAR, EVO, EVO_DESC, EVO2, SECRET, stageOf, lvCap, evoMul, secretOf, secretPartner, secretReady, bonded, evoName, kinName, evoCost, evolveKin, giveExp, mkDef, GUEST, guestOptions, resolveGuest, convertKind, endKey, convertChance, ransomOf, sacEss, mutChance, dispose, raidInfo, raid, eventOptions, resolveEvent, endDay, beginNight, settle, luxury, avatarOf, score };
 })();

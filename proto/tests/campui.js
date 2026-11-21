@@ -9,7 +9,8 @@ const dev = process.argv[2] || '', tag = (dev ? dev.replace(/\s+/g, '') : 'pc') 
   if (FZM.FZ) await p.addInitScript(FZM.initScript(FZM.FZ));
   await p.route('http://nest.test/', r => r.fulfill({ contentType: 'text/html', body: html })); await p.route(/fonts\./, r => r.abort());
   await p.goto('http://nest.test/'); await p.waitForTimeout(400);
-  let n = 0; const shot = async label => { await p.waitForTimeout(380); n++; await p.screenshot({ path: path.join(out, String(n).padStart(2, '0') + '_' + label + '.png') }); const cl = await p.evaluate(FZM.clipScript); const over = await p.evaluate(() => { const o = []; if (document.scrollingElement.scrollWidth > innerWidth + 1) o.push('옆으로 넘침'); return o; }); cl.concat(over).forEach(s => bad.push(label + ': ' + s)); };
+  const LEAK = /을\(를\)|이\(가\)|공포 [+−-]\d|포교|포로 자리|정신력|정신 [−-]\d|포로 밥값|\d라운드|진액 방울|정수|익숙해짐/;
+  let n = 0; const shot = async label => { await p.waitForTimeout(380); n++; await p.screenshot({ path: path.join(out, String(n).padStart(2, '0') + '_' + label + '.png') }); { const m = await p.evaluate(re => { const t = document.body.innerText.match(new RegExp(re)); return t ? t[0] : null; }, LEAK.source); if (m) bad.push(label + ': 옛 글 「' + m + '」'); } const cl = await p.evaluate(FZM.clipScript); const over = await p.evaluate(() => { const o = []; if (document.scrollingElement.scrollWidth > innerWidth + 1) o.push('옆으로 넘침'); return o; }); cl.concat(over).forEach(s => bad.push(label + ': ' + s)); };
   const tap = async sel => { const el = await p.$(sel); if (!el) throw new Error('없음: ' + sel); await el.click(); await p.waitForTimeout(160); };
   const sceneOn = () => p.evaluate(() => !document.getElementById('scene').hidden);
   const skipScene = async () => { for (let k = 0; k < 40 && await sceneOn(); k++) { await p.keyboard.press('Space'); await p.waitForTimeout(90); } };

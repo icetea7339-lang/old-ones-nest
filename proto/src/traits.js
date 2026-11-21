@@ -14,7 +14,7 @@ const TRAITS = (function () {
     skillsUsed: '쓴 기술', wordsLearned: '배운 사람 말', coreDamage: '본체가 받은 상처', digestKills: '소화액에서 죽음',
     waterKills: '물에서 죽음', pulled: '끌어온 적', madness: '미치게 한 적', routs: '쫓아 보낸 적', shapesPlaced: '놓은 굴', organsPlaced: '놓은 기관',
     trapsPlaced: '단 부위', combos: '맞춘 족보', nightsDark: '빛 없이 넘긴 밤', bossKills: '쓰러뜨린 우두머리',
-    ess_abyss: '심연 정수', ess_nebula: '성운 정수', ess_brood: '번식 정수', ess_dusk: '황혼 정수', ess_hunger: '기아 정수'
+    ess_abyss: '심연 빛깔', ess_nebula: '성운 빛깔', ess_brood: '번식 빛깔', ess_dusk: '황혼 빛깔', ess_hunger: '기아 빛깔'
   };
 
   // 형질. asp = 잘 붙는 징조, feed = [셈, 무게] (셈 하나당 무게), hint = 놀이에서 무엇이 달라지나 (20자 안)
@@ -194,7 +194,7 @@ const TRAITS = (function () {
   // 한 형질이 왜 돋았나를 한 문장으로 (원인 셈이 없으면 결과만)
   // 한 형질이 왜 돋았나를 한 문장으로 (원인 셈이 없으면 결과만).
   //   used 를 주면 그 판에서 이미 쓴 문장은 다시 쓰지 않고, 원인과 결과가 같은 말을 되풀이하는 짝도 피한다
-  const GENCAUSE = ['그런 밤들이 쌓이는 사이', '같은 일이 몇 번이고 되풀이되자', '굴 안의 일들이 살 속까지 스며들자'];
+  const GENCAUSE = ['그런 밤들이 쌓이는 사이', '같은 일이 몇 번이고 되풀이되자', '굴 안의 일들이 살 속까지 스며들자', '흙이 식어 가는 새벽 무렵', '아무도 깨어 있지 않은 한낮에', '지난밤의 피가 채 마르기도 전에', '굴 천장에서 물방울이 떨어지는 동안', '바깥의 발소리가 멀어진 뒤', '잠든 것의 숨결이 한 번 크게 들린 날', '먹은 것들이 뱃속에서 가라앉자', '살갗 밑에서 무언가 꿈틀거리더니', '오래 움직이지 않고 웅크려 있던 사이', '별 하나가 지평에 걸린 밤이 지나고', '굴 벽의 습기가 몸에 배어 들자', '누구의 것인지 모를 기억이 스치고 간 뒤'];
   const echo = (a, b) => { const w = String(a).replace(/[,.]/g, '').split(/\s+/).filter(x => x.length >= 3); return w.some(x => b.indexOf(x) >= 0); };
   function tell(t, k, key, used) {
     const kk = t + ':' + (key == null ? 0 : key), grew = Array.isArray(GREW[t]) ? GREW[t] : ['몸이 조금 달라졌다'];
@@ -206,9 +206,11 @@ const TRAITS = (function () {
     else causes = [DID[k] || '굴에서 일어난 일들이 몸에 남았고'].concat(GENCAUSE);
     const h = hash(String(kk)) >>> 0, cands = [];
     for (let a = 0; a < causes.length; a++) for (let b = 0; b < grew.length; b++) { const ci = (a + h) % causes.length, gi = (b + (h >>> 3)) % grew.length; cands.push({ id: t + '|' + (k || '-').split(':')[0] + '|' + ci + '|' + gi, c: causes[ci], g: grew[gi] }); }
-    const fresh = cands.filter(x => !(used && used.includes(x.id))), clean = fresh.filter(x => !x.c || !echo(x.c, x.g));
-    const pickC = clean[0] || fresh[0] || cands[h % cands.length];
-    if (used) { used.push(pickC.id); if (used.length > 60) used.splice(0, used.length - 60); }
+    const opN = c => used ? used.filter(u => u === 'op:' + c).length : 0;
+    let pool = cands; if (used) { const lim = pool.filter(x => !x.c || opN(x.c) < 2); if (lim.length) pool = lim; else { const alt = GENCAUSE.filter(c => opN(c) < 2); if (alt.length) pool = alt.map((c, i) => ({ id: t + '|gen|' + i + '|' + (h % grew.length), c, g: grew[(i + h) % grew.length] })); } }
+    const fresh = pool.filter(x => !(used && used.includes(x.id))), clean = fresh.filter(x => !x.c || !echo(x.c, x.g));
+    const pickC = clean[0] || fresh[0] || pool[h % pool.length];
+    if (used) { used.push(pickC.id); if (pickC.c) used.push('op:' + pickC.c); if (used.length > 400) used.splice(0, used.length - 400); }
     return pickC.c ? pickC.c + ', ' + pickC.g + '.' : '어느새 ' + pickC.g + '.';
   }
   // 허물의 "왜": 위쪽 형질 셋을 이야기로

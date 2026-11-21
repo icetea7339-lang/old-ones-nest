@@ -903,6 +903,29 @@ button.cm-tagrow { display: flex; gap: 8px; align-items: center; min-height: 40p
 #game:has(#cm-body:not([hidden])) #mapchips { z-index: 7; }
 .cm-morph { pointer-events: none; }
 #cm-ov > * { flex-shrink: 0; }
+
+/* ===== 세 번째 감사: 폰 화면 정리 ===== */
+#mapchips .cm-warn { border-color: #ff5f57; color: #ffb0a8; font-weight: 700; }
+.cm-chipsheet { display: flex; flex-wrap: wrap; gap: 8px; }
+.cm-chipsheet .chip { min-height: 40px; }
+.cm-nfree { flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.cm-nfree .btn { min-height: 40px; }
+.cm-nstrip { display: flex; gap: 8px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; padding: 2px 2px 6px; }
+.cm-nstrip .cm-cbtn { flex: 0 0 auto; scroll-snap-align: start; margin: 0; }
+@media (max-width: 760px) {
+  #game.cm-mode #mapchips .chip { min-height: 40px; font-size: 14px; }
+  #game.cm-mode #cm-body:not(.night) { top: 6px; right: 6px; min-width: 0; max-width: none; padding: 3px; gap: 1px; }
+  #game.cm-mode #cm-body:not(.night) .cm-bimg img { width: 52px; height: 52px; }
+  #game.cm-mode #cm-body:not(.night) .cm-bnm, #game.cm-mode #cm-body:not(.night) .cm-bev { display: none; }
+  #game.cm-mode #cm-body:not(.night) .cm-evo { width: 52px; height: 4px; }
+  #game.cm-mode #mapchips { right: 70px; }
+  #cm-sheet, #cm-sheet p, #cm-ov p, .cp-sub { font-size: 14px; }
+  #cm-sheet .small, #cm-ov .small, #cm-sheet .dk-mute { font-size: 13px; }
+}
+.cm-nstrip .dkc.mini { width: 128px; min-height: 0; }
+.cm-nstrip .dkc.mini .dkc-art { aspect-ratio: 3 / 1; }
+.cm-nstrip .dkc.mini .dkc-tx { font-size: 13px; }
+#mapchips.cm-lift { visibility: hidden; }
 </style>
 </head><body style="margin:0">
 <div id="title" class="screen">
@@ -955,7 +978,7 @@ const NEST = (function () {
   const K = {
     days: 40, act: 8, cost: [0, 1, 2, 4, 7, 11], stat: [0, 1, 1.5, 2.4, 3.6, 5], size: [0, 1, 1.3, 1.8, 2.4, 3],
     ap: 2, startGold: 300, faithCap: 30, thresh: [0, 50, 150, 300, 480], tier: [1, 2.5, 6, 11, 18],
-    slime: { hp: 80, atk: 7, df: 5 }, budget: 70, cardBud: [0.25, 0.065], cardCalm: 2, card: Object.assign({ curve: [0.32, 0.0165, 0.00014], cap: 30, horde: [6, 0.14, 5, 0.25, 0.35], asp: { abyss: 1.4, nebula: 0.92, brood: 0.52, dusk: 0.9, hunger: 1.9 }, statPow: 1, loot: 0.45, lootCap: [40, 6], quiet: 0.88, fear: 300, settle: 1.35, final: 0.75, tier: [1, 2.2, 4, 6.5, 9] }, typeof process !== 'undefined' && process.env && process.env.CARDK ? JSON.parse(process.env.CARDK) : {}), kevo: { cap: [6, 12, 30], cost: [50, 120], mul: [1, 1.5, 2], pay: [1, 1.3, 1.6], secret: 1.1, hold: 3, bond: 0.25 }, settle: 1.7, rob: 0.5, falls: [0, 2, 2, 2], smell: 0.8, wary: 0.5, tithe: 3, brood: { own: 0.2, other: 0.1, cap: 14 }, preach: { base: 6, grow: 2 }, gift: { ess: 2, on: 1, boon: 1, bane: 1 }, lean: { on: 1, add: 1.2, mul: 2.5, off: 0.5 }, ktrait: { abyss: 1, nebula: 1, hunger: 1, dusk: 1 }, trustMax: 5, trustGain: 0.4, trustCap: [0, 5, 4, 2, 0], trustKills: 3,
+    slime: { hp: 80, atk: 7, df: 5 }, budget: 70, cardBud: [0.25, 0.065], cardCalm: 2, card: Object.assign({ curve: [0.38, 0.026, 0.00036], cap: 30, horde: [6, 0.14, 5, 0.25, 0.35], asp: { abyss: 1.55, nebula: 1.05, brood: 0.58, dusk: 1.35, hunger: 1.45 }, statPow: 1, asks: 4, capA: 5, capB: 0.5, loot: 0.45, lootCap: [40, 6], quiet: 0.88, fear: 300, settle: 1.35, final: 0.75, tier: [1, 2.2, 4, 6.5, 9] }, typeof process !== 'undefined' && process.env && process.env.CARDK ? JSON.parse(process.env.CARDK) : {}), kevo: { cap: [6, 12, 30], cost: [50, 120], mul: [1, 1.5, 2], pay: [1, 1.3, 1.6], secret: 1.1, hold: 3, bond: 0.25 }, settle: 1.7, rob: 0.5, falls: [0, 2, 2, 2], smell: 0.8, wary: 0.5, tithe: 3, brood: { own: 0.2, other: 0.1, cap: 14 }, preach: { base: 6, grow: 2 }, gift: { ess: 2, on: 1, boon: 1, bane: 1 }, lean: { on: 1, add: 1.2, mul: 2.5, off: 0.5 }, ktrait: { abyss: 1, nebula: 1, hunger: 1, dusk: 1 }, trustMax: 5, trustGain: 0.4, trustCap: [0, 5, 4, 2, 0], trustKills: 3,
     deep: { risk: [0, 0.25, 0.5, 1], ess: 3 }, wbeat: { fantasy: [1.06, 0.87], wuxia: [1.15], modern: [1, 22, 6, 0.97], future: [0.7, 1.2] }, pro: { essCap: [0, 4, 8, 14, 22, 36], goldBase: 30, goldMax: 90, body: 0.07, life: 5 }, hold: { per: 0.06, max: 5, pins: 2 }, lvGrowth: 1.15, expBase: 10, expGrowth: 1.3, trainEff: 1.5, hands: 3, hands2: 1, shopAtk: 0.9, decoy: 0.2, hallDf: 0.88, faithDay: 2, rockDmg: 0.08, poolHeal: 0.1, kexp: 1, mark: 1.5, whip: 1.3, corpseCap: 9,
   };
   const ASPECTS = ['abyss', 'nebula', 'brood', 'dusk', 'hunger'];
@@ -1739,6 +1762,9 @@ const NEST = (function () {
   function fearGradeAt(G, settle) { return settle ? Math.min(4, Math.max(fearGrade(G), actOf(G) + 1)) : Math.max(fearGrade(G), actOf(G) - 1); }
   // 카드 판의 침입 세기: 날이 갈수록 매끄럽게 오른다 (막이 바뀔 때 계단처럼 뛰지 않는다)
   const cardCurve = d => { const c = K.card.curve; return c[0] + c[1] * d + c[2] * d * d; };
+  // 카드 판 한 밤의 몸 수 상한: 날마다 고르게 는다 (넘치는 세기는 몸을 단단하게)
+  const cardCap = d => Math.max(6, Math.min(K.card.cap, Math.round(K.card.capA + K.card.capB * d)));
+  const CTHEME = { swarm: '떼', heavy: '무거운 무리', hunt: '사냥', siege: '불과 곡괭이' }, CTHEME_IDS = Object.keys(CTHEME), CBOSS = ['captain', 'handler', 'sapper'];
   function partyBudget(G, v, settle) {
     const plot = G.plots[VILL[v].plot];
     if (G.cardMode) return K.budget * ((K.card.asp || {})[G.startAsp] || 1) * cardCurve(G.day) * (1 + Math.min(90, G.fear) / K.card.fear) * (settle ? K.card.settle : 1) * DIFF[G.diff].mult * G.detBonus * wr(G, 'count', 1);
@@ -1746,7 +1772,7 @@ const NEST = (function () {
   }
   function partyKinds(G, v, settle, thin, day) {
     day = day || G.day; const alt = !!(G.bossAlt && G.bossAlt[day]); const final = day === K.days, g = final ? Math.max(3, fearGradeAt(G, true)) : fearGradeAt(G, settle), x = VILL[v].x;
-    let B = partyBudget(G, v, settle) * (thin ? 0.7 : 1) * (G.cardMode && final ? K.card.final : 1); const kinds = [];
+    let B = partyBudget(G, v, G.cardMode ? false : settle) * (thin ? 0.7 : 1) * (G.cardMode && final ? K.card.final : 1); const kinds = [];
     if (final) { kinds.push('sealer'); B -= 60; } else if (settle && day === K.act && alt) { kinds.push('handler', 'hound', 'hound', 'hound'); B -= 44; } else if (settle && day === 2 * K.act && alt) { kinds.push('sapper'); B -= 34; } else if (settle && g === 2) { kinds.push('captain'); B -= 30; }
     const seq = [null, [x[0]], ['militia', x[1], 'militia'], ['warrior', x[2], 'torch', x[1]], ['soldier', x[2], 'chaplain', 'warrior']][g].slice();
     const w = G.world, big = settle || final, wb = K.wbeat;
@@ -1758,6 +1784,17 @@ const NEST = (function () {
     for (let i = 0; B >= INV[seq[i % seq.length]].b || kinds.length === n0; i++) { const k = seq[i % seq.length]; kinds.push(k); B -= INV[k].b; }
     if (w === 'fantasy' && big && g >= 2) kinds.push('banner');
     if (w === 'modern') { const n = Math.min(wb.modern[2], wb.modern[0] + Math.floor(G.fear / wb.modern[1])); for (let i = 0; i < n; i++) kinds.unshift('crowd'); }
+    if (G.cardMode && !final) {
+      // 3막: 닷새마다 우두머리 하나. 9일째부터 밤마다 무리의 결이 다르다
+      if (day > 2 * K.act && day % 5 === 0 && !kinds.some(k => INV[k].boss)) kinds.unshift(CBOSS[Math.floor(day / 5) % CBOSS.length]);
+      const th = day >= 9 && !settle ? CTHEME_IDS[(((G.seed >>> 0) ^ Math.imul(day, 2654435761)) >>> 0) % CTHEME_IDS.length] : null;
+      if (th === 'hunt') for (let i = 1; i < kinds.length; i += 3) { if (!INV[kinds[i]].boss) kinds[i] = 'hound'; }
+      if (th === 'siege') for (let i = 2; i < kinds.length; i += 4) { if (!INV[kinds[i]].boss) kinds[i] = 'torch'; }
+      let f = settle ? K.card.settle : 1;
+      if (th === 'heavy') { const keep = kinds.slice().sort((a, b) => (INV[b].boss ? 99 : INV[b].b) - (INV[a].boss ? 99 : INV[a].b)).slice(0, Math.max(2, Math.ceil(kinds.length * 0.55))); f = kinds.length / keep.length; kinds.length = 0; keep.forEach(k => kinds.push(k)); }
+      const cap = cardCap(day); if (kinds.length > cap) { f *= kinds.length / cap; const keep = kinds.filter(k => INV[k].boss || INV[k].only).concat(kinds.filter(k => !(INV[k].boss || INV[k].only))).slice(0, cap); kinds.length = 0; keep.forEach(k => kinds.push(k)); }
+      return { g, kinds, elite: f > 1 ? +f.toFixed(3) : undefined, theme: th };
+    }
     if (G.cardMode && kinds.length > K.card.cap) { const f = kinds.length / K.card.cap, keep = kinds.filter(k => INV[k].boss || INV[k].only).concat(kinds.filter(k => !(INV[k].boss || INV[k].only))).slice(0, K.card.cap); return { g: final ? 5 : g, kinds: keep, elite: +f.toFixed(3) }; }
     return { g: final ? 5 : g, kinds };
   }
@@ -1898,7 +1935,7 @@ const NEST = (function () {
   const cardTrapCap = c => c.type === 'core' ? 0 : c.type === 'trap' ? 3 : c.type === 'ambush' ? 2 : 1;
   function cardTrap(G, i, tr) {
     const c = G.cells[i]; if (!c || !c.dug || i === G.core) return fail('달 수 없는 칸이다'); if (c.traps.length >= cardTrapCap(c)) return fail('이 칸은 함정이 가득 찼다');
-    c.traps.push({ kind: tr.kind, lv: tr.lv || 1, pow: tr.pow || 1, asp: tr.asp || null, name: tr.name || TRAP[tr.kind].name, cid: tr.cid || null }); return ok((tr.name || TRAP[tr.kind].name) + ' 달기');
+    c.traps.push({ kind: tr.kind, lv: tr.lv || 1, pow: tr.pow || 1, asp: tr.asp || null, name: tr.name || TRAP[tr.kind].name, cid: tr.cid || null, also: tr.also || null }); return ok((tr.name || TRAP[tr.kind].name) + ' 달기');
   }
   function cardKin(G, kind, o) {
     o = o || {}; if (!KIN[kind]) return fail('없는 권속이다'); G.stats.kinMade = (G.stats.kinMade || 0) + 1; if (kind === 'spawn') G.stats.spawns = (G.stats.spawns || 0) + 1; const lv = Math.max(1, actOf(G) * 3 - 2) + (o.lv || 0);
@@ -2179,10 +2216,10 @@ const NEST = (function () {
 
   function* nightGen(G) {
     const mt = G.march.tonight; if (!mt) return null;
-    const pk = mt.kinds ? { g: 1, kinds: mt.kinds.slice() } : partyKinds(G, mt.vill, mt.settle, mt.thin), party = pk.kinds.map((k, i) => mkInv(G, k, i, mt.vill));
+    const pk = mt.kinds ? { g: 1, kinds: mt.kinds.slice() } : partyKinds(G, mt.vill, mt.settle, mt.thin), party = pk.kinds.map((k, i) => mkInv(G, k, i, mt.vill)); if (G.cardMode && pk.theme) mt.theme = pk.theme;
     if (pk.elite > 1) party.forEach(u => { if (INV[u.kind].boss) return; const f = pk.elite; u.hp *= f; u.mhp *= f; u.san *= f; u.msan *= f; u.atk *= Math.pow(f, 0.85); u.elite = +f.toFixed(2); });
     // 카드 판의 떼: 날이 갈수록 같은 세기를 더 많은 몸으로 나눠 보낸다 (뒤로 갈수록 떼처럼 몰려온다, 몸 하나하나는 약해진다)
-    if (G.cardMode && !mt.beast && !mt.camp && K.card.horde) { const hz = K.card.horde, mul = 1 + Math.max(0, G.day - hz[0]) * hz[1], base = party.filter(u => !INV[u.kind].boss && !u.elite), room = Math.max(0, K.card.cap - party.length);
+    if (G.cardMode && !mt.beast && !mt.camp && K.card.horde && pk.theme !== 'heavy') { const hz = K.card.horde, mul = 1 + Math.max(0, G.day - hz[0]) * hz[1], base = party.filter(u => !INV[u.kind].boss && (!u.elite || u.elite < 1.6)), room = Math.max(0, cardCap(G.day) - party.length);
       let s = Math.min(hz[2], Math.max(1, Math.floor(mul)), base.length ? 1 + Math.floor(room / base.length) : 1); const extra = mul - Math.floor(mul);
       if (s > 1 || extra > 0) { const add = []; base.forEach((u, i) => { const k = Math.min(s + (i / Math.max(1, base.length) < extra && s < hz[2] ? 1 : 0), 1 + Math.floor((room - add.length) / 1)); if (k <= 1) return; const f = Math.pow(k, hz[3]); u.hp /= f; u.mhp /= f; u.atk /= Math.pow(k, hz[4]); u.san /= f; u.msan /= f; u.horde = k; for (let j = 1; j < k && add.length < room; j++) { const c = Object.assign({}, u, { uid: u.uid + 'h' + j }); add.push(c); } }); add.forEach(c => party.push(c)); } }
     if (mt.beast && SC(G) && SC(G).beastName) party.forEach(u => { u.name = SC(G).beastName; });
@@ -2245,7 +2282,7 @@ const NEST = (function () {
     }
     // 괴물 몸 함정. 레벨만큼 쓰는 것(아가리·속삭이는 벽·부위)은 밤마다 센다
     function cardTrapFire(t, ti, tg, liv, mult, wv, wt, half) {
-      const d0 = liv.filter(u => u.hp <= 0).length; cardTrapFire0(t, ti, tg, liv, mult, wv, wt, half); const dk = liv.filter(u => u.hp <= 0).length - d0; if (dk > 0) { G.stats.trapKillBy = G.stats.trapKillBy || {}; G.stats.trapKillBy[t.kind] = (G.stats.trapKillBy[t.kind] || 0) + dk; if (t.kind === 'digest') G.stats.digestKills = (G.stats.digestKills || 0) + dk; if (t.kind === 'drown') G.stats.waterKills = (G.stats.waterKills || 0) + dk; }
+      const d0 = liv.filter(u => u.hp <= 0).length; cardTrapFire0(t, ti, tg, liv, mult, wv, wt, half); if (t.also) [].concat(t.also).forEach(k => { if (TRAP[k] && alive(liv).length) cardTrapFire0(Object.assign({}, t, { kind: k, pow: (t.pow || 1) * 0.6, also: null }), ti, tg, alive(liv), mult, wv, wt, half); }); const dk = liv.filter(u => u.hp <= 0).length - d0; if (dk > 0) { G.stats.trapKillBy = G.stats.trapKillBy || {}; G.stats.trapKillBy[t.kind] = (G.stats.trapKillBy[t.kind] || 0) + dk; if (t.kind === 'digest') G.stats.digestKills = (G.stats.digestKills || 0) + dk; if (t.kind === 'drown') G.stats.waterKills = (G.stats.waterKills || 0) + dk; }
     }
     function cardTrapFire0(t, ti, tg, liv, mult, wv, wt, half) {
       const nm = t.name || TRAP[t.kind].name, lim = (k, n) => { st.tch[k] = (st.tch[k] || 0) + 1; return st.tch[k] <= n; };
@@ -2403,8 +2440,10 @@ const NEST = (function () {
         return { id, name: d.name, cost, tgt: d.tgt || null, ok: !why, why, targets, desc: d.desc };
       });
       const body = opts.find(o => o.id === BODYSPELL[pkn]), tough = liv.reduce((a, b) => a.hp > b.hp ? a : b);
-      const ans = yield { cell: here, enemies: liv.length, hands: st.hands, faith: G.faith, opts, def: dl, traps: cell ? cell.traps.length : 0, prevTraps: prev != null ? G.cells[prev].traps.length : 0, hurt: hurtN, weak: weak.length, tough: tough.uid, n: st.asked++, key: isCore || (dl > 0 && liv.length >= 3),
-        units: liv.map(u => ({ uid: u.uid, hp: hpf(u), atk: u.atk })), spell: body ? { name: body.name, cost: body.cost, ok: body.ok } : null, from: others, ev, settle: !!mt.settle };
+      let ask = isCore || (dl > 0 && liv.length >= 3);
+      if (G.cardMode) { st.askN = st.askN || 0; st.askRoom = st.askRoom || {}; const bossIn = liv.some(u => INV[u.kind] && INV[u.kind].boss), big = dl > 0 && liv.length >= 3 && !st.askRoom[here]; ask = st.askN < K.card.asks && (isCore || bossIn || big || st.asked === 0) && opts.some(o => o.ok); if (ask) { st.askN++; st.askRoom[here] = 1; } }
+      const ans = yield { cell: here, enemies: liv.length, hands: st.hands, faith: G.faith, opts, def: dl, traps: cell ? cell.traps.length : 0, prevTraps: prev != null ? G.cells[prev].traps.length : 0, hurt: hurtN, weak: weak.length, tough: tough.uid, n: st.asked++, key: ask, ask,
+        units: liv.map(u => ({ uid: u.uid, hp: hpf(u), atk: u.atk })), spell: body ? { name: body.name, cost: body.cost, ok: body.ok } : null, from: others, ev, settle: G.cardMode ? ask && !!mt.settle : !!mt.settle };
       if (!ans || ans.k === 'none') return ctx;
       const id = ans.k === 'spell' ? BODYSPELL[pkn] : ans.k, o = opts.find(x => x.id === id); if (!o || !o.ok) return ctx;
       const hc = held(id), d = SPELL[id], lib = (hasRoom(G, 'library') ? 1.25 : 1) * (G.kin.some(k => k.kind === 'scribe' && k.evo) ? 1.25 : 1) * (hc ? hc.pow || 1 : 1);
@@ -2549,14 +2588,16 @@ const NEST = (function () {
   function settle(G, battle) {
     const rep = { notes: [], evolved: null, evoCheck: null, ess: {}, faith: 0 }; if (G.over) return rep;
     const c = cm(G), f0 = G.faith;
-    spend(G, upkeep(G), '방 유지');
-    if (G.prison.length && hasRoom(G, 'prison')) earn(G, G.prison.length * c, '고치에서 짠 것'); else if (G.prison.length && !combo(G, 'confess')) spend(G, G.prison.length * c, '포로 밥값');
+    if (G.cardMode) spend(G, Math.min(Math.max(0, G.gold), upkeep(G)), '굴 유지'); else spend(G, upkeep(G), '방 유지');
+    if (G.cardMode) { if (G.prison.length && hasRoom(G, 'prison')) earn(G, G.prison.length * c, '고치에서 짠 것'); } else if (G.prison.length && hasRoom(G, 'prison')) earn(G, G.prison.length * c, '고치에서 짠 것'); else if (G.prison.length && !combo(G, 'confess')) spend(G, G.prison.length * c, '포로 밥값');
     if (G.spy) spend(G, 5 * c, '첩자 몫'); if (G.leak && isSettle(G)) G.leak = false;
     for (const m of G.kin) { const s = salary(G, m) * (ox(G, 'sprout') ? 2 : 1); m.strike = 0; if (!s) continue; if (G.gold >= s) { spend(G, s, '끼니'); m.unpaid = 0; } else { m.unpaid = (m.unpaid || 0) + 1; m.strike = 1; rep.notes.push(m.name + ' 끼니를 받지 못함 (내일 밤 불참)'); } }
     // 먹이를 먹는 권속
     G.hungry = (G.hungry || 0) + G.kin.reduce((a, m) => a + (KIN[m.kind].eat || 0), 0);
     while (G.hungry >= 1) { G.hungry -= 1; if (G.corpses.length) G.corpses.shift(); else { const eater = G.kin.find(m => KIN[m.kind].eat && !m.strike); if (eater) { if (eater.kind === 'hunger' && G.gold >= 4 * c) spend(G, 4 * c, '끼니'); else { eater.unpaid = (eater.unpaid || 0) + 1; eater.strike = 1; rep.notes.push(fj(eater.name + '이(가) 굶었다')); } } } }
-    const gone = SC(G) ? [] : G.kin.filter(m => m.unpaid >= 2); if (gone.length) { G.kin = G.kin.filter(m => !(m.unpaid >= 2)); rep.notes.push(fj(gone.map(m => m.name).join(', ') + '이(가) 떠났다')); }
+    const gone = SC(G) ? [] : G.cardMode ? G.kin.filter(m => m.unpaid >= 3).sort((a, b) => b.unpaid - a.unpaid).slice(0, 2) : G.kin.filter(m => m.unpaid >= 2); if (gone.length) { const gs = new Set(gone); G.kin = G.kin.filter(m => !gs.has(m)); rep.notes.push(fj(G.cardMode ? '진액이 바닥나 ' + gone.map(m => m.name).join(', ') + '이(가) 둥지를 떠났다' : gone.map(m => m.name).join(', ') + '이(가) 떠났다')); }
+    if (G.cardMode && gone.length) G.stats.kinLeft = (G.stats.kinLeft || 0) + gone.length;
+    if (G.cardMode && G.gold < 0) G.gold = 0;
     // 징조에 물든 권속들이 제 방식으로 둥지를 불린다
     { const main = G.slime.main, of = a => G.kin.filter(m => KASP[m.kind] === a && m.kind !== 'spawn' && !m.strike), head = () => G.kin.filter(x => x.kind !== 'spawn').length, lone = G.star === 'lone';
       const join = (kind, lv) => { const m = { id: G.nextId++, name: NAMES[Math.floor(rng(G) * NAMES.length)], kind, lv, exp: 0, loc: freeSlot(G, kind), hurt: 0, skill: -1, rare: false, age: 0, unpaid: 0 }; autoSkill(m); G.kin.push(m); return m; };
@@ -2647,7 +2688,7 @@ const NEST = (function () {
   [EDICT, VILL, EVENTS, GUEST, SPOT, OMEN, ORIGIN, ACT_NAME, AVATAR, STAR, SIGN, PLOT, HOARD, ELDER].forEach(localize);
   return { STORYCH, storyOf: SC, storyLock, storyAllows, storyGoal, storyStart, beastPath, lx, localize, folk, CAST, KASP, KTRAIT, leanOf, EDICT, RIVAL, edictChoices, setEdict, ELDER, fj, K, ASPECTS, ASP, OLD, LAY, nbrs, colOf, rowOf, makeLayout, oldLayout, lives, livesMax, migrate, trading, tradeOf, trustCap, HOARD, hoardN, hoardCost, hoardWhy, hoardBuy, ORIGIN, digCost, SIGN, TRAITS, traitReady, eventInfo, BODY, SUBADJ, bodyOf, pk, FUSE_PRE, baseName, RECIPE, recipesOf, ROOM, TRAP, ZONE, PLOT, KIN, SKILL_LV, INV, GRADE_NAME, VILL, VIDS, FORM1, FORM2, FORM2UP, SUBTRAIT, AVATAR, MUT, DIFF, GRADES, EVENTS,
     newGame, actOf, cm, sm, isSettle, formId, formName, formTitle, SPECIES, essTotal, fearGrade, faithCap, corpseCap, corpsePts, slimeStats, kinStats, salary, upkeep, capacity, freeSlot, prisonCap, handsMax, spellCost, seesDetail, expNeed,
-    cardDig, cardBuild, cardTrap, cardTrapCap, cardKin, cardCombos, cardCmbEffects, CMB, unearth,
+    cardDig, cardBuild, cardTrap, cardTrapCap, cardKin, CTHEME, cardCap, cardCombos, cardCmbEffects, CMB, unearth,
     paths, sideRooms, estimate, partyBudget, canDig, digPreview, dig, toggleBlock, canBuild, buildCost, build, addTrap, trapUpCost, upTrap, setZone, setPlot, SPELL, SPELL_IDS, BODYSPELL, spellKnown, spellSrc, handSlots, handOf, setHand, accept, acceptCost, dismiss, onlyOf, partyKinds, BODYFX, bodyPart, bodyLv, moltLean, moltOrder, ATEKIN, SEEDN, proResult, holdBonus, pinCap, pinned, openTrail, trailLeft, WRULE, moveKin, guard, release, autoPlace, breach, underRisk, WORLD, WORLD_IDS, applyWorld, setSkill, setStance, train, eat, rest,
     SPOT, spotOptions, resolveSpot, ELDER, OMEN, OMEN_IDS, OMEN_DAY, CALM_COST, ACT_NAME, calm, COMBO, combos, BURIED, STAR, EVO, EVO_DESC, EVO2, SECRET, stageOf, lvCap, evoMul, secretOf, secretPartner, secretReady, bonded, evoName, kinName, evoCost, evolveKin, giveExp, mkDef, GUEST, guestOptions, resolveGuest, convertKind, endKey, convertChance, ransomOf, sacEss, mutChance, dispose, raidInfo, raid, eventOptions, resolveEvent, endDay, beginNight, settle, luxury, avatarOf, score };
 })();
@@ -2668,7 +2709,7 @@ const TRAITS = (function () {
     skillsUsed: '쓴 기술', wordsLearned: '배운 사람 말', coreDamage: '본체가 받은 상처', digestKills: '소화액에서 죽음',
     waterKills: '물에서 죽음', pulled: '끌어온 적', madness: '미치게 한 적', routs: '쫓아 보낸 적', shapesPlaced: '놓은 굴', organsPlaced: '놓은 기관',
     trapsPlaced: '단 부위', combos: '맞춘 족보', nightsDark: '빛 없이 넘긴 밤', bossKills: '쓰러뜨린 우두머리',
-    ess_abyss: '심연 정수', ess_nebula: '성운 정수', ess_brood: '번식 정수', ess_dusk: '황혼 정수', ess_hunger: '기아 정수'
+    ess_abyss: '심연 빛깔', ess_nebula: '성운 빛깔', ess_brood: '번식 빛깔', ess_dusk: '황혼 빛깔', ess_hunger: '기아 빛깔'
   };
 
   // 형질. asp = 잘 붙는 징조, feed = [셈, 무게] (셈 하나당 무게), hint = 놀이에서 무엇이 달라지나 (20자 안)
@@ -2848,7 +2889,7 @@ const TRAITS = (function () {
   // 한 형질이 왜 돋았나를 한 문장으로 (원인 셈이 없으면 결과만)
   // 한 형질이 왜 돋았나를 한 문장으로 (원인 셈이 없으면 결과만).
   //   used 를 주면 그 판에서 이미 쓴 문장은 다시 쓰지 않고, 원인과 결과가 같은 말을 되풀이하는 짝도 피한다
-  const GENCAUSE = ['그런 밤들이 쌓이는 사이', '같은 일이 몇 번이고 되풀이되자', '굴 안의 일들이 살 속까지 스며들자'];
+  const GENCAUSE = ['그런 밤들이 쌓이는 사이', '같은 일이 몇 번이고 되풀이되자', '굴 안의 일들이 살 속까지 스며들자', '흙이 식어 가는 새벽 무렵', '아무도 깨어 있지 않은 한낮에', '지난밤의 피가 채 마르기도 전에', '굴 천장에서 물방울이 떨어지는 동안', '바깥의 발소리가 멀어진 뒤', '잠든 것의 숨결이 한 번 크게 들린 날', '먹은 것들이 뱃속에서 가라앉자', '살갗 밑에서 무언가 꿈틀거리더니', '오래 움직이지 않고 웅크려 있던 사이', '별 하나가 지평에 걸린 밤이 지나고', '굴 벽의 습기가 몸에 배어 들자', '누구의 것인지 모를 기억이 스치고 간 뒤'];
   const echo = (a, b) => { const w = String(a).replace(/[,.]/g, '').split(/\s+/).filter(x => x.length >= 3); return w.some(x => b.indexOf(x) >= 0); };
   function tell(t, k, key, used) {
     const kk = t + ':' + (key == null ? 0 : key), grew = Array.isArray(GREW[t]) ? GREW[t] : ['몸이 조금 달라졌다'];
@@ -2860,9 +2901,11 @@ const TRAITS = (function () {
     else causes = [DID[k] || '굴에서 일어난 일들이 몸에 남았고'].concat(GENCAUSE);
     const h = hash(String(kk)) >>> 0, cands = [];
     for (let a = 0; a < causes.length; a++) for (let b = 0; b < grew.length; b++) { const ci = (a + h) % causes.length, gi = (b + (h >>> 3)) % grew.length; cands.push({ id: t + '|' + (k || '-').split(':')[0] + '|' + ci + '|' + gi, c: causes[ci], g: grew[gi] }); }
-    const fresh = cands.filter(x => !(used && used.includes(x.id))), clean = fresh.filter(x => !x.c || !echo(x.c, x.g));
-    const pickC = clean[0] || fresh[0] || cands[h % cands.length];
-    if (used) { used.push(pickC.id); if (used.length > 60) used.splice(0, used.length - 60); }
+    const opN = c => used ? used.filter(u => u === 'op:' + c).length : 0;
+    let pool = cands; if (used) { const lim = pool.filter(x => !x.c || opN(x.c) < 2); if (lim.length) pool = lim; else { const alt = GENCAUSE.filter(c => opN(c) < 2); if (alt.length) pool = alt.map((c, i) => ({ id: t + '|gen|' + i + '|' + (h % grew.length), c, g: grew[(i + h) % grew.length] })); } }
+    const fresh = pool.filter(x => !(used && used.includes(x.id))), clean = fresh.filter(x => !x.c || !echo(x.c, x.g));
+    const pickC = clean[0] || fresh[0] || pool[h % pool.length];
+    if (used) { used.push(pickC.id); if (pickC.c) used.push('op:' + pickC.c); if (used.length > 400) used.splice(0, used.length - 400); }
     return pickC.c ? pickC.c + ', ' + pickC.g + '.' : '어느새 ' + pickC.g + '.';
   }
   // 허물의 "왜": 위쪽 형질 셋을 이야기로
@@ -3069,7 +3112,10 @@ const CARDS2 = (function () {
   const RARN = { s: '처음', c: '보통', u: '드묾', r: '옛것급', x: '저주' };
   const TYPEN = { shape: '굴', organ: '기관', trap: '부위', kin: '권속', skill: '기술', boon: '축복', curse: '저주' };
   const LIST = [], BY = {};
-  const add = d => { d.asp = d.asp || 'none'; d.rar = d.rar || 'c'; d.cost = d.cost || 0; d.unlock = null; d.more = d.more || d.text; if (BY[d.id]) throw new Error('dup card ' + d.id); LIST.push(d); BY[d.id] = d; return d; };
+  // 카드 판에 보이는 글에서 옛 셈의 말을 걷어 낸다 (정신·포로·신도·정수·라운드·방울)
+  const KNAME = { cultist: '두건 쓴 것' }, kname = k => KNAME[k] || (N.KIN[k] ? N.KIN[k].name : k);
+  const clean = t => typeof t !== 'string' ? t : t.replace(/정신력/g, '마음').replace(/정신 피해/g, '마음을 깎는 힘').replace(/정신/g, '마음').replace(/(\d+)라운드/g, '$1차례').replace(/한 라운드/g, '잠시').replace(/라운드/g, '차례').replace(/포로/g, '사로잡힌 것').replace(/신도/g, '두건 쓴 것').replace(/진화의 정수/g, '진화').replace(/정수/g, '빛깔').replace(/진액 방울/g, '진액').replace(/([+\-−]?\d+)방울/g, '$1');
+  const add = d => { ['name', 'text', 'more', 'lore'].forEach(k => { if (d[k]) d[k] = clean(d[k]); }); d.asp = d.asp || 'none'; d.rar = d.rar || 'c'; d.cost = d.cost || 0; d.unlock = null; d.more = d.more || d.text; if (BY[d.id]) throw new Error('dup card ' + d.id); LIST.push(d); BY[d.id] = d; return d; };
 
   // ---------- 굴: 모양이 정해진 굴. 첫 칸(누른 칸)을 기준으로 놓고 돌릴 수 있다 ----------
   const SHAPES = [
@@ -3106,7 +3152,7 @@ const CARDS2 = (function () {
     shop: ['빨판 벽', 24, 'c', '지나는 적의 힘을 빤다'],
     prison: ['고치 주머니', 24, 'c', '고치 자리 +4'],
     chapel: ['기도하는 혀', 32, 'c', '매일 신앙 +3'],
-    altar: ['달 삼킨 굴', 44, 'u', '정수가 차오른다'],
+    altar: ['달 삼킨 굴', 44, 'u', '몸의 빛깔이 짙어진다'],
     pool: ['고인 체액', 34, 'c', '곁의 권속을 낫게 한다'],
     sluice: ['물목', 38, 'u', '지나는 무리를 휩쓴다'],
     library: ['별 보는 주름', 34, 'c', '기술이 세지고 하나 더'],
@@ -3139,8 +3185,8 @@ const CARDS2 = (function () {
   const KASP = N.KASP || {};
   Object.keys(N.KIN).filter(k => k !== 'spawn').forEach(k => {
     const kd = N.KIN[k], base = Math.round(((kd.cost || 30) * 0.7 + 12) / 2) * 2;
-    add({ id: 'kn_' + k, name: kd.name, type: 'kin', kin: k, asp: KASP[k] || 'none', rar: (kd.cost || 0) >= 50 ? 'u' : 'c', cost: base, text: kd.name + ' 하나가 둥지에 든다' });
-    add({ id: 'kn_' + k + '_r', name: '늙은 ' + kd.name, type: 'kin', kin: k, asp: KASP[k] || 'none', rar: 'r', cost: base + 20, lv: 3, rare: true, text: '레벨 +3 희귀 ' + kd.name });
+    add({ id: 'kn_' + k, name: kname(k), type: 'kin', kin: k, asp: KASP[k] || 'none', rar: (kd.cost || 0) >= 50 ? 'u' : 'c', cost: base, text: kname(k) + ' 하나가 둥지에 든다' });
+    add({ id: 'kn_' + k + '_r', name: '늙은 ' + kname(k), type: 'kin', kin: k, asp: KASP[k] || 'none', rar: 'r', cost: base + 20, lv: 3, rare: true, text: '레벨 +3 희귀 ' + kname(k) });
   });
   add({ id: 'kn_spawn3', name: '움 셋', type: 'kin', kin: 'spawn', asp: 'brood', rar: 'c', cost: 10, n: 3, text: '움 셋이 돋는다' });
 
@@ -3148,7 +3194,7 @@ const CARDS2 = (function () {
   const XS = [{ draw: 1 }, { ess: 6 }, { faith: 2 }, { heal: 0.15 }];
   const XT = { draw: '내일 한 장 더', ess: '진액 +6', faith: '신앙 +2', heal: '본체 체력 +15%' };
   N.SPELL_IDS.filter(id => !N.SPELL[id].free).forEach((id, n) => {
-  const SKFACE = { wave: '앞 칸으로 밀고 체력 10% 깎기', bite: '본체가 하나를 문다 (공격 4배)', call: '이 방 권속 공격 +80%', tide: '모든 권속 체력 60% 회복', star: '다음 함정이 두 번 터진다', charm: '하나를 홀려 제 편을 치게', scream: '약해진 적을 쫓아낸다', cocoon: '적 하나를 산 채로 싼다', eclipse: '이 방 적 한 라운드 멈춤', guard: '이 방 권속 피해 −55%', grip: '앞의 넷을 3라운드 붙든다', rock: '이 방 적 체력 −8% (맨 앞 두 배)', mark: '셋에게 낙인: 피해 +50%' };
+  const SKFACE = { wave: '앞 칸으로 밀고 체력 10% 깎기', bite: '본체가 하나를 문다 (공격 4배)', call: '이 방 권속 공격 +80%', tide: '모든 권속 체력 60% 회복', star: '다음 함정이 두 번 터진다', charm: '하나를 홀려 제 편을 치게', scream: '약해진 적을 쫓아낸다', cocoon: '적 하나를 산 채로 싼다', eclipse: '이 방 적 잠시 멈춤', guard: '이 방 권속 피해 −55%', grip: '앞의 넷을 붙든다 ×3', rock: '이 방 적 체력 −8% (맨 앞 두 배)', mark: '셋에게 낙인: 피해 +50%' };
     const s = N.SPELL[id], a = s.asp || 'none';
     add({ id: 'sk_' + id, name: s.name, type: 'skill', spell: id, asp: a, rar: s.cost >= 5 ? 'u' : 'c', cost: 0, pow: 1, cmul: 1, text: SKFACE[id] || (s.desc.length > 22 ? s.desc.slice(0, 21) + '…' : s.desc), more: s.desc });
     add({ id: 'sk_' + id + '_deep', name: '깊은 ' + s.name, type: 'skill', spell: id, asp: a, rar: 'r', cost: 0, pow: 1.6, cmul: 1.3, text: s.name + ' ×1.6 (신앙 ×1.3)', more: s.desc });
@@ -3201,14 +3247,14 @@ const CARDS2 = (function () {
   // ---------- 여는 조건: 판을 넘어 쌓인다 (meta.tot). hard = 일부러 노려야 하는 도전 ----------
   const tot = (m, k) => ((m && m.tot) || {})[k] || 0, act = (m, a) => ((m && m.actBy) || {})[a] || 0, win = (m, a) => ((m && m.winBy) || {})[a] || 0;
   const UNLOCK = {};
-  const U = (id, text, check, hard) => { UNLOCK[id] = { text, check, hard: !!hard }; };
+  const U = (id, text, check, hard) => { UNLOCK[id] = { text: clean(text), check, hard: !!hard }; };
   ASPS.forEach(a => {
     U('act2_' + a, ASPN[a] + ' 덱으로 9일째까지 버티기', (st, m) => act(m, a) >= 2);
     U('act3_' + a, ASPN[a] + ' 덱으로 17일째까지 버티기', (st, m) => act(m, a) >= 3);
     U('act4_' + a, ASPN[a] + ' 덱으로 25일째까지 버티기', (st, m) => act(m, a) >= 4);
     U('win_' + a, ASPN[a] + ' 덱으로 별이 서는 밤 넘기기', (st, m) => win(m, a) >= 1);
   });
-  [['swallow', '바닥 아가리로 모두 합쳐 {n}명 삼키기', [20, 80]], ['infRise', '감염체를 모두 합쳐 {n} 일으키기', [5, 20]], ['spawned', '알주머니 새끼 모두 합쳐 {n}', [60, 240]], ['skills', '기술 카드를 모두 합쳐 {n}번 쓰기', [60, 250, 600]], ['nightsWon', '밤을 모두 합쳐 {n}번 넘기기', [40, 150, 400]], ['kills', '적을 모두 합쳐 {n} 쓰러뜨리기', [500, 2000]], ['captives', '포로를 모두 합쳐 {n} 잡기', [8, 30]], ['kinEvo', '권속 진화 모두 합쳐 {n}번', [4, 15]], ['secrets', '비밀 진화 모두 합쳐 {n}번', [1, 4]], ['digs', '굴 카드로 모두 합쳐 {n}칸 파기', [150, 600]], ['shapes', '굴 카드 모두 합쳐 {n}장 놓기', [80, 300]], ['organs', '기관 모두 합쳐 {n}개 놓기', [50, 200]], ['traps', '부위 모두 합쳐 {n}개 달기', [60, 250]], ['digestEss', '소화액으로 진액 모두 합쳐 {n}', [300, 1200]], ['needleWins', '바늘 점에서 모두 합쳐 {n}번 따기', [2, 6]], ['blocks', '흙벽으로 길을 모두 합쳐 {n}번 돌리기', [5, 20]]]
+  [['swallow', '바닥 아가리로 모두 합쳐 {n}명 삼키기', [20, 80]], ['infRise', '감염체를 모두 합쳐 {n} 일으키기', [5, 20]], ['spawned', '알주머니 새끼 모두 합쳐 {n}', [60, 240]], ['skills', '기술 카드를 모두 합쳐 {n}번 쓰기', [60, 250, 600]], ['nightsWon', '밤을 모두 합쳐 {n}번 넘기기', [40, 150, 400]], ['kills', '적을 모두 합쳐 {n} 쓰러뜨리기', [500, 2000]], ['captives', '고치에 산 채로 싸기 모두 합쳐 {n}', [8, 30]], ['kinEvo', '권속 진화 모두 합쳐 {n}번', [4, 15]], ['secrets', '비밀 진화 모두 합쳐 {n}번', [1, 4]], ['digs', '굴 카드로 모두 합쳐 {n}칸 파기', [150, 600]], ['shapes', '굴 카드 모두 합쳐 {n}장 놓기', [80, 300]], ['organs', '기관 모두 합쳐 {n}개 놓기', [50, 200]], ['traps', '부위 모두 합쳐 {n}개 달기', [60, 250]], ['digestEss', '소화액으로 진액 모두 합쳐 {n}', [300, 1200]], ['needleWins', '바늘 점에서 모두 합쳐 {n}번 따기', [2, 6]], ['blocks', '흙벽으로 길을 모두 합쳐 {n}번 돌리기', [5, 20]]]
     .forEach(([k, t, ns]) => ns.forEach((n, i) => U(k + '_' + i, t.replace('{n}', n), (st, m) => tot(m, k) >= n)));
   ['ritual', 'onebody', 'chain', 'swarm', 'long', 'awaken'].forEach(c => U('cmb_' + c, '「' + N.CMB[c].name + '」을(를) 모두 합쳐 ' + (c === 'ritual' || c === 'awaken' ? 10 : 25) + '번 이루기', (st, m) => tot(m, 'cmb_' + c) >= (c === 'ritual' || c === 'awaken' ? 10 : 25)));
   U('cmb_rainbow', '「무지개 아가리」를 한 번 이루기', (st, m) => tot(m, 'cmb_rainbow') >= 1, true);
@@ -3329,17 +3375,17 @@ const CARDS2 = (function () {
     cu_blind: '그 밤에는 어떤 눈도 뜨이지 않았다.', cu_rot: '썩은 살에서도 무언가가 자랐다. 반가운 것은 아니었다.', cu_noise: '굴 안이 웅얼거림으로 가득 찼다. 아무도 말하지 않았는데.',
     cu_leech: '거머리는 진액을 빨면서도 감사할 줄 몰랐다.', cu_fog: '생각이 안개처럼 흩어졌다. 붙잡으려 할수록 더 멀어졌다.', cu_debt: '갚을 것은 늘 갚을 수 있는 것보다 많았다.',
     cu_mark: '「물 아래의 장부」 한 귀퉁이에 둥지의 위치가 적혀 있었다. 누가 적었는지는 알 수 없었다.',
-    bl_draw: '촉수는 어둠 속을 더듬어, 필요한 것을 먼저 찾아냈다.', bl_ess: '흙 속의 진액 맥은 오래된 상처처럼 붉었다.', bl_faith: '중얼거림은 신도들의 입에서 시작해 굴 전체로 번졌다.',
+    bl_draw: '촉수는 어둠 속을 더듬어, 필요한 것을 먼저 찾아냈다.', bl_ess: '흙 속의 진액 맥은 오래된 상처처럼 붉었다.', bl_faith: '중얼거림은 꿇어앉은 것들의 입에서 시작해 굴 전체로 번졌다.',
     bl_heal: '떨어져 나간 살이 다시 붙었다. 자국은 남지 않았다.', bl_retain: '살은 어제 일을 기억했다. 사람보다 오래.', bl_reroll: '그것이 잠결에 뒤척이자 굴의 모양이 조금 바뀌었다.',
-    bl_kinheal: '권속들은 서로의 상처를 핥았다. 그것이 가르친 적은 없었다.', bl_exp: '그것의 꿈이 권속들에게 흘러들었다. 그들은 꿈에서 깨어나 조금 커져 있었다.', bl_essence: '정수 한 방울에는 별 사이 바다의 맛이 났다.',
+    bl_kinheal: '권속들은 서로의 상처를 핥았다. 그것이 가르친 적은 없었다.', bl_exp: '그것의 꿈이 권속들에게 흘러들었다. 그들은 꿈에서 깨어나 조금 커져 있었다.', bl_essence: '짙게 엉긴 진액 한 줌에서 별 사이 바다의 맛이 났다.',
     bl_unearth: '흙 아래 묻힌 것의 냄새가 굴까지 올라왔다.', bl_copy: '같은 살이 두 번 돋았다. 두 번째 것이 조금 더 굶주려 있었다.', bl_trapup: '가시는 밤사이 한 마디씩 자랐다.', bl_needle: '바늘 하나가 아주 멀리서 삐걱였다. 그 소리를 들은 것은 그것뿐이었다.' };
   const loreOf = id => LORE[id] || LORE[id.replace(/_(abyss|nebula|brood|dusk|hunger|great|deep|lite)$/, '')] || LORE[id.replace(/_(abyss|nebula|brood|dusk|hunger)$/, '')] || (id.indexOf('lb_') === 0 ? LORE[id.split('_').slice(0, 2).join('_')] : '') || (id === 'bl_draw3' ? LORE.bl_draw : id === 'bl_ess2' ? LORE.bl_ess : id === 'bl_faith2' ? LORE.bl_faith : '');
-  LIST.forEach(d => { d.lore = loreOf(d.id) || ''; });
+  LIST.forEach(d => { d.lore = clean(loreOf(d.id) || ''); });
 
   // 주제가 맞는 카드를 몇 조건에 바로 건다
   [['tr_maw_great', 'swallow_1'], ['sk_bite_deep', 'swallow_0'], ['tr_spore_great', 'infRise_0'], ['tr_spore_nebula', 'infRise_1'], ['tr_eggsac_abyss', 'spawned_0']].forEach(([id, c]) => { if (BY[id] && UNLOCK[c]) BY[id].unlock = c; });
   const isOpen = (d, meta) => !d.unlock || !!(meta && meta.unlocked && meta.unlocked[d.unlock]) || (d.part && meta && meta.parts && meta.parts[d.part]);
-  return { LIST, BY, ASPS, ASPN, RARN, TYPEN, START, UNLOCK, isOpen, TAGS, tagged };
+  return { kname, clean, LIST, BY, ASPS, ASPN, RARN, TYPEN, START, UNLOCK, isOpen, TAGS, tagged };
 })();
 if (typeof module !== 'undefined') module.exports = CARDS2;
 // 옛 것의 둥지 — 카드로 짓는 판 (규칙). 화면이 없다(node 에서도 돈다).
@@ -3353,7 +3399,7 @@ const CARDMODE = (function () {
   const K = {
     draw: 5, retain: 2, retainMax: 4, handMax: 10, startGold: 170, reward: 3, reroll: 12, upEss: 45, rmEss: 35,
     rarW: { c: 60, u: 32, r: 8 }, pity: 3, shopN: 4, shopPrice: { c: 34, u: 58, r: 96 }, unlockCap: 8, words: 3,
-    needleDig: 0.05, infMax: 3, burn: 15, ease: [0.7, 0.85], easeDays: 6,
+    needleDig: 0.05, infMax: 3, burn: 15, ease: [0.7, 0.85], easeDays: 6, maxRows: 8, leaveMax: 2, drawLate: (typeof process !== 'undefined' && process.env && process.env.DRAWLATE != null ? +process.env.DRAWLATE : 1),
     // 빛깔마다 처음 진액이 조금 다르다: 기아는 굶은 채로, 황혼은 사람들이 바친 것을 들고 온다
     goldBy: (typeof process !== 'undefined' && process.env && process.env.GOLDBY ? JSON.parse(process.env.GOLDBY) : { hunger: -35, dusk: 55 }),
   };
@@ -3404,7 +3450,7 @@ const CARDMODE = (function () {
   function costOf(R, c) { const d = def(c); if (d.type === 'skill' || d.type === 'curse') return d.type === 'curse' ? Math.round((d.burn || K.burn) * cmG(R)) : 0; return Math.round(d.cost * cmG(R) * (c.up && d.type !== 'kin' ? 0.75 : 1)); }
   function view(R, c) {
     const d = def(c), tg = targetKind(d);
-    return { uid: c.uid, id: d.id, name: d.name + (c.up ? '+' : ''), type: d.type, typeName: CD.TYPEN[d.type], asp: d.asp, aspName: CD.ASPN[d.asp], rar: d.rar, rarName: CD.RARN[d.rar], cost: costOf(R, c), text: d.text, more: d.more, up: c.up, target: tg, gene: d.gene || null, from: d.from || null, combo: d.combo || null, cells: d.cells || null, spell: d.spell || null, kin: d.kin || null, room: d.room || null, trap: d.trap || null };
+    return { uid: c.uid, id: d.id, name: d.name + (c.up ? '+' : ''), type: d.type, typeName: CD.TYPEN[d.type], asp: d.asp, aspName: CD.ASPN[d.asp], rar: d.rar, rarName: CD.RARN[d.rar], cost: costOf(R, c), text: d.face || d.text, face: d.face || d.text, more: d.more, up: c.up, target: tg, gene: d.gene || null, from: d.from || null, combo: d.combo || null, cells: d.cells || null, spell: d.spell || null, kin: d.kin || null, room: d.room || null, trap: d.trap || null };
   }
   const targetKind = d => d.type === 'shape' ? (d.op ? 'cell' : 'shape') : d.type === 'organ' || d.type === 'trap' ? 'cell' : d.type === 'boon' && (d.fx.copy || d.fx.trapUp) ? 'none' : 'none';
 
@@ -3424,6 +3470,8 @@ const CARDMODE = (function () {
     if (d.fx.cavein) { const cs = G.cells.map((x, i) => i).filter(i => G.cells[i].dug && i !== G.core && i !== G.ent && G.cells[i].type !== 'empty'); if (cs.length) { const i = pick(R, cs); G.cells[i].type = 'empty'; G.cells[i].casp = null; R.log.push('무너짐: ' + i + '번 칸의 기관이 무너졌다'); } }
     if (d.fx.hurt) { const ks = G.kin.filter(m => m.kind !== 'spawn' && !m.hurt); if (ks.length) { pick(R, ks).hurt = 2; R.log.push('썩은 살: 권속 하나가 다쳤다'); } }
   }
+  // 3막에서는 굴이 깊어 손이 하나 는다 (판이 꽉 찬 뒤에도 할 일이 남게)
+  const drawN = R => K.draw + (R.G && R.G.day > 2 * N.K.act ? K.drawLate : 0);
   const inHand = (R, pred) => R.hand.map(u => card(R, u)).filter(c => pred(def(c), c));
   function morning(R) {
     const G = R.G; if (G.over) return; R.sinkN = {};
@@ -3435,12 +3483,12 @@ const CARDMODE = (function () {
     // 손에 든 저주
     inHand(R, d => d.type === 'curse').forEach(c => { const f = def(c).fx; if (f.tax) G.gold -= Math.round(f.tax * cmG(R)); if (f.faithTax) G.faith = Math.max(0, G.faith - f.faithTax); });
     const less = inHand(R, d => d.type === 'curse' && d.fx.drawLess).length;
-    draw(R, Math.max(1, K.draw + (G.cardDrawBonus || 0) - less)); G.cardDrawBonus = 0;
+    draw(R, Math.max(1, drawN(R) + (G.cardDrawBonus || 0) - less)); G.cardDrawBonus = 0;
     R.shop = shopOffer(R); syncHeld(R);
     R.st.curses = inHand(R, d => d.type === 'curse').length;
   }
   // 덱을 바꾼 뒤 아침을 다시 받는다 (이야기 장의 처음 덱)
-  function reMorning(R) { if (R.camp && CMP()) CMP().morning(R); draw(R, K.draw); R.shop = shopOffer(R); syncHeld(R); }
+  function reMorning(R) { if (R.camp && CMP()) CMP().morning(R); draw(R, drawN(R)); R.shop = shopOffer(R); syncHeld(R); }
   // 손에 쥔 기술 카드 = 밤에 쓸 수 있는 것
   function syncHeld(R) {
     const tax = inHand(R, d => d.type === 'curse' && d.fx.skillTax).length * 0.5;
@@ -3473,8 +3521,8 @@ const CARDMODE = (function () {
     if (d.type === 'shape' && d.op === 'block') return ids.filter(i => G.cells[i].dug && !G.cells[i].block && i !== G.core && i !== G.ent && (() => { G.cells[i].block = true; const okp = N.paths(G).length > 0; G.cells[i].block = false; return okp; })());
     if (d.type === 'shape' && d.op === 'unblock') return ids.filter(i => G.cells[i].block);
     if (d.type === 'shape' && d.op === 'deepen') return ids.filter(i => G.cells[i].dug && i !== G.core && (G.cells[i].lv || 1) < 3);
-    if (d.type === 'organ') return ids.filter(i => G.cells[i].dug && i !== G.core && !G.cells[i].block && G.cells[i].type !== d.room);
-    if (d.type === 'trap') return ids.filter(i => G.cells[i].dug && i !== G.core && !G.cells[i].block && G.cells[i].traps.length < N.cardTrapCap(G.cells[i]));
+    if (d.type === 'organ') return ids.filter(i => G.cells[i].dug && i !== G.core && !G.cells[i].block && (G.cells[i].type !== d.room || (G.cells[i].lv || 1) < 3));
+    if (d.type === 'trap') return ids.filter(i => G.cells[i].dug && i !== G.core && !G.cells[i].block && (G.cells[i].traps.length < N.cardTrapCap(G.cells[i]) || G.cells[i].traps.some(t => (t.lv || 1) < 3)));
     return [];
   }
   function canPlay(R, uid) {
@@ -3501,13 +3549,16 @@ const CARDMODE = (function () {
       if (d.op === 'block') { G.cells[i].block = true; G.kin.forEach(m => { if (m.loc === i) m.loc = null; }); N.autoPlace(G); R.st.blocks++; res = ok('흙벽: 길이 돌아간다'); }
       else if (d.op === 'unblock') { G.cells[i].block = false; res = ok('틈을 냈다'); }
       else if (d.op === 'deepen') { G.cells[i].lv = Math.min(3, (G.cells[i].lv || 1) + 1); res = ok('굴이 깊어졌다 (레벨 ' + G.cells[i].lv + ')'); }
+      else if (d.type === 'organ' && G.cells[i].type === d.room) { G.cells[i].lv = Math.min(3, (G.cells[i].lv || 1) + 1 + (c.up ? 1 : 0)); G.stats.organsGrown = (G.stats.organsGrown || 0) + 1; R.st.organs++; res = ok(d.name + '이(가) 자랐다 · 레벨 ' + G.cells[i].lv); }
       else if (d.type === 'organ') { const r = N.cardBuild(G, i, d.room, d.asp === 'none' ? null : d.asp); if (!r.ok) return r; if (c.up || d.lv2) G.cells[i].lv = Math.max(G.cells[i].lv || 1, 2); if (d.reveal) { const cs = N.nbrs(G, i).filter(j => !G.cells[j].dug); if (cs.length) { N.cardDig(G, pick(R, cs)); R.st.digs++; } } R.st.organs++; res = ok(d.name + '이(가) 돋았다'); }
-      else if (d.type === 'trap') { const r = N.cardTrap(G, i, { kind: d.trap, lv: Math.min(3, (d.lv || 1) + (c.up ? 1 : 0)), pow: d.pow || 1, asp: d.asp === 'none' ? null : d.asp, name: d.name, cid: d.id }); if (!r.ok) return r; R.st.traps++; res = r; }
+      else if (d.type === 'trap' && G.cells[i].traps.length >= N.cardTrapCap(G.cells[i])) { const t = G.cells[i].traps.slice().sort((a, b) => (a.lv || 1) - (b.lv || 1))[0]; t.lv = Math.min(3, (t.lv || 1) + 1); t.pow = Math.max(t.pow || 1, d.pow || 1); if (d.also) t.also = [...new Set([].concat(t.also || [], d.also))].filter(k => k !== t.kind); G.stats.trapsGrown = (G.stats.trapsGrown || 0) + 1; R.st.traps++; res = ok(t.name + '이(가) 굳어졌다 · 레벨 ' + t.lv); }
+      else if (d.type === 'trap') { const r = N.cardTrap(G, i, { kind: d.trap, lv: Math.min(3, (d.lv || 1) + (c.up ? 1 : 0)), pow: d.pow || 1, asp: d.asp === 'none' ? null : d.asp, name: d.name, cid: d.id, also: d.also || null }); if (!r.ok) return r; R.st.traps++; res = r; }
     } else if (d.type === 'kin') {
       const n = d.n || 1, got = []; for (let k = 0; k < n; k++) { const r = N.cardKin(G, d.kin, { lv: (d.lv || 0) + (c.up ? 2 : 0), rare: !!d.rare }); if (r.ok) got.push(r.kin); }
       for (let k = 0; k < (d.plus || 0); k++) { const r = N.cardKin(G, 'spawn'); if (r.ok) got.push(r.kin); }
-      res = ok(got.map(m => N.KIN[m.kind].name).join(', ') + ' 들어왔다');
+      res = ok(got.map(m => CD.kname ? CD.kname(m.kind) : N.KIN[m.kind].name).join(', ') + ' 들어왔다');
     } else if (d.type === 'boon') { res = boon(R, c, d.fx, tgt); if (!res.ok) return res; }
+    R.playN = R.playN || {}; R.playN[G.day] = (R.playN[G.day] || 0) + 1;
     G.gold -= cost; R.st.maxGold = Math.max(R.st.maxGold, G.gold);
     gs(G, 'cardsBy', d.type); gs(G, 'cardsAsp', d.asp); if (d.type !== 'shape') (d.tags || []).forEach(t => gs(G, 'cardTags', t)); if (d.type === 'shape') G.stats.shapesPlaced = (G.stats.shapesPlaced || 0) + 1; if (d.type === 'organ') G.stats.organsPlaced = (G.stats.organsPlaced || 0) + 1; if (d.type === 'trap') G.stats.trapsPlaced = (G.stats.trapsPlaced || 0) + 1;
     if (d.type === 'kin') exhaust(R, uid); else discard(R, uid); syncHeld(R);
@@ -3548,7 +3599,7 @@ const CARDMODE = (function () {
     if (mt && G.kin.filter(m => m.kind !== 'spawn' && m.loc !== null).length <= 1) G.stats.nightsAlone = (G.stats.nightsAlone || 0) + 1;
     const curse = inHand(R, d => d.type === 'curse');
     if (mt && curse.some(c => def(c).fx.angry)) mt.angry = true;
-    curse.forEach(c => { if (def(c).fx.nightTax) G.gold -= Math.round(def(c).fx.nightTax * cmG(R)); });
+    curse.forEach(c => { if (def(c).fx.nightTax) G.gold = Math.max(0, G.gold - Math.round(def(c).fx.nightTax * cmG(R))); });
     const ess = Object.assign({}, G.slime.ess); Object.keys(G.slime.ess).forEach(a => { G.slime.ess[a] = 0; });
     if (easeOn(R)) { R.easeD = { b: G.detBonus, a: G.detBonus * R.ease }; G.detBonus = R.easeD.a; }
     R.night0 = { kin0: G.kin.filter(m => m.kind !== 'spawn').map(m => m.id), hp0: G.slime.hp, st0: G.slime.stage, ess };
@@ -3557,7 +3608,7 @@ const CARDMODE = (function () {
   const easeOn = R => R.ease != null && R.ease < 1 && R.G.day <= K.easeDays && !!R.G.march.tonight && !R.G.march.tonight.kinds;
   function nightEnd(R, r, keep) {
     if (R.easeD) { if (Math.abs(R.G.detBonus - R.easeD.a) < 1e-9) R.G.detBonus = R.easeD.b; R.easeD = null; }
-    const G = R.G, n0 = R.night0 || { kin0: [], hp0: G.slime.hp, st0: G.slime.stage, ess: {} }; R.night0 = null; r = r || { battle: null, settle: null };
+    const G = R.G, n0 = R.night0 || { kin0: [], hp0: G.slime.hp, st0: G.slime.stage, ess: {} }; R.night0 = null; r = r || { battle: null, settle: null }; if (G.gold < 0) G.gold = 0;
     Object.keys(n0.ess || {}).forEach(a => { G.slime.ess[a] = (n0.ess[a] || 0) + (G.slime.ess[a] || 0); });
     if (G.slime.stage > n0.st0) R.moltQ = (R.moltQ || 0) + (G.slime.stage - n0.st0);
     (G.cardUsed || []).forEach(uid => { const c = R.deck.find(x => x.uid === uid), d = c && def(c); if (d) (d.tags || []).forEach(t => gs(G, 'cardTags', t)); discard(R, uid); }); G.cardUsed = []; G.cardHeld = [];
@@ -3626,13 +3677,17 @@ const CARDMODE = (function () {
   function shopBuy(R, i) { const s = R.shop && R.shop[i]; if (!s || s.sold) return fail('없는 물건이다'); if (R.G.gold < s.price) return fail('진액이 모자란다'); R.G.gold -= s.price; s.sold = true; const c = addCard(R, s.id); R.disc.push(c.uid); return ok(CD.BY[s.id].name + '을(를) 샀다'); }
   const upCost = R => Math.round(K.upEss * cmG(R)), rmCost = R => Math.round(K.rmEss * cmG(R));
   // ---- 진액을 쓸 곳: 같은 날 거듭할수록 값이 오른다 ----
-  const SINK = { redraw: { name: '손을 다시 받는다', base: 22, step: 14 }, draw: { name: '한 장 더 받는다', base: 28, step: 18 }, feed: { name: '권속을 먹인다', base: 45, step: 25 }, hurry: { name: '허물을 재촉한다', base: 70, step: 40 } };
+  const SINK = { redraw: { name: '손을 다시 받는다', base: 22, step: 14 }, draw: { name: '한 장 더 받는다', base: 28, step: 18 }, feed: { name: '권속을 먹인다', base: 45, step: 25 }, hurry: { name: '허물을 재촉한다', base: 70, step: 40 }, delve: { name: '한 층 더 판다', base: 110, step: 90 } };
+  const freeEdge = G => G.cells.some((x, i) => !x.dug && N.nbrs(G, i).some(j => G.cells[j].dug));
+  const delveOk = G => G.rows < K.maxRows && (!freeEdge(G) || G.cells.filter(x => x.dug).length >= G.cells.length * 0.75);
   function sinkCost(R, id) { const n = (R.sinkN && R.sinkN[id]) || 0; return Math.round((SINK[id].base + SINK[id].step * n) * cmG(R)); }
   function sinkWhy(R, id) {
     const G = R.G; if (!SINK[id]) return '없는 것이다'; if (R.phase !== 'day' || G.over) return '낮이 아니다'; if (G.gold < sinkCost(R, id)) return '진액이 모자란다';
     if (id === 'feed' && !G.kin.some(m => m.kind !== 'spawn')) return '먹일 권속이 없다';
     if (id === 'hurry') { const b = evoBar(R); if (!b || b.done) return '더 벗을 허물이 없다'; if (R.moltQ) return '허물이 이미 차올랐다'; }
     if (id === 'draw' && R.hand.length >= K.handMax) return '손이 가득 찼다';
+    if (id === 'delve' && G.rows >= K.maxRows) return '더 내려갈 곳이 없다';
+    if (id === 'delve' && !delveOk(G)) return '아직 팔 자리가 남았다';
     if ((id === 'draw' || id === 'redraw') && !R.drawP.length && !R.disc.length) return '덱에 남은 카드가 없다';
     return null;
   }
@@ -3640,9 +3695,10 @@ const CARDMODE = (function () {
   function buySink(R, id) {
     const why = sinkWhy(R, id); if (why) return fail(why); const G = R.G, c = sinkCost(R, id);
     G.gold -= c; R.sinkN = R.sinkN || {}; R.sinkN[id] = (R.sinkN[id] || 0) + 1; R.st.sunk = (R.st.sunk || 0) + c; gs(G, 'spent', id, c);
-    if (id === 'redraw') { R.hand.slice().forEach(u => { const cc = card(R, u); if (cc && def(cc).type !== 'curse') discard(R, u); }); draw(R, K.draw); syncHeld(R); return ok('손을 다시 받았다'); }
+    if (id === 'redraw') { R.hand.slice().forEach(u => { const cc = card(R, u); if (cc && def(cc).type !== 'curse') discard(R, u); }); draw(R, drawN(R)); syncHeld(R); return ok('손을 다시 받았다'); }
     if (id === 'draw') { draw(R, 1); syncHeld(R); return ok('한 장을 더 받았다'); }
     if (id === 'feed') { const ks = G.kin.filter(m => m.kind !== 'spawn'), each = 8 + 2.5 * G.day; let ups = 0; ks.forEach(m => { ups += N.giveExp(m, each) || 0; }); return ok('권속들이 살점을 받았다' + (ups ? ' · ' + ups + '번 자랐다' : '')); }
+    if (id === 'delve') { for (let k = 0; k < G.cols; k++) G.cells.push({ dug: false, soft: false, block: false, type: 'empty', lv: 1, exp: 0, traps: [], zone: false }); G.rows++; G.stats.delves = (G.stats.delves || 0) + 1; return ok('흙 아래에 한 층이 더 있었다'); }
     if (id === 'hurry') { const b = evoBar(R), g = R.genome; g.evo = (g.evo || 0) + Math.max(0.05, (b.need - (b.prev || 0)) * 0.3); if (GEN() && GEN().ripe) GEN().ripe(R); return ok(R.moltQ ? '허물이 차올랐다. 오늘 밤 몸이 바뀐다' : '허물이 조금 더 차올랐다'); }
     return fail('없는 것이다');
   }
@@ -3766,6 +3822,14 @@ const CARDMODE = (function () {
     return { frac: b.frac, near: b.frac >= 0.7 || nights <= 1, nights, reason: b.frac >= 0.7 || nights <= 1 ? '허물이 가깝다' : '몸이 익어 간다', top: (typeof TRAITS !== 'undefined' ? TRAITS : require('./traits.js')).topTags(g, 1)[0] || null };
   }
   const codex = meta => (GEN() ? GEN().codex(meta) : { found: 0, list: [], landmarksFound: 0, landmarks: [], total: 30 });
+  // 내일 아침 끼니와 굴 유지를 치를 수 있나: 모자라면 떠날 권속의 이름 (둘까지)
+  function upkeepWarn(R) {
+    const G = R.G; if (!G || G.over) return { short: 0, leaving: [], days: 99, perDay: 0 };
+    const up = N.upkeep(G), ks = G.kin.filter(m => m.kind !== 'spawn'), per = up + ks.reduce((a, m) => a + N.salary(G, m), 0);
+    let g = Math.max(0, G.gold) - up; const unpaid = []; G.kin.forEach(m => { const s = N.salary(G, m); if (!s) return; if (g >= s) g -= s; else unpaid.push(m); });
+    const leaving = unpaid.filter(m => (m.unpaid || 0) >= 2).slice(0, K.leaveMax).map(m => m.name);
+    return { short: Math.max(0, Math.round(per - Math.max(0, G.gold))), leaving, hungry: unpaid.length, days: per > 0 ? Math.floor(Math.max(0, G.gold) / per) : 99, perDay: Math.round(per) };
+  }
   function genomeSummary(R) { const T = typeof TRAITS !== 'undefined' ? TRAITS : require('./traits.js'); return R.genome ? T.summary(R.genome) : null; }
 
   // ---- 화면에 줄 것 ----
@@ -3784,7 +3848,7 @@ const CARDMODE = (function () {
   function deckView(R) { return R.deck.map(c => Object.assign(view(R, c), { where: R.hand.includes(c.uid) ? 'hand' : R.drawP.includes(c.uid) ? 'draw' : 'disc' })); }
   function dayView(R) { return { day: R.G.day, phase: R.phase, gold: R.G.gold, faith: R.G.faith, hand: handView(R), drawN: R.drawP.length, discN: R.disc.length, deckN: R.deck.length, retain: R.retain, combos: N.cardCombos(R.G), shop: (R.shop || []).map((s, i) => Object.assign({ i }, s, { card: view(R, { uid: 0, id: s.id, up: 0 }) })), offer: R.offer ? R.offer.cards.map(id => view(R, { uid: 0, id, up: 0 })) : null, needleOffer: R.needleOffer, upCost: upCost(R), rmCost: rmCost(R), log: R.log.splice(0), learned: R.learned.slice() }; }
 
-  return { K, ALIEN, SIGNS, NHANDS, newMeta, newRun, addCard, costOf, view, canPlay, play, cellsFor, shapePlacements, endDay, nightBegin, nightEnd, foresee, evoBar, moltProgress, morning, syncHeld, draw,
+  return { upkeepWarn, K, ALIEN, SIGNS, NHANDS, newMeta, newRun, addCard, costOf, view, canPlay, play, cellsFor, shapePlacements, endDay, nightBegin, nightEnd, foresee, evoBar, moltProgress, morning, syncHeld, draw,
     takeReward, skipReward, rerollReward, shopOffer, shopBuy, upgrade, removeCard, upCost, rmCost, SINK, sinkCost, sinkOptions, buySink,
     needleStart, needleBet, needleReveal, needleFold, needlePublic, needleEval, needleBest,
     registerMutator, clearMutators, mutateDeck, behaviour, syncCounters, COUNTERS,
@@ -3805,17 +3869,17 @@ const GENOME = (function () {
 
   // ---- 형질이 카드를 다시 쓰는 법: on = 바꿀 수 있는 카드 종류, pre = 이름 앞에 붙는 말, t = 카드 얼굴의 짧은 말 ----
   const RW = {
-    maw: { on: 'trap', pre: '아가리 돋은', t: '약한 적을 통째로 삼킨다', ch: d => ({ trap: 'maw', pow: r2((d.pow || 1) * 1.1) }) },
-    spore: { on: 'trap', pre: '포자 핀', t: '쓰러진 적이 감염체로 선다', ch: d => ({ trap: 'spore', pow: r2((d.pow || 1) * 1.2) }) },
+    maw: { on: 'trap', pre: '아가리 돋은', t: '약한 적을 통째로 삼킨다', ch: d => ({ also: 'maw', pow: r2((d.pow || 1) * 1.1) }) },
+    spore: { on: 'trap', pre: '포자 핀', t: '쓰러진 적이 감염체로 선다', ch: d => ({ also: 'spore', pow: r2((d.pow || 1) * 1.2) }) },
     eye: { on: 'skill', pre: '눈 뜬', t: '신앙이 30% 덜 든다', ch: d => ({ cmul: r2((d.cmul || 1) * 0.7) }) },
     water: { on: 'shape', pre: '물 고인', t: '파면 첫 칸에 물이 찬다', when: d => !d.op && !d.bridge && !d.gift, ch: d => ({ gift: 'drown', cost: (d.cost || 0) + 2 }) },
     bone: { on: 'kin', pre: '뼈 두른', t: '레벨 +2로 든다', ch: d => ({ lv: (d.lv || 0) + 2 }) },
-    tent: { on: 'trap', pre: '촉수 뻗은', t: '가장 센 적을 휘감아 친다', ch: d => ({ trap: 'limb', pow: r2((d.pow || 1) * 1.2) }) },
+    tent: { on: 'trap', pre: '촉수 뻗은', t: '가장 센 적을 휘감아 친다', ch: d => ({ also: 'limb', pow: r2((d.pow || 1) * 1.2) }) },
     egg: { on: 'kin', pre: '알 품은', t: '움 둘이 함께 돋는다', when: d => d.kin !== 'spawn', ch: d => ({ plus: (d.plus || 0) + 2 }) },
     spike: { on: 'trap', pre: '가시 돋은', t: '함정 힘 ×1.3', ch: d => ({ pow: r2((d.pow || 1) * 1.3) }) },
     face: { on: 'skill', pre: '얼굴 쓴', t: '신앙 덜 들고 신앙 +2', ch: d => ({ cmul: r2((d.cmul || 1) * 0.85), x: d.x || { faith: 2 } }) },
-    gut: { on: 'trap', pre: '위액 찬', t: '거기서 죽으면 곧 진액', ch: d => ({ trap: 'digest', pow: r2((d.pow || 1) * 1.1) }) },
-    shadow: { on: 'trap', pre: '그림자 진', t: '적을 입구로 돌려보낸다', ch: d => ({ trap: 'whisper', pow: r2((d.pow || 1) * 1.1) }) },
+    gut: { on: 'trap', pre: '위액 찬', t: '거기서 죽으면 곧 진액', ch: d => ({ also: 'digest', pow: r2((d.pow || 1) * 1.1) }) },
+    shadow: { on: 'trap', pre: '그림자 진', t: '적을 입구로 돌려보낸다', ch: d => ({ also: 'whisper', pow: r2((d.pow || 1) * 1.1) }) },
     star: { on: 'skill', pre: '별빛', t: '기술 힘 ×1.35', ch: d => ({ pow: r2((d.pow || 1) * 1.35) }) },
     trap: { on: 'trap', pre: '덫 굳은', t: '함정 레벨 +1', when: d => (d.lv || 1) < 3, ch: d => ({ lv: Math.min(3, (d.lv || 1) + 1) }) },
     alone: { on: 'kin', pre: '등 돌린', t: '본체가 홀로 서서 비싸진다', ch: d => ({ cost: Math.round((d.cost || 0) * 1.4) }) },
@@ -3824,7 +3888,7 @@ const GENOME = (function () {
     wing: { on: 'shape', pre: '날개막', t: '반값에 판다', when: d => !d.op && (d.cost || 0) > 1, ch: d => ({ cost: Math.max(1, Math.round((d.cost || 0) * 0.5)) }) },
     glow: { on: 'organ', pre: '빛 도는', t: '돋으며 곁의 칸 하나를 판다', ch: () => ({ reveal: 1 }) },
     root: { on: 'organ', pre: '뿌리 내린', t: '값 −25%', ch: d => ({ cost: Math.round((d.cost || 0) * 0.75) }) },
-    mirror: { on: 'trap', pre: '거울 비친', t: '미친 적이 제 편을 친다', ch: d => ({ trap: 'eye', pow: r2((d.pow || 1) * 1.15) }) },
+    mirror: { on: 'trap', pre: '거울 비친', t: '미친 적이 제 편을 친다', ch: d => ({ also: 'eye', pow: r2((d.pow || 1) * 1.15) }) },
     tongue: { on: 'shape', pre: '혀 내민', t: '파면 끌어당기는 벽이 돋는다', when: d => !d.op && !d.bridge && !d.gift, ch: () => ({ gift: 'whisper' }) },
     horn: { on: 'kin', pre: '뿔 난', t: '희귀하게, 레벨 +1', ch: d => ({ lv: (d.lv || 0) + 1, rare: true }) },
   };
@@ -3841,6 +3905,8 @@ const GENOME = (function () {
   // ---- 다시 쓴 카드: id 로부터 언제든 다시 만든다 (저장한 판을 불러와도 같은 카드) ----
   //   gx_<형질>__<본디 id> : 형질 하나가 다시 쓴 카드.  gc_<짝 id>__<본디 id> : 짝 형질이 바꾼 특별한 카드
   const GENE = [];
+  // 다시 쓴 함정은 본디 효과를 그대로 두고 효과를 더한다 (여럿 쌓인다)
+  const alsoOf = (src, add, own) => { const a = [...new Set([].concat(src.also || [], add || []))].filter(k => k && k !== own); return a.length ? a : null; };
   const base = d => d.baseName || d.name;
   function ensure(id) {
     if (!id || CD.BY[id]) return CD.BY[id] || null;
@@ -3849,14 +3915,14 @@ const GENOME = (function () {
     let d = null;
     if (head.indexOf('gx_') === 0) {
       const tag = head.slice(3), rw = RW[tag]; if (!rw || src.type !== rw.on) return null;
-      d = Object.assign({}, src, rw.ch(src), { id, name: rw.pre + ' ' + base(src), baseName: base(src), btext: src.text, text: rw.t, more: rw.pre + ' ' + base(src) + ': ' + rw.t + ' · 본디 「' + base(src) + '」: ' + (src.more || src.text) });
-      d.gene = (src.gene || []).concat([tag]);
+      const root = src.rootText || src.text, adds = (src.adds || []).concat([rw.t]); d = Object.assign({}, src, rw.ch(src), { id, name: rw.pre + ' ' + base(src), baseName: base(src), btext: src.text, rootText: root, adds, text: root, face: root, more: rw.pre + ' ' + base(src) + ': ' + adds.join(' · ') + ' · 본디 「' + base(src) + '」: ' + root });
+      d.gene = (src.gene || []).concat([tag]); d.also = alsoOf(src, rw.ch(src).also, d.trap);
     } else if (head.indexOf('gc_') === 0) {
       const cid = head.slice(3), cmb = T.COMBOS.find(c => c.id === cid); if (!cmb) return null;
       const rws = cmb.tags.map(t => RW[t]).filter(rw => rw && rw.on === src.type); if (!rws.length) return null;
       let ch = {}; rws.forEach(rw => { ch = Object.assign(ch, rw.ch(Object.assign({}, src, ch))); });
       if (src.type === 'trap') ch.pow = r2((ch.pow || src.pow || 1) * 1.2); else if (src.type === 'kin') ch.lv = (ch.lv || src.lv || 0) + 1; else if (src.type === 'skill') ch.pow = r2((ch.pow || src.pow || 1) * 1.2); else if (src.type === 'organ') ch.lv2 = true; else if (src.type === 'shape') ch.cost = Math.max(1, Math.round((ch.cost != null ? ch.cost : src.cost || 0) * 0.7));
-      d = Object.assign({}, src, ch, { id, name: cmb.name, baseName: base(src), btext: src.text, text: (rws[0].t.length > 22 ? rws[0].t.slice(0, 21) + '…' : rws[0].t), more: cmb.name + ': ' + cmb.text + ' · ' + rws.map(rw => rw.t).join(' · ') + ' · 본디 「' + base(src) + '」' });
+      const root = src.rootText || src.text, adds = (src.adds || []).concat(rws.map(rw => rw.t)); ch.also = alsoOf(src, rws.map(rw => rw.ch(src).also).filter(Boolean), ch.trap || src.trap); d = Object.assign({}, src, ch, { id, name: cmb.name, baseName: base(src), btext: src.text, rootText: root, adds, text: root, face: root, more: cmb.name + ': ' + cmb.text + ' · ' + rws.map(rw => rw.t).join(' · ') + ' · 본디 「' + base(src) + '」' });
       d.gene = (src.gene || []).concat(cmb.tags); d.combo = cid; if (d.rar === 'c' || d.rar === 's') d.rar = 'u'; else if (d.rar === 'u') d.rar = 'r';
     }
     if (!d) return null;
@@ -3925,7 +3991,7 @@ const GENOME = (function () {
   // need = 허물마다 넘어야 할 진화의 정수(쌓인 값). 본체(원래 게임의 몸)도 함께 한 단계 큰다: 첫 허물에 바탕 징조, 둘째에 섞인 징조
   const envN = (k, d) => (typeof process !== 'undefined' && process.env && process.env[k] != null ? +process.env[k] : d);
   // 빛깔마다 몸이 바뀌는 빠르기가 다르다 (성운은 별처럼 빨리 일그러지고, 심연은 느리게 가라앉는다)
-  const EVO = { asp: (typeof process !== 'undefined' && process.env && process.env.EVOA ? JSON.parse(process.env.EVOA) : { abyss: 0.9, nebula: 1.55, brood: 0.68, dusk: 1.05, hunger: 1.15 }), base: envN('EVOB', 1), k: envN('EVOK', 0.5), need: (typeof process !== 'undefined' && process.env && process.env.EVON ? process.env.EVON.split(',').map(Number) : [70, 430, 720, 1000]), first: { min: envN('EVOFM', 1.15), base: envN('EVOFB', 3) } };
+  const EVO = { asp: (typeof process !== 'undefined' && process.env && process.env.EVOA ? JSON.parse(process.env.EVOA) : { abyss: 0.9, nebula: 1.55, brood: 0.68, dusk: 1.05, hunger: 1.15 }), base: envN('EVOB', 1), k: envN('EVOK', 0.5), need: (typeof process !== 'undefined' && process.env && process.env.EVON ? process.env.EVON.split(',').map(Number) : [70, 220, 530, 1000]), first: { min: envN('EVOFM', 1.15), base: envN('EVOFB', 3) } };
   function moltNeed(R) { return EVO.need[(R.molts || []).length + (R.moltQ || 0)]; }
   function protMolt(G) {
     if (G.slime.stage >= 4) return false; const order = N.moltOrder(G);
@@ -3953,7 +4019,7 @@ const GENOME = (function () {
     const mutated = R.noGene ? [] : applyPicks(R, picks);
     const fx = R.noGene ? null : applyBody(R), lm = T.landmarkOf(g);
     // 앞 허물과 이름이 같으면 몸의 나이를 붙여 가른다 (같은 이름이 두 번 나오지 않게)
-    { g.epithet = null; const prevN = (R.molts || []).length ? R.molts[R.molts.length - 1].name : null; if (prevN && T.nameOf(g).name === prevN) g.epithet = ['', '', '한 번 더 벗은', '오래 묵은', '다 자란', '다 자란'][Math.min(5, g.stage || 2)] || '더 자란'; }
+    { g.epithet = null; const used = new Set((R.molts || []).map(m => m.name)); if (used.has(T.nameOf(g).name)) { for (const ep of EPITHET) { g.epithet = ep; if (!used.has(T.nameOf(g).name)) break; } } }
     const nm = T.nameOf(g);
     R.st.molts = (R.st.molts || 0) + 1; if (lm) R.st.landmarks = (R.st.landmarks || 0) + 1;
     record(R, g);
@@ -3962,6 +4028,7 @@ const GENOME = (function () {
     return res;
   }
 
+  const EPITHET = ['한 번 더 벗은', '오래 묵은', '껍질을 거듭 갈아입은', '밤마다 자란', '깊어진', '다 자란', '굴을 닮아 간'];
   // ---- 도감 ----
   const formKey = g => { const c = T.classOf(g); return g.aspect + ':' + c.loco + ':' + T.topTags(g, 3).join('+'); };
   function record(R, g) {
@@ -3997,7 +4064,7 @@ const CAMPAIGN = (function () {
   const SEEKER = {
     seeker0: { name: '책을 쫓는 자', g: 3, b: 0, hp: 150, atk: 9, df: 6, san: 90, gold: 60, asp: 'nebula', boss: '함정을 읽는다: 함정이 절반만 문다', flood: true, trapHalf: true, tip: '서 있는 동안 함정이 절반만 문다' },
     seeker1: { name: '책을 쫓는 자', g: 4, b: 0, hp: 260, atk: 15, df: 8, san: 120, gold: 90, asp: 'nebula', boss: '책을 읽어 무리를 몰아세운다', rally: 1.2, trapHalf: true, ward: 0.3, tip: '서 있는 동안 무리가 세지고 물러나지 않는다' },
-    seeker2: { name: '책을 쫓는 자', g: 5, b: 0, hp: 520, atk: 24, df: 12, san: 999, gold: 140, asp: 'nebula', boss: '책이 그를 읽는다: 정신이 없다', nomind: true, shield: 10, bombard: 1.6, trapHalf: true, tip: '정신이 없다. 방에 들면 권속을 불태운다' },
+    seeker2: { name: '책을 쫓는 자', g: 5, b: 0, hp: 520, atk: 24, df: 12, san: 999, gold: 140, asp: 'nebula', boss: '책이 그를 읽는다: 마음이 비었다', nomind: true, shield: 10, bombard: 1.6, trapHalf: true, tip: '마음이 비었다. 방에 들면 권속을 불태운다' },
   };
   for (const k in SEEKER) if (!Object.prototype.hasOwnProperty.call(N.INV, k)) Object.defineProperty(N.INV, k, { value: SEEKER[k], enumerable: false, writable: true, configurable: true });
 
@@ -4066,7 +4133,7 @@ const CAMPAIGN = (function () {
     },
     4: {
       title: '장부의 찢긴 쪽', brief: '밤에 무리가 방에서 멈출 때 기술 카드로 끼어든다. 책을 손에 붙인 자가 무리를 이끈다.', teach: '기술 카드와 끼어들기',
-      types: ['shape', 'kin', 'organ', 'trap', 'skill'], world: 'fantasy', gold: 190, stage: 1, mul: 1.9,
+      types: ['shape', 'kin', 'organ', 'trap', 'skill'], world: 'fantasy', gold: 190, stage: 1, mul: 2.35,
       deck: ['sh_two', 'sh_two', 'sh_bend', 'sh_one', 'og_post_@', 'og_trap_@', 'tr_maw', 'tr_spore', 'tr_eye', 'kn_goblin', 'kn_skeleton', 'kn_cultist', 'sk_rock', 'sk_wave', 'sk_hatch', 'sk_mark', 'bl_faith', 'bl_ess'],
       nights: { 1: ['militia', 'villager', 'villager', 'detective'], 2: ['militia', 'militia', 'apprentice', 'villager'], 3: ['warrior', 'militia', 'villager', 'villager', 'villager'], 4: ['seeker1', 'militia', 'militia', 'villager', 'villager'], 5: ['warrior', 'apprentice', 'militia', 'villager'], 6: ['militia', 'militia', 'priest', 'villager', 'villager'], 7: ['warrior', 'warrior', 'militia', 'villager'], 8: ['seeker1', 'warrior', 'militia', 'militia', 'villager', 'villager'] },
       goal: { nights: 8, skills: 4, seeker: 2 },
@@ -4084,7 +4151,7 @@ const CAMPAIGN = (function () {
     },
     5: {
       title: '허물', brief: '몸이 바뀌면 카드가 바뀐다. 열 밤 동안 허물을 두 번 벗는다. 끝에 그를 어떻게 할지 정한다.', teach: '덱 = 유전자',
-      types: ['shape', 'kin', 'organ', 'trap', 'skill', 'boon'], world: 'fantasy', gold: 220, stage: 1, mul: 2.4,
+      types: ['shape', 'kin', 'organ', 'trap', 'skill', 'boon'], world: 'fantasy', gold: 220, stage: 1, mul: 2.75,
       deck: ['sh_two', 'sh_two', 'sh_bend', 'sh_one', 'og_post_@', 'og_trap_@', 'og_hatchery', 'tr_maw', 'tr_spore', 'tr_eye', 'tr_digest_@', 'kn_goblin', 'kn_skeleton', 'kn_cultist', 'kn_scale', 'sk_rock', 'sk_wave', 'sk_mark', 'bl_ess', 'bl_faith'],
       nights: { 1: ['militia', 'militia', 'villager', 'detective'], 2: ['warrior', 'militia', 'villager', 'villager'], 3: ['militia', 'apprentice', 'scholar', 'villager', 'villager'], 4: ['warrior', 'militia', 'militia', 'villager', 'villager'], 5: ['captain', 'militia', 'militia', 'villager', 'villager'], 6: ['warrior', 'scholar', 'militia', 'villager', 'villager'], 7: ['warrior', 'warrior', 'priest', 'militia'], 8: ['soldier', 'militia', 'militia', 'villager', 'villager'], 9: ['warrior', 'warrior', 'scholar', 'militia', 'villager'], 10: ['seeker1', 'soldier', 'warrior', 'militia', 'villager', 'villager'] },
       goal: { nights: 10, molts: 2, seeker: 1 }, molt: [3, 7], choice: true,
@@ -4103,7 +4170,7 @@ const CAMPAIGN = (function () {
     },
     6: {
       title: '바늘 점', brief: '하늘의 바늘이 흔들린다. 제단에서 바늘 점을 치고, 저주와 축복을 바꿔 쥔다.', teach: '바늘 점과 저주',
-      types: ['shape', 'kin', 'organ', 'trap', 'skill', 'boon'], world: 'fantasy', gold: 230, stage: 2, mul: 2.3, needle: [1, 3, 5, 7],
+      types: ['shape', 'kin', 'organ', 'trap', 'skill', 'boon'], world: 'fantasy', gold: 230, stage: 2, mul: 2.25, needle: [1, 3, 5, 7],
       deck: ['sh_two', 'sh_two', 'sh_bend', 'sh_one', 'og_post_@', 'og_trap_@', 'og_altar', 'tr_maw', 'tr_spore', 'tr_eye', 'tr_digest_@', 'kn_goblin', 'kn_skeleton', 'kn_cultist', 'kn_mask', 'sk_rock', 'sk_wave', 'sk_scream', 'bl_ess', 'bl_needle', 'cu_debt'],
       nights: { 1: ['militia', 'militia', 'apprentice', 'villager'], 2: ['warrior', 'detective', 'militia', 'villager', 'villager'], 3: ['torch', 'militia', 'militia', 'villager', 'villager'], 4: ['warrior', 'warrior', 'priest', 'villager'], 5: ['captain', 'torch', 'militia', 'militia', 'villager'], 6: ['soldier', 'warrior', 'militia', 'villager', 'villager'], 7: ['torch', 'torch', 'warrior', 'militia', 'villager'], 8: ['sealer', 'soldier', 'warrior', 'militia', 'villager'] },
       goal: { nights: 8, needles: 2 },
@@ -4121,7 +4188,7 @@ const CAMPAIGN = (function () {
     },
     7: {
       title: '일곱째 바늘', brief: '두 세상이 겹친다. 모든 것을 써서 열두 밤을 버티면, 마지막 바늘이 돌아선다.', teach: '모든 것',
-      types: ['shape', 'kin', 'organ', 'trap', 'skill', 'boon', 'curse'], world: 'fantasy', bleed: 'wuxia', gold: 300, stage: 1, mul: 1.35, needle: [4, 9],
+      types: ['shape', 'kin', 'organ', 'trap', 'skill', 'boon', 'curse'], world: 'fantasy', bleed: 'wuxia', gold: 300, stage: 1, mul: 2.1, needle: [4, 9],
       deck: ['sh_two', 'sh_two', 'sh_bend', 'sh_fork', 'sh_one', 'og_post_@', 'og_trap_@', 'og_hatchery', 'og_hall', 'tr_maw', 'tr_spore', 'tr_eye', 'tr_digest_@', 'tr_eggsac', 'kn_goblin', 'kn_skeleton', 'kn_cultist', 'kn_scale', 'sk_rock', 'sk_wave', 'sk_mark', 'sk_hatch', 'bl_ess', 'bl_faith'],
       nights: { 1: ['militia', 'villager', 'villager'], 2: ['shadow', 'militia', 'villager'], 3: ['warrior', 'militia', 'villager', 'villager'], 4: ['master', 'militia', 'villager', 'villager'], 5: ['warrior', 'torch', 'militia', 'villager'], 6: ['captain', 'shadow', 'militia', 'villager'], 7: ['master', 'warrior', 'warrior', 'priest', 'militia'], 8: ['sealer', 'soldier', 'shadow', 'militia', 'villager'], 9: ['soldier', 'soldier', 'master', 'warrior', 'villager'], 10: ['warrior', 'warrior', 'shadow', 'shadow', 'chaplain', 'militia'], 11: ['master', 'soldier', 'sealer', 'warrior', 'militia'], 12: ['@final', 'soldier', 'warrior', 'shadow', 'militia', 'villager'] },
       goal: { nights: 12 },
@@ -8153,7 +8220,7 @@ function applyHit(h) {
   if (h.sd > 0) ST.sparks.push({ x: e.x + size / 2, y: e.y + size / 3, t0: now(), dur: 320, col: '#c8a8ff', ring: true });
   if (h.k) ST.sparks.push({ x: e.x + size / 2, y: e.y + size / 2, t0: now(), dur: 420, col: '#ece6d6', ring: true });
   if (h.d > 0) ST.floats.push({ x: e.x + size / 2, y: e.y - 6, s: '-' + h.d, col: e.side === 'inv' ? '#fff3a0' : '#ff9a92', t0: now(), big: h.tag === 'coin' });
-  if (h.sd > 0) ST.floats.push({ x: e.x + size / 2 + 12, y: e.y - 18, s: '정신 -' + h.sd, col: '#c8a8ff', t0: now() });
+  if (h.sd > 0) ST.floats.push({ x: e.x + size / 2 + 12, y: e.y - 18, s: (G && G.cardMode ? '넋 -' : '정신 -') + h.sd, col: '#c8a8ff', t0: now() });
   if (h.k) { if (e.side === 'inv' || e.wall || e.temp) { e.dead = now(); sfx('die'); if (e.side === 'inv') ST.stopP = FX.kill(e); } else if (e.id !== 's') { e.down = true; FX.kinDown(e); } }
 }
 async function playEvents(ev, from) {
@@ -9634,11 +9701,14 @@ function cmScene(v) {
 const cmArtUrl = v => { const c = cmScene(v); return c.__u || (c.__u = c.toDataURL()); };
 // 카드 앞면 (.dkc 꼴을 그대로 쓴다)
 const CMTYPE = { shape: '굴', organ: '기관', trap: '부위', kin: '권속', skill: '기술', boon: '축복', curse: '저주' };
+// 카드 판에서 옛 판의 말을 카드 판 말로 (정신 → 넋, 정수 → 빛깔, n라운드 → n차례 …)
+const CMWORDS = [[/정신력/g, '넋'], [/정신 ([−-])/g, '넋 $1'], [/포로 밥값/g, '붙잡아 둔 것 먹이'], [/진액 방울/g, '진액'], [/정수가/g, '빛깔이'], [/정수를/g, '빛깔을'], [/정수는/g, '빛깔은'], [/정수와/g, '빛깔과'], [/정수/g, '빛깔'], [/(\d+)라운드/g, '$1차례'], [/\s*\(익숙해짐 [−-]\d+%\)/g, '']];
+const cmWords = s => { if (s == null) return s; s = String(s); for (const [a, b] of CMWORDS) s = s.replace(a, b); return s; };
 function cmFace(v, o) {
   o = o || {}; if (!v) return ''; const d = cmDef(v.id) || {}, cost = o.cost != null ? o.cost : v.cost;
   const gt = cmGeneTag(v), cls = 'dkc asp-' + (v.asp || 'none') + ' rar-' + (v.type === 'curse' ? 'x' : v.rar) + ' t-' + v.type + (gt ? ' gene' : '') + (o.cls ? ' ' + o.cls : '');
-  const tx = o.text != null ? o.text : v.type === 'skill' && !o.night ? '밤에 쓴다 · ' + v.text : v.text;
-  return `<div class="${cls}"${gt ? ` style="--gc:${CMGCOL[gt] || '#fff3a0'}"` : ''}${o.c ? ` data-c="${o.c}"` : ''}${o.uid != null ? ` data-uid="${o.uid}"` : ''}${o.i != null ? ` data-i="${o.i}"` : ''} data-id="${v.id}"><b class="dkc-cost${o.faith || v.type === 'skill' ? ' faith' : ''}">${v.type === 'curse' ? '✕' : v.type === 'skill' && !o.faith ? cmSkillCost(d) : cost}</b><i class="dkc-gem"></i><span class="dkc-art"><img src="${cmArtUrl(v)}" alt="" draggable="false">${gt ? `<i class="dkc-gene">${esc(cmTagName(gt))}</i>` : ''}</span><b class="dkc-nm">${esc(v.name)}</b><span class="dkc-tx">${esc(tx)}</span>${d.btext && gt ? `<span class="dkc-tx dkc-bt">본디: ${esc(d.btext)}</span>` : ''}<i class="dkc-ty">${CMTYPE[v.type] || ''}${d.asp && d.asp !== 'none' ? ' · ' + CARDS2.ASPN[d.asp] : ''}</i></div>`;
+  const tx = cmWords(o.text != null ? o.text : (v.face || v.text));
+  return `<div class="${cls}"${gt ? ` style="--gc:${CMGCOL[gt] || '#fff3a0'}"` : ''}${o.c ? ` data-c="${o.c}"` : ''}${o.uid != null ? ` data-uid="${o.uid}"` : ''}${o.i != null ? ` data-i="${o.i}"` : ''} data-id="${v.id}"><b class="dkc-cost${o.faith || v.type === 'skill' ? ' faith' : ''}">${v.type === 'curse' ? '✕' : v.type === 'skill' && !o.faith ? cmSkillCost(d) : cost}</b><i class="dkc-gem"></i><span class="dkc-art"><img src="${cmArtUrl(v)}" alt="" draggable="false">${gt ? `<i class="dkc-gene">${esc(cmTagName(gt))}</i>` : ''}</span><b class="dkc-nm">${esc(cmWords(v.name))}</b><span class="dkc-tx">${esc(tx)}</span><i class="dkc-ty">${CMTYPE[v.type] || ''}${d.asp && d.asp !== 'none' ? ' · ' + CARDS2.ASPN[d.asp] : ''}</i></div>`;
 }
 // 기술 카드의 신앙 값 (밤에 실제로 드는 값과 같은 셈)
 const cmSkillCost = d => { try { const base = typeof G !== 'undefined' && G && NEST.spellCost && d.spell ? NEST.spellCost(G, d.spell) : 3; return Math.max(1, Math.ceil(base * (d.cmul || 1))); } catch (e) { return Math.max(1, Math.ceil(3 * (d.cmul || 1))); } };
@@ -9743,19 +9813,24 @@ function cmContinue() { cmMount(); cmMeta(); const run = cmLoad(); if (!run) ret
 // ---- 위쪽 줄과 아래 줄 (ui.js 의 hud/tray 대신) ----
 function cardHud() {
   const g = cmGenome();
-  $('hud').innerHTML = `<button class="hbar" data-c="body" title="내 몸 보기"><span class="cm-por">${g ? cmBodyImg(g, 26) : ''}</span><span class="hud-turn">${G.day}일 <small class="mute">/${NEST.K.days}<span class="cm-act"> · ${NEST.actOf(G)}막</span></small></span><span class="hstat" title="진액: 카드를 놓고 사는 데 든다">${iconImg('gold')}<b class="num coin">${R((ST.hud || G).gold)}</b><small class="cm-lb">진액</small></span><span class="hstat cm-faith" title="신앙: 밤의 기술 카드에 든다">${iconImg('faith')}<b class="num">${Math.floor((ST.hud || G).faith)}</b><small class="cm-lb">신앙</small></span><span class="hstat">${lifePips()}</span></button><button class="btn sm hmenu" data-a="menu" aria-label="메뉴" title="메뉴">≡</button>`;
+  $('hud').innerHTML = `<button class="hbar" data-c="body" title="내 몸 보기"><span class="cm-por">${g ? cmBodyImg(g, 26) : ''}</span><span class="hud-turn">${G.day}일 <small class="mute">/${NEST.K.days}<span class="cm-act"> · ${NEST.actOf(G)}막</span></small></span><span class="hstat" title="진액: 카드를 놓고 사는 데 든다">${iconImg('gold')}<b class="num coin">${R(Math.max(0, (ST.hud || G).gold))}</b><small class="cm-lb">진액</small></span><span class="hstat cm-faith" title="신앙: 밤의 기술 카드에 든다">${iconImg('faith')}<b class="num">${Math.floor((ST.hud || G).faith)}</b><small class="cm-lb">신앙</small></span><span class="hstat">${lifePips()}</span></button><button class="btn sm hmenu" data-a="menu" aria-label="메뉴" title="메뉴">≡</button>`;
   document.documentElement.style.setProperty('--hud-h', $('hud').offsetHeight + 'px');
 }
+const cmUpkeep = () => { if (!CMU.run || typeof CARDMODE.upkeepWarn !== 'function') return null; try { const u = CARDMODE.upkeepWarn(CMU.run); const lv = u && Array.isArray(u.leaving) ? u.leaving : [], n = lv.length || (u && +u.short) || 0; return u && n > 0 ? { leaving: lv, n, days: u.days } : null; } catch (e) { return null; } };
 function cardTray() {
   const run = CMU.run; if (!run) return;
-  const cmb = NEST.cardCombos(G), names = [...new Set(cmb.map(c => c.name))], ch = [];
-  ch.push(`<button class="chip cm-deckchip" data-c="deck">덱 ${run.deck.length} <small class="mute">· 남은 ${run.drawP.length}</small></button>`);
-  names.forEach(n => ch.push(`<button class="chip cm-cmb" data-c="combos">◇ ${esc(n)}</button>`));
-  const h = cmHints()[0]; if (h && CMU.sel == null) ch.push(`<button class="chip cm-hint" data-c="hint">한 장 더면 ${esc(h.name)}</button>`);
-  if (run.needleOffer) ch.push(`<button class="chip todo hot" data-c="needle">✦ 바늘 점</button>`);
-  if (G.march.tonight) ch.push(cmThreatChip());
-  if (isMobile()) ch.push(`<button class="chip cm-zoom" data-c="zoom">${CMU.zoom === 'near' ? '⤢ 전체' : '⤡ 가까이'}</button>`);
-  $('mapchips').innerHTML = ST.mode === 'day' ? ch.join('') : '';
+  const cmb = NEST.cardCombos(G), names = [...new Set(cmb.map(c => c.name))], ch = [], mob = isMobile(), add = (p, h) => ch.push({ p, h });
+  const uw = cmUpkeep();
+  if (uw) add(10, `<button class="chip cm-warn" data-c="upkeep">⚠ 권속 ${uw.n} 떠남</button>`);
+  if (G.march.tonight) add(9, cmThreatChip());
+  if (run.needleOffer) add(8, `<button class="chip todo hot" data-c="needle">✦ 바늘 점</button>`);
+  const h = cmHints()[0]; if (h && CMU.sel == null) add(5, `<button class="chip cm-hint" data-c="hint">한 장 더면 ${esc(h.name)}</button>`);
+  if (mob && names.length) add(4, `<button class="chip cm-cmb" data-c="combos">◇ 족보 ${names.length}</button>`); else names.forEach(n => add(4, `<button class="chip cm-cmb" data-c="combos">◇ ${esc(n)}</button>`));
+  add(3, `<button class="chip cm-deckchip" data-c="deck">덱 ${run.deck.length} <small class="mute">· 남은 ${run.drawP.length}</small></button>`);
+  if (mob) add(2, `<button class="chip cm-zoom" data-c="zoom">${CMU.zoom === 'near' ? '⤢ 전체' : '⤡ 가까이'}</button>`);
+  ch.sort((a, b) => b.p - a.p); CMU.chipsAll = ch.map(x => x.h);
+  const shown = mob && ch.length > 3 ? ch.slice(0, 2).map(x => x.h).concat([`<button class="chip cm-more" data-c="chips">… ${ch.length - 2}</button>`]) : ch.map(x => x.h);
+  $('mapchips').innerHTML = ST.mode === 'day' ? shown.join('') : '';
   const ib = (c, v, icon, label, extra, cls) => `<button class="btn ib ${cls || ''}" data-c="${c}"${v ? ` data-v="${v}"` : ''}>${icon}<span>${label}</span>${extra || ''}</button>`;
   $('game').classList.add('cm'); cmBodyBand();
   $('mnav').innerHTML = ib('deck', null, '<span class="gl">▤</span>', '덱') + ib('shop', null, iconImg('gold', 20), '상점') + ib('up', null, '<span class="gl">✚</span>', '강화') + ib('rm', null, '<span class="gl">✕</span>', '빼기') + `<button class="btn ib" data-c="body">${cmBodyImg(cmGenome(), 22)}<span>몸</span></button>` + `<button class="btn pri end" data-c="night"><span>밤 맞기</span></button>`;
@@ -9780,7 +9855,7 @@ function cmHand() {
   const deal = CMU.dealDay !== G.day; CMU.dealDay = G.day; if (deal && hv.length) cmSnd('click');
   el.innerHTML = `${bar}<span class="cm-cnt">손 ${hv.length}</span><div class="dk-hand cm-hand cm-strip${deal ? ' cm-deal' : ''}" style="--n:${hv.length}">${hv.map(v => cmFace(v, { c: 'card', uid: v.uid, cls: (isMobile() ? 'mini ' : '') + (v.uid === CMU.sel ? 'lift' : '') + (v.can || v.type === 'skill' ? '' : ' no') })).join('') || '<p class="small mute">손이 비었다 · 밤을 맞는다</p>'}</div>`;
 }
-function cardRender() { cmHand(); cmBodyBand(); cmCoach(); }
+function cardRender() { cmHand(); cmBodyBand(); cmCoach(); const mc = $('mapchips'); if (mc) mc.classList.toggle('cm-lift', isMobile() && (CMU.sel != null || !!(CMU.drag && CMU.drag.on))); }
 
 // ---- 고르고 놓기 ----
 function cmSelect(uid) { CMU.sel = uid; CMU.place = null; CMU.alts = []; CMU.altI = 0; CMU.tapCell = null; if (uid != null && ST.screen !== 'under') setScreen('under'); UI.sel = null; render(); }
@@ -9933,7 +10008,7 @@ async function cardNight(keep) {
 const CMNOTE_OUT = /섬김|신뢰|포로 밥값|밥값|물든|물듦|정수|「[^」]*」의 벌|선물|징조|눈길|교시|첩자|별자리|명부|야유|끼니|유지/;
 const CM_DROP = /^(징조|이 세상에만 있는 것)|포교|신도 "|포로 자리|섬김|신뢰|밥값\(끼니\)|정수 [+−-]|적의 [+−-]|정신력 [+−-]|공포 [+−-]|신앙 상한|「마지막 막」|교시|명부|첩자/;
 const cmMarchLabel = e => cmText(e.txt) || '';
-function cmText(s) { if (s == null) return s; s = String(s).replace(/\s*\(공포 \+\d+ 더\)/g, '').replace(/(\d)\s*방울/g, '$1').replace(/(\d+)라운드 교전: (\d+)명 쓰러뜨림/g, '맞붙음이 끝났다. 쓰러진 침입자 $2'); return CM_DROP.test(s) ? null : NEST.fj(s); }
+function cmText(s) { if (s == null) return s; s = cmWords(String(s)).replace(/\s*\(공포 \+\d+ 더\)/g, '').replace(/(\d)\s*방울/g, '$1').replace(/(\d+)라운드 교전: (\d+)명 쓰러뜨림/g, '맞붙음이 끝났다. 쓰러진 침입자 $2'); return CM_DROP.test(s) ? null : NEST.fj(s); }
 // 진액이 어디서 들고 났나 (카드 판 말로)
 const CMLEDGE = { '지닌 것': '쓰러진 것들이 지녔던 것', '삼킨 것': '붙잡아 둔 것들', '끼니': '권속 밥값', '방 유지': '굴 유지', '진액 털림': '본체가 털린 것', '진액 맥': '진액 맥', '소화': '소화액', '빨판 굴': '빨판 굴', '미끼 굴': '미끼 굴', '상자': '주운 것', '버려진 짐': '주운 것', '보급함': '주운 것', '훈련': '권속 먹이기', '권속 진화': '권속 진화' };
 function cmSettleHtml(b, st, day, g0) {
@@ -9946,7 +10021,7 @@ function cmSettleHtml(b, st, day, g0) {
     h += `<div class="card cm-set"><p class="h3 ${res[1]}">${res[0]}</p><div class="cm-setinv">${Object.keys(kinds).map(k => `<span class="cm-inv">${invImg(k, 28)}<small>${esc(nm(k))} ×${kinds[k]}</small></span>`).join('')}</div>
 <p class="small">쓰러뜨림 <b>${b.kills || 0}</b> · 달아남 <b>${b.fled || 0}</b>${(b.captives || []).length ? ` · 붙잡음 <b style="color:#c8a8ff">${b.captives.length}</b>` : ''} <span class="mute">/ ${b.party.length}</span></p>${b.fell ? `<p class="small up">목숨 ${lifePips()}${G.over ? ' · 다시 일어나지 못했다' : NEST.lives(G) <= 1 ? ' · 한 번 더 쓰러지면 끝이다' : ' · 남은 목숨 ' + NEST.lives(G)}</p>` : ''}</div>`;
   } else h += '<p class="mute">아무도 오지 않았다. 굴이 조용히 자랐다.</p>';
-  { const parts = Object.keys(L).filter(k => Math.round(L[k])).sort((a, c) => Math.abs(L[c]) - Math.abs(L[a])).slice(0, 3).map(k => (CMLEDGE[k] || k) + ' ' + (L[k] > 0 ? '+' : '') + Math.round(L[k]));
+  { const parts = Object.keys(L).filter(k => Math.round(L[k])).sort((a, c) => Math.abs(L[c]) - Math.abs(L[a])).slice(0, 3).map(k => cmWords(CMLEDGE[k] || k) + ' ' + (L[k] > 0 ? '+' : '') + Math.round(L[k]));
     h += `<p class="cm-ess ${tot >= 0 ? 'coin' : 'up'}">진액 ${tot >= 0 ? '+' : ''}${tot}</p>${parts.length ? `<p class="small mute">${parts.map(esc).join(' · ')}</p>` : ''}`; }
   const notes = (st.notes || []).filter(n => !CMNOTE_OUT.test(n)).map(n => cmText(n.replace(/([+−-]?\d[\d,]*)\s*방울/g, '진액 $1'))).filter(Boolean).slice(0, 3);
   if (notes.length) h += `<div class="stack" style="gap:2px">${notes.map(n => `<p class="small warnc">${esc(n)}</p>`).join('')}</div>`;
@@ -10040,11 +10115,11 @@ function cmRmSheet() {
 }
 function cmCombosSheet() {
   const now = NEST.cardCombos(G), ids = new Set(now.map(x => x.id));
-  cmSheet('combos', `<h3>배치 족보</h3><div class="dk-list">${Object.keys(NEST.CMB).map(k => `<div class="dk-li${ids.has(k) ? ' cm-on' : ''}"><b>${ids.has(k) ? '◆' : '◇'} ${esc(NEST.CMB[k].name)}</b><span class="dk-mute">${esc(NEST.CMB[k].text || NEST.CMB[k].desc || '')}</span></div>`).join('')}</div>`);
+  cmSheet('combos', `<h3>배치 족보</h3><div class="dk-list">${Object.keys(NEST.CMB).map(k => `<div class="dk-li${ids.has(k) ? ' cm-on' : ''}"><b>${ids.has(k) ? '◆' : '◇'} ${esc(NEST.CMB[k].name)}</b><span class="dk-mute">${esc(cmWords(NEST.CMB[k].text || NEST.CMB[k].desc || ''))}</span></div>`).join('')}</div>`);
 }
 function cmDetail(id, uid) {
   if (!id) return; const run = CMU.run, c = uid ? cmCard(+uid) : null, v = c ? CARDMODE.view(run, c) : cmDefView(id), d = cmDef(id), un = d.unlock && CARDS2.UNLOCK[d.unlock];
-  cmSheet('detail', `<div class="dk-detail">${cmFace(v, { cls: 'big' })}<div class="dk-dt"><p><b>${esc(v.name)}</b> <span class="dk-tag" style="--c:${cmCol(d.asp)}">${CMTYPE[d.type]}${d.asp !== 'none' ? ' · ' + CARDS2.ASPN[d.asp] : ''}</span></p><p>${esc(d.more || d.text)}</p>${d.lore ? `<p class="dk-mute dk-lore">${esc(d.lore)}</p>` : ''}${d.from ? `<p class="dk-mute">← 원래 「${esc(d.baseName || (cmDef(d.from) || {}).name || d.from)}」 · 몸이 다시 쓴 카드</p>` : ''}${d.type !== 'curse' ? `<p class="dk-mute">강화하면: ${esc(CMUPTXT[d.type] || '세진다')}</p>` : ''}${(d.tags || []).length ? `<p class="dk-mute">몸의 꼬리표: ${d.tags.map(cmTagName).join(' · ')}</p>` : ''}${un ? `<p class="dk-lock">${un.hard ? '<span class="dk-hard">도전</span> ' : ''}${esc(un.text)}</p>` : ''}</div></div>`);
+  cmSheet('detail', `<div class="dk-detail">${cmFace(v, { cls: 'big' })}<div class="dk-dt"><p><b>${esc(v.name)}</b> <span class="dk-tag" style="--c:${cmCol(d.asp)}">${CMTYPE[d.type]}${d.asp !== 'none' ? ' · ' + CARDS2.ASPN[d.asp] : ''}</span></p><p>${esc(cmWords(d.more || d.text))}</p>${v.more ? `<p class="dk-mute">${esc(cmWords(v.more))}</p>` : d.btext && cmGeneTag(v) ? `<p class="dk-mute">본디: ${esc(cmWords(d.btext))}</p>` : ''}${d.lore ? `<p class="dk-mute dk-lore">${esc(d.lore)}</p>` : ''}${d.from ? `<p class="dk-mute">← 원래 「${esc(d.baseName || (cmDef(d.from) || {}).name || d.from)}」 · 몸이 다시 쓴 카드</p>` : ''}${d.type !== 'curse' ? `<p class="dk-mute">강화하면: ${esc(CMUPTXT[d.type] || '세진다')}</p>` : ''}${(d.tags || []).length ? `<p class="dk-mute">몸의 꼬리표: ${d.tags.map(cmTagName).join(' · ')}</p>` : ''}${un ? `<p class="dk-lock">${un.hard ? '<span class="dk-hard">도전</span> ' : ''}${esc(un.text)}</p>` : ''}</div></div>`);
 }
 
 // ---- 바늘 점 ----
@@ -10116,7 +10191,8 @@ function cardAskHtml(ctx) {
     if (c) { faces.push(`<button class="cm-cbtn" data-a="hand" data-k="${o.id}"${o.ok ? '' : ' disabled'} title="${esc(o.why || o.desc || '')}">${cmFace(CARDMODE.view(run, c), { cost: Math.ceil(o.cost || 0), faith: true, night: true, cls: 'mini' + (o.ok ? '' : ' no') })}</button>`); return; }
     if (NEST.SPELL[o.id] && NEST.SPELL[o.id].free) free.push(btn('hand', { k: o.id }, spellImg(o.id) + ' ' + o.name + ' <small>' + ({ whip: '이 방 공격↑', move: '권속 불러오기' }[o.id] || '') + '</small>' + (o.tgt ? ' ◎' : ''), 'sm', !o.ok));
   });
-  return `<p class="h3">손을 쓸까? <small class="mute">신앙 ${Math.floor(ctx.faith)} · 적 ${ctx.enemies}</small></p>${faces.length ? `<div class="dk-hand cm-nhand" style="--n:${faces.length}">${faces.join('')}</div>` : '<p class="small mute">쥔 기술 카드가 없다</p>'}<div class="row cm-nfree">${free.join('')}${btn('hand', { k: 'none' }, '그냥 둔다', 'pri')}</div>`;
+  try { if (typeof camCell === 'function' && typeof ctx.cell === 'number') camCell(ctx.cell); } catch (e) { /* 비추지 못해도 고를 수는 있다 */ }
+  return `<p class="h3">손을 쓸까? <small class="mute">신앙 ${Math.floor(ctx.faith)} · 적 ${ctx.enemies}</small></p><div class="row cm-nfree">${free.join('')}${btn('hand', { k: 'none' }, '그냥 둔다', 'pri')}</div>${faces.length ? `<div class="cm-nhand cm-nstrip">${faces.join('')}</div>` : ''}`;
 }
 function cardMorning() { busy = false; render(); if (G.event) openModal('event'); }
 
@@ -10148,6 +10224,8 @@ function cmClick(e) {
   if (!run) return;
   if (c === 'moltok') { if (CMU.moltRes) CMU.moltRes(); return; }
   if (c === 'body') { cmSnd('click'); return cmBodySheet(); }
+  if (c === 'chips') { cmSnd('click'); return cmSheet('chips', `<div class="cm-chipsheet">${(CMU.chipsAll || []).join('')}</div>`); }
+  if (c === 'upkeep') { const u = cmUpkeep(); cmSnd('click'); return cmSheet('upkeep', u ? `<p class="h3">밥값이 모자란다</p><p>진액 ${R(Math.max(0, G.gold))} · ${u.days != null ? u.days + '일 뒤' : '내일'}</p><p class="small">${u.leaving.map(esc).join(', ')}</p>` : '<p>모자라지 않다</p>'); }
   if (c === 'threat') { cmSnd('click'); cmCoachDone('threat'); return cmSheet('threat', cmThreatHtml()); }
   if (c === 'reward') { const r = CARDMODE.takeReward(run, +el.dataset.i); if (r.ok) { cmSnd('up'); cmToast(r.msg || '덱에 넣었다'); } if (CMU.rewardRes) CMU.rewardRes(); return; }
   if (c === 'rskip') { CARDMODE.skipReward(run); if (CMU.rewardRes) CMU.rewardRes(); return; }
@@ -10419,11 +10497,11 @@ async function campFinish() {
   saveMeta(); busy = false;
   const n = Object.keys(cm.clear).filter(k => +k >= 1 && cm.clear[k]).length, nextCh = ch < 7 ? ch + 1 : null;
   const opened = (cr.opened || []).filter(id => CARDS2.BY[id]), egg = cr.egg;
-  cmOv(`<div class="cp-wrap"><h2>${cr.win ? (ch === 7 ? '일곱째 바늘이 돌아섰다' : ch + '장을 넘겼다') : '둥지가 무너졌다'}</h2>${typeof needlesSvg === 'function' ? needlesSvg(n, cr.win && cr.first) : ''}
+  cmOv(`<div class="cp-wrap"><h2>${cr.win ? (ch === 7 ? '일곱째 바늘이 돌아섰다' : ch + '장을 넘겼다') : '둥지가 무너졌다'}</h2><div class="cp-btns">${cr.win && nextCh ? `<button class="btn pri" data-cp="ch" data-v="${nextCh}">${nextCh}장으로</button>` : ''}${!cr.win ? `<button class="btn pri" data-cp="ch" data-v="${ch}">다시 한다</button>` : ''}<button class="btn" data-cp="menu">장 고르기</button><button class="btn" data-cp="home">처음 화면</button></div>${typeof needlesSvg === 'function' ? needlesSvg(n, cr.win && cr.first) : ''}
 <p class="cp-sub">${ch}장 「${esc(C.title)}」 · ${o.day || run.G.day}일${cr.win && cr.first ? ' · 처음 넘김' : ''}</p>
 ${opened.length ? `<p class="dk-lab">본편에 열린 카드</p><div class="cp-opened">${opened.map(id => cmFace(cmBareView(id), { cls: 'mini' })).join('')}</div>` : ''}
 ${egg ? `<p class="cp-sub">본편에서 고를 수 있는 알이 하나 생겼다: <b>${esc(egg.name)}</b></p>` : ''}
-<div class="cp-btns">${cr.win && nextCh ? `<button class="btn pri" data-cp="ch" data-v="${nextCh}">${nextCh}장으로</button>` : ''}${!cr.win ? `<button class="btn pri" data-cp="ch" data-v="${ch}">다시 한다</button>` : ''}<button class="btn" data-cp="menu">장 고르기</button><button class="btn" data-cp="home">처음 화면</button></div></div>`, 'dk-full');
+</div>`, 'dk-full');
 }
 // 5장 끝: 그를 어떻게 하나
 function cpChoose() {

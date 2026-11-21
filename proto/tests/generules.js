@@ -66,6 +66,6 @@ const allMeta = () => { const m = CM.newMeta(); Object.keys(CD.UNLOCK).forEach(i
 { const a = B.play(5150, 'nebula', 2, '', CM.newMeta()), b = B.play(5150, 'nebula', 2, '', CM.newMeta()); ok(JSON.stringify(a.genome.tags) === JSON.stringify(b.genome.tags) && a.deck.map(c => c.id).join() === b.deck.map(c => c.id).join(), '같은 씨앗이면 같은 몸과 같은 덱'); }
 
 // 8. 다시 쓴 카드를 id 만으로 다시 만든다 (저장한 판을 불러올 때)
-{ const id = 'gx_spore__gx_maw__tr_eye'; const d = GE.ensure(id); ok(d && d.trap === 'spore' && d.gene.join() === 'maw,spore', '두 번 다시 쓴 카드도 id 로 만든다'); }
+{ const id = 'gx_spore__gx_maw__tr_eye'; const d = GE.ensure(id); ok(d && d.trap === 'eye' && d.gene.join() === 'maw,spore' && [].concat(d.also).includes('maw') && [].concat(d.also).includes('spore') && d.face === GE.ensure('tr_eye').text, '두 번 다시 쓴 카드도 id 로 만든다 (본디 효과가 남고 둘 다 더한다)'); }
 
 console.log(bad ? '실패 ' + bad : '모두 통과');

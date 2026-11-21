@@ -11,17 +11,17 @@ const GENOME = (function () {
 
   // ---- 형질이 카드를 다시 쓰는 법: on = 바꿀 수 있는 카드 종류, pre = 이름 앞에 붙는 말, t = 카드 얼굴의 짧은 말 ----
   const RW = {
-    maw: { on: 'trap', pre: '아가리 돋은', t: '약한 적을 통째로 삼킨다', ch: d => ({ trap: 'maw', pow: r2((d.pow || 1) * 1.1) }) },
-    spore: { on: 'trap', pre: '포자 핀', t: '쓰러진 적이 감염체로 선다', ch: d => ({ trap: 'spore', pow: r2((d.pow || 1) * 1.2) }) },
+    maw: { on: 'trap', pre: '아가리 돋은', t: '약한 적을 통째로 삼킨다', ch: d => ({ also: 'maw', pow: r2((d.pow || 1) * 1.1) }) },
+    spore: { on: 'trap', pre: '포자 핀', t: '쓰러진 적이 감염체로 선다', ch: d => ({ also: 'spore', pow: r2((d.pow || 1) * 1.2) }) },
     eye: { on: 'skill', pre: '눈 뜬', t: '신앙이 30% 덜 든다', ch: d => ({ cmul: r2((d.cmul || 1) * 0.7) }) },
     water: { on: 'shape', pre: '물 고인', t: '파면 첫 칸에 물이 찬다', when: d => !d.op && !d.bridge && !d.gift, ch: d => ({ gift: 'drown', cost: (d.cost || 0) + 2 }) },
     bone: { on: 'kin', pre: '뼈 두른', t: '레벨 +2로 든다', ch: d => ({ lv: (d.lv || 0) + 2 }) },
-    tent: { on: 'trap', pre: '촉수 뻗은', t: '가장 센 적을 휘감아 친다', ch: d => ({ trap: 'limb', pow: r2((d.pow || 1) * 1.2) }) },
+    tent: { on: 'trap', pre: '촉수 뻗은', t: '가장 센 적을 휘감아 친다', ch: d => ({ also: 'limb', pow: r2((d.pow || 1) * 1.2) }) },
     egg: { on: 'kin', pre: '알 품은', t: '움 둘이 함께 돋는다', when: d => d.kin !== 'spawn', ch: d => ({ plus: (d.plus || 0) + 2 }) },
     spike: { on: 'trap', pre: '가시 돋은', t: '함정 힘 ×1.3', ch: d => ({ pow: r2((d.pow || 1) * 1.3) }) },
     face: { on: 'skill', pre: '얼굴 쓴', t: '신앙 덜 들고 신앙 +2', ch: d => ({ cmul: r2((d.cmul || 1) * 0.85), x: d.x || { faith: 2 } }) },
-    gut: { on: 'trap', pre: '위액 찬', t: '거기서 죽으면 곧 진액', ch: d => ({ trap: 'digest', pow: r2((d.pow || 1) * 1.1) }) },
-    shadow: { on: 'trap', pre: '그림자 진', t: '적을 입구로 돌려보낸다', ch: d => ({ trap: 'whisper', pow: r2((d.pow || 1) * 1.1) }) },
+    gut: { on: 'trap', pre: '위액 찬', t: '거기서 죽으면 곧 진액', ch: d => ({ also: 'digest', pow: r2((d.pow || 1) * 1.1) }) },
+    shadow: { on: 'trap', pre: '그림자 진', t: '적을 입구로 돌려보낸다', ch: d => ({ also: 'whisper', pow: r2((d.pow || 1) * 1.1) }) },
     star: { on: 'skill', pre: '별빛', t: '기술 힘 ×1.35', ch: d => ({ pow: r2((d.pow || 1) * 1.35) }) },
     trap: { on: 'trap', pre: '덫 굳은', t: '함정 레벨 +1', when: d => (d.lv || 1) < 3, ch: d => ({ lv: Math.min(3, (d.lv || 1) + 1) }) },
     alone: { on: 'kin', pre: '등 돌린', t: '본체가 홀로 서서 비싸진다', ch: d => ({ cost: Math.round((d.cost || 0) * 1.4) }) },
@@ -30,7 +30,7 @@ const GENOME = (function () {
     wing: { on: 'shape', pre: '날개막', t: '반값에 판다', when: d => !d.op && (d.cost || 0) > 1, ch: d => ({ cost: Math.max(1, Math.round((d.cost || 0) * 0.5)) }) },
     glow: { on: 'organ', pre: '빛 도는', t: '돋으며 곁의 칸 하나를 판다', ch: () => ({ reveal: 1 }) },
     root: { on: 'organ', pre: '뿌리 내린', t: '값 −25%', ch: d => ({ cost: Math.round((d.cost || 0) * 0.75) }) },
-    mirror: { on: 'trap', pre: '거울 비친', t: '미친 적이 제 편을 친다', ch: d => ({ trap: 'eye', pow: r2((d.pow || 1) * 1.15) }) },
+    mirror: { on: 'trap', pre: '거울 비친', t: '미친 적이 제 편을 친다', ch: d => ({ also: 'eye', pow: r2((d.pow || 1) * 1.15) }) },
     tongue: { on: 'shape', pre: '혀 내민', t: '파면 끌어당기는 벽이 돋는다', when: d => !d.op && !d.bridge && !d.gift, ch: () => ({ gift: 'whisper' }) },
     horn: { on: 'kin', pre: '뿔 난', t: '희귀하게, 레벨 +1', ch: d => ({ lv: (d.lv || 0) + 1, rare: true }) },
   };
@@ -47,6 +47,8 @@ const GENOME = (function () {
   // ---- 다시 쓴 카드: id 로부터 언제든 다시 만든다 (저장한 판을 불러와도 같은 카드) ----
   //   gx_<형질>__<본디 id> : 형질 하나가 다시 쓴 카드.  gc_<짝 id>__<본디 id> : 짝 형질이 바꾼 특별한 카드
   const GENE = [];
+  // 다시 쓴 함정은 본디 효과를 그대로 두고 효과를 더한다 (여럿 쌓인다)
+  const alsoOf = (src, add, own) => { const a = [...new Set([].concat(src.also || [], add || []))].filter(k => k && k !== own); return a.length ? a : null; };
   const base = d => d.baseName || d.name;
   function ensure(id) {
     if (!id || CD.BY[id]) return CD.BY[id] || null;
@@ -55,14 +57,14 @@ const GENOME = (function () {
     let d = null;
     if (head.indexOf('gx_') === 0) {
       const tag = head.slice(3), rw = RW[tag]; if (!rw || src.type !== rw.on) return null;
-      d = Object.assign({}, src, rw.ch(src), { id, name: rw.pre + ' ' + base(src), baseName: base(src), btext: src.text, text: rw.t, more: rw.pre + ' ' + base(src) + ': ' + rw.t + ' · 본디 「' + base(src) + '」: ' + (src.more || src.text) });
-      d.gene = (src.gene || []).concat([tag]);
+      const root = src.rootText || src.text, adds = (src.adds || []).concat([rw.t]); d = Object.assign({}, src, rw.ch(src), { id, name: rw.pre + ' ' + base(src), baseName: base(src), btext: src.text, rootText: root, adds, text: root, face: root, more: rw.pre + ' ' + base(src) + ': ' + adds.join(' · ') + ' · 본디 「' + base(src) + '」: ' + root });
+      d.gene = (src.gene || []).concat([tag]); d.also = alsoOf(src, rw.ch(src).also, d.trap);
     } else if (head.indexOf('gc_') === 0) {
       const cid = head.slice(3), cmb = T.COMBOS.find(c => c.id === cid); if (!cmb) return null;
       const rws = cmb.tags.map(t => RW[t]).filter(rw => rw && rw.on === src.type); if (!rws.length) return null;
       let ch = {}; rws.forEach(rw => { ch = Object.assign(ch, rw.ch(Object.assign({}, src, ch))); });
       if (src.type === 'trap') ch.pow = r2((ch.pow || src.pow || 1) * 1.2); else if (src.type === 'kin') ch.lv = (ch.lv || src.lv || 0) + 1; else if (src.type === 'skill') ch.pow = r2((ch.pow || src.pow || 1) * 1.2); else if (src.type === 'organ') ch.lv2 = true; else if (src.type === 'shape') ch.cost = Math.max(1, Math.round((ch.cost != null ? ch.cost : src.cost || 0) * 0.7));
-      d = Object.assign({}, src, ch, { id, name: cmb.name, baseName: base(src), btext: src.text, text: (rws[0].t.length > 22 ? rws[0].t.slice(0, 21) + '…' : rws[0].t), more: cmb.name + ': ' + cmb.text + ' · ' + rws.map(rw => rw.t).join(' · ') + ' · 본디 「' + base(src) + '」' });
+      const root = src.rootText || src.text, adds = (src.adds || []).concat(rws.map(rw => rw.t)); ch.also = alsoOf(src, rws.map(rw => rw.ch(src).also).filter(Boolean), ch.trap || src.trap); d = Object.assign({}, src, ch, { id, name: cmb.name, baseName: base(src), btext: src.text, rootText: root, adds, text: root, face: root, more: cmb.name + ': ' + cmb.text + ' · ' + rws.map(rw => rw.t).join(' · ') + ' · 본디 「' + base(src) + '」' });
       d.gene = (src.gene || []).concat(cmb.tags); d.combo = cid; if (d.rar === 'c' || d.rar === 's') d.rar = 'u'; else if (d.rar === 'u') d.rar = 'r';
     }
     if (!d) return null;
@@ -131,7 +133,7 @@ const GENOME = (function () {
   // need = 허물마다 넘어야 할 진화의 정수(쌓인 값). 본체(원래 게임의 몸)도 함께 한 단계 큰다: 첫 허물에 바탕 징조, 둘째에 섞인 징조
   const envN = (k, d) => (typeof process !== 'undefined' && process.env && process.env[k] != null ? +process.env[k] : d);
   // 빛깔마다 몸이 바뀌는 빠르기가 다르다 (성운은 별처럼 빨리 일그러지고, 심연은 느리게 가라앉는다)
-  const EVO = { asp: (typeof process !== 'undefined' && process.env && process.env.EVOA ? JSON.parse(process.env.EVOA) : { abyss: 0.9, nebula: 1.55, brood: 0.68, dusk: 1.05, hunger: 1.15 }), base: envN('EVOB', 1), k: envN('EVOK', 0.5), need: (typeof process !== 'undefined' && process.env && process.env.EVON ? process.env.EVON.split(',').map(Number) : [70, 430, 720, 1000]), first: { min: envN('EVOFM', 1.15), base: envN('EVOFB', 3) } };
+  const EVO = { asp: (typeof process !== 'undefined' && process.env && process.env.EVOA ? JSON.parse(process.env.EVOA) : { abyss: 0.9, nebula: 1.55, brood: 0.68, dusk: 1.05, hunger: 1.15 }), base: envN('EVOB', 1), k: envN('EVOK', 0.5), need: (typeof process !== 'undefined' && process.env && process.env.EVON ? process.env.EVON.split(',').map(Number) : [70, 220, 530, 1000]), first: { min: envN('EVOFM', 1.15), base: envN('EVOFB', 3) } };
   function moltNeed(R) { return EVO.need[(R.molts || []).length + (R.moltQ || 0)]; }
   function protMolt(G) {
     if (G.slime.stage >= 4) return false; const order = N.moltOrder(G);
@@ -159,7 +161,7 @@ const GENOME = (function () {
     const mutated = R.noGene ? [] : applyPicks(R, picks);
     const fx = R.noGene ? null : applyBody(R), lm = T.landmarkOf(g);
     // 앞 허물과 이름이 같으면 몸의 나이를 붙여 가른다 (같은 이름이 두 번 나오지 않게)
-    { g.epithet = null; const prevN = (R.molts || []).length ? R.molts[R.molts.length - 1].name : null; if (prevN && T.nameOf(g).name === prevN) g.epithet = ['', '', '한 번 더 벗은', '오래 묵은', '다 자란', '다 자란'][Math.min(5, g.stage || 2)] || '더 자란'; }
+    { g.epithet = null; const used = new Set((R.molts || []).map(m => m.name)); if (used.has(T.nameOf(g).name)) { for (const ep of EPITHET) { g.epithet = ep; if (!used.has(T.nameOf(g).name)) break; } } }
     const nm = T.nameOf(g);
     R.st.molts = (R.st.molts || 0) + 1; if (lm) R.st.landmarks = (R.st.landmarks || 0) + 1;
     record(R, g);
@@ -168,6 +170,7 @@ const GENOME = (function () {
     return res;
   }
 
+  const EPITHET = ['한 번 더 벗은', '오래 묵은', '껍질을 거듭 갈아입은', '밤마다 자란', '깊어진', '다 자란', '굴을 닮아 간'];
   // ---- 도감 ----
   const formKey = g => { const c = T.classOf(g); return g.aspect + ':' + c.loco + ':' + T.topTags(g, 3).join('+'); };
   function record(R, g) {

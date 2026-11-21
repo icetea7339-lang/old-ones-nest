@@ -12,7 +12,7 @@ const dev = process.argv[2] || '', tag = (dev ? dev.replace(/\s+/g, '') : 'pc') 
   let n = 0; const shot = async label => { await p.waitForTimeout(380); n++; await p.screenshot({ path: path.join(out, String(n).padStart(2, '0') + '_' + label + '.png') }); await leak(label); const cl = await p.evaluate(FZM.clipScript); const over = await p.evaluate(() => { const o = []; if (document.scrollingElement.scrollWidth > innerWidth + 1) o.push('옆으로 넘침'); return o; }); cl.concat(over).forEach(s => bad.push(label + ': ' + s)); };
   // 카드 판 화면에 옛 판의 글(공포·포교·정수 …)이나 고치지 않은 조사 「을(를)」이 새어 나오지 않는다
   let threatChecked = false;
-  const LEAK = /을\(를\)|이\(가\)|은\(는\)|와\(과\)|공포 [+−-]\d|변이 속삭임|포교|포로 자리|정수 [+−-]\d|적의 [+−-]\d|\d라운드 교전|\d ?방울/;
+  const LEAK = /을\(를\)|이\(가\)|은\(는\)|와\(과\)|공포 [+−-]\d|변이 속삭임|포교|포로 자리|정수 [+−-]\d|적의 [+−-]\d|\d라운드 교전|\d ?방울|정신력|정신 [−-]\d|포로 밥값|\d라운드|진액 방울|정수|익숙해짐/;
   const leak = async label => { const m = await p.evaluate(re => { if (!window.__card || !__card.run) return null; const t = document.body.innerText.match(new RegExp(re)); return t ? t[0] : null; }, LEAK.source); if (m) bad.push(label + ': 옛 글 또는 조사 「' + m + '」'); };
   const tap = async sel => { const el = await p.$(sel); if (!el) throw new Error('없음: ' + sel); await el.click(); await p.waitForTimeout(140); };
   const tapCell = async i => { await p.evaluate(i => __card.cam(i), i); await p.waitForTimeout(500); const pt = await p.evaluate(i => __card.pt(i), i); await p.mouse.click(pt.x, pt.y); await p.waitForTimeout(160); };

@@ -618,7 +618,7 @@ function applyHit(h) {
   if (h.sd > 0) ST.sparks.push({ x: e.x + size / 2, y: e.y + size / 3, t0: now(), dur: 320, col: '#c8a8ff', ring: true });
   if (h.k) ST.sparks.push({ x: e.x + size / 2, y: e.y + size / 2, t0: now(), dur: 420, col: '#ece6d6', ring: true });
   if (h.d > 0) ST.floats.push({ x: e.x + size / 2, y: e.y - 6, s: '-' + h.d, col: e.side === 'inv' ? '#fff3a0' : '#ff9a92', t0: now(), big: h.tag === 'coin' });
-  if (h.sd > 0) ST.floats.push({ x: e.x + size / 2 + 12, y: e.y - 18, s: '정신 -' + h.sd, col: '#c8a8ff', t0: now() });
+  if (h.sd > 0) ST.floats.push({ x: e.x + size / 2 + 12, y: e.y - 18, s: (G && G.cardMode ? '넋 -' : '정신 -') + h.sd, col: '#c8a8ff', t0: now() });
   if (h.k) { if (e.side === 'inv' || e.wall || e.temp) { e.dead = now(); sfx('die'); if (e.side === 'inv') ST.stopP = FX.kill(e); } else if (e.id !== 's') { e.down = true; FX.kinDown(e); } }
 }
 async function playEvents(ev, from) {

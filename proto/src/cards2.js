@@ -8,7 +8,10 @@ const CARDS2 = (function () {
   const RARN = { s: '처음', c: '보통', u: '드묾', r: '옛것급', x: '저주' };
   const TYPEN = { shape: '굴', organ: '기관', trap: '부위', kin: '권속', skill: '기술', boon: '축복', curse: '저주' };
   const LIST = [], BY = {};
-  const add = d => { d.asp = d.asp || 'none'; d.rar = d.rar || 'c'; d.cost = d.cost || 0; d.unlock = null; d.more = d.more || d.text; if (BY[d.id]) throw new Error('dup card ' + d.id); LIST.push(d); BY[d.id] = d; return d; };
+  // 카드 판에 보이는 글에서 옛 셈의 말을 걷어 낸다 (정신·포로·신도·정수·라운드·방울)
+  const KNAME = { cultist: '두건 쓴 것' }, kname = k => KNAME[k] || (N.KIN[k] ? N.KIN[k].name : k);
+  const clean = t => typeof t !== 'string' ? t : t.replace(/정신력/g, '마음').replace(/정신 피해/g, '마음을 깎는 힘').replace(/정신/g, '마음').replace(/(\d+)라운드/g, '$1차례').replace(/한 라운드/g, '잠시').replace(/라운드/g, '차례').replace(/포로/g, '사로잡힌 것').replace(/신도/g, '두건 쓴 것').replace(/진화의 정수/g, '진화').replace(/정수/g, '빛깔').replace(/진액 방울/g, '진액').replace(/([+\-−]?\d+)방울/g, '$1');
+  const add = d => { ['name', 'text', 'more', 'lore'].forEach(k => { if (d[k]) d[k] = clean(d[k]); }); d.asp = d.asp || 'none'; d.rar = d.rar || 'c'; d.cost = d.cost || 0; d.unlock = null; d.more = d.more || d.text; if (BY[d.id]) throw new Error('dup card ' + d.id); LIST.push(d); BY[d.id] = d; return d; };
 
   // ---------- 굴: 모양이 정해진 굴. 첫 칸(누른 칸)을 기준으로 놓고 돌릴 수 있다 ----------
   const SHAPES = [
@@ -45,7 +48,7 @@ const CARDS2 = (function () {
     shop: ['빨판 벽', 24, 'c', '지나는 적의 힘을 빤다'],
     prison: ['고치 주머니', 24, 'c', '고치 자리 +4'],
     chapel: ['기도하는 혀', 32, 'c', '매일 신앙 +3'],
-    altar: ['달 삼킨 굴', 44, 'u', '정수가 차오른다'],
+    altar: ['달 삼킨 굴', 44, 'u', '몸의 빛깔이 짙어진다'],
     pool: ['고인 체액', 34, 'c', '곁의 권속을 낫게 한다'],
     sluice: ['물목', 38, 'u', '지나는 무리를 휩쓴다'],
     library: ['별 보는 주름', 34, 'c', '기술이 세지고 하나 더'],
@@ -78,8 +81,8 @@ const CARDS2 = (function () {
   const KASP = N.KASP || {};
   Object.keys(N.KIN).filter(k => k !== 'spawn').forEach(k => {
     const kd = N.KIN[k], base = Math.round(((kd.cost || 30) * 0.7 + 12) / 2) * 2;
-    add({ id: 'kn_' + k, name: kd.name, type: 'kin', kin: k, asp: KASP[k] || 'none', rar: (kd.cost || 0) >= 50 ? 'u' : 'c', cost: base, text: kd.name + ' 하나가 둥지에 든다' });
-    add({ id: 'kn_' + k + '_r', name: '늙은 ' + kd.name, type: 'kin', kin: k, asp: KASP[k] || 'none', rar: 'r', cost: base + 20, lv: 3, rare: true, text: '레벨 +3 희귀 ' + kd.name });
+    add({ id: 'kn_' + k, name: kname(k), type: 'kin', kin: k, asp: KASP[k] || 'none', rar: (kd.cost || 0) >= 50 ? 'u' : 'c', cost: base, text: kname(k) + ' 하나가 둥지에 든다' });
+    add({ id: 'kn_' + k + '_r', name: '늙은 ' + kname(k), type: 'kin', kin: k, asp: KASP[k] || 'none', rar: 'r', cost: base + 20, lv: 3, rare: true, text: '레벨 +3 희귀 ' + kname(k) });
   });
   add({ id: 'kn_spawn3', name: '움 셋', type: 'kin', kin: 'spawn', asp: 'brood', rar: 'c', cost: 10, n: 3, text: '움 셋이 돋는다' });
 
@@ -87,7 +90,7 @@ const CARDS2 = (function () {
   const XS = [{ draw: 1 }, { ess: 6 }, { faith: 2 }, { heal: 0.15 }];
   const XT = { draw: '내일 한 장 더', ess: '진액 +6', faith: '신앙 +2', heal: '본체 체력 +15%' };
   N.SPELL_IDS.filter(id => !N.SPELL[id].free).forEach((id, n) => {
-  const SKFACE = { wave: '앞 칸으로 밀고 체력 10% 깎기', bite: '본체가 하나를 문다 (공격 4배)', call: '이 방 권속 공격 +80%', tide: '모든 권속 체력 60% 회복', star: '다음 함정이 두 번 터진다', charm: '하나를 홀려 제 편을 치게', scream: '약해진 적을 쫓아낸다', cocoon: '적 하나를 산 채로 싼다', eclipse: '이 방 적 한 라운드 멈춤', guard: '이 방 권속 피해 −55%', grip: '앞의 넷을 3라운드 붙든다', rock: '이 방 적 체력 −8% (맨 앞 두 배)', mark: '셋에게 낙인: 피해 +50%' };
+  const SKFACE = { wave: '앞 칸으로 밀고 체력 10% 깎기', bite: '본체가 하나를 문다 (공격 4배)', call: '이 방 권속 공격 +80%', tide: '모든 권속 체력 60% 회복', star: '다음 함정이 두 번 터진다', charm: '하나를 홀려 제 편을 치게', scream: '약해진 적을 쫓아낸다', cocoon: '적 하나를 산 채로 싼다', eclipse: '이 방 적 잠시 멈춤', guard: '이 방 권속 피해 −55%', grip: '앞의 넷을 붙든다 ×3', rock: '이 방 적 체력 −8% (맨 앞 두 배)', mark: '셋에게 낙인: 피해 +50%' };
     const s = N.SPELL[id], a = s.asp || 'none';
     add({ id: 'sk_' + id, name: s.name, type: 'skill', spell: id, asp: a, rar: s.cost >= 5 ? 'u' : 'c', cost: 0, pow: 1, cmul: 1, text: SKFACE[id] || (s.desc.length > 22 ? s.desc.slice(0, 21) + '…' : s.desc), more: s.desc });
     add({ id: 'sk_' + id + '_deep', name: '깊은 ' + s.name, type: 'skill', spell: id, asp: a, rar: 'r', cost: 0, pow: 1.6, cmul: 1.3, text: s.name + ' ×1.6 (신앙 ×1.3)', more: s.desc });
@@ -140,14 +143,14 @@ const CARDS2 = (function () {
   // ---------- 여는 조건: 판을 넘어 쌓인다 (meta.tot). hard = 일부러 노려야 하는 도전 ----------
   const tot = (m, k) => ((m && m.tot) || {})[k] || 0, act = (m, a) => ((m && m.actBy) || {})[a] || 0, win = (m, a) => ((m && m.winBy) || {})[a] || 0;
   const UNLOCK = {};
-  const U = (id, text, check, hard) => { UNLOCK[id] = { text, check, hard: !!hard }; };
+  const U = (id, text, check, hard) => { UNLOCK[id] = { text: clean(text), check, hard: !!hard }; };
   ASPS.forEach(a => {
     U('act2_' + a, ASPN[a] + ' 덱으로 9일째까지 버티기', (st, m) => act(m, a) >= 2);
     U('act3_' + a, ASPN[a] + ' 덱으로 17일째까지 버티기', (st, m) => act(m, a) >= 3);
     U('act4_' + a, ASPN[a] + ' 덱으로 25일째까지 버티기', (st, m) => act(m, a) >= 4);
     U('win_' + a, ASPN[a] + ' 덱으로 별이 서는 밤 넘기기', (st, m) => win(m, a) >= 1);
   });
-  [['swallow', '바닥 아가리로 모두 합쳐 {n}명 삼키기', [20, 80]], ['infRise', '감염체를 모두 합쳐 {n} 일으키기', [5, 20]], ['spawned', '알주머니 새끼 모두 합쳐 {n}', [60, 240]], ['skills', '기술 카드를 모두 합쳐 {n}번 쓰기', [60, 250, 600]], ['nightsWon', '밤을 모두 합쳐 {n}번 넘기기', [40, 150, 400]], ['kills', '적을 모두 합쳐 {n} 쓰러뜨리기', [500, 2000]], ['captives', '포로를 모두 합쳐 {n} 잡기', [8, 30]], ['kinEvo', '권속 진화 모두 합쳐 {n}번', [4, 15]], ['secrets', '비밀 진화 모두 합쳐 {n}번', [1, 4]], ['digs', '굴 카드로 모두 합쳐 {n}칸 파기', [150, 600]], ['shapes', '굴 카드 모두 합쳐 {n}장 놓기', [80, 300]], ['organs', '기관 모두 합쳐 {n}개 놓기', [50, 200]], ['traps', '부위 모두 합쳐 {n}개 달기', [60, 250]], ['digestEss', '소화액으로 진액 모두 합쳐 {n}', [300, 1200]], ['needleWins', '바늘 점에서 모두 합쳐 {n}번 따기', [2, 6]], ['blocks', '흙벽으로 길을 모두 합쳐 {n}번 돌리기', [5, 20]]]
+  [['swallow', '바닥 아가리로 모두 합쳐 {n}명 삼키기', [20, 80]], ['infRise', '감염체를 모두 합쳐 {n} 일으키기', [5, 20]], ['spawned', '알주머니 새끼 모두 합쳐 {n}', [60, 240]], ['skills', '기술 카드를 모두 합쳐 {n}번 쓰기', [60, 250, 600]], ['nightsWon', '밤을 모두 합쳐 {n}번 넘기기', [40, 150, 400]], ['kills', '적을 모두 합쳐 {n} 쓰러뜨리기', [500, 2000]], ['captives', '고치에 산 채로 싸기 모두 합쳐 {n}', [8, 30]], ['kinEvo', '권속 진화 모두 합쳐 {n}번', [4, 15]], ['secrets', '비밀 진화 모두 합쳐 {n}번', [1, 4]], ['digs', '굴 카드로 모두 합쳐 {n}칸 파기', [150, 600]], ['shapes', '굴 카드 모두 합쳐 {n}장 놓기', [80, 300]], ['organs', '기관 모두 합쳐 {n}개 놓기', [50, 200]], ['traps', '부위 모두 합쳐 {n}개 달기', [60, 250]], ['digestEss', '소화액으로 진액 모두 합쳐 {n}', [300, 1200]], ['needleWins', '바늘 점에서 모두 합쳐 {n}번 따기', [2, 6]], ['blocks', '흙벽으로 길을 모두 합쳐 {n}번 돌리기', [5, 20]]]
     .forEach(([k, t, ns]) => ns.forEach((n, i) => U(k + '_' + i, t.replace('{n}', n), (st, m) => tot(m, k) >= n)));
   ['ritual', 'onebody', 'chain', 'swarm', 'long', 'awaken'].forEach(c => U('cmb_' + c, '「' + N.CMB[c].name + '」을(를) 모두 합쳐 ' + (c === 'ritual' || c === 'awaken' ? 10 : 25) + '번 이루기', (st, m) => tot(m, 'cmb_' + c) >= (c === 'ritual' || c === 'awaken' ? 10 : 25)));
   U('cmb_rainbow', '「무지개 아가리」를 한 번 이루기', (st, m) => tot(m, 'cmb_rainbow') >= 1, true);
@@ -268,16 +271,16 @@ const CARDS2 = (function () {
     cu_blind: '그 밤에는 어떤 눈도 뜨이지 않았다.', cu_rot: '썩은 살에서도 무언가가 자랐다. 반가운 것은 아니었다.', cu_noise: '굴 안이 웅얼거림으로 가득 찼다. 아무도 말하지 않았는데.',
     cu_leech: '거머리는 진액을 빨면서도 감사할 줄 몰랐다.', cu_fog: '생각이 안개처럼 흩어졌다. 붙잡으려 할수록 더 멀어졌다.', cu_debt: '갚을 것은 늘 갚을 수 있는 것보다 많았다.',
     cu_mark: '「물 아래의 장부」 한 귀퉁이에 둥지의 위치가 적혀 있었다. 누가 적었는지는 알 수 없었다.',
-    bl_draw: '촉수는 어둠 속을 더듬어, 필요한 것을 먼저 찾아냈다.', bl_ess: '흙 속의 진액 맥은 오래된 상처처럼 붉었다.', bl_faith: '중얼거림은 신도들의 입에서 시작해 굴 전체로 번졌다.',
+    bl_draw: '촉수는 어둠 속을 더듬어, 필요한 것을 먼저 찾아냈다.', bl_ess: '흙 속의 진액 맥은 오래된 상처처럼 붉었다.', bl_faith: '중얼거림은 꿇어앉은 것들의 입에서 시작해 굴 전체로 번졌다.',
     bl_heal: '떨어져 나간 살이 다시 붙었다. 자국은 남지 않았다.', bl_retain: '살은 어제 일을 기억했다. 사람보다 오래.', bl_reroll: '그것이 잠결에 뒤척이자 굴의 모양이 조금 바뀌었다.',
-    bl_kinheal: '권속들은 서로의 상처를 핥았다. 그것이 가르친 적은 없었다.', bl_exp: '그것의 꿈이 권속들에게 흘러들었다. 그들은 꿈에서 깨어나 조금 커져 있었다.', bl_essence: '정수 한 방울에는 별 사이 바다의 맛이 났다.',
+    bl_kinheal: '권속들은 서로의 상처를 핥았다. 그것이 가르친 적은 없었다.', bl_exp: '그것의 꿈이 권속들에게 흘러들었다. 그들은 꿈에서 깨어나 조금 커져 있었다.', bl_essence: '짙게 엉긴 진액 한 줌에서 별 사이 바다의 맛이 났다.',
     bl_unearth: '흙 아래 묻힌 것의 냄새가 굴까지 올라왔다.', bl_copy: '같은 살이 두 번 돋았다. 두 번째 것이 조금 더 굶주려 있었다.', bl_trapup: '가시는 밤사이 한 마디씩 자랐다.', bl_needle: '바늘 하나가 아주 멀리서 삐걱였다. 그 소리를 들은 것은 그것뿐이었다.' };
   const loreOf = id => LORE[id] || LORE[id.replace(/_(abyss|nebula|brood|dusk|hunger|great|deep|lite)$/, '')] || LORE[id.replace(/_(abyss|nebula|brood|dusk|hunger)$/, '')] || (id.indexOf('lb_') === 0 ? LORE[id.split('_').slice(0, 2).join('_')] : '') || (id === 'bl_draw3' ? LORE.bl_draw : id === 'bl_ess2' ? LORE.bl_ess : id === 'bl_faith2' ? LORE.bl_faith : '');
-  LIST.forEach(d => { d.lore = loreOf(d.id) || ''; });
+  LIST.forEach(d => { d.lore = clean(loreOf(d.id) || ''); });
 
   // 주제가 맞는 카드를 몇 조건에 바로 건다
   [['tr_maw_great', 'swallow_1'], ['sk_bite_deep', 'swallow_0'], ['tr_spore_great', 'infRise_0'], ['tr_spore_nebula', 'infRise_1'], ['tr_eggsac_abyss', 'spawned_0']].forEach(([id, c]) => { if (BY[id] && UNLOCK[c]) BY[id].unlock = c; });
   const isOpen = (d, meta) => !d.unlock || !!(meta && meta.unlocked && meta.unlocked[d.unlock]) || (d.part && meta && meta.parts && meta.parts[d.part]);
-  return { LIST, BY, ASPS, ASPN, RARN, TYPEN, START, UNLOCK, isOpen, TAGS, tagged };
+  return { kname, clean, LIST, BY, ASPS, ASPN, RARN, TYPEN, START, UNLOCK, isOpen, TAGS, tagged };
 })();
 if (typeof module !== 'undefined') module.exports = CARDS2;

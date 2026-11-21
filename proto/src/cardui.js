@@ -138,11 +138,14 @@ function cmScene(v) {
 const cmArtUrl = v => { const c = cmScene(v); return c.__u || (c.__u = c.toDataURL()); };
 // 카드 앞면 (.dkc 꼴을 그대로 쓴다)
 const CMTYPE = { shape: '굴', organ: '기관', trap: '부위', kin: '권속', skill: '기술', boon: '축복', curse: '저주' };
+// 카드 판에서 옛 판의 말을 카드 판 말로 (정신 → 넋, 정수 → 빛깔, n라운드 → n차례 …)
+const CMWORDS = [[/정신력/g, '넋'], [/정신 ([−-])/g, '넋 $1'], [/포로 밥값/g, '붙잡아 둔 것 먹이'], [/진액 방울/g, '진액'], [/정수가/g, '빛깔이'], [/정수를/g, '빛깔을'], [/정수는/g, '빛깔은'], [/정수와/g, '빛깔과'], [/정수/g, '빛깔'], [/(\d+)라운드/g, '$1차례'], [/\s*\(익숙해짐 [−-]\d+%\)/g, '']];
+const cmWords = s => { if (s == null) return s; s = String(s); for (const [a, b] of CMWORDS) s = s.replace(a, b); return s; };
 function cmFace(v, o) {
   o = o || {}; if (!v) return ''; const d = cmDef(v.id) || {}, cost = o.cost != null ? o.cost : v.cost;
   const gt = cmGeneTag(v), cls = 'dkc asp-' + (v.asp || 'none') + ' rar-' + (v.type === 'curse' ? 'x' : v.rar) + ' t-' + v.type + (gt ? ' gene' : '') + (o.cls ? ' ' + o.cls : '');
-  const tx = o.text != null ? o.text : v.type === 'skill' && !o.night ? '밤에 쓴다 · ' + v.text : v.text;
-  return `<div class="${cls}"${gt ? ` style="--gc:${CMGCOL[gt] || '#fff3a0'}"` : ''}${o.c ? ` data-c="${o.c}"` : ''}${o.uid != null ? ` data-uid="${o.uid}"` : ''}${o.i != null ? ` data-i="${o.i}"` : ''} data-id="${v.id}"><b class="dkc-cost${o.faith || v.type === 'skill' ? ' faith' : ''}">${v.type === 'curse' ? '✕' : v.type === 'skill' && !o.faith ? cmSkillCost(d) : cost}</b><i class="dkc-gem"></i><span class="dkc-art"><img src="${cmArtUrl(v)}" alt="" draggable="false">${gt ? `<i class="dkc-gene">${esc(cmTagName(gt))}</i>` : ''}</span><b class="dkc-nm">${esc(v.name)}</b><span class="dkc-tx">${esc(tx)}</span>${d.btext && gt ? `<span class="dkc-tx dkc-bt">본디: ${esc(d.btext)}</span>` : ''}<i class="dkc-ty">${CMTYPE[v.type] || ''}${d.asp && d.asp !== 'none' ? ' · ' + CARDS2.ASPN[d.asp] : ''}</i></div>`;
+  const tx = cmWords(o.text != null ? o.text : (v.face || v.text));
+  return `<div class="${cls}"${gt ? ` style="--gc:${CMGCOL[gt] || '#fff3a0'}"` : ''}${o.c ? ` data-c="${o.c}"` : ''}${o.uid != null ? ` data-uid="${o.uid}"` : ''}${o.i != null ? ` data-i="${o.i}"` : ''} data-id="${v.id}"><b class="dkc-cost${o.faith || v.type === 'skill' ? ' faith' : ''}">${v.type === 'curse' ? '✕' : v.type === 'skill' && !o.faith ? cmSkillCost(d) : cost}</b><i class="dkc-gem"></i><span class="dkc-art"><img src="${cmArtUrl(v)}" alt="" draggable="false">${gt ? `<i class="dkc-gene">${esc(cmTagName(gt))}</i>` : ''}</span><b class="dkc-nm">${esc(cmWords(v.name))}</b><span class="dkc-tx">${esc(tx)}</span><i class="dkc-ty">${CMTYPE[v.type] || ''}${d.asp && d.asp !== 'none' ? ' · ' + CARDS2.ASPN[d.asp] : ''}</i></div>`;
 }
 // 기술 카드의 신앙 값 (밤에 실제로 드는 값과 같은 셈)
 const cmSkillCost = d => { try { const base = typeof G !== 'undefined' && G && NEST.spellCost && d.spell ? NEST.spellCost(G, d.spell) : 3; return Math.max(1, Math.ceil(base * (d.cmul || 1))); } catch (e) { return Math.max(1, Math.ceil(3 * (d.cmul || 1))); } };
@@ -247,19 +250,24 @@ function cmContinue() { cmMount(); cmMeta(); const run = cmLoad(); if (!run) ret
 // ---- 위쪽 줄과 아래 줄 (ui.js 의 hud/tray 대신) ----
 function cardHud() {
   const g = cmGenome();
-  $('hud').innerHTML = `<button class="hbar" data-c="body" title="내 몸 보기"><span class="cm-por">${g ? cmBodyImg(g, 26) : ''}</span><span class="hud-turn">${G.day}일 <small class="mute">/${NEST.K.days}<span class="cm-act"> · ${NEST.actOf(G)}막</span></small></span><span class="hstat" title="진액: 카드를 놓고 사는 데 든다">${iconImg('gold')}<b class="num coin">${R((ST.hud || G).gold)}</b><small class="cm-lb">진액</small></span><span class="hstat cm-faith" title="신앙: 밤의 기술 카드에 든다">${iconImg('faith')}<b class="num">${Math.floor((ST.hud || G).faith)}</b><small class="cm-lb">신앙</small></span><span class="hstat">${lifePips()}</span></button><button class="btn sm hmenu" data-a="menu" aria-label="메뉴" title="메뉴">≡</button>`;
+  $('hud').innerHTML = `<button class="hbar" data-c="body" title="내 몸 보기"><span class="cm-por">${g ? cmBodyImg(g, 26) : ''}</span><span class="hud-turn">${G.day}일 <small class="mute">/${NEST.K.days}<span class="cm-act"> · ${NEST.actOf(G)}막</span></small></span><span class="hstat" title="진액: 카드를 놓고 사는 데 든다">${iconImg('gold')}<b class="num coin">${R(Math.max(0, (ST.hud || G).gold))}</b><small class="cm-lb">진액</small></span><span class="hstat cm-faith" title="신앙: 밤의 기술 카드에 든다">${iconImg('faith')}<b class="num">${Math.floor((ST.hud || G).faith)}</b><small class="cm-lb">신앙</small></span><span class="hstat">${lifePips()}</span></button><button class="btn sm hmenu" data-a="menu" aria-label="메뉴" title="메뉴">≡</button>`;
   document.documentElement.style.setProperty('--hud-h', $('hud').offsetHeight + 'px');
 }
+const cmUpkeep = () => { if (!CMU.run || typeof CARDMODE.upkeepWarn !== 'function') return null; try { const u = CARDMODE.upkeepWarn(CMU.run); const lv = u && Array.isArray(u.leaving) ? u.leaving : [], n = lv.length || (u && +u.short) || 0; return u && n > 0 ? { leaving: lv, n, days: u.days } : null; } catch (e) { return null; } };
 function cardTray() {
   const run = CMU.run; if (!run) return;
-  const cmb = NEST.cardCombos(G), names = [...new Set(cmb.map(c => c.name))], ch = [];
-  ch.push(`<button class="chip cm-deckchip" data-c="deck">덱 ${run.deck.length} <small class="mute">· 남은 ${run.drawP.length}</small></button>`);
-  names.forEach(n => ch.push(`<button class="chip cm-cmb" data-c="combos">◇ ${esc(n)}</button>`));
-  const h = cmHints()[0]; if (h && CMU.sel == null) ch.push(`<button class="chip cm-hint" data-c="hint">한 장 더면 ${esc(h.name)}</button>`);
-  if (run.needleOffer) ch.push(`<button class="chip todo hot" data-c="needle">✦ 바늘 점</button>`);
-  if (G.march.tonight) ch.push(cmThreatChip());
-  if (isMobile()) ch.push(`<button class="chip cm-zoom" data-c="zoom">${CMU.zoom === 'near' ? '⤢ 전체' : '⤡ 가까이'}</button>`);
-  $('mapchips').innerHTML = ST.mode === 'day' ? ch.join('') : '';
+  const cmb = NEST.cardCombos(G), names = [...new Set(cmb.map(c => c.name))], ch = [], mob = isMobile(), add = (p, h) => ch.push({ p, h });
+  const uw = cmUpkeep();
+  if (uw) add(10, `<button class="chip cm-warn" data-c="upkeep">⚠ 권속 ${uw.n} 떠남</button>`);
+  if (G.march.tonight) add(9, cmThreatChip());
+  if (run.needleOffer) add(8, `<button class="chip todo hot" data-c="needle">✦ 바늘 점</button>`);
+  const h = cmHints()[0]; if (h && CMU.sel == null) add(5, `<button class="chip cm-hint" data-c="hint">한 장 더면 ${esc(h.name)}</button>`);
+  if (mob && names.length) add(4, `<button class="chip cm-cmb" data-c="combos">◇ 족보 ${names.length}</button>`); else names.forEach(n => add(4, `<button class="chip cm-cmb" data-c="combos">◇ ${esc(n)}</button>`));
+  add(3, `<button class="chip cm-deckchip" data-c="deck">덱 ${run.deck.length} <small class="mute">· 남은 ${run.drawP.length}</small></button>`);
+  if (mob) add(2, `<button class="chip cm-zoom" data-c="zoom">${CMU.zoom === 'near' ? '⤢ 전체' : '⤡ 가까이'}</button>`);
+  ch.sort((a, b) => b.p - a.p); CMU.chipsAll = ch.map(x => x.h);
+  const shown = mob && ch.length > 3 ? ch.slice(0, 2).map(x => x.h).concat([`<button class="chip cm-more" data-c="chips">… ${ch.length - 2}</button>`]) : ch.map(x => x.h);
+  $('mapchips').innerHTML = ST.mode === 'day' ? shown.join('') : '';
   const ib = (c, v, icon, label, extra, cls) => `<button class="btn ib ${cls || ''}" data-c="${c}"${v ? ` data-v="${v}"` : ''}>${icon}<span>${label}</span>${extra || ''}</button>`;
   $('game').classList.add('cm'); cmBodyBand();
   $('mnav').innerHTML = ib('deck', null, '<span class="gl">▤</span>', '덱') + ib('shop', null, iconImg('gold', 20), '상점') + ib('up', null, '<span class="gl">✚</span>', '강화') + ib('rm', null, '<span class="gl">✕</span>', '빼기') + `<button class="btn ib" data-c="body">${cmBodyImg(cmGenome(), 22)}<span>몸</span></button>` + `<button class="btn pri end" data-c="night"><span>밤 맞기</span></button>`;
@@ -284,7 +292,7 @@ function cmHand() {
   const deal = CMU.dealDay !== G.day; CMU.dealDay = G.day; if (deal && hv.length) cmSnd('click');
   el.innerHTML = `${bar}<span class="cm-cnt">손 ${hv.length}</span><div class="dk-hand cm-hand cm-strip${deal ? ' cm-deal' : ''}" style="--n:${hv.length}">${hv.map(v => cmFace(v, { c: 'card', uid: v.uid, cls: (isMobile() ? 'mini ' : '') + (v.uid === CMU.sel ? 'lift' : '') + (v.can || v.type === 'skill' ? '' : ' no') })).join('') || '<p class="small mute">손이 비었다 · 밤을 맞는다</p>'}</div>`;
 }
-function cardRender() { cmHand(); cmBodyBand(); cmCoach(); }
+function cardRender() { cmHand(); cmBodyBand(); cmCoach(); const mc = $('mapchips'); if (mc) mc.classList.toggle('cm-lift', isMobile() && (CMU.sel != null || !!(CMU.drag && CMU.drag.on))); }
 
 // ---- 고르고 놓기 ----
 function cmSelect(uid) { CMU.sel = uid; CMU.place = null; CMU.alts = []; CMU.altI = 0; CMU.tapCell = null; if (uid != null && ST.screen !== 'under') setScreen('under'); UI.sel = null; render(); }
@@ -437,7 +445,7 @@ async function cardNight(keep) {
 const CMNOTE_OUT = /섬김|신뢰|포로 밥값|밥값|물든|물듦|정수|「[^」]*」의 벌|선물|징조|눈길|교시|첩자|별자리|명부|야유|끼니|유지/;
 const CM_DROP = /^(징조|이 세상에만 있는 것)|포교|신도 "|포로 자리|섬김|신뢰|밥값\(끼니\)|정수 [+−-]|적의 [+−-]|정신력 [+−-]|공포 [+−-]|신앙 상한|「마지막 막」|교시|명부|첩자/;
 const cmMarchLabel = e => cmText(e.txt) || '';
-function cmText(s) { if (s == null) return s; s = String(s).replace(/\s*\(공포 \+\d+ 더\)/g, '').replace(/(\d)\s*방울/g, '$1').replace(/(\d+)라운드 교전: (\d+)명 쓰러뜨림/g, '맞붙음이 끝났다. 쓰러진 침입자 $2'); return CM_DROP.test(s) ? null : NEST.fj(s); }
+function cmText(s) { if (s == null) return s; s = cmWords(String(s)).replace(/\s*\(공포 \+\d+ 더\)/g, '').replace(/(\d)\s*방울/g, '$1').replace(/(\d+)라운드 교전: (\d+)명 쓰러뜨림/g, '맞붙음이 끝났다. 쓰러진 침입자 $2'); return CM_DROP.test(s) ? null : NEST.fj(s); }
 // 진액이 어디서 들고 났나 (카드 판 말로)
 const CMLEDGE = { '지닌 것': '쓰러진 것들이 지녔던 것', '삼킨 것': '붙잡아 둔 것들', '끼니': '권속 밥값', '방 유지': '굴 유지', '진액 털림': '본체가 털린 것', '진액 맥': '진액 맥', '소화': '소화액', '빨판 굴': '빨판 굴', '미끼 굴': '미끼 굴', '상자': '주운 것', '버려진 짐': '주운 것', '보급함': '주운 것', '훈련': '권속 먹이기', '권속 진화': '권속 진화' };
 function cmSettleHtml(b, st, day, g0) {
@@ -450,7 +458,7 @@ function cmSettleHtml(b, st, day, g0) {
     h += `<div class="card cm-set"><p class="h3 ${res[1]}">${res[0]}</p><div class="cm-setinv">${Object.keys(kinds).map(k => `<span class="cm-inv">${invImg(k, 28)}<small>${esc(nm(k))} ×${kinds[k]}</small></span>`).join('')}</div>
 <p class="small">쓰러뜨림 <b>${b.kills || 0}</b> · 달아남 <b>${b.fled || 0}</b>${(b.captives || []).length ? ` · 붙잡음 <b style="color:#c8a8ff">${b.captives.length}</b>` : ''} <span class="mute">/ ${b.party.length}</span></p>${b.fell ? `<p class="small up">목숨 ${lifePips()}${G.over ? ' · 다시 일어나지 못했다' : NEST.lives(G) <= 1 ? ' · 한 번 더 쓰러지면 끝이다' : ' · 남은 목숨 ' + NEST.lives(G)}</p>` : ''}</div>`;
   } else h += '<p class="mute">아무도 오지 않았다. 굴이 조용히 자랐다.</p>';
-  { const parts = Object.keys(L).filter(k => Math.round(L[k])).sort((a, c) => Math.abs(L[c]) - Math.abs(L[a])).slice(0, 3).map(k => (CMLEDGE[k] || k) + ' ' + (L[k] > 0 ? '+' : '') + Math.round(L[k]));
+  { const parts = Object.keys(L).filter(k => Math.round(L[k])).sort((a, c) => Math.abs(L[c]) - Math.abs(L[a])).slice(0, 3).map(k => cmWords(CMLEDGE[k] || k) + ' ' + (L[k] > 0 ? '+' : '') + Math.round(L[k]));
     h += `<p class="cm-ess ${tot >= 0 ? 'coin' : 'up'}">진액 ${tot >= 0 ? '+' : ''}${tot}</p>${parts.length ? `<p class="small mute">${parts.map(esc).join(' · ')}</p>` : ''}`; }
   const notes = (st.notes || []).filter(n => !CMNOTE_OUT.test(n)).map(n => cmText(n.replace(/([+−-]?\d[\d,]*)\s*방울/g, '진액 $1'))).filter(Boolean).slice(0, 3);
   if (notes.length) h += `<div class="stack" style="gap:2px">${notes.map(n => `<p class="small warnc">${esc(n)}</p>`).join('')}</div>`;
@@ -544,11 +552,11 @@ function cmRmSheet() {
 }
 function cmCombosSheet() {
   const now = NEST.cardCombos(G), ids = new Set(now.map(x => x.id));
-  cmSheet('combos', `<h3>배치 족보</h3><div class="dk-list">${Object.keys(NEST.CMB).map(k => `<div class="dk-li${ids.has(k) ? ' cm-on' : ''}"><b>${ids.has(k) ? '◆' : '◇'} ${esc(NEST.CMB[k].name)}</b><span class="dk-mute">${esc(NEST.CMB[k].text || NEST.CMB[k].desc || '')}</span></div>`).join('')}</div>`);
+  cmSheet('combos', `<h3>배치 족보</h3><div class="dk-list">${Object.keys(NEST.CMB).map(k => `<div class="dk-li${ids.has(k) ? ' cm-on' : ''}"><b>${ids.has(k) ? '◆' : '◇'} ${esc(NEST.CMB[k].name)}</b><span class="dk-mute">${esc(cmWords(NEST.CMB[k].text || NEST.CMB[k].desc || ''))}</span></div>`).join('')}</div>`);
 }
 function cmDetail(id, uid) {
   if (!id) return; const run = CMU.run, c = uid ? cmCard(+uid) : null, v = c ? CARDMODE.view(run, c) : cmDefView(id), d = cmDef(id), un = d.unlock && CARDS2.UNLOCK[d.unlock];
-  cmSheet('detail', `<div class="dk-detail">${cmFace(v, { cls: 'big' })}<div class="dk-dt"><p><b>${esc(v.name)}</b> <span class="dk-tag" style="--c:${cmCol(d.asp)}">${CMTYPE[d.type]}${d.asp !== 'none' ? ' · ' + CARDS2.ASPN[d.asp] : ''}</span></p><p>${esc(d.more || d.text)}</p>${d.lore ? `<p class="dk-mute dk-lore">${esc(d.lore)}</p>` : ''}${d.from ? `<p class="dk-mute">← 원래 「${esc(d.baseName || (cmDef(d.from) || {}).name || d.from)}」 · 몸이 다시 쓴 카드</p>` : ''}${d.type !== 'curse' ? `<p class="dk-mute">강화하면: ${esc(CMUPTXT[d.type] || '세진다')}</p>` : ''}${(d.tags || []).length ? `<p class="dk-mute">몸의 꼬리표: ${d.tags.map(cmTagName).join(' · ')}</p>` : ''}${un ? `<p class="dk-lock">${un.hard ? '<span class="dk-hard">도전</span> ' : ''}${esc(un.text)}</p>` : ''}</div></div>`);
+  cmSheet('detail', `<div class="dk-detail">${cmFace(v, { cls: 'big' })}<div class="dk-dt"><p><b>${esc(v.name)}</b> <span class="dk-tag" style="--c:${cmCol(d.asp)}">${CMTYPE[d.type]}${d.asp !== 'none' ? ' · ' + CARDS2.ASPN[d.asp] : ''}</span></p><p>${esc(cmWords(d.more || d.text))}</p>${v.more ? `<p class="dk-mute">${esc(cmWords(v.more))}</p>` : d.btext && cmGeneTag(v) ? `<p class="dk-mute">본디: ${esc(cmWords(d.btext))}</p>` : ''}${d.lore ? `<p class="dk-mute dk-lore">${esc(d.lore)}</p>` : ''}${d.from ? `<p class="dk-mute">← 원래 「${esc(d.baseName || (cmDef(d.from) || {}).name || d.from)}」 · 몸이 다시 쓴 카드</p>` : ''}${d.type !== 'curse' ? `<p class="dk-mute">강화하면: ${esc(CMUPTXT[d.type] || '세진다')}</p>` : ''}${(d.tags || []).length ? `<p class="dk-mute">몸의 꼬리표: ${d.tags.map(cmTagName).join(' · ')}</p>` : ''}${un ? `<p class="dk-lock">${un.hard ? '<span class="dk-hard">도전</span> ' : ''}${esc(un.text)}</p>` : ''}</div></div>`);
 }
 
 // ---- 바늘 점 ----
@@ -620,7 +628,8 @@ function cardAskHtml(ctx) {
     if (c) { faces.push(`<button class="cm-cbtn" data-a="hand" data-k="${o.id}"${o.ok ? '' : ' disabled'} title="${esc(o.why || o.desc || '')}">${cmFace(CARDMODE.view(run, c), { cost: Math.ceil(o.cost || 0), faith: true, night: true, cls: 'mini' + (o.ok ? '' : ' no') })}</button>`); return; }
     if (NEST.SPELL[o.id] && NEST.SPELL[o.id].free) free.push(btn('hand', { k: o.id }, spellImg(o.id) + ' ' + o.name + ' <small>' + ({ whip: '이 방 공격↑', move: '권속 불러오기' }[o.id] || '') + '</small>' + (o.tgt ? ' ◎' : ''), 'sm', !o.ok));
   });
-  return `<p class="h3">손을 쓸까? <small class="mute">신앙 ${Math.floor(ctx.faith)} · 적 ${ctx.enemies}</small></p>${faces.length ? `<div class="dk-hand cm-nhand" style="--n:${faces.length}">${faces.join('')}</div>` : '<p class="small mute">쥔 기술 카드가 없다</p>'}<div class="row cm-nfree">${free.join('')}${btn('hand', { k: 'none' }, '그냥 둔다', 'pri')}</div>`;
+  try { if (typeof camCell === 'function' && typeof ctx.cell === 'number') camCell(ctx.cell); } catch (e) { /* 비추지 못해도 고를 수는 있다 */ }
+  return `<p class="h3">손을 쓸까? <small class="mute">신앙 ${Math.floor(ctx.faith)} · 적 ${ctx.enemies}</small></p><div class="row cm-nfree">${free.join('')}${btn('hand', { k: 'none' }, '그냥 둔다', 'pri')}</div>${faces.length ? `<div class="cm-nhand cm-nstrip">${faces.join('')}</div>` : ''}`;
 }
 function cardMorning() { busy = false; render(); if (G.event) openModal('event'); }
 
@@ -652,6 +661,8 @@ function cmClick(e) {
   if (!run) return;
   if (c === 'moltok') { if (CMU.moltRes) CMU.moltRes(); return; }
   if (c === 'body') { cmSnd('click'); return cmBodySheet(); }
+  if (c === 'chips') { cmSnd('click'); return cmSheet('chips', `<div class="cm-chipsheet">${(CMU.chipsAll || []).join('')}</div>`); }
+  if (c === 'upkeep') { const u = cmUpkeep(); cmSnd('click'); return cmSheet('upkeep', u ? `<p class="h3">밥값이 모자란다</p><p>진액 ${R(Math.max(0, G.gold))} · ${u.days != null ? u.days + '일 뒤' : '내일'}</p><p class="small">${u.leaving.map(esc).join(', ')}</p>` : '<p>모자라지 않다</p>'); }
   if (c === 'threat') { cmSnd('click'); cmCoachDone('threat'); return cmSheet('threat', cmThreatHtml()); }
   if (c === 'reward') { const r = CARDMODE.takeReward(run, +el.dataset.i); if (r.ok) { cmSnd('up'); cmToast(r.msg || '덱에 넣었다'); } if (CMU.rewardRes) CMU.rewardRes(); return; }
   if (c === 'rskip') { CARDMODE.skipReward(run); if (CMU.rewardRes) CMU.rewardRes(); return; }

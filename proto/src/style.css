@@ -897,3 +897,26 @@ button.cm-tagrow { display: flex; gap: 8px; align-items: center; min-height: 40p
 #game:has(#cm-body:not([hidden])) #mapchips { z-index: 7; }
 .cm-morph { pointer-events: none; }
 #cm-ov > * { flex-shrink: 0; }
+
+/* ===== 세 번째 감사: 폰 화면 정리 ===== */
+#mapchips .cm-warn { border-color: #ff5f57; color: #ffb0a8; font-weight: 700; }
+.cm-chipsheet { display: flex; flex-wrap: wrap; gap: 8px; }
+.cm-chipsheet .chip { min-height: 40px; }
+.cm-nfree { flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.cm-nfree .btn { min-height: 40px; }
+.cm-nstrip { display: flex; gap: 8px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; padding: 2px 2px 6px; }
+.cm-nstrip .cm-cbtn { flex: 0 0 auto; scroll-snap-align: start; margin: 0; }
+@media (max-width: 760px) {
+  #game.cm-mode #mapchips .chip { min-height: 40px; font-size: 14px; }
+  #game.cm-mode #cm-body:not(.night) { top: 6px; right: 6px; min-width: 0; max-width: none; padding: 3px; gap: 1px; }
+  #game.cm-mode #cm-body:not(.night) .cm-bimg img { width: 52px; height: 52px; }
+  #game.cm-mode #cm-body:not(.night) .cm-bnm, #game.cm-mode #cm-body:not(.night) .cm-bev { display: none; }
+  #game.cm-mode #cm-body:not(.night) .cm-evo { width: 52px; height: 4px; }
+  #game.cm-mode #mapchips { right: 70px; }
+  #cm-sheet, #cm-sheet p, #cm-ov p, .cp-sub { font-size: 14px; }
+  #cm-sheet .small, #cm-ov .small, #cm-sheet .dk-mute { font-size: 13px; }
+}
+.cm-nstrip .dkc.mini { width: 128px; min-height: 0; }
+.cm-nstrip .dkc.mini .dkc-art { aspect-ratio: 3 / 1; }
+.cm-nstrip .dkc.mini .dkc-tx { font-size: 13px; }
+#mapchips.cm-lift { visibility: hidden; }

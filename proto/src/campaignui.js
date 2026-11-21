@@ -100,11 +100,11 @@ async function campFinish() {
   saveMeta(); busy = false;
   const n = Object.keys(cm.clear).filter(k => +k >= 1 && cm.clear[k]).length, nextCh = ch < 7 ? ch + 1 : null;
   const opened = (cr.opened || []).filter(id => CARDS2.BY[id]), egg = cr.egg;
-  cmOv(`<div class="cp-wrap"><h2>${cr.win ? (ch === 7 ? '일곱째 바늘이 돌아섰다' : ch + '장을 넘겼다') : '둥지가 무너졌다'}</h2>${typeof needlesSvg === 'function' ? needlesSvg(n, cr.win && cr.first) : ''}
+  cmOv(`<div class="cp-wrap"><h2>${cr.win ? (ch === 7 ? '일곱째 바늘이 돌아섰다' : ch + '장을 넘겼다') : '둥지가 무너졌다'}</h2><div class="cp-btns">${cr.win && nextCh ? `<button class="btn pri" data-cp="ch" data-v="${nextCh}">${nextCh}장으로</button>` : ''}${!cr.win ? `<button class="btn pri" data-cp="ch" data-v="${ch}">다시 한다</button>` : ''}<button class="btn" data-cp="menu">장 고르기</button><button class="btn" data-cp="home">처음 화면</button></div>${typeof needlesSvg === 'function' ? needlesSvg(n, cr.win && cr.first) : ''}
 <p class="cp-sub">${ch}장 「${esc(C.title)}」 · ${o.day || run.G.day}일${cr.win && cr.first ? ' · 처음 넘김' : ''}</p>
 ${opened.length ? `<p class="dk-lab">본편에 열린 카드</p><div class="cp-opened">${opened.map(id => cmFace(cmBareView(id), { cls: 'mini' })).join('')}</div>` : ''}
 ${egg ? `<p class="cp-sub">본편에서 고를 수 있는 알이 하나 생겼다: <b>${esc(egg.name)}</b></p>` : ''}
-<div class="cp-btns">${cr.win && nextCh ? `<button class="btn pri" data-cp="ch" data-v="${nextCh}">${nextCh}장으로</button>` : ''}${!cr.win ? `<button class="btn pri" data-cp="ch" data-v="${ch}">다시 한다</button>` : ''}<button class="btn" data-cp="menu">장 고르기</button><button class="btn" data-cp="home">처음 화면</button></div></div>`, 'dk-full');
+</div>`, 'dk-full');
 }
 // 5장 끝: 그를 어떻게 하나
 function cpChoose() {

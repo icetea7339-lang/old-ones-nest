@@ -12,7 +12,7 @@ const CAMPAIGN = (function () {
   const SEEKER = {
     seeker0: { name: '책을 쫓는 자', g: 3, b: 0, hp: 150, atk: 9, df: 6, san: 90, gold: 60, asp: 'nebula', boss: '함정을 읽는다: 함정이 절반만 문다', flood: true, trapHalf: true, tip: '서 있는 동안 함정이 절반만 문다' },
     seeker1: { name: '책을 쫓는 자', g: 4, b: 0, hp: 260, atk: 15, df: 8, san: 120, gold: 90, asp: 'nebula', boss: '책을 읽어 무리를 몰아세운다', rally: 1.2, trapHalf: true, ward: 0.3, tip: '서 있는 동안 무리가 세지고 물러나지 않는다' },
-    seeker2: { name: '책을 쫓는 자', g: 5, b: 0, hp: 520, atk: 24, df: 12, san: 999, gold: 140, asp: 'nebula', boss: '책이 그를 읽는다: 정신이 없다', nomind: true, shield: 10, bombard: 1.6, trapHalf: true, tip: '정신이 없다. 방에 들면 권속을 불태운다' },
+    seeker2: { name: '책을 쫓는 자', g: 5, b: 0, hp: 520, atk: 24, df: 12, san: 999, gold: 140, asp: 'nebula', boss: '책이 그를 읽는다: 마음이 비었다', nomind: true, shield: 10, bombard: 1.6, trapHalf: true, tip: '마음이 비었다. 방에 들면 권속을 불태운다' },
   };
   for (const k in SEEKER) if (!Object.prototype.hasOwnProperty.call(N.INV, k)) Object.defineProperty(N.INV, k, { value: SEEKER[k], enumerable: false, writable: true, configurable: true });
 
@@ -81,7 +81,7 @@ const CAMPAIGN = (function () {
     },
     4: {
       title: '장부의 찢긴 쪽', brief: '밤에 무리가 방에서 멈출 때 기술 카드로 끼어든다. 책을 손에 붙인 자가 무리를 이끈다.', teach: '기술 카드와 끼어들기',
-      types: ['shape', 'kin', 'organ', 'trap', 'skill'], world: 'fantasy', gold: 190, stage: 1, mul: 1.9,
+      types: ['shape', 'kin', 'organ', 'trap', 'skill'], world: 'fantasy', gold: 190, stage: 1, mul: 2.35,
       deck: ['sh_two', 'sh_two', 'sh_bend', 'sh_one', 'og_post_@', 'og_trap_@', 'tr_maw', 'tr_spore', 'tr_eye', 'kn_goblin', 'kn_skeleton', 'kn_cultist', 'sk_rock', 'sk_wave', 'sk_hatch', 'sk_mark', 'bl_faith', 'bl_ess'],
       nights: { 1: ['militia', 'villager', 'villager', 'detective'], 2: ['militia', 'militia', 'apprentice', 'villager'], 3: ['warrior', 'militia', 'villager', 'villager', 'villager'], 4: ['seeker1', 'militia', 'militia', 'villager', 'villager'], 5: ['warrior', 'apprentice', 'militia', 'villager'], 6: ['militia', 'militia', 'priest', 'villager', 'villager'], 7: ['warrior', 'warrior', 'militia', 'villager'], 8: ['seeker1', 'warrior', 'militia', 'militia', 'villager', 'villager'] },
       goal: { nights: 8, skills: 4, seeker: 2 },
@@ -99,7 +99,7 @@ const CAMPAIGN = (function () {
     },
     5: {
       title: '허물', brief: '몸이 바뀌면 카드가 바뀐다. 열 밤 동안 허물을 두 번 벗는다. 끝에 그를 어떻게 할지 정한다.', teach: '덱 = 유전자',
-      types: ['shape', 'kin', 'organ', 'trap', 'skill', 'boon'], world: 'fantasy', gold: 220, stage: 1, mul: 2.4,
+      types: ['shape', 'kin', 'organ', 'trap', 'skill', 'boon'], world: 'fantasy', gold: 220, stage: 1, mul: 2.75,
       deck: ['sh_two', 'sh_two', 'sh_bend', 'sh_one', 'og_post_@', 'og_trap_@', 'og_hatchery', 'tr_maw', 'tr_spore', 'tr_eye', 'tr_digest_@', 'kn_goblin', 'kn_skeleton', 'kn_cultist', 'kn_scale', 'sk_rock', 'sk_wave', 'sk_mark', 'bl_ess', 'bl_faith'],
       nights: { 1: ['militia', 'militia', 'villager', 'detective'], 2: ['warrior', 'militia', 'villager', 'villager'], 3: ['militia', 'apprentice', 'scholar', 'villager', 'villager'], 4: ['warrior', 'militia', 'militia', 'villager', 'villager'], 5: ['captain', 'militia', 'militia', 'villager', 'villager'], 6: ['warrior', 'scholar', 'militia', 'villager', 'villager'], 7: ['warrior', 'warrior', 'priest', 'militia'], 8: ['soldier', 'militia', 'militia', 'villager', 'villager'], 9: ['warrior', 'warrior', 'scholar', 'militia', 'villager'], 10: ['seeker1', 'soldier', 'warrior', 'militia', 'villager', 'villager'] },
       goal: { nights: 10, molts: 2, seeker: 1 }, molt: [3, 7], choice: true,
@@ -118,7 +118,7 @@ const CAMPAIGN = (function () {
     },
     6: {
       title: '바늘 점', brief: '하늘의 바늘이 흔들린다. 제단에서 바늘 점을 치고, 저주와 축복을 바꿔 쥔다.', teach: '바늘 점과 저주',
-      types: ['shape', 'kin', 'organ', 'trap', 'skill', 'boon'], world: 'fantasy', gold: 230, stage: 2, mul: 2.3, needle: [1, 3, 5, 7],
+      types: ['shape', 'kin', 'organ', 'trap', 'skill', 'boon'], world: 'fantasy', gold: 230, stage: 2, mul: 2.25, needle: [1, 3, 5, 7],
       deck: ['sh_two', 'sh_two', 'sh_bend', 'sh_one', 'og_post_@', 'og_trap_@', 'og_altar', 'tr_maw', 'tr_spore', 'tr_eye', 'tr_digest_@', 'kn_goblin', 'kn_skeleton', 'kn_cultist', 'kn_mask', 'sk_rock', 'sk_wave', 'sk_scream', 'bl_ess', 'bl_needle', 'cu_debt'],
       nights: { 1: ['militia', 'militia', 'apprentice', 'villager'], 2: ['warrior', 'detective', 'militia', 'villager', 'villager'], 3: ['torch', 'militia', 'militia', 'villager', 'villager'], 4: ['warrior', 'warrior', 'priest', 'villager'], 5: ['captain', 'torch', 'militia', 'militia', 'villager'], 6: ['soldier', 'warrior', 'militia', 'villager', 'villager'], 7: ['torch', 'torch', 'warrior', 'militia', 'villager'], 8: ['sealer', 'soldier', 'warrior', 'militia', 'villager'] },
       goal: { nights: 8, needles: 2 },
@@ -136,7 +136,7 @@ const CAMPAIGN = (function () {
     },
     7: {
       title: '일곱째 바늘', brief: '두 세상이 겹친다. 모든 것을 써서 열두 밤을 버티면, 마지막 바늘이 돌아선다.', teach: '모든 것',
-      types: ['shape', 'kin', 'organ', 'trap', 'skill', 'boon', 'curse'], world: 'fantasy', bleed: 'wuxia', gold: 300, stage: 1, mul: 1.35, needle: [4, 9],
+      types: ['shape', 'kin', 'organ', 'trap', 'skill', 'boon', 'curse'], world: 'fantasy', bleed: 'wuxia', gold: 300, stage: 1, mul: 2.1, needle: [4, 9],
       deck: ['sh_two', 'sh_two', 'sh_bend', 'sh_fork', 'sh_one', 'og_post_@', 'og_trap_@', 'og_hatchery', 'og_hall', 'tr_maw', 'tr_spore', 'tr_eye', 'tr_digest_@', 'tr_eggsac', 'kn_goblin', 'kn_skeleton', 'kn_cultist', 'kn_scale', 'sk_rock', 'sk_wave', 'sk_mark', 'sk_hatch', 'bl_ess', 'bl_faith'],
       nights: { 1: ['militia', 'villager', 'villager'], 2: ['shadow', 'militia', 'villager'], 3: ['warrior', 'militia', 'villager', 'villager'], 4: ['master', 'militia', 'villager', 'villager'], 5: ['warrior', 'torch', 'militia', 'villager'], 6: ['captain', 'shadow', 'militia', 'villager'], 7: ['master', 'warrior', 'warrior', 'priest', 'militia'], 8: ['sealer', 'soldier', 'shadow', 'militia', 'villager'], 9: ['soldier', 'soldier', 'master', 'warrior', 'villager'], 10: ['warrior', 'warrior', 'shadow', 'shadow', 'chaplain', 'militia'], 11: ['master', 'soldier', 'sealer', 'warrior', 'militia'], 12: ['@final', 'soldier', 'warrior', 'shadow', 'militia', 'villager'] },
       goal: { nights: 12 },
