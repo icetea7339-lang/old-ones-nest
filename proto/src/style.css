@@ -456,3 +456,75 @@ body { word-break: keep-all; overflow-wrap: break-word; }
 
 /* 깔끔한 글꼴 하나: 제목·숫자는 굵게 */
 .stat b, .opt b, .pick6 .btn b, .pick5 .btn b, .hud-turn, .btn.big, .sec, .goal b, #scene .who, .grade { font-weight: 700; }
+
+/* ===== 새 화면 틀: 한 줄 위 띠 · 큰 지도 · 아래 행동 줄 · 누르면 올라오는 창 (넓은 화면은 오른쪽 서랍) ===== */
+#tray, #fore, #recent, #stagetip, #coach2 { display: none !important; }
+#hud { display: flex; flex-direction: row !important; align-items: center; gap: 8px; white-space: nowrap; padding: 6px max(10px, env(safe-area-inset-right, 0px)) 6px max(10px, env(safe-area-inset-left, 0px)); border-bottom: 1px solid var(--line); }
+.hbar { flex: 1 1 0; min-width: 0; display: flex; align-items: center; gap: 14px; background: none; border: 0; color: inherit; font: inherit; padding: 2px 0; cursor: pointer; text-align: left; overflow: hidden; }
+.hbar .hud-turn { font-size: var(--d2); font-weight: 700; flex: none; }
+.hbar .hud-turn small { font-size: var(--t1); font-weight: 400; }
+.hstat { display: inline-flex; align-items: center; gap: 4px; flex: none; min-width: 0; }
+.hstat b { font-family: var(--display); font-size: var(--d2); font-weight: 700; }
+.hstat .hearts img.ic { width: 18px; height: 18px; }
+.hmenu { flex: none; min-width: 44px; min-height: 36px; font-size: 20px; line-height: 1; padding: 2px 10px; }
+#main { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; padding-block: 0; }
+#right { display: none; }
+#left { display: flex; flex-direction: column; gap: 0; }
+#stagewrap { flex: 1 1 0; min-height: 0; position: relative; }
+#stage { position: absolute; top: 0; left: 0; width: 100%; height: 100%; max-height: none; aspect-ratio: auto; touch-action: none; }
+#mapchips { position: absolute; top: 6px; left: 6px; right: 6px; display: flex; flex-wrap: wrap; gap: 4px; pointer-events: none; z-index: 3; }
+#mapchips .chip { pointer-events: auto; background: rgba(13, 12, 24, .88); min-height: 32px; display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; white-space: nowrap; font-size: var(--t1); }
+#mapchips .chip img { width: 18px; height: 18px; }
+#mapchips .goalchip { border-color: var(--coin); color: var(--coin); font-weight: 700; }
+#mapchips .chip.calm { opacity: .75; }
+#coach { position: absolute; left: 8px; right: 8px; bottom: 8px; z-index: 5; max-height: 48%; overflow-y: auto; margin: 0; padding: 6px 8px; height: auto; font-size: var(--t1); background: var(--panel2); border: 1px solid var(--coin); box-shadow: 0 4px 0 rgba(0, 0, 0, .35); display: flex; flex-direction: column; gap: 3px; }
+#coach[hidden] { display: none; }
+#coach p { margin: 0; }
+#coach img { width: 24px; height: 24px; flex: none; }
+#handbar { flex: none; }
+#handbar #hand { margin: 6px 8px 0; max-height: 40vh; overflow-y: auto; }
+#mnav { display: flex !important; flex-wrap: nowrap !important; gap: 5px; flex: none; align-items: stretch; padding: 6px max(8px, env(safe-area-inset-right, 0px)) max(8px, var(--sab, 0px)) max(8px, env(safe-area-inset-left, 0px)); border-top: 1px solid var(--line); }
+#mnav .ib { position: relative; flex: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-width: 52px; min-height: 52px; padding: 3px 4px; }
+#mnav .ib img { width: 22px; height: 22px; margin: 0; }
+#mnav .ib .gl { font-size: 18px; line-height: 1; }
+#mnav .ib > span { font-family: var(--body); font-weight: 700; font-size: 12px; line-height: 1.1; white-space: nowrap; }
+#mnav .ib .badge { position: absolute; top: 2px; right: 2px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 9px; background: var(--up); color: var(--ink); font-style: normal; font-size: 12px; font-weight: 700; line-height: 18px; text-align: center; }
+#mnav .hot { border-color: var(--coin); color: var(--coin); }
+#mnav .end { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: var(--d2); white-space: nowrap; overflow: visible; }
+#mnav .end .pips .pip { width: 9px; height: 9px; }
+#mnav .end.warn { font-size: var(--l1, 14px); white-space: normal; }
+#game.night #mnav, #game.night #mapchips { display: none !important; }
+.statgrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
+.statgrid .stat { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 7px 2px; min-width: 0; cursor: pointer; }
+.statgrid .stat .lbt { font-size: var(--t1); color: var(--mute); display: inline !important; }
+.statgrid .stat b { font-size: var(--d2); }
+.statgrid .stat img.ic { margin: 0; }
+/* 넓은 화면: 창은 오른쪽 서랍. 닫혀 있으면 지도가 가로를 다 쓴다 */
+@media (min-width: 761px) {
+  #game { padding-bottom: 0; }
+  #main.drawer { grid-template-columns: minmax(0, 1fr) minmax(340px, 420px); gap: 12px; }
+  #main.drawer #right { display: flex; padding-block: 8px; }
+  #mapchips { right: 230px; }
+  #mnav { justify-content: center; }
+  #mnav .end { flex: 0 1 340px; }
+}
+/* 휴대폰: 창은 아래에서 올라온다 (높이의 70%까지, 스크롤) */
+@media (max-width: 760px) {
+  #right.open { display: flex; position: absolute; left: 0; right: 0; bottom: 0; top: auto; max-height: 70%; z-index: 8; background: var(--ink); border-top: 2px solid var(--coin); padding: 4px 10px max(8px, var(--sab, 0px)); box-shadow: 0 -6px 0 rgba(0, 0, 0, .35); }
+  #right.open::before { content: ''; display: block; width: 44px; height: 4px; border-radius: 2px; background: var(--line); margin: 2px auto 4px; flex: none; }
+  #game.night #right { display: flex; position: static; flex: none; height: auto; max-height: min(200px, 28svh); padding: 4px 10px max(6px, var(--sab, 0px)); }
+  #game.night #nlog { overflow-y: auto; }
+  #hud .hstat .hearts img.ic { width: 16px; height: 16px; }
+}
+@media (max-width: 360px) { .hbar { gap: 10px; } #mnav .ib { min-width: 46px; } }
+#mnav .ib .badge.n { background: var(--panel2); color: var(--text); box-shadow: inset 0 0 0 1px var(--line); }
+#coach { top: 46px; bottom: auto; }
+#coach { pointer-events: none; } #coach .btn { pointer-events: auto; }
+@media (max-width: 760px) { .helpnav { max-height: 19vh; } }
+#main:has(#right.open) #coach:not([hidden]) { display: flex !important; }
+/* 알림은 아래 행동 줄 바로 위에 (위쪽 말풍선·칩과 겹치지 않게) */
+#toast { top: auto; bottom: calc(84px + var(--sab, 0px)); left: 50%; max-width: min(94vw, 560px); }
+#game.night ~ #toast, body:has(#game.night) #toast { bottom: calc(24px + var(--sab, 0px)); }
+@media (max-width: 760px) { #main { display: flex; flex-direction: column; } #left { flex: 1 1 0; min-height: 0; } #game.night #left { flex: 1 1 0; } }
+@media (min-width: 761px) { #main { grid-template-rows: minmax(0, 1fr); } #left { min-height: 0; } }
+@media (max-width: 760px) { #game.night #right { height: min(190px, 26svh); max-height: none; } }

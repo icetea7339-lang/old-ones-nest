@@ -18,9 +18,9 @@ const FZM = require('./_fz.js'), devName = process.argv[2], tag = (devName ? dev
     const m = await p.evaluate(() => {
       const vis = e => e && !e.hidden && e.offsetParent !== null, over = e => vis(e) ? Math.max(0, e.scrollHeight - e.clientHeight) : 0, r = [];
       const doc = document.scrollingElement; if (doc.scrollHeight > innerHeight + 1) r.push('페이지 ' + (doc.scrollHeight - innerHeight));
-      [['#view', '패널'], ['#modal .mbody', '창'], ['#night', '밤'], ['#left', '왼쪽']].forEach(([s, nm]) => { const e = document.querySelector(s), o = over(e); if (o > 2) r.push(nm + ' ' + o); });
+      [['#modal .mbody', '창'], ['#night', '밤'], ['#left', '왼쪽']].forEach(([s, nm]) => { const e = document.querySelector(s), o = over(e); if (o > 2) r.push(nm + ' ' + o); });
       // 화면 밖으로 잘린 단추
-      let cut = 0; document.querySelectorAll('button').forEach(e => { if (!vis(e) || e.closest('#tray')) return; const q = e.getBoundingClientRect(); if (!q.width) return; const top = document.elementFromPoint(Math.min(innerWidth - 1, Math.max(0, q.left + q.width / 2)), Math.min(innerHeight - 1, Math.max(0, q.top + q.height / 2))); if (q.right > innerWidth + 1 || q.bottom > innerHeight + 1 || q.left < -1 || q.top < -1) cut++; });
+      let cut = 0; document.querySelectorAll('button').forEach(e => { if (!vis(e) || e.closest('#tray') || (e.closest('#view') && document.querySelector('#view').scrollHeight > document.querySelector('#view').clientHeight + 2)) return; const q = e.getBoundingClientRect(); if (!q.width) return; const top = document.elementFromPoint(Math.min(innerWidth - 1, Math.max(0, q.left + q.width / 2)), Math.min(innerHeight - 1, Math.max(0, q.top + q.height / 2))); if (q.right > innerWidth + 1 || q.bottom > innerHeight + 1 || q.left < -1 || q.top < -1) cut++; });
       if (cut) r.push('잘린 단추 ' + cut);
       if (/이\(가\)|을\(를\)|은\(는\)|와\(과\)|\(으\)로/.test(document.body.innerText)) r.push('조사 표기가 남음: ' + document.body.innerText.match(/.{0,12}(이\(가\)|을\(를\)|은\(는\)|와\(과\)|\(으\)로).{0,6}/)[0]);
       // 말줄임으로 잘린 글 (실패는 아니고 목록으로 모은다)

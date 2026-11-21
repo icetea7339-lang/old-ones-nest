@@ -24,13 +24,16 @@ cd "$(dirname "$0")"
     <section id="left">
       <div id="stagewrap">
         <canvas id="stage" width="960" height="550" role="img" aria-label="둥지 지도. 지하의 칸, 지상의 마을과 길목을 누르면 할 수 있는 일이 나옵니다."></canvas>
+        <div id="mapchips"></div>
         <div id="viewsw"><button class="btn sm" id="corebtn" data-a="core" title="본체 방을 연다">본체</button><button class="btn sm" data-a="view" data-v="surface" aria-pressed="false">지상</button><button class="btn sm" data-a="view" data-v="under" aria-pressed="true">지하</button></div>
+        <div class="card" id="coach" hidden></div>
       </div>
-      <div class="card" id="coach" hidden></div>
-      <p class="small mute" id="stagetip"></p>
-      <div id="tray" class="row"></div>
-      <div id="fore"></div>
-      <div class="card" id="recent"></div>
+      <p class="small mute" id="stagetip" hidden></p>
+      <div id="tray" hidden></div>
+      <div id="fore" hidden></div>
+      <div id="recent" hidden></div>
+      <div id="handbar"><div id="hand" class="card" hidden></div></div>
+      <nav id="mnav"></nav>
     </section>
     <section id="right">
       <div class="card" id="coach2" hidden></div>
@@ -40,12 +43,10 @@ cd "$(dirname "$0")"
         <div class="row nw"><h3 class="grow" id="ntitle">밤</h3>
           <button class="chip on" data-a="speed" data-v="1">1배</button><button class="chip" data-a="speed" data-v="2">2배</button><button class="chip" data-a="speed" data-v="4">4배</button><button class="btn sm" data-a="skip">건너뛰기 <kbd>S</kbd></button></div>
         <div id="nparty" class="row"></div>
-        <div id="hand" class="card" hidden></div>
         <div id="nlog"></div>
       </section>
     </section>
   </div>
-  <nav id="mnav"></nav>
 </div>
 <div id="toast"></div>
 <div id="rotate">휴대폰을 세로로 돌려 주세요</div>

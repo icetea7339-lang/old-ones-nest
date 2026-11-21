@@ -18,8 +18,8 @@ const FZM = require('./_fz.js'), devName = process.argv[2], tag = (devName ? dev
     const r = await p.evaluate(() => {
       const vis = e => e && !e.hidden && e.offsetParent !== null, over = e => vis(e) ? Math.max(0, e.scrollHeight - e.clientHeight) : 0, r = [];
       const doc = document.scrollingElement; if (doc.scrollHeight > innerHeight + 1) r.push('페이지 ' + (doc.scrollHeight - innerHeight));
-      [['#view', '패널'], ['#modal .mbody', '창'], ['#night', '밤'], ['#left', '왼쪽']].forEach(([s, nm]) => { const o = over(document.querySelector(s)); if (o > 2) r.push(nm + ' ' + o); });
-      let cut = 0; document.querySelectorAll('button').forEach(e => { if (!vis(e) || e.closest('#tray')) return; const q = e.getBoundingClientRect(); if (!q.width) return; if (q.right > innerWidth + 1 || q.left < -1 || q.bottom > innerHeight + 1) cut++; });
+      [['#modal .mbody', '창'], ['#night', '밤'], ['#left', '왼쪽']].forEach(([s, nm]) => { const o = over(document.querySelector(s)); if (o > 2) r.push(nm + ' ' + o); });
+      let cut = 0; document.querySelectorAll('button').forEach(e => { if (!vis(e) || e.closest('#tray') || (e.closest('#view') && document.querySelector('#view').scrollHeight > document.querySelector('#view').clientHeight + 2)) return; const q = e.getBoundingClientRect(); if (!q.width) return; if (q.right > innerWidth + 1 || q.left < -1 || q.bottom > innerHeight + 1) cut++; });
       if (cut) r.push('잘린 단추 ' + cut);
       document.querySelectorAll('#coach, #coach2, #scene .box').forEach(e => { if (vis(e) && e.scrollWidth > e.clientWidth + 2) r.push('옆으로 넘침 ' + e.id); });
       if (/이\(가\)|을\(를\)|은\(는\)|와\(과\)|\(으\)로/.test(document.body.innerText)) r.push('조사 표기가 남음');
@@ -66,9 +66,11 @@ const FZM = require('./_fz.js'), devName = process.argv[2], tag = (devName ? dev
     log('1장 넘김 ·', JSON.stringify(await p.evaluate(() => ({ clear: __nest.META.story.clear, size: __nest.META.story.pr && __nest.META.story.pr.size }))));
     // ---------- 2장: 땅속 ----------
     await tap('#modal [data-a="close"][data-v="next"]'); await p.waitForTimeout(200); await check('ch2_start'); await skipAll(); await p.waitForTimeout(300);
-    await check('ch2_goal');
-    const ch2 = await p.evaluate(() => ({ coach: [...document.querySelectorAll('#coach, #coach2')].some(e => e.offsetParent && /2장/.test(e.textContent)), breach: [...document.querySelectorAll('[data-a="breach"]')].some(e => e.offsetParent), sealed: __nest.G.sealed, dug: __nest.G.cells.filter(c => c.dug).length }));
-    if (!ch2.coach) bad.push('2장 목표 패널이 보이지 않는다'); if (ch2.breach) bad.push('2장에 뚫기 단추가 보인다'); if (ch2.dug !== 1) bad.push('2장이 한 칸으로 시작하지 않는다');
+    await check('ch2_day');
+    const chip = await p.evaluate(() => { const e = document.querySelector('#mapchips .goalchip'); return e && e.offsetParent ? e.textContent : ''; }); if (!/목표 \d\/\d/.test(chip)) bad.push('2장 목표 칩이 보이지 않는다: ' + chip);
+    await tap('#mapchips .goalchip'); await check('ch2_goal');
+    const ch2 = await p.evaluate(() => ({ coach: [...document.querySelectorAll('#view')].some(e => e.offsetParent && /2장/.test(e.textContent)), breach: [...document.querySelectorAll('[data-a="breach"]')].some(e => e.offsetParent), sealed: __nest.G.sealed, dug: __nest.G.cells.filter(c => c.dug).length }));
+    if (!ch2.coach) bad.push('2장 목표 창이 열리지 않는다'); await tap('#sheetclose'); if (ch2.breach) bad.push('2장에 뚫기 단추가 보인다'); if (ch2.dug !== 1) bad.push('2장이 한 칸으로 시작하지 않는다');
     // 본체 방을 열어 손 탭이 없는지, 빈 칸에 방 목록이 없는지
     await tap('[data-a="core"]'); await p.waitForTimeout(200); await check('ch2_core');
     if (await p.locator('[data-a="tab"][data-g="core"][data-v="hand"]').count()) bad.push('2장에 손 탭이 있다');

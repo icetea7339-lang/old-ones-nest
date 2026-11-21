@@ -138,28 +138,42 @@ function checkFeats() {
 const nextSoft = () => { const i = G.start.slice().reverse().find(j => !G.cells[j].dug && !NEST.canDig(G, j)); return i == null ? null : i; };
 const tutEmpty = () => (NEST.paths(G)[0] || []).find(i => i !== G.core && i !== G.ent && G.cells[i].type === 'empty');
 const TUT = [
-  { t: () => modalKind === 'applicants' ? '마음에 드는 것을 권속으로 들여. 둘쯤이면 좋아. 행동은 들지 않아. 다 들였으면 "나중에"를 눌러 창을 닫아.' : '아래 띠에서 "새 권속"을 눌러 봐. 네 몸에서 갈라져 나오려는 것들이야.', sel: '[data-a="open"][data-v="applicants"], #modal [data-a="accept"], #modal [data-a="close"]', done: () => G.kin.length >= 1 && $('modal').hidden },
+  { t: () => modalKind === 'applicants' ? '마음에 드는 것을 권속으로 들여. 둘쯤이면 좋아. 행동은 들지 않아. 다 들였으면 "나중에"를 눌러 창을 닫아.' : '지도 위의 "새 권속"을 눌러 봐. 네 몸에서 갈라져 나오려는 것들이야.', sel: '[data-a="open"][data-v="applicants"], #modal [data-a="accept"], #modal [data-a="close"]', done: () => G.kin.length >= 1 && $('modal').hidden },
   { t: () => '이제 싸울 자리를 만들자. 지도의 점선이 땅 위의 것들이 걸어 내려올 길이야. 깜빡이는 빈 굴을 눌러.', cell: tutEmpty, done: () => G.cells.some(c => c.type === 'post' || c.type === 'hall') || (UI.sel && UI.sel.t === 'cell' && G.cells[UI.sel.i].dug && G.cells[UI.sel.i].type === 'empty') },
-  { t: () => (isMobile() ? '올라온 창의 ' : '오른쪽 패널의 ') + '"추천"에서 "문턱"을 지어. 건설 행동 한 번이면 파기·짓기·함정 같은 작업을 세 번 할 수 있어.', sel: '[data-a="build"][data-v="post"]', done: () => G.cells.some(c => c.type === 'post' || c.type === 'hall') },
+  { t: () => '열린 창의 ' + '"추천"에서 "문턱"을 지어. 건설 행동 한 번이면 파기·짓기·함정 같은 작업을 세 번 할 수 있어.', sel: '[data-a="build"][data-v="post"]', done: () => G.cells.some(c => c.type === 'post' || c.type === 'hall') },
   { t: () => '권속은 제 자리를 알아서 찾아. 먼저 돋은 것들은 본체 곁을 지키고, 나머지는 길목 앞에서부터 서. 지금 문턱은 비어 있으니 하나를 불러 세우자. 방금 지은 문턱을 누르고 "여기를 지켜라" 옆의 이름을 눌러.', cell: () => G.cells.findIndex(c => c.type === 'post' || c.type === 'hall'), sel: '[data-a="place"]', done: () => G.kin.some(m => m.pin && typeof m.loc === 'number') },
-  { t: () => '좋아. 지키라고 한 권속은 깃발을 달고 그 자리에 뿌리를 내려. 거기서 보낸 밤마다 조금씩 세져. 대신 붙들어 둘 수 있는 수는 정해져 있어. 이제 굴을 열자. ' + (isMobile() ? '✕로 창을 닫고 아래의 "뚫기"를 눌러.' : '오른쪽 아래 "땅 위로 뚫는다"를 눌러.'), sel: '#sheetclose, [data-a="breach"], #modal [data-a="close"]', done: () => !G.sealed && $('modal').hidden && $('scene').hidden && !busy },
+  { t: () => '좋아. 지키라고 한 권속은 깃발을 달고 그 자리에 뿌리를 내려. 거기서 보낸 밤마다 조금씩 세져. 대신 붙들어 둘 수 있는 수는 정해져 있어. 이제 굴을 열자. ' + '✕로 창을 닫고 아래의 "뚫기"를 눌러.', sel: '#sheetclose, [data-a="breach"], #modal [data-a="close"]', done: () => !G.sealed && $('modal').hidden && $('scene').hidden && !busy },
   { t: () => '굴이 뚫렸어. 여기가 땅 위야. 붉은 표시가 오늘 밤 올 무리고, {마을}와(과) 길목도 눌러 볼 수 있어. 다 봤으면 "지하"로 돌아와.', sel: '[data-a="view"][data-v="under"]', done: () => ST.screen === 'under' },
   { t: () => '준비 끝. "밤을 맞는다"를 눌러. 행동이 남았으면 한 번 더 누르면 돼. 싸움은 권속과 함정이 알아서 해.', sel: '[data-a="endday"]', done: () => G.day >= 2 },
   { t: () => '첫 밤을 넘겼어. 쓰러뜨린 것은 먹이가 돼. "본체" 단추를 누르거나, 지도에서 깜빡이는 본체 방을 눌러.', cell: () => G.core, done: () => !G.corpses.length || (G.stats.eats || 0) >= 1 || (UI.sel && UI.sel.t === 'cell' && UI.sel.i === G.core) },
   { t: () => '"포식"을 눌러. 먹은 것의 징조가 쌓이고, ' + NEST.K.act + '일째 밤에 정수가 ' + NEST.K.thresh[1] + '을 넘으면 그 징조의 몸으로 허물을 벗어.', sel: '[data-a="eat"], [data-a="core"]', done: () => !G.corpses.length || (G.stats.eats || 0) >= 1 },
-  { t: () => '기본은 여기까지야. 권속은 "새 권속"에서 더 들이고, 꿇은 것은 "포로"에서 처분해. 위쪽 숫자를 누르면 뜻이 나와.', end: true, done: () => false },
+  { t: () => '기본은 여기까지야. 권속은 "새 권속"에서 더 들이고, 꿇은 것은 "포로"에서 처분해. 위쪽 띠를 누르면 나머지 숫자가 나와.', end: true, done: () => false },
 ];
 function coach() {
-  if (G && G.story && !G.over) return storyCoach();
-  if (G && G.tut == null && !G.over) return freeCoach();
-  const on = !!G && G.tut != null && !G.over; ['coach', 'coach2'].forEach(id => { $(id).hidden = !on; });
-  document.querySelectorAll('.tut-glow').forEach(e => e.classList.remove('tut-glow')); ST.tutCell = null; $('recent').style.display = on ? 'none' : '';
-  if (!on) return;
-  let guard = 0; while (G.tut < TUT.length - 1 && TUT[G.tut].done() && guard++ < 20) { G.tut++; sfx('up'); }
-  const st = TUT[G.tut], html = `<div class="row nw">${echoImg(28)}<span class="grow"><b class="coin h3">잔향</b> <small class="mute">길잡이 ${G.tut + 1}/${TUT.length}</small></span>${btn('tutend', null, st.end ? '알겠어' : '그만 보기', 'sm' + (st.end ? ' pri' : ''))}</div><p>${esc(NEST.lx(st.t()))}</p>`;
-  ['coach', 'coach2'].forEach(id => { if ($(id).dataset.h !== html) { $(id).innerHTML = html; $(id).dataset.h = html; } });
-  if (st.sel && ST.mode === 'day') document.querySelectorAll(st.sel).forEach(e => { if (!e.disabled) e.classList.add('tut-glow'); });
-  if (st.cell && ST.screen === 'under') ST.tutCell = st.cell();
+  $('coach2').hidden = true;
+  if (G && G.tut != null && !G.over) {
+    document.querySelectorAll('.tut-glow').forEach(e => e.classList.remove('tut-glow')); ST.tutCell = null;
+    let guard = 0; while (G.tut < TUT.length - 1 && TUT[G.tut].done() && guard++ < 20) { G.tut++; sfx('up'); }
+    const st = TUT[G.tut], html = `<div class="row nw">${echoImg(24)}<span class="grow"><b class="coin">잔향</b> <small class="mute">길잡이 ${G.tut + 1}/${TUT.length}</small></span>${btn('tutend', null, st.end ? '알겠어' : '그만 보기', 'sm' + (st.end ? ' pri' : ''))}</div><p>${esc(NEST.lx(st.t()))}</p>`;
+    if ($('coach').dataset.h !== html) { $('coach').innerHTML = html; $('coach').dataset.h = html; } $('coach').hidden = ST.mode !== 'day';
+    if (st.sel && ST.mode === 'day') document.querySelectorAll(st.sel).forEach(e => { if (!e.disabled) e.classList.add('tut-glow'); });
+    if (st.cell && ST.screen === 'under') ST.tutCell = st.cell();
+    return;
+  }
+  hintBubble();
+}
+// 지금 할 일 한 줄: 말이 바뀔 때 한 번 말풍선으로 띄우고(8초), 가리키는 단추는 계속 빛난다. 다시 보려면 「목표」
+function hintBubble() {
+  document.querySelectorAll('.tut-glow').forEach(e => e.classList.remove('tut-glow')); ST.tutCell = null;
+  if (!G || G.over || ST.mode !== 'day') { $('coach').hidden = true; return; }
+  const hn = G.story ? storyHint() : { t: G.auto && AUTO.log.length ? AUTO.log[0] : guideLine() }, text = NEST.lx(hn.t || '');
+  if (hn.sel) document.querySelectorAll(hn.sel).forEach(e => { if (!e.disabled) e.classList.add('tut-glow'); });
+  if (hn.cell != null && ST.screen === 'under') ST.tutCell = hn.cell;
+  if (text !== UI.hintSeen) { UI.hintSeen = text; UI.hintUntil = Date.now() + 8000; }
+  const show = !!text && Date.now() < (UI.hintUntil || 0) && $('modal').hidden && $('scene').hidden && !$('right').classList.contains('open');
+  const html = `<div class="row nw">${echoImg(24)}<p class="grow">${esc(text)}</p><button class="btn sm xbtn" data-a="hintx" aria-label="닫기">✕</button></div>`;
+  if (show && $('coach').dataset.h !== html) { $('coach').innerHTML = html; $('coach').dataset.h = html; }
+  $('coach').hidden = !show;
 }
 setInterval(() => { if (G) { coach(); fitStats(); } }, 400);
 
@@ -220,48 +234,51 @@ function act(fn, ...a) { const r = fn(G, ...a); UI.confirmEnd = false; render();
 
 // ---------- 낮 화면 ----------
 function hud() {
-  const h = ST.hud || G, need = NEST.K.thresh[G.slime.stage + 1], fg = NEST.fearGrade(G);
-  const IC = { '진액': 'gold', '신앙': 'faith', '공포': 'fear', '정수': 'ess', '먹이': 'food' };
-  const stat = (lb, val, sub, tip, cls, style) => `<button class="stat" data-a="stat" title="${esc(tip)}"><span class="lb">${IC[lb] ? iconImg(IC[lb]) : ''}<span class="lbt">${lb}</span></span> <span class="v"><b class="num ${cls || ''}"${style ? ` style="${style}"` : ''}>${val}</b>${sub || ''}</span></button>`;
-  $('hud').innerHTML = `<div class="hud-top"><span class="hud-turn">${G.day}일 <small class="mute">${G.story ? G.story.ch + '장' : '/ ' + NEST.K.days} · ${G.sealed ? '땅속' : G.story ? (NEST.VILL.field.name) : NEST.actOf(G) + '막'}</small>${NEST.isSettle(G) ? '<span class="moon"> ◐<small class="only-pc moontxt"> 달이 기우는 밤</small></span>' : ''}</span>
-    <span class="hud-ap"><span class="only-pc">행동 </span><span class="pips">${Array.from({ length: NEST.K.ap }, (_, i) => `<i class="pip${i < G.ap ? '' : ' off'}"></i>`).join('')}</span>${G.d.buildOps ? ` <small class="mute">작업 ${G.d.buildOps}</small>` : ''}</span>
-    <span class="row hud-btns only-m">${btn('menu', null, '메뉴', 'sm')}</span></div>
-    <div class="stats">${stat('진액', R(h.gold), '', '진액: 둥지를 돌리는 피. 방을 짓고 권속을 들이고 먹이는 데 쓴다. (이 게임의 돈) 땅 위의 것들에게는 약이자 보물이라, 많이 고일수록 침입이 잦고 커진다', 'coin')}
-    ${stat('신앙', Math.floor(h.faith), `<small class="mute">/${NEST.faithCap(G)}</small>`, '신앙: 밤의 손 주문과 징조 달래기에 쓴다. 신도와 기도 굴, 광란한 적에게서 얻는다', '', 'color:#c8a8ff')}
-    ${stat('공포', Math.round(h.fear), ` <small class="mute gname">${NEST.GRADE_NAME[fg]}</small>`, '공포 ' + Math.round(h.fear) + ': 지금은 ' + NEST.GRADE_NAME[fg] + '이 온다. 오를수록 더 강한 인간이 오고, 매일 2씩 가라앉는다', 'up')}
-    ${stat('정수', NEST.essTotal(G), need ? `<small class="mute">/${need}</small>` : '', '정수: 달이 기우는 밤에 기준을 넘으면 진화한다', '')}
-    ${stat('목숨', lifePips(), '', '목숨: 본체가 쓰러지면 진액 절반을 털리고 하나 줄어든다. 하나 남았을 때 쓰러지면 끝. 마지막 밤에는 쓰러지면 바로 끝', '')}
-    ${stat('먹이', G.corpses.length, `<small class="mute">/${NEST.corpseCap(G)}</small>`, '먹이: 쓰러뜨린 침입자. 본체 창에서 포식하면 정수가 된다', '')}</div>
-    <span class="row hud-btns only-pc">${btn('help', null, '도움말', 'sm')}${btn('settings', null, '설정', 'sm')}${btn('quit', null, '나가기', 'sm')}</span>`;
-  document.documentElement.style.setProperty('--hud-h', $('hud').offsetHeight + 'px'); fitStats(); requestAnimationFrame(fitStats);
+  const h = ST.hud || G;
+  $('hud').innerHTML = `<button class="hbar" data-a="panel" data-v="status" title="상태 보기"><span class="hud-turn">${G.day}일 <small class="mute">${G.story ? G.story.ch + '장' : '/' + NEST.K.days}</small>${NEST.isSettle(G) ? '<span class="moon"> ◐</span>' : ''}</span><span class="hstat">${iconImg('gold')}<b class="num coin">${R(h.gold)}</b></span><span class="hstat">${lifePips()}</span></button><button class="btn sm hmenu" data-a="menu" aria-label="메뉴" title="메뉴">≡</button>`;
+  document.documentElement.style.setProperty('--hud-h', $('hud').offsetHeight + 'px');
 }
-// 위쪽 숫자가 칸을 넘치면(휴대폰 글자를 키운 경우 등) 두 줄로 놓는다
-function fitStats() {
-  const st = $('hud') && $('hud').querySelector('.stats'); if (!st) return; const was = st.classList.contains('two'); st.classList.remove('two');
-  if (Array.from(st.querySelectorAll('.stat b.num')).filter(b => !b.querySelector('.hearts')).some(b => { const e = b.closest('.stat'), v = b.closest('.v') || b; return v.getBoundingClientRect().width > e.clientWidth + 3; })) st.classList.add('two');
-  if (was !== st.classList.contains('two') || !document.documentElement.style.getPropertyValue('--hud-h')) document.documentElement.style.setProperty('--hud-h', $('hud').offsetHeight + 'px');
+// 상태 창의 숫자: 누르면 뜻이 나온다
+function statsHtml() {
+  const need = NEST.K.thresh[G.slime.stage + 1], fg = NEST.fearGrade(G);
+  const st = (ic, lb, val, tip) => `<button class="stat" data-a="stat" title="${esc(tip)}">${ic}<span class="lbt">${lb}</span><b class="num">${val}</b></button>`;
+  return `<div class="statgrid">${st(iconImg('gold'), '진액', R(G.gold), '진액: 둥지를 돌리는 피 (이 게임의 돈). 방을 짓고 권속을 들이고 먹이는 데 쓴다. 많이 고일수록 침입이 잦고 커진다')}${st('<span class="pips">' + Array.from({ length: NEST.K.ap }, (_, i) => `<i class="pip${i < G.ap ? '' : ' off'}"></i>`).join('') + '</span>', '행동', G.ap + '/' + NEST.K.ap + (G.d.buildOps ? ` <small class="mute">작업 ${G.d.buildOps}</small>` : ''), '행동: 하루에 쓸 수 있는 큰 일의 수. 굴을 파거나 방을 짓는 데 든다')}${st(iconImg('faith'), '신앙', Math.floor(G.faith) + '<small class="mute">/' + NEST.faithCap(G) + '</small>', '신앙: 밤의 손 주문과 징조 달래기에 쓴다')}${st(iconImg('fear'), '공포', Math.round(G.fear) + ' <small class="mute">' + NEST.GRADE_NAME[fg] + '</small>', '공포: 오를수록 더 센 적이 온다. 매일 2씩 가라앉는다')}${st(iconImg('ess'), '정수', NEST.essTotal(G) + (need ? '<small class="mute">/' + need + '</small>' : ''), '정수: 달이 기우는 밤에 기준을 넘으면 허물을 벗는다(진화)')}${st(iconImg('food'), '먹이', G.corpses.length + '<small class="mute">/' + NEST.corpseCap(G) + '</small>', '먹이: 쓰러뜨린 침입자. 본체 창에서 먹으면 정수가 된다')}</div>`;
 }
+function fitStats() { }
 // 세상의 박자와 그 세상에만 있는 것: 둥지 창과 도움말이 같이 쓴다
 function worldMore(w) { return `<p class="small"><span class="chip">${esc(w.beat[0])}</span> ${esc(w.beat[1])}</p><p class="small mute">이 세상에만 있는 것</p>` + w.only.map(k => `<p class="small"><span class="chip fake">${esc(NEST.INV[k].name)}</span> ${esc(NEST.INV[k].tip)}</p>`).join(''); }
 function onlyTail(e) { if (!e.only || !e.only.length) return ''; return ' · ' + NEST.INV[e.only[0]].name + (e.only.length > 1 ? ' 등' : ''); }
 function forecastText(when) { if (G.sealed && G.march[when] && G.march[when].beast) return ((NEST.storyOf(G) || {}).beastName || '굴짐승') + ' ' + G.march[when].kinds.length + '마리'; if (G.sealed) return when === 'tonight' ? '굴이 막혀 있다' + (NEST.underRisk(G) ? ' · 들킬 확률 ' + Math.round(NEST.underRisk(G) * 100) + '%' : '') : '뚫기 전에는 아무도 모른다'; if (when === 'tonight' && G.guest) return '손님 · ' + NEST.GUEST[G.guest.type].name; const e = NEST.estimate(G, when); if (!e) return '조용할 것 같다'; if (e.duel) return `${NEST.VILL[e.vill].name} · 비무 · ${NEST.INV.master.name} ${e.count}명`; if (e.boss && e.boss !== 'sealer') return `${NEST.VILL[e.vill].name} · ${NEST.INV[e.boss].name} 외 ${e.count - 1}명 (큰 무리)${onlyTail(e)}`; return `${NEST.VILL[e.vill].name} · ${NEST.GRADE_NAME[e.grade]} ${e.kinds ? '' : '약 '}${e.count}명${e.settle ? ' (큰 무리)' : ''}${onlyTail(e)}`; }
+// 할 일: 목표 창과 지도 위 칩이 같이 쓴다
+function todos() {
+  const out = [], bench = G.kin.filter(m => m.loc === null).length;
+  if (G.event) out.push(['open', { v: 'event' }, '사건', '']);
+  if (G.omen) { const live = G.omen.tier !== 'boon' && !G.omen.calmed; out.push(['open', { v: 'elder' }, '징조', live ? '' : 'calm']); }
+  if (G.guest) out.push(['open', { v: 'guest' }, '손님', '']);
+  if (G.spot) out.push(['gospot', null, NEST.SPOT[G.spot.type].name, '']);
+  if (G.applicants.length) out.push(['open', { v: 'applicants' }, '새 권속 ' + G.applicants.length, '']);
+  if (G.prison.length) out.push(['open', { v: 'captives' }, '포로 ' + G.prison.length, '']);
+  if (bench) out.push(['open', { v: 'roster' }, '대기 ' + bench, '']);
+  return out;
+}
+function goalLabel() { const gl = G.story ? NEST.storyGoal(G) : null; return gl ? '목표 ' + gl.items.filter(x => x.done).length + '/' + gl.items.length : '목표'; }
+function nightChip() {
+  if (G.sealed && G.march.tonight && G.march.tonight.beast) return `${iconImg('fear')}<b>${G.march.tonight.kinds.length}</b>`;
+  if (G.sealed) return NEST.underRisk(G) ? `${iconImg('fear')}<b>${Math.round(NEST.underRisk(G) * 100)}%</b>` : '<span class="mute">조용</span>';
+  const e = NEST.estimate(G, 'tonight'); if (!e) return '<span class="mute">조용</span>';
+  const k = e.boss && e.boss !== 'sealer' ? e.boss : (e.only && e.only[0]) || (e.kinds && e.kinds[0]) || null;
+  return `${k && NEST.INV[k] ? invImg(k, 18) : iconImg('fear')}<b>${e.count}</b>${e.boss && e.boss !== 'sealer' ? '<span class="warnc">!</span>' : ''}`;
+}
 function tray() {
-  const out = [], bench = G.kin.filter(m => m.loc === null).length, tm = G.day < NEST.K.days;
-  if (G.event) out.push(`<button class="chip todo" data-a="open" data-v="event">사건</button>`);
-  if (G.omen) { const live = G.omen.tier !== 'boon' && !G.omen.calmed; out.push(`<button class="chip${live ? ' todo' : ''}" data-a="open" data-v="elder"><span style="color:${ASPCOL[G.eld.id]}">징조</span><span class="tn"> ${NEST.OMEN[G.omen.id].name}</span></button>`); }
-  if (G.guest) out.push(`<button class="chip todo" data-a="open" data-v="guest">손님</button>`);
-  if (G.spot) out.push(`<button class="chip todo" data-a="gospot">지상<span class="tn"> ${NEST.SPOT[G.spot.type].name}</span></button>`);
-  if (G.applicants.length) out.push(`<button class="chip todo" data-a="open" data-v="applicants">새 권속 ${G.applicants.length}</button>`);
-  if (G.prison.length) out.push(`<button class="chip todo" data-a="open" data-v="captives">포로 ${G.prison.length}</button>`);
-  if (bench) out.push(`<button class="chip todo" data-a="open" data-v="roster">대기 ${bench}</button>`);
-  out.push(`<button class="chip only-pc" data-a="open" data-v="roster">권속 ${G.kin.length}</button>`);
-  out.push(`<button class="chip only-pc" data-a="view" data-v="surface"><span class="up">오늘 밤</span> ${esc(forecastText('tonight'))}</button>`);
-  if (tm) out.push(`<button class="chip only-pc" data-a="view" data-v="surface"><span class="warnc">내일</span> ${esc(forecastText('tomorrow'))}</button>`);
-  $('tray').classList.toggle('tight', out.filter(x => !x.includes('only-pc')).length > 3); $('tray').innerHTML = out.join('');
-  $('fore').innerHTML = `<span class="up">오늘 밤</span><span>${esc(forecastText('tonight'))}</span>${tm ? `<span class="warnc">내일 밤</span><span class="mute">${esc(forecastText('tomorrow'))}</span>` : ''}`;
-  $('recent').innerHTML = G.auto && AUTO.log.length ? `<div class="row nw" style="align-items:flex-start">${echoImg(40)}<p class="grow"><b class="h3 coin">권속들</b> ${esc(AUTO.log.slice(0, 2).join(' · '))}</p></div>` : `<div class="row nw" style="align-items:flex-start">${echoImg(40)}<p class="grow"><b class="h3 coin">잔향</b> ${esc(G.auto ? '권속들이 일하고 있어. 궁금한 방은 눌러 봐. 급하면 멈추고 직접 시켜도 돼.' : guideLine())}</p></div>`;
-  const pr = v => ` aria-pressed="${ST.screen === v}"`;
-  $('mnav').innerHTML = `<span class="seg"><button class="btn" data-a="view" data-v="under"${pr('under')}>지하</button>${G.sealed ? (NEST.storyLock(G, 'breach') ? '' : '<button class="btn" data-a="breach">뚫기</button>') : `<button class="btn" data-a="view" data-v="surface"${pr('surface')}>지상</button>`}</span>${btn('core', null, '본체')}${btn('open', { v: 'roster' }, '권속 ' + G.kin.length)}${G.auto ? `<button class="btn pri end" data-a="autopause">${AUTO.paused ? '▶ 계속' : '⏸ 멈춤'}</button><button class="btn" data-a="autospeed" data-v="next">${AUTO.speed}배</button>` : `<button class="btn pri end${UI.confirmEnd ? ' warn' : ''}" data-a="endday">${UI.confirmEnd ? `행동 ${G.ap} 남음 · 한 번 더` : (NEST.isSettle(G) ? '◐ ' : '') + '밤 맞기'}</button>`}`;
+  const ch = [`<button class="chip goalchip" data-a="panel" data-v="goal">${esc(goalLabel())}</button>`, `<button class="chip nightchip" data-a="panel" data-v="goal" title="오늘 밤">${ST.mode === 'night' ? '' : '<span class="up">밤</span> '}${nightChip()}</button>`];
+  todos().forEach(([a, o, label, cls]) => ch.push(`<button class="chip todo ${cls}" data-a="${a}"${attrs(o)}>${esc(label)}</button>`));
+  $('mapchips').innerHTML = ST.mode === 'day' ? ch.join('') : '';
+  const ib = (a, o, icon, label, extra, cls) => `<button class="btn ib ${cls || ''}" data-a="${a}"${attrs(o)}>${icon}<span>${label}</span>${extra || ''}</button>`;
+  const nTodo = todos().filter(t => t[3] !== 'calm').length, badge = n => n ? `<i class="badge">${n}</i>` : '';
+  const view = G.sealed ? (NEST.storyLock(G, 'breach') ? '' : ib('breach', null, '<span class="gl">▲</span>', '뚫기', '', 'hot')) : ST.screen === 'under' ? ib('view', { v: 'surface' }, '<span class="gl">▲</span>', '지상') : ib('view', { v: 'under' }, '<span class="gl">▼</span>', '지하');
+  const pips = `<span class="pips">${Array.from({ length: NEST.K.ap }, (_, i) => `<i class="pip${i < G.ap ? '' : ' off'}"></i>`).join('')}</span>`;
+  const main = G.auto ? `<button class="btn pri end" data-a="autopause">${AUTO.paused ? '▶ 계속' : '⏸ 멈춤'}</button><button class="btn ib" data-a="autospeed" data-v="next"><span>${AUTO.speed}배</span></button>` : `<button class="btn pri end${UI.confirmEnd ? ' warn' : ''}" data-a="endday">${UI.confirmEnd ? `행동 ${G.ap} 남음 · 한 번 더` : `<span>${(NEST.isSettle(G) ? '◐ ' : '') + (G.sealed ? '밤 (땅속)' : '밤 맞기')}</span>${pips}`}</button>`;
+  $('mnav').innerHTML = view + ib('core', null, slimeImg(G.slime, 22), '본체') + ib('open', { v: 'roster' }, kinImg('goblin', 22), '권속', (G.kin.some(m => m.kind !== 'spawn') ? `<i class="badge n">${G.kin.filter(m => m.kind !== 'spawn').length}</i>` : ''), 'kinb') + ib('panel', { v: 'goal' }, '<span class="gl">◎</span>', '목표', badge(nTodo)) + main;
 }
 const lifePips = () => { const n = NEST.lives(G), t = NEST.livesMax(G); return '<span class="hearts" role="img" aria-label="목숨 ' + n + ' / ' + t + '">' + iconImg('life', 18).repeat(n) + iconImg('dead', 18).repeat(Math.max(0, t - n)) + '</span>'; };
 // 지금 이대로 달이 기울면 무엇이 되는가. 겪어 보지 못한 숨은 본체는 이름을 가린다
@@ -368,23 +385,35 @@ function spotPanel() {
 function overview() {
   const by = {}; G.kin.forEach(m => { const k = m.loc === null ? 'bench' : m.loc; (by[k] = by[k] || []).push(m); });
   const keys = Object.keys(by).sort((a, b) => (a === 'bench' ? -1 : b === 'bench' ? 1 : 0)), O = NEST.ORIGIN[G.origin || 'drop'];
-  return `<div class="ph"><h2>둥지</h2>${btn('log', null, '지난 일', 'sm')}</div>
+  return `${phead('상태', '', btn('log', null, '지난 일', 'sm'))}${statsHtml()}
     <div class="card"><div class="slime-top sm">${slimeImg(G.slime, 56)}<div class="stack"><p class="h3">${esc(NEST.formName(G))} <small class="mute">${STAGE_NAME[G.slime.stage]}${G.slime.look && typeof SEEDS !== 'undefined' && SEEDS[G.slime.look] ? ` · <span title="${esc(NEST.SEEDN[G.slime.look] ? NEST.SEEDN[G.slime.look].text : '')}">${esc(SEEDS[G.slime.look].name)}</span>` : ''}${G.origin && G.origin !== 'drop' ? ' · ' + O.name : ''}</small></p>${bar(G.slime.hp / NEST.slimeStats(G).hp)}<div class="row">${NEST.ASPECTS.filter(a => G.slime.ess[a] > 0).map(a => aspChip(a, NEST.ASP[a] + ' ' + G.slime.ess[a])).join('')}${btn('core', null, '본체 열기', 'sm')}</div></div></div></div>
     ${G.sign && NEST.SIGN[G.sign] ? `<p class="small clamp2"><span class="chip" style="border-color:${ASPCOL[NEST.SIGN[G.sign].asp]};color:${ASPCOL[NEST.SIGN[G.sign].asp]}">${NEST.SIGN[G.sign].name}</span> ${esc(NEST.STAR[G.star].name + ': ' + NEST.STAR[G.star].desc)}</p>` : G.star && G.star !== 'none' ? `<p class="small clamp2"><span class="chip on">${NEST.STAR[G.star].name}</span> ${esc(NEST.STAR[G.star].desc)}</p>` : ''}
     ${G.world && NEST.WORLD[G.world] && !G.story ? `<p class="small clamp2"><span class="chip on">${NEST.WORLD[G.world].name} · ${NEST.WORLD[G.world].rule.name}</span> ${esc(NEST.WORLD[G.world].rule.bane + ' · ' + NEST.WORLD[G.world].rule.boon)}</p>${worldMore(NEST.WORLD[G.world])}` : ''}
     ${(G.gods || G.auto) && !G.story ? godsRow() : ''}
     <div class="sec">권속 ${G.kin.length}명 <small>하루 밥값(끼니) ${R(G.kin.reduce((a, m) => a + NEST.salary(G, m), 0))}방울 · 방 유지비 ${R(NEST.upkeep(G))}방울</small></div>
     <div class="rooms">${keys.map(k => `<span class="small ${k === 'bench' ? 'warnc' : 'mute'}">${k === 'bench' ? '대기 (안 싸움)' : esc(locName(k === 'core' ? 'core' : +k))}</span><div class="units">${by[k].map(kinMini).join('')}</div>`).join('') || '<span class="mute small" style="grid-column:1/-1">아직 아무도 없다. 아침마다 몸에서 돋으려는 것이 생긴다.</span>'}</div>
-    <p class="small mute">지도에서 칸·${G.sealed ? '땅 위' : NEST.folk(G)}·길목을 누르면 여기에 할 일이 나온다. <kbd>Tab</kbd> 지상·지하 · <kbd>E</kbd> 밤 맞기 · <kbd>Esc</kbd> 선택 해제</p>`;
+    <p class="small mute only-pc"><kbd>Tab</kbd> 지상·지하 · <kbd>E</kbd> 밤 맞기 · <kbd>Esc</kbd> 닫기</p>`;
+}
+// 목표 창: 목표와 진척, 오늘 밤과 내일 밤, 할 일, 지금 할 일 한 줄
+function goalHtml() {
+  const gl = G.story ? NEST.storyGoal(G) : null, tm = G.day < NEST.K.days, hint = G.story ? NEST.lx(storyHint().t) : guideLine();
+  const head = gl ? `${G.story.ch}장 · ${esc(gl.title)}` : `${NEST.K.days}일 버티기`, sub = gl ? gl.items.filter(x => x.done).length + '/' + gl.items.length : G.day + '/' + NEST.K.days + '일';
+  const items = gl ? gl.items.map(x => `<span class="goal${x.done ? ' done' : ''}">${x.done ? '✓' : '·'} ${esc(x.label)} <b>${Math.min(x.cur, x.need)}/${x.need}</b></span>`).join('') : `<span class="goal">본체 목숨 <b>${NEST.lives(G)}/${NEST.livesMax(G)}</b></span>`;
+  const td = todos();
+  return `${phead('목표', sub)}<div class="card"><p class="h3 coin">${head}</p><div class="goals">${items}</div></div>
+    <div class="frow"><span class="up">오늘 밤</span><span>${esc(forecastText('tonight'))}</span>${tm ? `<span class="warnc">내일 밤</span><span class="mute">${esc(forecastText('tomorrow'))}</span>` : ''}</div>
+    ${td.length ? `<div class="row">${td.map(([a, o, label]) => `<button class="btn sm" data-a="${a}"${attrs(o)}>${esc(label)}</button>`).join('')}</div>` : ''}
+    <div class="row nw" style="align-items:flex-start">${echoImg(28)}<p class="grow small">${esc(G.auto && AUTO.log.length ? AUTO.log[0] : hint)}</p></div>
+    <div class="row">${btn('help', null, '도움말 · 처음 하는 법', 'sm')}</div>`;
 }
 function view() {
-  const s = UI.sel; let h;
-  if (!s) h = overview(); else if (s.t === 'cell') h = cellPanel(s.i); else if (s.t === 'vill') h = villPanel(s.v); else if (s.t === 'spot') h = spotPanel(); else h = plotPanel(s.p);
+  const s = UI.sel, sh = UI.sheet; let h;
+  if (!s) h = sh === 'goal' ? goalHtml() : overview(); else if (s.t === 'cell') h = cellPanel(s.i); else if (s.t === 'vill') h = villPanel(s.v); else if (s.t === 'spot') h = spotPanel(); else h = plotPanel(s.p);
   $('view').innerHTML = h;
   if (G.auto) $('foot').innerHTML = `<p class="small mute">교시 <b style="color:${G.edict ? ASPCOL[NEST.EDICT[G.edict].god] : 'inherit'}">「${G.edict ? NEST.EDICT[G.edict].name : '아직'}」</b> · ${AUTO.paused ? '멈춰 있다' : '권속들이 일하는 중'}</p><span class="bar"><i style="width:${Math.round(100 * AUTO.i / Math.max(1, AUTO.n))}%;background:var(--coin)"></i></span><div class="row nw"><button class="btn pri big grow" data-a="autopause">${AUTO.paused ? '▶ 다시 흐르게' : '⏸ 멈춤'} <kbd>E</kbd></button>${[1, 2, 4].map(v => btn('autospeed', { v }, v + '배', AUTO.speed === v ? 'on' : '')).join('')}</div>`;
-  else $('foot').innerHTML = `${G.sealed && NEST.storyLock(G, 'breach') ? `<p class="small mute">땅속이다. 아직 위로 뚫을 때가 아니다.${G.march.tonight && G.march.tonight.beast ? ' <span class="warnc">오늘 밤 굴짐승이 파고든다.</span>' : ''}</p>` : G.sealed ? `<p class="small mute">${NEST.paths(G).length ? '굴이 막혀 있다. 아무도 오지 않지만 먹이도 없다.' : '땅 밑에 갇혀 있다. 무른 흙을 따라 ' + NEST.trailLeft(G) + '칸 더 파 올라가야 뚫을 수 있다.'} 숨은 밤마다 정수 +${NEST.K.deep.ess}${NEST.underRisk(G) ? ` · <span class="warnc">오늘 밤 들킬 위험 ${Math.round(NEST.underRisk(G) * 100)}%</span>` : ''}</p><button class="btn big" data-a="breach">땅 위로 뚫는다</button>` : ''}${UI.confirmEnd ? `<p class="small warnc">행동이 ${G.ap} 남았다. 남기면 본체가 그만큼 쉰다. 한 번 더 누르면 밤이 된다.</p>` : ''}<button class="btn pri big" data-a="endday">${G.sealed ? '땅속에서 밤을 보낸다' : NEST.isSettle(G) ? '달이 기우는 밤을 맞는다' : '밤을 맞는다'} <kbd>E</kbd></button>`;
-  const open = isMobile() && !!s && ST.mode === 'day'; $('right').classList.toggle('open', open);
-  if (!open) ST.cover = 0; else requestAnimationFrame(() => { const a = $('stage').getBoundingClientRect(), r = $('right').getBoundingClientRect(); ST.cover = $('right').classList.contains('open') ? Math.max(0, a.bottom - r.top) : 0; });
+  else $('foot').innerHTML = '';
+  const open = !!(s || sh) && ST.mode === 'day'; $('right').classList.toggle('open', open); $('main').classList.toggle('drawer', open || ST.mode === 'night');
+  if (!open || !isMobile()) ST.cover = 0; else requestAnimationFrame(() => { const a = $('stage').getBoundingClientRect(), r = $('right').getBoundingClientRect(); ST.cover = $('right').classList.contains('open') ? Math.max(0, a.bottom - r.top) : 0; });
 }
 function render() {
   if (!G) return; checkFeats(); hud(); tray(); view(); coach(); if (UI.featMsg && ST.mode === 'day' && $('modal').hidden) toast(null);
@@ -702,8 +731,8 @@ function showTitle() {
   typeof music === 'function' && music('title');
   $('trec').textContent = META.best ? `최고 기록 ${META.best.grade} ${R(META.best.total)}점 · ${META.best.form} · 깨어남 ${META.clears}회` : '아직 기록이 없다';
 }
-function showGame() { $('title').hidden = true; $('game').hidden = false; $('game').classList.remove('night'); UI.tab = {}; UI.page = {}; ST.mode = 'day'; ST.ents = null; ST.roam = {}; ST.kinPos = {}; ST.hud = null; ST.screen = 'surface'; setScreen('under'); ST.p = 1; ST.cam = { x: 0, tx: 0 }; ST.camMem = { surface: 240, under: 0 }; UI.sel = null; setSheet(false); setNight(false); render(); typeof music === 'function' && music('day'); }
-function setNight(on) { ST.mode = on ? 'night' : 'day'; $('game').classList.toggle('night', on); $('right').classList.remove('open'); $('night').hidden = !on; $('view').hidden = on; $('foot').hidden = on; $('tray').hidden = on; $('recent').hidden = on; $('viewsw').hidden = on; if (on) { setSheet(false); $('nlog').innerHTML = ''; $('nparty').innerHTML = ''; $('hand').hidden = true; $('ntitle').textContent = G.day + '일째 밤' + (NEST.isSettle(G) ? ' · 달이 기운다' : ''); setSpeed(META.speed || 1); } }
+function showGame() { $('title').hidden = true; $('game').hidden = false; $('game').classList.remove('night'); UI.tab = {}; UI.page = {}; ST.mode = 'day'; ST.ents = null; ST.roam = {}; ST.kinPos = {}; ST.hud = null; ST.screen = 'surface'; setScreen('under'); ST.p = 1; ST.cam = { x: 0, tx: 0 }; ST.camMem = { surface: 240, under: 0 }; UI.sel = null; UI.sheet = null; UI.hintSeen = null; setSheet(false); setNight(false); render(); typeof music === 'function' && music('day'); }
+function setNight(on) { ST.mode = on ? 'night' : 'day'; $('game').classList.toggle('night', on); $('right').classList.remove('open'); $('night').hidden = !on; $('view').hidden = on; $('foot').hidden = on; $('tray').hidden = on; $('recent').hidden = on; $('viewsw').hidden = on; $('main').classList.toggle('drawer', on); if (on) { UI.sheet = null; UI.sel = null; $('mapchips').innerHTML = ''; $('coach').hidden = true; setSheet(false); $('nlog').innerHTML = ''; $('nparty').innerHTML = ''; $('hand').hidden = true; $('ntitle').textContent = G.day + '일째 밤' + (NEST.isSettle(G) ? ' · 달이 기운다' : ''); setSpeed(META.speed || 1); } }
 function setSpeed(v) { ST.speed = v; META.speed = v; document.querySelectorAll('[data-a="speed"]').forEach(b => b.classList.toggle('on', +b.dataset.v === v)); }
 async function newRun() {
   const L = META.last || {}, o = { diff: L.diff && !diffLock(L.diff) ? L.diff : 1, bring: [], tut: !META.tutDone && !META.board.length && !storyMeta().clear[3], tab: 'who', auto: false };
@@ -780,13 +809,6 @@ function storyHint() {
   return night;
 }
 // 자유 모드의 목표 패널: 며칠째인지, 목숨, 오늘 밤 누가 오는지, 지금 할 일 한 줄
-function freeCoach() {
-  ['coach', 'coach2'].forEach(id => { $(id).hidden = false; }); $('recent').style.display = 'none';
-  document.querySelectorAll('.tut-glow').forEach(e => e.classList.remove('tut-glow')); ST.tutCell = null;
-  const n = NEST.lives(G), t = NEST.livesMax(G);
-  const html = `<div class="row nw goalh">${echoImg(28)}<span class="grow"><b class="coin h3">목표 · ${NEST.K.days}일 버티기</b></span><span class="small mute">${G.day}/${NEST.K.days}일</span></div><div class="goals"><span class="goal">본체 목숨 <b>${n}/${t}</b></span><span class="goal">오늘 밤 <b>${esc(forecastText('tonight'))}</b></span></div><p class="small">${esc(G.auto && AUTO.log.length ? AUTO.log[0] : guideLine())}</p>`;
-  ['coach', 'coach2'].forEach(id => { if ($(id).dataset.h !== html) { $(id).innerHTML = html; $(id).dataset.h = html; } });
-}
 // 처음 하는 사람에게: 모드마다 한 번, 무엇을 하는 게임인지 네 줄로. 도움말 「처음 하는 법」에서 다시 본다
 const HOWTO = {
   free: ['자유 · 40일 버티기', '점수를 겨루는 판이다. 40일 동안 본체가 쓰러지지 않으면 이긴다.'],
@@ -794,21 +816,11 @@ const HOWTO = {
 };
 function howToBody(mode) {
   const H = HOWTO[mode] || HOWTO.free, li = (ic, b, t) => `<div class="row nw howto">${ic}<p class="grow"><b>${b}</b> ${t}</p></div>`;
-  return `<p>${esc(H[1])}</p>${li(iconImg('gold', 22), '굴을 판다.', '지도에서 칸을 누르면 판다. 판 칸에는 방을 짓는다. 방마다 하는 일이 적혀 있다.')}${li(echoImg(26), '권속을 들인다.', '아래 「새 권속」을 누르면 네 몸에서 갈라져 나온 것들이 나온다. 들인 권속은 알아서 길목을 지킨다.')}${li(iconImg('fear', 22), '밤을 맞는다.', '「밤 맞기」를 누르면 땅 위 사람들이 굴로 쳐들어온다. 방과 권속이 막고, 본체가 쓰러지지 않으면 된다.')}${li(iconImg('ess', 22), '자란다.', '쓰러뜨린 적은 먹이가 된다. 먹고 모은 정수로 허물을 벗으면(진화) 더 센 몸이 된다.')}<p class="small mute">위쪽 숫자(진액·신앙…)를 누르면 뜻이 나온다. 「도움말 → 처음 하는 법」에서 다시 볼 수 있다.</p>`;
+  return `<p>${esc(H[1])}</p>${li(iconImg('gold', 22), '굴을 판다.', '지도에서 칸을 누르면 판다. 판 칸에는 방을 짓는다. 방마다 하는 일이 적혀 있다.')}${li(echoImg(26), '권속을 들인다.', '지도 위 「새 권속」을 누르면 네 몸에서 갈라져 나온 것들이 나온다. 들인 권속은 알아서 길목을 지킨다.')}${li(iconImg('fear', 22), '밤을 맞는다.', '「밤 맞기」를 누르면 땅 위 사람들이 굴로 쳐들어온다. 방과 권속이 막고, 본체가 쓰러지지 않으면 된다.')}${li(iconImg('ess', 22), '자란다.', '쓰러뜨린 적은 먹이가 된다. 먹고 모은 정수로 허물을 벗으면(진화) 더 센 몸이 된다.')}<p class="small mute">위쪽 띠를 누르면 나머지 숫자(신앙·공포·정수…)가 나온다. 메뉴 ≡ → 도움말에서 다시 본다.</p>`;
 }
 async function howTo(mode, force) {
   META.howto = META.howto || {}; if (!force && (META.howto[mode] || (navigator.webdriver && !window.__forceHowto))) return;
   META.howto[mode] = 1; saveMeta(); await modal(M('어떻게 하나 · ' + esc((HOWTO[mode] || HOWTO.free)[0]), howToBody(mode), btn('close', null, '알겠다', 'pri')));
-}
-// 목표 패널: 장 이름, 목표와 진척, 지금 할 일
-function storyCoach() {
-  const gl = NEST.storyGoal(G), on = !!gl; ['coach', 'coach2'].forEach(id => { $(id).hidden = !on; });
-  document.querySelectorAll('.tut-glow').forEach(e => e.classList.remove('tut-glow')); ST.tutCell = null; $('recent').style.display = on ? 'none' : '';
-  if (!on) return;
-  const hn = storyHint(), html = `<div class="row nw goalh">${echoImg(28)}<span class="grow"><b class="coin h3">${G.story.ch}장 · ${esc(gl.title)}</b></span><span class="small mute">${gl.items.filter(x => x.done).length}/${gl.items.length}</span></div><div class="goals">${gl.items.map(x => `<span class="goal${x.done ? ' done' : ''}">${x.done ? '✓' : '·'} ${esc(x.label)} <b>${Math.min(x.cur, x.need)}/${x.need}</b></span>`).join('')}</div><p class="small">${esc(NEST.lx(hn.t))}</p>`;
-  ['coach', 'coach2'].forEach(id => { if ($(id).dataset.h !== html) { $(id).innerHTML = html; $(id).dataset.h = html; } });
-  if (hn.sel && ST.mode === 'day') document.querySelectorAll(hn.sel).forEach(e => { if (!e.disabled) e.classList.add('tut-glow'); });
-  if (hn.cell != null && ST.screen === 'under') ST.tutCell = hn.cell;
 }
 // 그때그때의 말: 조건이 맞으면 한 번씩
 let beatBusy = false;
@@ -965,6 +977,7 @@ async function finishRun() {
 function onAction(el) {
   const a = el.dataset.a, d = el.dataset, num = k => +d[k];
   if (a === 'sceneskip') { if (sceneNext) sceneNext(true); return; }
+  if (a === 'hintx') { UI.hintUntil = 0; return coach(); }
   if (a === 'tutend') { if (G) { G.tut = null; saveRun(); } META.tutDone = true; saveMeta(); sfx('click'); return coach(); }
   if (a === 'tab' || a === 'page') {
     if (a === 'tab') { if (d.g === 'setup') UI.setup.tab = d.v; else UI.tab[d.g] = d.v; } else UI.page[d.g] = (UI.page[d.g] || 0) + num('v');
@@ -974,7 +987,8 @@ function onAction(el) {
     if (UI.mfn) { const k = modalKind; redrawM(); modalKind = k; if (UI.endSc) startEnding(UI.endSc); return; }
     return refreshModal();
   }
-  if (a === 'sheet') { UI.sel = null; UI.confirmEnd = false; sfx('click'); return G ? render() : null; }
+  if (a === 'sheet') { UI.sel = null; UI.sheet = null; UI.confirmEnd = false; sfx('click'); return G ? render() : null; }
+  if (a === 'panel') { if (!G || ST.mode !== 'day') return; if (!$('modal').hidden) closeModal(); const same = !UI.sel && UI.sheet === d.v; UI.sel = null; UI.sheet = same ? null : d.v; UI.confirmEnd = false; sfx('click'); render(); $('view').scrollTop = 0; return; }
   if (a === 'stat') return toast({ ok: true, msg: el.title });
   if (a === 'close') return closeModal(d.v);
   if (a === 'menu') return void modal(M('메뉴', `<div class="opts c1">${btn('help', null, '도움말')}${btn('log', null, '지난 일')}${btn('settings', null, '설정')}${btn('quit', null, '타이틀로 나가기 (자동 저장)')}</div>`, closeBtn()), false);
@@ -1084,14 +1098,18 @@ function boot() {
     if (G && ST.pick && handRes) return void stagePick(...stagePoint(e));
     if (!G || busy || ST.mode !== 'day') return; const h = hitTest(...stagePoint(e));
     if (h && (h.t === 'up' || h.t === 'down')) return setScreen(h.t === 'up' ? 'surface' : 'under');
-    UI.sel = h; UI.tab.cell = UI.tab.core = UI.tab.vill = null; UI.confirmEnd = false; sfx('click'); render(); $('view').scrollTop = 0;
+    UI.sel = h; UI.sheet = null; UI.tab.cell = UI.tab.core = UI.tab.vill = null; UI.confirmEnd = false; sfx('click'); render(); $('view').scrollTop = 0;
   });
   $('stage').addEventListener('mousemove', e => { if (!G) return; ST.hover = ST.mode === 'day' ? hitTest(...stagePoint(e)) : null; $('stagetip').textContent = tipFor(ST.hover); });
   $('stage').addEventListener('mouseleave', () => { ST.hover = null; });
+  // 올라온 창은 아래로 쓸어내려 닫는다 (머리 쪽을 잡거나, 맨 위까지 올린 상태에서)
+  { const rt = $('right'); let sy = null;
+    rt.addEventListener('touchstart', e => { const t = e.touches[0]; sy = rt.classList.contains('open') && (t.clientY - rt.getBoundingClientRect().top < 56 || $('view').scrollTop <= 0) ? t.clientY : null; }, { passive: true });
+    rt.addEventListener('touchmove', e => { if (sy != null && e.touches[0].clientY - sy > 70) { sy = null; onAction({ dataset: { a: 'sheet' } }); } }, { passive: true }); }
   document.addEventListener('keydown', e => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
     if (!$('scene').hidden) { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); if (sceneNext) sceneNext(); } return; }
-    if (e.key === 'Escape') { if (!$('modal').hidden && modalKind && !['setup', 'legacy', 'event'].includes(modalKind)) closeModal(); else if (G && UI.sel) { UI.sel = null; render(); } return; }
+    if (e.key === 'Escape') { if (!$('modal').hidden && modalKind && !['setup', 'legacy', 'event'].includes(modalKind)) closeModal(); else if (G && (UI.sel || UI.sheet)) { UI.sel = null; UI.sheet = null; render(); } return; }
     if (!G || $('game').hidden) return;
     if (ST.mode === 'night') { if (['1', '2', '3'].includes(e.key)) setSpeed([1, 2, 4][+e.key - 1]); if (e.key === 's' || e.key === 'S') { ST.skip = true; if (handRes) handRes({ k: 'none' }); } if (e.key === ' ' && handRes) { e.preventDefault(); handRes({ k: 'none' }); } return; }
     if (!$('modal').hidden || busy) return;

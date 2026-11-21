@@ -250,8 +250,8 @@ function drawCell(x, i, t, canDig) {
   if (!c.dug) {
     if (!nb.some(v => v)) return;   // 판 곳과 닿지 않은 칸은 보이지 않는다
     x.drawImage(cellBg(i, c, b, nb, c.soft ? (canDig ? 3 : 4) : canDig ? 2 : 1), r.x, r.y);
-    if (canDig && G.buried && G.buried[i]) { for (let k = 0; k < 3; k++) rect(x, Math.sin(t / 200 + k * 2) > 0.3 ? '#fff3a0' : '#e8c03066', r.x + 40 + k * 46, r.y + 26 + (k % 2) * 60, 4, 4); txt(x, '? 묻힌 것', r.x + r.w / 2, r.y + r.h - 30, '#fff3a0', 12, 'center'); }
-    if (canDig) { const a = 0.55 + 0.25 * Math.sin(t / 420 + i), cx = r.x + r.w / 2, cy = r.y + r.h / 2 - 10; pickIcon(x, cx, cy + Math.round(Math.sin(t / 420 + i) * 1.5), a + 0.15); txt(x, c.soft ? '공짜 파기' : '파기', cx, cy + 14, c.soft ? '#e8c890' : '#e8dcb0', 12, 'center');
+    if (canDig && G.buried && G.buried[i]) { for (let k = 0; k < 3; k++) rect(x, Math.sin(t / 200 + k * 2) > 0.3 ? '#fff3a0' : '#e8c03066', r.x + 40 + k * 46, r.y + 26 + (k % 2) * 60, 4, 4); txt(x, '?', r.x + r.w / 2, r.y + r.h - 30, '#fff3a0', 18, 'center'); }
+    if (canDig) { const a = 0.55 + 0.25 * Math.sin(t / 420 + i), cx = r.x + r.w / 2, cy = r.y + r.h / 2 - 10; pickIcon(x, cx, cy + Math.round(Math.sin(t / 420 + i) * 1.5), a + 0.15); if (c.soft) txt(x, '공짜', cx, cy + 14, '#e8c890', 12, 'center');
       if (c.soft) for (let k = 0; k < 3; k++) { const ph = (t / 1400 + k / 3) % 1; x.globalAlpha = 1 - ph; rect(x, '#8a6a4a', r.x + 40 + k * 50, r.y + 20 + ph * 26, 2, 2); x.globalAlpha = 1; }
       x.globalAlpha = a * 0.7; const bc = c.soft ? '#e8a860' : '#e8c030'; for (const [px, py, sx, sy] of [[r.x + 10, r.y + 10, 1, 1], [r.x + r.w - 10, r.y + 10, -1, 1], [r.x + 10, r.y + r.h - 10, 1, -1], [r.x + r.w - 10, r.y + r.h - 10, -1, -1]]) { rect(x, bc, Math.min(px, px + sx * 12), Math.min(py, py + sy * 2), 12, 2); rect(x, bc, Math.min(px, px + sx * 2), Math.min(py, py + sy * 12), 2, 12); } x.globalAlpha = 1; }
     return;
@@ -266,10 +266,11 @@ function drawCell(x, i, t, canDig) {
   if (c.block) { for (let k = 0; k < 6; k++) { const bx = r.x + 34 + k * 24, br = 13 + (k % 3) * 4; disc(x, '#2a2434', bx, fy - br + 4, br); disc(x, k % 2 ? '#4a4458' : '#5a5466', bx - 1, fy - br + 3, br - 2); rect(x, '#7a7488', bx - br + 6, fy - br * 2 + 8, 6, 2); } txt(x, '막힘', r.x + r.w / 2, r.y + 40, '#ff9a92', 15, 'center'); }
   if (G.off[i]) { rect(x, '#0b0c16aa', r.x + 4, r.y + 4, r.w - 8, r.h - 8); txt(x, '뒤집힘', r.x + r.w / 2, r.y + 40, '#ff9a92', 14, 'center'); }
   if (ST.sanfx[i] && t - ST.sanfx[i] < 380) rect(x, '#a884ff44', r.x + 4, r.y + 4, r.w - 8, r.h - 8);
-  const d = NEST.ROOM[c.type]; let name = i === G.ent && c.type === 'empty' ? '입구' : d.name;
-  if (i === G.ent && c.type !== 'empty') name = '입구 · ' + name;
-  if (d.def && i !== G.core) name += ' ' + G.kin.filter(m => m.loc === i && m.kind !== 'spawn').length + '/' + d.def;
-  tagL(x, name, r.x + 12, r.y + 10, c.type === 'empty' ? '#a2a8c6' : '#ece6d6', 13, c.type === 'empty' ? null : i === G.core ? '#e8c030' : b.st ? ASPCOL[b.main] : '#6a6478');
+  // 이름은 고른 칸에만. 나머지는 권속 수 표시(방의 생김새가 곧 이름이다), 입구와 본체 방만 짧게
+  const d = NEST.ROOM[c.type], picked = UI.sel && UI.sel.t === 'cell' && UI.sel.i === i, cnt = d.def && i !== G.core ? G.kin.filter(m => m.loc === i && m.kind !== 'spawn').length + '/' + d.def : '';
+  let name = picked ? (i === G.ent ? '입구 · ' : '') + d.name + (cnt ? ' ' + cnt : '') : i === G.core ? '본체' : i === G.ent ? '입구' + (cnt ? ' ' + cnt : '') : cnt;
+  if (picked && i === G.ent && c.type === 'empty') name = '입구';
+  if (name) tagL(x, name, r.x + 12, r.y + 10, c.type === 'empty' ? '#a2a8c6' : '#ece6d6', 13, c.type === 'empty' ? null : i === G.core ? '#e8c030' : b.st ? ASPCOL[b.main] : '#6a6478');
 }
 function drawRoute(x, t) {
   const ps = NEST.paths(G); x.fillStyle = '#e8c030';
@@ -556,7 +557,7 @@ function drawStage() {
     x.fillStyle = '#ece6d6'; x.globalAlpha = 0.45 + 0.25 * Math.sin(t / 300); const tv = (py, d) => { x.beginPath(); x.moveTo(VW / 2 - 16, py); x.lineTo(VW / 2, py + d * 12); x.lineTo(VW / 2 + 16, py); x.fill(); };
     if ((ST.cam.v || 0) > 4) tv(16, -1); if ((ST.cam.v || 0) < UH() - VH - 4) tv(VH - 16, 1); x.globalAlpha = 1;
   }
-  if (ST.focus != null) plate(x, ST.pick ? (ST.pick.kind === 'inv' ? '적을 누른다' : '방을 누른다') : isMobile() ? '손을 쓸 차례 — 아래에서 고른다' : '손을 쓸 차례 — 오른쪽에서 고른다', VW / 2, 12, '#fff3a0', 16);
+  if (ST.focus != null) plate(x, ST.pick ? (ST.pick.kind === 'inv' ? '적을 누른다' : '방을 누른다') : '손을 쓸 차례 — 아래에서 고른다', VW / 2, 12, '#fff3a0', 16);
   if (ST.label) { let fs = 34; x.font = '700 ' + fs + 'px "IBM Plex Sans KR", "Apple SD Gothic Neo", sans-serif'; let w = x.measureText(ST.label).width + 60; if (w > VW - 12) { fs = Math.floor(fs * (VW - 12) / w); x.font = '700 ' + fs + 'px "IBM Plex Sans KR", "Apple SD Gothic Neo", sans-serif'; w = x.measureText(ST.label).width + 40; } rect(x, '#0b0c16dd', VW / 2 - w / 2, H / 2 - 36, w, 64); rect(x, '#e8c030', VW / 2 - w / 2, H / 2 - 36, w, 3); txt(x, ST.label, VW / 2, H / 2 - 4 - fs / 2, '#ece6d6', Math.max(21, fs), 'center'); }
 }
 function drawTitle() {
