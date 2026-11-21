@@ -358,11 +358,11 @@ const NEST = (function () {
   // beasts: 땅속 밤의 짐승(날 → 종류).  nights: 뚫은 뒤 몇째 밤에 누가 오는가.  extra: 목표를 못 채웠을 때 그 뒤 밤마다
   // goal: dug 판 칸 · kin 권속 · nights 넘긴 밤(fromBreach 면 뚫은 뒤부터) · captives 붙잡은 수.  calm: 달 기우는 밤·징조·사건·손님 없음
   const STORYCH = {
-    1: { title: '떨어진 바늘', pro: { goal: 2, lives: 9, census: { 1: { mite: 4, leech: 1, lurker: 1 } }, sweep: false } },
+    1: { title: '떨어진 바늘', pro: { goal: 5, lives: 99, maxT: 1500, census: { 1: { mite: 4, leech: 1, lurker: 1 }, 2: { mite: 4, leech: 2, lurker: 3, pack: 1, weaver: 3, grazer: 4, charger: 1, hunter: 1 }, 3: { weaver: 2, grazer: 4, charger: 2, spitter: 1, hunter: 2, mimic: 1, stalker: 1, mother: 1 }, 4: { charger: 2, spitter: 2, hunter: 2, mimic: 1, mother: 2, filter: 3, stalker: 2, blind: 1 } }, sweep: false } },
     2: { title: '고인 자리', calm: true, noTrail: true, lock: ['breach', 'evo', 'hoard', 'hand', 'prison', 'zone', 'train', 'block'], rooms: ['empty'], traps: [], spells: [], kinPool: ['goblin', 'skeleton'],
-      beasts: { 2: ['hound'], 4: ['hound', 'hound'] }, beastName: '굶주린 굴짐승', goal: { dug: 5, kin: 2, nights: 6 } },
+      beasts: { 2: ['hound'], 4: ['hound', 'hound'], 7: ['hound', 'hound'] }, beastName: '굶주린 굴짐승', goal: { dug: 7, kin: 2, nights: 8 } },
     3: { title: '물레골', calm: true, world: 'fantasy', vname: { field: '물레골' }, lock: ['evo', 'hoard', 'zone', 'train'], rooms: ['empty', 'post', 'trap'], traps: ['spike'], spells: ['whip'], kinPool: ['goblin', 'skeleton', 'cultist'], startKin: ['goblin', 'skeleton'],
-      nights: { 1: ['villager', 'villager'], 3: ['villager', 'villager', 'militia'], 5: ['militia', 'villager', 'villager'], 6: ['priest', 'villager', 'villager'] }, extra: ['villager', 'villager', 'militia'], capBoost: 0.35, fromBreach: true, goal: { nights: 6, captives: 1 } },
+      nights: { 1: ['villager', 'villager'], 3: ['villager', 'villager', 'militia'], 5: ['militia', 'villager', 'villager'], 6: ['militia', 'militia', 'villager'], 7: ['villager', 'militia', 'villager', 'villager'], 8: ['priest', 'militia', 'villager', 'villager'] }, extra: ['villager', 'villager', 'militia'], capBoost: 0.35, fromBreach: true, goal: { nights: 8, captives: 1 } },
     4: { title: '서고지기', soon: true }, 5: { title: '장부의 찢긴 쪽', soon: true }, 6: { title: '허물', soon: true }, 7: { title: '일곱째 바늘', soon: true },
   };
   let STORY_ON = null;   // 지금 판의 장 (마을 이름을 바꿔 부를 때 쓴다)
@@ -1498,7 +1498,7 @@ const NEST = (function () {
     // 먹이를 먹는 권속
     G.hungry = (G.hungry || 0) + G.kin.reduce((a, m) => a + (KIN[m.kind].eat || 0), 0);
     while (G.hungry >= 1) { G.hungry -= 1; if (G.corpses.length) G.corpses.shift(); else { const eater = G.kin.find(m => KIN[m.kind].eat && !m.strike); if (eater) { if (eater.kind === 'hunger' && G.gold >= 4 * c) spend(G, 4 * c, '끼니'); else { eater.unpaid = (eater.unpaid || 0) + 1; eater.strike = 1; rep.notes.push(fj(eater.name + '이(가) 굶었다')); } } } }
-    const gone = G.kin.filter(m => m.unpaid >= 2); if (gone.length) { G.kin = G.kin.filter(m => !(m.unpaid >= 2)); rep.notes.push(fj(gone.map(m => m.name).join(', ') + '이(가) 떠났다')); }
+    const gone = SC(G) ? [] : G.kin.filter(m => m.unpaid >= 2); if (gone.length) { G.kin = G.kin.filter(m => !(m.unpaid >= 2)); rep.notes.push(fj(gone.map(m => m.name).join(', ') + '이(가) 떠났다')); }
     // 징조에 물든 권속들이 제 방식으로 둥지를 불린다
     { const main = G.slime.main, of = a => G.kin.filter(m => KASP[m.kind] === a && m.kind !== 'spawn' && !m.strike), head = () => G.kin.filter(x => x.kind !== 'spawn').length, lone = G.star === 'lone';
       const join = (kind, lv) => { const m = { id: G.nextId++, name: NAMES[Math.floor(rng(G) * NAMES.length)], kind, lv, exp: 0, loc: freeSlot(G, kind), hurt: 0, skill: -1, rare: false, age: 0, unpaid: 0 }; autoSkill(m); G.kin.push(m); return m; };

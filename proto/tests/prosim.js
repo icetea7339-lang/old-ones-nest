@@ -13,7 +13,7 @@ function census() {   // 고리마다 무엇이 사는가
 }
 
 function play(kind, asp, seed, look) {
-  const sim = PRO.makeSim({ asp, seed, look }), S = sim.S, P = sim.P, careful = kind !== 'careless', buys = kind === 'greedy' || kind.indexOf('planned') === 0;
+  const sim = PRO.makeSim(Object.assign({ asp, seed, look }, process.env.STORY ? { story: require('../src/logic.js').STORYCH[1].pro } : {})), S = sim.S, P = sim.P, careful = kind !== 'careless', buys = kind === 'greedy' || kind.indexOf('planned') === 0;
   // ---- 보이는 것만 안다 (prologue2.js 의 그리기와 같은 규칙) ----
   const LIT = new Set(['chase', 'dash', 'lunge', 'aim', 'tell', 'hunt', 'out']);
   const viewR = () => 250 / PRO.STG[S.stage].zoom;

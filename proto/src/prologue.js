@@ -444,7 +444,7 @@ const PRO = (function () {
       if (S.stage < 5 && S.bio >= g.need) { S.stage++; S.stageT = t; S.upAt = t; S.hp = Math.min(maxHp(), S.hp + 1); P.inv = Math.max(P.inv, 2 * TPS); sw.st = 'idle'; sw.next = t; sw.n = 0; emit('stage', { stage: S.stage }); caption(STG[S.stage].name, ['', '', '어른거리던 큰 것들이 이제 네 눈높이다. 발과 겉이 돋는다', '저 뒤의 것들과 겨룰 몸이다. 속이 돋고, 부위 하나를 새길 수 있다', '널 쫓던 것들이 작아 보인다', '마지막 허물이다. 다 자라면 가장 많이 가져간다'][S.stage], 4, 2.6); }
       else if (S.stage === 5 && S.bio >= g.need) return end('grown');
       if (STY && STY.goal && S.stage >= STY.goal) return end('story');
-      if (t >= K.maxT * TPS) end('time');
+      if (t >= ((STY && STY.maxT) || K.maxT) * TPS) end('time');
     }
 
     // ---------- 끝과 셈 ----------

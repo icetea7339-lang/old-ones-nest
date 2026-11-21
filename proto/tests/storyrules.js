@@ -8,7 +8,7 @@ const nonSpawn = G => G.kin.filter(m => m.kind !== 'spawn').length;
 // 표
 ok([1, 2, 3, 4, 5, 6, 7].every(c => S.STORYCH[c] && S.STORYCH[c].title), '일곱 장 모두 제목이 있다');
 ok([4, 5, 6, 7].every(c => S.STORYCH[c].soon), '4~7장은 아직 닫혀 있다');
-ok(S.STORYCH[1].pro && S.STORYCH[1].pro.goal === 2, '1장은 한 방울로 두 번째 몸까지');
+ok(S.STORYCH[1].pro && S.STORYCH[1].pro.goal === 5, '1장은 한 방울로 다 자랄 때까지');
 
 // 2장: 땅속, 굴 넓히기와 첫 권속
 {
