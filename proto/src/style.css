@@ -7,7 +7,7 @@
   --text: #ece6d6; --mute: #a2a8c6; --coin: #e8c030;
   --up: #ff7d76; --down: #5b9bff; --ok: #6fd08c; --warn: #ffb347;
   --fire: #e8552f; --water: #3fa7e0; --gold: #e8c030; --route: var(--coin);
-  --display: "NestPix", "Do Hyeon", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --display: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
   /* 글자 크기 단계. 픽셀 글꼴은 12의 배수라야 PC에서 또렷하다. 휴대폰은 화소가 촘촘해 16도 쓴다 */
   --d1: 12px; --d2: 24px; --d3: 36px; --d4: 48px;
   --t1: 12px; --t2: 14px; --t3: 16px;
@@ -26,7 +26,7 @@ body::before { content: ""; position: fixed; top: 0; right: 0; left: 0; height: 
 html, body, #game, #game *, #title, #title *, #modal, #modal *, #scene, #scene * { touch-action: manipulation; }
 #game, #title { -webkit-tap-highlight-color: transparent; }
 #game { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
-h1, h2, h3, .h3, .tab, .btn, .grade { font-family: var(--display); font-weight: 400; letter-spacing: 0; }
+h1, h2, h3, .h3, .tab, .btn, .grade { font-family: var(--display); font-weight: 700; letter-spacing: -0.01em; }
 h2 { font-size: var(--d2); line-height: 1.2; margin: 0; text-wrap: balance; }
 h3, .h3 { font-size: var(--d1); margin: 0; }
 p { margin: 0; }
@@ -453,3 +453,6 @@ body { word-break: keep-all; overflow-wrap: break-word; }
 .stat .v, .stat b.num { max-width: 100%; }
 .hearts { display: inline-flex; max-width: 100%; min-width: 0; } .hearts img { flex: 0 1 auto; min-width: 0; height: auto; }
 @media (max-width: 760px) { .stat .hearts img.ic { height: auto; aspect-ratio: 1 / 1; } }
+
+/* 깔끔한 글꼴 하나: 제목·숫자는 굵게 */
+.stat b, .opt b, .pick6 .btn b, .pick5 .btn b, .hud-turn, .btn.big, .sec, .goal b, #scene .who, .grade { font-weight: 700; }

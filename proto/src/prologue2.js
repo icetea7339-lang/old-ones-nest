@@ -8,7 +8,7 @@ const PRO_CSS = `#pro { position: fixed; top: 0; right: 0; bottom: 0; left: 0; z
 #pro img { image-rendering: pixelated; }
 .pro-hud { position: absolute; top: calc(env(safe-area-inset-top, 0px) + 8px); left: max(12px, env(safe-area-inset-left, 0px)); right: max(12px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 5px; pointer-events: none; font-family: var(--display, sans-serif); font-size: 12px; line-height: 1.2; color: #ece6d6; text-shadow: 0 1px 0 #05040a, 0 -1px 0 #05040a, 1px 0 0 #05040a, -1px 0 0 #05040a; }
 .pro-row { display: flex; align-items: center; gap: 2px 10px; flex-wrap: wrap; white-space: nowrap; padding-right: var(--skipw, 92px); min-height: 22px; } .pro-row2 { min-height: 16px; }
-.pro-row b { font-weight: 400; font-size: 14px; color: #fff3a0; }
+.pro-row b { font-weight: 700; font-size: 14px; color: #fff3a0; }
 .pro-pips { display: inline-flex; gap: 3px; align-items: center; } .pro-pips i { display: block; width: 9px; height: 9px; border: 1px solid #05040a; background: #3a3344; } .pro-pips.sz i { border-radius: 50%; width: 7px; height: 7px; } .pro-pips.sz i.on { background: #dff0e0; } .pro-pips.hp i.on { background: #ff5f57; } .pro-pips.lf i { width: 7px; height: 7px; transform: rotate(45deg); margin: 0 2px; } .pro-pips.lf i.on { background: #6fd08c; }
 .pro-ess { display: inline-flex; gap: 8px; } .pro-ess span { display: inline-flex; align-items: center; gap: 3px; } .pro-ess i { display: block; width: 7px; height: 7px; border: 1px solid #05040a; }
 .pro-bar { height: 5px; width: min(100%, 300px); background: #05040a; box-shadow: inset 0 0 0 1px #4a3c58; } .pro-bar i { display: block; height: 100%; background: #e8c030; }
@@ -20,7 +20,8 @@ const PRO_CSS = `#pro { position: fixed; top: 0; right: 0; bottom: 0; left: 0; z
 .pro-settle { white-space: nowrap; text-align: right; } .pro-settle small { display: block; font-family: var(--body, sans-serif); font-size: 11px; line-height: 1.25; opacity: .85; }
 .pro-act { position: relative; width: 68px; height: 68px; border-radius: 50%; padding: 0; font-family: var(--display, sans-serif); font-size: 12px; line-height: 1.15; color: #0d0a12; background: #e8c030; border: 2px solid #07050a; box-shadow: inset 0 0 0 2px #fff3a0, inset 0 -6px 0 #a87e14; cursor: pointer; overflow: hidden; }
 .pro-act i { position: absolute; top: 0; right: 0; bottom: 0; left: 0; border-radius: 50%; background: conic-gradient(rgba(13,10,18,.78) var(--cd, 0deg), transparent 0); pointer-events: none; }
-.pro-act span { position: relative; z-index: 1; display: block; padding: 0 4px; word-break: keep-all; }
+.pro-act span { position: relative; z-index: 1; display: block; padding: 0 2px; white-space: nowrap; letter-spacing: -0.03em; }
+.pro-end, .pro-intro, .pro-shop { z-index: 30; }
 .pro-act.off { background: #3a3344; color: #a59cb4; box-shadow: inset 0 0 0 2px #4a3c58; }
 .pro-act.wait { color: #3a3020; }
 .pro-grow { position: absolute; left: max(12px, env(safe-area-inset-left, 0px)); bottom: calc(env(safe-area-inset-bottom, 0px) + 14px); white-space: nowrap; }
@@ -39,7 +40,7 @@ const PRO_CSS = `#pro { position: fixed; top: 0; right: 0; bottom: 0; left: 0; z
 .pro-shop[hidden] { display: none; }
 .pro-shop, .pro-end, .pro-intro { overflow-y: auto; align-items: safe center; }
 .pro-card { width: min(100%, 440px); max-height: 100%; background: #1d1826; border: 2px solid #e8c030; box-shadow: inset 0 0 0 2px #07050a; padding: 14px; display: flex; flex-direction: column; gap: 8px; color: #ece6d6; font-family: var(--body, sans-serif); font-size: 14px; line-height: 1.45; word-break: keep-all; }
-.pro-card h2 { margin: 0; font-family: var(--display, sans-serif); font-weight: 400; font-size: 20px; line-height: 1.2; } .pro-card h2 small { font-family: var(--body, sans-serif); font-size: 13px; color: #a59cb4; margin-left: 6px; }
+.pro-card h2 { margin: 0; font-family: var(--display, sans-serif); font-weight: 700; font-size: 20px; line-height: 1.2; } .pro-card h2 small { font-family: var(--body, sans-serif); font-size: 13px; color: #a59cb4; margin-left: 6px; }
 .pro-card p { margin: 0; } .pro-mute { color: #a59cb4; font-size: 13px; } .pro-warn { color: #ff9a8a; font-size: 13px; }
 .pro-bars { display: grid; grid-template-columns: auto 1fr auto; gap: 3px 8px; align-items: center; font-size: 13px; } .pro-bars span.b { display: block; height: 8px; background: #07050a; box-shadow: inset 0 0 0 1px #4a3c58; } .pro-bars span.b i { display: block; height: 100%; }
 .pro-say { display: flex; gap: 10px; align-items: flex-start; } .pro-say img { flex: none; }
