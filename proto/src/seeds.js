@@ -8,7 +8,7 @@
 //     act(타고난 재주) 는 발을 돋우면 그 발의 재주로 바뀐다.  fit(틈에 숨는 몸)·buried(묻힌 것이 보임)·keepPart 는 늘 그대로다
 // 그림은 FORMS.seed_<id>: 32×32, FORMS.base 와 같은 약속(P = 바탕 빛깔, fr = 0..3). 징조의 빛깔은 넣지 않는다(첫 허물 뒤에 물든다).
 const SEEDS = {
-  drop: { name: '방울', say: '고르다. 쓰러져도 돋운 것을 잃지 않는다', mod: { keepPart: true }, top: [16, 13] },
+  drop: { name: '방울', say: '고르다. 쓰러져도 단 부위를 잃지 않는다', mod: { keepPart: true }, top: [16, 13] },
   sliver: { name: '별조각', say: '빠르다. 대신 둘레가 어둡다', mod: { sp: 1.08, light: 0.85 }, top: [15, 11] },
   bead: { name: '구슬', say: '한 번 더 버틴다. 대신 느리다', mod: { hp: 1, sp: 0.84 }, top: [16, 17] },
   husk: { name: '빈껍질', say: '물려도 하나만 흘린다. 대신 조금 굼뜨다', mod: { drop: 1, sp: 0.98 }, top: [16, 17] },

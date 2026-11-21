@@ -474,7 +474,7 @@ function cmCombosSheet() {
 }
 function cmDetail(id, uid) {
   if (!id) return; const run = CMU.run, c = uid ? cmCard(+uid) : null, v = c ? CARDMODE.view(run, c) : cmDefView(id), d = cmDef(id), un = d.unlock && CARDS2.UNLOCK[d.unlock];
-  cmSheet('detail', `<div class="dk-detail">${cmFace(v, { cls: 'big' })}<div class="dk-dt"><p><b>${esc(v.name)}</b> <span class="dk-tag" style="--c:${cmCol(d.asp)}">${CMTYPE[d.type]}${d.asp !== 'none' ? ' · ' + CARDS2.ASPN[d.asp] : ''}</span></p><p>${esc(d.more || d.text)}</p>${d.from ? `<p class="dk-mute">← 원래 「${esc(d.baseName || (cmDef(d.from) || {}).name || d.from)}」 · 몸이 다시 쓴 카드</p>` : ''}${d.type !== 'curse' ? `<p class="dk-mute">강화하면: ${esc(CMUPTXT[d.type] || '세진다')}</p>` : ''}${(d.tags || []).length ? `<p class="dk-mute">몸의 꼬리표: ${d.tags.map(cmTagName).join(' · ')}</p>` : ''}${un ? `<p class="dk-lock">${un.hard ? '<span class="dk-hard">도전</span> ' : ''}${esc(un.text)}</p>` : ''}</div></div>`);
+  cmSheet('detail', `<div class="dk-detail">${cmFace(v, { cls: 'big' })}<div class="dk-dt"><p><b>${esc(v.name)}</b> <span class="dk-tag" style="--c:${cmCol(d.asp)}">${CMTYPE[d.type]}${d.asp !== 'none' ? ' · ' + CARDS2.ASPN[d.asp] : ''}</span></p><p>${esc(d.more || d.text)}</p>${d.lore ? `<p class="dk-mute dk-lore">${esc(d.lore)}</p>` : ''}${d.from ? `<p class="dk-mute">← 원래 「${esc(d.baseName || (cmDef(d.from) || {}).name || d.from)}」 · 몸이 다시 쓴 카드</p>` : ''}${d.type !== 'curse' ? `<p class="dk-mute">강화하면: ${esc(CMUPTXT[d.type] || '세진다')}</p>` : ''}${(d.tags || []).length ? `<p class="dk-mute">몸의 꼬리표: ${d.tags.map(cmTagName).join(' · ')}</p>` : ''}${un ? `<p class="dk-lock">${un.hard ? '<span class="dk-hard">도전</span> ' : ''}${esc(un.text)}</p>` : ''}</div></div>`);
 }
 
 // ---- 바늘 점 ----

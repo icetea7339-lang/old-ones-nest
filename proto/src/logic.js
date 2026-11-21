@@ -904,7 +904,7 @@ const NEST = (function () {
   const BURIED = { gold: '진액 맥', bones: '옛 뼈무더기', spring: '지하수', sealed: '봉인된 방', relic: '잊힌 제단' };
   function unearth(G, i) {
     const t = G.buried && G.buried[i]; if (!t) return null; delete G.buried[i]; const c = cm(G); G.stats.found = (G.stats.found || 0) + 1;
-    if (t === 'gold') { earn(G, 60 * c, '진액 맥'); G.cells[i].free = true; return '굳은 진액 맥이 드러났다! +' + 60 * c + '방울. 이 칸은 유지에 진액이 들지 않는다'; }
+    if (t === 'gold') { earn(G, 60 * c, '진액 맥'); G.cells[i].free = true; return '굳은 진액 맥이 드러났다. +' + 60 * c + '방울. 이 칸은 유지에 진액이 들지 않는다'; }
     if (t === 'bones') { for (let k = 0; k < 2; k++) { const m = { id: G.nextId++, name: NAMES[Math.floor(rng(G) * NAMES.length)], kind: 'skeleton', lv: Math.max(1, actOf(G) * 3 - 2) + 1, exp: 0, loc: freeSlot(G, 'skeleton'), hurt: 0, skill: -1, rare: false, age: 0, unpaid: 0 }; autoSkill(m); G.kin.push(m); } return '옛 뼈무더기가 일어났다. ' + KIN.skeleton.name + ' 둘이 따라온다'; }
     if (t === 'spring') { G.cells[i].type = 'pool'; G.cells[i].free = true; return '지하수가 터졌다. 이 칸이 고인 웅덩이가 되었다'; }
     if (t === 'sealed') { const k = gainMut(G, null); G.fear += 8; return '봉인된 방이 열렸다. ' + (k ? '변이 ' + MUT[k].name + ', ' : '') + '공포 +8'; }
@@ -1050,7 +1050,7 @@ const NEST = (function () {
     if (G.cardMode) return fail('권속은 카드로만 들인다');
     const a = G.applicants[i]; if (!a) return fail('없는 것이다');
     if (G.star === 'lone' && G.kin.filter(m => m.kind !== 'spawn').length >= 3) return fail('외톨이 별: 권속은 3명까지다');
-    const cost = acceptCost(G, a); if (!pay(G, cost, '돋운 값')) return fail('진액이 부족하다 (' + cost + '방울)');
+    const cost = acceptCost(G, a); if (!pay(G, cost, '권속 들인 값')) return fail('진액이 부족하다 (' + cost + '방울)');
     const lv = Math.max(1, actOf(G) * 3 - 2) + (a.rare ? 2 : 0);
     const m = { id: G.nextId++, name: a.name, kind: a.kind, lv, exp: 0, loc: freeSlot(G, a.kind), hurt: 0, skill: -1, rare: a.rare, age: 0, unpaid: 0 };
     autoSkill(m); G.kin.push(m); G.applicants.splice(i, 1); note(G, 'accept'); autoPlace(G);
@@ -1198,7 +1198,7 @@ const NEST = (function () {
     if (id === 'informer2') return [
       { label: '붙잡는다 (포로가 된다)', cost: 0, why: G.prison.length >= prisonCap(G) ? '포로를 둘 자리가 없다' : null, run: () => { G.prison.push({ kind: 'detective', vill: 'bell' }); return '밀고자를 고치에 싸 두었다'; } },
       { label: '이중 첩자로 쓴다', cost: 0, run: () => { G.known2 = true; G.spy = true; return '이제 다가오는 무리의 구성이 늘 보인다. 대신 매일 제 몫을 줘야 한다'; } },
-      { label: '모른 척한다', cost: 0, run: () => { G.leak = true; return '다음 큰 밤, 인간들은 네 함정 자리를 알고 온다'; } }];
+      { label: '모른 척한다', cost: 0, run: () => { G.leak = true; return '다음 큰 밤, 땅 위의 것들은 네 함정 자리를 알고 온다'; } }];
     if (id === 'dream') return [{ label: '돋게 둔다 (변이 1, 본체 체력 −30%)', cost: 0, why: G.slime.muts.length >= 6 ? '변이 칸이 가득 찼다' : null, run: () => { const k = gainMut(G, null); G.slime.hp = Math.max(1, G.slime.hp - slimeStats(G).hp * 0.3); return k ? '변이를 얻었다: ' + MUT[k].name : '아무것도 돋지 않았다'; } }, { label: '깬다', cost: 0, run: () => '꿈은 금세 잊혔다' }];
     if (id === 'pilgrims') return [{ label: '맞이한다 (내일 신도 지망자가 온다)', cost: 0, run: () => { G.pilgrims = true; let d = G.day + 5; while (G.eventDays[d]) d++; if (d < K.days) G.eventDays[d] = 'pilgrims2'; return '{순례}들이 근처에 자리를 잡았다'; } }, { label: '쫓아낸다 (공포 +4)', cost: 0, run: () => { G.fear += 4; return '{순례}들이 비명을 지르며 흩어졌다'; } }];
     if (id === 'tax') { const t = Math.round(Math.max(0, G.gold) * 0.1); return [{ label: '달라는 대로 낸다 (' + t + '방울)', cost: 0, run: () => { spend(G, t, '내준 몫'); return t + '방울을 내주었다'; } }, { label: '삼킨다 (시체 1, 공포 +8)', cost: 0, run: () => { addCorpse(G, 'militia'); G.fear += 8; return '거두러 온 자는 돌아가지 못했다'; } }]; }
@@ -1410,7 +1410,7 @@ const NEST = (function () {
       const down = defs.filter(d => d.ref && d.hp <= 0).length;
       ev.push({ t: 'note', txt: rounds + '라운드 교전: ' + kills + '명 쓰러뜨림' + (down ? ', 아군 ' + down + '명 쓰러짐' : '') });
       const liv = defs.filter(d => d.ref && d.hp > 0 && !d.temp);
-      liv.forEach(d => { if (giveExp(d.ref, pool / liv.length)) { autoSkill(d.ref); ev.push({ t: 'fx', u: d.uid, k: 'lvup', txt: d.name + ' 레벨업 → Lv' + d.ref.lv, hp: hpf(d) }); } });
+      liv.forEach(d => { if (giveExp(d.ref, pool / liv.length)) { autoSkill(d.ref); ev.push({ t: 'fx', u: d.uid, k: 'lvup', txt: d.name + '이(가) 한 단계 자랐다 · Lv' + d.ref.lv, hp: hpf(d) }); } });
       if (cell) giveExp(cell, pool);
       defs.forEach(d => { if (d.ref) fought.add(d); });
     }

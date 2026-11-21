@@ -10,7 +10,7 @@ const TRAITS = (function () {
   const COUNTERS = {
     trapKills: '함정으로 쓰러뜨림', kinKills: '권속이 쓰러뜨림', coreKills: '본체가 직접 쓰러뜨림', swallows: '통째로 삼킴',
     infections: '감염시킴', risen: '감염체가 일어남', captives: '산 채로 붙잡음', converts: '믿게 만듦', eaten: '먹어 치움',
-    kinLost: '잃은 권속', nightsAlone: '권속 없이 넘긴 밤', kinMade: '들인 권속', spawns: '돋운 움',
+    kinLost: '잃은 권속', nightsAlone: '권속 없이 넘긴 밤', kinMade: '들인 권속', spawns: '돋아난 움',
     skillsUsed: '쓴 기술', wordsLearned: '배운 사람 말', coreDamage: '본체가 받은 상처', digestKills: '소화액에서 죽음',
     waterKills: '물에서 죽음', pulled: '끌어온 적', madness: '미치게 한 적', routs: '쫓아 보낸 적', shapesPlaced: '놓은 굴', organsPlaced: '놓은 기관',
     trapsPlaced: '단 부위', combos: '맞춘 족보', nightsDark: '빛 없이 넘긴 밤', bossKills: '쓰러뜨린 우두머리',
@@ -63,7 +63,7 @@ const TRAITS = (function () {
     ['root', 'spore', '포자 숲', '뿌리마다 포자가 핀다'], ['wing', 'shadow', '밤의 막', '어둠 속을 미끄러진다'],
     ['face', 'mirror', '남의 얼굴', '적이 저를 저로 본다'], ['tent', 'water', '해구의 팔', '물 밑에서 끌어당긴다'],
     ['eye', 'glow', '등불 눈', '눈이 스스로 빛난다'], ['bone', 'horn', '뼈 왕관', '우두머리를 꿰뚫는다'],
-    ['alone', 'spike', '고슴도치 외톨이', '홀로 남아 가시가 섰다'], ['alone', 'shadow', '마지막 그림자', '아무도 남지 않은 굴'],
+    ['alone', 'spike', '가시로 선 외톨이', '홀로 남아 가시가 섰다'], ['alone', 'shadow', '마지막 그림자', '아무도 남지 않은 굴'],
     ['egg', 'water', '물알', '물속에서 알이 깬다'], ['trap', 'maw', '입 덫', '굴 바닥이 입이 된다'],
     ['trap', 'spore', '포자 덫', '밟으면 포자가 터진다'], ['tongue', 'maw', '긴 혀 아귀', '멀리서 끌어와 삼킨다'],
     ['swarm', 'face', '얼굴 떼', '권속마다 다른 얼굴'], ['star', 'wing', '별 사이 막', '별 사이 바다를 기억한다'],
@@ -100,10 +100,10 @@ const TRAITS = (function () {
     { id: 'madlight', name: '미치게 하는 빛', text: '바라본 것이 제 편을 친다', f: ['glow', 'eye'], fx: g => cnt(g, 'madness') >= 2500, when: g => cnt(g, 'madness') >= 30 && shr(g, 'eye') < 0.45 && shr(g, 'glow') > 0.15 && shr(g, 'eye') + shr(g, 'glow') + shr(g, 'mirror') > 0.45 },
     { id: 'forest', name: '걸어 다니는 숲', text: '포자만 먹고 자란 몸. 걸음마다 숲이 따라 걷는다', f: ['spore', 'root'], fx: g => g.stage >= 3, when: g => shr(g, 'spore') + shr(g, 'root') > 0.55 && shr(g, 'root') >= 0.1 && g.stage >= 3 },
     { id: 'plague', name: '역병 그 자체', text: '닿는 것마다 자기 것이 된다', f: ['spore'], fx: g => cnt(g, 'infections') >= 100, when: g => cnt(g, 'infections') >= 100 && shr(g, 'spore') > 0.36 && shr(g, 'root') < 0.1 },
-    { id: 'scarred', name: '흉터투성이', text: '받은 상처가 다 갑옷이 됐다', f: ['shell', 'spike'], fx: g => cnt(g, 'coreDamage') >= 2500, when: g => cnt(g, 'coreDamage') >= 2000 && cnt(g, 'coreKills') >= 40 && shr(g, 'shell') + shr(g, 'spike') + shr(g, 'bone') > 0.46 },
+    { id: 'scarred', name: '흉터투성이', text: '받은 상처가 모두 갑옷이 되었다', f: ['shell', 'spike'], fx: g => cnt(g, 'coreDamage') >= 2500, when: g => cnt(g, 'coreDamage') >= 2000 && cnt(g, 'coreKills') >= 40 && shr(g, 'shell') + shr(g, 'spike') + shr(g, 'bone') > 0.46 },
     { id: 'echo', name: '위대한 것의 메아리', text: '다섯 빛깔이 다 섞였다. 저 아래의 것을 가장 닮았다', when: g => g.stage >= 5 && TAG_IDS.filter(t => share(g, t) > 0.045).length >= (g.norm ? 10 : 9) && Math.max.apply(null, TAG_IDS.map(t => share(g, t))) < (g.norm ? 0.105 : 0.15) },
-    { id: 'tiny', name: '작은 채로 다 큰 것', text: '끝까지 작았지만 누구보다 오래 살았다', when: g => g.stage <= 3 && cnt(g, 'bossKills') >= 4 },
-    { id: 'hollow', name: '속이 빈 것', text: '먹어도 먹어도 비어 있다', f: ['gut', 'alone'], when: g => shr(g, 'gut') > 0.3 && shr(g, 'alone') > 0.25 },
+    { id: 'tiny', name: '작은 채로 다 큰 것', text: '끝내 작았으나 무엇보다 오래 살아남았다', when: g => g.stage <= 3 && cnt(g, 'bossKills') >= 4 },
+    { id: 'hollow', name: '속이 빈 것', text: '아무리 먹어도 속은 비어 있었다', f: ['gut', 'alone'], when: g => shr(g, 'gut') > 0.3 && shr(g, 'alone') > 0.25 },
     { id: 'crowned', name: '뼈 왕관을 쓴 것', text: '우두머리들의 뿔을 이어 붙였다', f: ['horn'], fx: g => cnt(g, 'bossKills') >= 2, when: g => shr(g, 'horn') > 0.3 && cnt(g, 'bossKills') >= 3 },
     { id: 'patient', name: '기다리는 것', text: '한 자리에서 움직이지 않고 다 먹었다', f: ['maw', 'root'], when: g => classOf(g).loco === 'root' && shr(g, 'maw') > 0.18 && shr(g, 'maw') + shr(g, 'trap') > 0.48 },
     { id: 'drowned', name: '가라앉은 정원', text: '물과 뿌리와 포자가 엉킨 몸', f: ['water', 'root', 'spore'], when: g => (g.tags.water || 0) > 0 && (g.tags.root || 0) > 0 && (g.tags.spore || 0) > 0 && shr(g, 'water') + shr(g, 'root') + shr(g, 'spore') > 0.72 && Math.min(shr(g, 'water'), shr(g, 'root'), shr(g, 'spore')) > 0.14 },
@@ -117,8 +117,8 @@ const TRAITS = (function () {
     { id: 'queen', name: '끝없는 어미', text: '숨 쉴 때마다 알이 떨어진다', f: ['egg', 'swarm'], when: g => shr(g, 'egg') + shr(g, 'swarm') > 0.6 },
     { id: 'veil', name: '거울 너울', text: '보는 이마다 다른 것을 본다', f: ['mirror'], when: g => shr(g, 'mirror') > 0.33 },
     { id: 'shellmind', name: '껍데기 속의 생각', text: '껍데기를 몇 겹 둘렀는지 스스로도 모른다', f: ['shell'], when: g => shr(g, 'shell') > 0.4 && shr(g, 'shell') > shr(g, 'spike') * 1.5 },
-    { id: 'lantern', name: '등불 무리', text: '어둠 속의 작은 해들', f: ['glow'], when: g => shr(g, 'glow') > 0.38 },
-    { id: 'pit', name: '바닥 없는 아가리', text: '몸이 거의 입이다', f: ['maw'], when: g => shr(g, 'maw') > 0.45 },
+    { id: 'lantern', name: '등불 무리', text: '어둠 속에 뜬 작은 해들', f: ['glow'], when: g => shr(g, 'glow') > 0.38 },
+    { id: 'pit', name: '바닥 없는 아가리', text: '몸의 대부분이 입이다', f: ['maw'], when: g => shr(g, 'maw') > 0.45 },
     { id: 'thousandeyes', name: '천의 눈', text: '어느 쪽에서 와도 보인다', f: ['eye'], when: g => shr(g, 'eye') > 0.42 },
     { id: 'trench', name: '걸어 나온 해구', text: '물이 몸이고 몸이 물이다', f: ['water', 'tent'], when: g => shr(g, 'water') + shr(g, 'tent') > 0.6 },
     { id: 'pitfall', name: '굴이 된 몸', text: '어디까지가 굴이고 어디부터 몸인지 모른다', f: ['trap', 'root'], when: g => shr(g, 'trap') + shr(g, 'root') > 0.57 },
@@ -142,23 +142,68 @@ const TRAITS = (function () {
     digestKills: '위액에 녹은 것들이 굴 바닥에 고였고', waterKills: '물에 잠긴 자들이 다시 떠오르지 않았고', pulled: '끌려온 것들의 발버둥이 흙에 새겨졌고', madness: '미쳐 버린 눈동자들이 그것을 비추었고', routs: '달아난 자들의 겁에 질린 냄새가 굴에 남았고', shapesPlaced: '굴은 깊고 길게 뻗어 나갔고',
     organsPlaced: '굴 벽마다 새 기관이 박동했고', trapsPlaced: '굴 곳곳에 그것의 일부가 덫으로 매달렸고', combos: '굴의 모양이 어떤 오래된 무늬와 맞물렸고', nightsDark: '빛 한 줄기 없는 밤이 이어졌고', bossKills: '쓰러진 우두머리의 무게가 그것을 짓눌렀고',
     ess_abyss: '깊은 물의 기운이 스며들었고', ess_nebula: '별 사이의 빛이 스며들었고', ess_brood: '번식의 기운이 스며들었고', ess_dusk: '황혼의 기운이 스며들었고', ess_hunger: '굶주림이 스며들었고' };
-  const GREW = { maw: '배에 새 아가리가 벌어졌다', spore: '등에 포자 주머니가 부풀어 올랐다', eye: '살갗 위로 눈이 하나둘 떠올랐다', water: '몸이 젖은 지느러미로 덮였다', bone: '안쪽에서부터 뼈가 굳어 갔다', tent: '옆구리에서 촉수가 뻗어 나왔다',
-    egg: '배 밑에 알이 매달렸다', spike: '등에 가시가 돋았다', face: '몸 한쪽에 사람의 얼굴이 떠올랐다', gut: '속이 위액 주머니로 채워졌다', shadow: '몸 둘레에 그림자가 엉겨 붙었다', star: '살 속에 별빛 같은 점이 박혔다',
-    trap: '피부 한 곳이 덫처럼 오므라드는 기관으로 바뀌었다', alone: '살은 홀로 서기 위해 굳어 갔다', swarm: '몸이 여럿으로 나뉘어 서로 붙었다', shell: '등이 단단한 껍질로 덮였다', wing: '팔 사이에 얇은 막이 펼쳐졌다',
-    glow: '살갗 아래로 희미한 빛이 번졌다', root: '발밑에서 뿌리가 흙을 파고들었다', mirror: '살갗이 거울처럼 매끈해졌다', tongue: '입 밖으로 긴 혀가 늘어졌다', horn: '머리에 뿔이 솟았다' };
+  // 돋은 것: 형질마다 세 갈래 문장. 시드와 허물 단계로 하나를 고른다
+  const GREW = {
+    maw: ['배에 새 아가리가 벌어졌다', '살이 갈라진 자리에 이빨이 두 줄로 돋았다', '몸 한가운데에 닫히지 않는 입이 생겼다'],
+    spore: ['등에 포자 주머니가 부풀어 올랐다', '숨을 쉴 때마다 누런 가루가 흩어졌다', '살갗 여기저기에 곰팡이 같은 갓이 피었다'],
+    eye: ['살갗 위로 눈이 하나둘 떠올랐다', '감기지 않는 눈이 등에 열렸다', '어둠 속에서 저절로 깜빡이는 것들이 몸을 덮었다'],
+    water: ['몸이 젖은 지느러미로 덮였다', '살갗은 마르지 않는 점액으로 번들거렸다', '옆구리에 아가미 같은 틈이 벌어졌다'],
+    bone: ['안쪽에서부터 뼈가 굳어 갔다', '살을 뚫고 흰 뼈가 갑옷처럼 솟았다', '걸음마다 뼈마디가 마른 소리를 냈다'],
+    tent: ['옆구리에서 촉수가 뻗어 나왔다', '몸 밑에서 가는 팔들이 흙을 더듬기 시작했다', '어깨였던 자리가 풀려 여러 갈래의 팔이 되었다'],
+    egg: ['배 밑에 알이 매달렸다', '살 속에 반투명한 알들이 줄지어 박혔다', '몸 안쪽에서 무언가가 차례를 기다리며 움직였다'],
+    spike: ['등에 가시가 돋았다', '살갗이 굳으며 끝이 날카로워졌다', '만지는 것마다 피를 보게 하는 털이 났다'],
+    face: ['몸 한쪽에 사람의 얼굴이 떠올랐다', '살갗이 주름지며 낯익은 이목구비를 흉내 냈다', '어디선가 본 얼굴이 몸 위에서 눈을 떴다'],
+    gut: ['속이 위액 주머니로 채워졌다', '삼킨 것은 무엇이든 녹아내리는 배가 되었다', '몸 안에서 산 같은 것이 끓는 소리가 났다'],
+    shadow: ['몸 둘레에 그림자가 엉겨 붙었다', '빛을 받아도 윤곽이 흐려졌다', '그것이 지나간 자리는 한동안 더 어두웠다'],
+    star: ['살 속에 별빛 같은 점이 박혔다', '살갗 아래로 낯선 별자리가 떠올랐다', '몸에서 차가운 하늘의 냄새가 났다'],
+    trap: ['피부 한 곳이 덫처럼 오므라드는 기관으로 바뀌었다', '살이 벌어졌다 닫히는 주름이 생겼다', '몸 곳곳에 무언가를 물고 놓지 않는 틈이 생겼다'],
+    alone: ['살은 홀로 서기 위해 굳어 갔다', '더는 무엇도 떼어 내지 않는 몸이 되었다', '그것은 다른 것에 기대지 않는 무게를 얻었다'],
+    swarm: ['몸이 여럿으로 나뉘어 서로 붙었다', '작은 몸들이 한 덩이로 엉겨 숨을 맞추었다', '하나라고 부르기 어려운 무리가 되었다'],
+    shell: ['등이 단단한 껍질로 덮였다', '살갗이 겹겹이 굳어 비늘이 되었다', '부드러운 곳은 모두 안으로 숨었다'],
+    wing: ['팔 사이에 얇은 막이 펼쳐졌다', '등에서 접힌 막이 돋아 바람을 탔다', '살갗이 늘어나 반투명한 날개막이 되었다'],
+    glow: ['살갗 아래로 희미한 빛이 번졌다', '어둠 속에서 몸이 스스로 빛을 냈다', '숨을 쉴 때마다 푸른빛이 오르내렸다'],
+    root: ['발밑에서 뿌리가 흙을 파고들었다', '몸의 아랫부분이 굴 바닥과 엉겨 붙었다', '가는 뿌리털이 살에서 흙으로 번졌다'],
+    mirror: ['살갗이 거울처럼 매끈해졌다', '몸에 비친 것들이 조금 늦게 움직였다', '들여다보는 자의 얼굴이 몸 위에서 일그러졌다'],
+    tongue: ['입 밖으로 긴 혀가 늘어졌다', '혀가 몸보다 길게 자라 굴 바닥을 핥았다', '맛을 보는 기관이 온몸으로 번졌다'],
+    horn: ['머리에 뿔이 솟았다', '이마의 뼈가 갈라지며 굽은 뿔이 자랐다', '머리 위로 뒤틀린 관 같은 것이 솟았다'] };
+  // 덱의 카드를 거듭 쓴 까닭: 형질마다 세 갈래 ("-고"로 끝나는 앞 절)
+  const DIDTAG = {
+    maw: ['굴에 벌려 둔 아가리들이 밤마다 배를 채웠고', '삼키는 일이 되풀이되었고', '굴은 거듭 입을 벌렸고'],
+    spore: ['포자가 굴 안 공기를 무겁게 했고', '썩음이 굴 깊숙이 번졌고', '젖은 가루가 밤마다 흩날렸고'],
+    eye: ['굴 벽의 눈들이 밤새 내려오는 자들을 지켜보았고', '보는 일이 잦아졌고', '어둠 속에서 눈길이 쌓였고'],
+    water: ['굴 바닥에 차오른 물이 빠지지 않았고', '물에 잠기는 밤이 거듭되었고', '습기가 흙의 맛을 바꾸었고'],
+    bone: ['쌓인 뼈들이 굴을 받쳤고', '마른 것들이 무너지지 않고 버텼고', '굴 벽에 뼈가 박혀 갔고'],
+    tent: ['굴 곳곳에서 팔이 뻗어 나와 붙잡았고', '붙들고 끌어들이는 일이 거듭되었고', '보이지 않는 손이 길목을 더듬었고'],
+    egg: ['알집이 쉬지 않고 무언가를 낳았고', '굴 안에 알이 쌓여 갔고', '새로 깬 것들의 울음이 그치지 않았고'],
+    spike: ['가시 박힌 길목에서 피가 마르지 않았고', '날카로운 것들이 굴을 채웠고', '지나가는 자마다 상처를 입었고'],
+    face: ['삼킨 자들의 얼굴이 꿈에 자주 떠올랐고', '사람의 말과 낯이 둥지에 스며들었고', '흉내 내는 일이 늘어 갔고'],
+    gut: ['녹여 먹는 일이 거듭되었고', '굴 바닥의 위액이 마를 새가 없었고', '삼킨 것들이 남김없이 녹았고'],
+    shadow: ['굴은 빛을 받아들이지 않았고', '숨어서 기다리는 밤이 많았고', '그림자 속에서 일이 벌어졌고'],
+    star: ['밤마다 별의 손길로 끼어들었고', '하늘의 무늬를 빌려 쓰는 일이 잦았고', '바늘에 닿는 주문이 거듭되었고'],
+    trap: ['덫에 걸린 자들이 끊이지 않았고', '굴 곳곳에 그것의 일부가 덫으로 매달렸고', '물고 놓지 않는 일이 거듭되었고'],
+    alone: ['곁을 지키는 것 없이 밤을 넘겼고', '홀로 버티는 일이 거듭되었고', '살붙이 없는 굴에 바람만 지나갔고'],
+    swarm: ['권속이 굴을 가득 메웠고', '무리 지어 싸우는 일이 거듭되었고', '작은 것들이 서로를 밀며 늘어났고'],
+    shell: ['굳게 버티는 일이 거듭되었고', '맞고도 무너지지 않는 밤이 이어졌고', '단단한 것들이 굴을 지켰고'],
+    wing: ['재빨리 옮겨 다니는 일이 잦았고', '바람이 굴을 드나들었고', '길목을 건너뛰는 일이 거듭되었고'],
+    glow: ['어둠 속에서 빛을 피우는 일이 잦았고', '빛에 이끌린 자들이 굴로 들어왔고', '굴 벽이 희미하게 빛났고'],
+    root: ['둥지가 흙 속으로 깊이 뻗었고', '한자리를 지키는 밤이 길어졌고', '굴 바닥이 그것의 몸과 이어졌고'],
+    mirror: ['홀린 자들이 제 편을 쳤고', '비치고 속이는 일이 거듭되었고', '굴 안에서 무엇이 진짜인지 흐려졌고'],
+    tongue: ['끌어들이는 일이 거듭되었고', '맛보는 것마다 굴로 끌려왔고', '길게 뻗은 것이 먹이를 감아 왔고'],
+    horn: ['들이받아 쫓아내는 일이 잦았고', '정면으로 맞서는 밤이 거듭되었고', '부딪쳐 부수는 일이 몸에 익었고'] };
+  const pick3 = (arr, key) => Array.isArray(arr) ? arr[hash(String(key)) % arr.length] : arr;
   // 한 형질이 왜 돋았나를 한 문장으로 (원인 셈이 없으면 결과만)
-  function tell(t, k) {
-    const g = GREW[t] || '몸이 조금 달라졌다';
+  function tell(t, k, key) {
+    const kk = t + ':' + (key == null ? 0 : key), g = pick3(GREW[t], kk) || '몸이 조금 달라졌다';
     if (!k) return '어느새 ' + g + '.';
-    if (k.indexOf('look:') === 0) return '떨어질 때 받은 모양이 아직 남아 있었고, ' + g + '.';
-    if (k.indexOf('pro:') === 0) return ['한 방울이던 때 삼킨 것들이 아직 몸 안에 남아 있었고', '흙 속을 기어 다니던 날들이 살에 새겨졌고', '처음 깨어난 어둠의 맛이 가시지 않았고'][TAG_IDS.indexOf(t) % 3] + ', ' + g + '.';
-    if (k.indexOf('tag:') === 0) { const tn = TAGS[k.slice(4)] ? TAGS[k.slice(4)].name : ''; return (tn ? tn + '의 기운을 거듭 불러낸 버릇이 몸에 배었고, ' : '같은 것을 거듭 불러낸 버릇이 몸에 배었고, ') + g + '.'; }
+    if (k.indexOf('look:') === 0) return pick3(['떨어질 때 받은 모양이 아직 남아 있었고', '처음 흙에 닿았을 때의 생김새가 가시지 않았고', '별에서 가져온 모양이 살 속에 남았고'], kk) + ', ' + g + '.';
+    if (k.indexOf('pro:') === 0) return pick3(['한 방울이던 때 삼킨 것들이 아직 몸 안에 남아 있었고', '흙 속을 기어 다니던 날들이 살에 새겨졌고', '처음 깨어난 어둠의 맛이 가시지 않았고'], kk) + ', ' + g + '.';
+    if (k.indexOf('tag:') === 0) { const tt = k.slice(4); return (pick3(DIDTAG[tt], kk) || '같은 일이 거듭되었고') + ', ' + g + '.'; }
     return (DID[k] || '굴에서 일어난 일들이 몸에 남았고') + ', ' + g + '.';
   }
   // 허물의 "왜": 위쪽 형질 셋을 이야기로
-  function narrate(g, n) { return topTags(g, n || 3).map(t => { const f = (g.feed[t] || [])[0]; return tell(t, f ? f[0] : null); }); }
+  function narrate(g, n) { return topTags(g, n || 3).map(t => { const f = (g.feed[t] || [])[0]; return tell(t, f ? f[0] : null, (g.seed || 0) + ':' + (g.stage || 1)); }); }
   // 하루 사이 가장 크게 자란 형질과 그 까닭
-  function grewMost(g0, g1) { let best = null, bv = 0; for (const t of TAG_IDS) { const d = (g1.tags[t] || 0) - ((g0 && g0.tags[t]) || 0); if (d > bv) { bv = d; best = t; } } if (!best) return null; const f = (g1.feed[best] || [])[0]; return { tag: best, gain: +bv.toFixed(2), line: tell(best, f ? f[0] : null) }; }
+  function grewMost(g0, g1) { let best = null, bv = 0; for (const t of TAG_IDS) { const d = (g1.tags[t] || 0) - ((g0 && g0.tags[t]) || 0); if (d > bv) { bv = d; best = t; } } if (!best) return null; const f = (g1.feed[best] || [])[0]; return { tag: best, gain: +bv.toFixed(2), line: tell(best, f ? f[0] : null, (g1.seed || 0) + ':' + Object.keys(g1.seen || {}).reduce((x, y) => x + (g1.seen[y] || 0), 0)) }; }
   function newGenome(o) { o = o || {}; return { norm: !!o.norm, aspect: o.aspect || 'abyss', sub: o.sub || null, stage: o.stage || 1, tags: {}, seed: (o.seed >>> 0) || 1, lineage: o.lineage || [], feed: {}, seen: {}, look: o.look && LOOKSEED[o.look] ? o.look : null, pro: o.pro || null }; }
   function addBehaviour(g, counters) {
     const seen = g.seen = Object.assign({}, g.seen || {});

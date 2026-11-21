@@ -645,7 +645,7 @@ async function playEvents(ev, from) {
       const u = e.u && E[e.u];
       if (u) {
         if (e.hp != null) u.hp = e.hp;
-        const tag = { bind: '묶임', flee: '광란!', kneel: '꿇음', infight: '내분!', revive: '부활', heal: '+', lvup: 'Lv UP', back: '후퇴' }[e.k]; if (tag) u.tag = { s: tag, t0: now(), col: ['flee', 'kneel', 'infight'].includes(e.k) ? '#c8a8ff' : '#fff3a0' };
+        const tag = { bind: '묶임', flee: '광란', kneel: '꿇음', infight: '내분', revive: '부활', heal: '+', lvup: 'Lv UP', back: '후퇴' }[e.k]; if (tag) u.tag = { s: tag, t0: now(), col: ['flee', 'kneel', 'infight'].includes(e.k) ? '#c8a8ff' : '#fff3a0' };
         if (e.k === 'kneel') { u.kneel = true; u.alpha = 0.6; u.sp = 0; sfx('mad'); }
         if (e.k === 'flee') { u.sp = 0; sfx('mad'); moveTo(u, shaft, 500); setTimeout(() => { u.gone = true; }, 520 / ST.speed); }
         if (e.k === 'infight' && e.hit) applyHit(e.hit);
@@ -670,7 +670,7 @@ async function playEvents(ev, from) {
       if (e.amt > 0) { const r = cellRect(G.core); ST.floats.push({ x: r.x + r.w / 2, y: r.y + 40, s: '-' + e.amt + '방울', col: '#ff5f57', t0: now(), big: true }); sfx('down'); }
       await wait(600);
     } else if (e.t === 'end') {
-      ST.label = { repel: '격퇴!', stolen: '쓰러졌다… 진액을 털렸다', core: '본체가 쓰러졌다' }[e.result]; sfx(e.result === 'repel' ? 'up' : 'down'); FX.nightEnd(e.result); await wait(1000); ST.label = '';
+      ST.label = { repel: '밤을 넘겼다', stolen: '쓰러졌다. 진액을 빼앗겼다', core: '본체가 쓰러졌다' }[e.result]; sfx(e.result === 'repel' ? 'up' : 'down'); FX.nightEnd(e.result); await wait(1000); ST.label = '';
     }
   }
   return ev.length;
