@@ -13,7 +13,7 @@ function census() {   // 고리마다 무엇이 사는가
 }
 
 function play(kind, asp, seed, look) {
-  const sim = PRO.makeSim(Object.assign({ asp, seed, look }, process.env.STORY ? { story: require('../src/logic.js').STORYCH[1].pro } : {})), S = sim.S, P = sim.P, careful = kind !== 'careless', buys = kind === 'greedy' || kind.indexOf('planned') === 0;
+  const sim = PRO.makeSim(Object.assign({ asp, seed, look }, process.env.STORY ? { story: require('../src/logic.js').STORYCH[1].pro } : process.env.SHORT || global.__PRO_SHORT ? { short: true } : {})), S = sim.S, P = sim.P, careful = kind !== 'careless', buys = kind === 'greedy' || kind.indexOf('planned') === 0;
   // ---- 보이는 것만 안다 (prologue2.js 의 그리기와 같은 규칙) ----
   const LIT = new Set(['chase', 'dash', 'lunge', 'aim', 'tell', 'hunt', 'out']);
   const viewR = () => 250 / PRO.STG[S.stage].zoom;
@@ -86,7 +86,7 @@ function play(kind, asp, seed, look) {
   return { eco: S.eco, look: sim.look, stage: S.stage, end: S.ended || 'none', time: Math.round(S.t / TPS), defeats: S.stats.defeats, hits: S.stats.hits, parts: r.parts.reduce((a, p) => a + p.lv, 0), ess, gold: r.gold, mut: r.mut, bio: Math.round(S.bio), spent: Math.round(S.spent), acts: S.stats.acts, log, r, byKind: S.stats.byKind };
 }
 
-if (FORMS_MODE) {
+if (require.main !== module) { module.exports = { play }; } else if (FORMS_MODE) {
   // 몸마다: 닿은 몸의 분포, 다 자란 비율, 첫 몸에서 끝난 판, 평균 시간·쓰러짐·정수
   for (const who of WHO) {
     console.log('== ' + who + ' · 몸마다 ' + N + '판'); const rows = [];

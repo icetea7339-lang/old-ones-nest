@@ -522,6 +522,8 @@ function drawSurface(x, t) {
   else if (!night) { const a = NEST.estimate(G, 'tonight'), b = NEST.estimate(G, 'tomorrow'); if (b) drawParty(x, t, b, 0.3, '내일 밤', '#ffb347'); if (a) drawParty(x, t, a, 0.5, '오늘 밤', '#ff5f57'); }
 }
 
+// 떠오르는 피해 글: 같은 자리에 가까운 때 뜬 것은 위로 한 줄씩 쌓아 겹치지 않게
+function floatStack() { const fl = ST.floats; for (let a = 0; a < fl.length; a++) { let n = 0; for (let b = 0; b < a; b++) if (Math.abs(fl[b].x - fl[a].x) < 40 && Math.abs(fl[b].y - fl[a].y) < 22 && fl[a].t0 - fl[b].t0 < 700) n++; fl[a].dy = n * 16; } }
 // ---------- 그리기 ----------
 function drawStage() {
   const c = $('stage'), x = c.getContext('2d'), t = now(); if (!G) return;
@@ -531,6 +533,10 @@ function drawStage() {
   const fitH = G && c.clientHeight >= 360 ? Math.max(H, UH()) : H; ST.vh = H + (fitH - H) * ST.p; let VH = ST.vh, k0 = c.height / VH;
   // 카드 판: 둥지 너비 전체가 한 화면에 들어오게 맞춘다 (가까이 보기를 고르면 예전처럼). 남는 높이는 위아래로 나눈다
   ST.oyFit = 0; if (typeof cmFitOn === 'function' && cmFitOn() && ST.p > 0.999) { const kw = c.width / UW(); if (kw < k0) { k0 = kw; VH = c.height / k0; ST.vh = VH; ST.oyFit = Math.max(0, (VH - UH()) / 2); } }
+  // 밤, 좁은 화면: 싸우는 방으로 당겨 본다 (방 하나가 화면 너비의 절반쯤). 움직임 줄이기를 켜면 부드럽게 다가가지 않고 바로 바뀐다
+  { const nzT = ST.mode === 'night' && ST.screen === 'under' && ST.p > 0.999 && c.clientWidth < 760 && !ST.march ? Math.max(1, Math.min(2.6, (c.width * 0.5) / (CW * k0))) : 1;
+    ST.nz = ST.nz || 1; ST.nz += (nzT - ST.nz) * (motionOk() ? 0.1 : 1); if (Math.abs(nzT - ST.nz) < 0.004) ST.nz = nzT;
+    if (ST.nz > 1.001) { k0 *= ST.nz; VH = c.height / k0; ST.vh = VH; ST.oyFit = Math.max(0, (VH - UH()) / 2); } }
   const VW = c.width / k0; const WW = worldW(); ST.viewW = Math.min(WW, VW); ST.ox = Math.max(0, (VW - WW) / 2); ST.fm = Math.max(1, Math.min(1.7, 0.86 * dpr / k0));
   if (ST.camFor !== G) { ST.camFor = G; if (ST.screen === 'under' && ST.mode === 'day') { camCell(G.core, true); ST.camMem.under = ST.cam.tx; } }   // 새 판은 동굴 한 칸뿐이다. 그 칸이 먼저 보여야 한다
   if (ST.march && ST.screen === 'surface') camTo(pathPoint(ST.march.est.vill, 0.5 + 0.5 * Math.min(1, (t - ST.march.t0) / ST.march.dur)).x);
@@ -547,7 +553,7 @@ function drawStage() {
   x.save(); x.translate(Math.round(ST.ox - ST.cam.x), Math.round((ST.oyFit || 0) - (ST.cam.y || 0)));
   ST.shook = 0; if (ST.shake > t && motionOk()) { const m = ST.shakeMag || 1; ST.shook = m; x.translate((Math.random() - 0.5) * 8 * m, (Math.random() - 0.5) * 6 * m); } else if (ST.shake <= t) ST.shakeMag = 0;
   if (ST.p < 0.999) { x.save(); x.translate(0, Math.round(-H * ST.p)); drawSurface(x, t); x.restore(); }
-  if (ST.p > 0.001) { x.save(); x.translate(0, Math.round(H * (1 - ST.p) - (ST.cam.v || 0))); drawUnder(x, t); ST.floats = ST.floats.filter(f => t - f.t0 < 800); ST.floats.forEach(f => { const k = (t - f.t0) / 800; x.globalAlpha = 1 - k; txt(x, f.s, f.x, f.y - k * 26, f.col, f.big ? 20 : 14, 'center'); x.globalAlpha = 1; }); x.restore(); }
+  if (ST.p > 0.001) { x.save(); x.translate(0, Math.round(H * (1 - ST.p) - (ST.cam.v || 0))); drawUnder(x, t); ST.floats = ST.floats.filter(f => t - f.t0 < 800); floatStack(); ST.floats.forEach(f => { const k = (t - f.t0) / 800; x.globalAlpha = 1 - k; txt(x, f.s, f.x, f.y - k * 26 - (f.dy || 0), f.col, f.big ? 20 : 14, 'center'); x.globalAlpha = 1; }); x.restore(); }
   x.restore();
   { const g = x.createRadialGradient(VW / 2, VH / 2, VH * 0.42, VW / 2, VH / 2, Math.max(VW, VH) * 0.78); g.addColorStop(0, 'rgba(5,3,12,0)'); g.addColorStop(1, 'rgba(5,3,12,' + (0.22 + 0.36 * ST.p).toFixed(2) + ')'); x.fillStyle = g; x.fillRect(0, 0, VW + 1, H); }
   if (ST.flash > t) rect(x, ST.flashCol || (motionOk() ? '#ffffff55' : '#ffffff1a'), 0, 0, VW + 1, VH); else ST.flashCol = null;

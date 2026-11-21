@@ -669,7 +669,7 @@ function settingsHtml() {
     <div class="row"><span class="grow">밤에 멈춰서 손을 쓸 때</span>${[['settle', '보통'], ['always', '방마다'], ['never', '안 멈춤']].map(([k, l]) => btn('set', { k: 'pause', v: k }, l, 'sm' + (META.pause === k ? ' on' : ''))).join('')}</div>
     <p class="small mute">보통: 달이 기우는 밤은 방마다, 다른 밤은 큰 싸움에서 한 번 멈춘다.</p>
     <div class="row"><span class="grow">해금</span>${btn('set', { k: 'open', v: 0 }, '흔적으로 연다', 'sm' + (META.openAll ? '' : ' on'))}${btn('set', { k: 'open', v: 1 }, '전부 열어 둔다', 'sm' + (META.openAll ? ' on' : ''))}</div>
-    <div class="row"><span class="grow">기록 (판 ${META.runs} · 깨어남 ${META.clears})</span>${btn('wipe', null, '모두 지우기', 'sm bad')}</div>
+    <div class="row"><span class="grow">기록 (판 ${META.runs} · 깨어남 ${META.clears})</span>${btn('wipe', null, '데이터 초기화', 'sm bad')}</div>
     <p class="small mute">글꼴: IBM Plex Sans KR (SIL OFL 1.1)</p>`, closeBtn());
 }
 
@@ -728,11 +728,33 @@ async function autoMorning() {
   while (G.edictDay !== G.day) { if (G.edictChDay !== G.day) { G.edictCh = NEST.edictChoices(G); G.edictChDay = G.day; saveRun(); } const v = await modal(edictHtml(), false, null); if (!G) return; if (NEST.EDICT[v]) { NEST.setEdict(G, v); sfx('talk'); saveRun(); } }
   AUTO.log = []; autoRun();
 }
+// 저장본 검사: 판 저장이 상했으면 따로 치워 두고(oldnest.<이름>.bad) 첫 화면에 한 줄 알린다. 어떤 경우에도 첫 화면은 뜬다
+const SAVE_BAD = '저장본이 상하여 따로 치워 두었다. 새로 시작한다.';
+function runOk(g) { return !!(g && typeof g === 'object' && Array.isArray(g.cells) && g.cells.length >= 4 && g.cells.every(c => c && typeof c === 'object' && Array.isArray(c.traps)) && Array.isArray(g.kin) && g.kin.every(m => m && typeof m === 'object' && typeof m.kind === 'string') && g.slime && typeof g.slime === 'object' && g.slime.ess && typeof g.slime.ess === 'object' && typeof g.day === 'number' && g.day >= 1 && g.march && typeof g.march === 'object' && Array.isArray(g.prison) && Array.isArray(g.corpses) && typeof g.gold === 'number' && isFinite(g.gold)); }
+function cardRunOk(r) { return !!(r && typeof r === 'object' && runOk(r.G) && ['deck', 'hand', 'drawP', 'disc'].every(k => Array.isArray(r[k])) && r.deck.every(c => c && typeof c === 'object' && c.uid != null && typeof c.id === 'string')); }
+function setAside(k) { try { const raw = localStorage.getItem('oldnest.' + k); if (raw != null) localStorage.setItem('oldnest.' + k + '.bad', raw); } catch (e) { /* 저장 불가 */ } store.del(k); }
+function checkSaves() {
+  let bad = false; const has = k => { try { return localStorage.getItem('oldnest.' + k) != null; } catch (e) { return false; } };
+  if (has('run') && !runOk(store.get('run'))) { setAside('run'); bad = true; }
+  if (has('cardrun') && !cardRunOk(store.get('cardrun'))) { setAside('cardrun'); bad = true; }
+  if (UI.saveBad) { UI.saveBad = false; bad = true; }
+  return bad ? SAVE_BAD : '';
+}
 function showTitle() {
   { const er = store.get('err'); if (er && $('nojs')) { $('nojs').hidden = false; $('nojs').style.display = 'block'; $('nojs').textContent = '지난번에 문제가 있었습니다. 이 줄을 그대로 알려 주세요: ' + er; } }
-  G = null; busy = false; $('game').hidden = true; $('title').hidden = false; const run = store.get('run'), free = META.lastDraw !== today();
+  G = null; busy = false; $('game').hidden = true; $('title').hidden = false; const bad = checkSaves(), run = store.get('run'), free = META.lastDraw !== today();
   const so = storyMeta(), fresh = !so.clear[3];
-  $('menu').innerHTML = (run ? btn('continue', null, `이어하기 <small>${run.story && NEST.STORYCH[run.story.ch] ? run.story.ch + '장 「' + NEST.STORYCH[run.story.ch].title + '」 · ' : ''}${run.day}일째${!run.story && run.sign && NEST.SIGN[run.sign] ? ' · ' + NEST.SIGN[run.sign].name : ''}</small>`, 'pri w2') : '') + btn('story', null, `이야기 <small>${so.clear[1] ? '이어서 · ' + Math.min(7, storyNext()) + '장' : '처음이라면 여기부터'} · 장마다 하나씩 배우며 줄거리를 따라간다</small>`, (run || !fresh ? '' : 'pri ') + 'w2') + btn('new', null, '자유 <small>익숙한 사람용 · 모든 것이 열린 채 40일 버티기 · 점수로 겨룬다</small>', (run || fresh ? '' : 'pri ') + 'w2') + btn('deck', null, '카드 <small>시험판 · 카드로 굴을 짓고 밤은 저절로</small>', 'w2') + btn('barracks', null, '명부 · 별똥별' + (free ? ' <span class="coin">●</span>' : '')) + btn('records', null, '기록 · 순위') + btn('codex', null, '도감') + btn('help', null, '도움말') + btn('settings', null, '설정', 'w2');
+  // 정문은 카드 판(시작). 이야기와 옛 방식은 아랫줄. 이어하기는 어느 판이든 첫 화면에서
+  const crun = store.get('cardrun'), cDay = crun && crun.G ? crun.G.day : 0, cAsp = crun && NEST.ASP[crun.aspect] ? NEST.ASP[crun.aspect] : '';
+  const runStory = !!(run && run.story && NEST.STORYCH[run.story.ch]), runTxt = run ? (runStory ? run.story.ch + '장 「' + NEST.STORYCH[run.story.ch].title + '」 · ' : '') + run.day + '일째' : '';
+  $('menu').innerHTML = (bad ? `<p class="small warnc w2" style="grid-column:1/-1;margin:0">${esc(bad)}</p>` : '')
+    + (crun ? btn('ccont', null, `이어하기 <small>${cDay}일째${cAsp ? ' · ' + cAsp : ''} · 카드로 짓는 둥지</small>`, 'pri w2') : '')
+    + btn('deck', null, `${crun ? '새로 시작' : '시작'} <small>카드로 굴을 짓고, 밤은 저절로 싸운다</small>`, (crun ? '' : 'pri ') + 'w2')
+    + (run ? btn('continue', null, `${runStory ? '이야기 이어하기' : '옛 판 이어하기'} <small>${esc(runTxt)}</small>`, 'w2') : '')
+    + btn('story', null, `이야기 <small>${so.clear[1] ? Math.min(7, storyNext()) + '장부터' : '줄거리 따라 배우기'}</small>`) + btn('codex', null, '도감')
+    + btn('records', null, '기록 · 순위') + btn('help', null, '도움말') + btn('settings', null, '설정', 'w2')
+    // 자유(옛 방식)는 내렸다. 코드는 두고, 자동 시험에서만 그 문으로 들어간다 (이야기와 같은 엔진을 시험하려고)
+    + (navigator.webdriver ? btn('new', null, '옛 방식 <small>시험용</small>') + btn('barracks', null, '명부 · 별똥별' + (free ? ' ●' : '')) : '');
   typeof music === 'function' && music('title');
   $('trec').textContent = META.best ? `최고 기록 ${META.best.grade} ${R(META.best.total)}점 · ${META.best.form} · 깨어남 ${META.clears}회` : '아직 기록이 없다';
 }
@@ -935,6 +957,7 @@ async function endDay() {
   if (G.cardMode && typeof cmNightAsk === 'function') return cmNightAsk();
   if (G.ap > 0 && !UI.confirmEnd) { UI.confirmEnd = true; render(); return; }
   busy = true; UI.confirmEnd = false; UI.sel = null; if (!$('modal').hidden) closeModal(); toast(null);
+  G.nightLock = G.day; saveRun();
   const day = G.day, tonight = G.march.tonight, before = { origin: G.origin, body: G.slime.body, main: G.slime.main, sub: G.slime.sub, stage: G.slime.stage, muts: G.slime.muts.slice() };
   ST.hud = { gold: G.gold, faith: G.faith, fear: G.fear }; ST.skip = false; ST.asked = false; ST.pick = null; setNight(true); hud(); { const e = G.sealed ? null : NEST.estimate(G, 'tonight'); typeof music === 'function' && music(e && e.boss && e.boss !== 'captain' ? 'boss' : 'night'); }
   const it = NEST.beginNight(G); prepareNight(); let rep = null;
@@ -944,7 +967,7 @@ async function endDay() {
     while (!r.done) { played = await playEvents(r.value.ev, played); const ans = await askHand(r.value); r = it.next(ans); }
     rep = r.value; await playEvents(rep.ev, played); await wait(300);
   }
-  const st = NEST.settle(G, rep); checkFeats();
+  const st = NEST.settle(G, rep); G.nightLock = null; checkFeats();
   ST.ents = null; ST.hud = null; ST.skip = false; ST.focus = null; setNight(false); setScreen('under'); render(); typeof music === 'function' && music('day');
   sfx(rep && rep.result !== 'repel' ? 'down' : 'coin');
   { const firstCap = rep && rep.captives && rep.captives.length && G.stats.captives === rep.captives.length, pm = modal(settleHtml(rep, st, day)); if (firstCap) setTimeout(() => FX.captive(document.querySelector('#modal .card')), 140); await pm; }
@@ -1009,12 +1032,15 @@ function onAction(el) {
   if (a === 'share') { try { navigator.clipboard.writeText(d.v).then(() => { el.textContent = '복사했다'; }, () => { el.textContent = '복사하지 못했다'; }); } catch (e) { el.textContent = '복사하지 못했다'; } return; }
   if (a === 'settings') return void openM(settingsHtml, false);
   if (a === 'set') { if (d.k === 'sound') META.sound = d.v === '1'; if (d.k === 'shake') META.shake = d.v === '1'; if (d.k === 'trace') META.trace = d.v === '1'; if (d.k === 'music') { META.music = d.v === '1'; typeof musicSet === 'function' && musicSet(META.music); } if (d.k === 'pause') META.pause = d.v; if (d.k === 'open') { META.openAll = d.v === '1'; if (G) render(); } saveMeta(); sfx('click'); redrawM(); return; }
-  if (a === 'wipe') { if (el.dataset.sure) { store.del('meta'); store.del('run'); META = META0(); closeModal(); if (!G) showTitle(); } else { el.dataset.sure = 1; el.textContent = '정말 지운다'; } return; }
+  if (a === 'wipe') { if (el.dataset.sure) { ['meta', 'run', 'cardrun', 'run.bad', 'cardrun.bad', 'err'].forEach(k => store.del(k)); META = repairMeta(META0()); closeModal(); G = null; busy = false; if (typeof CMU !== 'undefined' && CMU) CMU.run = null; showTitle(); } else { el.dataset.sure = 1; el.textContent = '정말 지운다 (되돌릴 수 없다)'; } return; }
   if (a === 'new') return void newRun();
   if (a === 'story') return void storyMenu();
-  if (a === 'deck') return void (typeof cardOpen === 'function' ? cardOpen() : deckOpen());
+  if (a === 'deck') return void cardOpen();
   if (a === 'reroll') { if (META.dust < REROLL || signPool().length < 2) return; META.dust -= REROLL; rollSign(); sfx('spell'); return closeModal('redraw'); }
-  if (a === 'continue') { const run = store.get('run'); if (run) { G = NEST.migrate(run); G.auto = false; NEST.applyWorld(G.world); showGame(); morningFlow(); } return; }
+  if (a === 'continue') { const run = store.get('run'); if (!run) return; try { if (!runOk(run)) throw new Error('bad run'); G = NEST.migrate(run); G.auto = false; NEST.applyWorld(G.world); showGame();
+      if (G.nightLock === G.day) { busy = false; UI.confirmEnd = true; render(); endDay(); } else morningFlow(); } catch (e) { console.error(e); setAside('run'); UI.saveBad = true; G = null; showTitle(); } return; }
+  if (a === 'ccont') { const r = store.get('cardrun'); if (!cardRunOk(r) || typeof cmContinue !== 'function') { setAside('cardrun'); UI.saveBad = true; return showTitle(); }
+    UI.contWatch = Date.now(); try { if (typeof cmMount === 'function') cmMount(); if (typeof cmMeta === 'function') cmMeta(); cmContinue(); } catch (e) { console.error(e); setAside('cardrun'); UI.saveBad = true; G = null; showTitle(); } return; }
   if (a === 'setup') { const o = UI.setup; if (d.k === 'bring') { const k = o.bring.indexOf(+d.v); if (k >= 0) o.bring.splice(k, 1); else if (o.bring.length < 2) o.bring.push(+d.v); } else if (d.k === 'tut') o.tut = !o.tut; else if (d.k === 'auto') o.auto = d.v === '1'; else o.diff = +d.v; sfx('click'); return closeModal('redraw'); }
   if (a === 'legacy') { const p = UI.legacy, id = num('id'), i = p.indexOf(id); if (i >= 0) p.splice(i, 1); else if (p.length < (UI.legacyMax || 2)) p.push(id); sfx('click'); return closeModal('redraw'); }
   if (a === 'speed') return setSpeed(num('v'));
@@ -1023,7 +1049,7 @@ function onAction(el) {
   if (a === 'handpick') { if (handRes) handRes({ k: d.k, from: d.from === 'core' ? 'core' : +d.from }); return; }
   if (a === 'handback') { if (handRes && handCtx) { const c = handCtx, r = handRes; handRes = null; askHand(Object.assign({}, c, { settle: true })).then(r); } return; }
   if (!G || busy) return;
-  if (a === 'quit') { saveRun(); if (!$('modal').hidden) closeModal(); return showTitle(); }
+  if (a === 'quit') { if (ST.mode !== 'night') saveRun(); if (!$('modal').hidden) closeModal(); return showTitle(); }
   if (a === 'hoard') { const r = act(NEST.hoardBuy, d.k); if (r && r.ok) { sfx('evo'); ST.flash = now() + 120; } return; }
   if (a === 'core') { if (ST.mode !== 'day') return; if (!$('modal').hidden) closeModal(); UI.sel = { t: 'cell', i: G.core }; UI.confirmEnd = false; setScreen('under'); camCell(G.core); sfx('click'); render(); $('view').scrollTop = 0; return; }
   if (a === 'view') { if (d.v === 'surface' && G.sealed) return void toast({ ok: false, msg: '굴이 막혀 있어 땅 위가 보이지 않는다. 뚫어야 안다' }); if (UI.sel) UI.sel = null; setScreen(d.v); return render(); }
@@ -1118,15 +1144,20 @@ function boot() {
   document.addEventListener('keydown', e => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
     if (!$('scene').hidden) { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); if (sceneNext) sceneNext(); } return; }
+    if (G && G.cardMode && !$('game').hidden && typeof cardKey === 'function' && cardKey(e)) { e.preventDefault(); return; }
+    if (e.key === 'Enter' && !$('modal').hidden) { const b = $('modal').querySelector('.btn.pri:not([disabled])'); if (b) { e.preventDefault(); b.click(); } return; }
     if (e.key === 'Escape') { if (!$('modal').hidden && modalKind && !['setup', 'legacy', 'event'].includes(modalKind)) closeModal(); else if (G && (UI.sel || UI.sheet)) { UI.sel = null; UI.sheet = null; render(); } return; }
     if (!G || $('game').hidden) return;
     if (ST.mode === 'night') { if (['1', '2', '3'].includes(e.key)) setSpeed([1, 2, 4][+e.key - 1]); if (e.key === 's' || e.key === 'S') { ST.skip = true; if (handRes) handRes({ k: 'none' }); } if (e.key === ' ' && handRes) { e.preventDefault(); handRes({ k: 'none' }); } return; }
     if (!$('modal').hidden || busy) return;
     if (e.key === 'Tab') { e.preventDefault(); setScreen(ST.screen === 'under' ? 'surface' : 'under'); }
+    if (e.key === ' ' && e.target.tagName !== 'BUTTON') { e.preventDefault(); if (G && G.auto) { AUTO.paused = !AUTO.paused; render(); } else endDay(); }
     if (e.key === 'e' || e.key === 'E' || e.key === 'ㄷ') { if (G && G.auto) { AUTO.paused = !AUTO.paused; render(); } else endDay(); }
   });
   window.__nest = { get G() { return G; }, NEST, ST, render: () => render(), aim: (lx, ly) => camTo(lx, true, ly), cellAt: i => { const r = cellRect(i); return [r.x + r.w / 2, r.y + r.h / 2]; }, toClient: (lx, ly) => { const b = $('stage').getBoundingClientRect(), u = b.height / (ST.vh || H); return [b.left + (lx - ST.cam.x + ST.ox) * u, b.top + (ly + (ST.oyFit || 0) - (ST.cam.y || 0) - (ST.screen === 'under' ? ST.cam.v || 0 : 0)) * u]; }, get META() { return META; }, endingScene, slimeCanvas, kinCanvas, kinCanvasM, KDRAW3, KSECRET, AUTO, invCanvasW };
   if (window.claude && window.claude.hot) try { window.claude.hot.onSnapshot && window.claude.hot.onSnapshot(() => ({ run: G })); } catch (e) { /* 무시 */ }
+  // 카드 판을 이어하자마자(3초 안) 오류가 나면 그 저장본은 상한 것이다: 치워 두고 첫 화면으로
+  window.addEventListener('error', () => { if (UI.contWatch && Date.now() - UI.contWatch < 3000 && G && G.cardMode) { UI.contWatch = 0; setAside('cardrun'); UI.saveBad = true; if (typeof CMU !== 'undefined' && CMU) CMU.run = null; G = null; showTitle(); } });
   initCloud(); showTitle(); requestAnimationFrame(loop);
   const nj = $('nojs'); if (nj) nj.remove();  // 여기까지 왔으면 정상 실행
 }

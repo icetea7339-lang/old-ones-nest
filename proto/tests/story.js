@@ -51,7 +51,7 @@ const FZM = require('./_fz.js'), devName = process.argv[2], tag = (devName ? dev
   try {
     // ---------- 첫 화면 ----------
     await check('title');
-    if (!(await has('#menu [data-a="story"].pri'))) bad.push('처음 하는 사람에게 「이야기」가 먼저 보이지 않는다');
+    if (!(await has('#menu [data-a="deck"].pri')) || !(await has('#menu [data-a="story"]'))) bad.push('처음 하는 사람에게 「시작」(카드 판)이 정문이 아니거나 「이야기」가 없다');
     if (!(await has('#menu [data-a="new"]'))) bad.push('「자유」가 없다');
     await tap('#menu [data-a="story"]'); await check('select');
     if (await p.locator('#modal [data-a="close"][data-v="ch2"]:not([disabled])').count()) bad.push('1장을 넘기기 전에 2장이 열려 있다');

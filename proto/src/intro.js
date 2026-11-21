@@ -19,15 +19,15 @@ const INTRO_CSS = `
 #intro .inext { display: block; margin-top: 6px; font-size: 13px; color: #8a8098; min-height: 1.2em; }
 `;
 const INTRO_LINES = [
-  ['별 너머, 별과 별 사이의 어둠은 비어 있지 않다.', '그것은 무겁고 검은 물이다. 별 사이 바다.'],
-  ['그 바다 밑에, 탑이 거꾸로 자란 도시가 떠 있다.', '「잠긴 둥지」. 누가 지었는지 묻는 자는 없다.'],
-  ['그 안에서 위대한 것이 잔다. 별 사이 바다에 가라앉은 자.', '눈꺼풀 하나가 산맥만 하다. 생김새를 끝까지 본 자는 없다.'],
-  ['일곱 개의 바늘이 별 사이 바다를 꿰매고 있었다. 잠긴 둥지의 문을.', '그날 밤, 바늘 하나가 흐려졌다.'],
-  ['위대한 것은 배고픔을 꿈꾸었다.', '잠결에, 흐려진 틈 너머 작고 푸른 세상 쪽으로 몸 한 가닥을 뻗었다.'],
-  ['바늘이 다시 조여들었다. 뻗은 끝이 잘려 나갔다.', '살 한 방울이 떨어져 나왔다.'],
-  ['방울은 별 사이 바다를 건너 떨어졌다. 하늘을 태우며.', '들판 가장자리 마을, 물레골 사람들은 그것을 별똥별이라 불렀다.'],
-  ['캄캄한 들판에 떨어진 것은 손바닥만 한 무언가였다.', '그 안에는 아주 작은 목소리 하나가 남아 있었다.'],
-  [{ who: '잔향', text: '…들리나? 나는 잔향. 네 안에 남은 그의 목소리야.' }, { who: '잔향', text: '너는 위대한 것의 한 방울. 먹고 자라서 둥지를 지어. 꿈을 퍼뜨려 바늘을 이리로 돌리면, 그가 올 수 있어.' }],
+  ['별 너머, 별과 별 사이의 어둠은 비어 있지 않았다.', '그것은 무겁고 검은 물이었다. 훗날 그것을 별 사이 바다라 부르는 자들이 있었다.'],
+  ['그 바다 밑바닥에, 탑이 거꾸로 자란 도시 하나가 떠 있었다.', '「잠긴 둥지」. 누가 그것을 지었는지 묻는 자는 없었다.'],
+  ['그 안에서 위대한 것이 잠들어 있었다.', '눈꺼풀 하나가 산맥만 하였고, 그 생김새를 끝까지 본 자는 없었다.'],
+  ['일곱 개의 바늘이 잠긴 둥지의 문을 꿰매고 있었다.', '그날 밤, 바늘 하나의 빛이 흐려졌다.'],
+  ['위대한 것은 배고픔을 꿈꾸었다.', '잠결에 그것은 흐려진 틈 너머, 작고 푸른 세상 쪽으로 몸 한 가닥을 뻗었다.'],
+  ['바늘이 다시 조여들었고, 뻗은 끝은 잘려 나갔다.', '살 한 방울이 떨어져 나왔다.'],
+  ['방울은 하늘을 태우며 별 사이 바다를 건넜다.', '들판 가장자리 마을, 물레골 사람들은 그것을 별똥별이라 여겼다.'],
+  ['캄캄한 들판에 떨어진 것은 손바닥만 한 살덩이였다.', '그 안에는 아주 작은 목소리 하나가 남아 있었다.'],
+  [{ who: '잔향', text: '들으라. 나는 잔향이다. 네 안에 남은, 그의 목소리의 끝자락이다.' }, { who: '잔향', text: '먹고 자라 둥지를 지으라. 바늘이 이쪽으로 돌아설 때, 그가 건너오리라.' }]
 ];
 const IH = (a, b) => { const s = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return s - Math.floor(s); };
 const ICOL = { void: '#04050b', deep: '#070b16', band: '#0b1324', band2: '#0f1a30', teal: '#2fa8a0', tealL: '#5fe8f0', gold: '#e8c030', star: '#fff3a0', mass: '#080b15', rim: '#1b2940', rim2: '#2c4262', scale: '#122236', flesh: '#9fb8a8', fleshL: '#e0f8e8', fleshD: '#4a6a60', amber: '#ffb347', sky: '#0a0d1c', hill: '#05070d' };
@@ -164,3 +164,14 @@ function playIntro(opts) {
   });
 }
 window.playIntro = playIntro;
+// 처음 하는 사람의 시작: 여는 이야기 → 짧은 한 방울 → 카드 판 첫 몸의 씨앗을 돌려준다
+//   opts: { noFilm, canSkip, asp, seed, look }  돌려주는 것: PRO.toGenomeSeed 의 씨앗 ({ aspect, sub, look, tags, top, parts, ... })
+async function playOpening(opts) {
+  opts = opts || {};
+  if (!opts.noFilm && typeof playIntro === 'function') await playIntro();
+  const seed = opts.seed || ((Date.now() ^ (Math.random() * 1e9)) >>> 0), asp = opts.asp || PRO.ASPS[seed % 5];
+  let r = null; try { r = await runPrologue({ asp, seed, short: true, canSkip: !!opts.canSkip, look: opts.look }); } catch (e) { console.error(e); }
+  if (!r) r = { skipped: true, home: asp, look: opts.look || null };
+  return r.genomeSeed || PRO.toGenomeSeed(r);
+}
+window.playOpening = playOpening;

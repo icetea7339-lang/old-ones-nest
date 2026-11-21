@@ -9,9 +9,24 @@ const mq = q => !!(window.matchMedia && window.matchMedia(q).matches);
 const TOUCH = mq('(hover: none) and (pointer: coarse)'), isMobile = () => mq('(max-width: 760px)');
 
 // ---------- 저장 ----------
-const store = { get(k) { try { const v = localStorage.getItem('oldnest.' + k); return v ? JSON.parse(v) : null; } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem('oldnest.' + k, JSON.stringify(v)); } catch (e) { /* 저장 불가 환경 */ } }, del(k) { try { localStorage.removeItem('oldnest.' + k); } catch (e) { /* 무시 */ } } };
+// 저장본 판 번호: 이 번호가 붙은 저장본은 읽을 때 검사하고 고친다 (SAVE_V)
+const SAVE_V = 2;
+const store = { get(k) { try { const v = localStorage.getItem('oldnest.' + k); return v ? JSON.parse(v) : null; } catch (e) { return null; } }, set(k, v) { try { if (v && typeof v === 'object' && !Array.isArray(v) && (k === 'meta' || k === 'run' || k === 'cardrun')) v.sv = SAVE_V; localStorage.setItem('oldnest.' + k, JSON.stringify(v)); } catch (e) { /* 저장 불가 환경 */ } }, del(k) { try { localStorage.removeItem('oldnest.' + k); } catch (e) { /* 무시 */ } } };
 const META0 = () => ({ runs: 0, clears: 0, best: null, legacy: [], codex: { forms: {}, muts: {}, ends: {} }, sound: true, speed: 1, pause: 'settle', roster: [], rid: 1, dust: 0, lastDraw: '', board: [] });
-let META = Object.assign(META0(), store.get('meta') || {});
+// 전체 기록 고치기: 칸 하나가 이상해도(codex: null 같은) 첫 화면이 멈추지 않게 기본값으로 채운다
+function repairMeta(m) {
+  const d = META0(); if (!m || typeof m !== 'object' || Array.isArray(m)) m = {};
+  for (const k in d) { const dv = d[k], mv = m[k]; if (dv === null) { if (mv !== null && (typeof mv !== 'object' || Array.isArray(mv))) m[k] = null; continue; }
+    if (Array.isArray(dv)) { if (!Array.isArray(mv)) m[k] = dv; } else if (typeof dv === 'object') { if (!mv || typeof mv !== 'object' || Array.isArray(mv)) m[k] = dv; else for (const s in dv) if (!mv[s] || typeof mv[s] !== 'object' || Array.isArray(mv[s])) mv[s] = dv[s]; } else if (typeof mv !== typeof dv || (typeof dv === 'number' && !isFinite(mv))) m[k] = dv; }
+  for (const k in m.codex) if (!m.codex[k] || typeof m.codex[k] !== 'object') m.codex[k] = {};
+  ['story', 'cards', 'howto', 'last', 'deck'].forEach(k => { if (k in m && (!m[k] || typeof m[k] !== 'object' || Array.isArray(m[k]))) delete m[k]; });
+  if (m.story) { if (!m.story.clear || typeof m.story.clear !== 'object') m.story.clear = {}; }
+  if (m.cards) { ['eggs', 'queue'].forEach(k => { if (k in m.cards && !Array.isArray(m.cards[k])) m.cards[k] = []; }); ['forms', 'marks', 'codex', 'tot', 'words', 'seen'].forEach(k => { if (k in m.cards && (!m.cards[k] || typeof m.cards[k] !== 'object' || Array.isArray(m.cards[k]))) m.cards[k] = {}; }); if (Array.isArray(m.cards.eggs)) m.cards.eggs = m.cards.eggs.filter(e => e && typeof e === 'object'); }
+  if (m.cards && typeof CARDMODE !== 'undefined' && CARDMODE.newMeta) { const c0 = CARDMODE.newMeta(); for (const k in c0) { const a = c0[k], b = m.cards[k]; if (b == null || (Array.isArray(a) ? !Array.isArray(b) : typeof a !== typeof b)) m.cards[k] = a; } }
+  m.roster = m.roster.filter(r => r && typeof r === 'object' && typeof r.kind === 'string'); m.board = m.board.filter(r => r && typeof r === 'object');
+  m.sv = SAVE_V; return m;
+}
+let META = Object.assign(META0(), repairMeta(store.get('meta')));
 if (META.legacy && META.legacy.length) { META.legacy.forEach(l => META.roster.push(Object.assign({ rid: META.rid++, tier: l.rare ? 'R' : 'N', title: '', runs: 1 }, l))); META.legacy = []; }
 META.codex.combos = META.codex.combos || {};
 const saveMeta = () => store.set('meta', META), saveRun = () => { if (G && !G.over) store.set('run', G); };

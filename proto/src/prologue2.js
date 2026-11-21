@@ -76,6 +76,16 @@ const PRO_CSS = `#pro { position: fixed; top: 0; right: 0; bottom: 0; left: 0; z
 @media (max-width: 380px), (max-height: 640px) { .pro-mute, .pro-warn, .pro-bars, .pro-keep { font-size: 13px; } .pro-card h2 { font-size: 16px; } .pro-cap, .pro-cap.big { font-size: 16px; } }
 `;
 
+// 짧은 한 방울에서 잔향이 하는 말. 오래된 명령과 예언의 말투. 꿈은 현재형
+const PRO_SHORT_LINES = {
+  start: '작은 것부터 삼켜라. 빛을 머금은 것은 살이 된다.',
+  eat: '삼킨 빛깔이 곧 너의 살이 되리라.',
+  buy: '모은 빛으로 몸을 고칠 수 있다. 입이든, 눈이든.',
+  big: '저것은 아직 너보다 크다. 피하라. 머지않아 너도 저만해지리라.',
+  slow1: '빛나는 작은 것을 삼켜라.', slow2: '큰 것이 삼켜지지 않거든 입을 키우라.',
+  st2: [{ who: '꿈', text: '무거운 물. 거꾸로 자란 탑들. 무언가 아주 오래 잠들어 있다.' }, '그것은 너의 꿈이 아니다. 아래에서 잠든 이의 꿈이 새어 나왔을 뿐이다.'],
+  st3: [{ who: '꿈', text: '일곱 바늘 가운데 하나가 이쪽으로 기운다.' }, '이만하면 되었다. 흙을 파고들어 자리를 잡으라. 둥지가 될 자리다.']
+};
 function runPrologue(opts) {
   opts = opts || {}; typeof music === 'function' && music('pro');
   const sim = PRO.makeSim(opts), S = sim.S, P = sim.P, STG = PRO.STG, SPC = PRO.SP, CAT = PRO.CAT, PART = PRO.PART, SLOTS = PRO.SLOTS, SLOTK = PRO.SLOTK, ASPS = PRO.ASPS, ASPK = PRO.ASPK, TPS = PRO.TPS, KK = PRO.K, home = sim.home;
@@ -83,7 +93,7 @@ function runPrologue(opts) {
   const say = k => { try { sfx(k); } catch (e) { /* 소리는 없어도 된다 */ } };
   const G = () => STG[S.stage];
   // 이야기 1장: 잔향이 그때그때 한마디씩 한다 (lines: start eat buy big). 자리 잡기·건너뛰기는 없다
-  const STY = opts.story || null, LN = (STY && STY.lines) || {}, sayQ = [], tell = k => { if (STY && LN[k] && !S.seen['st_' + k]) { S.seen['st_' + k] = 1; [].concat(LN[k]).forEach(x => sayQ.push(typeof x === 'string' ? { who: '잔향', text: x } : x)); } };
+  const STY = sim.sty || null, LN = (STY && STY.lines) || (STY && STY.short ? PRO_SHORT_LINES : {}), sayQ = [], tell = k => { if (STY && LN[k] && !S.seen['st_' + k]) { S.seen['st_' + k] = 1; [].concat(LN[k]).forEach(x => sayQ.push(typeof x === 'string' ? { who: '잔향', text: x } : x)); } };
   let canAt = 0;
 
   // ---------- 그림 ----------
@@ -233,7 +243,7 @@ function runPrologue(opts) {
       <div class="pro-brow"><span class="${why && price != null ? 'pro-warn' : 'pro-mute'}">${why || '둥지에서: ' + NEST.MUT[d.mut].name}</span><button class="pro-b pri" data-x="buy"${why ? ' disabled' : ''}>${price == null ? '다 올렸다' : (mine ? '강화' : swap ? '바꿔 달기' : '달기') + ' <span style="display:inline-block;width:8px;height:8px;background:' + col + ';border:1px solid #07050a"></span> ' + price}</button></div></div></div>`;
     return h;
   }
-  function openShop(tip) { if (S.ended || shop) return; shop = true; shopSeen = true; held = false; sim.stop(); for (const k in keys) keys[k] = false; const el = $p('pro-shop'); el.innerHTML = shopHtml(tip === true ? '먹은 것으로 부위를 달 수 있어. 입이 커야 큰 것을 삼켜. 쓰지 않고 남긴 것은 둥지의 첫 정수가 돼.' : tip); el.hidden = false; }
+  function openShop(tip) { if (S.ended || shop) return; shop = true; shopSeen = true; held = false; sim.stop(); for (const k in keys) keys[k] = false; const el = $p('pro-shop'); el.innerHTML = shopHtml(tip === true ? '먹은 빛깔로 부위를 단다. 입이 클수록 큰 것을 삼킨다. 쓰지 않고 남긴 것은 둥지의 첫 정수가 된다.' : tip); el.hidden = false; }
   function closeShop() { if (!shop) return; shop = false; $p('pro-shop').hidden = true; $p('pro-shop').innerHTML = ''; last = 0; acc = 0; hudKey = ''; }
   const redrawShop = () => { if (shop) $p('pro-shop').innerHTML = shopHtml(); };
   $p('pro-shop').addEventListener('click', e => { const c = e.target.closest('[data-id]'), b = e.target.closest('[data-x]'); if (c) { sel = c.dataset.id; say('click'); redrawShop(); } else if (b && b.dataset.x === 'close') { say('click'); closeShop(); } else if (b && b.dataset.x === 'buy') { if (sim.buy(sel)) redrawShop(); } else if (e.target === $p('pro-shop')) closeShop(); });
@@ -268,7 +278,7 @@ function runPrologue(opts) {
       if (e.k === 'eat') tell('eat');
       if (e.k === 'stage') { flash = S.t; hudKey = ''; tell('st' + S.stage); if (S.stage === 2 && !S.seen.legtip) S.seen.legtip = 1; }
       if (e.k === 'hurt' || e.k === 'respawn') shake = S.t; if (e.k === 'respawn') flash = S.t;
-      if (e.k === 'buy') { hudKey = ''; if (PART[e.id].slot === 'leg' && !S.seen.acttip) { S.seen.acttip = 1; sim.caption('재주가 생겼다: ' + PART[e.id].act, '오른쪽 아래 단추를 눌러. 쫓길 때 써', 4); } }
+      if (e.k === 'buy') { hudKey = ''; if (PART[e.id].slot === 'leg' && !S.seen.acttip) { S.seen.acttip = 1; sim.caption('재주가 생겼다: ' + PART[e.id].act, '오른쪽 아래 재주 단추로 쓴다. 쫓길 때 요긴하다', 4); } }
       if (e.k === 'prey' && Math.hypot(e.x - P.x, e.y - P.y) < sim.lightR() * 1.6) { say('die'); if (!S.seen.chain) { S.seen.chain = 1; sim.caption((typeof NEST !== 'undefined' && NEST.fj ? NEST.fj : x => x)(SPC[e.by].name + '이(가) ' + SPC[e.kind].name + '을(를) 잡았다'), '저희끼리도 먹고 먹힌다. 먹는 동안은 한눈을 판다', 3.6); } }
       if (e.x != null) FX.push(e); }
     sim.ev.length = 0; while (FX.length > 90) FX.shift();
@@ -387,27 +397,41 @@ function runPrologue(opts) {
   }
 
   // ---------- 끝 ----------
-  function close() { alive = false; cancelAnimationFrame(raf); window.removeEventListener('keydown', onKey, true); window.removeEventListener('keyup', onKey, true); window.removeEventListener('resize', fit); document.removeEventListener('visibilitychange', onVis); if (root.parentNode) root.parentNode.removeChild(root); if (window.__pro === API) delete window.__pro; onDone(result); }
+  function close() { alive = false; cancelAnimationFrame(raf); window.removeEventListener('keydown', onKey, true); window.removeEventListener('keyup', onKey, true); window.removeEventListener('resize', fit); document.removeEventListener('visibilitychange', onVis); if (root.parentNode) root.parentNode.removeChild(root); if (window.__pro === API) delete window.__pro; if (result && !result.genomeSeed) { try { result.genomeSeed = PRO.toGenomeSeed(result); } catch (e) { /* 씨앗 없이도 이어 간다 */ } } onDone(result); }
   function finish(kind) {
     if (ended) return; ended = true; closeIntro(); closeShop(); if (!S.ended) sim.end(kind); result = sim.result(kind); hudKey = ''; hud(); $p('pro-settle').hidden = true; $p('pro-skip').hidden = true; $p('pro-grow').hidden = true; $p('pro-act').hidden = true; $p('pro-cap').style.opacity = 0;
     if (kind === 'skip') { say('click'); return close(); }
+    if (STY && STY.short) return shortEnd(kind);
     if (STY) { say(kind === 'story' ? 'up' : 'down'); return setTimeout(close, kind === 'story' ? 900 : 500); }
     say(kind === 'fell' ? 'down' : 'up');
     const r = result, tot = ASPS.reduce((a, k) => a + r.ess[k], 0), topA = ASPS.slice().sort((a, b) => r.ess[b] - r.ess[a])[0], mx = Math.max(1, r.ess[topA]), n = r.parts.length, canKeep = !r.fell && S.stage >= KK.keepFrom && n > 0;
     if (canKeep) sim.setKeep(r.parts.slice().sort((a, b) => b.lv - a.lv)[0].id);
     const title = { fell: '쓰러졌다', time: '밤이 다 갔다', grown: '다 자랐다', settle: '자리를 잡았다' }[kind] || '자리를 잡았다';
-    const line = kind === 'fell' ? '세 번 쓰러졌어. 남긴 걸 반은 흘렸고 단 부위도 새기지 못했어. 그래도 살았잖아.' : kind === 'grown' ? '끝까지 자랐네. 널 쫓던 것들을 다 삼키고. 이만큼 가져가는 방울은 드물어.' : S.stage <= 2 ? '일찍 자리를 잡았네. 안전하지만 가져가는 건 적어.' : n >= 4 ? '몸을 꽤 바꿨네. 그중 하나는 허물을 벗어도 남아.' : '여기까지 온 것만으로도 넉넉해.';
-    const lean = tot ? ' ' + ASPK[topA] + ' 빛깔을 제일 많이 남겼으니 몸이 그쪽으로 기울 거야.' : '';
+    const line = kind === 'fell' ? '세 번 흩어졌으나 사라지지는 않았다. 남긴 것의 반은 흙에 두고, 단 부위는 새기지 못하였다.' : kind === 'grown' ? '끝까지 자랐다. 너를 쫓던 것들은 이제 너의 살이 되었다. 이만큼 가져가는 방울은 드물다.' : S.stage <= 2 ? '자리를 일찍 잡았다. 안전하나, 가져가는 것은 적으리라.' : n >= 4 ? '몸을 여러 번 바꾸었다. 그 가운데 하나는 허물을 벗어도 남으리라.' : '여기까지면 넉넉하다.';
+    const lean = tot ? ' ' + ASPK[topA] + ' 빛깔을 가장 많이 남겼으니, 몸은 그쪽으로 기울리라.' : '';
     const nextSay = kind === 'grown' ? '' : S.stage < 5 ? `<p class="pro-mute">${STG[S.stage + 1].name}까지 갔다면: 정수 ${KK.essCap[S.stage + 1]}까지${S.stage + 1 === KK.keepFrom ? ', 부위 하나를 허물에 새김' : ''}</p>` : '<p class="pro-mute">다 자랐다면 남긴 것을 가장 후하게 쳐 준다</p>';
     const keepHtml = () => { const kp = sim.keep, k = r.parts.find(p => p.id === kp); return `<div class="pro-parts">${r.parts.map(p => `<button class="pro-keep${p.id === kp ? ' on' : ''}" data-keep="${p.id}" style="--c:${ASPCOL[p.asp]}"><img src="${iconURL(p.id, p.lv)}" alt="">${PART[p.id].name} ${pipsHtml(p.lv, ASPCOL[p.asp])}</button>`).join('')}</div>${k ? `<p>둥지에서 <b style="color:${ASPCOL[k.asp]}">${NEST.MUT[PART[k.id].mut].name}</b> — ${NEST.MUT[PART[k.id].mut].desc}</p>` : ''}`; };
     const el = document.createElement('div'); el.className = 'pro-end'; el.innerHTML = `<div class="pro-card" role="dialog" aria-label="땅속에서 얻은 것"><h2>${title}<small>${STG[S.stage].name} · ${Math.floor(r.time / 60)}분 ${r.time % 60}초 · 진액 ${r.gold}방울</small></h2>
       <div class="pro-bars">${ASPS.filter(a => r.ess[a] > 0).map(a => `<span style="color:${ASPCOL[a]}">${ASPK[a]}</span><span class="b"><i style="width:${Math.round(r.ess[a] / mx * 100)}%;background:${ASPCOL[a]}"></i></span><span>${r.ess[a]}</span>`).join('') || '<span class="pro-mute" style="grid-column:1/-1">남긴 것이 없다</span>'}</div>
       ${SEED ? `<p class="pro-mute pro-seedline"><img src="${seedURL(0)}" alt=""><span>이번 몸 <b style="color:#ece6d6">${SEED.name}</b> · ${SEED.say}${NESTSAY ? '<br>둥지에서 — ' + NESTSAY : ''}</span></p>` : ''}<p class="pro-mute">쓰지 않고 남긴 것이 정수가 된다 · 합 ${tot} (이 몸으로는 ${KK.essCap[S.stage]}까지)</p>${nextSay}
-      ${r.fell ? (n ? '<p class="pro-warn">쓰러져서 단 부위를 허물에 새기지 못했다</p>' : '') : canKeep ? `<p><b style="color:#e8c030;font-family:var(--display,sans-serif);font-weight:400">허물에 새길 부위 하나를 골라</b></p><div id="pro-keepbox">${keepHtml()}</div>` : n ? `<p class="pro-mute">부위는 ${STG[KK.keepFrom].name}부터 허물에 새길 수 있다</p>` : '<p class="pro-mute">돋운 부위가 없다</p>'}
+      ${r.fell ? (n ? '<p class="pro-warn">쓰러져서 단 부위를 허물에 새기지 못했다</p>' : '') : canKeep ? `<p><b style="color:#e8c030;font-family:var(--display,sans-serif);font-weight:400">허물에 새길 부위 하나를 고른다</b></p><div id="pro-keepbox">${keepHtml()}</div>` : n ? `<p class="pro-mute">부위는 ${STG[KK.keepFrom].name}부터 허물에 새길 수 있다</p>` : '<p class="pro-mute">단 부위가 없다</p>'}
       <div class="pro-say"><img src="${spriteCanvas('slime', 'echo').toDataURL()}" width="40" height="40" alt=""><p><b style="color:#e8c030;font-family:var(--display,sans-serif);font-weight:400">잔향</b> ${line}${lean}</p></div>
       <button class="pro-b pri" id="pro-go">둥지를 튼다</button></div>`;
     root.appendChild(el); el.addEventListener('click', e => { const b = e.target.closest('[data-keep]'); if (b) { sim.setKeep(b.dataset.keep); say('click'); el.querySelector('#pro-keepbox').innerHTML = keepHtml(); } });
     const go = el.querySelector('#pro-go'); go.addEventListener('click', () => { say('click'); result = sim.result(kind); close(); }); try { go.focus(); } catch (e) { /* 괜찮다 */ }
+  }
+  // 짧은 한 방울의 끝: 이 몸에 무엇이 남았는가 (카드 판의 첫 몸이 된다)
+  function shortEnd(kind) {
+    say('up'); const r = result, sd = PRO.toGenomeSeed(r); r.genomeSeed = sd;
+    const TN = t => (typeof TRAITS !== 'undefined' && TRAITS.TAGS && TRAITS.TAGS[t]) ? TRAITS.TAGS[t].name : t;
+    const line = kind === 'story' ? '이만하면 되었다. 이 몸으로 흙을 파고들어 둥지를 지으라. 나머지는 흙이 가르치리라.' : '밤이 깊었다. 지금의 몸으로 자리를 잡으라. 모자란 것은 둥지가 채우리라.';
+    const el = document.createElement('div'); el.className = 'pro-end'; el.innerHTML = `<div class="pro-card" role="dialog" aria-label="이 몸으로 둥지를 튼다"><h2>${kind === 'story' ? '자리를 잡았다' : '밤이 다 갔다'}<small>${STG[S.stage].name} · ${Math.floor(r.time / 60)}분 ${r.time % 60}초</small></h2>
+      <p class="pro-mute">이 몸에 남은 것</p><div class="pro-parts">${sd.top.map(t => `<span class="pro-keep on" style="--c:${ASPCOL[sd.aspect]}">${TN(t)}</span>`).join('') || '<span class="pro-mute">아직 아무것도 돋지 않았다</span>'}</div>
+      ${r.parts.length ? `<div class="pro-parts">${r.parts.map(p => `<span class="pro-keep" style="--c:${ASPCOL[p.asp]}"><img src="${iconURL(p.id, p.lv)}" alt="">${PART[p.id].name} ${pipsHtml(p.lv, ASPCOL[p.asp])}</span>`).join('')}</div>` : ''}
+      <p class="pro-mute">가장 많이 삼킨 빛깔: <b style="color:${ASPCOL[sd.aspect]}">${ASPK[sd.aspect]}</b>${sd.sub ? ' · 다음은 ' + ASPK[sd.sub] : ''}</p>
+      <div class="pro-say"><img src="${spriteCanvas('slime', 'echo').toDataURL()}" width="40" height="40" alt=""><p><b style="color:#e8c030;font-family:var(--display,sans-serif)">잔향</b> ${line}</p></div>
+      <button class="pro-b pri" id="pro-go">둥지를 튼다</button></div>`;
+    root.appendChild(el); const go = el.querySelector('#pro-go'); go.addEventListener('click', () => { say('click'); close(); }); try { go.focus(); } catch (e) { /* 괜찮다 */ }
   }
   const onVis = () => { last = 0; acc = 0; }; document.addEventListener('visibilitychange', onVis);
   // 이번 몸: 시작할 때 한 번 알린다. 누르면 흙 속이 흐르기 시작한다
@@ -423,7 +447,7 @@ function runPrologue(opts) {
     root.appendChild(el); let k = 0; const im = el.querySelector('img'); introIv = setInterval(() => { k = (k + 1) % 4; im.src = seedURL(k); }, 240);
     el.addEventListener('click', () => { say('click'); closeIntro(); }); try { el.querySelector('#pro-in-go').focus(); } catch (e) { /* 괜찮다 */ }
   }
-  if (STY) { $p('pro-skip').hidden = true; sim.caption('잔향', LN.start || '먹어라', 6, 4); } else if (opts.tut) sim.caption('손가락이 가는 쪽으로 움직여', '색 있는 알갱이를 먹어. 붉은 눈은 피해', 5); else sim.caption('땅속의 한 방울', '먹고, 자라고, 살아남아라', 3.4);
+  if (STY) { $p('pro-skip').hidden = !opts.canSkip; sim.caption('잔향', LN.start || '먹어라', 6, 4); } else if (opts.tut) sim.caption('손가락이 가는 쪽으로 움직인다', '색 있는 알갱이를 먹는다. 붉은 눈은 피한다', 5); else sim.caption('땅속의 한 방울', '먹고, 자라고, 살아남아라', 3.4);
 
   // 시험용 손잡이
   const API = { get look() { return sim.look; }, get form() { return Object.assign({}, sim.form); }, get intro() { return intro; }, closeIntro() { closeIntro(); },
