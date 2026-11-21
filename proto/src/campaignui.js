@@ -28,7 +28,7 @@ const CP_CSS = `
 body:has(#scene:not([hidden])) #cm-coach { display: none; }
 #scene .box.journal { border-color: #b8a070; background: linear-gradient(180deg, #221c12, #17130c); }
 #scene .box.journal .who { color: #e0c890; letter-spacing: .05em; }
-#scene .box.journal .txt { color: #efe2c4; font-family: "IBM Plex Sans KR", serif; }
+#scene .box.journal .txt { color: #efe2c4; font-family: "Nest Sans", "IBM Plex Sans KR", serif; }
 `;
 function cpCss() { if (CPU.css) return; CPU.css = true; const s = document.createElement('style'); s.textContent = CP_CSS; document.head.appendChild(s); }
 

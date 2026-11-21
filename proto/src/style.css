@@ -7,11 +7,11 @@
   --text: #ece6d6; --mute: #a2a8c6; --coin: #e8c030;
   --up: #ff7d76; --down: #5b9bff; --ok: #6fd08c; --warn: #ffb347;
   --fire: #e8552f; --water: #3fa7e0; --gold: #e8c030; --route: var(--coin);
-  --display: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --display: "Nest Sans", "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
   /* 글자 크기 단계. 픽셀 글꼴은 12의 배수라야 PC에서 또렷하다. 휴대폰은 화소가 촘촘해 16도 쓴다 */
   --d1: 12px; --d2: 24px; --d3: 36px; --d4: 48px;
   --t1: 12px; --t2: 14px; --t3: 16px;
-  --body: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --body: "Nest Sans", "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
   --sab: env(safe-area-inset-bottom, 0px);
   /* 입체 틀: 바깥은 어둡게, 위·왼쪽은 밝게, 아래·오른쪽은 그늘지게. 번짐 없이 계단으로만 */
   --edge: #090a14; --hi: rgba(255, 255, 255, .09); --lo: rgba(0, 0, 0, .34);
@@ -821,3 +821,79 @@ button.dk-chip { cursor: pointer; }
 }
 /* 몸 창: 형질은 이름과 수만. 누르면 하는 일이 펼쳐진다 */
 button.cm-tagrow { display: flex; gap: 8px; align-items: center; min-height: 40px; width: 100%; background: none; border: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; padding: 0 4px; } .cm-taghint { margin: 0 0 4px 4.6em; }
+/* ===== 3차 다듬기: 카드 그림 무대, 희귀도 테, 넓은 화면 왼쪽 기둥, 허물 임박, 떼 묶음 ===== */
+.dkc .dkc-art, .dkc.mini .dkc-art, .dkc.big .dkc-art, .dkc.pick .dkc-art { width: 100%; height: auto; aspect-ratio: 4 / 3; background: #07050a; border-radius: 3px; overflow: hidden; margin: 0; }
+.dkc .dkc-art img, .dkc.mini .dkc-art img, .dkc.big .dkc-art img, .dkc.pick .dkc-art img { width: 100%; height: 100%; image-rendering: pixelated; display: block; }
+.dk-hand .dkc .dkc-art { margin-left: 0; }
+.dkc { border-radius: 6px; padding-top: 26px; }
+.dkc.mini { padding-top: 24px; }
+.dkc-cost { z-index: 2; }
+.dkc.rar-c { border-color: color-mix(in srgb, var(--fc) 55%, #3a3448); }
+.dkc.rar-u { border-color: var(--fc); box-shadow: inset 0 0 0 1px #07050a, inset 0 0 0 3px color-mix(in srgb, var(--fc) 40%, transparent); }
+.dkc.rar-r { border-color: #e8c030; background: linear-gradient(#3a2c1c, #1a1420 60%); box-shadow: inset 0 0 0 1px #07050a, inset 0 0 0 3px #a87e14, 0 0 10px rgba(232, 192, 48, .35); }
+.dkc.rar-r::before { content: ''; position: absolute; inset: 3px; pointer-events: none; background:
+  linear-gradient(#e8c030, #e8c030) top left / 8px 2px no-repeat, linear-gradient(#e8c030, #e8c030) top left / 2px 8px no-repeat,
+  linear-gradient(#e8c030, #e8c030) top right / 8px 2px no-repeat, linear-gradient(#e8c030, #e8c030) top right / 2px 8px no-repeat,
+  linear-gradient(#e8c030, #e8c030) bottom left / 8px 2px no-repeat, linear-gradient(#e8c030, #e8c030) bottom left / 2px 8px no-repeat,
+  linear-gradient(#e8c030, #e8c030) bottom right / 8px 2px no-repeat, linear-gradient(#e8c030, #e8c030) bottom right / 2px 8px no-repeat; }
+.dkc.rar-r .dkc-nm { color: #fff3a0; }
+.dkc-gem { display: none; }
+.dkc .dkc-gene { right: 2px; bottom: 2px; }
+/* 넓은 화면(PC): 왼쪽 기둥에 몸·허물 막대·오늘 밤, 가운데 지도, 아래 손 */
+#cm-side { position: absolute; left: 0; top: 0; bottom: 0; width: 236px; z-index: 6; display: flex; flex-direction: column; gap: 8px; padding: 8px; background: linear-gradient(90deg, rgba(12, 10, 20, .97), rgba(16, 14, 26, .94)); border-right: 2px solid var(--line); overflow-y: auto; }
+#cm-side[hidden] { display: none !important; }
+#game.cm-wide #stage, #game.cm-wide #cmov { left: 236px; width: calc(100% - 236px); }
+#game.cm-wide #mapchips { left: 244px; }
+#game.cm-wide #cm-dline { left: 244px; }
+#game.cm-wide #cm-body { position: static; width: 100%; max-width: none; min-width: 0; padding: 10px 8px; }
+#game.cm-wide #cm-body .cm-bnm { font-size: 15px; }
+#cm-sth { display: block; width: 100%; text-align: left; background: rgba(7, 5, 10, .5); border: 1px solid var(--line); padding: 8px; color: inherit; font: inherit; cursor: pointer; }
+#cm-sth .cm-setinv { display: flex; flex-wrap: wrap; gap: 4px; }
+#cm-sth .cm-inv img { width: 24px; height: 24px; }
+#game.cm-wide #chand .dkc { width: 118px; }
+/* 허물이 가깝다: 초상이 천천히 맥박친다 */
+#cm-body.near { border-color: #b08fff; box-shadow: 0 0 0 1px #07050a, 0 0 16px rgba(176, 143, 255, .55); animation: cmNear 1.6s ease-in-out infinite; }
+#cm-body.near .cm-bev { color: #d8c8ff; }
+@keyframes cmNear { 0%, 100% { box-shadow: 0 0 0 1px #07050a, 0 0 8px rgba(176, 143, 255, .35); } 50% { box-shadow: 0 0 0 1px #07050a, 0 0 22px rgba(176, 143, 255, .8); } }
+@media (prefers-reduced-motion: reduce) { #cm-body.near { animation: none; } }
+#cm-body.near.still { animation: none; }
+.cm-moltin { position: fixed; inset: 0; z-index: 90; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--mc) 22%, #07050a), #050308 70%); }
+.cm-moltin > span { position: absolute; line-height: 0; }
+.cm-moltin img { width: min(56vw, 300px); height: auto; image-rendering: pixelated; }
+.cm-moltin .cm-mi0 img { filter: brightness(0) drop-shadow(0 0 14px var(--mc)); animation: cmMi0 .9s ease-in both; }
+.cm-moltin .cm-mi1 img { opacity: 0; filter: brightness(3) drop-shadow(0 0 22px var(--mc)); animation: cmMi1 .5s .75s ease-out forwards; }
+@keyframes cmMi0 { 0% { transform: scale(.9); opacity: 1; } 25% { transform: scale(1.04); } 45% { transform: scale(.94); } 70% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(1.3); opacity: 0; } }
+@keyframes cmMi1 { 0% { opacity: 0; transform: scale(1.25); filter: brightness(3) drop-shadow(0 0 22px var(--mc)); } 100% { opacity: 1; transform: scale(1); filter: brightness(1) drop-shadow(0 0 10px var(--mc)); } }
+.row.vol { gap: 8px; align-items: center; }
+.row.vol input[type=range] { flex: 1 1 120px; accent-color: var(--coin); min-height: 32px; }
+.row.vol b.num { min-width: 34px; text-align: right; font-size: 13px; }
+/* 작은 글씨 정리: 12px 아래는 없다 */
+.cm-egg small, #cm-body .cm-bev, .hbar .cm-lb, #cm-coach .cm-cox { font-size: 12px; }
+@media (max-width: 760px) { #cm-body .cm-bnm { font-size: 12px; } }
+#pro .pro-settle small, #pro .pro-gl small { font-size: 12px; }
+/* 창 머리 한 모양: 아래에서 올라오는 창과 모달 제목 크기·간격을 맞춘다 */
+#cm-sheet h2, #cm-sheet .h3:first-child, #modal h2 { font-size: 18px; line-height: 1.3; margin: 0 0 8px; }
+.cm-inv small { font-size: 12px; }
+/* 손에 든 카드는 그림을 낮게(2:1) 해서 지도를 덜 가린다 */
+#chand .dkc .dkc-art, #hand .cm-nhand .dkc .dkc-art { aspect-ratio: 2 / 1; }
+#chand .dkc .dkc-art img, #hand .cm-nhand .dkc .dkc-art img { object-fit: cover; }
+#chand .dkc { min-height: 0; padding-top: 22px; padding-bottom: 18px; }
+#game.cm-wide #chand .dkc { width: 132px; }
+.dkc img { pointer-events: none; -webkit-user-drag: none; user-select: none; }
+/* 카드 판의 밤(PC): 기록 서랍을 좁혀 무대가 넓게 */
+@media (min-width: 761px) { #game.cm-mode.night #main.drawer { grid-template-columns: minmax(0, 1fr) 260px; } }
+#game.cm-mode.night #night .row.nw { flex-wrap: wrap; }
+#cm-side { box-sizing: border-box; }
+@media (min-width: 1600px) {
+  #cm-side { width: 300px; }
+  #game.cm-wide #stage, #game.cm-wide #cmov { left: 300px; width: calc(100% - 300px); }
+  #game.cm-wide #mapchips, #game.cm-wide #cm-dline { left: 308px; }
+  #game.cm-wide #chand .dkc { width: 150px; }
+}
+/* 휴대폰 손: 지도를 줄이지 않도록 그림을 더 낮게 */
+@media (max-width: 760px) { #chand .dkc .dkc-art { aspect-ratio: 3.2 / 1; } #chand .dkc { padding-top: 20px; padding-bottom: 16px; gap: 1px; } }
+
+/* 카드 판: 지도 위 단추가 몸 초상 밑으로 들어가지 않게 */
+#game:has(#cm-body:not([hidden])) #mapchips { z-index: 7; }
+.cm-morph { pointer-events: none; }
+#cm-ov > * { flex-shrink: 0; }

@@ -10,7 +10,7 @@ const RATE = +(process.env.RATE || 4), WANT = +(process.env.WANT || 30), CROWD =
   p.on('pageerror', e => errs.push(e.message)); p.on('console', m => { if (m.type() === 'error' && !/Failed to load resource/.test(m.text())) errs.push('console: ' + m.text().slice(0, 200)); });
   await p.route('http://nest.test/', r => r.fulfill({ contentType: 'text/html', body: html })); await p.route(/fonts\./, r => r.abort());
   await p.goto('http://nest.test/'); await p.waitForTimeout(400);
-  const tap = async sel => { const el = await p.$(sel); if (!el) throw new Error('없음: ' + sel); await el.click(); await p.waitForTimeout(140); };
+  const tap = async sel => { if (!(await p.$(sel))) throw new Error('없음: ' + sel); await p.click(sel, { timeout: 8000 }); await p.waitForTimeout(140); };
   await tap('[data-a="deck"]'); await tap('[data-c="begin"]'); await p.waitForTimeout(500);
   await p.evaluate(() => { const m = __card.meta; m.tutOff = true; __card.META.pause = 'never'; });
   // 손의 굴 카드를 모두 놓아 무리가 흩어질 칸을 만든다

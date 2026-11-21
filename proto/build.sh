@@ -6,8 +6,9 @@ cd "$(dirname "$0")"
 {
   echo '<meta name="claude:viewport-fit-sides" content="cover">'
   echo '<title>옛 것의 둥지</title>'
-  echo '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;600;700&display=swap">'
   echo '<style>'
+  printf '@font-face { font-family: "Nest Sans"; font-weight: 400; font-display: swap; src: url(data:font/woff2;base64,'; base64 -w0 fonts/NestSans-Regular.woff2; echo ') format("woff2"); }'
+  printf '@font-face { font-family: "Nest Sans"; font-weight: 600 900; font-display: swap; src: url(data:font/woff2;base64,'; base64 -w0 fonts/NestSans-Bold.woff2; echo ') format("woff2"); }'
   cat src/style.css; echo '</style>'
   cat <<'HTML'
 <div id="title" class="screen">

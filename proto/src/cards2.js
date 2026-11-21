@@ -236,10 +236,11 @@ const CARDS2 = (function () {
     if (d.type === 'kin' && d.kin === 'skeleton') t.push('bone');
     d.kw = d.tags; d.tags = uniq(t.length ? t : [AFALL[d.asp]]);
   });
-  // 드문 형질도 일부러 노릴 수 있게: 꼬리표가 15장이 안 되는 형질은 그 형질과 맞는 빛깔의 카드(꼬리표 둘 이하)에 덧붙인다. 굴 카드는 빼고, 고르는 것은 id 로 정해진다
+  const RARE_N = typeof process !== 'undefined' && process.env && process.env.RAREN ? +process.env.RAREN : 22;
+  // 드문 형질도 일부러 노릴 수 있게: 꼬리표가 RARE_N 장이 안 되는 형질은 그 형질과 맞는 빛깔의 카드(꼬리표 둘 이하)에 덧붙인다. 굴 카드는 빼고, 고르는 것은 id 로 정해진다
   { const AFF = { glow: ['nebula', 'abyss'], bone: ['hunger', 'dusk'], wing: ['nebula', 'dusk'], root: ['brood', 'abyss'], spike: ['hunger', 'brood'], shell: ['abyss', 'hunger'], swarm: ['brood', 'hunger'], horn: ['hunger', 'nebula'], tongue: ['hunger', 'brood'] }, hsh = id => { let h = 7; for (const ch of id) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return h; };
-    Object.keys(AFF).forEach(t => { const have = LIST.filter(d => d.type !== 'shape' && d.tags.includes(t)).length; if (have >= 15) return;
-      LIST.filter(d => d.type !== 'shape' && d.type !== 'curse' && AFF[t].includes(d.asp) && !d.tags.includes(t) && d.tags.length <= 2).sort((x, y) => (hsh(x.id + t) % 997) - (hsh(y.id + t) % 997)).slice(0, 15 - have).forEach(d => { d.tags.push(t); }); }); }
+    Object.keys(AFF).forEach(t => { const have = LIST.filter(d => d.type !== 'shape' && d.tags.includes(t)).length; if (have >= RARE_N) return;
+      LIST.filter(d => d.type !== 'shape' && d.type !== 'curse' && AFF[t].includes(d.asp) && !d.tags.includes(t) && d.tags.length <= 2).sort((x, y) => (hsh(x.id + t) % 997) - (hsh(y.id + t) % 997)).slice(0, RARE_N - have).forEach(d => { d.tags.push(t); }); }); }
   const TAGS = uniq(LIST.reduce((a, d) => a.concat(d.tags), []));
   const tagged = tag => LIST.filter(d => d.tags.includes(tag));
 

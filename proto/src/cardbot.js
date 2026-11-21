@@ -57,6 +57,8 @@ function dayRandom(R) {
 function dayPlay0(R) { return dayPlay(R, true); }
 function dayPlay(R, onlyCards) {
   const G = R.G; let guard = 0;
+  // 손이 나쁘면(저주가 많거나 놓을 카드가 거의 없으면) 진액으로 다시 받는다
+  if (!onlyCards && CM.buySink && !process.env.NOSINK) { const v0 = CM.dayView(R), hv = v0.hand || [], good = hv.filter(h => h.can && def(h.id).type !== 'curse' && def(h.id).type !== 'skill').length, cur = hv.filter(h => def(h.id).type === 'curse').length; const o = CM.sinkOptions(R).find(x => x.id === 'redraw' && x.ok); if (o && (good <= 1 || cur >= 2) && o.cost < G.gold - 60) CM.buySink(R, 'redraw'); }
   while (guard++ < 14) {
     const v = CM.dayView(R), order = { boon: 0, shape: 1, organ: 2, trap: 3, kin: 4, curse: 5 };
     const pr = R.persona, tg = h => pr && pr.style ? (def(h.id).tags || []).filter(t => pr.tags.includes(t)).length : 0;
@@ -82,7 +84,7 @@ function dayPlay(R, onlyCards) {
   if (G.gold > 260 * k) { const c = R.deck.filter(x => !x.up && def(x.id).type !== 'curse').sort((a, b) => scoreCard(R, b.id) - scoreCard(R, a.id))[0]; if (c) CM.upgrade(R, c.uid); }
   if (R.persona && R.persona.style && G.gold > 150 * k && R.deck.length > 10) { const off = R.deck.filter(x => { const d = def(x.id); return d.type !== 'shape' && !(d.tags || []).some(t => R.persona.tags.includes(t)); }).sort((a, b) => scoreCard(R, a.id) - scoreCard(R, b.id))[0]; if (off) CM.removeCard(R, off.uid); }
   // 남은 진액은 쓴다: 허물 재촉 → 권속 먹이기 → 한 장 더 (진액이 쌓이지 않게)
-  if (CM.buySink && !process.env.NOSINK) { let g2 = 0; while (g2++ < 6) { const o = CM.sinkOptions(R).filter(x => x.ok && x.cost < G.gold - 90 * k); const pickS = o.find(x => x.id === 'hurry') || o.find(x => x.id === 'feed') || (R.hand.length < 6 ? o.find(x => x.id === 'draw') : null); if (!pickS || !CM.buySink(R, pickS.id).ok) break; if (pickS.id === 'draw') dayPlay0(R); } }
+  if (CM.buySink && !process.env.NOSINK) { let g2 = 0; while (g2++ < (G.gold > 400 * k ? 14 : 6)) { const o = CM.sinkOptions(R).filter(x => x.ok && x.cost < G.gold - 90 * k); const pickS = o.find(x => x.id === 'hurry') || o.find(x => x.id === 'feed') || (R.hand.length < 6 ? o.find(x => x.id === 'draw') : null); if (!pickS || !CM.buySink(R, pickS.id).ok) break; if (pickS.id === 'draw') dayPlay0(R); } }
   if (G.gold > 200 * k) { const cu = R.deck.find(x => def(x.id).type === 'curse') || (R.deck.length > 16 ? R.deck.find(x => x.id === 'sh_one') : null); if (cu) CM.removeCard(R, cu.uid); }
 }
 function needlePlay(R) {

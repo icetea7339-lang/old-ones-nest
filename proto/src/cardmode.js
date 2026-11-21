@@ -414,6 +414,13 @@ const CARDMODE = (function () {
   const molt = R => (GEN() ? GEN().molt(R) : null);
   const layEgg = R => (GEN() ? GEN().layEgg(R) : null);
   const evoBar = R => (GEN() && GEN().evoBar ? GEN().evoBar(R) : null);
+  // 허물까지 얼마나 남았나: frac 0..1, near = 다음 밤이나 그다음 밤이면 벗는다, reason = 짧은 한 줄 (UI 는 near 일 때 「허물이 가깝다」를 띄운다)
+  function moltProgress(R) {
+    if (!R || !R.genome) return null; if (R.moltQ) return { frac: 1, near: true, ready: true, reason: '허물이 차올랐다' };
+    const b = evoBar(R); if (!b) return null; if (b.done) return { frac: 1, done: true, near: false, reason: '더 벗을 허물이 없다' };
+    const g = R.genome, per = Math.max(0.5, R.evoPerNight || 1), left = Math.max(0, b.need - b.cur), nights = Math.ceil(left / per);
+    return { frac: b.frac, near: b.frac >= 0.7 || nights <= 1, nights, reason: b.frac >= 0.7 || nights <= 1 ? '허물이 가깝다' : '몸이 익어 간다', top: (typeof TRAITS !== 'undefined' ? TRAITS : require('./traits.js')).topTags(g, 1)[0] || null };
+  }
   const codex = meta => (GEN() ? GEN().codex(meta) : { found: 0, list: [], landmarksFound: 0, landmarks: [], total: 30 });
   function genomeSummary(R) { const T = typeof TRAITS !== 'undefined' ? TRAITS : require('./traits.js'); return R.genome ? T.summary(R.genome) : null; }
 
@@ -433,7 +440,7 @@ const CARDMODE = (function () {
   function deckView(R) { return R.deck.map(c => Object.assign(view(R, c), { where: R.hand.includes(c.uid) ? 'hand' : R.drawP.includes(c.uid) ? 'draw' : 'disc' })); }
   function dayView(R) { return { day: R.G.day, phase: R.phase, gold: R.G.gold, faith: R.G.faith, hand: handView(R), drawN: R.drawP.length, discN: R.disc.length, deckN: R.deck.length, retain: R.retain, combos: N.cardCombos(R.G), shop: (R.shop || []).map((s, i) => Object.assign({ i }, s, { card: view(R, { uid: 0, id: s.id, up: 0 }) })), offer: R.offer ? R.offer.cards.map(id => view(R, { uid: 0, id, up: 0 })) : null, needleOffer: R.needleOffer, upCost: upCost(R), rmCost: rmCost(R), log: R.log.splice(0), learned: R.learned.slice() }; }
 
-  return { K, ALIEN, SIGNS, NHANDS, newMeta, newRun, addCard, costOf, view, canPlay, play, cellsFor, shapePlacements, endDay, nightBegin, nightEnd, foresee, evoBar, morning, syncHeld, draw,
+  return { K, ALIEN, SIGNS, NHANDS, newMeta, newRun, addCard, costOf, view, canPlay, play, cellsFor, shapePlacements, endDay, nightBegin, nightEnd, foresee, evoBar, moltProgress, morning, syncHeld, draw,
     takeReward, skipReward, rerollReward, shopOffer, shopBuy, upgrade, removeCard, upCost, rmCost, SINK, sinkCost, sinkOptions, buySink,
     needleStart, needleBet, needleReveal, needleFold, needlePublic, needleEval, needleBest,
     registerMutator, clearMutators, mutateDeck, behaviour, syncCounters, COUNTERS,

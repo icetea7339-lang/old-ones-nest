@@ -84,10 +84,11 @@ const dev = process.argv[2] || '', tag = (dev ? dev.replace(/\s+/g, '') : 'pc') 
   if (await p.$('#cm-ov [data-c="reward"]')) { await shot('reward'); await tap('#cm-ov [data-c="reward"][data-i="0"]'); } else console.log(tag, '보상 창 없음 (진 밤?)');
   await shot('day4');
   // 바늘 점
+  for (let k = 0; k < 5; k++) { const ok = await p.$('#cm-ov:not([hidden]) [data-c="moltok"]') || await p.$('#cm-ov:not([hidden]) [data-c="rskip"]') || await p.$('#cm-ov:not([hidden]) [data-c="go"]'); if (!ok) break; await ok.scrollIntoViewIfNeeded().catch(() => {}); await ok.click(); await p.waitForTimeout(400); }
   await p.evaluate(() => { __card.run.needleOffer = true; __card.run.G.gold = 300; __card.render(); }); await tap('#mapchips [data-c="needle"]'); await shot('needle');
   await tap('#cm-ov [data-c="nbet"][data-v="ess"]'); await tap('#cm-ov [data-c="nopen"]'); await shot('needle_3'); await tap('#cm-ov [data-c="nopen"]'); await tap('#cm-ov [data-c="nopen"]'); await shot('needle_result'); await tap('#cm-ov [data-c="ndone"]');
   // 허물 (게놈 단계가 없으면 짐작으로)
-  await p.evaluate(() => { const R = __card.run, g0 = __card.genome(); R.G.stats.trapKills = (R.G.stats.trapKills || 0) + 30; R.G.stats.infections = (R.G.stats.infections || 0) + 12; R.G.slime.stage = Math.max(1, R.G.slime.stage); __card.molt(__card.guess(g0, 0)); }); await shot('molt'); await p.waitForTimeout(1300); await shot('molt_after'); await tap('#cm-ov [data-c="moltok"]');
+  await p.evaluate(() => { const R = __card.run, g0 = __card.genome(); R.G.stats.trapKills = (R.G.stats.trapKills || 0) + 30; R.G.stats.infections = (R.G.stats.infections || 0) + 12; R.G.slime.stage = Math.max(1, R.G.slime.stage); __card.molt(__card.guess(g0, 0)); }); await shot('molt'); await p.waitForTimeout(1300); await shot('molt_after'); await p.evaluate(() => { const b = document.querySelector('#cm-ov [data-c="moltok"]'); if (b) b.scrollIntoView({ block: 'center' }); }); await tap('#cm-ov [data-c="moltok"]');
   // 판 끝 → 알 → 도감
   await p.evaluate(() => { const R = __card.run; R.G.over = { win: false, why: '시험' }; __card.CARDMODE.endRun(R); __card.finish(); }); await shot('over');
   await tap('#cm-ov [data-c="egg-lay"]'); await shot('over_egg');

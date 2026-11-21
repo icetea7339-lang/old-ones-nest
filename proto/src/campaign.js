@@ -26,7 +26,7 @@ const CAMPAIGN = (function () {
   const CH = {
     1: {
       title: '고인 자리', brief: '굴 카드로 둥지를 넓히고 권속을 들인다. 땅속 짐승을 여섯 밤 막는다.', teach: '굴 카드와 권속',
-      types: ['shape', 'kin'], world: 'fantasy', gold: 120,
+      types: ['shape', 'kin'], world: 'fantasy', gold: 120, under: true,
       deck: ['sh_two', 'sh_two', 'sh_bend', 'sh_bend', 'sh_one', 'sh_dead', 'og_post_@', 'kn_goblin', 'kn_goblin', 'kn_skeleton', 'bl_ess'],
       nights: { 2: ['hound'], 3: ['hound', 'hound'], 4: ['hound', 'hound'], 5: ['hound', 'hound', 'hound'], 6: ['hound', 'hound', 'handler'] },
       goal: { nights: 6, dug: 8, kin: 3 }, molt: 4,
@@ -118,7 +118,7 @@ const CAMPAIGN = (function () {
     },
     6: {
       title: '바늘 점', brief: '하늘의 바늘이 흔들린다. 제단에서 바늘 점을 치고, 저주와 축복을 바꿔 쥔다.', teach: '바늘 점과 저주',
-      types: ['shape', 'kin', 'organ', 'trap', 'skill', 'boon'], world: 'fantasy', gold: 260, stage: 2, mul: 1, needle: [1, 3, 5, 7],
+      types: ['shape', 'kin', 'organ', 'trap', 'skill', 'boon'], world: 'fantasy', gold: 230, stage: 2, mul: 2.3, needle: [1, 3, 5, 7],
       deck: ['sh_two', 'sh_two', 'sh_bend', 'sh_one', 'og_post_@', 'og_trap_@', 'og_altar', 'tr_maw', 'tr_spore', 'tr_eye', 'tr_digest_@', 'kn_goblin', 'kn_skeleton', 'kn_cultist', 'kn_mask', 'sk_rock', 'sk_wave', 'sk_scream', 'bl_ess', 'bl_needle', 'cu_debt'],
       nights: { 1: ['militia', 'militia', 'apprentice', 'villager'], 2: ['warrior', 'detective', 'militia', 'villager', 'villager'], 3: ['torch', 'militia', 'militia', 'villager', 'villager'], 4: ['warrior', 'warrior', 'priest', 'villager'], 5: ['captain', 'torch', 'militia', 'militia', 'villager'], 6: ['soldier', 'warrior', 'militia', 'villager', 'villager'], 7: ['torch', 'torch', 'warrior', 'militia', 'villager'], 8: ['sealer', 'soldier', 'warrior', 'militia', 'villager'] },
       goal: { nights: 8, needles: 2 },
@@ -136,7 +136,7 @@ const CAMPAIGN = (function () {
     },
     7: {
       title: '일곱째 바늘', brief: '두 세상이 겹친다. 모든 것을 써서 열두 밤을 버티면, 마지막 바늘이 돌아선다.', teach: '모든 것',
-      types: ['shape', 'kin', 'organ', 'trap', 'skill', 'boon', 'curse'], world: 'fantasy', bleed: 'wuxia', gold: 300, stage: 1, mul: 1.9, needle: [4, 9],
+      types: ['shape', 'kin', 'organ', 'trap', 'skill', 'boon', 'curse'], world: 'fantasy', bleed: 'wuxia', gold: 300, stage: 1, mul: 1.35, needle: [4, 9],
       deck: ['sh_two', 'sh_two', 'sh_bend', 'sh_fork', 'sh_one', 'og_post_@', 'og_trap_@', 'og_hatchery', 'og_hall', 'tr_maw', 'tr_spore', 'tr_eye', 'tr_digest_@', 'tr_eggsac', 'kn_goblin', 'kn_skeleton', 'kn_cultist', 'kn_scale', 'sk_rock', 'sk_wave', 'sk_mark', 'sk_hatch', 'bl_ess', 'bl_faith'],
       nights: { 1: ['militia', 'villager', 'villager'], 2: ['shadow', 'militia', 'villager'], 3: ['warrior', 'militia', 'villager', 'villager'], 4: ['master', 'militia', 'villager', 'villager'], 5: ['warrior', 'torch', 'militia', 'villager'], 6: ['captain', 'shadow', 'militia', 'villager'], 7: ['master', 'warrior', 'warrior', 'priest', 'militia'], 8: ['sealer', 'soldier', 'shadow', 'militia', 'villager'], 9: ['soldier', 'soldier', 'master', 'warrior', 'villager'], 10: ['warrior', 'warrior', 'shadow', 'shadow', 'chaplain', 'militia'], 11: ['master', 'soldier', 'sealer', 'warrior', 'militia'], 12: ['@final', 'soldier', 'warrior', 'shadow', 'militia', 'villager'] },
       goal: { nights: 12 },
@@ -207,7 +207,7 @@ const CAMPAIGN = (function () {
       // 장의 세기(mul): 우두머리가 아닌 것을 돌려 가며 더 데려온다
       const kinds = base.slice(), plain = base.filter(k => !N.INV[k] || !N.INV[k].boss), want = Math.round(base.length * (C.mul || 1));
       for (let i = 0; kinds.length < want && plain.length; i++) kinds.push(plain[i % plain.length]);
-      G.march.tonight = { vill: 'field', settle: false, kinds, camp: true };
+      G.march.tonight = { vill: 'field', settle: false, kinds, camp: true, beast: !!C.under };
     }
     const nx = C.nights[d + 1]; G.march.tomorrow = nx && nx !== 'auto' ? { vill: 'field', settle: false, kinds: nx.map(k => k === '@final' ? 'sealer' : k) } : null;
     if (C.needle && C.needle.includes(d)) R.needleOffer = true;

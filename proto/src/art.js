@@ -438,13 +438,27 @@ const echoImg = size => toImg(spriteCanvas('slime', 'echo'), 'echo', size, '잔�
 
 // ---------- 소리 ----------
 let AC = null;
+// 소리 크기: 전체 x 효과음 (설정의 미끄럼 막대)
+const sfxVol = () => { const v = META.vol || {}; return Math.max(0, Math.min(1, (v.master == null ? 1 : v.master) * (v.sfx == null ? 1 : v.sfx))); };
+// 카드 판의 짧은 신호: 카드 내기, 굴 놓기(쿵), 족보, 허물, 밤이 온다
+function sfxRich(kind, t, vol) {
+  const tone = (f, f2, d, type, g0, at) => { const o = AC.createOscillator(), g = AC.createGain(); o.type = type; o.frequency.setValueAtTime(f, t + (at || 0)); if (f2) o.frequency.exponentialRampToValueAtTime(f2, t + (at || 0) + d); g.gain.setValueAtTime(0.0001, t + (at || 0)); g.gain.exponentialRampToValueAtTime(g0 * vol, t + (at || 0) + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + (at || 0) + d); o.connect(g); g.connect(AC.destination); o.start(t + (at || 0)); o.stop(t + (at || 0) + d + 0.02); };
+  const noise = (d, g0, hp, at) => { const n = Math.floor(AC.sampleRate * d), b = AC.createBuffer(1, n, AC.sampleRate), ch = b.getChannelData(0); for (let i = 0; i < n; i++) ch[i] = (Math.random() * 2 - 1) * (1 - i / n); const src = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain(); src.buffer = b; f.type = 'bandpass'; f.frequency.value = hp; g.gain.value = g0 * vol; src.connect(f); f.connect(g); g.connect(AC.destination); src.start(t + (at || 0)); };
+  if (kind === 'card') { noise(0.06, 0.18, 2400); tone(660, 990, 0.06, 'triangle', 0.05); return true; }
+  if (kind === 'thud') { tone(120, 45, 0.22, 'sine', 0.22); noise(0.09, 0.22, 300); return true; }
+  if (kind === 'combo') { [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, 0, 0.18, 'triangle', 0.06, i * 0.05)); return true; }
+  if (kind === 'molt') { tone(55, 110, 1.0, 'sawtooth', 0.07); tone(82, 165, 1.0, 'sine', 0.08, 0.05); noise(0.9, 0.06, 500, 0.1); [196, 247, 294, 392].forEach((f, i) => tone(f, 0, 0.7, 'sine', 0.05, 0.55 + i * 0.04)); return true; }
+  if (kind === 'night') { tone(73, 70, 1.2, 'sine', 0.12); tone(110, 0, 0.9, 'triangle', 0.03, 0.15); tone(1480, 1400, 0.6, 'sine', 0.02, 0.3); return true; }
+  return false;
+}
 function sfx(kind) {
   if (!META.sound) return;
   try {
     AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === 'suspended') AC.resume();
+    const vol = sfxVol(); if (vol <= 0) return; if (sfxRich(kind, AC.currentTime, vol)) return;
     const seq = { hit: [[150, .05, 'square']], trap: [[320, .05, 'sawtooth'], [110, .09, 'sawtooth']], coin: [[880, .05, 'square'], [1320, .08, 'square']], up: [[523, .07, 'square'], [659, .07, 'square'], [784, .07, 'square'], [1047, .14, 'square']], down: [[392, .09, 'square'], [311, .09, 'square'], [233, .18, 'square']], die: [[200, .06, 'triangle'], [90, .12, 'triangle']], evo: [[392, .1, 'square'], [523, .1, 'square'], [659, .1, 'square'], [784, .1, 'square'], [1047, .3, 'square']], step: [[90, .03, 'triangle']], click: [[660, .03, 'square']], talk: [[440, .02, 'square']], mad: [[700, .05, 'sine'], [520, .05, 'sine'], [760, .1, 'sine']], spell: [[220, .08, 'sine'], [440, .08, 'sine'], [880, .2, 'sine']], dig: [[120, .04, 'sawtooth'], [80, .06, 'sawtooth']], slide: [[300, .05, 'triangle'], [200, .08, 'triangle']] }[kind];
     if (!seq) return;
     let t = AC.currentTime;
-    for (const [f, d, type] of seq) { const o = AC.createOscillator(), g = AC.createGain(); o.type = type; o.frequency.value = f; g.gain.setValueAtTime(0.05, t); g.gain.exponentialRampToValueAtTime(0.001, t + d); o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t + d); t += d * 0.9; }
+    for (const [f, d, type] of seq) { const o = AC.createOscillator(), g = AC.createGain(); o.type = type; o.frequency.value = f; g.gain.setValueAtTime(0.05 * vol, t); g.gain.exponentialRampToValueAtTime(0.0005, t + d); o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t + d); t += d * 0.9; }
   } catch (e) { /* 소리를 못 내는 환경 */ }
 }

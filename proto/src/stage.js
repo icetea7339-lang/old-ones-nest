@@ -13,9 +13,9 @@ const SPOS = [{ x: 120, y: 440 }, { x: 362, y: 424 }, { x: 600, y: 424 }, { x: 8
 const ST = { screen: 'under', p: 1, mode: 'day', ents: null, defs: {}, floats: [], sparks: [], cam: { x: 0, tx: 0 }, camMem: { surface: 240, under: 0 }, viewW: W, ox: 0, fm: 1, fire: {}, sanfx: {}, shake: 0, flash: 0, speed: 1, skip: false, label: '', hud: null, hover: null, focus: null, march: null };
 const now = () => ST.freezeAt || performance.now() - (ST.debt || 0);
 function rect(x, col, a, b, w, h) { x.fillStyle = col; x.fillRect(Math.round(a), Math.round(b), Math.round(w), Math.round(h)); }
-function txt(x, s, px, py, col, size, align) { const z = size || 13, sz = z <= 20 ? Math.round(z * ST.fm) : z; x.font = '700 ' + sz + 'px "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif'; x.textAlign = align || 'left'; x.textBaseline = 'top'; x.fillStyle = '#0b0c16'; x.fillText(s, px + 1, py + 1); x.fillStyle = col || '#ece6d6'; x.fillText(s, px, py); }
-function tagL(x, s, px, py, col, size, accent) { const z = Math.round((size || 13) * ST.fm); x.font = '700 ' + z + 'px "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif'; const w = x.measureText(s).width + 12; rect(x, '#07050cd0', px - 4, py - 3, w, z + 7); if (accent) rect(x, accent, px - 4, py - 3, 2, z + 7); txt(x, s, px + 2, py, col, size); }
-function plate(x, s, cx, y, col, size) { const z = Math.round((size || 13) * ST.fm); x.font = '700 ' + z + 'px "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif'; const w = x.measureText(s).width + 10; rect(x, '#0b0c16bb', cx - w / 2, y - 2, w, z + 6); txt(x, s, cx, y, col, size, 'center'); }
+function txt(x, s, px, py, col, size, align) { const z = size || 13, sz = z <= 20 ? Math.round(z * ST.fm) : z; x.font = '700 ' + sz + 'px "Nest Sans", "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif'; x.textAlign = align || 'left'; x.textBaseline = 'top'; x.fillStyle = '#0b0c16'; x.fillText(s, px + 1, py + 1); x.fillStyle = col || '#ece6d6'; x.fillText(s, px, py); }
+function tagL(x, s, px, py, col, size, accent) { const z = Math.round((size || 13) * ST.fm); x.font = '700 ' + z + 'px "Nest Sans", "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif'; const w = x.measureText(s).width + 12; rect(x, '#07050cd0', px - 4, py - 3, w, z + 7); if (accent) rect(x, accent, px - 4, py - 3, 2, z + 7); txt(x, s, px + 2, py, col, size); }
+function plate(x, s, cx, y, col, size) { const z = Math.round((size || 13) * ST.fm); x.font = '700 ' + z + 'px "Nest Sans", "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif'; const w = x.measureText(s).width + 10; rect(x, '#0b0c16bb', cx - w / 2, y - 2, w, z + 6); txt(x, s, cx, y, col, size, 'center'); }
 function camTo(lx, snap, ly) { if (!snap && ST.mode === 'night' && ST.camHold > now()) return; const max = Math.max(0, worldW() - ST.viewW); ST.cam.tx = Math.max(0, Math.min(max, lx - ST.viewW / 2)); if (ly != null) ST.cam.tv = Math.max(0, Math.min(vMax(), ly - (ST.vh || H) / 2)); if (snap === true) { ST.cam.x = ST.cam.tx; if (ly != null) ST.cam.v = ST.cam.tv; } }
 const camCell = (i, snap) => { const r = cellRect(i); camTo(r.x + r.w / 2, snap, r.y + r.h / 2); };
 function villState(v) { const s = G.vill[v]; return s.razed ? '폐허' : s.tribute ? '공물 중' : s.host >= 50 ? '보복 준비' : s.host >= 15 ? '수상히 여김' : '평온'; }
@@ -302,13 +302,15 @@ function drawUnit(x, e, t) {
   if (e.hit && t - e.hit < 160) dx += (Math.floor(t / 30) % 2 ? 2 : -2);
   if (e.down) a *= 0.3;
   const px = Math.round(e.x + dx), py = Math.round(e.y + dy + (e.bob ? Math.sin(t / 400) * 2 : 0));
+  if (e.bleed && !e.dead) { a *= 0.72 + 0.28 * Math.abs(Math.sin(t / 140 + px * 0.05)); if (Math.floor(t / 90 + px) % 23 === 0) dx += 3; }
   x.globalAlpha = a;
   if (e.wall) { rect(x, '#b85a6a', px, py - 30, 24, 62); rect(x, '#e89aa8', px + 4, py - 20 + Math.sin(t / 200) * 2, 8, 8); rect(x, '#e89aa8', px + 12, py + 6, 8, 8); }
   else x.drawImage(e.sl ? slimeCanvas(e.sl, Math.floor(t / 240)) : frameOf(e.can, e.dead || e.down || e.kneel ? 0 : Math.floor(t / (e.side === 'inv' ? 300 : 420) + px * 0.13) % 2), px, py, size, size);
+  if (e.bleed && !e.dead && Math.floor(t / 110) % 5 === 0) { x.globalCompositeOperation = 'lighter'; x.globalAlpha = 0.35 * a; x.drawImage(e.can, px + 2, py, size, size); x.globalCompositeOperation = 'source-over'; x.globalAlpha = 1; }
   if (e.hit && t - e.hit < 80 && !e.wall) { x.globalCompositeOperation = 'lighter'; x.globalAlpha = 0.6 * a; x.drawImage(e.can, px, py, size, size); x.globalCompositeOperation = 'source-over'; }
   x.globalAlpha = 1;
   if (e.kneel) { rect(x, '#8a8296', px + size - 4, py - 8, 2, 14); rect(x, '#f5f5f5', px + size - 2, py - 8, 9, 6); }
-  if (!e.dead && !e.down && !e.kneel && e.hp != null && (e.side === 'inv' || e.hp < 0.999)) {
+  if (!e.dead && !e.down && !e.kneel && !e.noBar && e.hp != null && (e.side === 'inv' || e.hp < 0.999)) {
     const bw = Math.max(18, size - 6), bx = px + (size - bw) / 2, by = py - (e.wall ? 38 : 7);
     rect(x, '#0b0c16', bx - 1, by - 1, bw + 2, 5); rect(x, e.side === 'inv' ? '#ff5f57' : '#6fd08c', bx, by, bw * Math.max(0, e.hp), 3);
     if (e.sp != null) { rect(x, '#0b0c16', bx - 1, by + 4, bw + 2, 4); rect(x, '#a884ff', bx, by + 5, bw * Math.max(0, e.sp), 2); }
@@ -392,8 +394,12 @@ function drawUnder(x, t) {
     // 붐빌 때: 한 자리에 겹친 침입자는 여덟까지만 그리고 나머지는 수로 (그리기가 느려지지 않게)
     const live = es.filter(e => e.side === 'inv'), byC = {}; live.forEach(e => { if (e.gone || e.dead) return drawUnit(x, e, t); const k = Math.round(e.x / 48) + ':' + Math.round(e.y / 48); (byC[k] = byC[k] || []).push(e); });
     ST.drawn = { inv: live.length, hid: 0 };
-    for (const k in byC) { const g = byC[k]; if (g.length > 8) ST.drawn.hid += g.length - 8; g.forEach((e, n) => { if (n < 8) drawUnit(x, e, t); else if (e.dur) { const q = Math.min(1, (t - e.t0) / e.dur); e.x = e.fx + (e.tx - e.fx) * q; e.y = e.fy + (e.ty - e.fy) * q; if (q >= 1) e.dur = 0; } });
-      if (g.length > 8) { const e = g[7], sz = 16 * (e.scale || S); rect(x, '#0b0911cc', e.x + sz - 6, e.y - 10, 30, 16); txt(x, '+' + (g.length - 8), e.x + sz + 9, e.y + 3, '#fff3a0', 12, 'center'); } } }
+    // 여덟을 넘으면 떼로 묶는다: 앞의 셋만 그리고, 체력 막대 하나와 ×수 표를 단다
+    for (const k in byC) { const g = byC[k], cnt = g.reduce((a, u) => a + Math.max(1, u.horde || 1), 0), crowd = g.length > 8 || (cnt > 8 && g.length > 1); if (crowd) ST.drawn.hid += g.length - 3;
+      g.forEach((e, n) => { e.noBar = crowd; if (!crowd || n < 3) drawUnit(x, e, t); else if (e.dur) { const q = Math.min(1, (t - e.t0) / e.dur); e.x = e.fx + (e.tx - e.fx) * q; e.y = e.fy + (e.ty - e.fy) * q; if (q >= 1) e.dur = 0; } });
+      if (crowd) { const e = g[0], sz = 16 * (e.scale || S), hp = g.reduce((a, u) => a + Math.max(0, u.hp == null ? 1 : u.hp), 0) / g.length, bw = sz + 14, bx = Math.round(e.x - 7), by = Math.round(e.y - 12);
+        rect(x, '#0b0c16', bx - 1, by - 1, bw + 2, 6); rect(x, '#ff5f57', bx, by, Math.round(bw * hp), 4); rect(x, '#0b0911dd', bx + bw - 6, by - 18, 34, 16); txt(x, '×' + cnt, bx + bw + 11, by - 6, '#fff3a0', 13, 'center'); }
+      else g.forEach(e => { if (e.horde > 1 && !e.dead && !e.gone) { const sz = 16 * (e.scale || S); rect(x, '#0b0911dd', e.x + sz - 8, e.y - 4, 26, 14); txt(x, '×' + e.horde, e.x + sz + 5, e.y + 7, '#fff3a0', 12, 'center'); } }); } }
   else {
     const by = {}; G.kin.forEach(m => { if (m.loc !== null) (by[m.loc] = by[m.loc] || []).push(m); });
     for (const loc in by) by[loc].forEach((m, k) => { const sm = m.kind === 'spawn', p = roamPos(m, defPos(loc === 'core' ? 'core' : +loc, k, sm), t, sm); if (!m.hurt && !m.strike) glow(x, '#cfeee0', p.x + (sm ? 8 : 16), p.y + (sm ? 8 : 16), sm ? 14 : 30, 0.2); x.globalAlpha = m.hurt || m.strike ? 0.4 : 1; { const fz = !sm && (NEST.stageOf(m) >= 2 || !!m.secret), sz = fz ? 64 : (m.evo && !sm) ? 48 : sm ? (m.evo ? 26 : 16) : 32; x.drawImage(frameOf(fz ? kinCanvasM(m) : kinCanvas(m.kind, !!m.evo), Math.floor(t / 420 + m.id * 0.37) % 2), p.x - (fz ? 16 : (m.evo && !sm) ? 8 : m.evo ? 5 : 0), Math.round(p.y + Math.sin(t / 500 + m.id) * 1) - (fz ? 32 : (m.evo && !sm) ? 16 : m.evo ? 10 : 0), sz, sz); } x.globalAlpha = 1; if (m.hurt) txt(x, '부상', p.x + 16, p.y - 14, '#ff9a92', 11, 'center'); else if (m.strike) txt(x, '파업', p.x + 16, p.y - 14, '#ffb347', 11, 'center'); });
@@ -420,7 +426,7 @@ function pathPoint(v, f) { const a = VPOS[v], b = PPOS[NEST.VILL[v].plot], c = C
 function drawParty(x, t, est, f, label, col) {
   const p = pathPoint(est.vill, f), n = Math.min(7, est.count);
   for (let k = 0; k < n; k++) { const kind = est.kinds ? est.kinds[k % est.kinds.length] : (est.only && k < est.only.length ? est.only[k] : 'shade'); x.drawImage(kind === 'shade' ? spriteCanvas('human', 'shade') : invCanvas(kind), Math.round(p.x - n * 9 + k * 18), Math.round(p.y - 30 + Math.sin(t / 200 + k) * 2), 32, 32); }
-  if (label) { const s = label + ' · ' + NEST.GRADE_NAME[est.grade] + ' ' + (est.kinds ? '' : '약 ') + est.count + '명'; const z = Math.round(14 * ST.fm); x.font = '700 ' + z + 'px "IBM Plex Sans KR", "Apple SD Gothic Neo", sans-serif'; const w = x.measureText(s).width + 14; rect(x, '#0b0c16cc', p.x - w / 2, p.y - 42 - z, w, z + 8); rect(x, col, p.x - w / 2, p.y - 42 - z, 4, z + 8); txt(x, s, p.x + 2, p.y - 38 - z, '#ece6d6', 14, 'center'); }
+  if (label) { const s = label + ' · ' + NEST.GRADE_NAME[est.grade] + ' ' + (est.kinds ? '' : '약 ') + est.count + '명'; const z = Math.round(14 * ST.fm); x.font = '700 ' + z + 'px "Nest Sans", "IBM Plex Sans KR", "Apple SD Gothic Neo", sans-serif'; const w = x.measureText(s).width + 14; rect(x, '#0b0c16cc', p.x - w / 2, p.y - 42 - z, w, z + 8); rect(x, col, p.x - w / 2, p.y - 42 - z, 4, z + 8); txt(x, s, p.x + 2, p.y - 38 - z, '#ece6d6', 14, 'center'); }
 }
 // 계단 모양 도형: 타원(반쪽 가능), 세모, 고른 것의 모서리 표시
 function ell(x, col, cx, cy, rx, ry, half) { x.fillStyle = col; for (let dy = -ry; dy < (half ? 0 : ry); dy += 2) { const hf = ev2(rx * Math.sqrt(Math.max(0, 1 - Math.pow((dy + 1) / ry, 2)))); if (hf > 0) x.fillRect(Math.round(cx - hf), Math.round(cy + dy), hf * 2, 2); } }
@@ -572,7 +578,7 @@ function drawStage() {
     if ((ST.cam.v || 0) > 4) tv(16, -1); if ((ST.cam.v || 0) < UH() - VH - 4) tv(VH - 16, 1); x.globalAlpha = 1;
   }
   if (ST.focus != null) plate(x, ST.pick ? (ST.pick.kind === 'inv' ? '적을 누른다' : '방을 누른다') : '손을 쓸 차례 — 아래에서 고른다', VW / 2, 12, '#fff3a0', 16);
-  if (ST.label) { let fs = 34; x.font = '700 ' + fs + 'px "IBM Plex Sans KR", "Apple SD Gothic Neo", sans-serif'; let w = x.measureText(ST.label).width + 60; if (w > VW - 12) { fs = Math.floor(fs * (VW - 12) / w); x.font = '700 ' + fs + 'px "IBM Plex Sans KR", "Apple SD Gothic Neo", sans-serif'; w = x.measureText(ST.label).width + 40; } rect(x, '#0b0c16dd', VW / 2 - w / 2, H / 2 - 36, w, 64); rect(x, '#e8c030', VW / 2 - w / 2, H / 2 - 36, w, 3); txt(x, ST.label, VW / 2, H / 2 - 4 - fs / 2, '#ece6d6', Math.max(21, fs), 'center'); }
+  if (ST.label) { let fs = 34; x.font = '700 ' + fs + 'px "Nest Sans", "IBM Plex Sans KR", "Apple SD Gothic Neo", sans-serif'; let w = x.measureText(ST.label).width + 60; if (w > VW - 12) { fs = Math.floor(fs * (VW - 12) / w); x.font = '700 ' + fs + 'px "Nest Sans", "IBM Plex Sans KR", "Apple SD Gothic Neo", sans-serif'; w = x.measureText(ST.label).width + 40; } rect(x, '#0b0c16dd', VW / 2 - w / 2, H / 2 - 36, w, 64); rect(x, '#e8c030', VW / 2 - w / 2, H / 2 - 36, w, 3); txt(x, ST.label, VW / 2, H / 2 - 4 - fs / 2, '#ece6d6', Math.max(21, fs), 'center'); }
 }
 function drawTitle() {
   const c = $('tcv'), x = c.getContext('2d'), t = now() / 1000; x.imageSmoothingEnabled = false;
@@ -619,13 +625,17 @@ async function playEvents(ev, from) {
   const bp = G.sealed && NEST.beastPath ? NEST.beastPath(G) : null, far = bp && bp.length ? cellRect(bp[0]) : null, E = ST.ents, shaft = far ? { x: far.x + 24, y: floorY(far) - 36 } : { x: cellRect(G.ent).x + 32, y: -50 };
   for (let n = from; n < ev.length; n++) {
     const e = ev[n]; if (e.txt) nlog(e.txt, e.t === 'fx' && ['kneel', 'flee', 'infight'].includes(e.k) ? 'mad' : e.t === 'fx' && ['hand', 'spell'].includes(e.k) ? 'hand' : '');
-    if (e.t === 'march' && far) {
-      e.party.forEach((u, j) => { E[u.uid] = { id: u.uid, kind: u.kind, side: 'inv', can: invCanvas(u.kind), x: shaft.x + j * 10, y: shaft.y, hp: 1, sp: 1, scale: S }; });
-      setScreen('under'); camCell(bp[0]); ST.label = e.txt || ''; burst(far.x + far.w / 2, floorY(far) - 10, ['#8a6a4a', '#5a4a3a', '#ece6d6'], 18, 0.9, 600); jolt(240, 1); sfx('trap'); await wait(900); ST.label = '';
+    // 땅속 짐승(이야기 1장 등): 지상 입구가 아니라 가장 먼 굴에서 흙을 뚫고 나온다
+    const under = e.t === 'march' && !far && NEST.beastPath && (e.under || e.beast || (G.march && G.march.tonight && G.march.tonight.beast) || ((e.party || []).length && (e.party.every(u => u.beast || u.under) || (G.cardMode && typeof CMU !== 'undefined' && CMU.run && CMU.run.camp && CMU.run.camp.ch === 1))));
+    const bpU = under ? NEST.beastPath(G) : null, farU = bpU && bpU.length ? cellRect(bpU[0]) : null, shaftU = farU ? { x: farU.x + 24, y: floorY(farU) - 36 } : null;
+    if (e.t === 'march' && (far || farU)) {
+      const FAR = far || farU, SH = far ? shaft : shaftU, BP = far ? bp : bpU;
+      e.party.forEach((u, j) => { E[u.uid] = { id: u.uid, kind: u.kind, side: 'inv', can: (u.warped || u.home && u.home !== G.world) && u.home && typeof invCanvasW === 'function' ? invCanvasW(u.home, u.kind) : invCanvas(u.kind), bleed: !!(u.warped || u.home && u.home !== G.world || u.bleed), horde: u.horde || 0, x: SH.x + j * 10, y: SH.y, hp: 1, sp: 1, scale: S }; });
+      setScreen('under'); camCell(BP[0]); ST.label = e.txt || ''; burst(FAR.x + FAR.w / 2, floorY(FAR) - 10, ['#8a6a4a', '#5a4a3a', '#ece6d6'], 18, 0.9, 600); jolt(240, 1); sfx('trap'); await wait(900); ST.label = '';
     } else if (e.t === 'march') {
       UI.sel = null; setScreen('surface'); $('nparty').innerHTML = e.party.map(u => invImg(u.kind, 32)).join(''); ST.label = typeof G !== 'undefined' && G && G.cardMode && typeof cmMarchLabel === 'function' ? cmMarchLabel(e) : NEST.VILL[e.vill].name + ' · ' + e.gname + ' ' + e.party.length + '명'; await wait(700);
       ST.march = { t0: now(), dur: 1300 / ST.speed, est: { vill: e.vill, count: e.party.length, kinds: e.party.map(u => u.kind), grade: 1 } }; await wait(1350); ST.label = '';
-      e.party.forEach((u, j) => { E[u.uid] = { id: u.uid, kind: u.kind, side: 'inv', can: invCanvas(u.kind), x: shaft.x, y: shaft.y - j * 14, hp: 1, sp: 1, scale: u.kind === 'sealer' ? 3 : S }; });
+      e.party.forEach((u, j) => { E[u.uid] = { id: u.uid, kind: u.kind, side: 'inv', can: (u.warped || u.home && u.home !== G.world) && u.home && typeof invCanvasW === 'function' ? invCanvasW(u.home, u.kind) : invCanvas(u.kind), bleed: !!(u.warped || u.home && u.home !== G.world || u.bleed), horde: u.horde || 0, x: shaft.x, y: shaft.y - j * 14, hp: 1, sp: 1, scale: u.kind === 'sealer' ? 3 : S }; });
       ST.camMem.under = 0; setScreen('under'); await wait(450); ST.march = null;
     } else if (e.t === 'go') {
       const out = e.to === 'out', r = out ? cellRect(G.ent) : cellRect(locIdx(e.to)); camTo(r.x + r.w / 2, false, r.y + r.h / 2);

@@ -10,7 +10,7 @@ const LM = {
   constel: { skillsUsed: 70, combos: 30, ess_nebula: 80 }, pitfall: { trapKills: 70, organsPlaced: 30 }, hedgehog: { coreDamage: 700, coreKills: 30 }, nomad: { nightsDark: 25, routs: 40 },
   mimic: { wordsLearned: 30, madness: 15, converts: 25 }, gourmand: { digestKills: 60, eaten: 40, swallows: 20 }, tongue: { pulled: 50, eaten: 20 }, crowned: { bossKills: 12, kinKills: 30 },
   lantern: { combos: 60, madness: 10 }, shellmind: { coreDamage: 900, nightsAlone: 4 }, veil: { madness: 40, converts: 40 }, swarmone: { kinMade: 120 },
-  drowned: { waterKills: 40, organsPlaced: 40, infections: 30 }, chorus: { swallows: 40, wordsLearned: 30, converts: 15 }, skywound: { routs: 40, skillsUsed: 40, shapesPlaced: 20 },
+  drowned: { waterKills: 60, organsPlaced: 26, infections: 30 }, chorus: { swallows: 40, wordsLearned: 30, converts: 15 }, skywound: { routs: 40, skillsUsed: 40, shapesPlaced: 20 },
   patient: { organsPlaced: 60, trapKills: 40, swallows: 20 }, plague: { infections: 160, risen: 14 }, madlight: { madness: 40, combos: 50, converts: 15 }, scarred: { coreDamage: 2600, coreKills: 44, eaten: 10 },
   echo: { trapKills: 9, kinKills: 9, infections: 9, swallows: 9, madness: 9, wordsLearned: 9, waterKills: 9, eaten: 9, skillsUsed: 9, organsPlaced: 9, coreDamage: 80, kinMade: 9, routs: 9, nightsDark: 4, spawns: 9 },
   tiny: { bossKills: 9, coreKills: 5 }, hollow: { digestKills: 40, nightsAlone: 10, kinLost: 10 }

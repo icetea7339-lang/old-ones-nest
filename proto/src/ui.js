@@ -665,12 +665,12 @@ function helpHtml() {
   return M('어떻게 하나', `<div class="helpnav">${tabsHtml('help', HELP.map(x => [x[0], x[1]]), tab, true)}</div>` + `<div class="card in"><p class="h3 coin">${cur[1]}</p>${tab === 'howto' ? howToBody(G && G.story ? 'story' : 'free') : `<p>${esc(cur[2])}</p>`}${tab === 'worlds' ? NEST.WORLD_IDS.map(id => { const w = NEST.WORLD[id]; return `<p class="small"><span class="chip on">${esc(w.name)}</span> ${esc(w.beat[0] + ' · ' + w.only.map(k => NEST.INV[k].name).join(', '))}</p>`; }).join('') : ''}</div><p class="small mute only-pc">단축키: <kbd>Tab</kbd> 지상·지하 · <kbd>E</kbd> 밤 맞기 · <kbd>Esc</kbd> 닫기 · 밤에 <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> 속도, <kbd>S</kbd> 건너뛰기, <kbd>Space</kbd> 그냥 둔다</p><p class="small mute only-m">지도는 좌우로 밀어서 본다. 칸을 누르면 할 일이 올라오고, ✕로 닫는다.</p>`, closeBtn());
 }
 function settingsHtml() {
-  return M('설정', `<div class="row"><span class="grow">소리</span>${btn('set', { k: 'sound', v: 1 }, '켬', 'sm' + (META.sound ? ' on' : ''))}${btn('set', { k: 'sound', v: 0 }, '끔', 'sm' + (META.sound ? '' : ' on'))}</div><div class="row"><span class="grow">음악</span>${btn('set', { k: 'music', v: 1 }, '켬', 'sm' + (META.music !== false ? ' on' : ''))}${btn('set', { k: 'music', v: 0 }, '끔', 'sm' + (META.music !== false ? '' : ' on'))}</div><div class="row"><span class="grow">기록 보내기 <small class="mute">판이 어디서 끝났는지만 이름 없이</small></span>${btn('set', { k: 'trace', v: 1 }, '켬', 'sm' + (META.trace !== false ? ' on' : ''))}${btn('set', { k: 'trace', v: 0 }, '끔', 'sm' + (META.trace !== false ? '' : ' on'))}</div><div class="row"><span class="grow">흔들림 <small class="mute">화면 흔들림·번쩍임</small></span>${btn('set', { k: 'shake', v: 1 }, '켬', 'sm' + (META.shake !== false ? ' on' : ''))}${btn('set', { k: 'shake', v: 0 }, '끔', 'sm' + (META.shake !== false ? '' : ' on'))}</div>
+  return M('설정', `<div class="row"><span class="grow">소리</span>${btn('set', { k: 'sound', v: 1 }, '켬', 'sm' + (META.sound ? ' on' : ''))}${btn('set', { k: 'sound', v: 0 }, '끔', 'sm' + (META.sound ? '' : ' on'))}</div><div class="row"><span class="grow">음악</span>${btn('set', { k: 'music', v: 1 }, '켬', 'sm' + (META.music !== false ? ' on' : ''))}${btn('set', { k: 'music', v: 0 }, '끔', 'sm' + (META.music !== false ? '' : ' on'))}</div>${[['master', '전체 크기'], ['music', '음악 크기'], ['sfx', '효과음 크기']].map(([k, nm]) => `<label class="row vol"><span class="grow">${nm}</span><input type="range" min="0" max="100" step="5" data-vol="${k}" value="${Math.round(100 * ((META.vol || {})[k] == null ? 1 : META.vol[k]))}"><b class="num">${Math.round(100 * ((META.vol || {})[k] == null ? 1 : META.vol[k]))}</b></label>`).join('')}<div class="row"><span class="grow">기록 보내기</span>${btn('set', { k: 'trace', v: 1 }, '켬', 'sm' + (META.trace !== false ? ' on' : ''))}${btn('set', { k: 'trace', v: 0 }, '끔', 'sm' + (META.trace !== false ? '' : ' on'))}</div><div class="row"><span class="grow">흔들림</span>${btn('set', { k: 'shake', v: 1 }, '켬', 'sm' + (META.shake !== false ? ' on' : ''))}${btn('set', { k: 'shake', v: 0 }, '끔', 'sm' + (META.shake !== false ? '' : ' on'))}</div>
     <div class="row"><span class="grow">밤에 멈춰서 손을 쓸 때</span>${[['settle', '보통'], ['always', '방마다'], ['never', '안 멈춤']].map(([k, l]) => btn('set', { k: 'pause', v: k }, l, 'sm' + (META.pause === k ? ' on' : ''))).join('')}</div>
     <p class="small mute">보통: 달이 기우는 밤은 방마다, 다른 밤은 큰 싸움에서 한 번 멈춘다.</p>
     <div class="row"><span class="grow">해금</span>${btn('set', { k: 'open', v: 0 }, '흔적으로 연다', 'sm' + (META.openAll ? '' : ' on'))}${btn('set', { k: 'open', v: 1 }, '전부 열어 둔다', 'sm' + (META.openAll ? ' on' : ''))}</div>
     <div class="row"><span class="grow">기록 (판 ${META.runs} · 깨어남 ${META.clears})</span>${btn('wipe', null, '데이터 초기화', 'sm bad')}</div>
-    <p class="small mute">글꼴: IBM Plex Sans KR (SIL OFL 1.1)</p>`, closeBtn());
+    <p class="small mute">글꼴: Nest Sans (IBM Plex Sans KR 을 줄인 것, SIL OFL 1.1)</p>`, closeBtn());
 }
 
 // ---------- 대사 장면 ----------
@@ -1163,3 +1163,9 @@ function boot() {
   const nj = $('nojs'); if (nj) nj.remove();  // 여기까지 왔으면 정상 실행
 }
 boot();
+
+// 소리 크기 미끄럼 막대: 전체·음악·효과음
+const applyVol = () => { const v = META.vol || {}, m = (v.master == null ? 1 : v.master) * (v.music == null ? 1 : v.music); if (typeof musicVol === 'function') musicVol(m); };
+document.addEventListener('input', e => { const el = e.target; if (!el || !el.dataset || !el.dataset.vol) return; META.vol = META.vol || {}; META.vol[el.dataset.vol] = Math.max(0, Math.min(1, (+el.value || 0) / 100)); const b = el.parentNode && el.parentNode.querySelector('b.num'); if (b) b.textContent = el.value; applyVol(); try { saveMeta(); } catch (er) { /* 저장 못 해도 소리는 바뀐다 */ } });
+document.addEventListener('change', e => { if (e.target && e.target.dataset && e.target.dataset.vol) { try { sfx('click'); } catch (er) { /* 없음 */ } } });
+setTimeout(applyVol, 0);

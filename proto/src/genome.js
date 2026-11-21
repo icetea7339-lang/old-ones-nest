@@ -93,7 +93,8 @@ const GENOME = (function () {
     const s0 = Object.values(g.tags).reduce((a, b) => a + b, 0);
     R.geneLast = now; if (any) T.addBehaviour(g, d);
     // 진화의 정수: 하룻밤 사이 형질이 자란 만큼 (늘 조금은 차오른다). 문턱을 넘으면 허물이 익는다(ripe)
-    const s1 = Object.values(g.tags).reduce((a, b) => a + b, 0); g.evo = +((g.evo || 0) + (EVO.asp[g.aspect] || 1) * (EVO.base + EVO.k * Math.max(0, s1 - s0))).toFixed(3);
+    const s1 = Object.values(g.tags).reduce((a, b) => a + b, 0), first = !(R.molts || []).length && !R.moltQ, am = first ? Math.max(EVO.first.min, EVO.asp[g.aspect] || 1) : (EVO.asp[g.aspect] || 1);
+    const gain = am * (EVO.base + (first ? EVO.first.base : 0) + EVO.k * Math.max(0, s1 - s0)); g.evo = +((g.evo || 0) + gain).toFixed(3); R.evoPerNight = R.evoPerNight ? R.evoPerNight * 0.6 + gain * 0.4 : gain;
     // 덱 = 유전자: 밤마다 덱에 어떤 꼬리표가 얼마나 들었는지 쌓는다 (일부러 한 갈래를 모았는지 보는 잣대)
     const dt = {}; let dn = 0; R.deck.forEach(c => { const dd = CD.BY[c.id] || (typeof ensure === 'function' ? ensure(c.id) : null); if (!dd || dd.type === 'shape' || dd.type === 'curse') return; dn++; (dd.tags || []).forEach(t => { dt[t] = (dt[t] || 0) + 1; }); });
     g.deckN = (g.deckN || 0) + dn; g.deckT = g.deckT || {}; for (const t in dt) g.deckT[t] = (g.deckT[t] || 0) + dt[t];
@@ -130,7 +131,7 @@ const GENOME = (function () {
   // need = 허물마다 넘어야 할 진화의 정수(쌓인 값). 본체(원래 게임의 몸)도 함께 한 단계 큰다: 첫 허물에 바탕 징조, 둘째에 섞인 징조
   const envN = (k, d) => (typeof process !== 'undefined' && process.env && process.env[k] != null ? +process.env[k] : d);
   // 빛깔마다 몸이 바뀌는 빠르기가 다르다 (성운은 별처럼 빨리 일그러지고, 심연은 느리게 가라앉는다)
-  const EVO = { asp: (typeof process !== 'undefined' && process.env && process.env.EVOA ? JSON.parse(process.env.EVOA) : { abyss: 0.9, nebula: 1.55, brood: 0.68, dusk: 1.05, hunger: 1.15 }), base: envN('EVOB', 1), k: envN('EVOK', 0.5), need: (typeof process !== 'undefined' && process.env && process.env.EVON ? process.env.EVON.split(',').map(Number) : [70, 430, 720, 1000]) };
+  const EVO = { asp: (typeof process !== 'undefined' && process.env && process.env.EVOA ? JSON.parse(process.env.EVOA) : { abyss: 0.9, nebula: 1.55, brood: 0.68, dusk: 1.05, hunger: 1.15 }), base: envN('EVOB', 1), k: envN('EVOK', 0.5), need: (typeof process !== 'undefined' && process.env && process.env.EVON ? process.env.EVON.split(',').map(Number) : [70, 430, 720, 1000]), first: { min: envN('EVOFM', 1.15), base: envN('EVOFB', 3) } };
   function moltNeed(R) { return EVO.need[(R.molts || []).length + (R.moltQ || 0)]; }
   function protMolt(G) {
     if (G.slime.stage >= 4) return false; const order = N.moltOrder(G);
@@ -163,7 +164,7 @@ const GENOME = (function () {
     R.st.molts = (R.st.molts || 0) + 1; if (lm) R.st.landmarks = (R.st.landmarks || 0) + 1;
     record(R, g);
     const res = { before, after: g, lines: T.narrate ? T.narrate(g) : T.describe(g), nums: T.describe(g), gained, combos: combos.map(c => ({ id: c.id, name: c.name, text: c.text })), landmark: lm ? { id: lm.id, name: lm.name, title: lm.title || lm.text || '' } : null, name: nm, mutated, body: fx, stage: g.stage };
-    R.molts.push({ stage: g.stage, name: nm.name, landmark: res.landmark ? res.landmark.id : null }); R.lastMolt = res;
+    R.molts.push({ day: G.day, stage: g.stage, name: nm.name, landmark: res.landmark ? res.landmark.id : null }); R.lastMolt = res;
     return res;
   }
 
