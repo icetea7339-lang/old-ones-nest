@@ -54,8 +54,8 @@ cd "$(dirname "$0")"
 <div id="modal" hidden></div>
 HTML
   echo "<script>window.onerror = function (m, src, line) { var e = document.getElementById('nojs'); if (e) e.textContent = '이 브라우저에서 게임을 시작하지 못했습니다 (' + m + ', ' + line + '줄). 이 문구를 보낸 사람에게 알려 주세요.'; };</script>"
-  echo '<script>'; cat src/logic.js src/traits.js src/steward.js src/cards2.js src/cardmode.js src/genome.js; echo '</script>'
-  echo '<script>(function () {'; echo "'use strict';"; cat src/art.js src/audio.js src/monsters.js src/lineage.js src/seeds.js src/kinart.js src/kinart3.js src/bodygen.js src/worldart.js src/heroart.js src/worldscene.js src/stage.js src/fx.js src/trace.js src/prologue.js src/prologue2.js src/intro.js src/cardui.js src/ui.js; echo '})();</script>'
+  echo '<script>'; cat src/logic.js src/traits.js src/steward.js src/cards2.js src/cardmode.js src/genome.js src/campaign.js; echo '</script>'
+  echo '<script>(function () {'; echo "'use strict';"; cat src/art.js src/audio.js src/monsters.js src/lineage.js src/seeds.js src/kinart.js src/kinart3.js src/bodygen.js src/worldart.js src/heroart.js src/worldscene.js src/stage.js src/fx.js src/trace.js src/prologue.js src/prologue2.js src/intro.js src/cardui.js src/campaignui.js src/ui.js; echo '})();</script>'
 } > index.html
 { echo '<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"><meta name="theme-color" content="#14172a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">'; cat index.html | sed -n '1,/<\/style>/p'; echo '</head><body style="margin:0">'; sed -n '/<\/style>/,$p' index.html | sed '1d'; echo '</body></html>'; } > ../PLAY-GAME.html
 cp index.html nest.html

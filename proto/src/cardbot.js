@@ -74,10 +74,11 @@ function needlePlay(R) {
   if (!R.needleOffer) return; if (R.G.gold < 120 * S.cm(R.G)) { R.needleOffer = false; return; }
   CM.needleStart(R); CM.needleBet(R, { kind: 'ess', n: 15 }); for (let k = 0; k < 3 && R.needle; k++) CM.needleReveal(R);
 }
-function play(seed, aspect, diff, mode, meta, egg) {
+// mk(seed, aspect, meta) 를 주면 그 판으로 한다 (이야기 장: tests/campbot.js)
+function play(seed, aspect, diff, mode, meta, egg, mk) {
   if (process.env.STYLE && STYLES[process.env.STYLE]) aspect = T.TAGS[STYLES[process.env.STYLE][0]].asp[0];
   const LOOKS = Object.keys(T.LOOKSEED || {}), look = process.env.NOLOOK || !LOOKS.length ? undefined : LOOKS[(seed >>> 3) % LOOKS.length];
-  const R = CM.newRun(seed, { aspect, diff, meta, egg: egg || null, look }), G = R.G, st = { captive: 'mix', raid: 1, spend: 1 }, base = STEWARD.decide(st);
+  const R = mk ? mk(seed, aspect, meta) : CM.newRun(seed, { aspect, diff, meta, egg: egg || null, look, ease: process.env.EASE ? undefined : 1 }), G = R.G, st = { captive: 'mix', raid: 1, spend: 1 }, base = STEWARD.decide(st);
   if (mode === 'nogene') R.noGene = true; if (!process.env.NOPERSONA) R.persona = (process.env.STYLE && styleOf(process.env.STYLE)) || persona(seed);
   const pr = R.persona, rr0 = T.rng(T.hash('d' + seed));
   const decide = mode === 'noskill' ? ctx => { const r = base(Object.assign({}, ctx, { opts: (ctx.opts || []).filter(o => S.SPELL[o.id] && S.SPELL[o.id].free) })); return r; } : pr ? ctx => { const r = base(ctx); return r && r.k && r.k !== 'none' && S.SPELL[r.k] && !S.SPELL[r.k].free && rr0() > pr.skill ? { k: 'none' } : r; } : base;

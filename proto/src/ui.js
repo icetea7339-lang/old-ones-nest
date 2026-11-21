@@ -1034,7 +1034,7 @@ function onAction(el) {
   if (a === 'set') { if (d.k === 'sound') META.sound = d.v === '1'; if (d.k === 'shake') META.shake = d.v === '1'; if (d.k === 'trace') META.trace = d.v === '1'; if (d.k === 'music') { META.music = d.v === '1'; typeof musicSet === 'function' && musicSet(META.music); } if (d.k === 'pause') META.pause = d.v; if (d.k === 'open') { META.openAll = d.v === '1'; if (G) render(); } saveMeta(); sfx('click'); redrawM(); return; }
   if (a === 'wipe') { if (el.dataset.sure) { ['meta', 'run', 'cardrun', 'run.bad', 'cardrun.bad', 'err'].forEach(k => store.del(k)); META = repairMeta(META0()); closeModal(); G = null; busy = false; if (typeof CMU !== 'undefined' && CMU) CMU.run = null; showTitle(); } else { el.dataset.sure = 1; el.textContent = '정말 지운다 (되돌릴 수 없다)'; } return; }
   if (a === 'new') return void newRun();
-  if (a === 'story') return void storyMenu();
+  if (a === 'story') return void (typeof campOpen === 'function' ? campOpen() : storyMenu());
   if (a === 'deck') return void cardOpen();
   if (a === 'reroll') { if (META.dust < REROLL || signPool().length < 2) return; META.dust -= REROLL; rollSign(); sfx('spell'); return closeModal('redraw'); }
   if (a === 'continue') { const run = store.get('run'); if (!run) return; try { if (!runOk(run)) throw new Error('bad run'); G = NEST.migrate(run); G.auto = false; NEST.applyWorld(G.world); showGame();

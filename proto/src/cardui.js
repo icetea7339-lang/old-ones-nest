@@ -14,7 +14,7 @@ const cmTagName = t => (typeof TRAITS !== 'undefined' && TRAITS.TAGS[t] ? TRAITS
 
 // ---- 저장: 판 전체(덱·손·둥지)를 'cardrun' 에. 원래 게임의 저장이 카드 판을 'run' 에 덮어쓰지 않게 막는다 ----
 (function () { const set0 = store.set; CMU.set0 = set0; store.set = function (k, v) { if (k === 'run' && v && v.cardMode) { cmSave(); return; } return set0.call(store, k, v); }; })();
-function cmSave() { const run = CMU.run; if (!run || CMU.inNight || run.phase === 'over' || (run.G && run.G.over)) return; try { CMU.set0.call(store, 'cardrun', Object.assign({}, run, { meta: null })); } catch (e) { /* 저장 못 해도 판은 계속 */ } }
+function cmSave() { if (CMU.run && CMU.run.camp && typeof campSave === 'function') return campSave(); const run = CMU.run; if (!run || CMU.inNight || run.phase === 'over' || (run.G && run.G.over)) return; try { CMU.set0.call(store, 'cardrun', Object.assign({}, run, { meta: null })); } catch (e) { /* 저장 못 해도 판은 계속 */ } }
 function cmLoad() { const r = store.get('cardrun'); if (!r || !r.G || !r.deck) return null; r.meta = cmMeta(); return r; }
 
 // ---- 본체의 몸: 게놈으로 그린다 ----
@@ -379,6 +379,7 @@ async function cardNight(keep) {
   if (st && st.found && !G.over) await revealWorld(true);
   if (typeof CARDMODE.moltPending === 'function' && CARDMODE.moltPending(run)) { const m = CARDMODE.molt(run); if (m) await cmMoltScreen(m); }
   else if (!G.over && g0) cmDayChange(g0);
+  if (run.camp && typeof campAfterNight === 'function') await campAfterNight(run);
   if (run.phase === 'over' || G.over) return cardFinish();
   cmLearned();
   if (run.phase === 'reward') await cmAfterNightReward();
@@ -500,6 +501,7 @@ ${done ? '<button class="btn pri dk-wide" data-c="ndone">좋다</button>' : `<di
 
 // ---- 판 끝 ----
 function cardFinish() {
+  if (CMU.run && CMU.run.camp && typeof campFinish === 'function') return void campFinish();
   const run = CMU.run; busy = true; const o = run.over || { win: false, score: 0, unlocks: [], why: '' }, g = cmGenome(), m = cmMeta();
   store.del('cardrun');
   if (g && typeof TRAITS !== 'undefined') { const nm = TRAITS.nameOf(g), lm = TRAITS.landmarkOf(g); m.forms[nm.name] = { aspect: g.aspect, sub: g.sub, stage: g.stage, seed: g.seed, tags: g.tags, title: nm.title || '', lm: lm ? (lm.id || lm) : null, at: Date.now() }; if (lm) m.marks[lm.id || lm] = 1; }

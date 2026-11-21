@@ -9,7 +9,7 @@ const CARDMODE = (function () {
   const K = {
     draw: 5, retain: 2, retainMax: 4, handMax: 10, startGold: 170, reward: 3, reroll: 12, upEss: 45, rmEss: 35,
     rarW: { c: 60, u: 32, r: 8 }, pity: 3, shopN: 4, shopPrice: { c: 34, u: 58, r: 96 }, unlockCap: 8, words: 3,
-    needleDig: 0.05, infMax: 3, burn: 15,
+    needleDig: 0.05, infMax: 3, burn: 15, ease: [0.7, 0.85], easeDays: 6,
     // 빛깔마다 처음 진액이 조금 다르다: 기아는 굶은 채로, 황혼은 사람들이 바친 것을 들고 온다
     goldBy: (typeof process !== 'undefined' && process.env && process.env.GOLDBY ? JSON.parse(process.env.GOLDBY) : { hunger: -35, dusk: 55 }),
   };
@@ -20,13 +20,15 @@ const CARDMODE = (function () {
   const ok = (msg, x) => Object.assign({ ok: true, msg }, x || {}), fail = msg => ({ ok: false, msg });
   // 게놈(genome.js)은 나중에 읽힌다: 다시 쓴 카드(gx_/gc_)는 id 로부터 그때 만든다
   const GEN = () => (typeof GENOME !== 'undefined' ? GENOME : (typeof require !== 'undefined' ? require('./genome.js') : null));
+  // 이야기(campaign.js): 장마다 덱·보상·밤이 정해진 판. R.camp 가 있을 때만 부른다
+  const CMP = () => (typeof CAMPAIGN !== 'undefined' ? CAMPAIGN : (typeof require !== 'undefined' ? require('./campaign.js') : null));
   const def = c => CD.BY[c.id] || (GEN() && GEN().ensure(c.id));
   const card = (R, uid) => R.deck.find(c => c.uid === uid);
   const cmG = R => N.cm(R.G);
 
   // ---- 말 배우기: 처음엔 낯선 이름, 같은 것을 K.words 번 넘긴 밤이 쌓이면 사람 말로 ----
-  const ALIEN = { villager: '따뜻한 것', fisher: '젖은 손', militia: '막대기 든 것', captain: '소리치는 것', detective: '냄새 맡는 것', apprentice: '중얼대는 작은 것', warrior: '쇠를 입은 것', smuggler: '그림자 손', priest: '빛을 두른 것', scholar: '글을 품은 것', herbalist: '풀 냄새 나는 것', soldier: '쇠벽', chaplain: '빛을 든 쇠', sealer: '꿰매는 것', hound: '네 발 이빨', handler: '줄 쥔 것', sapper: '땅 긁는 것', torch: '불 든 것', firemage: '불을 부르는 것', banner: '천을 든 것', master: '고요한 것', shadow: '소리 없는 것', crowd: '떼', lightcrew: '빛 무리', sentry: '차가운 것', shielder: '빛벽', seeker: '책을 든 것' };
-  const realName = (world, kind) => kind === 'seeker' ? '책을 쫓는 자' : ((N.WORLD[world] && N.WORLD[world].inv && N.WORLD[world].inv[kind]) || (N.INV[kind] && N.INV[kind].name) || kind);
+  const ALIEN = { villager: '따뜻한 것', fisher: '젖은 손', militia: '막대기 든 것', captain: '소리치는 것', detective: '냄새 맡는 것', apprentice: '중얼거리는 작은 것', warrior: '쇠를 입은 것', smuggler: '그림자 손', priest: '빛을 두른 것', scholar: '글을 품은 것', herbalist: '풀 냄새 나는 것', soldier: '쇠를 두른 벽', chaplain: '빛을 든 쇠', sealer: '꿰매는 것', hound: '네 발 이빨', handler: '줄 쥔 것', sapper: '땅 긁는 것', torch: '불 든 것', firemage: '불을 부르는 것', banner: '천을 든 것', master: '고요한 것', shadow: '소리 없는 것', crowd: '몰려오는 것들', lightcrew: '빛 무리', sentry: '차가운 것', shielder: '빛으로 된 벽', seeker: '책을 든 것', seeker0: '책을 든 것', seeker1: '책을 든 것', seeker2: '책을 든 것' };
+  const realName = (world, kind) => String(kind).indexOf('seeker') === 0 ? '책을 쫓는 자' : ((N.WORLD[world] && N.WORLD[world].inv && N.WORLD[world].inv[kind]) || (N.INV[kind] && N.INV[kind].name) || kind);
   function knownName(meta, world, kind) { return meta && ((meta.known && meta.known[kind]) || (meta.words && (meta.words[kind] || 0) >= K.words)) ? realName(world, kind) : (ALIEN[kind] || '낯선 것'); }
 
   // ---- 판 ----
@@ -38,7 +40,9 @@ const CARDMODE = (function () {
     const G = N.newGame(seed, aspect, { cards: true, diff: o.diff || 1, world: o.world || undefined, prologue: pr });
     if (o.look) G.slime.look = String(o.look);
     N.openTrail(G); N.breach(G); G.gold = K.startGold + (K.goldBy[aspect] || 0);
-    const R = { seed, rs: (seed ^ 0x5bd1e995) >>> 0, G, meta, aspect, deck: [], drawP: [], hand: [], disc: [], nextUid: 1, retain: K.retain, phase: 'day', offer: null, shop: null, needle: null, needleOffer: false, needlePity: 0, pity: 0, learned: [], log: [], over: null,
+    // 처음 하는 사람은 첫 판·둘째 판의 앞 여섯 밤이 조금 순하다 (o.ease 로 정할 수 있다; 이야기 장은 1)
+    const ease = o.ease != null ? o.ease : (meta.runs | 0) === 0 ? K.ease[0] : (meta.runs | 0) === 1 ? K.ease[1] : 1;
+    const R = { seed, rs: (seed ^ 0x5bd1e995) >>> 0, G, meta, aspect, ease, camp: o.camp ? { ch: o.camp.ch } : null, deck: [], drawP: [], hand: [], disc: [], nextUid: 1, retain: K.retain, phase: 'day', offer: null, shop: null, needle: null, needleOffer: false, needlePity: 0, pity: 0, learned: [], log: [], over: null,
       st: { kills: 0, swallow: 0, infRise: 0, spawned: 0, skills: 0, nightsWon: 0, captives: 0, kinEvo: 0, secrets: 0, digs: 0, shapes: 0, organs: 0, traps: 0, digestEss: 0, needleWins: 0, needleBig: 0, blocks: 0, bossWon: 0, limbKills: 0, curses: 0, maxGold: K.startGold } };
     CD.START[aspect].forEach(id => addCard(R, id));
     // 한 방울에서 단 부위: 기억해 두고(팔다리 카드가 열린다), 가장 높은 둘은 처음 덱에 팔다리 카드로 든다
@@ -79,6 +83,7 @@ const CARDMODE = (function () {
   const inHand = (R, pred) => R.hand.map(u => card(R, u)).filter(c => pred(def(c), c));
   function morning(R) {
     const G = R.G; if (G.over) return;
+    if (R.camp && CMP()) CMP().morning(R);
     // 감염체가 일어난다
     const ni = Math.min(K.infMax, G.cardInf || 0); for (let i = 0; i < ni; i++) N.cardKin(G, 'licker', { name: '감염체', infected: true }); if (ni) { R.st.infRise += ni; G.stats.risen = (G.stats.risen || 0) + ni; R.log.push('감염체 ' + ni + '이(가) 일어났다'); } G.cardInf = 0;
     // 손에 든 저주
@@ -88,6 +93,8 @@ const CARDMODE = (function () {
     R.shop = shopOffer(R); syncHeld(R);
     R.st.curses = inHand(R, d => d.type === 'curse').length;
   }
+  // 덱을 바꾼 뒤 아침을 다시 받는다 (이야기 장의 처음 덱)
+  function reMorning(R) { if (R.camp && CMP()) CMP().morning(R); draw(R, K.draw); R.shop = shopOffer(R); syncHeld(R); }
   // 손에 쥔 기술 카드 = 밤에 쓸 수 있는 것
   function syncHeld(R) {
     const tax = inHand(R, d => d.type === 'curse' && d.fx.skillTax).length * 0.5;
@@ -197,10 +204,13 @@ const CARDMODE = (function () {
     if (mt && curse.some(c => def(c).fx.angry)) mt.angry = true;
     curse.forEach(c => { if (def(c).fx.nightTax) G.gold -= Math.round(def(c).fx.nightTax * cmG(R)); });
     const ess = Object.assign({}, G.slime.ess); Object.keys(G.slime.ess).forEach(a => { G.slime.ess[a] = 0; });
+    if (easeOn(R)) { R.easeD = { b: G.detBonus, a: G.detBonus * R.ease }; G.detBonus = R.easeD.a; }
     R.night0 = { kin0: G.kin.filter(m => m.kind !== 'spawn').map(m => m.id), hp0: G.slime.hp, st0: G.slime.stage, ess };
     return ok('밤');
   }
+  const easeOn = R => R.ease != null && R.ease < 1 && R.G.day <= K.easeDays && !!R.G.march.tonight && !R.G.march.tonight.kinds;
   function nightEnd(R, r, keep) {
+    if (R.easeD) { if (Math.abs(R.G.detBonus - R.easeD.a) < 1e-9) R.G.detBonus = R.easeD.b; R.easeD = null; }
     const G = R.G, n0 = R.night0 || { kin0: [], hp0: G.slime.hp, st0: G.slime.stage, ess: {} }; R.night0 = null; r = r || { battle: null, settle: null };
     Object.keys(n0.ess || {}).forEach(a => { G.slime.ess[a] = (n0.ess[a] || 0) + (G.slime.ess[a] || 0); });
     if (G.slime.stage > n0.st0) R.moltQ = (R.moltQ || 0) + (G.slime.stage - n0.st0);
@@ -219,6 +229,7 @@ const CARDMODE = (function () {
       if (boss && !G.over) { R.st.bossWon++; G.stats.bossKills = (G.stats.bossKills || 0) + 1; R.needleOffer = true; }
       if (!G.over) { R.offer = rewardOffer(R, boss); R.phase = 'reward'; }
     }
+    if (R.camp && CMP()) CMP().afterNight(R, r);
     if (G.world) { R.meta.worlds = R.meta.worlds || {}; R.meta.worlds[G.world] = 1; }
     if (G.over) { endRun(R); return Object.assign({ ok: true }, { night: r }); }
     if (R.phase === 'day') morning(R);
@@ -233,7 +244,7 @@ const CARDMODE = (function () {
   function foresee(R) {
     const G0 = R.G; if (!G0.march.tonight || R.phase !== 'day') return null;
     let G; try { G = JSON.parse(JSON.stringify(G0)); } catch (e) { return null; }
-    G.cardHeld = []; const hp0 = G.slime.hp, falls0 = G.falls || 0;
+    G.cardHeld = []; const hp0 = G.slime.hp, falls0 = G.falls || 0; if (easeOn(R)) G.detBonus *= R.ease;
     Object.keys(G.slime.ess).forEach(a => { G.slime.ess[a] = 0; });
     let r; try { r = N.endDay(G, () => ({ k: 'none' })); } catch (e) { return null; }
     const b = r && r.battle; if (!b) return null;
@@ -245,7 +256,7 @@ const CARDMODE = (function () {
   }
 
   // ---- 보상: 셋 중 하나 ----
-  const openPool = R => CD.LIST.filter(d => d.type !== 'curse' && CD.isOpen(d, R.meta));
+  const openPool = R => CD.LIST.filter(d => d.type !== 'curse' && (R.camp && CMP() ? CMP().poolOk(R, d) : CD.isOpen(d, R.meta)));
   function rollRar(R, boost) { const w = Object.assign({}, K.rarW); if (boost) { w.u += 20; w.r += 12; } const t = w.c + w.u + w.r; let x = rnd(R) * t; return x < w.c ? 'c' : (x -= w.c) < w.u ? 'u' : 'r'; }
   function rollCard(R, boost, used) {
     const pool = openPool(R), mine = d => d.asp === R.aspect || d.asp === 'none';
@@ -323,7 +334,7 @@ const CARDMODE = (function () {
       if (h.extra === 'rare' || h.extra === 'molt+rare') { const rc = openPool(R).filter(d => d.rar === 'r'); if (rc.length) { const d = pick(R, rc); const c = addCard(R, d.id); R.disc.push(c.uid); res.gifts.push(d.id); } }
       if (h.extra && h.extra.indexOf('molt') === 0) { const a = G.slime.main || G.startAsp, k = h.extra === 'molt2' ? 2 : 1; G.slime.ess[a] += 12 * k; res.gifts.push('ess:' + a + ':' + 12 * k); }
     } else { R.needlePity++; if (v >= 40 || n.stake.cards.length) { const cu = pick(R, CD.LIST.filter(d => d.type === 'curse')); const c = addCard(R, cu.id); R.disc.push(c.uid); res.curse = cu.id; } }
-    n.result = res; const pub = needlePublic(R); R.needle = null; return ok(h.name, { needle: pub, result: res });
+    n.result = res; const pub = needlePublic(R); R.needle = null; if (R.camp && CMP()) CMP().onNeedle(R, res); return ok(h.name, { needle: pub, result: res });
   }
 
   // ---- 판 끝 ----
@@ -338,6 +349,7 @@ const CARDMODE = (function () {
     const sc = N.score(G);
     const egg = GEN() && R.genome ? GEN().layEgg(R) : null;
     R.over = { win, day: G.day, why: G.over ? G.over.why : '', score: sc.total, grade: sc.grade, unlocks: releaseUnlocks(m, checkUnlocks(m, R.st)), learned: R.learned.slice(), egg, body: R.genome ? genomeSummary(R) : null };
+    if (R.camp && CMP()) R.over.camp = CMP().onEnd(R);
   }
   function checkUnlocks(meta, st) {
     meta.unlocked = meta.unlocked || {}; const out = [];
@@ -391,7 +403,7 @@ const CARDMODE = (function () {
     takeReward, skipReward, rerollReward, shopOffer, shopBuy, upgrade, removeCard, upCost, rmCost,
     needleStart, needleBet, needleReveal, needleFold, needlePublic, needleEval, needleBest,
     registerMutator, clearMutators, mutateDeck, behaviour, syncCounters, COUNTERS,
-    genome, moltPending, molt, layEgg, codex, genomeSummary, def,
+    genome, moltPending, molt, layEgg, codex, genomeSummary, def, reMorning,
     endRun, checkUnlocks, releaseUnlocks, rememberParts, knownName, realName, handView, deckView, dayView, openPool };
 })();
 if (typeof module !== 'undefined') module.exports = CARDMODE;
