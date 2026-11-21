@@ -727,7 +727,7 @@ function showTitle() {
   { const er = store.get('err'); if (er && $('nojs')) { $('nojs').hidden = false; $('nojs').style.display = 'block'; $('nojs').textContent = '지난번에 문제가 있었습니다. 이 줄을 그대로 알려 주세요: ' + er; } }
   G = null; busy = false; $('game').hidden = true; $('title').hidden = false; const run = store.get('run'), free = META.lastDraw !== today();
   const so = storyMeta(), fresh = !so.clear[3];
-  $('menu').innerHTML = (run ? btn('continue', null, `이어하기 <small>${run.story && NEST.STORYCH[run.story.ch] ? run.story.ch + '장 「' + NEST.STORYCH[run.story.ch].title + '」 · ' : ''}${run.day}일째${!run.story && run.sign && NEST.SIGN[run.sign] ? ' · ' + NEST.SIGN[run.sign].name : ''}</small>`, 'pri w2') : '') + btn('story', null, `이야기 <small>${so.clear[1] ? '이어서 · ' + Math.min(7, storyNext()) + '장' : '처음이라면 여기부터'} · 장마다 하나씩 배우며 줄거리를 따라간다</small>`, (run || !fresh ? '' : 'pri ') + 'w2') + btn('new', null, '자유 <small>익숙한 사람용 · 모든 것이 열린 채 40일 버티기 · 점수로 겨룬다</small>', (run || fresh ? '' : 'pri ') + 'w2') + btn('barracks', null, '명부 · 별똥별' + (free ? ' <span class="coin">●</span>' : '')) + btn('records', null, '기록 · 순위') + btn('codex', null, '도감') + btn('help', null, '도움말') + btn('settings', null, '설정', 'w2');
+  $('menu').innerHTML = (run ? btn('continue', null, `이어하기 <small>${run.story && NEST.STORYCH[run.story.ch] ? run.story.ch + '장 「' + NEST.STORYCH[run.story.ch].title + '」 · ' : ''}${run.day}일째${!run.story && run.sign && NEST.SIGN[run.sign] ? ' · ' + NEST.SIGN[run.sign].name : ''}</small>`, 'pri w2') : '') + btn('story', null, `이야기 <small>${so.clear[1] ? '이어서 · ' + Math.min(7, storyNext()) + '장' : '처음이라면 여기부터'} · 장마다 하나씩 배우며 줄거리를 따라간다</small>`, (run || !fresh ? '' : 'pri ') + 'w2') + btn('new', null, '자유 <small>익숙한 사람용 · 모든 것이 열린 채 40일 버티기 · 점수로 겨룬다</small>', (run || fresh ? '' : 'pri ') + 'w2') + btn('deck', null, '덱 <small>시험판 · 카드로 둥지를 키우고 밤을 막는다</small>', 'w2') + btn('barracks', null, '명부 · 별똥별' + (free ? ' <span class="coin">●</span>' : '')) + btn('records', null, '기록 · 순위') + btn('codex', null, '도감') + btn('help', null, '도움말') + btn('settings', null, '설정', 'w2');
   typeof music === 'function' && music('title');
   $('trec').textContent = META.best ? `최고 기록 ${META.best.grade} ${R(META.best.total)}점 · ${META.best.form} · 깨어남 ${META.clears}회` : '아직 기록이 없다';
 }
@@ -1004,6 +1004,7 @@ function onAction(el) {
   if (a === 'wipe') { if (el.dataset.sure) { store.del('meta'); store.del('run'); META = META0(); closeModal(); if (!G) showTitle(); } else { el.dataset.sure = 1; el.textContent = '정말 지운다'; } return; }
   if (a === 'new') return void newRun();
   if (a === 'story') return void storyMenu();
+  if (a === 'deck') return void deckOpen();
   if (a === 'reroll') { if (META.dust < REROLL || signPool().length < 2) return; META.dust -= REROLL; rollSign(); sfx('spell'); return closeModal('redraw'); }
   if (a === 'continue') { const run = store.get('run'); if (run) { G = NEST.migrate(run); G.auto = false; NEST.applyWorld(G.world); showGame(); morningFlow(); } return; }
   if (a === 'setup') { const o = UI.setup; if (d.k === 'bring') { const k = o.bring.indexOf(+d.v); if (k >= 0) o.bring.splice(k, 1); else if (o.bring.length < 2) o.bring.push(+d.v); } else if (d.k === 'tut') o.tut = !o.tut; else if (d.k === 'auto') o.auto = d.v === '1'; else o.diff = +d.v; sfx('click'); return closeModal('redraw'); }

@@ -533,6 +533,145 @@ body { word-break: keep-all; overflow-wrap: break-word; }
 @media (max-width: 760px) { #main { display: flex; flex-direction: column; } #left { flex: 1 1 0; min-height: 0; } #game.night #left { flex: 1 1 0; } }
 @media (min-width: 761px) { #main { grid-template-rows: minmax(0, 1fr); } #left { min-height: 0; } }
 @media (max-width: 760px) { #game.night #right { height: min(190px, 26svh); max-height: none; } }
+
+/* ===== 덱 판 (deckui.js) ===== */
+#deck, #deck * { box-sizing: border-box; }
+#deck { position: fixed; inset: 0; z-index: 40; display: flex; flex-direction: column; background: var(--ink); color: var(--text); font-family: var(--body); overflow: hidden; }
+#deck[hidden] { display: none; }
+.dk-top { display: flex; align-items: center; gap: 12px; padding: calc(env(safe-area-inset-top, 0px) + 6px) 10px 6px; background: var(--panel); border-bottom: 1px solid var(--line); min-height: 40px; flex-wrap: wrap; }
+.dk-top #dk-when { font-family: var(--display); font-weight: 700; font-size: 15px; margin-right: auto; white-space: nowrap; }
+.dk-stat { display: inline-flex; align-items: center; gap: 4px; font-weight: 700; font-size: 15px; white-space: nowrap; }
+.dk-stat small { color: var(--mute); font-weight: 400; font-size: 12px; }
+.dk-ic { display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: #e8c030; box-shadow: inset -2px -2px 0 rgba(0,0,0,.3); flex: none; }
+.dk-ic.hp { background: #f47c81; border-radius: 3px; transform: rotate(45deg) scale(.85); }
+.dk-ic.blk { background: #3fb8d0; border-radius: 2px; }
+.dk-mapw { position: relative; flex: 1 1 0; min-height: 120px; overflow: hidden; }
+#dk-cv { position: absolute; left: 0; top: 0; display: block; touch-action: manipulation; }
+#dk-chips { position: absolute; left: 6px; top: 6px; right: 6px; display: flex; flex-wrap: wrap; gap: 6px; pointer-events: none; }
+.dk-chip { pointer-events: auto; font: 700 13px var(--body); color: var(--text); background: rgba(33,38,64,.92); border: 1px solid var(--line); padding: 5px 9px; border-radius: 3px; white-space: nowrap; }
+.dk-chip.hot { background: #3a2a10; border-color: var(--coin); color: #fff3a0; }
+.dk-chip.pv { background: rgba(58,42,16,.92); color: #fff3a0; }
+#dk-tip { position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%); background: rgba(7,5,10,.85); color: #fff3a0; font-weight: 700; font-size: 14px; padding: 6px 12px; border: 1px solid #6a5a2a; white-space: nowrap; pointer-events: none; }
+#dk-banner { position: absolute; left: 0; right: 0; top: 38%; text-align: center; font: 700 22px var(--display); color: var(--bc, #e8c030); text-shadow: 0 2px 0 #07050a, 0 0 18px rgba(0,0,0,.8); pointer-events: none; }
+#dk-banner.go { animation: dkban 1.6s ease-out forwards; }
+@keyframes dkban { 0% { opacity: 0; transform: scale(1.4); } 15% { opacity: 1; transform: scale(1); } 75% { opacity: 1; } 100% { opacity: 0; transform: translateY(-14px); } }
+#dk-toast { position: absolute; left: 50%; top: 52px; transform: translateX(-50%); max-width: calc(100% - 24px); background: #2c3256; border: 1px solid var(--coin); padding: 8px 12px; font-weight: 700; font-size: 14px; z-index: 5; text-align: center; word-break: keep-all; }
+#dk-low { flex: none; background: var(--panel); border-top: 1px solid var(--line); padding: 6px 8px calc(env(safe-area-inset-bottom, 0px) + 8px); }
+.dk-acts { display: flex; gap: 6px; align-items: stretch; margin-bottom: 6px; flex-wrap: wrap; }
+.dk-left { display: flex; flex-direction: column; justify-content: center; font-size: 12px; color: var(--mute); padding-right: 2px; white-space: nowrap; }
+.dk-left b { color: var(--coin); font-size: 14px; letter-spacing: 1px; }
+.dk-act { flex: 1 1 0; min-width: 52px; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 7px 2px 6px; background: var(--panel2); color: var(--text); border: 1px solid var(--line); font: 700 13px var(--body); white-space: nowrap; cursor: pointer; }
+.dk-act.off { opacity: .4; }
+.dk-act .dk-ic { width: 16px; height: 16px; border-radius: 3px; }
+.dk-act .dk-ic.i-dig { background: #a87a3a; } .dk-act .dk-ic.i-card { background: #b08fff; } .dk-act .dk-ic.i-up { background: #7fd04f; } .dk-act .dk-ic.i-rm { background: #a2a8c6; } .dk-act .dk-ic.i-shop { background: #e8c030; }
+.dk-night { width: 100%; font-size: 17px; padding: 10px; }
+.dk-hud { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+.dk-orbs { display: inline-flex; align-items: center; gap: 4px; }
+.dk-orbs i { width: 14px; height: 14px; border-radius: 50%; background: #2a2236; border: 1px solid #6a5a2a; }
+.dk-orbs i.on { background: radial-gradient(circle at 35% 35%, #fff3a0, #e8c030 60%, #a87e14); }
+.dk-orbs b { font-size: 16px; margin-left: 2px; color: #fff3a0; }
+.dk-piles { color: var(--mute); font-size: 13px; margin-right: auto; white-space: nowrap; }
+.dk-end { padding: 8px 16px; font-size: 15px; }
+.dk-hand { position: relative; display: flex; justify-content: center; align-items: flex-end; min-height: 150px; padding-top: 16px; }
+.dk-hand .dkc { flex: 0 1 auto; margin-left: calc(-1 * clamp(0px, (var(--n) * 98px - 100vw + 24px) / max(1, var(--n) - 1), 70px)); transition: transform .12s; }
+.dk-hand .dkc:first-child { margin-left: 0; }
+.dk-hand .dkc.lift { transform: translateY(-16px) scale(1.06); z-index: 3; box-shadow: 0 0 0 2px #fff3a0, 0 8px 18px rgba(0,0,0,.6); }
+.dk-hand .dkc.no { filter: grayscale(.7) brightness(.7); }
+/* 카드 앞면 */
+.dkc { position: relative; width: 96px; min-height: 144px; flex: none; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 18px 5px 16px; background: linear-gradient(#2a2438, #1a1626); border: 2px solid var(--fc, #6a6478); border-radius: 6px; box-shadow: inset 0 0 0 1px #07050a, 0 3px 6px rgba(0,0,0,.5); cursor: pointer; overflow: hidden; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.dkc.asp-abyss { --fc: #3fb8d0; } .dkc.asp-nebula { --fc: #b08fff; } .dkc.asp-brood { --fc: #7fd04f; } .dkc.asp-dusk { --fc: #f0a04a; } .dkc.asp-hunger { --fc: #f47c81; } .dkc.asp-none { --fc: #a59cb4; }
+.dkc.t-curse { background: linear-gradient(#2a0a10, #120408); --fc: #5a2a3a; }
+.dkc-cost { position: absolute; left: 3px; top: 3px; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font: 700 14px var(--display); color: #14172a; background: radial-gradient(circle at 35% 35%, #fff3a0, #e8c030 60%, #a87e14); box-shadow: 0 0 0 1px #07050a; }
+.dkc-gem { position: absolute; right: 5px; top: 6px; width: 8px; height: 8px; transform: rotate(45deg); background: #6a6478; box-shadow: 0 0 0 1px #07050a; }
+.dkc.rar-u .dkc-gem { background: #3fb8d0; } .dkc.rar-r .dkc-gem { background: #e8c030; box-shadow: 0 0 0 1px #07050a, 0 0 6px #e8c030; } .dkc.rar-x .dkc-gem { background: #c8303a; }
+.dkc-art { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: rgba(7,5,10,.45); border-radius: 4px; flex: none; }
+.dkc-art img { width: 36px; height: 36px; image-rendering: pixelated; }
+.dkc-nm { font: 700 12px/1.2 var(--display); text-align: center; word-break: keep-all; color: #fff; max-width: 100%; }
+.dkc-tx { font-size: 11px; line-height: 1.25; text-align: center; color: #d8d0c4; word-break: keep-all; overflow-wrap: anywhere; }
+.dkc-ty { position: absolute; left: 0; right: 0; bottom: 2px; font-style: normal; font-size: 10px; text-align: center; color: var(--fc); letter-spacing: .05em; }
+.dkc.mini { width: 84px; min-height: 126px; padding-top: 16px; } .dkc.mini .dkc-art { width: 34px; height: 34px; } .dkc.mini .dkc-art img { width: 30px; height: 30px; } .dkc.mini .dkc-tx { font-size: 10.5px; }
+.dkc.big, .dkc.pick { width: 132px; min-height: 196px; padding-top: 24px; } .dkc.big .dkc-art, .dkc.pick .dkc-art { width: 60px; height: 60px; } .dkc.big .dkc-art img, .dkc.pick .dkc-art img { width: 54px; height: 54px; } .dkc.big .dkc-nm, .dkc.pick .dkc-nm { font-size: 15px; } .dkc.big .dkc-tx, .dkc.pick .dkc-tx { font-size: 13px; } .dkc.big .dkc-cost, .dkc.pick .dkc-cost { width: 28px; height: 28px; font-size: 17px; }
+.dkc.locked { filter: grayscale(1) brightness(.45); }
+.dkc.placed { opacity: .55; }
+.dkc.secret { box-shadow: 0 0 0 2px #b08fff, 0 0 22px #b08fff; }
+/* 창 */
+#dk-sheet { position: absolute; left: 0; right: 0; bottom: 0; max-height: 72%; overflow-y: auto; background: var(--panel); border-top: 2px solid var(--line); padding: 10px 12px calc(env(safe-area-inset-bottom, 0px) + 14px); z-index: 9; box-shadow: 0 -10px 30px rgba(0,0,0,.5); animation: dkup .18s ease-out; }
+@keyframes dkup { from { transform: translateY(30px); opacity: .6; } }
+#dk-sheet h3 { margin: 4px 40px 10px 0; font: 700 17px var(--display); } #dk-sheet h3 small { font: 400 13px var(--body); color: var(--mute); }
+.dk-grab { width: 44px; height: 4px; border-radius: 2px; background: var(--line); margin: 0 auto 6px; }
+.dk-x { position: absolute; right: 10px; top: 10px; }
+#dk-ov { position: absolute; inset: 0; z-index: 8; overflow-y: auto; display: flex; flex-direction: column; align-items: center; padding: calc(env(safe-area-inset-top, 0px) + 14px) 12px calc(env(safe-area-inset-bottom, 0px) + 16px); }
+#dk-ov.dk-full { background: var(--ink); }
+#dk-ov.dk-dim { background: rgba(7,5,10,.78); justify-content: center; }
+#dk-ov h2 { font: 700 24px var(--display); margin: 6px 0 2px; text-align: center; } #dk-ov h2 small { font-size: 14px; color: var(--mute); font-weight: 400; }
+.dk-sub { color: var(--mute); text-align: center; margin: 0 0 10px; font-size: 14px; word-break: keep-all; }
+.dk-lab { color: var(--coin); font-weight: 700; font-size: 13px; margin: 12px 0 6px; align-self: stretch; }
+.dk-mute { color: var(--mute); font-size: 13px; word-break: keep-all; }
+.dk-lock { color: #ff9a8a; font-size: 13px; word-break: keep-all; }
+.dk-start, .dk-reward, .dk-over, .dk-needle { width: 100%; max-width: 560px; display: flex; flex-direction: column; align-items: center; }
+.dk-wide { width: 100%; margin: 8px 0; font-size: 16px; padding: 10px; }
+.dk-asps { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; width: 100%; }
+.dk-asp { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 2px; background: var(--panel2); border: 2px solid var(--line); color: var(--text); font: 700 14px var(--body); cursor: pointer; white-space: nowrap; }
+.dk-asp i { width: 18px; height: 18px; border-radius: 50%; background: var(--c); box-shadow: 0 0 10px var(--c); }
+.dk-asp.on { border-color: var(--c); background: #1c1826; }
+.dk-trait { width: 100%; margin-top: 8px; padding: 8px 10px; border-left: 4px solid var(--c); background: var(--panel); display: flex; flex-direction: column; gap: 2px; font-size: 14px; }
+.dk-row { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+.dk-mini { max-height: 280px; overflow-y: auto; }
+.dk-row2 { display: flex; gap: 8px; width: 100%; justify-content: center; flex-wrap: wrap; margin-top: 8px; }
+.dk-row2 .btn { flex: 1 1 0; min-width: 0; }
+.dk-col { display: flex; flex-direction: column; gap: 6px; }
+.dk-pick3 { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin: 6px 0; }
+.dk-list { display: flex; flex-direction: column; gap: 8px; }
+.dk-li { display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; background: var(--panel2); border-left: 3px solid var(--coin); font-size: 14px; }
+.dk-li.molt { margin-top: 10px; }
+.dk-uprow { display: flex; align-items: center; gap: 6px; }
+.dk-arrow { color: var(--coin); font-weight: 700; }
+.dk-uprow .dk-col { margin-left: auto; }
+.dk-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap: 8px; justify-items: center; }
+.dk-cell { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.dk-cell.sold { opacity: .5; }
+.dk-lockt { font-size: 11px; color: #ff9a8a; text-align: center; word-break: keep-all; max-width: 92px; }
+.dk-tabs { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 8px; }
+.dk-tab { padding: 5px 9px; background: var(--panel2); border: 1px solid var(--line); color: var(--text); font: 700 13px var(--body); cursor: pointer; }
+.dk-tab.on { background: var(--coin); color: var(--ink); }
+.dk-detail { display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap; }
+.dk-dt { flex: 1 1 180px; min-width: 0; font-size: 14px; line-height: 1.5; word-break: keep-all; }
+.dk-tag { color: var(--c); font-weight: 700; }
+.dk-pop { display: flex; flex-direction: column; align-items: center; gap: 10px; background: var(--panel); border: 2px solid var(--coin); padding: 16px; max-width: 360px; width: 100%; }
+.dk-pop.dig .dk-flip { animation: dkflip .5s ease-out; text-align: center; }
+@keyframes dkflip { from { transform: rotateY(90deg); opacity: 0; } }
+.dk-molt { display: flex; flex-direction: column; gap: 2px; text-align: left; padding: 8px 10px; background: var(--panel2); border: 2px solid var(--line); color: var(--text); font: 14px var(--body); cursor: pointer; width: 100%; }
+.dk-molt.on { border-color: var(--coin); background: #2a2410; }
+.dk-over.win h2 { color: #fff3a0; } .dk-over.lose h2 { color: #f47c81; }
+.dk-un { width: 100%; margin-bottom: 8px; }
+/* 바늘 점 */
+.dk-sky { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+.dk-star { width: 58px; height: 84px; border-radius: 6px; border: 2px solid var(--c, #6a6478); background: radial-gradient(circle at 50% 35%, #2c2450, #0c0a18); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; animation: dkflip .45s ease-out; }
+.dk-star b { font-size: 24px; color: var(--c); text-shadow: 0 0 10px var(--c); line-height: 1; }
+.dk-star span { font-size: 12px; font-weight: 700; } .dk-star em { font-style: normal; font-size: 10px; color: var(--mute); }
+.dk-star.back { background: repeating-linear-gradient(45deg, #1c1630 0 6px, #241c3c 6px 12px); border-color: #4a3c68; animation: dkpulse 1.6s ease-in-out infinite; }
+.dk-star.back i { width: 14px; height: 14px; border-radius: 50%; background: #b08fff; box-shadow: 0 0 12px #b08fff; opacity: .6; }
+@keyframes dkpulse { 50% { box-shadow: 0 0 14px rgba(176,143,255,.45); } }
+.dk-stake { margin-top: 10px; font-size: 14px; text-align: center; word-break: keep-all; } .dk-stake b { color: var(--coin); }
+.dk-pay { font: 700 18px var(--display); text-align: center; margin: 8px 0; word-break: keep-all; } .dk-pay.win { color: #fff3a0; } .dk-pay.lose { color: #f47c81; }
+.dk-paytbl { margin-top: 12px; width: 100%; font-size: 13px; color: var(--mute); } .dk-paytbl summary { cursor: pointer; color: var(--text); } .dk-paytbl p { margin: 2px 0; }
+@media (min-width: 900px) { #dk-sheet { left: auto; top: 0; width: 420px; max-height: none; border-top: 0; border-left: 2px solid var(--line); } .dk-hand { min-height: 160px; } }
+#dk-ov[hidden], #dk-sheet[hidden], #dk-toast[hidden], #dk-tip[hidden], #dk-banner[hidden] { display: none !important; }
+.dk-hand .dkc.sealed { filter: grayscale(1) brightness(.5); }
+.dk-hand .dkc.sealed::after { content: '봉인'; position: absolute; inset: 40% 0 auto; text-align: center; font: 700 14px var(--display); color: #fff3a0; background: rgba(7,5,10,.75); padding: 2px 0; }
+.dk-hard { color: #14172a; background: #e8c030; padding: 0 4px; font-size: 11px; }
+button.dk-chip { cursor: pointer; }
+.dk-btns { width: 100%; } .dk-btns .btn { width: 100%; padding-inline: 2px; }
+.dk-codex { width: 100%; max-width: 760px; }
+.dk-codex h3 { font: 700 18px var(--display); margin: 4px 0 10px; }
+@media (max-width: 440px) { .dkc.pick { width: calc((100vw - 48px) / 3); height: auto; min-height: 176px; padding: 22px 4px 18px; } .dkc.pick .dkc-art { width: 46px; height: 46px; } .dkc.pick .dkc-art img { width: 42px; height: 42px; } .dkc.pick .dkc-nm { font-size: 13px; } .dkc.pick .dkc-tx { font-size: 12px; } .dk-pick3 { flex-wrap: nowrap; gap: 6px; } }
+
+.dk-paybtn { margin-top: 12px; }
+.dk-uprow .dk-col .btn { white-space: nowrap; }
+/* 손패가 겹칠 때 보이는 왼쪽에 비용·이름·효과가 오게 */
+.dk-hand .dkc { align-items: flex-start; padding-left: 6px; }
+.dk-hand .dkc .dkc-art { margin-left: 22px; }
+.dk-hand .dkc .dkc-nm, .dk-hand .dkc .dkc-tx { text-align: left; }
 </style>
 </head><body style="margin:0">
 <div id="title" class="screen">
@@ -2286,6 +2425,1283 @@ const STEWARD = (function () {
   return { tasks, decide };
 })();
 if (typeof module !== 'undefined') module.exports = STEWARD;
+// 옛 것의 둥지 — 카드. 둥지는 이 세상에 돋아난 「위대한 것」의 작은 몸이고, 카드는 그 몸의 부위다.
+// 종류: organ 기관(칸에 영구히 자리 잡는다) / trap 부위(칸에 돋아 밤 동안 몇 번 터진다) / kin 권속(방에 세운다, 쓰러지면 다음 밤 덱으로) / spell 주문 / curse 저주
+// 효과는 작은 낱말(ops)로 적고 deck.js 가 읽는다. ['dmg', 6, 'cell'] = 그 칸의 적 모두 6 피해. 강화(up)를 안 적으면 숫자를 1.5배 한다.
+// 이 파일에는 화면이 없다(node 에서도 돈다).
+const CARDS = (function () {
+  const N = typeof NEST !== 'undefined' ? NEST : require('./logic.js');
+  const ASPS = ['abyss', 'nebula', 'brood', 'dusk', 'hunger'];
+  const ASPN = { abyss: '심연', nebula: '성운', brood: '번식', dusk: '황혼', hunger: '기아', none: '무색' };
+  const RARN = { c: '보통', u: '드묾', r: '옛것급', x: '저주', s: '처음' };
+  const TYPEN = { organ: '기관', trap: '부위', kin: '권속', spell: '주문', curse: '저주' };
+
+  // ---- 효과 글: ops 를 짧은 한국어로 ----
+  const AREA = { one: '적 하나', cell: '칸 전체', all: '모든 적', front: '맨 앞 적', core: '본체 방 적', enter: '들어온 적', rand: '아무 적' };
+  const kinN = k => (N.KIN[k] && N.KIN[k].name) || (k === 'infected' ? '감염체' : k);
+  const PER = { handN: '이 밤 족보', corpse: '주검', inf: '감염', organ: '기관', kin: '권속', enemy: '적', asp: '같은 색 카드', hand: '손패', curse: '저주' };
+  function opText(o) {
+    const [k, a, b, c] = o, ar = AREA[b] || '';
+    switch (k) {
+      case 'dmg': return (ar || '적 하나') + ' ' + a + ' 피해';
+      case 'mind': return (ar || '적 하나') + ' 정신 −' + a;
+      case 'inf': return (ar || '적 하나') + ' 감염 ' + a;
+      case 'mark': return (ar || '적 하나') + ' 표식 +' + a + '%';
+      case 'hold': return (ar || '칸 전체') + ' ' + a + '턴 붙듦';
+      case 'push': return (ar || '칸 전체') + ' ' + a + '칸 밀어냄';
+      case 'swallow': return (b === 'enter' ? '들어온 적이 ' : '') + '체력 ' + a + ' 이하면 삼킴';
+      case 'mad': return (ar || '적 하나') + ' ' + a + '턴 광기';
+      case 'spawn': return '움 ' + a + ' 돋움';
+      case 'kin': return kinN(a) + (b > 1 ? ' ' + b : '') + ' 세움';
+      case 'heal': return '본체 체력 +' + a;
+      case 'healKin': return '권속 체력 +' + a;
+      case 'buff': return '권속 공격 +' + a + (b ? ' 체력 +' + b : '');
+      case 'block': return '막기 ' + a;
+      case 'draw': return a + '장 뽑기';
+      case 'energy': return '기운 +' + a;
+      case 'ess': return '진액 +' + a;
+      case 'eat': return '주검마다 진액 +' + a;
+      case 'rise': return '주검 ' + a + ' 일으킴';
+      case 'dmgPer': return (AREA[c] || '적 하나') + ' ' + (PER[b] || b) + '마다 ' + a + ' 피해';
+      case 'mindPer': return (AREA[c] || '적 하나') + ' ' + (PER[b] || b) + '마다 정신 −' + a;
+      case 'self': return '본체 체력 −' + a;
+      case 'curse': return '저주 「' + a + '」 받음';
+      case 'pull': return (ar || '적 하나') + ' ' + a + '칸 끌어옴';
+      case 'thin': return '손패 ' + a + '장 버림';
+      case 'cap': return '권속 자리 +' + a;
+      case 'charge': return '이 칸 부위 +' + a + '번';
+      case 'infect2': return '감염된 적 감염 ×2';
+      case 'convert': return '정신 꺾인 적이 신도로';
+      default: return k;
+    }
+  }
+  // 이어지는 효과가 같은 대상이면 대상 말을 한 번만 쓴다
+  function opsText(ops) { let prev = null; return ops.map(o => { let t = opText(o); const ar = typeof o[2] === 'string' && AREA[o[2]] ? o[2] : null; if (ar && ar === prev && t.indexOf(AREA[ar] + ' ') === 0) t = t.slice(AREA[ar].length + 1); prev = ar; return t; }).join(', '); }
+  const HOOK = { hand: '족보가 나오면: ', turn: '매 턴: ', kill: '여기서 죽이면: ', night: '밤마다: ', day: '낮마다: ', enter: '들어오면: ', end: '턴 끝: ', draw: '뽑히면: ' };
+  function textOf(c, up) {
+    const d = up ? Object.assign({}, c, c.upd) : c, parts = [];
+    if (d.type === 'trap') parts.push(d.charges + '번: ' + opsText(d.ops));
+    else if (d.type === 'organ') { for (const h in d.hooks) parts.push(HOOK[h] + opsText(d.hooks[h])); if (d.cap) parts.push('권속 자리 +' + d.cap); }
+    else if (d.type === 'curse') { parts.push('쓸 수 없다'); for (const h in (d.hooks || {})) parts.push(HOOK[h] + opsText(d.hooks[h])); }
+    else parts.push(opsText(d.ops));
+    if (d.kw && d.kw.exhaust) parts.push('사라짐');
+    if (d.kw && d.kw.retain) parts.push('남음');
+    return parts.join(' · ');
+  }
+  // 강화: 정한 것이 없으면 숫자 효과를 1.5배
+  const SCALE = new Set(['dmg', 'mind', 'inf', 'heal', 'healKin', 'block', 'ess', 'swallow', 'dmgPer', 'mindPer', 'mark', 'eat']);
+  const upOps = ops => ops.map(o => SCALE.has(o[0]) ? [o[0], Math.ceil(o[1] * 1.5)].concat(o.slice(2)) : o.slice());
+
+  const LIST = [];
+  // c(아이디, 이름, 종류, 색, 비용, 희귀, 대상, 효과, 덧붙임)
+  function c(id, name, type, asp, cost, rar, tgt, ops, x) {
+    x = x || {};
+    const d = { id, name, type, asp, cost, rar, tgt, ops: ops || [], unlock: x.unlock || null, kw: x.kw || {}, hooks: x.hooks || null, charges: x.charges || 0, cap: x.cap || 0, kin: x.kin || null, n: x.n || 1, lore: x.lore || '' };
+    const up = x.up || {};
+    d.upd = { cost: up.cost != null ? up.cost : cost, ops: up.ops || upOps(d.ops), charges: up.charges != null ? up.charges : d.charges + (type === 'trap' ? 1 : 0), hooks: up.hooks || (d.hooks ? Object.fromEntries(Object.entries(d.hooks).map(([h, v]) => [h, upOps(v)])) : null), cap: up.cap != null ? up.cap : d.cap, kw: up.kw || d.kw };
+    d.text = x.text || textOf(d, false); d.textUp = x.textUp || textOf(d, true);
+    d.more = x.more || '';
+    LIST.push(d); return d;
+  }
+  // 줄임: 권속 카드
+  const kin = (id, name, asp, cost, rar, kind, n, more, x) => c(id, name, 'kin', asp, cost, rar, 'room', [['kin', kind, n]].concat((x && x.extra) || []), Object.assign({ kin: kind, n, more }, x || {}));
+  const trap = (id, name, asp, cost, rar, charges, ops, x) => c(id, name, 'trap', asp, cost, rar, 'cell', ops, Object.assign({ charges }, x || {}));
+  const organ = (id, name, asp, cost, rar, hooks, x) => c(id, name, 'organ', asp, cost, rar, 'cell', [], Object.assign({ hooks }, x || {}));
+  const spell = (id, name, asp, cost, rar, tgt, ops, x) => c(id, name, 'spell', asp, cost, rar, tgt, ops, x);
+  const curse = (id, name, hooks, more) => c(id, name, 'curse', 'none', 0, 'x', 'none', [], { hooks, kw: { unplayable: true }, more });
+  const U = id => ({ unlock: id });
+
+  // ================= 무색 (처음 덱과 어디서나 나오는 것) =================
+  spell('bite', '물어뜯기', 'none', 1, 's', 'cell', [['dmg', 6, 'front']], { more: '그 칸 맨 앞의 적을 문다.' });
+  spell('harden', '굳은 살', 'none', 1, 's', 'none', [['block', 7]], { more: '본체가 받을 피해를 막는다. 턴이 끝나면 사라진다.' });
+  spell('lash', '휘두르기', 'none', 1, 'c', 'cell', [['dmg', 4, 'cell']]);
+  spell('gnaw', '갉아먹기', 'none', 0, 'c', 'cell', [['dmg', 3, 'front'], ['draw', 1]]);
+  spell('swell', '부풀기', 'none', 1, 'c', 'none', [['block', 5], ['draw', 1]]);
+  spell('ooze', '진액 짜내기', 'none', 0, 'c', 'none', [['ess', 6], ['self', 2]], { kw: { exhaust: true } });
+  spell('twitch', '꿈틀', 'none', 0, 'c', 'none', [['energy', 1]], { kw: { exhaust: true } });
+  spell('grasp', '움켜쥐기', 'none', 1, 'c', 'cell', [['hold', 1, 'front'], ['dmg', 3, 'front']]);
+  spell('shove', '떠밀기', 'none', 1, 'c', 'cell', [['push', 1, 'cell']]);
+  spell('regrow', '다시 돋기', 'none', 1, 'c', 'none', [['heal', 6]], { kw: { exhaust: true } });
+  spell('thrash', '마구 치기', 'none', 2, 'c', 'cell', [['dmg', 9, 'cell']]);
+  spell('feelers', '더듬기', 'none', 1, 'c', 'none', [['draw', 2]]);
+  spell('deepbreath', '깊은 숨', 'none', 1, 'u', 'none', [['energy', 2]], { kw: { exhaust: true } });
+  spell('husk', '껍질 덮기', 'none', 2, 'u', 'none', [['block', 14]]);
+  spell('crush', '짓누르기', 'none', 2, 'u', 'cell', [['dmg', 14, 'front'], ['hold', 1, 'front']]);
+  spell('gather', '살 모으기', 'none', 1, 'u', 'room', [['healKin', 10, 'cell'], ['buff', 2, 0, 'cell']]);
+  spell('quake', '굴 흔들기', 'none', 2, 'u', 'none', [['dmg', 5, 'all']], U('runs3'));
+  spell('lure', '끌어들이기', 'none', 1, 'u', 'cell', [['pull', 1, 'cell']], U('runs3'));
+  spell('feast', '잔치', 'none', 2, 'r', 'none', [['heal', 10], ['ess', 15]], Object.assign(U('ess600'), { kw: { exhaust: true } }));
+  spell('dream', '꿈 새어 나옴', 'none', 1, 'r', 'none', [['mind', 8, 'all'], ['draw', 1]], U('words10'));
+  spell('needle', '바늘 하나', 'none', 3, 'r', 'none', [['dmg', 12, 'all'], ['mind', 12, 'all']], Object.assign(U('win1'), { kw: { exhaust: true } }));
+  kin('k_skeleton', '뼈껍질', 'none', 1, 's', 'skeleton', 1, '단단한 등껍질. 앞을 막는다.');
+  kin('k_digger', '굴파개', 'none', 1, 'c', 'digger', 1, '낮에 판 칸마다 진액을 조금 캔다.', { extra: [['ess', 3]] });
+  kin('k_warden', '갈비우리', 'none', 2, 'c', 'warden', 1, '갈비로 짠 우리. 적을 붙든다.', { extra: [['hold', 1, 'cell']] });
+  kin('k_netter', '실뽑이', 'none', 2, 'u', 'netter', 1, '실을 뽑아 길을 막는다.', { extra: [['hold', 1, 'cell']] });
+  kin('k_clerk', '세는 손', 'none', 1, 'u', 'clerk', 1, '죽은 것을 센다. 진액이 더 들어온다.', Object.assign(U('runs5'), { extra: [['ess', 8]] }));
+  organ('o_maw', '아가리 굴', 'none', 1, 's', { enter: [['dmg', 3, 'enter']] }, { more: '칸 바닥 전체가 입이다. 들어오는 것마다 문다.' });
+  organ('o_stomach', '위장', 'none', 2, 'c', { kill: [['ess', 4]] }, { more: '여기서 죽은 것은 진액이 된다.' });
+  organ('o_burrow', '둥지 방', 'none', 1, 'c', {}, { cap: 2, more: '권속이 더 설 수 있다.' });
+  organ('o_heart', '작은 심장', 'none', 3, 'r', { night: [['energy', 1]] }, Object.assign(U('act2any'), { more: '밤마다 첫 턴에 기운 +1.' }));
+  trap('t_claw', '튀어나온 발톱', 'none', 1, 's', 2, [['dmg', 7, 'enter']]);
+  trap('t_teeth', '이빨 바닥', 'none', 1, 'c', 3, [['dmg', 5, 'enter']]);
+  trap('t_gullet', '목구멍 함정', 'none', 2, 'u', 1, [['swallow', 30, 'enter']]);
+
+  // ================= 심연: 삼킴, 물, 밀어냄, 붙듦 =================
+  const A = 'abyss';
+  spell('a_tide', '해일', A, 1, 's', 'cell', [['push', 1, 'front'], ['dmg', 5, 'cell']]);
+  spell('a_undertow', '물밑 끌림', A, 1, 'c', 'cell', [['hold', 2, 'front'], ['dmg', 4, 'front']]);
+  spell('a_drown', '숨 막힘', A, 1, 'c', 'cell', [['dmg', 6, 'cell'], ['hold', 1, 'front']]);
+  spell('a_pressure', '깊은 물의 무게', A, 2, 'c', 'cell', [['dmg', 10, 'cell'], ['hold', 1, 'front']]);
+  spell('a_brine', '짠물 덮기', A, 1, 'c', 'none', [['block', 8], ['heal', 2]]);
+  spell('a_ebb', '썰물', A, 1, 'c', 'cell', [['push', 1, 'front']]);
+  spell('a_whirl', '소용돌이', A, 1, 'u', 'cell', [['push', 1, 'cell'], ['dmg', 6, 'cell']]);
+  spell('a_gulp', '한 모금', A, 2, 'u', 'cell', [['swallow', 35, 'cell']]);
+  spell('a_flood', '물 차오름', A, 2, 'u', 'none', [['hold', 1, 'all'], ['dmg', 2, 'all']]);
+  spell('a_shell', '조개 닫기', A, 1, 'u', 'none', [['block', 12]], U('a_act2'));
+  spell('a_abysscall', '심연의 부름', A, 1, 'u', 'cell', [['pull', 2, 'cell'], ['mark', 30, 'cell']], U('a_swallow10'));
+  spell('a_tidecall', '밀물 부르기', A, 2, 'u', 'none', [['healKin', 10, 'all'], ['heal', 5]], U('a_act2'));
+  spell('a_maelstrom', '큰 소용돌이', A, 3, 'r', 'none', [['push', 1, 'all'], ['dmg', 8, 'all']], U('a_win'));
+  spell('a_leviathan', '바다 밑의 입', A, 3, 'r', 'cell', [['swallow', 65, 'cell'], ['swallow', 65, 'cell']], Object.assign(U('a_swallow25'), { kw: { exhaust: true } }));
+  spell('a_silt', '진흙 가라앉음', A, 1, 'c', 'cell', [['hold', 1, 'front'], ['mark', 25, 'cell']]);
+  spell('a_coldcurrent', '찬 물살', A, 1, 'u', 'none', [['dmg', 3, 'all'], ['draw', 1]], U('a_nodmg'));
+  trap('a_t_mawfloor', '바닥 아가리', A, 2, 's', 2, [['swallow', 26, 'enter']], { more: '바닥이 통째로 입이다. 하나를 삼키면 닫힌다.' });
+  trap('a_t_rising', '차오르는 물', A, 1, 'c', 3, [['dmg', 4, 'enter'], ['hold', 1, 'enter']]);
+  trap('a_t_suction', '빨판 벽', A, 1, 'c', 3, [['hold', 1, 'enter'], ['mark', 20, 'enter']]);
+  trap('a_t_sinkhole', '꺼지는 바닥', A, 1, 'c', 2, [['push', 1, 'enter'], ['dmg', 3, 'enter']]);
+  trap('a_t_eel', '물뱀 굴', A, 1, 'c', 3, [['dmg', 8, 'enter']]);
+  trap('a_t_jaws', '겹 아가리', A, 3, 'u', 2, [['swallow', 45, 'enter']], U('a_swallow10'));
+  trap('a_t_brinepool', '짠물 웅덩이', A, 1, 'u', 4, [['dmg', 3, 'enter'], ['mark', 15, 'enter']]);
+  trap('a_t_drag', '끌어내리는 촉수', A, 2, 'u', 2, [['hold', 2, 'enter'], ['dmg', 5, 'enter']], U('a_act2'));
+  trap('a_t_trench', '해구', A, 2, 'r', 2, [['swallow', 45, 'enter']], U('a_win'));
+  trap('a_t_pearl', '진주 미끼', A, 1, 'u', 2, [['pull', 1, 'cell'], ['ess', 5]], U('a_nodmg'));
+  organ('a_o_pool', '고인 웅덩이', A, 2, 's', { turn: [['healKin', 4, 'cell']] }, { more: '칸의 권속이 매 턴 조금씩 아문다.' });
+  organ('a_o_gills', '아가미 방', A, 1, 'c', { turn: [['block', 3]] });
+  organ('a_o_sluice', '물목', A, 2, 'c', { enter: [['dmg', 3, 'enter'], ['hold', 1, 'enter']] });
+  organ('a_o_reef', '산호 뼈', A, 2, 'u', { turn: [['dmg', 3, 'cell']] }, U('a_act2'));
+  organ('a_o_drowned', '가라앉은 방', A, 2, 'u', { kill: [['heal', 2]] });
+  organ('a_o_deep', '깊은 굴', A, 3, 'u', { enter: [['mark', 30, 'enter']] }, U('a_swallow10'));
+  organ('a_o_womb', '물의 자궁', A, 3, 'r', { night: [['kin', 'scale', 1]] }, U('a_win'));
+  organ('a_o_tidegate', '물의 문', A, 2, 'c', {}, { cap: 1, hooks: { turn: [['healKin', 3, 'cell']] } });
+  kin('a_k_scale', '비늘지기', A, 1, 's', 'scale', 1, '등딱지로 막고 다친 동료를 감싼다.');
+  kin('a_k_tangle', '촉수 뭉치', A, 2, 'c', 'tangle', 1, '촉수로 휘감는다.', { extra: [['hold', 1, 'cell']] });
+  kin('a_k_scale2', '비늘 떼', A, 2, 'u', 'scale', 2, '비늘지기 둘.');
+  kin('a_k_tangle2', '엉킨 것들', A, 3, 'u', 'tangle', 2, '촉수 뭉치 둘.', U('a_act2'));
+  kin('a_k_netter', '물실뽑이', A, 1, 'c', 'netter', 1, '물속에 실을 친다.', { extra: [['mark', 15, 'cell']] });
+  kin('a_k_deepscale', '심해 비늘', A, 2, 'u', 'scale', 1, '깊은 데서 올라온 비늘.', { extra: [['block', 6]] });
+  kin('a_k_drowner', '익사시키는 것', A, 3, 'r', 'tangle', 1, '휘감아 물속으로 끈다.', Object.assign(U('a_swallow25'), { extra: [['swallow', 40, 'cell']] }));
+  kin('a_k_shellwall', '조개 성벽', A, 2, 'u', 'scale', 1, '움직이는 벽.', Object.assign(U('a_nodmg'), { extra: [['block', 10]] }));
+
+  // ================= 성운: 눈, 별, 정신, 광기, 뽑기 =================
+  const B = 'nebula';
+  spell('n_gaze', '들여다보기', B, 1, 's', 'cell', [['mind', 11, 'front'], ['draw', 1]]);
+  spell('n_starlight', '별빛 바늘', B, 1, 'c', 'cell', [['dmg', 7, 'front'], ['mark', 20, 'front']]);
+  spell('n_whisperstar', '별의 소리', B, 1, 'c', 'cell', [['mind', 8, 'cell']]);
+  spell('n_foresee', '앞날 보기', B, 0, 'c', 'none', [['draw', 2]], { kw: { exhaust: true } });
+  spell('n_madden', '미치게 하기', B, 1, 'c', 'cell', [['mad', 2, 'front']]);
+  spell('n_constel', '별자리 잇기', B, 1, 'c', 'none', [['draw', 1], ['energy', 1]], { kw: { exhaust: true } });
+  spell('n_rift', '틈', B, 1, 'u', 'cell', [['push', 3, 'front']]);
+  spell('n_eclipse', '달가림', B, 2, 'u', 'none', [['hold', 1, 'all']]);
+  spell('n_vertigo', '어지럼', B, 2, 'u', 'cell', [['mad', 2, 'cell']], U('n_mad10'));
+  spell('n_comet', '꼬리별', B, 2, 'u', 'cell', [['dmg', 9, 'cell'], ['mind', 6, 'cell']]);
+  spell('n_thirdeye', '셋째 눈 뜨기', B, 1, 'u', 'none', [['draw', 3]], U('n_act2'));
+  spell('n_truth', '보아서는 안 될 것', B, 2, 'u', 'none', [['mind', 12, 'all']], U('n_mad10'));
+  spell('n_supernova', '터지는 별', B, 3, 'r', 'none', [['dmg', 14, 'all']], Object.assign(U('n_win'), { kw: { exhaust: true } }));
+  spell('n_beyond', '별 너머', B, 3, 'r', 'none', [['mad', 2, 'all'], ['mind', 6, 'all']], U('n_mad25'));
+  spell('n_orbit', '돌고 도는 눈', B, 1, 'c', 'cell', [['mindPer', 2, 'organ', 'cell']]);
+  spell('n_lens', '수정 렌즈', B, 1, 'u', 'cell', [['mark', 40, 'cell']], U('n_act2'));
+  trap('n_t_walleye', '벽의 눈', B, 1, 's', 3, [['mind', 10, 'enter']], { more: '마주친 것은 정신이 깎인다.' });
+  trap('n_t_mirror', '비추는 눈', B, 2, 'c', 2, [['mad', 2, 'enter']]);
+  trap('n_t_starneedle', '별바늘 천장', B, 1, 'c', 3, [['dmg', 4, 'enter'], ['mark', 20, 'enter']]);
+  trap('n_t_stare', '응시하는 덩이', B, 1, 'c', 4, [['mind', 7, 'enter']]);
+  trap('n_t_warp', '뒤틀린 칸', B, 2, 'c', 2, [['push', 2, 'enter']]);
+  trap('n_t_halo', '빛무리 함정', B, 2, 'u', 2, [['hold', 2, 'enter']], U('n_act2'));
+  trap('n_t_maze', '눈의 미로', B, 2, 'u', 3, [['mad', 1, 'enter'], ['mind', 4, 'enter']], U('n_mad10'));
+  trap('n_t_lenses', '겹눈 벽', B, 1, 'u', 4, [['mark', 25, 'enter']]);
+  trap('n_t_void', '별 사이 구멍', B, 3, 'r', 2, [['mind', 30, 'enter']], U('n_win'));
+  trap('n_t_chorus', '별의 합창', B, 2, 'u', 3, [['mind', 6, 'enter'], ['draw', 1]], U('n_draw40'));
+  organ('n_o_observatory', '별자리 굴', B, 2, 's', { night: [['draw', 1]] }, { more: '밤마다 첫 턴에 한 장 더 뽑는다.' });
+  organ('n_o_eye', '큰 눈 방', B, 2, 'c', { turn: [['mind', 4, 'cell']] });
+  organ('n_o_lens', '렌즈 굴', B, 1, 'c', { enter: [['mark', 20, 'enter']] });
+  organ('n_o_dreamwell', '꿈 우물', B, 2, 'u', { turn: [['mind', 3, 'all']] }, U('n_mad10'));
+  organ('n_o_starwomb', '별의 자궁', B, 3, 'u', { night: [['energy', 1]] }, U('n_act2'));
+  organ('n_o_library', '받아 적는 방', B, 2, 'c', { kill: [['draw', 1]] });
+  organ('n_o_crown', '눈의 관', B, 3, 'r', { turn: [['mad', 1, 'front'], ['mind', 3, 'cell']] }, U('n_win'));
+  organ('n_o_spire', '거꾸로 탑', B, 2, 'u', { turn: [['dmg', 4, 'front']] }, U('n_draw40'));
+  kin('n_k_scribe', '별보는 눈', B, 1, 's', 'scribe', 1, '정신을 찌르는 눈.');
+  kin('n_k_eyeheap', '눈 무더기', B, 2, 'c', 'eyeheap', 1, '모두를 본다.', { extra: [['mind', 4, 'cell']] });
+  kin('n_k_spitter', '가시쏘개', B, 1, 'c', 'spitter', 1, '멀리서 가시를 쏜다.');
+  kin('n_k_spitter2', '가시 무리', B, 2, 'u', 'spitter', 2, '가시쏘개 둘.', U('n_act2'));
+  kin('n_k_scribe2', '눈 둘', B, 2, 'u', 'scribe', 2, '별보는 눈 둘.');
+  kin('n_k_seer', '앞을 보는 눈', B, 1, 'u', 'scribe', 1, '세우면 한 장 뽑는다.', { extra: [['draw', 1]] });
+  kin('n_k_starheap', '별 무더기', B, 3, 'r', 'eyeheap', 2, '눈 무더기 둘.', U('n_mad25'));
+  kin('n_k_gazer', '응시자', B, 2, 'u', 'eyeheap', 1, '적을 미치게 한다.', Object.assign(U('n_mad10'), { extra: [['mad', 1, 'front']] }));
+
+  // ================= 번식: 움, 감염, 떼, 알 =================
+  const C = 'brood';
+  spell('b_sprout', '움 틔우기', C, 1, 's', 'room', [['spawn', 2]]);
+  spell('b_spore', '포자 뿌리기', C, 1, 'c', 'cell', [['inf', 3, 'cell']]);
+  spell('b_swarm', '떼 짓기', C, 1, 'c', 'room', [['buff', 3, 0, 'cell']]);
+  spell('b_bloom', '피어나기', C, 2, 'c', 'room', [['spawn', 3]]);
+  spell('b_fever', '열병', C, 1, 'c', 'cell', [['inf', 3, 'front'], ['dmg', 4, 'front']]);
+  spell('b_bud', '곁가지', C, 0, 'c', 'room', [['spawn', 1]]);
+  spell('b_contagion', '번지기', C, 2, 'u', 'none', [['inf', 3, 'all']], U('b_inf5'));
+  spell('b_hatch', '부화', C, 2, 'u', 'room', [['spawn', 4]], U('b_act2'));
+  spell('b_ripen', '무르익음', C, 1, 'u', 'none', [['infect2', 1]], U('b_inf5'));
+  spell('b_tide', '떼의 물결', C, 2, 'u', 'none', [['buff', 3, 5, 'all']]);
+  spell('b_mother', '어미의 부름', C, 2, 'u', 'none', [['healKin', 8, 'all'], ['spawn', 1]], U('b_act2'));
+  spell('b_plague', '역병', C, 3, 'r', 'none', [['inf', 4, 'all']], U('b_inf20'));
+  spell('b_brood', '한배', C, 3, 'r', 'room', [['spawn', 5]], Object.assign(U('b_win'), { kw: { exhaust: true } }));
+  spell('b_rot', '썩히기', C, 1, 'c', 'cell', [['dmgPer', 2, 'inf', 'front']]);
+  spell('b_rise', '시체떼', C, 2, 'u', 'room', [['rise', 3]], U('b_inf5'));
+  spell('b_lichen', '이끼 덮기', C, 1, 'c', 'none', [['block', 6], ['spawn', 1]]);
+  trap('b_t_spore', '감염 포자', C, 1, 's', 3, [['inf', 3, 'enter']], { more: '감염된 것은 매 턴 썩고, 죽으면 감염체로 일어난다.' });
+  trap('b_t_eggsac', '알주머니', C, 1, 'c', 1, [['spawn', 3]], { more: '밟으면 터져 움이 나온다.' });
+  trap('b_t_mold', '곰팡이 벽', C, 1, 'c', 4, [['inf', 2, 'enter']]);
+  trap('b_t_nettle', '쐐기 털', C, 1, 'c', 3, [['dmg', 4, 'enter'], ['inf', 1, 'enter']]);
+  trap('b_t_roots', '얽힌 뿌리', C, 1, 'c', 3, [['hold', 1, 'enter']]);
+  trap('b_t_nest', '알 무더기', C, 2, 'u', 2, [['spawn', 3]], U('b_act2'));
+  trap('b_t_bloomer', '터지는 꽃', C, 2, 'u', 2, [['inf', 6, 'enter'], ['dmg', 4, 'enter']], U('b_inf5'));
+  trap('b_t_hive', '벌집 벽', C, 2, 'u', 3, [['inf', 3, 'enter'], ['spawn', 1]], U('b_spawn30'));
+  trap('b_t_motherlode', '어미 포자낭', C, 3, 'r', 3, [['inf', 7, 'enter']], U('b_inf20'));
+  trap('b_t_creeper', '기는 덩굴', C, 1, 'u', 4, [['hold', 1, 'enter'], ['inf', 2, 'enter']], U('b_spawn30'));
+  organ('b_o_hatchery', '알 굴', C, 2, 's', { night: [['spawn', 2]] }, { more: '밤마다 움 둘이 이 칸에 돋는다.' });
+  organ('b_o_spores', '포자 방', C, 2, 'c', { turn: [['inf', 1, 'cell']] });
+  organ('b_o_womb', '자궁 방', C, 3, 'u', { night: [['spawn', 3]] }, U('b_act2'));
+  organ('b_o_compost', '썩은 둥지', C, 1, 'c', { kill: [['spawn', 1]] });
+  organ('b_o_nursery', '젖 굴', C, 2, 'c', { turn: [['healKin', 3, 'cell']] }, { cap: 1 });
+  organ('b_o_colony', '군락', C, 2, 'u', {}, Object.assign(U('b_spawn30'), { cap: 3 }));
+  organ('b_o_queen', '여왕 방', C, 3, 'r', { turn: [['buff', 1, 0, 'cell']] }, U('b_win'));
+  organ('b_o_rotpit', '썩는 구덩이', C, 2, 'u', { enter: [['inf', 3, 'enter']] }, U('b_inf5'));
+  kin('b_k_goblin', '깨물이', C, 1, 's', 'goblin', 1, '몸의 절반이 입이다.');
+  kin('b_k_goblin2', '깨물이 둘', C, 2, 'c', 'goblin', 2, '깨물이 둘.');
+  kin('b_k_licker', '핥는 것', C, 1, 'c', 'licker', 1, '다친 동료를 핥아 아물린다.', { extra: [['healKin', 5, 'cell']] });
+  kin('b_k_goblin3', '깨물이 떼', C, 3, 'u', 'goblin', 3, '깨물이 셋.', U('b_act2'));
+  kin('b_k_spawner', '움 품은 것', C, 2, 'u', 'goblin', 1, '세우면 움 둘이 따라 나온다.', { extra: [['spawn', 2]] });
+  kin('b_k_licker2', '핥는 것 둘', C, 2, 'u', 'licker', 2, '핥는 것 둘.', U('b_spawn30'));
+  kin('b_k_carrier', '포자 나르는 것', C, 2, 'u', 'licker', 1, '세우면 칸의 적을 감염시킨다.', Object.assign(U('b_inf5'), { extra: [['inf', 4, 'cell']] }));
+  kin('b_k_horde', '한 무리', C, 3, 'r', 'goblin', 3, '깨물이 셋, 강화하면 더 세진다.', U('b_win'));
+
+  // ================= 황혼: 속삭임, 신도, 두려움, 돌려세움 =================
+  const D = 'dusk';
+  spell('d_whisper', '속삭임', D, 1, 's', 'cell', [['mind', 8, 'cell']]);
+  spell('d_dread', '두려움', D, 1, 'c', 'cell', [['mind', 6, 'front'], ['push', 1, 'front']]);
+  spell('d_veil', '그림자 덮기', D, 1, 'c', 'none', [['block', 6], ['mind', 3, 'all']]);
+  spell('d_mask', '가면 씌우기', D, 1, 'c', 'cell', [['mad', 1, 'front'], ['mind', 3, 'front']]);
+  spell('d_lull', '잠재우기', D, 1, 'c', 'cell', [['hold', 1, 'front'], ['mind', 4, 'front']]);
+  spell('d_hymn', '찬가', D, 1, 'c', 'none', [['buff', 2, 0, 'all']]);
+  spell('d_convert', '돌려세움', D, 2, 'u', 'cell', [['mind', 8, 'cell'], ['convert', 1]], U('d_rout15'));
+  spell('d_nightmare', '악몽', D, 2, 'u', 'none', [['mind', 8, 'all']], U('d_act2'));
+  spell('d_scream', '비명', D, 1, 'u', 'cell', [['mindPer', 3, 'enemy', 'cell']]);
+  spell('d_procession', '행렬', D, 2, 'u', 'room', [['kin', 'cultist', 2]], U('d_act2'));
+  spell('d_shadowstep', '그림자 걸음', D, 0, 'c', 'none', [['draw', 1], ['block', 3]]);
+  spell('d_dusk', '해 질 녘', D, 3, 'u', 'none', [['hold', 1, 'all'], ['mind', 3, 'all']], U('d_rout15'));
+  spell('d_eclipsehymn', '검은 찬가', D, 3, 'r', 'none', [['mind', 12, 'all'], ['convert', 1]], U('d_win'));
+  spell('d_puppet', '꼭두각시', D, 2, 'r', 'cell', [['mad', 2, 'cell']], U('d_rout40'));
+  spell('d_mourning', '곡소리', D, 1, 'c', 'cell', [['mind', 4, 'cell'], ['draw', 1]]);
+  spell('d_offering', '바침', D, 0, 'u', 'none', [['ess', 10], ['energy', 1]], Object.assign(U('d_act2'), { kw: { exhaust: true } }));
+  trap('d_t_whisperwall', '속삭이는 벽', D, 1, 's', 3, [['push', 1, 'enter'], ['mind', 3, 'enter']], { more: '길을 잃게 해 뒤로 돌려보낸다.' });
+  trap('d_t_maskwall', '가면 벽', D, 1, 'c', 3, [['mind', 6, 'enter']]);
+  trap('d_t_shadow', '그림자 손', D, 1, 'c', 3, [['hold', 1, 'enter'], ['mind', 2, 'enter']]);
+  trap('d_t_bell', '울리는 종', D, 2, 'c', 2, [['mind', 5, 'cell']]);
+  trap('d_t_effigy', '허수아비 신', D, 1, 'c', 2, [['mad', 1, 'enter']]);
+  trap('d_t_choir', '벽 속 합창', D, 2, 'u', 3, [['mind', 8, 'enter']], U('d_act2'));
+  trap('d_t_altar', '피 묻은 제단', D, 2, 'u', 2, [['mind', 6, 'enter'], ['convert', 1]], U('d_rout15'));
+  trap('d_t_lostpath', '헤매는 길', D, 2, 'u', 2, [['push', 2, 'enter']], U('d_rout15'));
+  trap('d_t_nightmare', '꿈 구멍', D, 3, 'r', 3, [['mad', 2, 'enter'], ['mind', 6, 'enter']], U('d_win'));
+  trap('d_t_veil', '장막', D, 1, 'u', 4, [['mark', 20, 'enter'], ['mind', 2, 'enter']], U('d_rout40'));
+  organ('d_o_chapel', '기도 굴', D, 2, 's', { night: [['kin', 'cultist', 1]] }, { more: '밤마다 신도 하나가 이 칸에 선다.' });
+  organ('d_o_stage', '무대', D, 2, 'c', { turn: [['mind', 3, 'cell']] });
+  organ('d_o_confession', '참회 굴', D, 2, 'c', { enter: [['mind', 5, 'enter']] });
+  organ('d_o_moon', '달맞이 굴', D, 2, 'u', { night: [['block', 10]] }, U('d_act2'));
+  organ('d_o_masks', '가면 방', D, 3, 'r', { turn: [['mad', 1, 'front']] }, U('d_rout40'));
+  organ('d_o_sermon', '설교단', D, 1, 'c', { kill: [['mind', 4, 'cell']] });
+  organ('d_o_cathedral', '거꾸로 성당', D, 3, 'r', { turn: [['mind', 2, 'all']] }, U('d_win'));
+  organ('d_o_cells', '돌려세운 자의 방', D, 2, 'u', {}, Object.assign(U('d_rout15'), { cap: 2, hooks: { kill: [['convert', 1]] } }));
+  kin('d_k_cultist', '신도', D, 1, 's', 'cultist', 1, '두건 속에 눈 하나.');
+  kin('d_k_cultist2', '신도 둘', D, 1, 'c', 'cultist', 2, '신도 둘.');
+  kin('d_k_mask', '가면 쓴 것', D, 2, 'c', 'mask', 1, '마주친 것의 정신을 깎는다.', { extra: [['mind', 5, 'cell']] });
+  kin('d_k_fallen', '꺾인 믿음', D, 2, 'u', 'fallen', 1, '동료를 낫게 한다.', Object.assign(U('d_rout15'), { extra: [['healKin', 6, 'cell']] }));
+  kin('d_k_mask2', '가면 둘', D, 3, 'u', 'mask', 2, '가면 쓴 것 둘.', U('d_act2'));
+  kin('d_k_choir', '작은 무리', D, 2, 'u', 'cultist', 3, '신도 셋.');
+  kin('d_k_prophet', '예언자', D, 2, 'r', 'cultist', 1, '세우면 모든 적 정신 −6.', Object.assign(U('d_win'), { extra: [['mind', 6, 'all']] }));
+  kin('d_k_turned', '돌아선 자', D, 2, 'u', 'turncoat', 1, '한때 저쪽이었다.', U('d_rout40'));
+
+  // ================= 기아: 이빨, 먹기, 주검, 진액, 대가 =================
+  const E = 'hunger';
+  spell('h_maul', '물어 찢기', E, 1, 's', 'cell', [['dmg', 11, 'front'], ['heal', 2]]);
+  spell('h_devour', '먹어 치우기', E, 1, 'c', 'cell', [['dmg', 6, 'front'], ['eat', 4]]);
+  spell('h_frenzy', '광포', E, 1, 'c', 'cell', [['dmg', 14, 'front'], ['self', 2]]);
+  spell('h_gnash', '이 갈기', E, 0, 'c', 'cell', [['dmg', 5, 'front']]);
+  spell('h_bloodlust', '피 냄새', E, 1, 'c', 'room', [['buff', 4, 0, 'cell']]);
+  spell('h_carrion', '주검 뜯기', E, 1, 'c', 'cell', [['dmgPer', 4, 'corpse', 'front']]);
+  spell('h_gorge', '배 채우기', E, 2, 'u', 'none', [['heal', 6], ['dmg', 8, 'all']], U('h_act2'));
+  spell('h_rend', '갈가리', E, 2, 'u', 'cell', [['dmg', 8, 'cell'], ['mark', 25, 'cell']]);
+  spell('h_sacrifice', '살 바치기', E, 0, 'u', 'none', [['self', 4], ['energy', 2]], Object.assign(U('h_ess600'), { kw: { exhaust: true } }));
+  spell('h_bonecrack', '뼈 부수기', E, 2, 'u', 'cell', [['dmg', 22, 'front'], ['hold', 1, 'front']], U('h_act2'));
+  spell('h_hungerpang', '허기', E, 1, 'u', 'none', [['draw', 2], ['self', 2]]);
+  spell('h_bottomless', '끝없는 배', E, 2, 'r', 'cell', [['swallow', 80, 'cell'], ['heal', 10]], U('h_win'));
+  spell('h_feeding', '먹이 시간', E, 3, 'r', 'none', [['dmg', 10, 'all'], ['eat', 3]], U('h_eat20'));
+  spell('h_chew', '씹기', E, 1, 'c', 'cell', [['dmg', 8, 'front'], ['ess', 3]]);
+  spell('h_tithe', '살 세금', E, 1, 'u', 'none', [['ess', 15], ['energy', 1]], U('h_ess600'));
+  spell('h_teeth', '이빨 비', E, 2, 'u', 'none', [['dmg', 7, 'all'], ['mark', 15, 'all']], U('h_eat20'));
+  trap('h_t_teethfloor', '톱니 바닥', E, 1, 's', 3, [['dmg', 8, 'enter']]);
+  trap('h_t_digest', '소화액 웅덩이', E, 1, 'c', 3, [['dmg', 7, 'enter'], ['eat', 2]], { more: '쓰러진 것은 바로 녹아 진액이 된다.' });
+  trap('h_t_jaw', '덫 아가리', E, 1, 'c', 2, [['dmg', 10, 'enter'], ['hold', 1, 'enter']]);
+  trap('h_t_bonerake', '뼈 갈퀴', E, 1, 'c', 3, [['dmg', 4, 'enter'], ['mark', 15, 'enter']]);
+  trap('h_t_gut', '내장 덫', E, 2, 'c', 2, [['dmg', 12, 'enter']]);
+  trap('h_t_grinder', '맷돌 이빨', E, 2, 'u', 4, [['dmg', 8, 'enter']], U('h_act2'));
+  trap('h_t_lure', '고기 미끼', E, 1, 'u', 3, [['hold', 1, 'enter'], ['dmg', 6, 'enter']], U('h_eat20'));
+  trap('h_t_stomach', '삼키는 위', E, 3, 'r', 2, [['swallow', 70, 'enter'], ['ess', 10]], U('h_win'));
+  trap('h_t_marrow', '골수 빨대', E, 2, 'u', 3, [['dmg', 9, 'enter'], ['heal', 2]], U('h_ess600'));
+  trap('h_t_frenzy', '굶주린 벽', E, 2, 'u', 4, [['dmg', 6, 'enter'], ['ess', 2]], U('h_eat20'));
+  organ('h_o_larder', '되새김 굴', E, 2, 's', { kill: [['ess', 5], ['heal', 1]] }, { more: '여기서 죽은 것은 되새겨 진액이 된다.' });
+  organ('h_o_teeth', '이빨 방', E, 1, 'c', { enter: [['dmg', 4, 'enter']] });
+  organ('h_o_abattoir', '도살장', E, 2, 'c', { turn: [['dmg', 3, 'cell']] });
+  organ('h_o_bloodpool', '피 웅덩이', E, 2, 'u', { kill: [['heal', 2]] }, U('h_act2'));
+  organ('h_o_gizzard', '모래주머니', E, 3, 'u', { turn: [['dmg', 6, 'front']] }, U('h_eat20'));
+  organ('h_o_tithe', '세금 굴', E, 2, 'c', { day: [['ess', 10]], turn: [['dmg', 2, 'cell']] });
+  organ('h_o_maw', '끝없는 아가리', E, 3, 'r', { enter: [['dmg', 10, 'enter']] }, U('h_win'));
+  organ('h_o_pantry', '광', E, 2, 'u', { night: [['ess', 8], ['block', 6]] }, U('h_ess600'));
+  kin('h_k_hunger', '허기', E, 1, 's', 'hunger', 1, '두 번 무는 것.');
+  kin('h_k_turncoat', '돌아선 자', E, 2, 'c', 'turncoat', 1, '배신한 칼.');
+  kin('h_k_hunger2', '허기 둘', E, 2, 'u', 'hunger', 2, '허기 둘.', U('h_act2'));
+  kin('h_k_starved', '굶은 것', E, 1, 'c', 'hunger', 1, '약하지만 싸다.', { extra: [['self', 2]] });
+  kin('h_k_butcher', '도살자', E, 2, 'u', 'turncoat', 1, '세우면 칸 맨 앞 적 8 피해.', Object.assign(U('h_eat20'), { extra: [['dmg', 8, 'front']] }));
+  kin('h_k_glutton', '먹보', E, 2, 'u', 'hunger', 1, '세우면 주검을 먹는다.', { extra: [['eat', 3]] });
+  kin('h_k_ravener', '게걸', E, 3, 'r', 'hunger', 1, '더 큰 허기.', Object.assign(U('h_win'), { extra: [['buff', 6, 10, 'cell']] }));
+  kin('h_k_jackal', '뼈 핥개', E, 1, 'u', 'turncoat', 1, '싼 칼.', U('h_ess600'));
+
+  // ================= 저주 =================
+  curse('x_hunger', '굶주림', { end: [['self', 2]] }, '턴 끝에 손에 있으면 본체 체력 −2.');
+  curse('x_rot', '썩은 살', {}, '손을 막는다.');
+  curse('x_noticed', '들킴', { end: [['self', 1]] }, '저들이 냄새를 맡았다.');
+  curse('x_doubt', '의심', { draw: [['thin', 1]] }, '뽑히면 손패 한 장을 버린다.');
+  curse('x_infection', '거꾸로 감염', { end: [['self', 3]] }, '제 몸이 썩는다.');
+  curse('x_dream', '깨지 않는 꿈', {}, '손을 막는다. 쓸 수 없다.');
+  curse('x_weight', '무거운 몸', { draw: [['energy', -1]] }, '뽑히면 기운 −1.');
+  curse('x_whisper', '귓속의 소리', { end: [['self', 1]] }, '누군가 계속 말한다.');
+  curse('x_scar', '흉터', {}, '손을 막는다.');
+  curse('x_debt', '빚진 살', { draw: [['ess', -5]] }, '뽑히면 진액 −5.');
+  curse('x_blind', '먼 눈', { draw: [['thin', 1]] }, '뽑히면 한 장 버린다.');
+  curse('x_needle', '바늘 자국', { end: [['self', 2]] }, '바늘이 몸을 꿰맸던 자리.');
+
+  // ================= 뻗어 온 부위: 한 방울에서 단 부위 (25) =================
+  const PRO = typeof window === 'undefined' && typeof require !== 'undefined' ? (() => { try { return require('./prologue.js'); } catch (e) { return null; } })() : (typeof PRO_ !== 'undefined' ? PRO_ : null);
+  const LIMB = {
+    mouth: { type: 'spell', tgt: 'cell', ops: { abyss: [['swallow', 28, 'cell']], nebula: [['mind', 10, 'front']], brood: [['inf', 5, 'front']], dusk: [['mind', 5, 'cell']], hunger: [['dmg', 11, 'front']] } },
+    eye: { type: 'spell', tgt: 'none', ops: { abyss: [['draw', 1], ['block', 4]], nebula: [['draw', 2]], brood: [['draw', 1], ['spawn', 1]], dusk: [['draw', 1], ['mind', 3, 'all']], hunger: [['draw', 1], ['mark', 20, 'all']] } },
+    leg: { type: 'trap', tgt: 'cell', ops: { abyss: [['push', 1, 'enter']], nebula: [['dmg', 4, 'enter'], ['mark', 15, 'enter']], brood: [['hold', 1, 'enter']], dusk: [['hold', 1, 'enter'], ['mind', 3, 'enter']], hunger: [['dmg', 8, 'enter']] } },
+    skin: { type: 'spell', tgt: 'none', ops: { abyss: [['block', 10]], nebula: [['block', 6], ['mind', 3, 'all']], brood: [['block', 6], ['spawn', 1]], dusk: [['block', 7], ['draw', 1]], hunger: [['block', 6], ['dmg', 3, 'all']] } },
+    core: { type: 'spell', tgt: 'none', ops: { abyss: [['heal', 6], ['block', 4]], nebula: [['energy', 1], ['draw', 1]], brood: [['spawn', 2]], dusk: [['mind', 6, 'all']], hunger: [['ess', 10], ['heal', 3]] } },
+  };
+  const PARTNAME = { mouth_abyss: '빨판', mouth_nebula: '빛입', mouth_brood: '포자입', mouth_dusk: '속삭입', mouth_hunger: '톱니입', eye_abyss: '등불', eye_nebula: '셋째눈', eye_brood: '더듬이', eye_dusk: '가면눈', eye_hunger: '피눈', leg_abyss: '물살발', leg_nebula: '별뜀', leg_brood: '뿌리발', leg_dusk: '실발', leg_hunger: '덮침발', skin_abyss: '비늘', skin_nebula: '수정껍질', skin_brood: '이끼', skin_dusk: '막', skin_hunger: '가시', core_abyss: '닻주머니', core_nebula: '고리', core_brood: '알주머니', core_dusk: '울림통', core_hunger: '강철위' };
+  for (const slot of ['mouth', 'eye', 'leg', 'skin', 'core']) for (const a of ASPS) {
+    const id = slot + '_' + a, L = LIMB[slot], nm = (PRO && PRO.PART && PRO.PART[id] && PRO.PART[id].name) || PARTNAME[id];
+    if (L.type === 'trap') trap('l_' + id, '뻗어 온 ' + nm, a, 1, 'u', 3, L.ops[a], { unlock: 'part:' + id, more: '한 방울 때 단 부위가 둥지까지 뻗어 왔다.' });
+    else spell('l_' + id, '뻗어 온 ' + nm, a, slot === 'core' ? 1 : 1, 'u', L.tgt, L.ops[a], { unlock: 'part:' + id, more: '한 방울 때 단 부위가 둥지까지 뻗어 왔다.' });
+  }
+
+  // ================= 허물 (판 내내 붙는 것) =================
+  const MOLT = {
+    m_core: { name: '굳은 핵', text: '본체 최대 체력 +20', fx: { maxHp: 20 } },
+    m_lung: { name: '두 번째 숨', text: '밤마다 기운 +1', fx: { energy: 1 } },
+    m_eyes: { name: '겹눈', text: '매 턴 한 장 더 뽑는다', fx: { draw: 1 } },
+    m_brood: { name: '알 품은 등', text: '밤마다 본체 방에 움 하나', fx: { nightSpawn: 1 } },
+    m_teeth: { name: '이빨 껍질', text: '본체 공격 +6', fx: { atk: 6 } },
+    m_scale: { name: '비늘 갑옷', text: '본체가 받는 피해 −2', fx: { armor: 2 } },
+    m_mind: { name: '울리는 머리', text: '정신 피해 +30%', fx: { mindMul: 0.3 } },
+    m_trap: { name: '돋는 살', text: '부위 카드 +1번', fx: { charges: 1 } },
+    m_kin: { name: '젖줄', text: '권속 체력 +25%', fx: { kinHp: 0.25 } },
+    m_gold: { name: '진액 주머니', text: '낮마다 진액 +15', fx: { dayEss: 15 } },
+    m_hand: { name: '긴 팔', text: '손패 한도 +2, 첫 턴 한 장 더', fx: { firstDraw: 1 } },
+    m_regen: { name: '아무는 살', text: '밤이 끝나면 본체 체력 +8', fx: { nightHeal: 8 } },
+    m_inf: { name: '썩은 피', text: '감염이 두 배로 번진다', fx: { infMul: 1 } },
+    m_swallow: { name: '늘어나는 목', text: '삼킴 기준 +15', fx: { swallow: 15 } },
+    m_thorn: { name: '가시 껍질', text: '본체를 친 적 4 피해', fx: { thorns: 4 } },
+  };
+
+  // ================= 열리는 조건 (판이 끝날 때 메타 기록으로 본다) =================
+  // st: 이번 판 기록, m: 쌓인 기록
+  const UNLOCK = {};
+  // 판을 넘어 쌓인 합계
+  const T = (m, k) => (m.tot && m.tot[k]) || 0;
+  const u = (id, text, check) => { UNLOCK[id] = { id, text, check }; };
+  const AK = { a: 'abyss', n: 'nebula', b: 'brood', d: 'dusk', h: 'hunger' };
+  for (const k in AK) {
+    const a = AK[k];
+    u(k + '_act2', ASPN[a] + ' 덱으로 2막 넘기기', (st, m) => (m.actBy[a] || 0) >= 3);
+    u(k + '_win', ASPN[a] + ' 덱으로 끝까지 버티기', (st, m) => (m.winBy[a] || 0) >= 1);
+  }
+  u('a_swallow10', '모두 합쳐 60번 삼키기', (st, m) => T(m, 'swallow') >= 60);
+  u('a_swallow25', '모두 합쳐 120번 삼키기', (st, m) => T(m, 'swallow') >= 120);
+  u('a_nodmg', '3막에서 본체가 다치지 않고 밤 셋 넘기기', st => (st.cleanLate || 0) >= 3);
+  u('n_mad10', '모두 합쳐 광기로 80번 같은 편 치게 하기', (st, m) => T(m, 'madHits') >= 80);
+  u('n_mad25', '모두 합쳐 광기로 140번 같은 편 치게 하기', (st, m) => T(m, 'madHits') >= 140);
+  u('n_draw40', '한 밤에 카드 효과로 12장 더 뽑기', st => (st.maxExtraDraw || 0) >= 12);
+  u('b_inf5', '한 밤에 감염체 6 만들기', st => st.maxInfNight >= 6);
+  u('b_inf20', '모두 합쳐 감염체 100 만들기', (st, m) => T(m, 'infRise') >= 100);
+  u('b_spawn30', '모두 합쳐 움 200 돋우기', (st, m) => T(m, 'spawned') >= 200);
+  u('d_rout15', '모두 합쳐 120명을 정신으로 쫓아내기', (st, m) => T(m, 'routs') >= 120);
+  u('d_rout40', '모두 합쳐 300명을 정신으로 쫓아내기', (st, m) => T(m, 'routs') >= 300);
+  u('h_ess600', '모두 합쳐 진액 4000 모으기', (st, m) => T(m, 'essGot') >= 4000);
+  u('h_eat20', '모두 합쳐 주검 120 먹기', (st, m) => T(m, 'eaten') >= 120);
+  u('ess600', '한 판에 진액 1000 모으기 (아무 덱)', st => st.essGot >= 1000);
+  u('runs3', '판을 세 번 하기', (st, m) => m.runs >= 3);
+  u('runs5', '판을 다섯 번 하기', (st, m) => m.runs >= 5);
+  u('runs10', '판을 열 번 하기', (st, m) => m.runs >= 10);
+  u('act2any', '아무 덱으로 1막 넘기기', (st, m) => Object.values(m.actBy).some(v => v >= 2));
+  u('win1', '한 번 끝까지 버티기', (st, m) => Object.values(m.winBy).some(v => v >= 1));
+  u('words10', '스물두 가지 적의 이름을 배우기', (st, m) => Object.values(m.words || {}).filter(v => v >= 3).length >= 22);
+  u('secret1', '비밀 진화 한 번', (st, m) => (m.secrets || 0) >= 1);
+  u('secret3', '비밀 진화 세 번', (st, m) => (m.secrets || 0) >= 3);
+  u('trapboss', '부위 카드만으로 우두머리 쓰러뜨리기', st => st.bossByTrap >= 1);
+  u('cursed4', '저주 둘을 품고 우두머리 잡기', st => st.curseAct >= 2);
+  u('thin12', '덱 15장 이하로 우두머리 잡기', st => st.thinBoss >= 1);
+  u('fat35', '덱 32장 이상으로 우두머리 잡기', st => st.fatBoss >= 1);
+  u('organ6', '한 판에 기관 여섯 짓기', st => st.organs >= 6);
+  u('dig15', '모두 합쳐 50칸 파기', (st, m) => T(m, 'digs') >= 50);
+  u('altar3', '모두 합쳐 제단 일곱 번 찾기', (st, m) => T(m, 'altar') >= 7);
+  u('kin2x3', '권속 카드 셋을 다 자란 것까지 키우기', st => st.fullKin >= 3);
+  u('worlds4', '네 세상 모두에서 해 보기', (st, m) => Object.keys(m.worlds || {}).length >= 4);
+  u('boss3', '책을 쫓는 자를 세 번 쓰러뜨리기', (st, m) => (m.seekerKills || 0) >= 3);
+  u('kills300', '모두 합쳐 2000 쓰러뜨리기', (st, m) => T(m, 'kills') >= 2000);
+  // 더 좋은 무색 카드와 비밀 진화를 여는 조건이 이어진다
+  u('secretcard', '비밀 진화 한 번 (카드 해금)', (st, m) => (m.secrets || 0) >= 1);
+  const extraU = [
+    ['x_noloss', '2막부터 권속을 잃지 않고 밤 다섯 넘기기', st => st.noKinLossNights >= 5],
+    ['x_onecard', '한 턴에 카드 여덟 장 쓰기', st => st.maxPlaysTurn >= 8],
+    ['x_bigswing', '한 장으로 50 넘는 피해 주기', st => st.maxHit >= 50],
+    ['x_curses0', '저주 없이 2막 넘기기', st => st.noCurseAct2 >= 1],
+    ['x_seekerhit', '책을 쫓는 자를 첫 밤에 쓰러뜨리기', st => st.seekerFast >= 1],
+    ['x_spawn10', '한 밤에 움 열 돋우기', st => st.maxSpawnNight >= 10],
+    ['x_hold', '모두 합쳐 600번 붙들기', (st, m) => T(m, 'holds') >= 600],
+    ['x_push', '모두 합쳐 300칸 밀어내기', (st, m) => T(m, 'pushes') >= 300],
+    ['x_mark', '모두 합쳐 표식이 붙은 적 400 쓰러뜨리기', (st, m) => T(m, 'markedKills') >= 400],
+    ['x_heal', '모두 합쳐 본체 체력 220 아물리기', (st, m) => T(m, 'healed') >= 220],
+    ['x_block', '모두 합쳐 2500 막기', (st, m) => T(m, 'blocked') >= 2500],
+    ['x_rich', '진액 250 을 쥔 채로 밤 맞기', st => st.richNight >= 1],
+    ['x_poor', '진액 50 이하로 우두머리 잡기', st => st.poorBoss >= 1],
+    ['x_lowhp', '본체 체력 10 이하로 밤 넘기기', st => st.lowHpNight >= 1],
+    ['x_kin8', '한 밤에 권속 열둘 세우기', st => st.maxKinNight >= 12],
+    ['x_organs', '기관 셋을 서로 닿게 놓기', st => st.organChain >= 3],
+    ['x_learn5', '한 판에 적 이름 여덟 배우기', st => st.learned >= 8],
+    ['x_act3', '아무 덱으로 3막 가기', (st, m) => Object.values(m.actBy).some(v => v >= 3)],
+    ['x_runs20', '판을 스무 번 하기', (st, m) => m.runs >= 20],
+  ];
+  extraU.forEach(([id, t, f]) => u(id, t, f));
+  // 족보를 아끼는 카드가 열리는 조건
+  u('hands20', '모두 합쳐 족보 300번', (st, m) => T(m, 'handTotal') >= 300);
+  u('awaken3', '모두 합쳐 「깨어나는 살」 열 번', (st, m) => ((m.hands || {}).awaken || 0) >= 10);
+  u('rite5', '모두 합쳐 「한 빛깔의 의식」 40번', (st, m) => ((m.hands || {}).rite || 0) >= 40);
+  u('rainbow1', '「무지개 아가리」 한 번', st => ((st.hands || {}).rainbow || 0) >= 1);
+  u('profane3', '모두 합쳐 「불경한 짝」 세 번', (st, m) => ((m.hands || {}).profane || 0) >= 3);
+  u('needle7', '바늘 점에서 「깨어나는 살」 이상', (st, m) => T(m, 'needleBig') >= 1);
+  organ('o_echo', '울림 방', 'none', 2, 'u', { hand: [['draw', 1]] }, { unlock: 'hands20', more: '족보가 맞을 때마다 한 장 뽑는다.' });
+  organ('a_o_tidehand', '맞물린 물결', 'abyss', 2, 'u', { hand: [['block', 5]] }, { unlock: 'rite5' });
+  organ('d_o_chorushand', '함께 부르는 굴', 'dusk', 2, 'u', { hand: [['mind', 4, 'all']] }, { unlock: 'hands20' });
+  spell('n_ritual', '의식 끝맺음', 'nebula', 1, 'u', 'none', [['mindPer', 4, 'handN', 'all']], { unlock: 'rite5' });
+  spell('h_ritefeast', '의식의 잔치', 'hunger', 2, 'r', 'none', [['dmgPer', 3, 'handN', 'all']], { unlock: 'awaken3' });
+  spell('b_awakenbrood', '깨어나는 떼', 'brood', 1, 'u', 'room', [['spawn', 2], ['draw', 1]], { unlock: 'awaken3' });
+  spell('nn_prism', '다섯 빛 아가리', 'none', 2, 'r', 'none', [['dmg', 8, 'all'], ['mind', 8, 'all'], ['draw', 1]], { unlock: 'rainbow1' });
+  spell('nn_blasphemy', '불경', 'none', 1, 'r', 'none', [['dmgPer', 5, 'curse', 'all']], { unlock: 'profane3' });
+  spell('nn_needlegift', '바늘이 준 것', 'none', 0, 'r', 'none', [['energy', 1], ['draw', 2]], { unlock: 'needle7', kw: { exhaust: true } });
+  // 도전: 특정한 판짜기를 노려야 열리는 것 (화면에서 따로 보여 준다)
+  ['thin12', 'fat35', 'cursed4', 'x_poor', 'x_rich', 'x_lowhp', 'rainbow1', 'profane3', 'needle7', 'x_onecard', 'x_seekerhit', 'x_bigswing'].forEach(id => { if (UNLOCK[id]) UNLOCK[id].hard = true; });
+  // 해금을 기다리는 무색 고급 카드 (조건마다 한두 장)
+  const more = [
+    ['x_noloss', 'nn_bond', '살로 잇기', 1, 'u', 'none', [['healKin', 6, 'all'], ['draw', 1]]],
+    ['x_onecard', 'nn_flurry', '마구 뻗기', 0, 'u', 'cell', [['dmg', 3, 'front'], ['dmg', 3, 'front']]],
+    ['x_bigswing', 'nn_crater', '구덩이 내기', 3, 'r', 'cell', [['dmg', 30, 'front']]],
+    ['x_curses0', 'nn_pure', '맑은 살', 1, 'u', 'none', [['heal', 5], ['draw', 1]]],
+    ['x_seekerhit', 'nn_pageeater', '쪽 삼키기', 1, 'r', 'cell', [['dmg', 8, 'front'], ['mind', 8, 'front']]],
+    ['x_spawn10', 'nn_teem', '들끓음', 2, 'r', 'room', [['spawn', 5]]],
+    ['x_hold', 'nn_coil', '똬리', 1, 'u', 'cell', [['hold', 2, 'cell']]],
+    ['x_push', 'nn_exhale', '내쉬기', 1, 'u', 'none', [['push', 1, 'all']]],
+    ['x_mark', 'nn_brand', '낙인', 0, 'u', 'cell', [['mark', 50, 'front']]],
+    ['x_heal', 'nn_mend', '꿰매기', 1, 'u', 'none', [['heal', 9]]],
+    ['x_block', 'nn_carapace', '두꺼운 등', 2, 'r', 'none', [['block', 22]]],
+    ['x_rich', 'nn_hoard', '쌓아 둔 것', 1, 'r', 'none', [['dmgPer', 1, 'ess10', 'all']]],
+    ['x_poor', 'nn_lean', '마른 몸', 0, 'u', 'none', [['energy', 1], ['draw', 1]]],
+    ['x_lowhp', 'nn_lastgasp', '마지막 숨', 1, 'r', 'none', [['heal', 15]]],
+    ['x_kin8', 'nn_legion', '살의 군대', 2, 'r', 'none', [['buff', 4, 8, 'all']]],
+    ['x_organs', 'nn_vein', '굵은 핏줄', 1, 'u', 'none', [['dmgPer', 2, 'organ', 'all']]],
+    ['x_learn5', 'nn_tongue', '사람의 혀', 1, 'u', 'cell', [['mind', 12, 'front']]],
+    ['x_act3', 'nn_witness', '바늘을 보는 것', 2, 'r', 'none', [['mind', 10, 'all'], ['draw', 2]]],
+    ['x_runs20', 'nn_awaken', '반쯤 뜬 눈', 3, 'r', 'none', [['dmg', 10, 'all'], ['hold', 1, 'all'], ['draw', 1]]],
+    ['runs10', 'nn_patience', '기다림', 1, 'u', 'none', [['block', 8], ['energy', 1]]],
+    ['secret1', 'nn_pair', '짝 부르기', 1, 'u', 'room', [['buff', 3, 6, 'cell']]],
+    ['secret3', 'nn_twin', '둘이 하나', 2, 'r', 'room', [['buff', 6, 12, 'cell']]],
+    ['trapboss', 'nn_bodytrap', '온몸이 덫', 2, 'r', 'none', [['charge', 1]]],
+    ['cursed4', 'nn_cursefeed', '저주 먹기', 1, 'r', 'none', [['dmgPer', 4, 'curse', 'all']]],
+    ['thin12', 'nn_sharp', '날 선 살', 0, 'r', 'cell', [['dmg', 9, 'front']]],
+    ['fat35', 'nn_mass', '덩어리', 2, 'r', 'none', [['block', 4], ['dmgPer', 1, 'hand', 'all']]],
+    ['organ6', 'nn_organs', '기관 울림', 1, 'u', 'none', [['mindPer', 3, 'organ', 'all']]],
+    ['dig15', 'nn_burrow', '굴 속 기습', 1, 'u', 'cell', [['dmg', 7, 'cell']]],
+    ['altar3', 'nn_altar', '제물의 몫', 0, 'r', 'none', [['ess', 20]]],
+    ['kin2x3', 'nn_elder', '오래 산 살', 2, 'r', 'room', [['kin', 'hunger', 1], ['buff', 4, 10, 'cell']]],
+    ['worlds4', 'nn_worlds', '네 세상의 꿈', 2, 'r', 'none', [['mind', 7, 'all'], ['dmg', 7, 'all']]],
+    ['boss3', 'nn_seekerbook', '찢긴 쪽', 1, 'r', 'none', [['draw', 3], ['energy', 1]]],
+    ['kills300', 'nn_slaughter', '도살', 2, 'r', 'cell', [['dmg', 16, 'cell']]],
+    ['secretcard', 'nn_hidden', '숨은 갈래', 1, 'r', 'room', [['buff', 5, 5, 'cell'], ['draw', 1]]],
+  ];
+  more.forEach(([cond, id, name, cost, rar, tgt, ops]) => spell(id, name, 'none', cost, rar, tgt, ops, { unlock: cond, kw: (cost === 0 && rar === 'r') ? { exhaust: true } : {} }));
+
+  // ---- 처음 덱 (성향마다 10장) ----
+  const START = {
+    abyss: ['bite', 'bite', 'bite', 'harden', 'harden', 'a_k_scale', 'k_skeleton', 'a_t_mawfloor', 'a_tide', 'o_maw'],
+    nebula: ['bite', 'bite', 'bite', 'harden', 'harden', 'n_k_scribe', 'k_skeleton', 'n_t_walleye', 'n_gaze', 'o_maw'],
+    brood: ['bite', 'bite', 'bite', 'harden', 'harden', 'b_k_goblin', 'b_k_goblin', 'b_t_spore', 'b_sprout', 'o_maw'],
+    dusk: ['bite', 'bite', 'bite', 'harden', 'harden', 'd_k_cultist', 'k_skeleton', 'd_t_whisperwall', 'd_whisper', 'o_maw'],
+    hunger: ['bite', 'bite', 'bite', 'harden', 'harden', 'h_k_hunger', 'h_k_turncoat', 'h_t_teethfloor', 'h_maul', 'o_maw'],
+  };
+  // 겉면 글이 긴 것은 손으로 줄인다 (길게 누르면 자세한 글)
+  const SHORT = { a_leviathan: '체력 65 이하 둘 삼킴 · 사라짐', d_eclipsehymn: '모든 적 정신 −16, 꺾이면 신도로', d_t_altar: '2번: 정신 −6, 꺾이면 신도로', d_o_cells: '죽인 자리: 꺾이면 신도로 · 자리 +2', h_t_digest: '3번: 5 피해, 주검마다 진액 +2', h_t_lure: '3번: 끌어오고 4 피해', h_t_stomach: '2번: 체력 70 이하 삼킴, 진액 +10' };
+  LIST.forEach(d => { if (SHORT[d.id]) { d.more = d.more || d.text; d.text = SHORT[d.id]; } if (!d.more) d.more = d.text; });
+  const BY = {}; LIST.forEach(d => { BY[d.id] = d; });
+  // 처음부터 열린 것: unlock 이 없는 카드. 처음 덱 전용(s)은 보상으로는 안 나온다
+  const isOpen = (d, meta) => !d.unlock || (meta && meta.unlocked && meta.unlocked[d.unlock]) || (d.unlock.indexOf('part:') === 0 && meta && meta.parts && meta.parts[d.unlock.slice(5)]);
+  return { LIST, BY, ASPS, ASPN, RARN, TYPEN, START, MOLT, UNLOCK, isOpen, opText, textOf, kinN };
+})();
+if (typeof module !== 'undefined') module.exports = CARDS;
+// 옛 것의 둥지 — 덱으로 하는 판 (규칙). 화면이 없다(node 에서도 돈다).
+// 한 판: 3막 × 밤 여섯 + 막 끝 우두머리. 낮에는 행동 둘(파기·카드 고르기·강화·내보내기·장터), 밤에는 카드로 굴을 지킨다.
+// 밤: 기운 3, 다섯 장. 카드를 칸에 낸다. 턴을 끝내면 적이 굴을 따라 한 칸씩 내려오고, 칸마다 싸움이 일어난다.
+// 같은 턴에 낸 카드가 맞물리면 족보(세계관 족보)가 된다. 제단과 막 끝에는 바늘 점(곁 도박)이 있다.
+const DECK = (function () {
+  const N = typeof NEST !== 'undefined' ? NEST : require('./logic.js');
+  const CD = typeof CARDS !== 'undefined' ? CARDS : require('./cards.js');
+  const ASPS = CD.ASPS;
+  const K = {
+    energy: 3, draw: 5, tempCap: 4, sanMul: 1.25, noHands: false, handMax: 10, hp: 70, atk: 8, kinCap: 2, coreCap: 3, trapsPerCell: 3,
+    nights: 6, acts: 3, dayActions: 2, turnCap: 22, dayHeal: 0.2,
+    actMul: [0, 1, 1.5, 1.98], budget: [0, 11, 18, 24, 30, 35, 40], budgetAct: 1.0,
+    stageMul: [1, 1.5, 2], secretMul: 1.9, kinAct: 0.18,
+    rarW: { c: 60, u: 32, r: 8 }, reroll: 10, shopPrice: { c: 30, u: 55, r: 90 }, molt: 140, removeCost: 0,
+    organDay: 12, upEss: 50, rmEss: 40, unlockCap: 8, words: 3, swallowExtra: 0,
+    dig: [['empty', 0.25], ['bones', 0.2], ['beast', 0.15], ['egg', 0.15], ['cursed', 0.1], ['altar', 0.15]],
+  };
+  // 빛깔마다 타고난 것 (판 내내)
+  const TRAIT = {
+    abyss: { name: '깊은 물의 몸', text: '밤마다 첫 턴 막기 12' },
+    nebula: { name: '열린 눈', text: '밤마다 첫 턴 한 장 더' },
+    brood: { name: '알 품은 살', text: '밤마다 본체 방에 움 둘' },
+    dusk: { name: '속삭이는 목', text: '정신이 꺾인 적마다 진액 +3' },
+    hunger: { name: '끝없는 배', text: '적을 쓰러뜨릴 때마다 본체 체력 +2' },
+  };
+  // ---- 씨앗 ----
+  const rnd = R => { let t = (R.seed = (R.seed + 0x6D2B79F5) >>> 0); t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  const pick = (R, a) => a[Math.floor(rnd(R) * a.length)];
+  const shuffle = (R, a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd(R) * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+  // ---- 적: 세계마다 나오는 것, 막마다 세기 ----
+  const ALIEN = { villager: '따뜻한 것', fisher: '젖은 손', militia: '막대기 든 것', captain: '소리치는 것', detective: '냄새 맡는 것', apprentice: '중얼대는 작은 것', warrior: '쇠를 입은 것', smuggler: '그림자 손', priest: '빛을 두른 것', scholar: '글을 품은 것', herbalist: '풀 냄새 나는 것', soldier: '쇠벽', chaplain: '빛을 든 쇠', sealer: '꿰매는 것', hound: '네 발 이빨', handler: '줄 쥔 것', sapper: '땅 긁는 것', torch: '불 든 것', firemage: '불을 부르는 것', banner: '천을 든 것', master: '고요한 것', shadow: '소리 없는 것', crowd: '떼', lightcrew: '빛 무리', sentry: '차가운 것', shielder: '빛벽', seeker: '책을 든 것' };
+  const SEEKER = [
+    { name: '책을 쫓는 자', hp: 580, atk: 22, df: 4, san: 140, traits: ['ward', 'boss', 'reads'], gold: 60 },
+    { name: '책이 붙은 자', hp: 320, atk: 18, df: 6, san: 200, traits: ['ward', 'boss', 'reads', 'heal'], gold: 90 },
+    { name: '책이 된 자', hp: 560, atk: 26, df: 8, san: 300, traits: ['ward', 'boss', 'reads', 'twice'], gold: 140 },
+  ];
+  const WBOSS = { fantasy: ['captain', 'handler', 'sealer'], wuxia: ['captain', 'master', 'sealer'], modern: ['handler', 'sapper', 'sealer'], future: ['sapper', 'shielder', 'sealer'] };
+  const realName = (world, kind) => kind === 'seeker' ? '책을 쫓는 자' : ((N.WORLD[world] && N.WORLD[world].inv && N.WORLD[world].inv[kind]) || (N.INV[kind] && N.INV[kind].name) || kind);
+  // 말투: 그 종류를 K.words 번 쓰러뜨리거나 붙잡으면 사람 말로 부른다
+  function knownName(meta, world, kind) { return meta && meta.words && (meta.words[kind] || 0) >= K.words ? realName(world, kind) : (ALIEN[kind] || '낯선 것'); }
+  const poolFor = (world, act) => Object.keys(N.INV).filter(k => { const d = N.INV[k]; if (d.only && d.only !== world) return false; if (d.boss) return false; return act === 1 ? d.g <= 2 : act === 2 ? d.g <= 3 : true; });
+
+  // ---- 판 ----
+  function newMeta() { return { runs: 0, actBy: {}, winBy: {}, words: {}, secrets: 0, worlds: {}, seekerKills: 0, unlocked: {}, parts: {}, hands: {} }; }
+  function newRun(seed, opts) {
+    opts = opts || {};
+    const R = { seed: seed >>> 0, seed0: seed >>> 0, aspect: opts.aspect || 'brood', world: opts.world || null, meta: opts.meta || newMeta(), act: 1, night: 1, phase: 'day', over: null,
+      hp: K.hp, maxHp: K.hp, atk: K.atk, ess: 40, deck: [], nextUid: 1, molts: [], actions: K.dayActions, offer: null, shop: null, pity: 0, rerolls: 0,
+      log: [], needle: null, needlePity: 0, digResult: null,
+      st: { swallow: 0, cleanNights: 0, madHits: 0, maxDrawNight: 0, maxInfNight: 0, infRise: 0, spawned: 0, routs: 0, essGot: 0, eaten: 0, bossByTrap: 0, curseAct: 0, thinBoss: 0, fatBoss: 0, organs: 0, digs: 0, altar: 0, fullKin: 0, kills: 0, noKinLossNights: 0, maxPlaysTurn: 0, maxHit: 0, noCurseAct2: 0, seekerFast: 0, maxSpawnNight: 0, holds: 0, pushes: 0, markedKills: 0, healed: 0, blocked: 0, richNight: 0, poorBoss: 0, lowHpNight: 0, maxKinNight: 0, organChain: 0, learned: 0, hands: {}, handTotal: 0, nightsWon: 0, needleWins: 0, needleBig: 0 } };
+    if (!R.world) R.world = pick(R, N.WORLD_IDS || ['fantasy', 'wuxia', 'modern', 'future']);
+    const G = { seed: R.seed }; N.makeLayout(G, opts.roam); R.seed = G.seed;
+    R.cols = G.cols; R.rows = G.rows; R.ent = G.ent; R.core = G.core;
+    R.cells = []; for (let i = 0; i < G.cols * G.rows; i++) R.cells.push({ dug: false, organ: null, traps: [], corpses: 0 });
+    [G.ent, G.core].concat(G.start || []).forEach(i => { R.cells[i].dug = true; });
+    ensurePath(R);
+    (CD.START[R.aspect] || CD.START.brood).forEach(id => addCard(R, id));
+    // 한 방울 때 단 부위가 뻗어 온다 (둘까지)
+    (opts.body || []).slice(0, 2).forEach(pid => { if (CD.BY['l_' + pid]) addCard(R, 'l_' + pid); });
+    R.meta.worlds = R.meta.worlds || {}; R.meta.worlds[R.world] = 1;
+    return R;
+  }
+  const addCard = (R, id, up) => { const c = { uid: R.nextUid++, id, up: up || 0, secret: null, pairNights: 0 }; R.deck.push(c); return c; };
+  const def = c => CD.BY[c.id];
+  // 카드의 지금 모습(강화 반영)
+  function view(c) {
+    const d = def(c); if (!d) return null; const up = c.up > 0;
+    const v = { uid: c.uid, id: c.id, name: d.name, type: d.type, asp: d.asp, rar: d.rar, tgt: d.tgt, cost: up ? d.upd.cost : d.cost, ops: up ? d.upd.ops : d.ops, charges: up ? d.upd.charges : d.charges, hooks: up ? d.upd.hooks : d.hooks, cap: up ? d.upd.cap : d.cap, kw: up ? d.upd.kw : d.kw, text: up ? d.textUp : d.text, more: d.more, up: c.up, kin: d.kin, n: d.n };
+    if (d.type === 'kin') {
+      const k = d.kin, st = Math.min(2, c.up);
+      v.name = c.secret ? (N.SECRET[k] ? N.SECRET[k][2] : d.name) : st === 2 ? ((N.EVO2 && N.EVO2[k]) || d.name + '++') : st === 1 ? ((N.EVO && N.EVO[k]) || d.name + '+') : d.name;
+      if (d.n > 1 && st > 0 && !c.secret) v.name += ' ' + d.n;
+      v.ops = d.ops; v.cost = d.cost + (st === 2 ? 1 : 0); v.stage = st;
+      v.text = CD.kinN(k) + (d.n > 1 ? ' ' + d.n : '') + ' 세움' + (st ? ' · 단계 ' + (st + 1) : '') + (c.secret ? ' · ' + ((N.RECIPE[c.secret] && N.RECIPE[c.secret].name) || '') : '');
+    } else if (c.up && !/\+$/.test(v.name)) v.name += '+';
+    return v;
+  }
+
+  // ---- 지도: 판 칸, 본체 방까지 거리 ----
+  const nb = (R, i) => { const C = R.cols, c = i % C, r = Math.floor(i / C), o = []; if (c > 0) o.push(i - 1); if (c < C - 1) o.push(i + 1); if (r > 0) o.push(i - C); if (r < R.rows - 1) o.push(i + C); return o; };
+  function distMap(R) { const d = new Array(R.cells.length).fill(-1); d[R.core] = 0; const q = [R.core]; while (q.length) { const u = q.shift(); for (const v of nb(R, u)) if (d[v] < 0 && R.cells[v].dug) { d[v] = d[u] + 1; q.push(v); } } return d; }
+  function ensurePath(R) { let d = distMap(R), guard = 0; while (d[R.ent] < 0 && guard++ < 40) { const cand = R.cells.map((c, i) => i).filter(i => !R.cells[i].dug && nb(R, i).some(j => R.cells[j].dug && d[j] >= 0)); const best = cand.sort((a, b) => manh(R, a, R.ent) - manh(R, b, R.ent))[0]; if (best == null) break; R.cells[best].dug = true; d = distMap(R); } }
+  const manh = (R, a, b) => Math.abs(a % R.cols - b % R.cols) + Math.abs(Math.floor(a / R.cols) - Math.floor(b / R.cols));
+  // 적이 지나갈 길(입구에서 본체 방까지 가장 짧은 칸들)
+  function pathCells(R) { const d = distMap(R), out = []; let u = R.ent; if (d[u] < 0) return out; out.push(u); let g = 0; while (u !== R.core && g++ < 60) { const nx = nb(R, u).filter(v => d[v] === d[u] - 1)[0]; if (nx == null) break; u = nx; out.push(u); } return out; }
+  const digOptions = R => R.cells.map((c, i) => i).filter(i => !R.cells[i].dug && nb(R, i).some(j => R.cells[j].dug));
+
+  // ================= 족보 =================
+  // 같은 턴에 낸 카드(순서대로)로 본다. 저주를 일부러 내면 아무 빛깔이나 된다(불경한 짝).
+  const HANDS = [
+    { id: 'rite', name: '한 빛깔의 의식', text: '같은 빛깔 넷, 종류 셋 이상: 그 빛깔은 이 턴 두 배', tier: 2 },
+    { id: 'body', name: '한 몸', text: '기관이 있는 칸 하나에 부위와 권속을 같이: 다음 턴 기운 +1 (밤마다 한 번)', tier: 1 },
+    { id: 'echo', name: '메아리', text: '같은 이름 두 장(처음 덱 카드 빼고): 둘째 장 기운 −1', tier: 1 },
+    { id: 'awaken', name: '깨어나는 살', text: '같은 빛깔 셋 + 같은 종류 둘: 이 밤 본체가 깨어난다', tier: 3 },
+    { id: 'rainbow', name: '무지개 아가리', text: '다섯 빛깔 모두(무색 한 장은 아무 빛깔): 모든 적 15 피해, 정신 −15', tier: 4 },
+    { id: 'profane', name: '불경한 짝', text: '저주를 바쳐 족보를 채움: 그 저주가 사라지고 모든 적 6 피해', tier: 2 },
+    { id: 'swarm', name: '떼의 노래', text: '권속 세 장: 이 밤 권속 공격 +3', tier: 2 },
+    { id: 'trapline', name: '이어진 덫', text: '서로 닿은 칸에 부위 셋: 그 부위들 +1번', tier: 2 },
+    { id: 'ladder', name: '네 걸음', text: '기운 0·1·2·3 카드를 한 장씩: 두 장 뽑기', tier: 2 },
+  ];
+  const HBY = Object.fromEntries(HANDS.map(h => [h.id, h]));
+  // played: [{ asp, type, id, cost, cell, curse }]
+  function evalHands(played) {
+    const out = [], P = played || [], cs = P.filter(p => p.curse).length, real = P.filter(p => !p.curse);
+    const byAsp = {}, aspTypes = {}; real.forEach(p => { if (p.asp && p.asp !== 'none') { byAsp[p.asp] = (byAsp[p.asp] || 0) + 1; (aspTypes[p.asp] = aspTypes[p.asp] || new Set()).add(p.type); } });
+    const topAsp = Object.keys(byAsp).sort((a, b) => byAsp[b] - byAsp[a])[0], top = topAsp ? byAsp[topAsp] : 0;
+    let usedCurse = false;
+    // 의식: 같은 빛깔 셋 (저주가 모자란 만큼 채운다)
+    const riteOk = topAsp && aspTypes[topAsp].size >= 3;
+    if (riteOk && top >= 4) out.push({ id: 'rite', asp: topAsp });
+    else if (riteOk && top >= 3 && top + cs >= 4) { out.push({ id: 'rite', asp: topAsp }); usedCurse = true; }
+    // 한 몸: 기관이 있는 칸 하나에 부위와 권속을 같이 (그 턴에 놓은 기관도 친다)
+    { const oc = new Set((P.organCells || []).concat(real.filter(p => p.type === 'organ').map(p => p.cell))); const hit = [...oc].some(c => real.some(p => p.type === 'trap' && p.cell === c) && real.some(p => p.type === 'kin' && p.cell === c)); if (hit) out.push({ id: 'body' }); }
+    // 메아리: 같은 이름 둘
+    { const ids = {}; for (const p of real) { if (!p.starter) ids[p.id] = (ids[p.id] || 0) + 1; } if (Object.values(ids).some(v => v >= 2)) out.push({ id: 'echo' }); }
+    // 깨어나는 살: 한 빛깔 셋 + 그 밖의 카드 중 같은 종류 둘
+    if (topAsp && top + cs >= 3 && aspTypes[topAsp].size >= 2) { const rest = real.filter(p => p.asp !== topAsp), byT = {}; rest.forEach(p => { byT[p.type] = (byT[p.type] || 0) + 1; }); const spare = cs - Math.max(0, 3 - top); if (Object.values(byT).some(v => v >= 2) || (spare >= 1 && Object.values(byT).some(v => v >= 1))) { out.push({ id: 'awaken', asp: topAsp }); if (top < 3 || !Object.values(byT).some(v => v >= 2)) usedCurse = true; } }
+    // 무지개 아가리: 다섯 빛깔
+    { const have = ASPS.filter(a => byAsp[a]).length, wild = real.some(p => p.asp === 'none') ? 1 : 0; if (have + cs + wild >= 5 && have >= 3) { out.push({ id: 'rainbow' }); if (have + wild < 5) usedCurse = true; } }
+    // 떼의 노래: 권속 셋
+    if (real.filter(p => p.type === 'kin').length >= 3) out.push({ id: 'swarm' });
+    // 이어진 덫: 부위 셋이 서로 닿은 칸
+    { const tc = real.filter(p => p.type === 'trap' && p.cell != null).map(p => p.cell); if (tc.length >= 3 && P.cols) { const adj = (a, b) => Math.abs(a % P.cols - b % P.cols) + Math.abs(Math.floor(a / P.cols) - Math.floor(b / P.cols)) <= 1; for (let i = 0; i < tc.length; i++) for (let j = 0; j < tc.length; j++) for (let k = 0; k < tc.length; k++) if (i !== j && j !== k && i !== k && adj(tc[i], tc[j]) && adj(tc[j], tc[k]) && !out.some(o => o.id === 'trapline')) out.push({ id: 'trapline', cells: [tc[i], tc[j], tc[k]] }); } }
+    // 네 걸음: 기운 0·1·2·3
+    if ([0, 1, 2, 3].every(c => real.some(p => p.cost === c))) out.push({ id: 'ladder' });
+    if (usedCurse && cs) out.push({ id: 'profane' });
+    return out.map(h => Object.assign({}, h, { name: HBY[h.id].name, text: HBY[h.id].text, tier: HBY[h.id].tier }));
+  }
+
+  // ================= 밤 =================
+  function enemyOf(R, kind, act, boss) {
+    let d;
+    if (kind === 'seeker') d = Object.assign({}, SEEKER[act - 1]);
+    else { const b = N.INV[kind]; d = { name: b.name, hp: b.hp, atk: b.atk, df: b.df, san: b.san, gold: b.gold, traits: Object.keys(b).filter(k => !['name', 'g', 'b', 'hp', 'atk', 'df', 'san', 'gold', 'asp', 'only', 'tip'].includes(k) && b[k] && !(K.offTraits || []).includes(k)) }; }
+    const m = kind === 'seeker' ? 1 : K.actMul[act] * (1 + 0.04 * (R.night - 1));
+    const e = { uid: 'e' + (R.nextUid++), kind, name: knownName(R.meta, R.world, kind), hp: Math.round(d.hp * m), mhp: Math.round(d.hp * m), atk: Math.round(d.atk * m), df: d.df, san: Math.round(d.san * (kind === 'seeker' ? 1 : K.sanMul * (1 + 0.3 * (act - 1)))), gold: d.gold, traits: new Set(d.traits || []), cell: R.ent, inf: 0, mark: 0, hold: 0, mad: 0, revive: (d.traits || []).includes('revive') ? 1 : 0, shield: (d.traits || []).includes('shield') ? 10 : 0, boss: !!boss || (d.traits || []).includes('boss'), warded: false, lastSrc: null, routed: false };
+    e.ward = kind === 'seeker' ? 0.3 : (N.INV[kind] && typeof N.INV[kind].ward === 'number' ? N.INV[kind].ward : 0);
+    e.msan = e.san; return e;
+  }
+  function makeWave(R) {
+    const act = R.act, n = R.night, boss = n > K.nights, pool = poolFor(R.world, act), out = [];
+    let budget = Math.round((K.budget[Math.min(n, 6)] || 29) * (1 + K.budgetAct * 0.35 * (act - 1)));
+    if (boss) { out.push({ kind: 'seeker', boss: true }); const wb = (WBOSS[R.world] || WBOSS.fantasy)[act - 1]; if (N.INV[wb]) out.push({ kind: wb, boss: true }); budget = Math.round(budget * 0.7); }
+    let g = 0; while (budget > 0 && g++ < 60) { const k = pick(R, pool), cost = N.INV[k].g * 2; out.push({ kind: k }); budget -= cost; }
+    // 우두머리는 맨 끝에 온다
+    return out.filter(w => !w.boss).concat(out.filter(w => w.boss));
+  }
+  function startNight(R) {
+    const Nn = { turn: 0, energy: K.energy, hand: [], draw: shuffle(R, R.deck.filter(c => !(def(c).type === 'organ' && c.placed)).map(c => c.uid)), discard: [], exhaust: [], enemies: [], kin: [], queue: makeWave(R), played: [], hands: [], rite: {}, nextEnergy: 0, awaken: false, swarm: 0, block: 0, events: [], kinPlayed: {}, drawn: 0, infRise: 0, spawned: 0, hurtCore: 0, kinLost: 0, hpStart: R.hp, maxKin: 0, plays: 0, bossKilledTurn: 0 };
+    R.N = Nn; R.phase = 'night';
+    R.cells.forEach(c => { c.traps = c.traps.filter(t => t.perm); c.corpses = 0; });
+    if (R.ess >= 250) R.st.richNight = 1;
+    // 기관: 밤마다
+    R.cells.forEach((c, i) => { if (c.organ) runHook(R, c.organ, 'night', i); });
+    moltFx(R, 'nightSpawn') && spawnKin(R, R.core, 'spawn', moltFx(R, 'nightSpawn'));
+    if (R.aspect === 'brood') spawnKin(R, R.core, 'spawn', 2, true);
+    if (R.aspect === 'nebula') Nn.firstDraw = 1;
+    beginTurn(R, true);
+    if (R.aspect === 'abyss') { Nn.block += 12; R.N.kin.forEach(k => { k.hp += 0; }); }
+    return Nn;
+  }
+  const moltFx = (R, k) => R.molts.reduce((s, m) => s + ((CD.MOLT[m] && CD.MOLT[m].fx[k]) || 0), 0);
+  function beginTurn(R, first) {
+    const Nn = R.N; Nn.turn++; Nn.energy = K.energy + moltFx(R, 'energy') + Nn.nextEnergy + (first ? Nn.firstEnergy || 0 : 0); Nn.nextEnergy = 0; Nn.firstEnergy = 0;
+    Nn.played = []; Nn.rite = {}; Nn.hands = []; Nn.block = 0;
+    drawCards(R, K.draw + moltFx(R, 'draw') + (first ? moltFx(R, 'firstDraw') + (Nn.firstDraw || 0) : 0));
+    Nn.sealed = []; const sealers = Math.min(1, alive(R).filter(e => e.traits.has('seal')).length); for (let k = 0; k < sealers && Nn.hand.length > Nn.sealed.length + 2; k++) { const free = Nn.hand.filter(u => !Nn.sealed.includes(u)); Nn.sealed.push(pick(R, free)); }
+    // 적이 들어온다
+    spawnEnemies(R, first);
+  }
+  function drawCards(R, n) {
+    const Nn = R.N;
+    for (let k = 0; k < n; k++) {
+      if (Nn.hand.length >= K.handMax + (moltFx(R, 'firstDraw') ? 2 : 0)) break;
+      if (!Nn.draw.length) { if (!Nn.discard.length) break; Nn.draw = shuffle(R, Nn.discard); Nn.discard = []; }
+      const uid = Nn.draw.pop(); Nn.hand.push(uid); Nn.drawn++;
+      const c = R.deck.find(x => x.uid === uid), v = c && view(c); if (v && v.type === 'curse' && v.hooks && v.hooks.draw) runOps(R, v.hooks.draw, { cell: R.core, card: v });
+    }
+    R.st.maxDrawNight = Math.max(R.st.maxDrawNight, Nn.drawn);
+  }
+  function spawnEnemies(R, first) {
+    const Nn = R.N; if (!Nn.queue.length) return;
+    const n = first ? Math.min(2, Nn.queue.length) : Math.min(Nn.queue.length, Math.max(1, Math.ceil(Nn.queue.length / 3)), 3);
+    for (let k = 0; k < n; k++) { const w = Nn.queue.shift(); const e = enemyOf(R, w.kind, R.act, w.boss); Nn.enemies.push(e); enterCell(R, e, R.ent); }
+  }
+  const alive = R => R.N.enemies.filter(e => e.hp > 0 && !e.routed);
+  const inCell = (R, i) => alive(R).filter(e => e.cell === i);
+  const kinIn = (R, i) => R.N.kin.filter(k => k.hp > 0 && k.cell === i);
+  const capOf = (R, i) => (i === R.core ? K.coreCap : K.kinCap) + (R.cells[i].organ ? (view(R.cells[i].organ).cap || 0) : 0);
+  const frontOf = (R, i) => { const d = distMap(R); const es = i == null ? alive(R) : inCell(R, i); return es.sort((a, b) => (d[a.cell] - d[b.cell]) || (a.hp - b.hp))[0] || null; };
+
+  // ---- 적에게 ----
+  function hurt(R, e, n, src, ctx) {
+    if (!e || e.hp <= 0 || e.routed) return 0;
+    let x = n * (1 + e.mark / 100);
+    if (src === 'trap' && e.traits.has('trapHalf')) x *= 0.5;
+    if (src === 'kin') x = Math.max(1, x - e.df * 0.5);
+    if (e.shield > 0) { const s = Math.min(e.shield, x); e.shield -= s; x -= s; }
+    x = Math.round(x); if (x <= 0) return 0;
+    e.hp -= x; e.lastSrc = src; R.st.dmgBy = R.st.dmgBy || {}; R.st.dmgBy[src] = (R.st.dmgBy[src] || 0) + x; if (x > R.st.maxHit) R.st.maxHit = x;
+    if (e.hp <= 0) die(R, e, src, ctx);
+    return x;
+  }
+  function die(R, e, src, ctx) {
+    if (e.revive > 0) { e.revive--; e.hp = Math.round(e.mhp * 0.5); return; }
+    const c = R.cells[e.cell]; c.corpses++; R.st.kills++; if (e.mark > 0) R.st.markedKills++;
+    if (R.aspect === 'hunger' && R.hp > 0) { const h = Math.min(2, R.maxHp - R.hp); R.hp += h; R.st.healed += h; }
+    gainEss(R, Math.round(e.gold / 3));
+    learn(R, e.kind);
+    if (e.boss) { if (src === 'trap') R.st.bossByTrap++; if (e.kind === 'seeker') { R.meta.seekerKills = (R.meta.seekerKills || 0) + 1; if (R.N.turn <= 8) R.st.seekerFast = 1; } }
+    if (c.organ) runHook(R, c.organ, 'kill', e.cell);
+    kinOnKill(R, e, ctx);
+    if (e.inf > 0) { spawnKin(R, e.cell, 'infected', 1, true); R.st.infRise++; R.N.infRise++; R.st.maxInfNight = Math.max(R.st.maxInfNight, R.N.infRise); }
+    R.N.events.push({ t: 'die', uid: e.uid, cell: e.cell });
+  }
+  function mind(R, e, n) {
+    if (!e || e.hp <= 0 || e.routed) return;
+    let x = n * (1 + moltFx(R, 'mindMul'));
+    if (e.traits.has('nomind') || e.boss) { hurt(R, e, x * 0.8, 'mind'); if (e.traits.has('nomind')) return; } if (e.ward) x *= 1 - e.ward;
+    e.san -= Math.round(x);
+    if (e.san <= 0 && !e.boss) { e.routed = true; R.st.routs++; gainEss(R, Math.round(e.gold / 5) + (R.aspect === 'dusk' ? 3 : 0)); learn(R, e.kind); R.N.events.push({ t: 'rout', uid: e.uid, cell: e.cell }); if (R.N.convert > 0) { R.N.convert--; spawnKin(R, e.cell === R.core ? R.core : e.cell, 'cultist', 1, true); } }
+  }
+  function learn(R, kind) { const w = R.meta.words = R.meta.words || {}; const before = w[kind] || 0; w[kind] = before + 1; if (before + 1 === K.words) { R.st.learned++; R.N && R.N.events.push({ t: 'learn', kind, name: realName(R.world, kind) }); } }
+  const gainEss = (R, n) => { R.ess += n; if (n > 0) R.st.essGot += n; };
+
+  // ---- 권속 ----
+  // 덱 판의 권속 세기: 카드 한 장 값에 맞춘다 (둥지 판의 KIN 은 값이 진액이라 그대로 쓰면 고르지 않다)
+  const DK = { goblin: [26, 8, 0, 1], skeleton: [40, 5, 0, 5], cultist: [22, 3, 6, 1], scale: [40, 7, 0, 6], scribe: [32, 3, 9, 2], spawn: [15, 5, 0, 0], mask: [30, 2, 8, 2], hunger: [44, 8, 0, 3], netter: [28, 5, 0, 2], warden: [36, 5, 0, 4], turncoat: [54, 10, 0, 5], fallen: [34, 2, 4, 3], digger: [22, 4, 0, 1], clerk: [16, 2, 0, 1], licker: [28, 4, 0, 2], spitter: [22, 7, 0, 1], eyeheap: [36, 2, 8, 2], tangle: [46, 8, 0, 4], infected: [18, 6, 0, 1] };
+  function spawnKin(R, cell, kind, n, temp, card) {
+    const out = [];
+    for (let k = 0; k < n; k++) {
+      if (!temp && kinIn(R, cell).filter(u => !u.temp).length >= capOf(R, cell)) break;
+      if (temp && kinIn(R, cell).filter(u => u.temp).length >= K.tempCap) break;
+      const dk = DK[kind]; if (!dk) continue;
+      const base = { name: kind === 'infected' ? '감염체' : (N.KIN[kind] ? N.KIN[kind].name : kind), hp: dk[0], atk: dk[1], satk: dk[2], df: dk[3] };
+      const st = card ? Math.min(2, card.up) : 0, mul = (card && card.secret ? K.secretMul : K.stageMul[st]) * (1 + K.kinAct * (R.act - 1)) * (1 + moltFx(R, 'kinHp') * 0) ;
+      const hpm = mul * (1 + moltFx(R, 'kinHp'));
+      const u = { uid: 'k' + (R.nextUid++), kind, name: kind === 'infected' ? '감염체' : kind === 'spawn' ? '움' : base.name, hp: Math.round(base.hp * hpm), mhp: Math.round(base.hp * hpm), atk: Math.round(base.atk * mul), df: base.df || 0, satk: Math.round((base.satk || 0) * mul), cell, temp: !!temp, card: card ? card.uid : null, secret: card ? card.secret : null, revive: card && card.secret === 'pray' ? 1 : 0, buff: 0 };
+      if (kind === 'spawn') { u.temp = true; R.st.spawned++; R.N.spawned++; R.st.maxSpawnNight = Math.max(R.st.maxSpawnNight, R.N.spawned); }
+      R.N.kin.push(u); out.push(u);
+    }
+    R.st.maxKinNight = Math.max(R.st.maxKinNight, R.N.kin.filter(k => k.hp > 0).length);
+    return out;
+  }
+  function kinOnKill(R, e, ctx) {
+    const killer = ctx && ctx.kin; if (!killer) return;
+    if (killer.secret === 'fist') killer.hp = Math.min(killer.mhp, killer.hp + Math.round(killer.mhp * 0.25));
+    if (killer.secret === 'bind') gainEss(R, 10);
+    if (killer.secret === 'twice') { kinIn(R, killer.cell).forEach(k => { k.hp = Math.min(k.mhp, k.hp + 4); }); alive(R).forEach(x => mind(R, x, 4)); }
+  }
+
+  // ---- 효과 낱말 풀이 ----
+  const NUM = new Set(['dmg', 'mind', 'inf', 'heal', 'healKin', 'block', 'ess', 'swallow', 'dmgPer', 'mindPer', 'mark', 'eat', 'buff']);
+  function targets(R, area, ctx) {
+    const cell = ctx.cell;
+    if (area === 'enter') return ctx.enemy ? [ctx.enemy] : [];
+    if (area === 'one' || area === 'front') { const f = ctx.enemy && ctx.enemy.hp > 0 ? ctx.enemy : frontOf(R, cell); return f ? [f] : []; }
+    if (area === 'cell') return inCell(R, cell);
+    if (area === 'all') return alive(R);
+    if (area === 'core') return inCell(R, R.core);
+    if (area === 'rand') { const a = alive(R); return a.length ? [pick(R, a)] : []; }
+    return inCell(R, cell);
+  }
+  function runOps(R, ops, ctx) {
+    const mul = ctx.mul || 1, src = ctx.src || 'spell';
+    for (const o of ops || []) {
+      const [k, a0, b, c2] = o, a = NUM.has(k) && typeof a0 === 'number' ? Math.round(a0 * mul) : a0;
+      switch (k) {
+        case 'dmg': targets(R, b, ctx).forEach(e => hurt(R, e, a, src, ctx)); break;
+        case 'mind': targets(R, b, ctx).forEach(e => mind(R, e, a)); break;
+        case 'inf': targets(R, b, ctx).forEach(e => { e.inf += a * (1 + moltFx(R, 'infMul')); }); break;
+        case 'mark': targets(R, b, ctx).forEach(e => { e.mark += a; }); break;
+        case 'hold': targets(R, b, ctx).forEach(e => { e.hold = Math.max(e.hold, a); R.st.holds++; }); break;
+        case 'mad': targets(R, b, ctx).forEach(e => { if (!e.boss) e.mad = Math.max(e.mad, a); }); break;
+        case 'push': targets(R, b, ctx).forEach(e => { if (e.boss && e.kind === 'seeker') return; for (let s = 0; s < a; s++) { const d = distMap(R), back = nb(R, e.cell).filter(v => R.cells[v].dug && d[v] === d[e.cell] + 1); if (!back.length) break; e.cell = back[0]; R.st.pushes++; } }); break;
+        case 'pull': targets(R, b, ctx).forEach(e => { for (let s = 0; s < a; s++) { const d = distMap(R), fw = nb(R, e.cell).filter(v => R.cells[v].dug && d[v] === d[e.cell] - 1); if (!fw.length) break; enterCell(R, e, fw[0]); } }); break;
+        case 'swallow': { const thr = (a + moltFx(R, 'swallow')) * K.actMul[R.act]; const es = targets(R, b === 'cell' ? 'cell' : b, ctx).filter(e => e.hp <= thr && !(e.boss && e.kind === 'seeker')).sort((x, y) => y.hp - x.hp); const e = es[0]; if (e) { e.hp = 0; e.routed = false; R.st.swallow++; R.st.kills++; gainEss(R, Math.round(e.gold / 3)); learn(R, e.kind); R.N.events.push({ t: 'swallow', uid: e.uid, cell: e.cell }); } break; }
+        case 'spawn': spawnKin(R, ctx.cell == null ? R.core : ctx.cell, 'spawn', a, true); break;
+        case 'kin': { const us = spawnKin(R, ctx.cell == null ? R.core : ctx.cell, a, b || 1, false, ctx.card && ctx.card.uid ? R.deck.find(x => x.uid === ctx.card.uid) : null); if (ctx.card && ctx.card.uid && us.length) R.N.kinPlayed[ctx.card.uid] = (R.N.kinPlayed[ctx.card.uid] || []).concat(us.map(u => u.uid)); break; }
+        case 'heal': { const h = Math.min(a, R.maxHp - R.hp); R.hp += h; R.st.healed += h; break; }
+        case 'healKin': (b === 'all' ? R.N.kin : kinIn(R, ctx.cell)).forEach(k => { if (k.hp > 0) k.hp = Math.min(k.mhp, k.hp + a); }); break;
+        case 'buff': (c2 === 'all' ? R.N.kin : kinIn(R, ctx.cell)).forEach(k => { if (k.hp > 0) { k.atk += a; if (b) { k.hp += b; k.mhp += b; } } }); break;
+        case 'block': R.N.block += a; R.st.blocked += a; break;
+        case 'draw': drawCards(R, a); R.N.extraDraw = (R.N.extraDraw || 0) + a; R.st.maxExtraDraw = Math.max(R.st.maxExtraDraw || 0, R.N.extraDraw); break;
+        case 'energy': R.N.energy = Math.max(0, R.N.energy + a); break;
+        case 'ess': if (a >= 0) gainEss(R, a); else R.ess = Math.max(0, R.ess + a); break;
+        case 'eat': { const cl = R.cells[ctx.cell == null ? R.core : ctx.cell]; const n = cl.corpses; if (n) { gainEss(R, n * a); R.st.eaten += n; cl.corpses = 0; } break; }
+        case 'rise': { const cl = R.cells[ctx.cell == null ? R.core : ctx.cell]; const n = Math.min(a, cl.corpses); if (n) { spawnKin(R, ctx.cell, 'infected', n, true); cl.corpses -= n; } break; }
+        case 'dmgPer': { const cnt = countOf(R, b, ctx); targets(R, c2, ctx).forEach(e => hurt(R, e, a * cnt, src, ctx)); break; }
+        case 'mindPer': { const cnt = countOf(R, b, ctx); targets(R, c2, ctx).forEach(e => mind(R, e, a * cnt)); break; }
+        case 'self': R.hp -= a; R.st.selfDmg = (R.st.selfDmg || 0) + a; break;
+        case 'curse': addCard(R, a); break;
+        case 'thin': { const h = R.N.hand.filter(u => u !== (ctx.card && ctx.card.uid)); for (let s = 0; s < a && h.length; s++) { const u = h.shift(); R.N.hand.splice(R.N.hand.indexOf(u), 1); R.N.discard.push(u); } break; }
+        case 'charge': R.cells.forEach(c => c.traps.forEach(t => { t.charges += a; })); break;
+        case 'infect2': alive(R).forEach(e => { if (e.inf > 0) e.inf *= 2; }); break;
+        case 'convert': R.N.convert = (R.N.convert || 0) + 2; break;
+        case 'cap': break;
+        default: break;
+      }
+    }
+  }
+  function countOf(R, what, ctx) {
+    if (what === 'corpse') return R.cells[ctx.cell == null ? R.core : ctx.cell].corpses;
+    if (what === 'inf') { const f = frontOf(R, ctx.cell); return f ? f.inf : 0; }
+    if (what === 'organ') return R.cells.filter(c => c.organ).length;
+    if (what === 'kin') return R.N.kin.filter(k => k.hp > 0).length;
+    if (what === 'enemy') return inCell(R, ctx.cell).length;
+    if (what === 'hand') return R.N.hand.length;
+    if (what === 'curse') return R.deck.filter(c => def(c).type === 'curse').length;
+    if (what === 'ess10') return Math.floor(R.ess / 10);
+    if (what === 'handN') return R.N.handsNight || 0;
+    return 0;
+  }
+  function runHook(R, organCard, hook, cell, enemy) { const v = view(organCard); if (v && v.hooks && v.hooks[hook]) runOps(R, v.hooks[hook], { cell, enemy, card: v, src: hook === 'enter' ? 'trap' : 'organ' }); }
+  // 적이 칸에 들어설 때: 그 칸의 부위와 기관이 터진다
+  function enterCell(R, e, i) {
+    e.cell = i; const c = R.cells[i];
+    if (c.organ) runHook(R, c.organ, 'enter', i, e);
+    if (e.traits.has('lightfoot')) return;
+    for (const t of c.traps) { if (t.charges <= 0 || e.hp <= 0 || e.routed) continue; if (e.traits.has('disarm') && rnd(R) < 0.3) { t.charges--; continue; } t.charges--; runOps(R, t.ops, { cell: i, enemy: e, src: 'trap', mul: t.mul || 1 }); }
+    c.traps = c.traps.filter(t => t.charges > 0 || t.perm);
+  }
+
+  // ---- 카드 내기 ----
+  const organCells = R => R.cells.map((c, i) => c.organ ? i : -1).filter(i => i >= 0);
+  const handViews = R => R.N.hand.map(u => view(R.deck.find(c => c.uid === u)));
+  function costOf(R, v) {
+    if (v.type === 'curse') return 1;
+    if (v.type === 'organ') return v.cost + 1;
+    if (v.rar !== 's' && R.N.played.some(p => p.id === v.id)) return Math.max(0, v.cost - 1);
+    return v.cost;
+  }
+  // 낼 수 있는 칸들 (빈 배열 = 칸이 필요 없는 카드면 [null])
+  function cellsFor(R, v) {
+    if (v.type === 'curse') return [null];
+    if (v.type === 'organ') return R.cells.map((c, i) => i).filter(i => R.cells[i].dug && !R.cells[i].organ && i !== R.core);
+    if (v.type === 'trap') return R.cells.map((c, i) => i).filter(i => R.cells[i].dug && i !== R.core && R.cells[i].traps.length < K.trapsPerCell);
+    if (v.type === 'kin') return R.cells.map((c, i) => i).filter(i => R.cells[i].dug && kinIn(R, i).filter(u => !u.temp).length < capOf(R, i));
+    if (v.tgt === 'cell' || v.tgt === 'room') return R.cells.map((c, i) => i).filter(i => R.cells[i].dug);
+    return [null];
+  }
+  function canPlay(R, uid) { const c = R.deck.find(x => x.uid === uid); if (!c || !R.N || R.phase !== 'night' || !R.N.hand.includes(uid) || (R.N.sealed || []).includes(uid)) return false; const v = view(c); return R.N.energy >= costOf(R, v) && cellsFor(R, v).length > 0; }
+  function play(R, uid, cell) {
+    if (!canPlay(R, uid)) return { ok: false, msg: '낼 수 없다' };
+    const c = R.deck.find(x => x.uid === uid), v = view(c), cost = costOf(R, v), cl = cellsFor(R, v);
+    if (cl[0] !== null && !cl.includes(cell)) return { ok: false, msg: '그 칸에는 낼 수 없다' };
+    R.N.energy -= cost; R.N.hand.splice(R.N.hand.indexOf(uid), 1); R.N.plays++;
+    const mul = v.asp !== 'none' && R.N.rite[v.asp] ? 2 : 1;
+    const ctx = { cell: cell == null ? R.core : cell, card: v, mul, src: v.type === 'trap' ? 'trap' : v.type === 'kin' ? 'kin' : 'spell' };
+    if (v.type === 'organ') { R.cells[cell].organ = c; c.placed = true; R.st.organs++; R.N.exhaust.push(uid); runHook(R, c, 'night', cell); }
+    else if (v.type === 'trap') { R.cells[cell].traps.push({ uid, id: v.id, name: v.name, ops: v.ops, charges: v.charges + moltFx(R, 'charges'), mul }); R.N.discard.push(uid); }
+    else if (v.type === 'kin') { runOps(R, v.ops, ctx); R.N.exhaust.push(uid); }
+    else if (v.type === 'curse') { R.N.discard.push(uid); }
+    else { runOps(R, v.ops, ctx); (v.kw && v.kw.exhaust ? R.N.exhaust : R.N.discard).push(uid); }
+    R.N.played.push({ uid, id: v.id, asp: v.asp, type: v.type, cost: v.type === 'curse' ? null : v.cost, cell, curse: v.type === 'curse', starter: v.rar === 's' });
+    R.st.maxPlaysTurn = Math.max(R.st.maxPlaysTurn, R.N.played.length);
+    applyHands(R);
+    R.N.events.push({ t: 'play', uid, id: v.id, cell });
+    checkNight(R);
+    return { ok: true };
+  }
+  // 족보가 새로 맞으면 그 자리에서 효과
+  function applyHands(R) {
+    if (K.noHands) return;
+    const P = R.N.played.slice(); P.cols = R.cols; P.organCells = organCells(R); const hs = evalHands(P), had = new Set(R.N.hands.map(h => h.id));
+    for (const h of hs) {
+      if (had.has(h.id)) continue; R.N.hands.push(h); R.st.hands[h.id] = (R.st.hands[h.id] || 0) + 1; R.st.handTotal++; R.meta.hands = R.meta.hands || {}; R.meta.hands[h.id] = (R.meta.hands[h.id] || 0) + 1;
+      R.N.events.push({ t: 'hand', id: h.id, name: h.name }); R.N.handsNight = (R.N.handsNight || 0) + 1;
+      if (h.id === 'rite') { R.N.rite[h.asp] = true; const last = [...R.N.played].reverse().find(p => p.asp === h.asp && !p.curse); if (last) { const v = view(R.deck.find(c => c.uid === last.uid)); if (v && v.type === 'spell') runOps(R, v.ops, { cell: last.cell == null ? R.core : last.cell, card: v }); else if (v && v.type === 'trap') { const t = R.cells[last.cell].traps.find(t2 => t2.uid === last.uid); if (t) t.mul = 2; } } }
+      if (h.id === 'body') { if (!R.N.bodyDone) { R.N.bodyDone = true; R.N.nextEnergy += 1; } }
+      if (h.id === 'awaken') { if (!R.N.awaken) { R.N.awaken = true; R.hp = Math.min(R.maxHp, R.hp + 10); } }
+      if (h.id === 'rainbow') { alive(R).forEach(e => { hurt(R, e, 15, 'spell'); mind(R, e, 15); }); }
+      if (h.id === 'profane') { const cu = [...R.N.played].reverse().find(p => p.curse); if (cu) { ['discard', 'draw', 'hand', 'exhaust'].forEach(k => { const i = R.N[k].indexOf(cu.uid); if (i >= 0) R.N[k].splice(i, 1); }); R.deck = R.deck.filter(c => c.uid !== cu.uid); } alive(R).forEach(e => hurt(R, e, 6, 'spell')); }
+      if (h.id === 'swarm') { R.N.swarm += 3; R.N.kin.forEach(k => { k.atk += 3; }); }
+      if (h.id === 'trapline') (h.cells || []).forEach(i => R.cells[i].traps.forEach(t => { t.charges += 1; }));
+      if (h.id === 'ladder') drawCards(R, 2);
+      // 족보를 아끼는 기관: 족보가 나오면
+      R.cells.forEach((c, i) => { if (c.organ) runHook(R, c.organ, 'hand', i); });
+    }
+  }
+  // 한 장 더면 맞는 족보 (손에 있는 카드로)
+  function handPreview(R) {
+    if (!R.N) return [];
+    const now = new Set(evalHands(Object.assign(R.N.played.slice(), { cols: R.cols, organCells: organCells(R) })).map(h => h.id)), out = [];
+    for (const uid of R.N.hand) {
+      const v = view(R.deck.find(c => c.uid === uid)); if (!v || R.N.energy < costOf(R, v)) continue;
+      const oc = organCells(R), cs = cellsFor(R, v), cell = v.type === 'trap' || v.type === 'kin' ? (cs.find(c => oc.includes(c) && R.N.played.some(p => p.cell === c)) ?? cs.find(c => oc.includes(c)) ?? cs[0]) : null;
+      const P = R.N.played.concat([{ uid, id: v.id, asp: v.asp, type: v.type, cost: v.type === 'curse' ? null : v.cost, cell, curse: v.type === 'curse', starter: v.rar === 's' }]); P.cols = R.cols; P.organCells = oc;
+      evalHands(P).filter(h => !now.has(h.id)).forEach(h => { if (!out.some(o => o.id === h.id)) out.push({ id: h.id, name: h.name, uid, card: v.name, cell }); });
+    }
+    return out;
+  }
+
+  // ---- 턴 끝 ----
+  function endTurn(R) {
+    const Nn = R.N; if (!Nn || R.phase !== 'night') return;
+    // 손에 남은 저주
+    handViews(R).forEach(v => { if (v && v.type === 'curse' && v.hooks && v.hooks.end) runOps(R, v.hooks.end, { cell: R.core, card: v }); });
+    // 기관: 매 턴
+    R.cells.forEach((c, i) => { if (c.organ) runHook(R, c.organ, 'turn', i); });
+    // 세상마다 다른 적의 재주
+    worldTraits(R);
+    // 칸마다 싸움
+    for (let i = 0; i < R.cells.length; i++) fightCell(R, i);
+    // 감염이 썩힌다
+    alive(R).forEach(e => { if (e.inf > 0) { hurt(R, e, Math.ceil(e.inf), 'inf'); e.inf = Math.max(0, Math.floor(e.inf - Math.max(1, e.inf / 3))); } });
+    // 걷는다
+    moveEnemies(R);
+    // 본체 방
+    coreFight(R);
+    // 상태가 줄어든다
+    alive(R).forEach(e => { if (e.hold > 0) e.hold--; if (e.mad > 0) e.mad--; e.warded = false; if (e.traits.has('shield')) e.shield = 10; });
+    // 손을 버린다
+    const keep = []; Nn.hand.forEach(u => { const v = view(R.deck.find(c => c.uid === u)); if (v && v.kw && v.kw.retain) keep.push(u); else Nn.discard.push(u); }); Nn.hand = keep;
+    if (checkNight(R)) return;
+    if (Nn.turn >= K.turnCap) { alive(R).forEach(e => { R.hp -= 10; e.routed = true; }); checkNight(R); return; }
+    beginTurn(R, false);
+    checkNight(R);
+  }
+  function worldTraits(R) {
+    for (const e of alive(R)) {
+      if (e.hold > 0) continue;
+      // 포격: 두 칸 안의 권속 하나를 친다
+      if (e.traits.has('bombard')) { const near = R.N.kin.filter(k => k.hp > 0 && manh(R, k.cell, e.cell) <= 2); if (near.length) { const k = pick(R, near); k.hp -= Math.round(e.atk * 0.6); if (k.hp <= 0) { R.N.kinLost += k.temp ? 0 : 1; R.N.events.push({ t: 'kindie', uid: k.uid, cell: k.cell }); } } }
+      if (e.traits.has('reads')) { [e.cell].concat(nb(R, e.cell)).forEach(i => { const t = R.cells[i].traps.find(x => !x.perm && x.charges > 0); if (t) t.charges--; }); }
+      // 조명: 그 칸의 부위가 한 번씩 닳는다
+      if (e.traits.has('flood')) { const c = R.cells[e.cell]; c.traps.forEach(t => { if (!t.perm) t.charges = Math.max(0, t.charges - 1); }); c.traps = c.traps.filter(t => t.charges > 0 || t.perm); }
+      // 공병: 기관이 있는 칸에 두 턴 머물면 그 기관을 뜯어낸다 (카드는 덱으로 돌아온다)
+      if (e.traits.has('sap')) { const c = R.cells[e.cell]; if (c.organ) { e.sapT = (e.sapCell === e.cell ? (e.sapT || 0) : 0) + 1; e.sapCell = e.cell; if (e.sapT >= 2) { c.organ.placed = false; c.organ = null; e.sapT = 0; R.N.events.push({ t: 'sap', cell: e.cell }); } } }
+    }
+  }
+  function fightCell(R, i) {
+    const ks = kinIn(R, i), es = inCell(R, i); if (!ks.length || !es.length) return;
+    const wall = ks.some(k => k.secret === 'wall') ? 0.7 : 1;
+    for (const k of ks) {
+      if (k.hp <= 0) continue; const tg = inCell(R, i); if (!tg.length) break;
+      const t = tg.sort((a, b) => a.hp - b.hp)[0], ctx = { kin: k, cell: i };
+      const bites = (k.kind === 'hunger' ? 2 : 1) + (k.secret === 'brawl' ? 1 : 0);
+      for (let b = 0; b < bites; b++) { const tt = b === 0 ? t : (inCell(R, i)[0]); if (tt) hurt(R, tt, k.atk * (k.secret === 'fist' ? 1.15 : 1), 'kin', ctx); }
+      if (k.satk > 0) { const ms = k.secret === 'read' || k.secret === 'record' || k.kind === 'eyeheap' || k.kind === 'mask' || k.kind === 'scribe' ? inCell(R, i) : [inCell(R, i)[0]].filter(Boolean); ms.forEach(e => mind(R, e, k.satk * (k.secret === 'choir' ? 1.5 : 1) * (k.secret === 'read' ? 0.65 : 1))); }
+      if (k.kind === 'spitter') { const adj = nb(R, i).flatMap(j => inCell(R, j)); if (adj.length) hurt(R, adj[0], Math.round(k.atk * 0.6), 'kin', ctx); }
+      if ((k.kind === 'tangle' || k.kind === 'netter' || k.kind === 'warden') && rnd(R) < 0.4) { const f = inCell(R, i)[0]; if (f) { f.hold = Math.max(f.hold, 1); R.st.holds++; } }
+      if (k.kind === 'scale' || k.kind === 'licker' || k.kind === 'fallen') { const w = kinIn(R, i).sort((a, b) => a.hp / a.mhp - b.hp / b.mhp)[0]; if (w) w.hp = Math.min(w.mhp, w.hp + (k.kind === 'fallen' ? 5 : 3)); }
+      if (k.secret === 'briar') inCell(R, i).slice(0, 2).forEach(e => { hurt(R, e, 4, 'kin', ctx); e.hold = Math.max(e.hold, 1); });
+      if (k.kind === 'digger' || k.kind === 'clerk' || k.secret === 'ledger') gainEss(R, k.secret === 'ledger' ? 3 : 1);
+    }
+    for (const e of inCell(R, i)) {
+      if (e.hold > 0) continue;
+      if (e.mad > 0) { const other = inCell(R, i).filter(x => x !== e)[0] || alive(R).filter(x => x !== e)[0]; if (other) { hurt(R, other, e.atk, 'mad'); R.st.madHits++; } continue; }
+      if (e.traits.has('heal')) inCell(R, i).forEach(x => { x.hp = Math.min(x.mhp, x.hp + 4); });
+      const duel = e.traits.has('duel'), tk = kinIn(R, i).sort((a, b) => duel ? b.hp - a.hp : b.df - a.df)[0]; if (!tk) break;
+      const hits = e.traits.has('twice') ? 2 : 1, others = inCell(R, i).filter(x => x !== e);
+      const bonus = 2 * others.filter(x => x.traits.has('rally')).length + (e.traits.has('mob') ? others.filter(x => x.traits.has('mob')).length : 0);
+      for (let h = 0; h < hits; h++) { const dmg = Math.max(1, Math.round((e.atk + bonus - tk.df * 0.5) * wall * (duel ? 1.5 : 1))); tk.hp -= dmg; if (tk.hp <= 0) { if (tk.revive > 0) { tk.revive--; tk.hp = Math.round(tk.mhp * 0.8); } else { R.N.kinLost += tk.temp ? 0 : 1; R.N.events.push({ t: 'kindie', uid: tk.uid, cell: i }); break; } } }
+    }
+  }
+  function moveEnemies(R) {
+    const d = distMap(R);
+    const es = alive(R).sort((a, b) => d[a.cell] - d[b.cell]);
+    for (const e of es) {
+      if (e.hp <= 0 || e.routed || e.hold > 0 || e.cell === R.core) continue;
+      if (kinIn(R, e.cell).length && !(e.traits.has('breach') && rnd(R) < 0.5)) continue;
+      const steps = e.traits.has('fast') ? 2 : 1;
+      for (let s = 0; s < steps; s++) {
+        if ((s > 0 && kinIn(R, e.cell).length) || e.cell === R.core || e.hp <= 0 || e.routed) break;
+        const opts = nb(R, e.cell).filter(v => R.cells[v].dug && d[v] === d[e.cell] - 1); if (!opts.length) break;
+        enterCell(R, e, opts.length > 1 ? pick(R, opts) : opts[0]);
+      }
+    }
+  }
+  function coreFight(R) {
+    const es = inCell(R, R.core); if (!es.length) return;
+    const ks = kinIn(R, R.core); if (ks.length) return;
+    const armor = moltFx(R, 'armor'), awake = R.N.awaken;
+    for (const e of es) {
+      if (e.hold > 0) continue;
+      if (e.mad > 0) { const o = es.find(x => x !== e && x.hp > 0); if (o) { hurt(R, o, e.atk, 'mad'); R.st.madHits++; } continue; }
+      let dmg = Math.max(1, e.atk * (e.traits.has('twice') ? 2 : 1) - armor - (awake ? 3 : 0)); const b = Math.min(R.N.block, dmg); R.N.block -= b; dmg -= b;
+      R.hp -= dmg; R.N.hurtCore += dmg; R.st.coreDmg = (R.st.coreDmg || 0) + dmg; if (moltFx(R, 'thorns')) hurt(R, e, moltFx(R, 'thorns'), 'spell');
+    }
+    const t = inCell(R, R.core).sort((a, b) => a.hp - b.hp)[0]; if (t) hurt(R, t, (R.atk + moltFx(R, 'atk')) * (awake ? 2.2 : 1), 'core');
+  }
+  // 밤이 끝났나
+  function checkNight(R) {
+    const Nn = R.N; if (!Nn || R.phase !== 'night') return true;
+    if (R.hp <= 0) { R.hp = 0; endRun(R, false); return true; }
+    if (!Nn.queue.length && !alive(R).length) { nightWon(R); return true; }
+    return false;
+  }
+  function nightWon(R) {
+    const Nn = R.N, boss = R.night > K.nights;
+    R.st.nightsWon++;
+    if (Nn.hurtCore === 0) { R.st.cleanNights++; if (R.act >= 3) R.st.cleanLate = (R.st.cleanLate || 0) + 1; }
+    if (Nn.kinLost === 0 && R.act >= 2) R.st.noKinLossNights++;
+    if (R.hp <= 10) R.st.lowHpNight = 1;
+    { const oc = organCells(R); let best = 0; const seen = new Set(); for (const s0 of oc) { if (seen.has(s0)) continue; let n = 0; const q = [s0]; seen.add(s0); while (q.length) { const u = q.shift(); n++; nb(R, u).forEach(v => { if (oc.includes(v) && !seen.has(v)) { seen.add(v); q.push(v); } }); } best = Math.max(best, n); } R.st.organChain = Math.max(R.st.organChain, best); }
+    // 짝과 같은 칸에 섰던 권속 카드: 비밀 갈래에 한 밤
+    for (const uid in Nn.kinPlayed) { const c = R.deck.find(x => x.uid === +uid); if (!c) continue; const kind = def(c).kin, sec = N.SECRET[kind]; if (!sec) continue; const mine = Nn.kin.filter(u => Nn.kinPlayed[uid].includes(u.uid)); if (mine.some(u => Nn.kin.some(o => o !== u && o.kind === sec[1] && o.cell === u.cell && !o.temp))) c.pairNights = (c.pairNights || 0) + 1; }
+    const curses = R.deck.filter(c => def(c).type === 'curse').length;
+    if (boss) {
+      if (R.deck.length <= 15) R.st.thinBoss = 1; if (R.deck.length >= 32) R.st.fatBoss = 1; if (R.ess <= 50) R.st.poorBoss = 1;
+      R.st.curseAct = Math.max(R.st.curseAct, curses); if (R.act === 2 && curses === 0) R.st.noCurseAct2 = 1;
+      R.meta.actBy[R.aspect] = Math.max(R.meta.actBy[R.aspect] || 0, R.act + 1);
+    }
+    R.cells.forEach(c => { c.traps = c.traps.filter(t => t.perm); });
+    R.hp = Math.min(R.maxHp, R.hp + moltFx(R, 'nightHeal'));
+    gainEss(R, 12 + 4 * R.act + (boss ? 40 : 0));
+    R.N = null;
+    if (boss && R.act >= K.acts) { endRun(R, true); return; }
+    // 보상
+    R.reward = { cards: offerCards(R, boss ? 'boss' : 'night'), molts: boss ? moltOffer(R) : null };
+    if (boss) { R.act++; R.night = 1; R.needleOffer = true; } else R.night++;
+    R.phase = 'reward';
+  }
+  function takeReward(R, idx, moltId) {
+    if (R.phase !== 'reward') return { ok: false };
+    if (idx != null && R.reward.cards[idx]) { addCard(R, R.reward.cards[idx].id, R.reward.cards[idx].up || 0); }
+    if (moltId && R.reward.molts && R.reward.molts.includes(moltId)) addMolt(R, moltId);
+    R.reward = null; startDay(R); return { ok: true };
+  }
+  const addMolt = (R, id) => { R.molts.push(id); const fx = CD.MOLT[id].fx; if (fx.maxHp) { R.maxHp += fx.maxHp; R.hp += fx.maxHp; } };
+  const moltOffer = R => shuffle(R, Object.keys(CD.MOLT).filter(m => !R.molts.includes(m))).slice(0, 3);
+
+  // ================= 카드 셋 중 하나 =================
+  function openPool(R) { return CD.LIST.filter(d => d.rar !== 's' && d.rar !== 'x' && d.type !== 'curse' && CD.isOpen(d, R.meta)); }
+  function offerCards(R, why) {
+    const pool = openPool(R), out = [];
+    const w = why === 'boss' ? { c: 20, u: 50, r: 30 } : K.rarW;
+    let tries = 0;
+    while (out.length < 3 && tries++ < 200) {
+      const roll = rnd(R), colour = roll < 0.6 ? R.aspect : roll < 0.85 ? 'none' : pick(R, ASPS);
+      let rr = rnd(R) * (w.c + w.u + w.r); let rar = rr < w.c ? 'c' : rr < w.c + w.u ? 'u' : 'r';
+      if (R.pity >= 3 && out.length === 0) rar = rnd(R) < 0.7 ? 'u' : 'r';
+      let cand = pool.filter(d => d.asp === colour && d.rar === rar && !out.some(o => o.id === d.id));
+      if (!cand.length) cand = pool.filter(d => d.rar === rar && !out.some(o => o.id === d.id));
+      if (!cand.length) continue;
+      out.push({ id: pick(R, cand).id, up: 0 });
+    }
+    const good = out.some(o => CD.BY[o.id].rar !== 'c'); R.pity = good ? 0 : R.pity + 1;
+    return out;
+  }
+
+  // ================= 낮 =================
+  function startDay(R) {
+    R.phase = 'day'; R.actions = K.dayActions; R.paid = 0; R.offer = null; R.shop = null; R.digResult = null; R.rerolls = 0;
+    R.hp = Math.min(R.maxHp, R.hp + Math.round(R.maxHp * K.dayHeal));
+    gainEss(R, moltFx(R, 'dayEss'));
+    R.cells.forEach((c, i) => { if (c.organ) { const v = view(c.organ); if (v.hooks && v.hooks.day) runOps(R, v.hooks.day, { cell: i, card: v }); } });
+  }
+  const spend = R => { R.actions--; };
+  function dayOptions(R) {
+    if (R.phase !== 'day') return [];
+    const a = R.actions > 0, o = [];
+    if (a && digOptions(R).length) o.push('dig');
+    if (a) o.push('draft', 'upgrade', 'remove', 'shop');
+    if (R.needleOffer) o.push('needle');
+    o.push('night');
+    return o;
+  }
+  function dig(R, cell) {
+    if (R.phase !== 'day' || R.actions <= 0 || !digOptions(R).includes(cell)) return { ok: false };
+    spend(R); R.cells[cell].dug = true; R.st.digs++;
+    let x = rnd(R), kind = 'empty'; for (const [k, p] of K.dig) { if (x < p) { kind = k; break; } x -= p; }
+    const res = { kind, cell };
+    if (kind === 'empty') gainEss(R, 5);
+    if (kind === 'bones') { R.offer = { why: 'bones', cards: offerCards(R, 'night') }; }
+    if (kind === 'beast') { const lose = 4 + Math.floor(rnd(R) * 5); R.hp = Math.max(1, R.hp - lose); gainEss(R, 25); res.lose = lose; }
+    if (kind === 'egg') { const kc = openPool(R).filter(d => d.type === 'kin' && (d.asp === R.aspect || d.asp === 'none')); if (kc.length) { const d = pick(R, kc); addCard(R, d.id); res.card = d.id; } }
+    if (kind === 'cursed') { const rc = openPool(R).filter(d => d.rar === 'r'); if (rc.length) { const d = pick(R, rc); addCard(R, d.id); res.card = d.id; } const cu = pick(R, CD.LIST.filter(d => d.type === 'curse')); addCard(R, cu.id); res.curse = cu.id; }
+    if (kind === 'altar') { R.needleOffer = true; R.st.altar++; }
+    R.digResult = res; return Object.assign({ ok: true }, res);
+  }
+  function draft(R) { if (R.phase !== 'day' || R.actions <= 0) return { ok: false }; spend(R); R.offer = { why: 'draft', cards: offerCards(R, 'night') }; return { ok: true, cards: R.offer.cards }; }
+  function reroll(R) { if (!R.offer) return { ok: false }; const price = K.reroll * (R.rerolls + 1); if (R.ess < price) return { ok: false, msg: '진액이 모자란다' }; R.ess -= price; R.rerolls++; R.offer.cards = offerCards(R, 'night'); return { ok: true, cards: R.offer.cards }; }
+  function takeOffer(R, idx) { if (!R.offer) return { ok: false }; const o = R.offer.cards[idx]; if (o) addCard(R, o.id, o.up); R.offer = null; return { ok: true }; }
+  function skipOffer(R) { R.offer = null; return { ok: true }; }
+  // 강화: 권속은 세 단계, 셋째 단계에서 짝과 사흘 섰으면 비밀 갈래
+  function upgradeOptions(R) { return R.deck.filter(c => { const d = def(c); if (d.type === 'curse' || c.placed) return false; return d.type === 'kin' ? c.up < 2 && !c.secret : c.up < 1; }).map(c => ({ uid: c.uid, name: view(c).name, secret: secretReady(c) })); }
+  const secretReady = c => { const d = def(c); return d.type === 'kin' && c.up === 1 && !!N.SECRET[d.kin] && (c.pairNights || 0) >= 3; };
+  function upgrade(R, uid, secret) {
+    if (R.phase !== 'day' || R.actions <= 0) return { ok: false };
+    const c = R.deck.find(x => x.uid === uid); if (!c || !upgradeOptions(R).some(o => o.uid === uid)) return { ok: false };
+    spend(R); const d = def(c);
+    if (secret && secretReady(c)) { c.up = 2; c.secret = N.SECRET[d.kin][0]; R.meta.secrets = (R.meta.secrets || 0) + 1; }
+    else c.up++;
+    if (d.type === 'kin' && c.up === 2) R.st.fullKin++;
+    return { ok: true, card: view(c) };
+  }
+  // 진액으로 하는 것 (행동이 들지 않는다): 강화, 내보내기. 하루에 할수록 비싸진다
+  const essPrice = (R, k) => (k === 'up' ? K.upEss : K.rmEss) + 15 * (R.paid || 0);
+  function buyUpgrade(R, uid, secret) { if (R.phase !== 'day') return { ok: false }; const p = essPrice(R, 'up'); if (R.ess < p) return { ok: false, msg: '진액이 모자란다' }; const a = R.actions; R.actions = 1; const r = upgrade(R, uid, secret); R.actions = a; if (r.ok) { R.ess -= p; R.paid = (R.paid || 0) + 1; } return r; }
+  function buyRemove(R, uid) { if (R.phase !== 'day') return { ok: false }; const p = essPrice(R, 'rm'); if (R.ess < p) return { ok: false, msg: '진액이 모자란다' }; const a = R.actions; R.actions = 1; const r = removeCard(R, uid); R.actions = a; if (r.ok) { R.ess -= p; R.paid = (R.paid || 0) + 1; } return r; }
+  function removeCard(R, uid) { if (R.phase !== 'day' || R.actions <= 0) return { ok: false }; const i = R.deck.findIndex(c => c.uid === uid && !c.placed); if (i < 0) return { ok: false }; spend(R); R.deck.splice(i, 1); return { ok: true }; }
+  function openShop(R) {
+    if (R.phase !== 'day' || R.actions <= 0) return { ok: false }; spend(R);
+    const pool = openPool(R), items = [];
+    for (let k = 0; k < 5; k++) { const rar = k < 2 ? 'c' : k < 4 ? 'u' : 'r'; const cand = pool.filter(d => d.rar === rar && !items.some(x => x.id === d.id) && (rnd(R) < 0.6 ? d.asp === R.aspect : true)); const d = cand.length ? pick(R, cand) : pick(R, pool); items.push({ id: d.id, price: K.shopPrice[d.rar] || 40, sold: false }); }
+    const m = moltOffer(R)[0]; R.shop = { items, molt: m ? { id: m, price: K.molt, sold: false } : null }; return { ok: true, shop: R.shop };
+  }
+  function shopBuy(R, idx) { const s = R.shop; if (!s) return { ok: false }; const it = idx === 'molt' ? s.molt : s.items[idx]; if (!it || it.sold || R.ess < it.price) return { ok: false }; R.ess -= it.price; it.sold = true; if (idx === 'molt') addMolt(R, it.id); else addCard(R, it.id); return { ok: true }; }
+  // 낮에 기관 놓기: 진액으로 (행동은 들지 않는다)
+  function placeOrgan(R, uid, cell) { if (R.phase !== 'day') return { ok: false }; const c = R.deck.find(x => x.uid === uid); if (!c || def(c).type !== 'organ' || c.placed) return { ok: false }; const price = K.organDay * view(c).cost; if (R.ess < price || !R.cells[cell] || !R.cells[cell].dug || R.cells[cell].organ || cell === R.core) return { ok: false, msg: '놓을 수 없다' }; R.ess -= price; R.cells[cell].organ = c; c.placed = true; R.st.organs++; return { ok: true }; }
+  function goNight(R) { if (R.phase !== 'day') return { ok: false }; R.offer = null; R.shop = null; return { ok: true, night: startNight(R) }; }
+
+  // ================= 바늘 점 (곁 도박) =================
+  // 별 카드: 빛깔 다섯 × 별자리 일곱. 바늘 카드: 빛깔 없는(아무 빛깔이 되는) 별자리 일곱 중 둘, 끝까지 덮여 있다.
+  const SIGNS = ['물결', '눈', '알', '가면', '이빨', '문', '바늘', '탑', '뿌리', '혀', '종', '고리', '날개'];
+  const NHANDS = [
+    { id: 'none', name: '흩어진 별', pay: 0 },
+    { id: 'pair', name: '짝별', pay: 0.4 },
+    { id: 'twopair', name: '두 짝별', pay: 0.9 },
+    { id: 'three', name: '세 바늘', pay: 1.8 },
+    { id: 'line', name: '이어진 별', pay: 3 },
+    { id: 'colour', name: '한 빛깔 하늘', pay: 6, extra: 'rarUp' },
+    { id: 'full', name: '깨어나는 살', pay: 4, extra: 'molt' },
+    { id: 'four', name: '네 바늘', pay: 10, extra: 'molt+rare' },
+    { id: 'turn', name: '바늘이 돌아섬', pay: 40, extra: 'molt2' },
+  ];
+  const NHBY = Object.fromEntries(NHANDS.map(h => [h.id, h]));
+  function needleStart(R, why) {
+    if (!R.needleOffer || R.needle) return { ok: false };
+    R.needleOffer = false;
+    const stars = []; ASPS.forEach(a => SIGNS.forEach((s, i) => stars.push({ asp: a, sign: i }))); shuffle(R, stars);
+    const needles = shuffle(R, SIGNS.map((s, i) => ({ asp: 'none', sign: i })));
+    let hole = needles.slice(0, 2);
+    // 셋을 내리 잃으면 다음은 짝 하나가 보장된다
+    if (R.needlePity >= 3) { hole = [Object.assign({}, needles[0]), { asp: 'none', sign: stars[0].sign }]; }
+    R.needle = { why: why || 'altar', stars: stars.slice(0, 5), hole, shown: 0, stake: { ess: 0, hp: 0, cards: [] }, step: 0, done: false, result: null };
+    return { ok: true, needle: needlePublic(R) };
+  }
+  const stakeValue = s => s.ess + s.hp * 5 + s.cards.length * 30;
+  function needlePublic(R) { const n = R.needle; if (!n) return null; return { step: n.step, stars: n.stars.slice(0, n.shown), hole: n.done ? n.hole : [null, null], stake: Object.assign({}, n.stake, { value: stakeValue(n.stake) }), done: n.done, result: n.result }; }
+  function needleBet(R, what) {
+    const n = R.needle; if (!n || n.done) return { ok: false };
+    if (what.kind === 'ess') { const v = Math.min(what.n || 10, R.ess); if (v <= 0) return { ok: false }; R.ess -= v; n.stake.ess += v; }
+    else if (what.kind === 'hp') { const v = Math.min(what.n || 5, R.maxHp - 20); if (v <= 0) return { ok: false }; R.maxHp -= v; R.hp = Math.min(R.hp, R.maxHp); n.stake.hp += v; }
+    else if (what.kind === 'card') { const i = R.deck.findIndex(c => c.uid === what.uid && def(c).type === 'kin'); if (i < 0) return { ok: false }; n.stake.cards.push(R.deck.splice(i, 1)[0]); }
+    return { ok: true, needle: needlePublic(R) };
+  }
+  // 걸고 나면 별을 연다: 셋 → 하나 → 하나. 다 열리면 결과
+  function needleReveal(R) {
+    const n = R.needle; if (!n || n.done) return { ok: false };
+    if (stakeValue(n.stake) <= 0) return { ok: false, msg: '먼저 건다' };
+    n.step++; n.shown = n.step === 1 ? 3 : n.step === 2 ? 4 : 5;
+    if (n.step >= 3) return needleResult(R);
+    return { ok: true, needle: needlePublic(R) };
+  }
+  function needleFold(R) {
+    const n = R.needle; if (!n || n.done) return { ok: false };
+    // 접으면 건 것의 절반만 돌려받는다 (첫 별을 열기 전이면 다 돌려받는다)
+    const back = n.step === 0 ? 1 : 0.5; R.ess += Math.floor(n.stake.ess * back); if (back === 1) { R.maxHp += n.stake.hp; n.stake.cards.forEach(c => R.deck.push(c)); }
+    n.done = true; n.result = { folded: true, hand: null }; R.needle = null; return { ok: true };
+  }
+  // 일곱 장 중 다섯으로 가장 좋은 것
+  function needleBest(cards) {
+    const combos = []; const idx = [0, 1, 2, 3, 4, 5, 6].slice(0, cards.length);
+    const rec = (s, acc) => { if (acc.length === 5) { combos.push(acc.slice()); return; } for (let i = s; i < idx.length; i++) { acc.push(i); rec(i + 1, acc); acc.pop(); } };
+    rec(0, []);
+    let best = NHANDS[0];
+    for (const cb of combos) { const h = needleEval(cb.map(i => cards[i])); if (NHANDS.indexOf(h) > NHANDS.indexOf(best)) best = h; }
+    return best;
+  }
+  function needleEval(five) {
+    const cnt = {}; five.forEach(c => { cnt[c.sign] = (cnt[c.sign] || 0) + 1; });
+    const vs = Object.values(cnt).sort((a, b) => b - a);
+    const colour = five.every(c => c.asp !== 'none' && c.asp === five[0].asp);
+    const signs = [...new Set(five.map(c => c.sign))].sort((a, b) => a - b), line = signs.length === 5 && (signs[4] - signs[0] === 4 || (signs[0] === 0 && signs[1] === 9 && signs[4] === 12));
+    if (line && colour) return NHBY.turn;
+    if (vs[0] >= 4) return NHBY.four;
+    if (vs[0] === 3 && vs[1] >= 2) return NHBY.full;
+    if (colour) return NHBY.colour;
+    if (line) return NHBY.line;
+    if (vs[0] === 3) return NHBY.three;
+    if (vs[0] === 2 && vs[1] === 2) return NHBY.twopair;
+    if (vs[0] === 2) return NHBY.pair;
+    return NHBY.none;
+  }
+  function needleResult(R) {
+    const n = R.needle; if (!n) return { ok: false };
+    n.done = true; n.shown = 5;
+    const h = needleBest(n.stars.concat(n.hole)), v = stakeValue(n.stake), res = { hand: h.id, name: h.name, pay: 0, gifts: [] };
+    if (h.pay > 0) {
+      res.pay = Math.floor(v * h.pay); gainEss(R, res.pay); if (h.pay >= 1) R.st.needleWins++;
+      if (h.pay >= 1 && n.stake.hp) { R.maxHp += n.stake.hp; }
+      R.needlePity = 0;
+      if (h.pay >= 1) n.stake.cards.forEach(c => { if (def(c).type === 'kin' && c.up < 2) c.up++; R.deck.push(c); });
+      if (h.extra === 'rarUp' || h.extra === 'molt+rare') { const rc = openPool(R).filter(d => d.rar === 'r'); if (rc.length) { const d = pick(R, rc); addCard(R, d.id); res.gifts.push(d.id); } }
+      if (h.extra && h.extra.indexOf('molt') === 0) { const m = moltOffer(R); const k = h.extra === 'molt2' ? 2 : 1; m.slice(0, k).forEach(id => { addMolt(R, id); res.gifts.push(id); }); }
+      if (h.pay >= 7) R.st.needleBig++;
+    } else {
+      R.needlePity++;
+      if (v >= 40 || n.stake.cards.length) { const cu = pick(R, CD.LIST.filter(d => d.type === 'curse')); addCard(R, cu.id); res.curse = cu.id; }
+    }
+    n.result = res; const pub = needlePublic(R); R.needle = null; return { ok: true, needle: pub, result: res };
+  }
+
+  // ================= 판 끝 =================
+  function endRun(R, win) {
+    R.over = { win, act: R.act, night: R.night, score: score(R, win) }; R.phase = 'over';
+    const m = R.meta; m.runs = (m.runs || 0) + 1;
+    if (win) { m.winBy[R.aspect] = (m.winBy[R.aspect] || 0) + 1; m.actBy[R.aspect] = Math.max(m.actBy[R.aspect] || 0, 4); }
+    m.actBy[R.aspect] = Math.max(m.actBy[R.aspect] || 0, R.act);
+    // 판을 넘어 쌓는다
+    m.tot = m.tot || {}; ['swallow', 'madHits', 'infRise', 'spawned', 'routs', 'essGot', 'eaten', 'digs', 'altar', 'holds', 'pushes', 'markedKills', 'healed', 'blocked', 'handTotal', 'kills', 'needleWins', 'needleBig'].forEach(k => { m.tot[k] = (m.tot[k] || 0) + (R.st[k] || 0); });
+    R.over.unlocks = releaseUnlocks(m, checkUnlocks(m, R.st));
+  }
+  function score(R, win) { return R.st.nightsWon * 100 + R.st.kills * 3 + Math.floor(R.st.essGot / 2) + (R.act - 1) * 400 + (win ? 2000 : 0) + Object.values(R.st.hands).reduce((a, b) => a + b, 0) * 5; }
+  function checkUnlocks(meta, st) {
+    meta.unlocked = meta.unlocked || {}; const out = [];
+    for (const id in CD.UNLOCK) { if (meta.unlocked[id] || (meta.queue || []).includes(id)) continue; let okk = false; try { okk = !!CD.UNLOCK[id].check(st || {}, meta); } catch (e) { okk = false; } if (okk) { meta.unlocked[id] = 1; out.push({ cond: id, text: CD.UNLOCK[id].text, cards: CD.LIST.filter(d => d.unlock === id).map(d => d.id) }); } }
+    return out;
+  }
+  // 한 판에 보여 주는 새 해금은 K.unlockCap 까지. 나머지는 줄을 서서 다음 판에 열린다 (줄 선 것은 아직 잠겨 있다)
+  function releaseUnlocks(meta, fresh) {
+    meta.queue = meta.queue || []; fresh.forEach(u => { delete meta.unlocked[u.cond]; meta.queue.push(u.cond); });
+    const out = [];
+    while (meta.queue.length && out.length < K.unlockCap) { const id = meta.queue.shift(); meta.unlocked[id] = 1; out.push({ cond: id, text: CD.UNLOCK[id].text, cards: CD.LIST.filter(d => d.unlock === id).map(d => d.id) }); }
+    return out;
+  }
+  // 한 방울에서 단 부위를 기억한다 (뻗어 온 부위 카드가 열린다)
+  function rememberParts(meta, partIds) { meta.parts = meta.parts || {}; (partIds || []).forEach(p => { meta.parts[p] = 1; }); return meta; }
+
+  // ---- 화면에 줄 것 ----
+  function nightView(R) {
+    const Nn = R.N; if (!Nn) return null;
+    return { turn: Nn.turn, energy: Nn.energy, block: Nn.block, hand: handViews(R).map(v => Object.assign({}, v, { costNow: costOf(R, v), cells: cellsFor(R, v), sealed: (Nn.sealed || []).includes(v.uid), can: Nn.energy >= costOf(R, v) && !(Nn.sealed || []).includes(v.uid) })), drawN: Nn.draw.length, discardN: Nn.discard.length, queue: Nn.queue.length, enemies: alive(R).map(e => ({ uid: e.uid, kind: e.kind, name: e.name, hp: e.hp, mhp: e.mhp, san: e.san, msan: e.msan, cell: e.cell, inf: e.inf, mark: e.mark, hold: e.hold, mad: e.mad, boss: e.boss })), kin: Nn.kin.filter(k => k.hp > 0).map(k => ({ uid: k.uid, kind: k.kind, name: k.name, hp: k.hp, mhp: k.mhp, atk: k.atk, cell: k.cell, temp: k.temp, secret: k.secret })), hands: Nn.hands.slice(), preview: handPreview(R), awaken: Nn.awaken, path: pathCells(R) };
+  }
+  function mapView(R) { return R.cells.map((c, i) => ({ i, dug: c.dug, organ: c.organ ? view(c.organ) : null, traps: c.traps.map(t => ({ id: t.id, name: t.name, charges: t.charges })), corpses: c.corpses, ent: i === R.ent, core: i === R.core, canDig: R.phase === 'day' && digOptions(R).includes(i) })); }
+  function deckView(R) { return R.deck.map(view); }
+
+  return { K, TRAIT, HANDS, NHANDS, SIGNS, ALIEN, SEEKER, newMeta, newRun, view, deckView, mapView, nightView, pathCells, digOptions, distMap,
+    evalHands, handPreview, startNight, canPlay, cellsFor, costOf, play, endTurn, takeReward,
+    dayOptions, dig, draft, reroll, takeOffer, skipOffer, upgradeOptions, upgrade, secretReady, removeCard, buyUpgrade, buyRemove, essPrice, openShop, shopBuy, placeOrgan, goNight, startDay,
+    needleStart, needleBet, needleReveal, needleFold, needleResult, needleBest, needleEval,
+    knownName, realName, checkUnlocks, releaseUnlocks, rememberParts, score, rnd };
+})();
+if (typeof module !== 'undefined') module.exports = DECK;
 </script>
 <script>(function () {
 'use strict';
@@ -7274,6 +8690,446 @@ function playIntro(opts) {
   });
 }
 window.playIntro = playIntro;
+// 옛 것의 둥지 — 덱 판 화면 (시험판). 규칙은 deck.js(DECK), 카드는 cards.js(CARDS). 이 파일은 그리기와 누르기만 한다.
+// 화면: 위 한 줄(막·밤 · 진액 · 체력 · 메뉴) / 큰 지도 / 아래(낮: 행동 단추 줄, 밤: 손패 부채꼴) / 아래에서 올라오는 창 / 덮개 화면.
+// 진행은 META.deck(해금·말 배우기)과 store 'deckrun'(낮에만 저장, 밤 도중에 나가면 그날 낮부터 다시)에 남는다.
+const DKU = { R: null, sel: null, pick: null, pickUid: null, sheet: null, raf: 0, pos: {}, floats: [], hl: [], snap: null, lpT: 0, lpFired: false, busy: false, evi: 0, filter: 'all', boot: false };
+const dkMeta = () => { if (!META.deck) META.deck = DECK.newMeta(); return META.deck; };
+const dk$ = id => document.getElementById(id);
+const dkSnd = k => { try { sfx(k); } catch (e) { /* 소리는 없어도 된다 */ } };
+const dkMus = k => { if (typeof music === 'function') music(k); };
+function dkSave() {
+  const R = DKU.R; if (!R) return; if (R.phase === 'over') { store.del('deckrun'); return; } if (R.N) return;
+  const m = R.meta; R.meta = null; try { store.set('deckrun', R); } finally { R.meta = m; } saveMeta();
+}
+function dkLoad() { const R = store.get('deckrun'); if (!R || !R.cells) return null; R.meta = dkMeta(); return R; }
+
+// ---------------- 카드 그림 (24×24, 몸의 부위) ----------------
+const DKART = {};
+const DKCOL = { abyss: '#3fb8d0', nebula: '#b08fff', brood: '#7fd04f', dusk: '#f0a04a', hunger: '#f47c81', none: '#c8c0b0' };
+const DKDARK = { abyss: '#0d3a48', nebula: '#2e2250', brood: '#21401a', dusk: '#4a2c10', hunger: '#4a1418', none: '#3a3640' };
+function dkMotif(v) {
+  if (v.type === 'curse') return 'thorn';
+  const o = (v.ops && v.ops[0] && v.ops[0][0]) || (v.hooks && Object.values(v.hooks)[0] && Object.values(v.hooks)[0][0] && Object.values(v.hooks)[0][0][0]) || '';
+  return { swallow: 'maw', dmg: 'teeth', dmgPer: 'teeth', inf: 'spore', infect2: 'spore', spawn: 'egg', rise: 'egg', mind: 'eye', mindPer: 'eye', mad: 'eye', push: 'wave', pull: 'wave', hold: 'tent', heal: 'pulse', healKin: 'pulse', block: 'shell', draw: 'star', energy: 'star', ess: 'drop', eat: 'drop', mark: 'brand', buff: 'pulse', curse: 'thorn' }[o] || (v.type === 'organ' ? 'maw' : 'star');
+}
+function dkArtCanvas(v) {
+  const key = v.type === 'kin' ? 'k:' + v.kin + ':' + (v.stage || 0) + ':' + (v.secretId || '') : v.id + ':' + dkMotif(v);
+  if (DKART[key]) return DKART[key];
+  if (v.type === 'kin' && v.kin && typeof kinCanvas === 'function') { try { return (DKART[key] = kinCanvas(v.kin, v.stage || 0, v.secretId || null)); } catch (e) { /* 아래 그림으로 */ } }
+  const c = document.createElement('canvas'); c.width = c.height = 24; const x = c.getContext('2d'), col = DKCOL[v.asp] || DKCOL.none, dk = DKDARK[v.asp] || DKDARK.none;
+  const r = (a, b, w, h, k) => { x.fillStyle = k; x.fillRect(a, b, w, h); }, disc = (cx, cy, rr, k) => { x.fillStyle = k; for (let j = -rr; j <= rr; j++) { const w = Math.round(Math.sqrt(rr * rr - j * j)); x.fillRect(cx - w, cy + j, w * 2 + 1, 1); } };
+  const m = dkMotif(v);
+  if (v.type === 'organ') { disc(12, 13, 10, '#120e18'); disc(12, 13, 9, dk); }
+  if (m === 'maw') { disc(12, 13, 8, '#07050a'); disc(12, 13, 6, '#2a0a10'); for (let k = 0; k < 6; k++) { r(6 + k * 2, 7 + (k % 2), 1, 3, '#f5efe0'); r(6 + k * 2, 17 - (k % 2), 1, 3, '#f5efe0'); } r(9, 12, 6, 2, '#c8303a'); }
+  if (m === 'teeth') { for (let k = 0; k < 5; k++) { x.fillStyle = '#f5efe0'; x.beginPath(); x.moveTo(3 + k * 4, 20); x.lineTo(5 + k * 4, 6 + (k % 2) * 3); x.lineTo(7 + k * 4, 20); x.fill(); } r(2, 20, 20, 2, col); }
+  if (m === 'spore') { [[7, 8, 3], [15, 7, 2], [12, 14, 4], [6, 17, 2], [18, 16, 3]].forEach(([a, b, s]) => { disc(a, b, s, col); disc(a - 1, b - 1, Math.max(1, s - 2), '#fff3a0'); }); }
+  if (m === 'egg') { [[8, 14], [15, 12], [12, 18]].forEach(([a, b]) => { disc(a, b, 4, '#e8e0c0'); disc(a, b, 3, col); r(a - 1, b - 2, 1, 1, '#fff'); }); }
+  if (m === 'eye') { disc(12, 12, 9, '#e8e0d0'); disc(12, 12, 5, col); r(11, 8, 2, 8, '#07050a'); r(9, 9, 2, 1, '#ffffff'); }
+  if (m === 'wave') { for (let k = 0; k < 3; k++) for (let i = 0; i < 20; i++) r(2 + i, 7 + k * 5 + Math.round(Math.sin(i * 0.6 + k) * 2), 1, 2, k === 1 ? '#ffffff' : col); }
+  if (m === 'tent') { for (let k = 0; k < 3; k++) for (let i = 0; i < 18; i++) disc(5 + k * 7 + Math.round(Math.sin(i * 0.5 + k) * 2), 21 - i, Math.max(1, 2 - Math.floor(i / 8)), i % 4 ? col : dk); }
+  if (m === 'pulse') { disc(12, 13, 7, col); disc(12, 13, 4, '#fff3a0'); r(2, 12, 6, 2, col); r(16, 12, 6, 2, col); }
+  if (m === 'shell') { disc(12, 13, 9, '#cfc8b4'); disc(12, 13, 7, dk); for (let k = 0; k < 4; k++) r(5, 8 + k * 3, 14, 1, '#cfc8b4'); }
+  if (m === 'star') { r(11, 2, 2, 20, col); r(2, 11, 20, 2, col); r(7, 7, 10, 10, dk); disc(12, 12, 3, '#fff3a0'); }
+  if (m === 'drop') { for (let j = 0; j < 14; j++) r(12 - Math.round(j / 2), 4 + j, Math.round(j) + 1, 1, col); disc(12, 17, 6, col); r(9, 13, 2, 3, '#ffffff'); }
+  if (m === 'brand') { disc(12, 12, 9, dk); r(11, 4, 2, 16, col); r(5, 11, 14, 2, col); disc(12, 12, 3, '#fff3a0'); }
+  if (m === 'thorn') { for (let k = 0; k < 6; k++) { x.strokeStyle = k % 2 ? '#5a2a3a' : '#2a1018'; x.lineWidth = 2; x.beginPath(); x.moveTo(12, 12); x.lineTo(12 + Math.cos(k) * 11, 12 + Math.sin(k) * 11); x.stroke(); } disc(12, 12, 4, '#07050a'); r(11, 11, 2, 2, '#c8303a'); }
+  return (DKART[key] = c);
+}
+const dkArtUrl = v => { const c = dkArtCanvas(v); return c.__u || (c.__u = c.toDataURL()); };
+
+// ---------------- 카드 앞면 ----------------
+const DKTYPE = { organ: '기관', trap: '부위', kin: '권속', spell: '주문', curse: '저주' };
+const DKRAR = { s: '처음', c: '보통', u: '드묾', r: '옛것급', x: '저주' };
+function dkView(c) { const v = DECK.view(c); if (v && v.type === 'kin') { v.secretId = c.secret || null; } return v; }
+function dkFace(v, o) {
+  o = o || {}; if (!v) return '';
+  const cost = o.cost != null ? o.cost : v.cost, cls = 'dkc asp-' + v.asp + ' rar-' + v.rar + ' t-' + v.type + (o.cls ? ' ' + o.cls : '') + (o.dim ? ' dim' : '');
+  return `<div class="${cls}"${o.d ? ` data-d="${o.d}"` : ''}${o.uid != null ? ` data-uid="${o.uid}"` : ''}${o.i != null ? ` data-i="${o.i}"` : ''}${o.id ? ` data-id="${o.id}"` : ''}><b class="dkc-cost">${v.type === 'curse' ? '✕' : cost}</b><i class="dkc-gem"></i><span class="dkc-art"><img src="${dkArtUrl(v)}" alt=""></span><b class="dkc-nm">${esc(v.name)}</b><span class="dkc-tx">${esc(o.up ? v.textUp || v.text : v.text || '')}</span><em class="dkc-ty">${DKTYPE[v.type] || ''}</em></div>`;
+}
+const dkDefView = (id, up) => DECK.view({ uid: 0, id, up: up || 0, secret: null, pairNights: 0 });
+
+// ---------------- 뼈대 ----------------
+function dkMount() {
+  if (dk$('deck')) return;
+  const d = document.createElement('div'); d.id = 'deck'; d.hidden = true;
+  d.innerHTML = `<div class="dk-top"><b id="dk-when"></b><span id="dk-ess" class="dk-stat"></span><span id="dk-hp" class="dk-stat"></span><button class="btn sm" data-d="menu" aria-label="메뉴">≡</button></div>
+<div class="dk-mapw" id="dk-mapw"><canvas id="dk-cv"></canvas><div id="dk-chips"></div><div id="dk-floats"></div><div id="dk-banner" hidden></div><div id="dk-tip" hidden></div></div>
+<div id="dk-low"></div><div id="dk-sheet" hidden></div><div id="dk-ov" hidden></div><div id="dk-toast" hidden></div>`;
+  document.body.appendChild(d);
+  d.addEventListener('click', dkClick);
+  d.addEventListener('pointerdown', dkDown); d.addEventListener('pointerup', dkUp); d.addEventListener('pointercancel', dkUp); d.addEventListener('pointerleave', dkUp);
+  d.addEventListener('contextmenu', e => { if (e.target.closest('.dkc')) e.preventDefault(); });
+  dk$('dk-cv').addEventListener('click', dkMapTap);
+  window.addEventListener('resize', () => { if (!d.hidden) dkSize(); });
+  if (window.ResizeObserver) new ResizeObserver(() => { if (!d.hidden && DKU.R) dkSize(); }).observe(dk$('dk-mapw'));
+  document.addEventListener('keydown', e => { if (d.hidden) return; if (e.key === 'Escape') { if (DKU.sheet) dkSheet(null); else if (DKU.sel != null) { DKU.sel = null; dkRender(); } } if ((e.key === 'e' || e.key === 'E') && DKU.R && DKU.R.phase === 'night' && !DKU.busy) dkEndTurn(); });
+}
+function deckOpen() {
+  dkMount(); dkMeta(); const t = dk$('title'); if (t) t.hidden = true; const g = dk$('game'); if (g) g.hidden = true;
+  dk$('deck').hidden = false; DKU.R = null; dkStart();
+}
+function dkClose() { cancelAnimationFrame(DKU.raf); DKU.raf = 0; dkSave(); dk$('deck').hidden = true; DKU.R = null; dkSheet(null); dkOv(null); showTitle(); }
+
+// ---------------- 덮개와 창 ----------------
+function dkOv(html, cls) { const o = dk$('dk-ov'); if (!html) { o.hidden = true; o.innerHTML = ''; o.className = ''; return; } o.className = cls || ''; o.innerHTML = html; o.hidden = false; o.scrollTop = 0; }
+function dkSheet(kind, html) { const s = dk$('dk-sheet'); DKU.sheet = kind; if (!kind) { s.hidden = true; s.innerHTML = ''; return; } s.innerHTML = `<div class="dk-grab"></div><button class="btn sm dk-x" data-d="close" aria-label="닫기">✕</button>${html}`; s.hidden = false; s.scrollTop = 0; }
+let dkToastT = 0;
+function dkToast(s) { const t = dk$('dk-toast'); t.textContent = s; t.hidden = false; clearTimeout(dkToastT); dkToastT = setTimeout(() => { t.hidden = true; }, 2600); }
+function dkBanner(s, col) { const b = dk$('dk-banner'); b.textContent = s; b.style.setProperty('--bc', col || '#e8c030'); b.hidden = false; b.classList.remove('go'); void b.offsetWidth; b.classList.add('go'); clearTimeout(b.__t); b.__t = setTimeout(() => { b.hidden = true; }, 1600); }
+function dkTip(s) { const t = dk$('dk-tip'); if (!s) { t.hidden = true; return; } t.textContent = s; t.hidden = false; }
+
+// ---------------- 시작 화면 ----------------
+const DKASP = ['abyss', 'nebula', 'brood', 'dusk', 'hunger'];
+function dkStart(sel) {
+  cancelAnimationFrame(DKU.raf); DKU.raf = 0; dkMus('title');
+  const saved = dkLoad(), m = dkMeta(), a = sel || DKU.startAsp || 'brood'; DKU.startAsp = a;
+  const open = CARDS.LIST.filter(d => d.type !== 'curse' && d.rar !== 's' && CARDS.isOpen(d, m)).length, all = CARDS.LIST.filter(d => d.type !== 'curse' && d.rar !== 's').length;
+  const tr = DECK.TRAIT[a], start = (CARDS.START[a] || []).map(id => dkDefView(id));
+  dkOv(`<div class="dk-start"><h2>덱 <small>시험판</small></h2><p class="dk-sub">카드로 둥지를 키우고 밤을 막는다</p>
+${saved ? `<button class="btn pri dk-wide" data-d="cont">이어하기 <small>${CARDS.ASPN[saved.aspect]} · ${saved.act}막 ${Math.min(saved.night, DECK.K.nights + 1)}밤</small></button>` : ''}
+<p class="dk-lab">빛깔을 고른다</p><div class="dk-asps">${DKASP.map(k => `<button class="dk-asp${k === a ? ' on' : ''}" data-d="asp" data-v="${k}" style="--c:${DKCOL[k]}"><i></i>${CARDS.ASPN[k]}</button>`).join('')}</div>
+<div class="dk-trait" style="--c:${DKCOL[a]}"><b>${esc(tr.name)}</b><span>${esc(tr.text)}</span></div>
+<p class="dk-lab">처음 덱 ${start.length}장</p><div class="dk-row dk-mini">${start.map(v => dkFace(v, { cls: 'mini', d: 'peek', id: v.id })).join('')}</div>
+<button class="btn pri dk-wide" data-d="go">${CARDS.ASPN[a]}으로 시작</button>
+<div class="dk-row2"><button class="btn" data-d="codex">도감 ${open}/${all}</button><button class="btn" data-d="home">돌아가기</button></div></div>`, 'dk-full');
+}
+function dkBegin(aspect, seed) {
+  store.del('deckrun'); const m = dkMeta();
+  DKU.R = DECK.newRun(seed != null ? seed : (Date.now() ^ (Math.random() * 1e9)) >>> 0, { aspect, meta: m });
+  DKU.pos = {}; DKU.sel = null; DKU.pick = null; dkOv(null); dkSave(); dkGo();
+}
+function dkGo() { dkOv(null); dkSheet(null); dkSize(); dkRender(); if (!DKU.raf) DKU.raf = requestAnimationFrame(dkLoop); dkMus(DKU.R.phase === 'night' ? 'night' : 'day'); dkPhase(); }
+// 국면이 바뀌면 그에 맞는 덮개
+function dkPhase() {
+  const R = DKU.R; if (!R) return;
+  if (R.phase === 'reward') return dkReward();
+  if (R.phase === 'over') return dkOver();
+  if (R.phase === 'day' && R.offer) return dkOffer();
+}
+
+// ---------------- 지도 ----------------
+const DKG = { W: 0, H: 0, cw: 0, ch: 0, ox: 0, oy: 0, dpr: 1 };
+function dkSize() {
+  const w = dk$('dk-mapw'), cv = dk$('dk-cv'), R = DKU.R; if (!w || !R) return;
+  const W = w.clientWidth, H = w.clientHeight, dpr = Math.min(2, window.devicePixelRatio || 1);
+  cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); cv.style.width = W + 'px'; cv.style.height = H + 'px';
+  const ch0 = Math.floor((H - 44) / R.rows), cw = Math.floor(Math.min((W - 8) / R.cols, ch0 * 1.5)), ch = Math.floor(Math.min(ch0, cw * 1.7));
+  Object.assign(DKG, { W, H, cw, ch, ox: Math.floor((W - cw * R.cols) / 2), oy: Math.max(38, Math.floor((H - ch * R.rows) / 2)), dpr });
+}
+const dkRect = i => { const R = DKU.R, c = i % R.cols, r = Math.floor(i / R.cols); return { x: DKG.ox + c * DKG.cw, y: DKG.oy + r * DKG.ch, w: DKG.cw, h: DKG.ch }; };
+function dkCellAt(px, py) { const R = DKU.R; const c = Math.floor((px - DKG.ox) / DKG.cw), r = Math.floor((py - DKG.oy) / DKG.ch); if (c < 0 || r < 0 || c >= R.cols || r >= R.rows) return -1; return r * R.cols + c; }
+const dkHash = (a, b) => { let h = (a * 374761393 + b * 668265263) | 0; h = (h ^ (h >>> 13)) * 1274126177; return ((h ^ (h >>> 16)) >>> 0) / 4294967296; };
+function dkDrawCell(x, i, t) {
+  const R = DKU.R, c = R.cells[i], r = dkRect(i), g = 2, path = DKU.path || [];
+  const canDig = R.phase === 'day' && DKU.pick === 'dig' && DECK.digOptions(R).includes(i);
+  if (!c.dug) {
+    x.fillStyle = '#0c0a12'; x.fillRect(r.x + g, r.y + g, r.w - g * 2, r.h - g * 2);
+    for (let k = 0; k < 5; k++) { x.fillStyle = 'rgba(80,70,100,' + (0.12 + dkHash(i, k) * 0.12) + ')'; x.fillRect(r.x + 4 + dkHash(i, k + 9) * (r.w - 10), r.y + 4 + dkHash(i, k + 3) * (r.h - 10), 3, 2); }
+    if (canDig) { const a = 0.5 + 0.4 * Math.sin(t / 300 + i); x.strokeStyle = 'rgba(232,192,48,' + a + ')'; x.lineWidth = 2; x.strokeRect(r.x + 4, r.y + 4, r.w - 8, r.h - 8); dkText(x, '파기', r.x + r.w / 2, r.y + r.h / 2, '#fff3a0', 12); }
+    return;
+  }
+  const onPath = path.includes(i);
+  x.fillStyle = i === R.core ? '#2a2236' : onPath ? '#221c2e' : '#1c1826'; x.fillRect(r.x + g, r.y + g, r.w - g * 2, r.h - g * 2);
+  x.fillStyle = '#15111e'; x.fillRect(r.x + g, r.y + r.h - g - 6, r.w - g * 2, 6);
+  if (onPath) { x.fillStyle = 'rgba(232,192,48,.25)'; for (let k = 0; k < 3; k++) x.fillRect(r.x + r.w / 2 - 1, r.y + 6 + k * (r.h - 12) / 3, 2, 4); }
+  if (i === R.ent) { x.fillStyle = 'rgba(150,170,220,.18)'; x.fillRect(r.x + r.w / 2 - 8, r.y, 16, r.h * 0.6); dkText(x, '입구', r.x + r.w / 2, r.y + 10, '#a2a8c6', 10); }
+  if (i === R.core) { const p = 1 + 0.06 * Math.sin(t / 400); const cx = r.x + r.w / 2, cy = r.y + r.h - 18, rr = Math.min(r.w, r.h) * 0.2 * p; const gr = x.createRadialGradient(cx, cy, 2, cx, cy, rr * 2.2); gr.addColorStop(0, DKCOL[R.aspect] + 'aa'); gr.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = gr; x.fillRect(r.x, r.y, r.w, r.h); x.fillStyle = '#d8e8e0'; x.beginPath(); x.ellipse(cx, cy, rr, rr * 0.8, 0, 0, Math.PI * 2); x.fill(); x.fillStyle = '#07050a'; x.fillRect(cx - rr * 0.4, cy - rr * 0.2, 2, 2); x.fillRect(cx + rr * 0.3, cy - rr * 0.2, 2, 2); }
+  if (c.organ) { const v = dkView(c.organ), s = Math.min(r.w, r.h) * 0.5; x.globalAlpha = 0.95; x.drawImage(dkArtCanvas(v), r.x + r.w / 2 - s / 2, r.y + 4, s, s); x.globalAlpha = 1; x.strokeStyle = DKCOL[v.asp]; x.lineWidth = 1; x.strokeRect(r.x + 3.5, r.y + 3.5, r.w - 7, r.h - 7); }
+  c.traps.forEach((tr, k) => { const v = DECK.view({ uid: 0, id: tr.id, up: 0 }), s = Math.max(12, Math.min(18, r.w * 0.3)); if (!v) return; x.drawImage(dkArtCanvas(v), r.x + 3 + k * (s + 1), r.y + r.h - s - 7, s, s); x.fillStyle = '#fff3a0'; x.font = '700 9px "IBM Plex Sans KR", sans-serif'; x.textAlign = 'left'; x.fillText(String(tr.charges), r.x + 4 + k * (s + 1), r.y + r.h - s - 8); });
+  if (c.corpses) { x.fillStyle = '#8a4a4a'; for (let k = 0; k < Math.min(3, c.corpses); k++) x.fillRect(r.x + r.w - 10 - k * 5, r.y + r.h - 10, 4, 3); }
+  if (DKU.pvCell === i && !DKU.hl.length) { x.strokeStyle = 'rgba(232,192,48,' + (0.35 + 0.3 * Math.sin(t / 300)) + ')'; x.setLineDash([4, 3]); x.lineWidth = 2; x.strokeRect(r.x + 5, r.y + 5, r.w - 10, r.h - 10); x.setLineDash([]); }
+  if (DKU.hl.includes(i)) { const a = 0.55 + 0.35 * Math.sin(t / 220); x.strokeStyle = 'rgba(127,208,79,' + a + ')'; x.lineWidth = 3; x.strokeRect(r.x + 3, r.y + 3, r.w - 6, r.h - 6); }
+}
+function dkText(x, s, px, py, col, size) { x.font = '700 ' + size + 'px "IBM Plex Sans KR", "Apple SD Gothic Neo", sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.lineWidth = 3; x.strokeStyle = 'rgba(7,5,10,.85)'; x.strokeText(s, px, py); x.fillStyle = col; x.fillText(s, px, py); }
+function dkUnitSprite(u, side) {
+  if (side === 'kin') { try { return kinCanvas(u.kind === 'infected' ? 'licker' : u.kind, 0, u.secret || null); } catch (e) { return null; } }
+  if (u.boss && u.kind === 'seeker' && typeof HEROART !== 'undefined') return HEROART.seeker(Math.max(0, (DKU.R.act || 1) - 1));
+  try { return invCanvasW(DKU.R.world, u.kind); } catch (e) { return null; }
+}
+function dkDrawUnits(x, t) {
+  const R = DKU.R, v = DKU.nv; if (!v) return;
+  const per = {}, place = (u, side) => { const k = u.cell + side; per[k] = (per[k] || 0) + 1; return per[k] - 1; };
+  const draw = (u, side) => {
+    const n = place(u, side), r = dkRect(u.cell), s = Math.max(20, Math.min(34, r.w * 0.55)), max = Math.max(1, Math.floor((r.h - 10) / (s * 0.7)));
+    if (n >= max) { if (n === max) dkText(x, '+', side === 'kin' ? r.x + 8 : r.x + r.w - 8, r.y + r.h - 8, '#fff', 11); return; }
+    const tx = side === 'kin' ? r.x + 4 : r.x + r.w - s - 4, ty = r.y + 4 + n * s * 0.7;
+    const P = DKU.pos[u.uid] || (DKU.pos[u.uid] = { x: side === 'inv' ? dkRect(R.ent).x + r.w - s : tx, y: side === 'inv' ? dkRect(R.ent).y - s : ty });
+    P.x += (tx - P.x) * 0.18; P.y += (ty - P.y) * 0.18;
+    const sp = dkUnitSprite(u, side); if (sp) { x.save(); if (side === 'kin') { x.translate(P.x + s, P.y); x.scale(-1, 1); x.drawImage(sp, 0, 0, s, s); } else x.drawImage(sp, P.x, P.y, s, s); x.restore(); }
+    const f = Math.max(0, u.hp / u.mhp); x.fillStyle = '#07050a'; x.fillRect(P.x, P.y + s, s, 3); x.fillStyle = side === 'kin' ? '#7fd04f' : u.boss ? '#e8c030' : '#f47c81'; x.fillRect(P.x, P.y + s, s * f, 3);
+    if (side === 'inv' && (u.inf || u.mark || u.hold || u.mad)) { let k = 0; [['inf', '#7fd04f'], ['mark', '#f0a04a'], ['hold', '#3fb8d0'], ['mad', '#b08fff']].forEach(([q, cl]) => { if (u[q]) { x.fillStyle = cl; x.fillRect(P.x + k * 5, P.y - 3, 4, 3); k++; } }); }
+  };
+  v.kin.forEach(u => draw(u, 'kin')); v.enemies.forEach(u => draw(u, 'inv'));
+}
+function dkLoop(t) {
+  DKU.raf = requestAnimationFrame(dkLoop); const R = DKU.R, cv = dk$('dk-cv'); if (!R || !cv || dk$('deck').hidden) return;
+  const x = cv.getContext('2d'); x.setTransform(DKG.dpr, 0, 0, DKG.dpr, 0, 0); x.imageSmoothingEnabled = false;
+  x.fillStyle = '#07050a'; x.fillRect(0, 0, DKG.W, DKG.H);
+  for (let i = 0; i < R.cells.length; i++) dkDrawCell(x, i, t);
+  if (R.phase === 'night') dkDrawUnits(x, t);
+  DKU.floats = DKU.floats.filter(f => t - (f.t0 || (f.t0 = t)) < 1100);
+  DKU.floats.forEach(f => { const r = dkRect(f.cell), k = (t - f.t0) / 1100; x.globalAlpha = 1 - k; dkText(x, f.s, r.x + r.w / 2 + (f.dx || 0), r.y + r.h / 2 - 10 - k * 22, f.col, f.big ? 15 : 12); x.globalAlpha = 1; });
+}
+function dkFloat(cell, s, col, big, dx) { if (cell == null || cell < 0) return; DKU.floats.push({ cell, s, col: col || '#fff', big, dx: dx || 0 }); }
+
+// ---------------- 위·아래 ----------------
+function dkRender() {
+  const R = DKU.R; if (!R) return;
+  DKU.path = DECK.pathCells(R); DKU.nv = R.phase === 'night' ? DECK.nightView(R) : null;
+  const boss = R.night > DECK.K.nights;
+  dk$('dk-when').textContent = R.act + '막 · ' + (boss ? '우두머리' : R.night + '밤') + (R.phase === 'night' ? ' · ' + (DKU.nv ? DKU.nv.turn : '') + '턴' : ' · 낮');
+  dk$('dk-ess').innerHTML = `<i class="dk-ic ess"></i>${R.ess}`;
+  dk$('dk-hp').innerHTML = `<i class="dk-ic hp"></i>${Math.max(0, Math.round(R.hp))}<small>/${R.maxHp}</small>${DKU.nv && DKU.nv.block ? ` <i class="dk-ic blk"></i>${DKU.nv.block}` : ''}`;
+  const chips = [];
+  if (R.phase === 'day') {
+    chips.push(`<button class="dk-chip" data-d="deck">덱 ${R.deck.length}</button>`);
+    if (R.needleOffer) chips.push(`<button class="dk-chip hot" data-d="needle">바늘 점</button>`);
+    const organs = R.deck.filter(c => { const d = CARDS.BY[c.id]; return d && d.type === 'organ' && !c.placed; }); if (organs.length) chips.push(`<button class="dk-chip" data-d="organs">기관 놓기 ${organs.length}</button>`);
+    if (R.molts.length) chips.push(`<button class="dk-chip" data-d="molts">허물 ${R.molts.length}</button>`);
+  } else if (DKU.nv) {
+    const pv = DKU.nv.preview; if (pv && pv.length) chips.push(`<button class="dk-chip pv" data-d="pv" data-uid="${pv[0].uid}">한 장 더면 ${esc(pv[0].name)} · ${esc(pv[0].card || '')}</button>`);
+    if (DKU.nv.queue) chips.push(`<span class="dk-chip">남은 적 ${DKU.nv.queue}</span>`);
+  }
+  dk$('dk-chips').innerHTML = chips.join('');
+  dk$('dk-low').className = R.phase === 'night' ? 'night' : 'day';
+  dk$('dk-low').innerHTML = R.phase === 'night' ? dkHandHtml() : R.phase === 'day' ? dkDayBar() : '';
+  dkHighlight();
+}
+function dkDayBar() {
+  const R = DKU.R, o = DECK.dayOptions(R), a = R.actions, B = (d, ic, lb, on) => `<button class="dk-act${on ? '' : ' off'}" data-d="${d}"${on ? '' : ' disabled'}><i class="dk-ic ${ic}"></i><span>${lb}</span></button>`;
+  return `<div class="dk-acts"><span class="dk-left">행동 <b>${'●'.repeat(a)}${'○'.repeat(Math.max(0, DECK.K.dayActions - a))}</b></span>${B('dig', 'i-dig', '파기', o.includes('dig'))}${B('draft', 'i-card', '카드', o.includes('draft'))}${B('upgrade', 'i-up', '강화', true)}${B('remove', 'i-rm', '빼기', true)}${B('shop', 'i-shop', '상점', o.includes('shop'))}</div><button class="btn pri dk-night" data-d="night">밤 맞기</button>`;
+}
+function dkHandHtml() {
+  const v = DKU.nv; if (!v) return '';
+  const n = v.hand.length, cards = v.hand.map((c, k) => { const lift = DKU.sel === c.uid; return dkFace(c, { d: 'card', uid: c.uid, cost: c.costNow, cls: (lift ? 'lift' : '') + (c.sealed ? ' sealed' : c.can && c.cells.length ? '' : ' no'), i: k }); }).join('');
+  return `<div class="dk-hud"><span class="dk-orbs">${Array.from({ length: Math.max(v.energy, 3) }, (x, k) => `<i class="${k < v.energy ? 'on' : ''}"></i>`).join('')}<b>${v.energy}</b></span><span class="dk-piles">덱 ${v.drawN} · 버림 ${v.discardN}</span><button class="btn pri dk-end" data-d="end">턴 끝</button></div><div class="dk-hand" style="--n:${n}">${cards}</div>`;
+}
+function dkHighlight() {
+  const R = DKU.R; DKU.hl = [];
+  if (R.phase === 'night' && DKU.sel != null && DKU.nv) { const c = DKU.nv.hand.find(h => h.uid === DKU.sel); if (c && c.cells[0] !== null) DKU.hl = c.cells; }
+  if (R.phase === 'day' && DKU.pick === 'organ') DKU.hl = R.cells.map((c, i) => i).filter(i => R.cells[i].dug && !R.cells[i].organ && i !== R.core);
+  if (R.phase === 'day' && DKU.pick === 'dig') DKU.hl = [];
+  DKU.pvCell = R.phase === 'night' && DKU.nv && DKU.nv.preview && DKU.nv.preview[0] && DKU.nv.preview[0].cell != null ? DKU.nv.preview[0].cell : null;
+  const c = DKU.sel != null && DKU.nv ? DKU.nv.hand.find(h => h.uid === DKU.sel) : null;
+  dkTip(DKU.pick === 'dig' ? '팔 칸을 누른다' : DKU.pick === 'organ' ? '기관을 놓을 칸을 누른다' : c ? (c.cells[0] === null ? '한 번 더 누르면 낸다' : '빛나는 칸을 누른다') : null);
+}
+
+// ---------------- 누르기 ----------------
+function dkDown(e) { const c = e.target.closest('.dkc'); if (!c) return; DKU.lpFired = false; clearTimeout(DKU.lpT); DKU.lpT = setTimeout(() => { DKU.lpFired = true; dkDetail(c); }, 480); }
+function dkUp() { clearTimeout(DKU.lpT); }
+function dkDetail(el) {
+  const R = DKU.R; let v = null;
+  if (el.dataset.uid && R) { const c = R.deck.find(x => x.uid === +el.dataset.uid); if (c) v = dkView(c); }
+  if (!v && el.dataset.id) v = dkDefView(el.dataset.id);
+  if (!v) return; const d = CARDS.BY[v.id] || {}, up = d.textUp && v.up === 0;
+  dkSheet('detail', `<div class="dk-detail">${dkFace(v, { cls: 'big' })}<div class="dk-dt"><p class="dk-tag" style="--c:${DKCOL[v.asp]}">${CARDS.ASPN[v.asp]} · ${DKTYPE[v.type]} · ${DKRAR[v.rar] || ''}</p><p>${esc(d.more || v.text || '')}</p>${up ? `<p class="dk-mute">강화하면: ${esc(d.textUp)}</p>` : ''}${d.unlock && !CARDS.isOpen(d, dkMeta()) && CARDS.UNLOCK[d.unlock] ? `<p class="dk-lock">${CARDS.UNLOCK[d.unlock].hard ? '<b class="dk-hard">도전</b> ' : ''}열리는 조건: ${esc(CARDS.UNLOCK[d.unlock].text)}</p>` : ''}${d.lore ? `<p class="dk-mute">${esc(d.lore)}</p>` : ''}</div></div>`);
+}
+function dkClick(e) {
+  if (DKU.lpFired) { DKU.lpFired = false; e.preventDefault(); return; }
+  const el = e.target.closest('[data-d]'); if (!el) return; const d = el.dataset.d, R = DKU.R;
+  dkSnd('click');
+  if (d === 'close') return dkSheet(null);
+  if (d === 'home') return dkClose();
+  if (d === 'asp') return dkStart(el.dataset.v);
+  if (d === 'go') return dkBegin(DKU.startAsp || 'brood');
+  if (d === 'cont') { DKU.R = dkLoad(); if (!DKU.R) return dkStart(); if (DKU.R.phase === 'night') { DKU.R.phase = 'day'; DKU.R.N = null; } return dkGo(); }
+  if (d === 'codex') return dkCodex();
+  if (d === 'back') return dkStart();
+  if (d === 'cfilter') { DKU.filter = el.dataset.v; return dkCodex(); }
+  if (d === 'peek') return dkDetail(el);
+  if (d === 'menu') return dkMenu();
+  if (d === 'quit') { dkSheet(null); return dkClose(); }
+  if (d === 'giveup') { if (!el.dataset.sure) { el.dataset.sure = 1; el.textContent = '정말 포기?'; return; } dkSheet(null); R.N = null; R.phase = 'over'; R.over = { win: false, act: R.act, night: R.night, score: DECK.score(R, false), unlocks: [] }; R.meta.runs = (R.meta.runs || 0) + 1; return dkOver(); }
+  if (!R) return;
+  if (d === 'deck') return dkDeckView();
+  if (d === 'molts') return dkSheet('molts', `<h3>허물</h3><div class="dk-list">${R.molts.map(m => `<div class="dk-li"><b>${esc(CARDS.MOLT[m].name)}</b><span>${esc(CARDS.MOLT[m].text)}</span></div>`).join('')}</div>`);
+  if (d === 'organs') return dkOrganList();
+  if (d === 'porgan') { DKU.pick = 'organ'; DKU.pickUid = +el.dataset.uid; dkSheet(null); return dkRender(); }
+  if (d === 'dig') { DKU.pick = DKU.pick === 'dig' ? null : 'dig'; return dkRender(); }
+  if (d === 'draft') { const r = DECK.draft(R); if (r.ok) dkOffer(); return dkRender(); }
+  if (d === 'reroll') { const r = DECK.reroll(R); if (!r.ok) dkToast(r.msg || '진액이 모자란다'); return dkOffer(); }
+  if (d === 'take') { DECK.takeOffer(R, +el.dataset.i); dkSnd('up'); dkSheet(null); dkSave(); return dkRender(); }
+  if (d === 'skip') { DECK.skipOffer(R); dkSheet(null); dkSave(); return dkRender(); }
+  if (d === 'upgrade') return dkUpList();
+  if (d === 'doup') { const sec = el.dataset.sec === '1', pay = el.dataset.pay === '1'; const r = pay ? DECK.buyUpgrade(R, +el.dataset.uid, sec) : DECK.upgrade(R, +el.dataset.uid, sec); if (!r.ok) { dkToast(r.msg || '할 수 없다'); return; } dkSnd('evo'); dkSave(); dkRender(); return dkUpDone(r.card, sec); }
+  if (d === 'remove') return dkRmList();
+  if (d === 'dorm') { const pay = el.dataset.pay === '1'; const r = pay ? DECK.buyRemove(R, +el.dataset.uid) : DECK.removeCard(R, +el.dataset.uid); if (!r.ok) { dkToast(r.msg || '할 수 없다'); return; } dkSave(); dkRender(); return dkRmList(); }
+  if (d === 'shop') { if (!R.shop) { const r = DECK.openShop(R); if (!r.ok) return; } dkSave(); dkRender(); return dkShop(); }
+  if (d === 'buy') { const r = DECK.shopBuy(R, el.dataset.i === 'molt' ? 'molt' : +el.dataset.i); if (!r.ok) { dkToast('진액이 모자란다'); return; } dkSnd('coin'); dkSave(); dkRender(); return dkShop(); }
+  if (d === 'night') return dkNight();
+  if (d === 'card') return dkCardTap(+el.dataset.uid);
+  if (d === 'pv') { DKU.sel = null; return dkCardTap(+el.dataset.uid); }
+  if (d === 'end') return dkEndTurn();
+  if (d === 'reward') { const R2 = R; DECK.takeReward(R2, el.dataset.i === 'skip' ? null : +el.dataset.i, DKU.moltPick || null); DKU.moltPick = null; dkOv(null); dkSave(); dkMus('day'); dkRender(); return dkPhase(); }
+  if (d === 'molt') { DKU.moltPick = el.dataset.v; return dkReward(); }
+  if (d === 'needle') return dkNeedle('start');
+  if (d === 'paytbl') return dkSheet('pay', `<h3>바늘 점 족보</h3><div class="dk-list">${DECK.NHANDS.slice(1).map(h => `<div class="dk-li"><b>${esc(h.name)}</b><span>건 것 ×${h.pay}${h.extra ? (h.extra.indexOf('molt') === 0 ? ' · 허물' : ' · 옛것급 카드') : ''}</span></div>`).join('')}</div><p class="dk-mute">흩어진 별이면 건 것을 잃는다. 크게 걸고 잃으면 저주가 붙는다.</p>`);
+  if (d === 'nbet') return dkNeedle('bet', el.dataset.v, +el.dataset.uid);
+  if (d === 'nopen') return dkNeedle('open');
+  if (d === 'nfold') return dkNeedle('fold');
+  if (d === 'ndone') { DKU.needleRes = null; dkOv(null); dkSave(); dkRender(); return dkPhase(); }
+  if (d === 'again') { const a = R.aspect; DKU.R = null; return dkStart(a); }
+  if (d === 'digok') { dkOv(null); dkRender(); return dkPhase(); }
+}
+function dkMenu() {
+  const R = DKU.R;
+  dkSheet('menu', `<h3>메뉴</h3><div class="dk-col">${R && R.phase !== 'over' ? `<button class="btn" data-d="deck">덱 보기 (${R.deck.length})</button>` : ''}<button class="btn" data-d="codex">도감</button><button class="btn" data-d="quit">처음 화면 ${R && R.phase === 'day' ? '(저장)' : ''}</button>${R && R.phase !== 'over' ? '<button class="btn bad" data-d="giveup">이 판 포기</button>' : ''}</div>${R ? `<p class="dk-mute">${CARDS.ASPN[R.aspect]} · ${esc(DECK.TRAIT[R.aspect].name)}: ${esc(DECK.TRAIT[R.aspect].text)}</p>` : ''}`);
+}
+
+// ---------------- 낮 ----------------
+function dkOffer() {
+  const R = DKU.R; if (!R.offer) return dkSheet(null);
+  const price = DECK.K.reroll * (R.rerolls + 1);
+  dkSheet('offer', `<h3>${R.offer.why === 'bones' ? '옛 뼈에서 나온 것' : '셋 중 하나'}</h3><div class="dk-pick3">${R.offer.cards.map((o, k) => dkFace(dkDefView(o.id, o.up), { d: 'take', i: k, id: o.id, cls: 'pick' })).join('')}</div><div class="dk-row2"><button class="btn" data-d="reroll"${R.ess < price ? ' disabled' : ''}>다시 뽑기 ${price}</button><button class="btn" data-d="skip">안 받기</button></div><p class="dk-mute">길게 누르면 자세히</p>`);
+}
+function dkUpList() {
+  const R = DKU.R, o = DECK.upgradeOptions(R), act = R.actions > 0, price = DECK.essPrice(R, 'up');
+  dkSheet('up', `<h3>강화 <small>행동 1 또는 진액 ${price}</small></h3>${o.length ? `<div class="dk-list">${o.map(x => { const c = R.deck.find(q => q.uid === x.uid), v = dkView(c), nx = dkView(Object.assign({}, c, { up: c.up + 1 })); return `<div class="dk-uprow">${dkFace(v, { cls: 'mini', uid: c.uid, d: 'peek' })}<span class="dk-arrow">→</span>${dkFace(nx, { cls: 'mini' })}<div class="dk-col">${act ? `<button class="btn sm pri" data-d="doup" data-uid="${c.uid}">행동</button>` : ''}<button class="btn sm" data-d="doup" data-pay="1" data-uid="${c.uid}"${R.ess < price ? ' disabled' : ''}>진액 ${price}</button>${x.secret ? `<button class="btn sm hot" data-d="doup" data-sec="1"${act ? '' : ' data-pay="1"'} data-uid="${c.uid}">비밀 갈래</button>` : ''}</div></div>`; }).join('')}</div>` : '<p class="dk-mute">강화할 카드가 없다</p>'}`);
+}
+function dkUpDone(v, sec) { dkSheet(null); dkOv(`<div class="dk-pop"><p class="dk-lab">${sec ? '비밀 갈래' : '강화'}</p>${dkFace(v, { cls: 'big' + (sec ? ' secret' : '') })}<button class="btn pri" data-d="digok">좋다</button></div>`, 'dk-dim'); }
+function dkRmList() {
+  const R = DKU.R, act = R.actions > 0, price = DECK.essPrice(R, 'rm'), list = R.deck.filter(c => !c.placed);
+  dkSheet('rm', `<h3>카드 빼기 <small>덱에서 없앤다 · 행동 1 또는 진액 ${price}</small></h3><div class="dk-list">${list.map(c => { const v = dkView(c); return `<div class="dk-uprow">${dkFace(v, { cls: 'mini', uid: c.uid, d: 'peek' })}<div class="dk-col">${act ? `<button class="btn sm" data-d="dorm" data-uid="${c.uid}">행동으로</button>` : ''}<button class="btn sm" data-d="dorm" data-pay="1" data-uid="${c.uid}"${R.ess < price ? ' disabled' : ''}>진액 ${price}</button></div></div>`; }).join('')}</div>`);
+}
+function dkShop() {
+  const R = DKU.R, s = R.shop; if (!s) return;
+  dkSheet('shop', `<h3>상점 <small>진액 ${R.ess}</small></h3><div class="dk-grid">${s.items.map((it, k) => `<div class="dk-cell${it.sold ? ' sold' : ''}">${dkFace(dkDefView(it.id), { cls: 'mini', d: 'peek', id: it.id })}<button class="btn sm${R.ess >= it.price && !it.sold ? ' pri' : ''}" data-d="buy" data-i="${k}"${it.sold || R.ess < it.price ? ' disabled' : ''}>${it.sold ? '팔림' : it.price}</button></div>`).join('')}</div>${s.molt ? `<div class="dk-li molt"><b>허물 · ${esc(CARDS.MOLT[s.molt.id].name)}</b><span>${esc(CARDS.MOLT[s.molt.id].text)}</span><button class="btn sm" data-d="buy" data-i="molt"${s.molt.sold || R.ess < s.molt.price ? ' disabled' : ''}>${s.molt.sold ? '팔림' : s.molt.price}</button></div>` : ''}`);
+}
+function dkOrganList() {
+  const R = DKU.R, list = R.deck.filter(c => { const d = CARDS.BY[c.id]; return d && d.type === 'organ' && !c.placed; });
+  dkSheet('organs', `<h3>기관 놓기 <small>낮에는 진액 · 밤에는 기운 +1</small></h3><div class="dk-grid">${list.map(c => { const v = dkView(c), p = DECK.K.organDay * v.cost; return `<div class="dk-cell">${dkFace(v, { cls: 'mini', uid: c.uid, d: 'peek' })}<button class="btn sm" data-d="porgan" data-uid="${c.uid}"${R.ess < p ? ' disabled' : ''}>놓기 ${p}</button></div>`; }).join('')}</div>`);
+}
+function dkDeckView() {
+  const R = DKU.R, t = DKU.deckT || 'all', list = R.deck.filter(c => t === 'all' || (CARDS.BY[c.id] && CARDS.BY[c.id].type === t));
+  dkSheet('deck', `<h3>덱 ${R.deck.length}장</h3><div class="dk-tabs">${['all', 'organ', 'trap', 'kin', 'spell', 'curse'].map(k => `<button class="dk-tab${k === t ? ' on' : ''}" data-d="deckt" data-v="${k}">${k === 'all' ? '전부' : DKTYPE[k]}</button>`).join('')}</div><div class="dk-grid">${list.map(c => `<div class="dk-cell">${dkFace(dkView(c), { cls: 'mini' + (c.placed ? ' placed' : ''), uid: c.uid, d: 'peek' })}</div>`).join('')}</div>`);
+}
+document.addEventListener('click', e => { const t = e.target.closest('[data-d="deckt"]'); if (t) { DKU.deckT = t.dataset.v; dkDeckView(); } });
+function dkCodex() {
+  const m = dkMeta(), f = DKU.filter || 'all', list = CARDS.LIST.filter(d => d.type !== 'curse' && d.rar !== 's' && (f === 'all' || d.asp === f));
+  const html = `<h3>도감 <small>${list.filter(d => CARDS.isOpen(d, m)).length}/${list.length}</small></h3><div class="dk-tabs">${['all'].concat(DKASP, ['none']).map(k => `<button class="dk-tab${k === f ? ' on' : ''}" data-d="cfilter" data-v="${k}">${k === 'all' ? '전부' : CARDS.ASPN[k]}</button>`).join('')}</div><div class="dk-grid">${list.map(d => { const open = CARDS.isOpen(d, m); return `<div class="dk-cell">${dkFace(dkDefView(d.id), { cls: 'mini' + (open ? '' : ' locked'), d: 'peek', id: d.id })}${open ? '' : `<span class="dk-lockt">${CARDS.UNLOCK[d.unlock] && CARDS.UNLOCK[d.unlock].hard ? '<b class="dk-hard">도전</b> ' : ''}${esc((CARDS.UNLOCK[d.unlock] && CARDS.UNLOCK[d.unlock].text) || (d.unlock && d.unlock.indexOf('part:') === 0 ? '한 방울에서 그 부위를 달기' : ''))}</span>`}</div>`; }).join('')}</div>`;
+  if (!DKU.R) { dkOv(`<div class="dk-codex">${html}<button class="btn dk-wide" data-d="back">돌아가기</button></div>`, 'dk-full'); return; }
+  dkSheet('codex', html);
+}
+// 파기: 결과를 뒤집어 보인다
+function dkDig(cell) {
+  const R = DKU.R, r = DECK.dig(R, cell); DKU.pick = null; if (!r.ok) return dkRender();
+  const T = { empty: ['빈 굴', '진액 +5'], bones: ['옛 뼈', '카드 셋 중 하나'], beast: ['땅속 짐승', '체력 −' + (r.lose || 0) + ' · 진액 +25'], egg: ['잠든 알', '권속 카드'], cursed: ['저주받은 보물', '옛것급 카드 + 저주'], altar: ['제단', '바늘 점이 열렸다'] }[r.kind] || [r.kind, ''];
+  dkSnd(r.kind === 'beast' ? 'hit' : r.kind === 'empty' ? 'step' : 'up'); dkFloat(cell, T[0], '#fff3a0', true);
+  const cards = [r.card, r.curse].filter(Boolean).map(id => dkFace(dkDefView(id), { cls: 'mini', d: 'peek', id })).join('');
+  dkOv(`<div class="dk-pop dig"><div class="dk-flip"><p class="dk-lab">파낸 것</p><h3>${T[0]}</h3><p>${T[1]}</p>${cards ? `<div class="dk-row">${cards}</div>` : ''}</div><button class="btn pri" data-d="digok">${r.kind === 'bones' ? '고르러' : '좋다'}</button></div>`, 'dk-dim');
+  dkSave(); dkRender();
+}
+function dkMapTap(e) {
+  const R = DKU.R; if (!R) return; const b = e.currentTarget.getBoundingClientRect(), i = dkCellAt(e.clientX - b.left, e.clientY - b.top); if (i < 0) return;
+  if (R.phase === 'day') {
+    if (DKU.pick === 'dig') { if (DECK.digOptions(R).includes(i)) return dkDig(i); DKU.pick = null; return dkRender(); }
+    if (DKU.pick === 'organ') { const r = DECK.placeOrgan(R, DKU.pickUid, i); DKU.pick = null; if (!r.ok) dkToast(r.msg || '놓을 수 없다'); else { dkSnd('up'); dkFloat(i, '기관', '#7fd04f', true); dkSave(); } return dkRender(); }
+    return dkCellInfo(i);
+  }
+  if (R.phase === 'night') { if (DKU.sel != null && DKU.hl.includes(i)) return dkPlay(DKU.sel, i); return dkCellInfo(i); }
+}
+function dkCellInfo(i) {
+  const R = DKU.R, c = R.cells[i]; if (!c.dug) return;
+  const items = []; if (i === R.core) items.push('<p><b>본체 방</b> · 여기까지 오면 본체가 싸운다</p>'); if (i === R.ent) items.push('<p><b>입구</b></p>');
+  if (c.organ) items.push(`<div class="dk-row">${dkFace(dkView(c.organ), { cls: 'mini', uid: c.organ.uid, d: 'peek' })}</div>`);
+  if (c.traps.length) items.push(`<p class="dk-lab">부위</p><div class="dk-list">${c.traps.map(t => `<div class="dk-li"><b>${esc(t.name)}</b><span>남은 횟수 ${t.charges}</span></div>`).join('')}</div>`);
+  const v = DKU.nv; if (v) { const es = v.enemies.filter(u => u.cell === i), ks = v.kin.filter(u => u.cell === i); if (ks.length) items.push(`<p class="dk-lab">권속</p>${ks.map(u => `<p>${esc(u.name)} · ${Math.round(u.hp)}/${u.mhp}</p>`).join('')}`); if (es.length) items.push(`<p class="dk-lab">적</p>${es.map(u => `<p>${esc(u.name)} · ${Math.round(u.hp)}/${u.mhp}${u.boss ? ' · 우두머리' : ''}</p>`).join('')}`); }
+  if (!items.length) items.push('<p class="dk-mute">빈 굴</p>');
+  dkSheet('cell', items.join(''));
+}
+
+// ---------------- 밤 ----------------
+function dkNight() {
+  const R = DKU.R; dkSave(); const r = DECK.goNight(R); if (!r.ok) return; DKU.pos = {}; DKU.sel = null; DKU.pick = null; dkSheet(null);
+  dkMus(R.night > DECK.K.nights ? 'boss' : 'night'); dkSnd('down'); dkBanner(R.night > DECK.K.nights ? '우두머리의 밤' : R.act + '막 ' + R.night + '밤', '#f47c81');
+  DKU.evi = 0; dkRender(); dkEvents();
+}
+function dkCardTap(uid) {
+  const R = DKU.R; if (R.phase !== 'night' || DKU.busy) return; const c = DKU.nv.hand.find(h => h.uid === uid); if (!c) return;
+  if (c.sealed) { dkToast('봉인되었다 · 이번 턴에는 못 낸다'); return; }
+  if (!c.can || !c.cells.length) { dkToast(c.can ? '낼 칸이 없다' : '기운이 모자란다'); return; }
+  if (DKU.sel === uid) { if (c.cells[0] === null) return dkPlay(uid, null); DKU.sel = null; return dkRender(); }
+  DKU.sel = uid; if (c.cells.length === 1 && c.cells[0] !== null && c.type !== 'kin' && c.type !== 'organ' && c.type !== 'trap') return dkPlay(uid, c.cells[0]);
+  dkRender();
+}
+function dkSnapshot() { const v = DECK.nightView(DKU.R); const m = {}; if (v) { v.enemies.forEach(e => { m[e.uid] = { hp: e.hp, cell: e.cell }; }); v.kin.forEach(k => { m[k.uid] = { hp: k.hp, cell: k.cell, kin: true }; }); } return { m, hp: DKU.R.hp }; }
+function dkDiff(before) {
+  const v = DECK.nightView(DKU.R), now = {}; if (v) { v.enemies.forEach(e => { now[e.uid] = e; }); v.kin.forEach(k => { now[k.uid] = k; }); }
+  for (const uid in before.m) { const b = before.m[uid], n = now[uid]; if (n && n.hp < b.hp - 0.5) dkFloat(n.cell, '-' + Math.round(b.hp - n.hp), b.kin ? '#ff9a8a' : '#fff3a0', false, b.kin ? -10 : 10); }
+  if (DKU.R.hp < before.hp - 0.5) dkFloat(DKU.R.core, '본체 -' + Math.round(before.hp - DKU.R.hp), '#f47c81', true);
+}
+function dkEvents(list) {
+  const R = DKU.R, ev = list || (R.N ? R.N.events : []); for (let k = DKU.evi; k < ev.length; k++) { const e = ev[k];
+    if (e.t === 'die') { dkFloat(e.cell, '쓰러짐', '#f47c81'); dkSnd('hit'); }
+    if (e.t === 'swallow') { dkFloat(e.cell, '삼켰다', '#3fb8d0', true); dkSnd('trap'); }
+    if (e.t === 'rout') dkFloat(e.cell, '달아남', '#f0a04a');
+    if (e.t === 'kindie') dkFloat(e.cell, '권속 쓰러짐', '#ff9a8a');
+    if (e.t === 'hand') { dkBanner('족보 · ' + e.name, '#e8c030'); dkSnd('evo'); }
+    if (e.t === 'learn') { const al = DECK.ALIEN[e.kind] || ''; dkToast('기억을 삼켰다: ' + (al ? al + ' → ' : '') + e.name); }
+    if (e.t === 'sap') { dkFloat(e.cell, '기관이 뜯겼다', '#a2a8c6', true); dkToast('기관이 뜯겨 덱으로 돌아왔다'); }
+  } DKU.evi = ev.length;
+}
+function dkPlay(uid, cell) {
+  const R = DKU.R, before = dkSnapshot(), ev = R.N.events, r = DECK.play(R, uid, cell); DKU.sel = null;
+  if (!r.ok) { dkToast(r.msg || '낼 수 없다'); return dkRender(); }
+  dkSnd('trap'); dkEvents(ev); dkDiff(before); if (cell != null) dkFloat(cell, '✦', '#fff3a0');
+  if (R.phase !== 'night') return dkAfterNight(); dkRender();
+}
+function dkEndTurn() {
+  const R = DKU.R; if (R.phase !== 'night' || DKU.busy) return; DKU.busy = true; DKU.sel = null;
+  const before = dkSnapshot(), ev = R.N.events; DECK.endTurn(R); dkEvents(ev); dkDiff(before); dkSnd('step');
+  setTimeout(() => { DKU.busy = false; if (R.phase !== 'night') return dkAfterNight(); dkRender(); }, 380);
+  dkRender();
+}
+function dkAfterNight() {
+  const R = DKU.R; DKU.evi = 0; DKU.nv = null; dkRender();
+  if (R.phase === 'over') return setTimeout(dkOver, 600);
+  dkBanner('밤을 넘겼다', '#7fd04f'); dkSnd('up'); setTimeout(dkReward, 700);
+}
+function dkReward() {
+  const R = DKU.R; if (R.phase !== 'reward' || !R.reward) return; dkSheet(null);
+  const ms = R.reward.molts;
+  dkOv(`<div class="dk-reward"><h2>밤을 넘겼다</h2><p class="dk-sub">진액이 고였다 · 카드 하나를 고른다</p><div class="dk-pick3">${R.reward.cards.map((o, k) => dkFace(dkDefView(o.id, o.up), { d: 'reward', i: k, id: o.id, cls: 'pick' })).join('')}</div>
+${ms && ms.length ? `<p class="dk-lab">허물 하나 (우두머리를 넘겼다)</p><div class="dk-col">${ms.map(m => `<button class="dk-molt${DKU.moltPick === m ? ' on' : ''}" data-d="molt" data-v="${m}"><b>${esc(CARDS.MOLT[m].name)}</b><span>${esc(CARDS.MOLT[m].text)}</span></button>`).join('')}</div>` : ''}
+<button class="btn dk-wide" data-d="reward" data-i="skip">카드 안 받기</button><p class="dk-mute">길게 누르면 자세히${ms && ms.length ? ' · 허물을 먼저 고른 뒤 카드를 고른다' : ''}</p></div>`, 'dk-full');
+}
+function dkOver() {
+  const R = DKU.R, o = R.over || { win: false, score: 0, unlocks: [] }; store.del('deckrun'); saveMeta(); dkSheet(null); dkMus(o.win ? 'win' : 'lose');
+  const un = o.unlocks || [];
+  dkOv(`<div class="dk-over ${o.win ? 'win' : 'lose'}"><h2>${o.win ? '일곱째 바늘이 돌아섰다' : '본체가 쓰러졌다'}</h2><p class="dk-sub">${CARDS.ASPN[R.aspect]} · ${o.act}막 ${Math.min(o.night, DECK.K.nights + 1)}밤까지 · 점수 <b>${o.score}</b></p>
+${un.length ? `<p class="dk-lab">새로 열린 카드</p>${un.map(u => `<div class="dk-un"><p class="dk-mute">${esc(u.text)}</p><div class="dk-row">${u.cards.map(id => dkFace(dkDefView(id), { cls: 'mini', d: 'peek', id })).join('')}</div></div>`).join('')}` : '<p class="dk-mute">이번에는 새로 열린 카드가 없다</p>'}${(R.meta.queue || []).length ? `<p class="dk-lab">다음 판에 더 열린다 ${R.meta.queue.length}</p>` : ''}
+<div class="dk-row2"><button class="btn pri" data-d="again">다시 한다</button><button class="btn" data-d="home">처음 화면</button></div></div>`, 'dk-full');
+}
+
+// ---------------- 바늘 점 ----------------
+const DKSIGN = ['〰', '◉', '⬮', '◐', '▼', '⊓', '│', '▲', '⋔', '≀', '△', '◯', '⋀'];
+function dkStar(s, hidden) { if (!s || hidden) return `<div class="dk-star back"><i></i></div>`; const col = s.asp === 'none' ? '#e8e0d0' : DKCOL[s.asp]; return `<div class="dk-star" style="--c:${col}"><b>${DKSIGN[s.sign] || '✦'}</b><span>${esc(DECK.SIGNS[s.sign] || '')}</span><em>${s.asp === 'none' ? '바늘' : CARDS.ASPN[s.asp]}</em></div>`; }
+function dkNeedle(op, v, uid) {
+  const R = DKU.R; let res = null;
+  if (op === 'start') { const r = DECK.needleStart(R, 'altar'); if (!r.ok) return; dkSave(); dkRender(); }
+  if (op === 'bet') { const r = DECK.needleBet(R, v === 'card' ? { kind: 'card', uid } : { kind: v, n: v === 'ess' ? 10 : 5 }); if (!r.ok) dkToast('걸 것이 없다'); else dkSnd('coin'); }
+  if (op === 'open') { const r = DECK.needleReveal(R); if (!r.ok) { dkToast(r.msg || '먼저 건다'); } else { dkSnd('trap'); if (r.result) res = r; } }
+  if (op === 'fold') { DECK.needleFold(R); dkOv(null); dkToast('접었다'); dkSave(); dkRender(); return; }
+  if (res) { DKU.needleRes = res; }
+  const n = res ? res.needle : R.needle ? (function () { const x = R.needle; return { step: x.step, stars: x.stars.slice(0, x.shown), hole: [null, null], stake: Object.assign({}, x.stake, { value: x.stake.ess + x.stake.hp * 5 + x.stake.cards.length * 30 }), done: false }; })() : null;
+  if (!n) return;
+  const shown = n.stars.length, stars = []; for (let k = 0; k < 5; k++) stars.push(dkStar(n.stars[k], k >= shown));
+  const holes = (n.hole || [null, null]).map(h => dkStar(h, !h)).join(''), kinCards = R.deck.filter(c => CARDS.BY[c.id] && CARDS.BY[c.id].type === 'kin');
+  const st = n.stake, done = !!res;
+  const out = done ? (res.result.pay > 0 ? `<p class="dk-pay win">${esc(res.result.name)} · 진액 +${res.result.pay}${res.result.gifts.length ? ' · 선물 ' + res.result.gifts.length : ''}</p>` : `<p class="dk-pay lose">${esc(res.result.name)} · 잃었다${res.result.curse ? ' · 저주가 붙었다' : ''}</p>`) : '';
+  if (done) { dkSnd(res.result.pay > 0 ? 'evo' : 'down'); dkSave(); dkRender(); }
+  dkOv(`<div class="dk-needle"><h2>바늘 점</h2><p class="dk-sub">별 다섯이 차례로 뜬다. 내 바늘 둘과 합쳐 가장 좋은 다섯을 본다</p>
+<div class="dk-sky">${stars.join('')}</div><p class="dk-lab">내 바늘</p><div class="dk-sky holes">${holes}</div>
+<p class="dk-stake">건 것 · 진액 ${st.ess} · 체력 ${st.hp} · 권속 ${st.cards.length || 0} <b>(값 ${st.value})</b></p>${out}
+${done ? '<button class="btn pri dk-wide" data-d="ndone">좋다</button>' : `<div class="dk-row2"><button class="btn" data-d="nbet" data-v="ess"${R.ess < 1 ? ' disabled' : ''}>진액 10</button><button class="btn" data-d="nbet" data-v="hp"${R.maxHp <= 20 ? ' disabled' : ''}>최대 체력 5</button>${kinCards.length ? `<button class="btn" data-d="nbet" data-v="card" data-uid="${kinCards[0].uid}">권속 1</button>` : ''}</div><div class="dk-row2"><button class="btn pri" data-d="nopen"${st.value > 0 ? '' : ' disabled'}>${n.step === 0 ? '별을 연다' : '다음 별'}</button><button class="btn" data-d="nfold">접는다</button></div>`}
+<button class="btn sm dk-paybtn" data-d="paytbl">족보와 몫</button></div>`, 'dk-full needle');
+}
+
+// 시험용
+window.__deck = { get R() { return DKU.R; }, DKU, DECK, rect: dkRect, open: deckOpen, begin: dkBegin, render: dkRender, night: dkNight, endTurn: dkEndTurn, play: dkPlay,
+  win() { const R = DKU.R; if (!R || R.phase !== 'night') return; R.N.queue.length = 0; R.N.enemies.forEach(e => { e.hp = 0; }); DECK.endTurn(R); if (R.phase !== 'night') dkAfterNight(); },
+  finish(win) { const R = DKU.R; R.phase = 'over'; R.over = { win: !!win, act: R.act, night: R.night, score: DECK.score(R, !!win), unlocks: [] }; dkOver(); } };
 // 옛 것의 둥지 — 화면 3/3: 글, 패널, 창, 낮과 밤의 흐름, 입력
 // ---------- 글 ----------
 const N_ = text => ({ narr: true, text }), E_ = text => ({ text: NEST.fj(text) });
@@ -8003,7 +9859,7 @@ function showTitle() {
   { const er = store.get('err'); if (er && $('nojs')) { $('nojs').hidden = false; $('nojs').style.display = 'block'; $('nojs').textContent = '지난번에 문제가 있었습니다. 이 줄을 그대로 알려 주세요: ' + er; } }
   G = null; busy = false; $('game').hidden = true; $('title').hidden = false; const run = store.get('run'), free = META.lastDraw !== today();
   const so = storyMeta(), fresh = !so.clear[3];
-  $('menu').innerHTML = (run ? btn('continue', null, `이어하기 <small>${run.story && NEST.STORYCH[run.story.ch] ? run.story.ch + '장 「' + NEST.STORYCH[run.story.ch].title + '」 · ' : ''}${run.day}일째${!run.story && run.sign && NEST.SIGN[run.sign] ? ' · ' + NEST.SIGN[run.sign].name : ''}</small>`, 'pri w2') : '') + btn('story', null, `이야기 <small>${so.clear[1] ? '이어서 · ' + Math.min(7, storyNext()) + '장' : '처음이라면 여기부터'} · 장마다 하나씩 배우며 줄거리를 따라간다</small>`, (run || !fresh ? '' : 'pri ') + 'w2') + btn('new', null, '자유 <small>익숙한 사람용 · 모든 것이 열린 채 40일 버티기 · 점수로 겨룬다</small>', (run || fresh ? '' : 'pri ') + 'w2') + btn('barracks', null, '명부 · 별똥별' + (free ? ' <span class="coin">●</span>' : '')) + btn('records', null, '기록 · 순위') + btn('codex', null, '도감') + btn('help', null, '도움말') + btn('settings', null, '설정', 'w2');
+  $('menu').innerHTML = (run ? btn('continue', null, `이어하기 <small>${run.story && NEST.STORYCH[run.story.ch] ? run.story.ch + '장 「' + NEST.STORYCH[run.story.ch].title + '」 · ' : ''}${run.day}일째${!run.story && run.sign && NEST.SIGN[run.sign] ? ' · ' + NEST.SIGN[run.sign].name : ''}</small>`, 'pri w2') : '') + btn('story', null, `이야기 <small>${so.clear[1] ? '이어서 · ' + Math.min(7, storyNext()) + '장' : '처음이라면 여기부터'} · 장마다 하나씩 배우며 줄거리를 따라간다</small>`, (run || !fresh ? '' : 'pri ') + 'w2') + btn('new', null, '자유 <small>익숙한 사람용 · 모든 것이 열린 채 40일 버티기 · 점수로 겨룬다</small>', (run || fresh ? '' : 'pri ') + 'w2') + btn('deck', null, '덱 <small>시험판 · 카드로 둥지를 키우고 밤을 막는다</small>', 'w2') + btn('barracks', null, '명부 · 별똥별' + (free ? ' <span class="coin">●</span>' : '')) + btn('records', null, '기록 · 순위') + btn('codex', null, '도감') + btn('help', null, '도움말') + btn('settings', null, '설정', 'w2');
   typeof music === 'function' && music('title');
   $('trec').textContent = META.best ? `최고 기록 ${META.best.grade} ${R(META.best.total)}점 · ${META.best.form} · 깨어남 ${META.clears}회` : '아직 기록이 없다';
 }
@@ -8280,6 +10136,7 @@ function onAction(el) {
   if (a === 'wipe') { if (el.dataset.sure) { store.del('meta'); store.del('run'); META = META0(); closeModal(); if (!G) showTitle(); } else { el.dataset.sure = 1; el.textContent = '정말 지운다'; } return; }
   if (a === 'new') return void newRun();
   if (a === 'story') return void storyMenu();
+  if (a === 'deck') return void deckOpen();
   if (a === 'reroll') { if (META.dust < REROLL || signPool().length < 2) return; META.dust -= REROLL; rollSign(); sfx('spell'); return closeModal('redraw'); }
   if (a === 'continue') { const run = store.get('run'); if (run) { G = NEST.migrate(run); G.auto = false; NEST.applyWorld(G.world); showGame(); morningFlow(); } return; }
   if (a === 'setup') { const o = UI.setup; if (d.k === 'bring') { const k = o.bring.indexOf(+d.v); if (k >= 0) o.bring.splice(k, 1); else if (o.bring.length < 2) o.bring.push(+d.v); } else if (d.k === 'tut') o.tut = !o.tut; else if (d.k === 'auto') o.auto = d.v === '1'; else o.diff = +d.v; sfx('click'); return closeModal('redraw'); }
