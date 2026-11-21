@@ -1,6 +1,6 @@
 // 큰 글씨 검사: 휴대폰에서 글자를 키운 채로(카카오톡 안 브라우저의 "가가" 같은) 화면마다 잘리거나 겹친 글을 찾는다.
 // node tests/bigfont.js [배율=1.3] [기기들=a360,a412,iPhone 14]
-//   ux.js 와 story.js 를 FZ=배율 로 돌리고, 한 방울(첫 카드·윗줄·부위 달기·끝 카드)과 도움말의 「처음 하는 법」은 여기서 직접 찍는다.
+//   ux.js, campui.js, cardui.js 를 FZ=배율 로 돌리고, 한 방울(첫 카드·윗줄·부위 달기·끝 카드)과 도움말의 「처음 하는 법」은 여기서 직접 찍는다.
 const { spawn } = require('child_process'), fs = require('fs'), path = require('path'), pw = require('playwright'), FZM = require('./_fz.js');
 const K = +(process.argv[2] || 1.3), DEVS = (process.argv[3] || 'a360,a412,iPhone 14').split(','), html = fs.readFileSync(path.join(__dirname, '..', '..', 'PLAY-GAME.html'), 'utf8');
 const run = (file, dev) => new Promise(res => { const c = spawn('node', [path.join(__dirname, file), dev], { env: Object.assign({}, process.env, { FZ: String(K) }) }); let out = ''; c.stdout.on('data', d => { out += d; }); c.stderr.on('data', d => { out += d; }); c.on('close', code => res({ file, dev, code, out })); });
@@ -20,9 +20,9 @@ async function own(dev) {
   await b.close(); return { dev, bad, errs };
 }
 (async () => {
-  const jobs = []; if (!process.env.OWNONLY) for (const d of DEVS) { jobs.push(run('ux.js', d)); jobs.push(run('story.js', d)); }
+  const jobs = []; if (!process.env.OWNONLY) for (const d of DEVS) { jobs.push(run('ux.js', d)); jobs.push(run('campui.js', d)); jobs.push(run('cardui.js', d)); }
   const res = await Promise.all(jobs); let fail = 0;
-  for (const r of res) { const tail = r.out.trim().split('\n'), i = tail.findIndex(l => /· 화면 \d+ 개/.test(l)); const body = i >= 0 ? tail.slice(i).filter(l => !/←/.test(l) && !/^말줄임/.test(l)).join('\n') : tail.slice(-8).join('\n'); const ok = /잘린 화면 없음/.test(body) && !/오류|Error/.test(body); if (!ok) fail++; console.log((ok ? '통과 ' : '실패 ') + r.file + ' ' + r.dev + '\n' + (ok ? '' : body + '\n')); }
+  for (const r of res) { const tail = r.out.trim().split('\n'), i = tail.findIndex(l => /· 화면 \d+ 개/.test(l)); const body = i >= 0 ? tail.slice(i).filter(l => !/←/.test(l) && !/^말줄임/.test(l)).join('\n') : tail.slice(-8).join('\n'); const ok = (/잘린 화면 없음/.test(body) || /잘린 글 없음/.test(body)) && !/실패/.test(body) && !/오류|Error/.test(body); if (!ok) fail++; console.log((ok ? '통과 ' : '실패 ') + r.file + ' ' + r.dev + '\n' + (ok ? '' : body + '\n')); }
   for (const d of DEVS) { const r = await own(d); if (r.bad.length || r.errs.length) fail++; console.log((r.bad.length || r.errs.length ? '실패 ' : '통과 ') + '한 방울·도움말 ' + d + (r.bad.length ? '\n  ' + r.bad.join('\n  ') : '') + (r.errs.length ? '\n  오류 ' + r.errs.join(' / ') : '')); }
   console.log(fail ? '큰 글씨 ' + K + '배: 실패 ' + fail : '큰 글씨 ' + K + '배: 모두 통과'); process.exitCode = fail ? 1 : 0;
 })();
