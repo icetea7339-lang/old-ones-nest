@@ -2,11 +2,10 @@
 // node tests/story.js [기기 이름]   찍은 그림은 tests/story_<기기>/
 const pw = require('playwright'); const fs = require('fs'); const path = require('path');
 const html = fs.readFileSync('/home/user/slime-ipo-design/PLAY-GAME.html', 'utf8');
-const devName = process.argv[2], tag = devName ? devName.replace(/\s+/g, '') : 'pc', out = path.join(__dirname, 'story_' + tag); fs.mkdirSync(out, { recursive: true });
+const FZM = require('./_fz.js'), devName = process.argv[2], tag = (devName ? devName.replace(/\s+/g, '') : 'pc') + (FZM.FZ ? '_fz' + FZM.FZ : ''), out = path.join(__dirname, 'story_' + tag); fs.mkdirSync(out, { recursive: true });
 (async () => {
-  const b = await pw.chromium.launch(); let ctx;
-  if (devName) { const dev = Object.assign({}, pw.devices[devName]); delete dev.defaultBrowserType; ctx = await b.newContext(dev); } else ctx = await b.newContext({ viewport: { width: 1366, height: 768 } });
-  const touch = !!devName, p = await ctx.newPage(), errs = [], bad = [], shots = {}; p.setDefaultTimeout(8000);
+  const b = await pw.chromium.launch(); const ctx = await FZM.context(b, devName);
+  const touch = !!devName && devName !== 'laptop', p = await ctx.newPage(), errs = [], bad = [], shots = {}; p.setDefaultTimeout(8000); if (FZM.FZ) await p.addInitScript(FZM.initScript(FZM.FZ));
   p.on('pageerror', e => errs.push(e.message + ' @ ' + ((e.stack || '').split('\n')[1] || '').trim().slice(0, 90)));
   p.on('console', m => { if (m.type() === 'error' && !/Failed to load resource/.test(m.text())) errs.push('console: ' + m.text().slice(0, 160)); });
   await p.route('http://nest.test/', r => r.fulfill({ contentType: 'text/html', body: html })); await p.route(/fonts\./, r => r.abort());
@@ -26,6 +25,7 @@ const devName = process.argv[2], tag = devName ? devName.replace(/\s+/g, '') : '
       if (/이\(가\)|을\(를\)|은\(는\)|와\(과\)|\(으\)로/.test(document.body.innerText)) r.push('조사 표기가 남음');
       return r;
     });
+    if (FZM.FZ) { r.splice(0, r.length, ...r.filter(x => !/^(패널|창|밤|왼쪽) |^잘린 단추/.test(x))); const cl = await p.evaluate(FZM.clipScript); if (cl.length) r.push('잘린 글 ' + cl.length + ': ' + cl.slice(0, 6).join(' / ')); }
     n++; await p.screenshot({ path: path.join(out, String(n).padStart(2, '0') + '_' + label + '.png') });
     if (r.length) bad.push(label + ': ' + r.join(', '));
   };

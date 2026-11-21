@@ -245,7 +245,8 @@ img.ic { display: inline-block; vertical-align: -4px; margin-right: 4px; }
 #rotate { display: none; }
 @media (hover: none) { kbd { display: none; } .btn:hover { border-color: var(--line); } .btn.pri:hover, .btn.on:hover { border-color: var(--coin); } }
 @media (min-width: 761px) { .only-m { display: none !important; } }
-@media (min-width: 761px) and (max-width: 1560px) { .stat .lbt { display: none; } .stat img.ic { margin-right: 2px; } }
+@media (min-width: 761px) and (max-width: 1100px) { .stat .lbt { display: none; } .stat img.ic { margin-right: 2px; } }
+@media (max-width: 400px) { .stat .lbt { display: none; } .stat img.ic { margin-right: 2px; } .stats .stat b.num { font-size: calc(var(--d2) * 0.86); letter-spacing: -0.02em; } }
 @media (min-width: 761px) and (max-width: 1400px) { .stat .gname, .hud-turn .moontxt { display: none; } #hud { gap: 6px 10px; } .stat { padding-inline: 7px; } }
 @media (min-width: 761px) and (max-width: 1100px) { :root { --d2: 12px; } #hud { gap: 6px 6px; } .stat { padding-inline: 5px; } }
 @media (min-width: 761px) and (max-width: 900px) { #hud { gap: 6px 4px; } .hud-ap .only-pc { display: none; } .stat { padding-inline: 4px; } .hud-btns .btn { padding-inline: 5px; } .hud-turn .acttxt { display: none; } }
@@ -423,3 +424,32 @@ body.fx-shake2 #game, body.fx-shake2 #modal .sheet { animation: fxsh2 500ms line
 .fx-morph.fx-done { display: none; }
 @media (prefers-reduced-motion: reduce) { body.fx-shake1 #game, body.fx-shake2 #game, body.fx-shake1 #modal .sheet, body.fx-shake2 #modal .sheet { animation: none; } }
 #modal .sheet { position: relative; }
+/* ---- 글이 잘리지 않게 (휴대폰에서 글자를 키워도) ----
+   설명·이름은 말줄임·줄 수 제한 대신 줄을 바꾼다. 한국어는 낱말 단위로 끊는다. 길어진 만큼 창과 패널은 스크롤한다 */
+body { word-break: keep-all; overflow-wrap: break-word; }
+.clamp1, .clamp2, .clamp3, .opt > span, .opts.c1 .opt > span, #recent p, #right.open #coach2 p { display: block; -webkit-line-clamp: unset; overflow: visible; }
+.opt b, .pick6 .btn b, .pick5 .btn b { white-space: normal; overflow: visible; text-overflow: clip; }
+.tab { white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.15; }
+.ph h2 { white-space: normal; overflow: visible; text-overflow: clip; }
+.unit > span, .rooms > span, .board > span:nth-child(4n+2), .frow > span:nth-child(2n), #fore > span:nth-child(2n), #nlog p, #hand .btn { white-space: normal; overflow: visible; text-overflow: clip; }
+@media (max-width: 760px) {
+  #recent { height: auto; max-height: 28vh; overflow-y: auto; }
+  #fore { height: auto; min-height: 40px; }
+  #tray { flex-wrap: wrap; height: auto; overflow: visible; row-gap: 4px; }
+  #tray .chip { flex: 0 0 auto; overflow: visible; text-overflow: clip; }
+  #mnav { flex-wrap: wrap; row-gap: 5px; }
+  #mnav .end { flex: 1 1 auto; min-width: max-content; overflow: visible; text-overflow: clip; }
+}
+#title { overflow-y: auto; justify-content: safe center; box-sizing: border-box; }
+@media (max-width: 760px) { #coach { height: auto; max-height: 34vh; overflow-y: auto; } }
+.howto { align-items: flex-start; gap: 10px; } .howto > img { flex: none; margin-top: 2px; } .howto p { margin: 0; }
+@media (max-width: 760px) {
+  .stats.two { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  #main:has(#right.open) #coach { display: none !important; }
+}
+@media (max-width: 760px) { .helpnav { flex: none; max-height: 26vh; overflow-y: auto; border-bottom: 2px solid var(--line); padding-bottom: 4px; } }
+.pts { grid-template-columns: max-content minmax(0, 1fr) max-content; }
+@media (max-width: 760px) { #tray .chip { white-space: normal; flex: 0 1 auto; max-width: 100%; } }
+.stat .v, .stat b.num { max-width: 100%; }
+.hearts { display: inline-flex; max-width: 100%; min-width: 0; } .hearts img { flex: 0 1 auto; min-width: 0; height: auto; }
+@media (max-width: 760px) { .stat .hearts img.ic { height: auto; aspect-ratio: 1 / 1; } }

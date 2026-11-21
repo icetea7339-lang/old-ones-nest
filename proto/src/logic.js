@@ -116,7 +116,7 @@ const NEST = (function () {
   const EDICT = {
     deep: { god: 'abyss', name: '깊이 숨어라', text: '굴을 넓히고 몸을 쉰다. 포로는 몸값을 받고 돌려보낸다. {마을}은(는) 건드리지 않는다', st: { captive: 'ransom', raid: 0, expand: 1, restMore: 1 } },
     craft: { god: 'nebula', name: '솜씨를 보여라', text: '곱절로 훈련한다. 포로는 믿게 만든다', st: { captive: 'convert', raid: 1, trainMore: 1 } },
-    grow: { god: 'brood', name: '식구를 늘려라', text: '돋으려는 것은 다 돋우고 굴을 넓힌다. 포로는 믿게 만든다', st: { captive: 'convert', raid: 1, expand: 1, acceptAll: 1 } },
+    grow: { god: 'brood', name: '식구를 늘려라', text: '새 권속은 다 들이고 굴을 넓힌다. 포로는 믿게 만든다', st: { captive: 'convert', raid: 1, expand: 1, acceptAll: 1 } },
     show: { god: 'dusk', name: '겁을 주어라', text: '{마을}을(를) 털지 않고 위협만 한다. 포로는 믿게 만든다', st: { captive: 'convert', raid: 3, raidKind: 0 } },
     feast: { god: 'hunger', name: '먹어라', text: '잡은 것은 제물로 바치고, 먹이는 남기지 않는다. {마을}을(를) 턴다', st: { captive: 'sacrifice', raid: 3, eatMore: 1 } },
   };
@@ -374,7 +374,7 @@ const NEST = (function () {
     const c = SC(G); if (!c || !c.goal) return null; const g = c.goal, items = [];
     const nights = c.fromBreach ? (G.story.bday ? G.day - G.story.bday : 0) : G.day - 1;
     if (g.dug) items.push({ k: 'dug', label: '굴을 넓힌다', cur: G.cells.filter(x => x.dug).length, need: g.dug });
-    if (g.kin) items.push({ k: 'kin', label: '권속을 돋운다', cur: G.kin.filter(m => m.kind !== 'spawn').length, need: g.kin });
+    if (g.kin) items.push({ k: 'kin', label: '권속을 들인다', cur: G.kin.filter(m => m.kind !== 'spawn').length, need: g.kin });
     if (c.fromBreach) items.push({ k: 'breach', label: '땅 위로 뚫는다', cur: G.sealed ? 0 : 1, need: 1 });
     if (g.captives) items.push({ k: 'captives', label: '산 채로 붙잡는다', cur: Math.min(g.captives, G.stats.captives || 0), need: g.captives });
     if (g.nights) items.push({ k: 'nights', label: c.fromBreach ? '뚫은 뒤 밤을 넘긴다' : '밤을 넘긴다', cur: Math.min(g.nights, Math.max(0, nights)), need: g.nights });
@@ -459,7 +459,7 @@ const NEST = (function () {
 
   const STAR = {
     none: { name: '고요한 하늘', desc: '바뀌는 규칙이 없다' },
-    poor: { name: '가난한 별', desc: '시작 진액 100. 대신 권속을 돋우는 값이 절반' },
+    poor: { name: '가난한 별', desc: '시작 진액 100. 대신 권속을 들이는 값이 절반' },
     quiet: { name: '조용한 별', desc: '공포가 절반만 오른다. 대신 침입자의 지닌 것 −10%' },
     loud: { name: '시끄러운 별', desc: '매일 밤 온다. 무리가 20% 크다. 대신 지닌 것 +20%' },
     lone: { name: '외톨이 별', desc: '권속을 3명까지만 둔다(개종 포함). 대신 본체 능력치 1.2배' },

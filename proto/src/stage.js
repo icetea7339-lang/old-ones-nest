@@ -251,7 +251,7 @@ function drawCell(x, i, t, canDig) {
     if (!nb.some(v => v)) return;   // 판 곳과 닿지 않은 칸은 보이지 않는다
     x.drawImage(cellBg(i, c, b, nb, c.soft ? (canDig ? 3 : 4) : canDig ? 2 : 1), r.x, r.y);
     if (canDig && G.buried && G.buried[i]) { for (let k = 0; k < 3; k++) rect(x, Math.sin(t / 200 + k * 2) > 0.3 ? '#fff3a0' : '#e8c03066', r.x + 40 + k * 46, r.y + 26 + (k % 2) * 60, 4, 4); txt(x, '무언가 묻혀 있다', r.x + r.w / 2, r.y + r.h - 30, '#fff3a0', 12, 'center'); }
-    if (canDig) { const a = 0.55 + 0.25 * Math.sin(t / 420 + i), cx = r.x + r.w / 2, cy = r.y + r.h / 2 - 10; pickIcon(x, cx, cy + Math.round(Math.sin(t / 420 + i) * 1.5), a + 0.15); txt(x, c.soft ? '무른 흙 · 파기' : '파기', cx, cy + 14, c.soft ? '#e8c890' : '#e8dcb0', 12, 'center');
+    if (canDig) { const a = 0.55 + 0.25 * Math.sin(t / 420 + i), cx = r.x + r.w / 2, cy = r.y + r.h / 2 - 10; pickIcon(x, cx, cy + Math.round(Math.sin(t / 420 + i) * 1.5), a + 0.15); txt(x, c.soft ? '무른 흙 · 공짜로 파기' : '파기', cx, cy + 14, c.soft ? '#e8c890' : '#e8dcb0', 12, 'center');
       if (c.soft) for (let k = 0; k < 3; k++) { const ph = (t / 1400 + k / 3) % 1; x.globalAlpha = 1 - ph; rect(x, '#8a6a4a', r.x + 40 + k * 50, r.y + 20 + ph * 26, 2, 2); x.globalAlpha = 1; }
       x.globalAlpha = a * 0.7; const bc = c.soft ? '#e8a860' : '#e8c030'; for (const [px, py, sx, sy] of [[r.x + 10, r.y + 10, 1, 1], [r.x + r.w - 10, r.y + 10, -1, 1], [r.x + 10, r.y + r.h - 10, 1, -1], [r.x + r.w - 10, r.y + r.h - 10, -1, -1]]) { rect(x, bc, Math.min(px, px + sx * 12), Math.min(py, py + sy * 2), 12, 2); rect(x, bc, Math.min(px, px + sx * 2), Math.min(py, py + sy * 12), 2, 12); } x.globalAlpha = 1; }
     return;

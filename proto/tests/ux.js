@@ -2,14 +2,11 @@
 // node ux.js [기기 이름]   기기를 주면 손가락으로 누른다.
 const pw = require('playwright'); const fs = require('fs'); const path = require('path');
 const html = fs.readFileSync('/home/user/slime-ipo-design/PLAY-GAME.html', 'utf8');
-const devName = process.argv[2], tag = devName ? devName.replace(/\s+/g, '') : 'pc', out = path.join(__dirname, 'ux_' + tag); fs.mkdirSync(out, { recursive: true });
+const FZM = require('./_fz.js'), devName = process.argv[2], tag = (devName ? devName.replace(/\s+/g, '') : 'pc') + (FZM.FZ ? '_fz' + FZM.FZ : ''), out = path.join(__dirname, 'ux_' + tag); fs.mkdirSync(out, { recursive: true });
 (async () => {
-  const b = await pw.chromium.launch(); let ctx;
-  if (devName === 'small') ctx = await b.newContext({ viewport: { width: 375, height: 620 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
-  else if (devName === 'laptop') ctx = await b.newContext({ viewport: { width: 1280, height: 680 } });
-  else if (devName) { const dev = Object.assign({}, pw.devices[devName]); delete dev.defaultBrowserType; ctx = await b.newContext(dev); } else ctx = await b.newContext({ viewport: { width: 1366, height: 768 } });
+  const b = await pw.chromium.launch(); const ctx = await FZM.context(b, devName);
   const touch = !!devName && devName !== 'laptop';
-  const p = await ctx.newPage(), errs = [], bad = []; p.setDefaultTimeout(7000);
+  const p = await ctx.newPage(), errs = [], bad = []; p.setDefaultTimeout(7000); if (FZM.FZ) await p.addInitScript(FZM.initScript(FZM.FZ));
   p.on('pageerror', e => errs.push(e.message + ' @ ' + ((e.stack || '').split('\n')[1] || '').trim().slice(0, 90)));
   await p.route('http://nest.test/', r => r.fulfill({ contentType: 'text/html', body: html })); await p.route(/fonts\./, r => r.abort());
   await p.goto('http://nest.test/'); await p.waitForTimeout(300); await p.evaluate(() => { __nest.META.auto = false; });
@@ -30,7 +27,10 @@ const devName = process.argv[2], tag = devName ? devName.replace(/\s+/g, '') : '
       const tr = []; document.querySelectorAll('#game *, #modal *, #title *').forEach(e => { if (!vis(e) || !e.textContent.trim() || e.children.length > 3) return; const cs = getComputedStyle(e); if (cs.textOverflow === 'ellipsis' && e.scrollWidth > e.clientWidth + 1) tr.push(e.textContent.trim().slice(0, 30)); else if (cs.webkitLineClamp !== 'none' && cs.overflow === 'hidden' && e.scrollHeight > e.clientHeight + 2) tr.push(e.textContent.trim().slice(0, 30)); });
       return { r, tr };
     });
+    if (FZM.FZ) { const cl = await p.evaluate(FZM.clipScript); if (cl.length) bad.push(label + ' 잘린 글 ' + cl.length + ': ' + cl.slice(0, 6).join(' / ')); }
     n++; await p.screenshot({ path: path.join(out, String(n).padStart(2, '0') + '_' + label + '.png') });
+    // 큰 글씨에서는 넘치면 스크롤한다: 스크롤 자체는 탓하지 않고, 정말 잘린 글만 본다
+    if (FZM.FZ) m.r = m.r.filter(x => !/^(패널|창|밤|왼쪽) |^잘린 단추/.test(x));
     if (m.r.length) bad.push(label + ': ' + m.r.join(', ')); m.tr.forEach(t => { trunc[t] = trunc[t] || label; });
   };
   const closeM = async () => { for (let i = 0; i < 6; i++) { if (await has('#modal [data-a="event"]:not([disabled])')) await tap('#modal [data-a="event"]:not([disabled])'); else if (await has('#modal [data-a="close"]')) await tap('#modal [data-a="close"]'); else break; } };
