@@ -192,18 +192,29 @@ const TRAITS = (function () {
     horn: ['들이받아 쫓아내는 일이 잦았고', '정면으로 맞서는 밤이 거듭되었고', '부딪쳐 부수는 일이 몸에 익었고'] };
   const pick3 = (arr, key) => Array.isArray(arr) ? arr[hash(String(key)) % arr.length] : arr;
   // 한 형질이 왜 돋았나를 한 문장으로 (원인 셈이 없으면 결과만)
-  function tell(t, k, key) {
-    const kk = t + ':' + (key == null ? 0 : key), g = pick3(GREW[t], kk) || '몸이 조금 달라졌다';
-    if (!k) return '어느새 ' + g + '.';
-    if (k.indexOf('look:') === 0) return pick3(['떨어질 때 받은 모양이 아직 남아 있었고', '처음 흙에 닿았을 때의 생김새가 가시지 않았고', '별에서 가져온 모양이 살 속에 남았고'], kk) + ', ' + g + '.';
-    if (k.indexOf('pro:') === 0) return pick3(['한 방울이던 때 삼킨 것들이 아직 몸 안에 남아 있었고', '흙 속을 기어 다니던 날들이 살에 새겨졌고', '처음 깨어난 어둠의 맛이 가시지 않았고'], kk) + ', ' + g + '.';
-    if (k.indexOf('tag:') === 0) { const tt = k.slice(4); return (pick3(DIDTAG[tt], kk) || '같은 일이 거듭되었고') + ', ' + g + '.'; }
-    return (DID[k] || '굴에서 일어난 일들이 몸에 남았고') + ', ' + g + '.';
+  // 한 형질이 왜 돋았나를 한 문장으로 (원인 셈이 없으면 결과만).
+  //   used 를 주면 그 판에서 이미 쓴 문장은 다시 쓰지 않고, 원인과 결과가 같은 말을 되풀이하는 짝도 피한다
+  const GENCAUSE = ['그런 밤들이 쌓이는 사이', '같은 일이 몇 번이고 되풀이되자', '굴 안의 일들이 살 속까지 스며들자'];
+  const echo = (a, b) => { const w = String(a).replace(/[,.]/g, '').split(/\s+/).filter(x => x.length >= 3); return w.some(x => b.indexOf(x) >= 0); };
+  function tell(t, k, key, used) {
+    const kk = t + ':' + (key == null ? 0 : key), grew = Array.isArray(GREW[t]) ? GREW[t] : ['몸이 조금 달라졌다'];
+    let causes;
+    if (!k) causes = [null];
+    else if (k.indexOf('look:') === 0) causes = ['떨어질 때 받은 모양이 아직 남아 있었고', '처음 흙에 닿았을 때의 생김새가 가시지 않았고', '별에서 가져온 모양이 살 속에 남았고'];
+    else if (k.indexOf('pro:') === 0) causes = ['한 방울이던 때 삼킨 것들이 아직 몸 안에 남아 있었고', '흙 속을 기어 다니던 날들이 살에 새겨졌고', '처음 깨어난 어둠의 맛이 가시지 않았고'];
+    else if (k.indexOf('tag:') === 0) causes = (DIDTAG[k.slice(4)] || ['같은 일이 거듭되었고']).concat(GENCAUSE);
+    else causes = [DID[k] || '굴에서 일어난 일들이 몸에 남았고'].concat(GENCAUSE);
+    const h = hash(String(kk)) >>> 0, cands = [];
+    for (let a = 0; a < causes.length; a++) for (let b = 0; b < grew.length; b++) { const ci = (a + h) % causes.length, gi = (b + (h >>> 3)) % grew.length; cands.push({ id: t + '|' + (k || '-').split(':')[0] + '|' + ci + '|' + gi, c: causes[ci], g: grew[gi] }); }
+    const fresh = cands.filter(x => !(used && used.includes(x.id))), clean = fresh.filter(x => !x.c || !echo(x.c, x.g));
+    const pickC = clean[0] || fresh[0] || cands[h % cands.length];
+    if (used) { used.push(pickC.id); if (used.length > 60) used.splice(0, used.length - 60); }
+    return pickC.c ? pickC.c + ', ' + pickC.g + '.' : '어느새 ' + pickC.g + '.';
   }
   // 허물의 "왜": 위쪽 형질 셋을 이야기로
-  function narrate(g, n) { return topTags(g, n || 3).map(t => { const f = (g.feed[t] || [])[0]; return tell(t, f ? f[0] : null, (g.seed || 0) + ':' + (g.stage || 1)); }); }
+  function narrate(g, n) { if (g && !g.usedLines) g.usedLines = []; return topTags(g, n || 3).map(t => { const f = (g.feed[t] || [])[0]; return tell(t, f ? f[0] : null, (g.seed || 0) + ':' + (g.stage || 1), g && g.usedLines); }); }
   // 하루 사이 가장 크게 자란 형질과 그 까닭
-  function grewMost(g0, g1) { let best = null, bv = 0; for (const t of TAG_IDS) { const d = (g1.tags[t] || 0) - ((g0 && g0.tags[t]) || 0); if (d > bv) { bv = d; best = t; } } if (!best) return null; const f = (g1.feed[best] || [])[0]; return { tag: best, gain: +bv.toFixed(2), line: tell(best, f ? f[0] : null, (g1.seed || 0) + ':' + Object.keys(g1.seen || {}).reduce((x, y) => x + (g1.seen[y] || 0), 0)) }; }
+  function grewMost(g0, g1) { let best = null, bv = 0; for (const t of TAG_IDS) { const d = (g1.tags[t] || 0) - ((g0 && g0.tags[t]) || 0); if (d > bv) { bv = d; best = t; } } if (!best) return null; const f = (g1.feed[best] || [])[0]; if (!g1.usedLines) g1.usedLines = []; return { tag: best, gain: +bv.toFixed(2), line: tell(best, f ? f[0] : null, (g1.seed || 0) + ':' + Object.keys(g1.seen || {}).reduce((x, y) => x + (g1.seen[y] || 0), 0), g1.usedLines) }; }
   function newGenome(o) { o = o || {}; return { norm: !!o.norm, aspect: o.aspect || 'abyss', sub: o.sub || null, stage: o.stage || 1, tags: {}, seed: (o.seed >>> 0) || 1, lineage: o.lineage || [], feed: {}, seen: {}, look: o.look && LOOKSEED[o.look] ? o.look : null, pro: o.pro || null }; }
   function addBehaviour(g, counters) {
     const seen = g.seen = Object.assign({}, g.seen || {});
@@ -267,6 +278,7 @@ const TRAITS = (function () {
     const cb = combosOf(g)[0];
     let name = parts.concat([head]).join(' ');
     if (cb && r() < 0.5) name = cb.name + ' ' + head;
+    if (g.epithet && name.indexOf(g.epithet) !== 0) name = g.epithet + ' ' + name;
     return { name, title: lm ? lm.name : (cb ? cb.name : null) };
   }
   function describe(g) {

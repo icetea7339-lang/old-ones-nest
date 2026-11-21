@@ -15,7 +15,7 @@ const cmTagName = t => (typeof TRAITS !== 'undefined' && TRAITS.TAGS[t] ? TRAITS
 // ---- 저장: 판 전체(덱·손·둥지)를 'cardrun' 에. 원래 게임의 저장이 카드 판을 'run' 에 덮어쓰지 않게 막는다 ----
 (function () { const set0 = store.set; CMU.set0 = set0; store.set = function (k, v) { if (k === 'run' && v && v.cardMode) { cmSave(); return; } return set0.call(store, k, v); }; })();
 function cmSave() { if (CMU.run && CMU.run.camp && typeof campSave === 'function') return campSave(); const run = CMU.run; if (!run || CMU.inNight || run.phase === 'over' || (run.G && run.G.over)) return; try { CMU.set0.call(store, 'cardrun', Object.assign({}, run, { meta: null })); } catch (e) { /* 저장 못 해도 판은 계속 */ } }
-function cmLoad() { const r = store.get('cardrun'); if (!r || !r.G || !r.deck) return null; r.meta = cmMeta(); return r; }
+function cmLoad() { const r = store.get('cardrun'); if (!r || !r.G || !r.deck) return null; r.meta = cmMeta(); try { CARDMODE.repair(r); } catch (e) { return null; } return r; }
 
 // ---- 본체의 몸: 게놈으로 그린다 ----
 function cmGenome() {
@@ -98,7 +98,7 @@ function cmFace(v, o) {
   o = o || {}; if (!v) return ''; const d = cmDef(v.id) || {}, cost = o.cost != null ? o.cost : v.cost;
   const gt = cmGeneTag(v), cls = 'dkc asp-' + (v.asp || 'none') + ' rar-' + (v.type === 'curse' ? 'x' : v.rar) + ' t-' + v.type + (gt ? ' gene' : '') + (o.cls ? ' ' + o.cls : '');
   const tx = o.text != null ? o.text : v.type === 'skill' && !o.night ? '밤에 쓴다 · ' + v.text : v.text;
-  return `<div class="${cls}"${gt ? ` style="--gc:${CMGCOL[gt] || '#fff3a0'}"` : ''}${o.c ? ` data-c="${o.c}"` : ''}${o.uid != null ? ` data-uid="${o.uid}"` : ''}${o.i != null ? ` data-i="${o.i}"` : ''} data-id="${v.id}"><b class="dkc-cost${o.faith || v.type === 'skill' ? ' faith' : ''}">${v.type === 'curse' ? '✕' : v.type === 'skill' && !o.faith ? cmSkillCost(d) : cost}</b><i class="dkc-gem"></i><span class="dkc-art"><img src="${cmArtUrl(v)}" alt="">${gt ? `<i class="dkc-gene">${esc(cmTagName(gt))}</i>` : ''}</span><b class="dkc-nm">${esc(v.name)}</b><span class="dkc-tx">${esc(tx)}</span><i class="dkc-ty">${CMTYPE[v.type] || ''}${d.asp && d.asp !== 'none' ? ' · ' + CARDS2.ASPN[d.asp] : ''}</i></div>`;
+  return `<div class="${cls}"${gt ? ` style="--gc:${CMGCOL[gt] || '#fff3a0'}"` : ''}${o.c ? ` data-c="${o.c}"` : ''}${o.uid != null ? ` data-uid="${o.uid}"` : ''}${o.i != null ? ` data-i="${o.i}"` : ''} data-id="${v.id}"><b class="dkc-cost${o.faith || v.type === 'skill' ? ' faith' : ''}">${v.type === 'curse' ? '✕' : v.type === 'skill' && !o.faith ? cmSkillCost(d) : cost}</b><i class="dkc-gem"></i><span class="dkc-art"><img src="${cmArtUrl(v)}" alt="">${gt ? `<i class="dkc-gene">${esc(cmTagName(gt))}</i>` : ''}</span><b class="dkc-nm">${esc(v.name)}</b><span class="dkc-tx">${esc(tx)}</span>${d.btext && gt ? `<span class="dkc-tx dkc-bt">본디: ${esc(d.btext)}</span>` : ''}<i class="dkc-ty">${CMTYPE[v.type] || ''}${d.asp && d.asp !== 'none' ? ' · ' + CARDS2.ASPN[d.asp] : ''}</i></div>`;
 }
 // 기술 카드의 신앙 값 (밤에 실제로 드는 값과 같은 셈)
 const cmSkillCost = d => { try { const base = typeof G !== 'undefined' && G && NEST.spellCost && d.spell ? NEST.spellCost(G, d.spell) : 3; return Math.max(1, Math.ceil(base * (d.cmul || 1))); } catch (e) { return Math.max(1, Math.ceil(3 * (d.cmul || 1))); } };
@@ -139,7 +139,7 @@ const cmOnScreen = () => !!CMU.run && ($('cm-ov') && (!$('cm-ov').hidden || !$('
 function cmOv(html, cls) { const o = $('cm-ov'); if (!html) { o.hidden = true; o.innerHTML = ''; o.className = ''; return; } o.className = cls || ''; o.innerHTML = html; o.hidden = false; o.scrollTop = 0; }
 function cmSheet(kind, html) { const s = $('cm-sheet'); CMU.sheet = kind; if (!kind) { s.hidden = true; s.innerHTML = ''; return; } s.innerHTML = `<div class="dk-grab"></div><button class="btn sm dk-x" data-c="close" aria-label="닫기">✕</button>${html}`; s.hidden = false; s.scrollTop = 0; }
 let cmToastT = 0;
-function cmToast(s) { const t = $('cm-toast'); if (!t) return; s = String(s || '').replace(/([+−-]?\d[\d,]*)\s*방울/g, '진액 $1'); t.textContent = s; t.hidden = false; clearTimeout(cmToastT); cmToastT = setTimeout(() => { t.hidden = true; }, 2600); }
+function cmToast(s) { const t = $('cm-toast'); if (!t) return; s = cmText(String(s || '').replace(/([+−-]?\d[\d,]*)\s*방울/g, '진액 $1')); if (!s) return; t.textContent = s; t.hidden = false; clearTimeout(cmToastT); cmToastT = setTimeout(() => { t.hidden = true; }, 2600); }
 // 접어 두는 글: 누르면 펼친다
 const cmFold = (label, html) => `<button class="btn sm cm-fold" data-c="fold">${label}</button><div class="cm-foldc" hidden>${html}</div>`;
 const cmSnd = k => { try { sfx(k); } catch (e) { /* 소리는 없어도 된다 */ } };
@@ -171,12 +171,12 @@ function cmStart() {
   const m = cmMeta(), a = CMU.asp, saved = store.get('cardrun'), looks = Object.keys(SEEDS).slice(0, 15), start = CARDS2.START[a] || [];
   const eggs = m.eggs.slice(-3).reverse(), lk = SEEDS[CMU.look] || {}, ls = TRAITS.LOOKSEED && TRAITS.LOOKSEED[CMU.look], lt = ls ? Object.keys(ls).sort((p, q) => ls[q] - ls[p])[0] : null;
   const big = cmLookGenome(a, CMU.look);
-  cmOv(`<div class="dk-start cm-start"><h2>카드로 짓는 둥지</h2><p class="dk-sub">낮에는 카드로 굴을 짓고, 밤에는 굴이 싸운다. 한 일만큼 몸이 바뀐다.</p>
-<div class="cm-sbody">${big ? cmBodyImg(big, isMobile() ? 96 : 120) : ''}<div><b>${esc(lk.name || '')}</b>${lt ? `<p class="small">처음부터 <b style="color:${CMGCOL[lt] || '#fff3a0'}">${esc(cmTagName(lt))}</b> · ${esc(TRAITS.TAGS[lt].hint)}</p>` : ''}<p class="small mute">${esc(NEST.ASP[a])} · ${esc(CMASPD[a] || '')}</p></div></div>
+  cmOv(`<div class="dk-start cm-start"><h2>새 판</h2>
+<div class="cm-sbody">${big ? cmBodyImg(big, isMobile() ? 96 : 120) : ''}<div><b>${esc(lk.name || '')}</b>${lt ? `<p class="small">처음부터 <b style="color:${CMGCOL[lt] || '#fff3a0'}">${esc(cmTagName(lt))}</b></p>` : ''}<p class="small mute">${esc(NEST.ASP[a])}</p></div></div>
 <div class="dk-row2 cm-sgo"><button class="btn pri" data-c="begin">이 몸으로 시작</button>${typeof playOpening === 'function' ? '<button class="btn" data-c="fromdrop">한 방울부터</button>' : ''}</div>
-<p class="dk-lab">빛깔</p><div class="dk-asps">${CMASP.map(x => `<button class="dk-asp${x === a ? ' on' : ''}" style="--c:${cmCol(x)}" data-c="asp" data-v="${x}"><i></i>${NEST.ASP[x]}</button>`).join('')}</div>
-<p class="dk-lab">처음 몸 <small class="mute">고른 몸이 첫날의 몸이 된다</small></p><div class="cm-looks">${looks.map(k => `<button class="cm-look${k === CMU.look ? ' on' : ''}" data-c="look" data-v="${k}" title="${esc(SEEDS[k].say || '')}">${cmBodyImg(cmLookGenome(a, k), 36)}<span>${esc(SEEDS[k].name)}</span></button>`).join('')}</div>
-${eggs.length ? `<p class="dk-lab">남긴 알 <small class="mute">고르면 그 몸의 일부를 물려받는다</small></p><div class="cm-eggs"><button class="cm-egg${CMU.egg == null ? ' on' : ''}" data-c="egg" data-v="-1"><span>없이</span></button>${eggs.map((e, k) => { const g = cmEggGenome(e); return `<button class="cm-egg${CMU.egg === k ? ' on' : ''}" data-c="egg" data-v="${k}">${cmBodyImg(g, 40)}<span>${esc(e.name || '알')}</span><small>${Object.keys(e.tags || {}).sort((p, q) => e.tags[q] - e.tags[p]).slice(0, 2).map(cmTagName).join(' · ')}</small></button>`; }).join('')}</div>` : ''}
+<p class="dk-lab">빛깔</p><div class="dk-asps">${CMASP.map(x => `<button class="dk-asp${x === a ? ' on' : ''}" style="--c:${cmCol(x)}" data-c="asp" data-v="${x}" title="${esc(CMASPD[x] || '')}"><i></i>${NEST.ASP[x]}</button>`).join('')}</div>
+<p class="dk-lab">처음 몸</p><div class="cm-looks">${looks.map(k => `<button class="cm-look${k === CMU.look ? ' on' : ''}" data-c="look" data-v="${k}" title="${esc(SEEDS[k].say || '')}">${cmBodyImg(cmLookGenome(a, k), 36)}<span>${esc(SEEDS[k].name)}</span></button>`).join('')}</div>
+${eggs.length ? `<p class="dk-lab">남긴 알</p><div class="cm-eggs"><button class="cm-egg${CMU.egg == null ? ' on' : ''}" data-c="egg" data-v="-1"><span>없이</span></button>${eggs.map((e, k) => { const g = cmEggGenome(e); return `<button class="cm-egg${CMU.egg === k ? ' on' : ''}" data-c="egg" data-v="${k}">${cmBodyImg(g, 40)}<span>${esc(e.name || '알')}</span></button>`; }).join('')}</div>` : ''}
 ${cmFold('처음 덱 ' + start.length + '장 보기', `<div class="dk-row dk-mini">${start.map(id => cmFace(cmBareView(id), { cls: 'mini' })).join('')}</div>`)}
 <div class="dk-row2">${saved && saved.G && !saved.G.over ? `<button class="btn" data-c="cont">이어하기 <small>${saved.G.day}일</small></button>` : ''}<button class="btn" data-c="codex">도감</button><button class="btn" data-c="home">돌아가기</button></div></div>`, 'dk-full');
 }
@@ -186,8 +186,11 @@ function cmBeginWith(pro) {
   const m = cmMeta(), egg = CMU.egg != null ? m.eggs.slice(-3).reverse()[CMU.egg] : null, seed = (Date.now() ^ (Math.random() * 1e9)) >>> 0;
   const run = CARDMODE.newRun(seed, pro ? { aspect: pro.aspect || CMU.asp, look: pro.look || undefined, proSeed: pro, meta: m, egg: egg || undefined, diff: 2 } : { aspect: CMU.asp, look: CMU.look, meta: m, egg: egg || undefined, diff: 2 });
   if (egg) run.egg = egg;
-  cmGo(run); cmToast('카드를 누르면 놓을 수 있는 칸이 빛난다');
+  cmGo(run); if (!cmTutOn()) cmToast('카드를 누르면 놓을 수 있는 칸이 빛난다');
+  if (!(navigator.webdriver && !window.__forceWorldLine) && CMWORLD[G.world]) setTimeout(() => { if (CMU.run === run && typeof scene === 'function') scene([N_(CMWORLD[G.world])]); }, 300);
 }
+// 판마다 둥지 위가 어떤 세상인지는 뚫린 뒤에야 안다: 한 문장으로만 알린다
+const CMWORLD = { fantasy: '굴 위에서 쇠와 향과 종소리가 내려왔다. 위는 성벽과 기도의 세상이었다.', wuxia: '굴 위에서 칼집 스치는 소리와 향 연기가 내려왔다. 위는 산과 문파의 세상이었다.', modern: '굴 위에서 꺼지지 않는 전깃불의 웅웅거림이 내려왔다. 위는 밤에도 잠들지 않는 세상이었다.', future: '굴 위에서 숨 쉬지 않는 쇠붙이들의 박동이 내려왔다. 위는 사람보다 기계가 많은 세상이었다.' };
 function cmGo(run) {
   CMU.run = run; G = run.G; CMU.sel = null; CMU.place = null; CMU.learnedN = (run.learned || []).length; CMU.eggLaid = false; cmOv(null); cmSheet(null);
   showGame(); busy = false; cmSave();
@@ -235,7 +238,7 @@ function cmHand() {
     else bar = `<div class="cm-acts">${sel.can ? `<button class="btn pri" data-c="put">내기 ${sel.cost || ''}</button>` : `<span class="cm-tip">${esc(sel.why)}</span>`}<button class="btn" data-c="unsel">취소</button></div>`;
   }
   const deal = CMU.dealDay !== G.day; CMU.dealDay = G.day; if (deal && hv.length) cmSnd('click');
-  el.innerHTML = `${bar}<span class="cm-cnt">손 ${hv.length}${hv.length > 2 && isMobile() ? ' · 옆으로 밀기' : ''}${hv.length && !sel ? ' · 끌어서 놓기' : ''}</span><div class="dk-hand cm-hand cm-strip${deal ? ' cm-deal' : ''}" style="--n:${hv.length}">${hv.map(v => cmFace(v, { c: 'card', uid: v.uid, cls: (isMobile() ? 'mini ' : '') + (v.uid === CMU.sel ? 'lift' : '') + (v.can || v.type === 'skill' ? '' : ' no') })).join('') || '<p class="small mute">손이 비었다 · 밤을 맞는다</p>'}</div>`;
+  el.innerHTML = `${bar}<span class="cm-cnt">손 ${hv.length}</span><div class="dk-hand cm-hand cm-strip${deal ? ' cm-deal' : ''}" style="--n:${hv.length}">${hv.map(v => cmFace(v, { c: 'card', uid: v.uid, cls: (isMobile() ? 'mini ' : '') + (v.uid === CMU.sel ? 'lift' : '') + (v.can || v.type === 'skill' ? '' : ' no') })).join('') || '<p class="small mute">손이 비었다 · 밤을 맞는다</p>'}</div>`;
 }
 function cardRender() { cmHand(); cmBodyBand(); cmCoach(); }
 
@@ -388,6 +391,11 @@ async function cardNight(keep) {
 }
 // 밤 뒤 정산 (카드 판 전용): 무엇이 왔고 어떻게 끝났나, 진액이 얼마나 드나들었나, 몸이 무엇으로 자랐나. 다른 판의 말(신·섬김·정수 물듦…)은 쓰지 않는다
 const CMNOTE_OUT = /섬김|신뢰|포로 밥값|밥값|물든|물듦|정수|「[^」]*」의 벌|선물|징조|눈길|교시|첩자|별자리|명부|야유|끼니|유지/;
+const CM_DROP = /^(징조|이 세상에만 있는 것)|포교|신도 "|포로 자리|섬김|신뢰|밥값\(끼니\)|정수 [+−-]|적의 [+−-]|정신력 [+−-]|공포 [+−-]|신앙 상한|「마지막 막」|교시|명부|첩자/;
+const cmMarchLabel = e => cmText(e.txt) || '';
+function cmText(s) { if (s == null) return s; s = String(s).replace(/\s*\(공포 \+\d+ 더\)/g, '').replace(/(\d)\s*방울/g, '$1').replace(/(\d+)라운드 교전: (\d+)명 쓰러뜨림/g, '맞붙음이 끝났다. 쓰러진 침입자 $2'); return CM_DROP.test(s) ? null : NEST.fj(s); }
+// 진액이 어디서 들고 났나 (카드 판 말로)
+const CMLEDGE = { '지닌 것': '쓰러진 것들이 지녔던 것', '삼킨 것': '붙잡아 둔 것들', '끼니': '권속 밥값', '방 유지': '굴 유지', '진액 털림': '본체가 털린 것', '진액 맥': '진액 맥', '소화': '소화액', '빨판 굴': '빨판 굴', '미끼 굴': '미끼 굴', '상자': '주운 것', '버려진 짐': '주운 것', '보급함': '주운 것', '훈련': '권속 먹이기', '권속 진화': '권속 진화' };
 function cmSettleHtml(b, st, day, g0) {
   const L = st.ledger || {}, tot = Math.round(Object.values(L).reduce((a, x) => a + x, 0)), run = CMU.run, w = G.world;
   const nm = k => (typeof CARDMODE.knownName === 'function' ? CARDMODE.knownName(run.meta, w, k) : null) || (CARDMODE.ALIEN && CARDMODE.ALIEN[k]) || '낯선 것';
@@ -396,14 +404,15 @@ function cmSettleHtml(b, st, day, g0) {
     const kinds = {}; b.party.forEach(u => { kinds[u.kind] = (kinds[u.kind] || 0) + 1; });
     const res = { repel: ['막아 냈다', 'okc'], stolen: ['본체가 쓰러졌다 · 진액을 털렸다', 'up'], core: ['본체가 쓰러졌다', 'up'] }[b.result] || ['끝났다', ''];
     h += `<div class="card cm-set"><p class="h3 ${res[1]}">${res[0]}</p><div class="cm-setinv">${Object.keys(kinds).map(k => `<span class="cm-inv">${invImg(k, 28)}<small>${esc(nm(k))} ×${kinds[k]}</small></span>`).join('')}</div>
-<p class="small">쓰러뜨림 <b>${b.kills || 0}</b> · 달아남 <b>${b.fled || 0}</b>${(b.captives || []).length ? ` · 붙잡음 <b style="color:#c8a8ff">${b.captives.length}</b>` : ''} <span class="mute">/ ${b.party.length}</span></p>${b.fell ? `<p class="small up">목숨 ${lifePips()} · 한 번 더 쓰러지면 끝이다</p>` : ''}</div>`;
+<p class="small">쓰러뜨림 <b>${b.kills || 0}</b> · 달아남 <b>${b.fled || 0}</b>${(b.captives || []).length ? ` · 붙잡음 <b style="color:#c8a8ff">${b.captives.length}</b>` : ''} <span class="mute">/ ${b.party.length}</span></p>${b.fell ? `<p class="small up">목숨 ${lifePips()}${G.over ? ' · 다시 일어나지 못했다' : NEST.lives(G) <= 1 ? ' · 한 번 더 쓰러지면 끝이다' : ' · 남은 목숨 ' + NEST.lives(G)}</p>` : ''}</div>`;
   } else h += '<p class="mute">아무도 오지 않았다. 굴이 조용히 자랐다.</p>';
-  h += `<p class="cm-ess ${tot >= 0 ? 'coin' : 'up'}">진액 ${tot >= 0 ? '+' : ''}${tot}</p>`;
-  const notes = (st.notes || []).filter(n => !CMNOTE_OUT.test(n)).map(n => n.replace(/([+−-]?\d[\d,]*)\s*방울/g, '진액 $1')).slice(0, 3);
+  { const parts = Object.keys(L).filter(k => Math.round(L[k])).sort((a, c) => Math.abs(L[c]) - Math.abs(L[a])).slice(0, 3).map(k => (CMLEDGE[k] || k) + ' ' + (L[k] > 0 ? '+' : '') + Math.round(L[k]));
+    h += `<p class="cm-ess ${tot >= 0 ? 'coin' : 'up'}">진액 ${tot >= 0 ? '+' : ''}${tot}</p>${parts.length ? `<p class="small mute">${parts.map(esc).join(' · ')}</p>` : ''}`; }
+  const notes = (st.notes || []).filter(n => !CMNOTE_OUT.test(n)).map(n => cmText(n.replace(/([+−-]?\d[\d,]*)\s*방울/g, '진액 $1'))).filter(Boolean).slice(0, 3);
   if (notes.length) h += `<div class="stack" style="gap:2px">${notes.map(n => `<p class="small warnc">${esc(n)}</p>`).join('')}</div>`;
   const g1 = cmGenome(), gm = g0 && g1 && TRAITS.grewMost ? TRAITS.grewMost(g0, g1) : null;
   if (gm) h += `<div class="cm-grew">${cmBodyImg(g1, 48)}<p class="small">${esc(gm.line)}</p></div>`;
-  return M(b ? day + '일째 밤' : day + '일째', h, closeBtn('아침으로'));
+  return M(b ? day + '일째 밤' : day + '일째', NEST.fj(h), closeBtn('아침으로'));
 }
 // 아침마다 몸이 조금 바뀐다: 위쪽 초상이 짧게 바뀌고 한 줄이 남는다
 function cmDayChange(g0) {
@@ -457,9 +466,15 @@ function cmDeckSheet() {
   const list = dv.filter(v => t === 'all' || v.where === t).sort((a, b) => a.type.localeCompare(b.type) || a.name.localeCompare(b.name));
   cmSheet('deck', `<h3>덱 ${run.deck.length}장 <small>남은 ${run.drawP.length} · 버림 ${run.disc.length} · 손에 남기는 ${run.retain}</small></h3><div class="dk-tabs">${tabs.map(([k, n]) => `<button class="dk-tab${k === t ? ' on' : ''}" data-c="dtab" data-v="${k}">${n}</button>`).join('')}</div><div class="dk-grid">${list.map(v => `<div class="dk-cell">${cmFace(v, { cls: 'mini', uid: v.uid })}</div>`).join('')}</div>`);
 }
+// 진액을 쓸 곳: 같은 날 거듭하면 값이 오른다
+const CMSINKT = { redraw: '손의 카드를 버리고 새로 받는다', draw: '덱에서 한 장을 더 받는다', feed: '모든 권속이 자란다', hurry: '다음 허물이 가까워진다' };
+function cmSinkHtml() {
+  if (!CARDMODE.sinkOptions) return ''; const o = CARDMODE.sinkOptions(CMU.run);
+  return `<p class="dk-lab">진액을 쓴다</p><div class="cm-sinks">${o.map(x => `<button class="btn cm-sink" data-c="sink" data-v="${x.id}"${x.ok ? '' : ' disabled'} title="${esc(x.ok ? CMSINKT[x.id] : x.why || '')}"><b>${esc(x.name)} <span class="coin">${x.cost}</span></b>${x.ok ? '' : `<small>${esc(x.why || '')}</small>`}</button>`).join('')}</div>`;
+}
 function cmShopSheet() {
   const run = CMU.run, sh = run.shop || [];
-  cmSheet('shop', `<h3>상점 <small>진액 ${R(G.gold)}</small></h3><div class="dk-grid">${sh.map((s, i) => `<div class="dk-cell${s.sold ? ' sold' : ''}">${cmFace(cmDefView(s.id), { cls: 'mini' })}<button class="btn sm" data-c="buy" data-i="${i}"${s.sold || G.gold < s.price ? ' disabled' : ''}>${s.sold ? '팔림' : '사기 ' + s.price}</button></div>`).join('') || '<p class="dk-mute">오늘은 없다</p>'}</div>`);
+  cmSheet('shop', `<h3>상점 <small>진액 ${R(G.gold)}</small></h3><div class="dk-grid">${sh.map((s, i) => `<div class="dk-cell${s.sold ? ' sold' : ''}">${cmFace(cmDefView(s.id), { cls: 'mini' })}<button class="btn sm" data-c="buy" data-i="${i}"${s.sold || G.gold < s.price ? ' disabled' : ''}>${s.sold ? '팔림' : '사기 ' + s.price}</button></div>`).join('') || '<p class="dk-mute">오늘은 없다</p>'}</div>${cmSinkHtml()}`);
 }
 function cmUpSheet() {
   const run = CMU.run, k = CARDMODE.upCost(run), list = run.deck.filter(c => !c.up && cmDef(c.id).type !== 'curse');
@@ -471,7 +486,7 @@ function cmRmSheet() {
 }
 function cmCombosSheet() {
   const now = NEST.cardCombos(G), ids = new Set(now.map(x => x.id));
-  cmSheet('combos', `<h3>배치 족보 <small>지도 위 칸을 이어 만든다</small></h3><div class="dk-list">${Object.keys(NEST.CMB).map(k => `<div class="dk-li${ids.has(k) ? ' cm-on' : ''}"><b>${ids.has(k) ? '◆' : '◇'} ${esc(NEST.CMB[k].name)}</b><span class="dk-mute">${esc(NEST.CMB[k].text || NEST.CMB[k].desc || '')}</span></div>`).join('')}</div>`);
+  cmSheet('combos', `<h3>배치 족보</h3><div class="dk-list">${Object.keys(NEST.CMB).map(k => `<div class="dk-li${ids.has(k) ? ' cm-on' : ''}"><b>${ids.has(k) ? '◆' : '◇'} ${esc(NEST.CMB[k].name)}</b><span class="dk-mute">${esc(NEST.CMB[k].text || NEST.CMB[k].desc || '')}</span></div>`).join('')}</div>`);
 }
 function cmDetail(id, uid) {
   if (!id) return; const run = CMU.run, c = uid ? cmCard(+uid) : null, v = c ? CARDMODE.view(run, c) : cmDefView(id), d = cmDef(id), un = d.unlock && CARDS2.UNLOCK[d.unlock];
@@ -572,6 +587,7 @@ function cmClick(e) {
   if (c === 'close') return cmSheet(null);
   if (c === 'fold') { const n = el.nextElementSibling; if (n) { n.hidden = !n.hidden; el.classList.toggle('on', !n.hidden); } return; }
   if (c === 'tutoff') { cmMeta().tutOff = true; saveMeta(); cmCoachHide(); document.querySelectorAll('.cm-glow').forEach(x => x.classList.remove('cm-glow')); return; }
+  if (c === 'tagi') { CMU.tagOpen = CMU.tagOpen === v ? null : v; return cmBodySheet(); }
   if (c === 'tutagain') { const m = cmMeta(); m.tutOff = false; m.tut = 0; saveMeta(); cmSheet(null); return cmCoach(); }
   if (c === 'egg-lay') return cmLayEgg();
   if (!run) return;
@@ -598,6 +614,7 @@ function cmClick(e) {
   if (c === 'deck') return cmDeckSheet();
   if (c === 'dtab') { CMU.deckTab = v; return cmDeckSheet(); }
   if (c === 'shop') return cmShopSheet();
+  if (c === 'sink') { const r = CARDMODE.buySink(run, el.dataset.v); cmToast(r.msg); if (r.ok) cmSnd('coin'); CMU.threatKey = ''; render(); cmSave(); return cmShopSheet(); }
   if (c === 'buy') { const r = CARDMODE.shopBuy(run, +el.dataset.i); cmToast(r.msg || (r.ok ? '샀다' : '못 산다')); if (r.ok) cmSnd('coin'); render(); cmSave(); return cmShopSheet(); }
   if (c === 'up') return cmUpSheet();
   if (c === 'doup') { const r = CARDMODE.upgrade(run, +el.dataset.uid); cmToast(r.msg || (r.ok ? '강화했다' : '못 한다')); if (r.ok) cmSnd('up'); render(); cmSave(); return cmUpSheet(); }
@@ -609,7 +626,7 @@ function cmClick(e) {
 }
 
 // 시험용
-window.__card = { get run() { return CMU.run; }, CMU, CARDMODE, open: cardOpen, begin: cmBegin, select: cmSelect, tap: cmTapCell, play: cmPlay, night: cardNight, finish: cardFinish, molt: cmMoltScreen, guess: cmMoltGuess, genome: cmGenome, needle: cmNeedle, codex: cmCodex, hints: cmHints, rect: i => cellRect(i), render: () => render(), cam: i => camCell(i, true), get META() { return META; }, get ST() { return ST; },
+window.__card = { get run() { return CMU.run; }, CMU, CARDMODE, open: cardOpen, begin: cmBegin, select: cmSelect, tap: cmTapCell, play: cmPlay, night: cardNight, finish: cardFinish, molt: cmMoltScreen, guess: cmMoltGuess, genome: cmGenome, needle: cmNeedle, codex: cmCodex, hints: cmHints, rect: i => cellRect(i), render: () => render(), cam: i => camCell(i, true), get META() { return META; }, get ST() { return ST; }, get meta() { return cmMeta(); },
   // 칸 i 의 가운데를 화면 좌표로 (시험에서 지도를 누를 때)
   pt(i) { const b = $('stage').getBoundingClientRect(), u = b.height / (ST.vh || H), r = cellRect(i); return { x: b.left + (r.x + r.w / 2 + ST.ox - ST.cam.x) * u, y: b.top + (r.y + r.h / 2 + (ST.oyFit || 0) - (ST.cam.y || 0) - (ST.cam.v || 0)) * u }; } };
 
@@ -634,13 +651,13 @@ function cmBodyBand() {
 function cmBodyHtml() {
   const run = CMU.run, g = cmGenome(); if (!g) return '<p class="mute">아직 몸이 없다</p>';
   const nm = TRAITS.nameOf(g), top = TRAITS.topTags(g, 4), bar = CARDMODE.evoBar ? CARDMODE.evoBar(run) : null, cmb = TRAITS.combosOf ? TRAITS.combosOf(g) : [], cls = TRAITS.classOf ? TRAITS.classOf(g) : null;
-  const story = TRAITS.narrate ? TRAITS.narrate(g, 3) : [], nums = TRAITS.describe ? TRAITS.describe(g) : [];
+  const story = TRAITS.narrate ? TRAITS.narrate(Object.assign({}, g, { usedLines: (g.usedLines || []).slice() }), 3) : [], nums = TRAITS.describe ? TRAITS.describe(g) : [];
   return `<div class="cm-bodyp"><div class="cm-bodybig">${cmBodyImg(g, isMobile() ? 144 : 176)}</div><h3>${esc(nm.name)}${nm.title ? `<small>「${esc(nm.title)}」</small>` : ''}</h3>
 <p class="small mute">${(run.molts || []).length}번 허물을 벗었다${cls ? ' · ' + esc(TRAITS.LOCO[cls.loco] || '') + ' 몸' : ''}</p>
-${bar && !bar.done ? `<div class="cm-evobig"><u style="width:${Math.round((bar.frac || 0) * 100)}%"></u></div><p class="small mute">다음 허물까지 ${Math.round((bar.frac || 0) * 100)}% · 많이 할수록 빨리 온다</p>` : '<p class="small okc">더 벗을 허물이 없다. 다 자랐다</p>'}
-<p class="dk-lab">몸에 돋은 것</p><div class="cm-tagl">${top.map(t => `<div class="cm-tagrow"><b style="color:${CMGCOL[t] || '#fff3a0'}">${esc(cmTagName(t))}</b><span class="small">${esc(TRAITS.TAGS[t].hint)}</span></div>`).join('') || '<p class="small mute">아직 아무것도</p>'}</div>
+${bar && !bar.done ? `<div class="cm-evobig"><u style="width:${Math.round((bar.frac || 0) * 100)}%"></u></div><p class="small mute">다음 허물 ${Math.round((bar.frac || 0) * 100)}%</p>` : '<p class="small okc">더 벗을 허물이 없다. 다 자랐다</p>'}
+${CMU.dayChange && CMU.dayChange.line ? `<p class="dk-lab">어제 → 오늘</p><div class="dk-list"><div class="dk-li">${esc(CMU.dayChange.line)}</div></div>` : ''}<p class="dk-lab">몸에 돋은 것</p><div class="cm-tagl">${top.map(t => `<button class="cm-tagrow" data-c="tagi" data-v="${t}"><b style="color:${CMGCOL[t] || '#fff3a0'}">${esc(cmTagName(t))}</b> <span class="num">${Math.round(g.tags[t] || 0)}</span></button>${CMU.tagOpen === t ? `<p class="small cm-taghint">${esc(TRAITS.TAGS[t].hint)}</p>` : ''}`).join('') || '<p class="small mute">아직 아무것도</p>'}</div>
 ${cmb.length ? `<p class="small okc">◇ ${cmb.slice(0, 2).map(c => esc(c.name)).join(' · ')}</p>` : ''}
-${story.length ? `<p class="dk-lab">왜 이렇게 되었나</p><div class="dk-list">${story.map(x => `<div class="dk-li">${esc(x)}</div>`).join('')}</div>${cmFold('숫자로 보기', nums.map(x => `<p class="small mute">${esc(x)}</p>`).join(''))}` : ''}
+${story.length ? cmFold('왜 이렇게 되었나', `<div class="dk-list">${story.map(x => `<div class="dk-li">${esc(x)}</div>`).join('')}</div>${nums.map(x => `<p class="small mute">${esc(x)}</p>`).join('')}`) : ''}
 <p class="small mute">목숨 ${lifePips()} · 체력 ${Math.round(G.slime.hp)}</p></div>`;
 }
 function cmBodySheet() { cmSheet('body', cmBodyHtml()); cmCoachDone('body'); }
@@ -664,14 +681,14 @@ function cmThreatHints() {
 }
 function cmThreatChip() {
   const e = NEST.estimate(G, 'tonight'); if (!e) return ''; const f = cmThreat(), lv = f ? CMTH[f.level] : null;
-  return `<button class="chip cm-threat${lv ? ' lv-' + f.level : ''}" data-c="threat"${lv ? ` style="--tc:${lv[1]}"` : ''}><span class="cm-tdots">${[1, 2, 3].map(i => `<i class="${lv && i <= lv[2] ? 'on' : ''}"></i>`).join('')}</span>${lv ? lv[0] : '…'} · 적 ${e.count}${e.boss ? ' !' : ''}</button>`;
+  return `<button class="chip cm-threat${lv ? ' lv-' + f.level : ''}" data-c="threat"${lv ? ` style="--tc:${lv[1]}"` : ''}><span class="cm-tdots">${[1, 2, 3].map(i => `<i class="${lv && i <= lv[2] ? 'on' : ''}"></i>`).join('')}</span>${lv ? lv[0] : '…'} · 적 ${f ? f.n : '…'}${e.boss ? ' !' : ''}</button>`;
 }
 function cmThreatHtml(short) {
   const e = NEST.estimate(G, 'tonight'), f = cmThreat(), run = CMU.run; if (!e) return '<p class="mute">오늘 밤은 조용할 것 같다</p>';
   const lv = f ? CMTH[f.level] : null, kinds = f ? f.kinds : (e.kinds || []), nm = k => CARDMODE.knownName(run.meta, G.world, k);
-  const bar = f ? `<div class="cm-tbar"><u style="width:${Math.round(100 * f.stopped / Math.max(1, f.n))}%;background:${lv[1]}"></u></div><p class="small">손을 안 쓰면: 적 ${f.n} 가운데 <b>${f.stopped}</b>을(를) 막는다${f.fell ? ' · <b class="up">본체가 쓰러진다</b>' : f.lost > 0.05 ? ' · 본체가 다친다' : ''}</p>` : '<p class="small mute">헤아리는 중…</p>';
+  const bar = f ? `<div class="cm-tbar"><u style="width:${Math.round(100 * f.stopped / Math.max(1, f.n))}%;background:${lv[1]}"></u></div><p class="small">손을 안 쓰면: 적 ${f.n} 가운데 <b>${f.stopped}</b> 막는다${f.fell ? ' · <b class="up">본체가 쓰러진다</b>' : f.lost > 0.05 ? ' · 본체가 다친다' : ''}</p>` : '<p class="small mute">헤아리는 중…</p>';
   const hs = f && f.level !== 'safe' ? cmThreatHints() : [];
-  return `<div class="cm-threatp">${lv ? `<p class="h3" style="color:${lv[1]}">오늘 밤 · ${lv[0]}</p>` : '<p class="h3">오늘 밤</p>'}<div class="cm-setinv">${kinds.slice(0, 8).map(k => `<span class="cm-inv">${invImg(k, 28)}<small>${esc(nm(k))}${f && f.count && f.count[k] > 1 ? ' ×' + f.count[k] : ''}</small></span>`).join('')}${!kinds.length ? `<span class="small">${e.count}명</span>` : ''}</div>${bar}${hs.length ? `<div class="stack" style="gap:2px">${hs.slice(0, short ? 2 : 4).map(h => `<p class="small warnc">· ${esc(h)}</p>`).join('')}</div>` : ''}</div>`;
+  return `<div class="cm-threatp">${lv ? `<p class="h3" style="color:${lv[1]}">오늘 밤 · ${lv[0]}</p>` : '<p class="h3">오늘 밤</p>'}<div class="cm-setinv">${kinds.slice(0, 8).map(k => `<span class="cm-inv">${invImg(k, 28)}<small>${esc(nm(k))}${f && f.count && f.count[k] > 1 ? ' ×' + f.count[k] : ''}</small></span>`).join('')}${!kinds.length ? `<span class="small">${f ? f.n : e.count}</span>` : ''}</div>${bar}${f ? '<p class="small mute">기술 카드를 쓰면 결과가 달라진다</p>' : ''}${hs.length ? `<div class="stack" style="gap:2px">${hs.slice(0, short ? 2 : 4).map(h => `<p class="small warnc">· ${esc(h)}</p>`).join('')}</div>` : ''}</div>`;
 }
 
 // ---- 처음 판 안내: 손 → 칸 → 돌리기 → 다른 카드 → 몸 → 위험 → 밤 → 기술 → 보상 ----
@@ -680,24 +697,27 @@ const CMTUT = [
   { id: 'map', at: '#stage', say: '빛나는 칸을 누르면 굴 모양이 비친다.', when: () => CMU.sel != null && (cmCard(CMU.sel) && cmDef(cmCard(CMU.sel).id).type === 'shape'), done: () => !!CMU.place || (CMU.run.st.shapes || 0) > 0 },
   { id: 'rot', at: '[data-c="rot"]', say: '↻ 돌리기로 모양을 바꾸고, 「놓기」로 판다.', when: () => !!CMU.place, done: () => (CMU.run.st.shapes || 0) > 0 },
   { id: 'more', at: '#chand', say: '기관·부위·권속 카드도 빛나는 칸에 놓는다. 위로 끌어 놓을 수도 있다.', when: () => ST.mode === 'day' && CMU.sel == null, done: () => (CMU.run.st.organs || 0) + (CMU.run.st.traps || 0) + (G.stats.kinMade || 0) > 0 || G.day >= 3 },
-  { id: 'body', at: '#cm-body', say: '위쪽 그림이 본체다. 한 일에 따라 몸이 바뀐다. 누르면 자세히 본다.', when: () => ST.mode === 'day', done: () => false, auto: 7000 },
-  { id: 'threat', at: '.cm-threat', say: '오늘 밤 올 무리와 막을 힘이다. 붉으면 더 놓아야 한다.', when: () => ST.mode === 'day' && !!G.march.tonight && !!document.querySelector('.cm-threat'), done: () => false, auto: 7000 },
+  { id: 'body', at: '#cm-body', say: '위쪽 그림이 본체다. 한 일에 따라 몸이 바뀐다. 누르면 자세히 본다.', when: () => ST.mode === 'day', done: () => ST.mode === 'night', auto: 7000 },
+  { id: 'threat', at: '.cm-threat', say: '오늘 밤 올 무리와 막을 힘이다. 붉으면 더 놓아야 한다.', when: () => ST.mode === 'day' && !!G.march.tonight && !!document.querySelector('.cm-threat'), done: () => ST.mode === 'night', auto: 7000 },
   { id: 'night', at: '[data-c="night"]', say: '다 놓았으면 「밤 맞기」를 누른다.', when: () => ST.mode === 'day' && CMU.sel == null, done: () => ST.mode === 'night' },
-  { id: 'skill', at: '#hand .cm-nhand, #hand', say: '무리가 방에 들면 멈춘다. 기술 카드를 누르면 끼어든다.', when: () => ST.mode === 'night' && !$('hand').hidden, done: () => ST.mode !== 'night' },
-  { id: 'reward', at: '.dk-pick3', say: '셋 가운데 하나를 덱에 넣는다.', when: () => !!document.querySelector('#cm-ov .dk-pick3'), done: () => CMU.run.phase !== 'reward' }
+  { id: 'skill', at: '#hand .cm-nhand, #hand', say: '무리가 방에 들면 멈춘다. 기술 카드를 누르면 끼어든다.', when: () => ST.mode === 'night' && !$('hand').hidden, done: () => ST.mode !== 'night', seen: 1 },
+  { id: 'reward', at: '.dk-pick3', say: '셋 가운데 하나를 덱에 넣는다.', when: () => !!document.querySelector('#cm-ov .dk-pick3'), done: () => CMU.run.phase !== 'reward', seen: 1 }
 ];
+// 첫 판 안내가 「기술」 단계에 닿기 전이면, 무리가 처음 방에 들 때 한 번은 반드시 멈춘다
+function cmForcePause(ctx) { const m = cmMeta(), k = CMTUT.findIndex(x => x.id === 'skill'); return cmTutOn() && (m.tut || 0) <= k && ctx.opts.some(o => o.ok); }
 const cmTutOn = () => { const m = cmMeta(); return !m.tutOff && (m.tut || 0) < CMTUT.length; };
 function cmCoachDone(id) { const m = cmMeta(), k = CMTUT.findIndex(s => s.id === id); if (k >= 0 && (m.tut || 0) === k) { m.tut = k + 1; CMU.coachAt = 0; saveMeta(); } }
 function cmCoachHide() { const b = $('cm-coach'); if (b) b.hidden = true; document.querySelectorAll('.cm-glow').forEach(x => x.classList.remove('cm-glow')); }
 function cmCoach() {
   if (!CMU.run || !cmTutOn()) return cmCoachHide(); const m = cmMeta();
   let s = CMTUT[m.tut || 0];
-  while (s && (() => { try { return s.done(); } catch (e) { return false; } })()) { m.tut = (m.tut || 0) + 1; CMU.coachAt = 0; saveMeta(); s = CMTUT[m.tut]; }
+  while (s && (!s.seen || (CMU.shown || {})[s.id]) && (() => { try { return s.done(); } catch (e) { return false; } })()) { m.tut = (m.tut || 0) + 1; CMU.coachAt = 0; saveMeta(); s = CMTUT[m.tut]; }
   if (!s) return cmCoachHide();
   if ((!$('cm-ov').hidden && s.id !== 'reward') || CMU.sheet || ($('modal') && !$('modal').hidden)) return cmCoachHide();
   let show = false; try { show = s.when(); } catch (e) { show = false; }
   const tgt = show ? document.querySelector(s.at) : null; if (!tgt || !tgt.getBoundingClientRect().width) return cmCoachHide();
   if (!CMU.coachAt || CMU.coachId !== s.id) { CMU.coachAt = Date.now(); CMU.coachId = s.id; }
+  (CMU.shown = CMU.shown || {})[s.id] = 1;
   if (s.auto && Date.now() - CMU.coachAt > s.auto) { cmCoachDone(s.id); return cmCoach(); }
   let b = $('cm-coach'); if (!b) { b = document.createElement('div'); b.id = 'cm-coach'; document.body.appendChild(b); }
   if (b.dataset.id !== s.id) { b.dataset.id = s.id; b.innerHTML = `<span class="cm-cotx">${esc(s.say)}</span><button class="cm-cox" data-c="tutoff" aria-label="안내 끄기">안내 끄기</button><i class="cm-coar"></i>`; }

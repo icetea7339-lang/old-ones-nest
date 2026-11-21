@@ -47,6 +47,8 @@ const PRO_CSS = `#pro { position: fixed; top: 0; right: 0; bottom: 0; left: 0; z
 .pro-card > .pro-b.pri { align-self: flex-end; }
 .pro-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .pro-grid { display: grid; grid-template-columns: 38px repeat(5, minmax(0, 1fr)); gap: 4px; align-items: stretch; }
+.pro-rec { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) auto; gap: 8px; align-items: stretch; } .pro-rec .pro-cell { min-height: 64px; } .pro-rec .pro-b { align-self: center; min-height: 44px; }
+.pro-grow.nudge { animation: pronudge 1s ease-in-out infinite; } @keyframes pronudge { 0%, 100% { box-shadow: 0 0 0 0 rgba(232,192,48,.0); } 50% { box-shadow: 0 0 0 6px rgba(232,192,48,.55); } }
 .pro-gh { display: flex; align-items: center; justify-content: center; gap: 3px; font-family: var(--display, sans-serif); font-size: 12px; min-height: 20px; } .pro-gh i { display: block; width: 8px; height: 8px; border: 1px solid #07050a; }
 .pro-gl { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; font-family: var(--display, sans-serif); font-size: 12px; color: #a59cb4; text-align: center; } .pro-gl small { font-family: var(--body, sans-serif); font-size: 9px; line-height: 1.15; color: #ff9a8a; word-break: keep-all; }
 .pro-cell { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 50px; padding: 2px; background: #2a2236; border: 1px solid #07050a; box-shadow: inset 0 0 0 1px #4a3c58; cursor: pointer; }
@@ -98,7 +100,7 @@ function runPrologue(opts) {
 
   // ---------- 그림 ----------
   const SPR = {}, spr = (key, make) => SPR[key] || (SPR[key] = make());
-  const NESTSAY = typeof NEST !== 'undefined' && NEST.SEEDN && NEST.SEEDN[sim.look] ? NEST.SEEDN[sim.look].text : '';
+  const NESTSAY = !opts.short && typeof NEST !== 'undefined' && NEST.SEEDN && NEST.SEEDN[sim.look] ? NEST.SEEDN[sim.look].text : '';
   const SEED = sim.seedOf, TOP = SEED && SEED.top ? SEED.top : [16, 13], TDX = TOP[0] - 16, TDY = TOP[1] - 13;
   const DROP = { origin: 'drop', stage: 0, main: null, sub: null, muts: [], ess: {}, look: sim.look };
   const flip = c => spr('f:' + (c.__id || (c.__id = Object.keys(SPR).length + 1)), () => { const f = document.createElement('canvas'); f.width = c.width; f.height = c.height; const x = f.getContext('2d'); x.translate(c.width, 0); x.scale(-1, 1); x.drawImage(c, 0, 0); return f; });
@@ -232,21 +234,25 @@ function runPrologue(opts) {
   // ---------- 돋우는 창: 가로는 징조(색), 세로는 자리. 떠 있는 동안 흙 속은 멈춘다 ----------
   const pipsHtml = (n, col) => `<span class="pro-lv" style="--c:${col}">${[1, 2, 3].map(k => `<i class="${k <= n ? 'on' : ''}"></i>`).join('')}</span>`;
   const wal = a => Math.floor(S.purse[a]);
+  // 처음 여는 부위 달기는 고를 만한 셋만 보여 준다 (나머지는 「모두 본다」)
+  let rec = null, recNext = false;
+  function recParts() { const open = CAT.filter(d => !sim.whyNot(d.id) && !(S.worn[d.slot] && S.worn[d.slot].id !== d.id)); const pref = d => (d.slot === 'mouth' ? 3 : d.slot === 'eye' ? 2 : 1) + (d.asp === home ? 1 : 0); const r = open.sort((a, b) => pref(b) - pref(a)).slice(0, 3).map(d => d.id); return r.length ? r : null; }
   function shopHtml(tip) {
     if (!sel || !PART[sel]) { const open = CAT.filter(d => !sim.whyNot(d.id) && !(S.worn[d.slot] && S.worn[d.slot].id !== d.id)); sel = (open[0] || CAT.find(d => d.asp === home)).id; }
     const d = PART[sel], w = S.worn[d.slot], mine = w && w.id === sel ? w.lv : 0, price = sim.priceOf(sel), why = sim.whyNot(sel), col = ASPCOL[d.asp];
-    let h = `<div class="pro-card" role="dialog" aria-label="부위 달기"><div class="pro-top"><h2>부위 달기<small${SEED ? ` title="${SEED.say}"` : ''}>${SEED ? SEED.name + '의 몸을 바꾼다' : '먹은 것으로 몸을 바꾼다'}</small></h2><button class="pro-b" data-x="close">닫는다</button></div>${tip ? `<p class="pro-mute">${tip}</p>` : ''}<div class="pro-grid"><span></span>${ASPS.map(a => `<span class="pro-gh" title="${ASPK[a]}"><i style="background:${ASPCOL[a]}"></i>${wal(a)}</span>`).join('')}`;
-    for (const s of SLOTS) { const locked = S.stage < KK.open[s[0]]; h += `<span class="pro-gl">${s[1]}${locked ? `<small>${['', '첫째', '둘째', '셋째', '넷째', '다섯째'][KK.open[s[0]]]} 몸</small>` : ''}</span>`; for (const a of ASPS) { const id = s[0] + '_' + a, ww = S.worn[s[0]], own = ww && ww.id === id ? ww.lv : 0; h += `<button class="pro-cell${own ? ' own' : ''}${locked ? ' lock' : ''}${!sim.whyNot(id) ? ' can' : ''}${id === sel ? ' sel' : ''}" style="--c:${ASPCOL[a]}" data-id="${id}" aria-label="${s[1]} · ${PART[id].name}${own ? ' ' + own + '단계' : ''}${locked ? ' (잠김)' : ''}"><img src="${iconURL(id)}" alt="">${pipsHtml(own, ASPCOL[a])}</button>`; } }
+    let h = `<div class="pro-card" role="dialog" aria-label="부위 달기"><div class="pro-top"><h2>부위 달기<small${SEED ? ` title="${SEED.say}"` : ''}>${SEED ? SEED.name + '의 몸을 바꾼다' : '먹은 것으로 몸을 바꾼다'}</small></h2><button class="pro-b" data-x="close">닫는다</button></div>${tip ? `<p class="pro-mute">${tip}</p>` : ''}<div class="pro-grid${rec ? ' pro-recg' : ''}"><span></span>${ASPS.map(a => `<span class="pro-gh" title="${ASPK[a]}"><i style="background:${ASPCOL[a]}"></i>${wal(a)}</span>`).join('')}`;
+    if (rec) { if (!rec.includes(sel)) sel = rec[0]; h = h.replace('<div class="pro-grid pro-recg">', '<div class="pro-rec">').replace(/<span><\/span>(<span class="pro-gh"[\s\S]*?<\/span>)+$/, ''); h += rec.map(id => { const dd = PART[id], ww = S.worn[dd.slot], own = ww && ww.id === id ? ww.lv : 0; return `<button class="pro-cell can${id === sel ? ' sel' : ''}" style="--c:${ASPCOL[dd.asp]}" data-id="${id}" aria-label="${SLOTK[dd.slot]} · ${dd.name}"><img src="${iconURL(id)}" alt="">${pipsHtml(own, ASPCOL[dd.asp])}</button>`; }).join('') + '<button class="pro-b" data-x="all">모두 본다</button>'; }
+    else for (const s of SLOTS) { const locked = S.stage < KK.open[s[0]]; h += `<span class="pro-gl">${s[1]}${locked ? `<small>${['', '첫째', '둘째', '셋째', '넷째', '다섯째'][KK.open[s[0]]]} 몸</small>` : ''}</span>`; for (const a of ASPS) { const id = s[0] + '_' + a, ww = S.worn[s[0]], own = ww && ww.id === id ? ww.lv : 0; h += `<button class="pro-cell${own ? ' own' : ''}${locked ? ' lock' : ''}${!sim.whyNot(id) ? ' can' : ''}${id === sel ? ' sel' : ''}" style="--c:${ASPCOL[a]}" data-id="${id}" aria-label="${s[1]} · ${PART[id].name}${own ? ' ' + own + '단계' : ''}${locked ? ' (잠김)' : ''}"><img src="${iconURL(id)}" alt="">${pipsHtml(own, ASPCOL[a])}</button>`; } }
     const now = mine ? d.say(d.v[mine - 1], mine - 1) : null, next = mine < 3 ? d.say(d.v[mine], mine) : null, swap = w && w.id !== sel;
     const power = d.slot === 'mouth' ? `<p class="pro-mute">입의 힘 ${Math.min(4, (mine || 0) + (d.id === 'mouth_hunger' && mine ? 1 : 0))}${mine < 3 ? ' → ' + (mine + 1 + (d.id === 'mouth_hunger' ? 1 : 0)) : ''}: 힘만큼 큰 먹잇감을 삼키고 굳은 것을 깬다</p>` : `<p class="pro-mute">${PRO.SLOTSAY[d.slot]}</p>`;
     h += `</div><div class="pro-det"><p><b style="color:${col}">${d.name}</b> <span class="pro-mute">${SLOTK[d.slot]} · ${ASPK[d.asp]}</span> ${pipsHtml(mine, col)}</p>${now ? `<p>지금: ${now}</p>` : ''}${next ? `<p${now ? ' class="pro-mute"' : ''}>${now ? '다음' : '달면'}: ${next}</p>` : ''}${power}${swap ? `<p class="pro-warn">${SLOTK[d.slot]} 자리의 ${PART[w.id].name}${w.lv > 1 ? ' ' + w.lv + '단계' : ''}이 사라진다</p>` : ''}
       <div class="pro-brow"><span class="${why && price != null ? 'pro-warn' : 'pro-mute'}">${why || '둥지에서: ' + NEST.MUT[d.mut].name}</span><button class="pro-b pri" data-x="buy"${why ? ' disabled' : ''}>${price == null ? '다 올렸다' : (mine ? '강화' : swap ? '바꿔 달기' : '달기') + ' <span style="display:inline-block;width:8px;height:8px;background:' + col + ';border:1px solid #07050a"></span> ' + price}</button></div></div></div>`;
     return h;
   }
-  function openShop(tip) { if (S.ended || shop) return; shop = true; shopSeen = true; held = false; sim.stop(); for (const k in keys) keys[k] = false; const el = $p('pro-shop'); el.innerHTML = shopHtml(tip === true ? '먹은 빛깔로 부위를 단다. 입이 클수록 큰 것을 삼킨다. 쓰지 않고 남긴 것은 둥지의 첫 정수가 된다.' : tip); el.hidden = false; }
+  function openShop(tip) { if (S.ended || shop) return; shop = true; shopSeen = true; held = false; sim.stop(); for (const k in keys) keys[k] = false; const el = $p('pro-shop'); rec = recNext ? recParts() : null; recNext = false; $p('pro-grow').classList.remove('nudge'); el.innerHTML = shopHtml(tip === true || rec ? '먹은 빛깔로 부위를 단다. 입이 클수록 큰 것을 삼킨다.' : tip); el.hidden = false; }
   function closeShop() { if (!shop) return; shop = false; $p('pro-shop').hidden = true; $p('pro-shop').innerHTML = ''; last = 0; acc = 0; hudKey = ''; }
   const redrawShop = () => { if (shop) $p('pro-shop').innerHTML = shopHtml(); };
-  $p('pro-shop').addEventListener('click', e => { const c = e.target.closest('[data-id]'), b = e.target.closest('[data-x]'); if (c) { sel = c.dataset.id; say('click'); redrawShop(); } else if (b && b.dataset.x === 'close') { say('click'); closeShop(); } else if (b && b.dataset.x === 'buy') { if (sim.buy(sel)) redrawShop(); } else if (e.target === $p('pro-shop')) closeShop(); });
+  $p('pro-shop').addEventListener('click', e => { const c = e.target.closest('[data-id]'), b = e.target.closest('[data-x]'); if (c) { sel = c.dataset.id; say('click'); redrawShop(); } else if (b && b.dataset.x === 'close') { say('click'); closeShop(); } else if (b && b.dataset.x === 'all') { rec = null; say('click'); redrawShop(); } else if (b && b.dataset.x === 'buy') { if (sim.buy(sel)) { rec = null; redrawShop(); } } else if (e.target === $p('pro-shop')) closeShop(); });
 
   // ---------- 위쪽 띠와 단추 ----------
   function hud() {
@@ -267,7 +273,7 @@ function runPrologue(opts) {
     if (STY && S.t - S.stageT > 75 * TPS) tell('slow' + S.stage);
     if (STY && !S.seen.st_big && Object.keys(S.seen).some(k => k.startsWith('met_') && SPC[k.slice(4)] && SPC[k.slice(4)].st > S.stage)) tell('big');
     if (STY && sayQ.length && !shop && !intro && !S.ended && !(S.cap && S.cap.hold > S.t)) { const q = sayQ.shift(); sim.caption(q.who, q.text, 5, q.who === '꿈' ? 4.5 : 3.5); }
-    if (!shopSeen && !manual && !intro && !S.ended && can && S.t > 2 * TPS && P.inv <= 0 && (!STY || S.t - canAt > 4 * TPS)) openShop(true);   // 처음 살 수 있게 됐을 때 한 번은 스스로 뜬다
+    if (!shopSeen && !manual && !intro && !S.ended && can && S.t > 2 * TPS && P.inv <= 0 && (!STY || S.t - canAt > 4 * TPS)) { shopSeen = true; recNext = true; $p('pro-grow').classList.add('nudge'); sim.caption('부위를 달 수 있다', '아래 「부위 달기」를 누른다', 4, 3); }   // 처음 살 수 있게 됐을 때: 창은 뜨지 않고 단추가 빛난다
   }
 
   // ---------- 일어난 일을 소리와 반짝임으로 ----------
@@ -459,7 +465,7 @@ function runPrologue(opts) {
     get kin() { return []; }, get result() { return result || sim.result(S.ended || 'settle'); },
     get wallet() { const o = {}; ASPS.forEach(a => { o[a] = wal(a); }); return o; }, get parts() { const o = {}; SLOTS.forEach(s => { const w = S.worn[s[0]]; if (w) o[w.id] = w.lv; }); return o; }, get shopOpen() { return shop; },
     catalog: CAT.map(d => ({ id: d.id, slot: d.slot, asp: d.asp, name: d.name, cost: d.cost.slice(), mut: d.mut, openAt: KK.open[d.slot], act: d.act || null, text: [0, 1, 2].map(k => d.say(d.v[k], k)) })),
-    buy(id) { const ok = sim.buy(id); if (ok) redrawShop(); return ok; }, why(id) { return sim.whyNot(id); }, price(id) { return PART[id] ? sim.priceOf(id) : null; }, openShop(tip) { openShop(tip); }, closeShop() { closeShop(); }, select(id) { if (PART[id]) { sel = id; redrawShop(); } },
+    buy(id) { const ok = sim.buy(id); if (ok) redrawShop(); return ok; }, why(id) { return sim.whyNot(id); }, price(id) { return PART[id] ? sim.priceOf(id) : null; }, openShop(tip) { openShop(tip); }, recShop() { recNext = true; openShop(); }, closeShop() { closeShop(); }, select(id) { if (PART[id]) { sel = id; redrawShop(); } },
     set manual(v) { manual = !!v; if (manual) closeIntro(); }, get manual() { return manual; }, sim,
     step(n) { for (let k = 0; k < (n || 1) && !S.ended; k++) sim.tick(); return S.ended; }, aim(x, y) { sim.aim(x, y); }, act() { return sim.act(); }, end(kind) { sim.end(kind || 'settle'); if (manual) finish(S.ended); }, world: { r: STG[5].R }, home };
   window.__pro = API;

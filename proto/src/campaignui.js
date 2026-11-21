@@ -58,16 +58,16 @@ async function cpScene(lines, ch) { if (!lines || !lines.length) return; await s
 
 // ---- 저장: 이야기 판은 'camprun' 에 따로 둔다 (본편 'cardrun' 을 덮지 않는다) ----
 function campSave() { const run = CMU.run; if (!run || CMU.inNight || run.phase === 'over' || (run.G && run.G.over)) return; try { CMU.set0.call(store, 'camprun', Object.assign({}, run, { meta: null })); } catch (e) { /* 저장 못 해도 판은 계속 */ } }
-function campLoad() { const r = store.get('camprun'); if (!r || !r.G || !r.deck || !r.camp) return null; r.meta = cmMeta(); return r; }
+function campLoad() { const r = store.get('camprun'); if (!r || !r.G || !r.deck || !r.camp) return null; if (typeof cardRunOk === 'function' && !cardRunOk(r)) { store.del('camprun'); return null; } r.meta = cmMeta(); try { CARDMODE.repair(r); } catch (e) { return null; } return r; }
 
 // ---- 장 고르기 ----
 function campOpen() {
   cpCss(); cmMount(); const m = cmMeta(), cm = CAMPAIGN.campMeta(m); $('title').hidden = true; $('game').hidden = true; G = null; CMU.run = null; cpGoalShow(false);
   const n = Object.keys(cm.clear).filter(k => +k >= 1 && cm.clear[k]).length, saved = campLoad();
-  const row0 = `<button class="btn opt cp-row${cm.clear[0] ? ' done' : ''}" data-cp="ch" data-v="0"><b>여는 이야기 · 떨어진 바늘</b><small>별 사이 바다에서 살 한 방울이 떨어진다. 한 방울로 먹고 자라, 이야기에서 쓸 몸을 정한다.</small></button>`;
-  const rows = CAMPAIGN.IDS.map(ch => { const C = CAMPAIGN.CH[ch], open = CAMPAIGN.isOpen(m, ch), done = !!cm.clear[ch]; return `<button class="btn opt cp-row${done ? ' done' : ''}${open && ch === CAMPAIGN.next(m) && !done ? ' pri' : ''}" data-cp="ch" data-v="${ch}"${open ? '' : ' disabled'}><b>${ch}장 · ${esc(C.title)}</b><small>${open ? esc(C.brief) : '앞 장을 넘기면 열린다'}</small></button>`; }).join('');
+  const row0 = `<button class="btn opt cp-row${cm.clear[0] ? ' done' : ''}" data-cp="ch" data-v="0"><b>여는 이야기 · 떨어진 바늘</b></button>`;
+  const rows = CAMPAIGN.IDS.map(ch => { const C = CAMPAIGN.CH[ch], open = CAMPAIGN.isOpen(m, ch), done = !!cm.clear[ch]; return `<button class="btn opt cp-row${done ? ' done' : ''}${open && ch === CAMPAIGN.next(m) && !done ? ' pri' : ''}" data-cp="ch" data-v="${ch}"${open ? '' : ' disabled'}><b>${ch}장 · ${esc(C.title)}</b></button>`; }).join('');
   const ch5 = cm.choice5 && CAMPAIGN.CHOICE[cm.choice5] ? `<p class="cp-sub">5장에서 그를 「${CAMPAIGN.CHOICE[cm.choice5].label}」 하였다.</p>` : '';
-  cmOv(`<div class="cp-wrap"><h2>이야기</h2>${typeof needlesSvg === 'function' ? needlesSvg(n) : ''}<p class="cp-sub">일곱 개의 바늘이 모두 이 세상 쪽으로 돌아서면, 별 사이 바다에 가라앉은 위대한 것이 건너온다.</p>${ch5}
+  cmOv(`<div class="cp-wrap"><h2>이야기</h2>${typeof needlesSvg === 'function' ? needlesSvg(n) : ''}${ch5}
 ${saved ? `<button class="btn pri" data-cp="cont">이어하기 <small>${saved.camp.ch}장 「${esc(CAMPAIGN.CH[saved.camp.ch].title)}」 · ${saved.G.day}일</small></button>` : ''}
 <div class="cp-list">${row0}${rows}</div>
 <div class="cp-btns">${typeof playIntro === 'function' ? '<button class="btn" data-cp="film">여는 이야기 다시 보기</button>' : ''}<button class="btn" data-cp="home">처음 화면</button></div></div>`, 'dk-full');
@@ -85,7 +85,7 @@ async function campBegin(ch) {
 }
 async function cpOpening() {
   const m = cmMeta(), cm = CAMPAIGN.campMeta(m); let seed = null;
-  try { const noFilm = !!(navigator.webdriver && !window.__forceIntro); seed = await playOpening({ noFilm }); } catch (e) { seed = null; }
+  try { const noFilm = !!(navigator.webdriver && !window.__forceIntro); seed = await playOpening({ noFilm, camp: true }); } catch (e) { seed = null; }
   if (seed) cm.seed = seed; cm.clear[0] = 1; m.opened = 1; saveMeta();
 }
 // 밤이 끝날 때마다 (cardui.js 의 cardNight 가 부른다): 그 밤의 대사
@@ -138,10 +138,10 @@ document.addEventListener('click', e => {
   const el = e.target.closest && e.target.closest('[data-cp]'); if (!el || el.disabled) return;
   const c = el.dataset.cp, v = el.dataset.v;
   if (c === 'ch') return void campBegin(+v);
-  if (c === 'cont') { const r = campLoad(); if (!r) return campOpen(); cmOv(null); cmGo(r); cpGoalShow(true); return; }
+  if (c === 'cont') { const r = campLoad(); if (!r) return campOpen(); cmOv(null); try { cmGo(r); cpGoalShow(true); } catch (e) { console.warn(e); store.del('camprun'); CMU.run = null; campOpen(); } return; }
   if (c === 'menu') return void campOpen();
   if (c === 'home') { cmOv(null); cpGoalShow(false); CMU.run = null; return void showTitle(); }
-  if (c === 'film') { cmOv(null); return void playIntro().then(campOpen); }
+  if (c === 'film') { cmOv(null); return void playIntro({ camp: true }).then(campOpen); }
   if (c === 'goal') return void cpGoalSheet();
   if (c === 'choose' && CPU.choose) return void CPU.choose(v);
 });

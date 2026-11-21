@@ -12,6 +12,7 @@ const dev = process.argv[2] || '', tag = (dev ? dev.replace(/\s+/g, '') : 'pc') 
   await p.goto('http://nest.test/'); await p.waitForTimeout(400);
   let n = 0; const shot = async label => { await p.waitForTimeout(350); await p.evaluate(() => { document.querySelectorAll('#left, #game, #handbar').forEach(e => { e.scrollLeft = 0; }); }); n++; await p.screenshot({ path: path.join(out, String(n).padStart(2, '0') + '_' + label + '.png') }); const cl = await p.evaluate(FZM.clipScript); cl.forEach(s => bad.push(label + ': ' + s)); };
   const tap = async sel => { const el = await p.$(sel); if (!el) throw new Error('없음: ' + sel); await el.click(); await p.waitForTimeout(140); };
+  const asks = [];
   const seen = { coach: new Set(), threat: 0, ports: new Set(), dline: 0 };
   const look = async () => { const s = await p.evaluate(() => { const c = document.getElementById('cm-coach'), t = document.querySelector('.cm-threat'), im = document.querySelector('#cm-body .cm-bimg > img'), dl = document.getElementById('cm-dline'); return { coach: c && !c.hidden ? c.dataset.id : null, threat: !!(t && t.getBoundingClientRect().width), port: im ? im.getAttribute('src').slice(-40) : null, dline: !!(dl && !dl.hidden) }; }); if (s.coach) seen.coach.add(s.coach); if (s.threat) seen.threat++; if (s.port) seen.ports.add(s.port); if (s.dline) seen.dline++; };
   const tapCell = async i => { await p.evaluate(i => __card.cam(i), i); await p.waitForTimeout(250); const pt = await p.evaluate(i => __card.pt(i), i); await p.mouse.click(pt.x, pt.y); await p.waitForTimeout(160); };
@@ -51,9 +52,10 @@ const dev = process.argv[2] || '', tag = (dev ? dev.replace(/\s+/g, '') : 'pc') 
     const t0 = Date.now(); let asked = 0;
     while (Date.now() - t0 < 120000) {
       await p.waitForTimeout(250); await look();
-      if (await p.evaluate(() => !document.getElementById('hand').hidden)) { asked++; if (asked === 1) await shot('night' + day + '_ask'); const cb = await p.$('#hand .cm-cbtn:not([disabled])'); if (cb) { await cb.click(); await p.waitForTimeout(200); if (await p.$('#hand [data-a="handback"]')) { const tg = await p.$('#hand [data-a="handpick"]'); if (tg) await tg.click(); else await tap('#hand [data-a="handback"]'); } } else await tap('#hand [data-a="hand"][data-k="none"]'); continue; }
+      if (await p.evaluate(() => !document.getElementById('hand').hidden)) { asked++; if (!seen.coach.has('skill')) { await p.waitForTimeout(700); await look(); } if (asked === 1) await shot('night' + day + '_ask'); const cb = await p.$('#hand .cm-cbtn:not([disabled])'); if (cb) { await cb.click(); await p.waitForTimeout(200); if (await p.$('#hand [data-a="handback"]')) { const tg = await p.$('#hand [data-a="handpick"]'); if (tg) await tg.click(); else await tap('#hand [data-a="handback"]'); } } else await tap('#hand [data-a="hand"][data-k="none"]'); continue; }
       if (await p.evaluate(() => !document.getElementById('modal').hidden)) { await shot('night' + day + '_settle'); await tap('#modal [data-a="close"]'); break; }
     }
+    asks.push(asked + ':' + await p.evaluate(() => { const m = __card.meta; return (m.tut || 0) + (m.tutOff ? 'x' : '') }));
     await p.waitForTimeout(500);
     if (await p.$('#cm-ov [data-c="moltok"]')) { molts++; await shot('molt' + molts); await p.waitForTimeout(1600); await shot('molt' + molts + '_after'); await tap('#cm-ov [data-c="moltok"]'); await p.waitForTimeout(300); }
     if (await p.$('#cm-ov [data-c="reward"]')) { await look(); await shot('reward' + day); await tap('#cm-ov [data-c="reward"][data-i="0"]'); }
@@ -66,8 +68,9 @@ const dev = process.argv[2] || '', tag = (dev ? dev.replace(/\s+/g, '') : 'pc') 
   if (!molts && !(end.molts > 0)) bad.push('6일째까지 허물이 없었다');
   if (seen.ports.size < 2) bad.push('위쪽 초상이 바뀌지 않았다');
   if (!seen.threat) bad.push('오늘 밤 위험이 보이지 않았다');
+  if (!seen.coach.has('skill')) bad.push('첫 침입 밤에 기술 카드 안내가 나오지 않았다');
   if (seen.coach.size < 3) bad.push('처음 안내가 거의 나오지 않았다 (' + [...seen.coach].join(',') + ')');
-  console.log(tag, '날', end.day, '· 허물', molts + '/' + end.molts, '· 초상', seen.ports.size, '가지 · 위험 막대', seen.threat, '· 아침 바뀜', seen.dline, '· 안내', [...seen.coach].join(','));
+  console.log(tag, '날', end.day, '· 허물', molts + '/' + end.molts, '· 초상', seen.ports.size, '가지 · 위험 막대', seen.threat, '· 아침 바뀜', seen.dline, '· 안내', [...seen.coach].join(','), '· 멈춤(밤:안내단계)', asks.join(' '));
   console.log(tag, bad.length ? '문제 ' + bad.length + '\n  ' + bad.slice(0, 30).join('\n  ') : '통과', errs.length ? '\n오류 ' + errs.slice(0, 5).join('\n') : '· no errors');
   await b.close(); process.exit(bad.length || errs.length ? 1 : 0);
 })();

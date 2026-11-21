@@ -82,7 +82,9 @@ const CARDMODE = (function () {
   }
   const inHand = (R, pred) => R.hand.map(u => card(R, u)).filter(c => pred(def(c), c));
   function morning(R) {
-    const G = R.G; if (G.over) return;
+    const G = R.G; if (G.over) return; R.sinkN = {};
+    // 붙잡아 둔 것들은 아침에 삼킨다 (카드 판에는 몸값·개종이 없다)
+    if (G.prison && G.prison.length) { let e = 0; const n = G.prison.length; G.prison.splice(0).forEach(p => { e += Math.round(((N.INV[p.kind] || {}).gold || 10) * 0.5 * cmG(R)); }); G.stats.eaten = (G.stats.eaten || 0) + n; if (e) { G.gold += e; G.stats.income['삼킨 것'] = (G.stats.income['삼킨 것'] || 0) + e; } R.log.push('붙잡아 둔 것들을 삼켰다 (' + n + ')' + (e ? ' · 진액 +' + e : '')); }
     if (R.camp && CMP()) CMP().morning(R);
     // 감염체가 일어난다
     const ni = Math.min(K.infMax, G.cardInf || 0); for (let i = 0; i < ni; i++) N.cardKin(G, 'licker', { name: '감염체', infected: true }); if (ni) { R.st.infRise += ni; G.stats.risen = (G.stats.risen || 0) + ni; R.log.push('감염체 ' + ni + '이(가) 일어났다'); } G.cardInf = 0;
@@ -182,7 +184,7 @@ const CARDMODE = (function () {
     if (fx.reroll) { const others = R.hand.filter(u => u !== c.uid); others.forEach(u => discard(R, u)); draw(R, others.length); msgs.push('손을 갈았다'); }
     if (fx.kinHeal) { G.kin.forEach(m => { m.hurt = 0; }); msgs.push('권속이 나았다'); }
     if (fx.kinExp) { G.kin.forEach(m => N.giveExp(m, fx.kinExp)); msgs.push('권속이 꿈을 나눠 받았다'); }
-    if (fx.essAsp) { const a = G.slime.main || G.startAsp; G.slime.ess[a] += fx.essAsp; msgs.push('정수'); }
+    if (fx.essAsp) { const a = G.slime.main || G.startAsp; G.slime.ess[a] += fx.essAsp; msgs.push('빛깔'); }
     if (fx.reveal) { const cs = G.cells.map((x, i) => i).filter(i => !G.cells[i].dug && N.nbrs(G, i).some(j => G.cells[j].dug)); if (cs.length) { const i = pick(R, cs); const r = N.cardDig(G, i); R.st.digs++; msgs.push(r.msg); } }
     if (fx.copy) { const others = R.hand.filter(u => u !== c.uid && def(card(R, u)).type !== 'curse'); const u = tgt.uid && others.includes(tgt.uid) ? tgt.uid : others[0]; if (!u) return fail('복사할 카드가 없다'); const cc = addCard(R, card(R, u).id, card(R, u).up); R.disc.push(cc.uid); msgs.push(def(cc).name + ' 복사'); }
     if (fx.trapUp) { const ts = []; G.cells.forEach((x, i) => x.traps.forEach(t => { if (t.lv < 3) ts.push(t); })); if (!ts.length) return fail('키울 함정이 없다'); ts.sort((a, b) => a.lv - b.lv)[0].lv++; msgs.push('함정이 자랐다'); }
@@ -279,6 +281,27 @@ const CARDMODE = (function () {
   function shopOffer(R) { const used = []; for (let i = 0; i < K.shopN; i++) used.push(rollCard(R, false, used).id); return used.map(id => ({ id, price: Math.round(K.shopPrice[CD.BY[id].rar === 's' ? 'c' : CD.BY[id].rar] * cmG(R)), sold: false })); }
   function shopBuy(R, i) { const s = R.shop && R.shop[i]; if (!s || s.sold) return fail('없는 물건이다'); if (R.G.gold < s.price) return fail('진액이 모자란다'); R.G.gold -= s.price; s.sold = true; const c = addCard(R, s.id); R.disc.push(c.uid); return ok(CD.BY[s.id].name + '을(를) 샀다'); }
   const upCost = R => Math.round(K.upEss * cmG(R)), rmCost = R => Math.round(K.rmEss * cmG(R));
+  // ---- 진액을 쓸 곳: 같은 날 거듭할수록 값이 오른다 ----
+  const SINK = { redraw: { name: '손을 다시 받는다', base: 22, step: 14 }, draw: { name: '한 장 더 받는다', base: 28, step: 18 }, feed: { name: '권속을 먹인다', base: 45, step: 25 }, hurry: { name: '허물을 재촉한다', base: 70, step: 40 } };
+  function sinkCost(R, id) { const n = (R.sinkN && R.sinkN[id]) || 0; return Math.round((SINK[id].base + SINK[id].step * n) * cmG(R)); }
+  function sinkWhy(R, id) {
+    const G = R.G; if (!SINK[id]) return '없는 것이다'; if (R.phase !== 'day' || G.over) return '낮이 아니다'; if (G.gold < sinkCost(R, id)) return '진액이 모자란다';
+    if (id === 'feed' && !G.kin.some(m => m.kind !== 'spawn')) return '먹일 권속이 없다';
+    if (id === 'hurry') { const b = evoBar(R); if (!b || b.done) return '더 벗을 허물이 없다'; if (R.moltQ) return '허물이 이미 차올랐다'; }
+    if (id === 'draw' && R.hand.length >= K.handMax) return '손이 가득 찼다';
+    if ((id === 'draw' || id === 'redraw') && !R.drawP.length && !R.disc.length) return '덱에 남은 카드가 없다';
+    return null;
+  }
+  function sinkOptions(R) { return Object.keys(SINK).map(id => { const why = sinkWhy(R, id); return { id, name: SINK[id].name, cost: sinkCost(R, id), ok: !why, why }; }); }
+  function buySink(R, id) {
+    const why = sinkWhy(R, id); if (why) return fail(why); const G = R.G, c = sinkCost(R, id);
+    G.gold -= c; R.sinkN = R.sinkN || {}; R.sinkN[id] = (R.sinkN[id] || 0) + 1; R.st.sunk = (R.st.sunk || 0) + c; gs(G, 'spent', id, c);
+    if (id === 'redraw') { R.hand.slice().forEach(u => { const cc = card(R, u); if (cc && def(cc).type !== 'curse') discard(R, u); }); draw(R, K.draw); syncHeld(R); return ok('손을 다시 받았다'); }
+    if (id === 'draw') { draw(R, 1); syncHeld(R); return ok('한 장을 더 받았다'); }
+    if (id === 'feed') { const ks = G.kin.filter(m => m.kind !== 'spawn'), each = 8 + 2.5 * G.day; let ups = 0; ks.forEach(m => { ups += N.giveExp(m, each) || 0; }); return ok('권속들이 살점을 받았다' + (ups ? ' · ' + ups + '번 자랐다' : '')); }
+    if (id === 'hurry') { const b = evoBar(R), g = R.genome; g.evo = (g.evo || 0) + Math.max(0.05, (b.need - (b.prev || 0)) * 0.3); if (GEN() && GEN().ripe) GEN().ripe(R); return ok(R.moltQ ? '허물이 차올랐다. 오늘 밤 몸이 바뀐다' : '허물이 조금 더 차올랐다'); }
+    return fail('없는 것이다');
+  }
   function upgrade(R, uid) { const c = card(R, uid); if (!c) return fail('없는 카드다'); if (c.up) return fail('이미 강화했다'); if (def(c).type === 'curse') return fail('저주는 강화할 수 없다'); const k = upCost(R); if (R.G.gold < k) return fail('진액이 모자란다'); R.G.gold -= k; c.up = 1; syncHeld(R); return ok(def(c).name + '+'); }
   function removeCard(R, uid) { const c = card(R, uid); if (!c) return fail('없는 카드다'); const k = rmCost(R); if (R.G.gold < k) return fail('진액이 모자란다'); R.G.gold -= k; ['drawP', 'hand', 'disc'].forEach(p => { const j = R[p].indexOf(uid); if (j >= 0) R[p].splice(j, 1); }); R.deck.splice(R.deck.indexOf(c), 1); syncHeld(R); return ok(def(c).name + '을(를) 덱에서 뺐다'); }
 
@@ -395,15 +418,26 @@ const CARDMODE = (function () {
   function genomeSummary(R) { const T = typeof TRAITS !== 'undefined' ? TRAITS : require('./traits.js'); return R.genome ? T.summary(R.genome) : null; }
 
   // ---- 화면에 줄 것 ----
+  // 저장본 다듬기: 덱에 없는 카드 번호, 모르는 카드, 겹친 번호를 버린다 (이어하기가 멈추지 않게)
+  function repair(R) {
+    if (!R || !Array.isArray(R.deck)) return R; let fixed = 0;
+    R.deck = R.deck.filter(c => { const okc = c && c.uid != null && typeof c.id === 'string' && !!def(c); if (!okc) fixed++; return okc; });
+    const have = new Set(R.deck.map(c => c.uid)), seen = new Set();
+    ['hand', 'drawP', 'disc'].forEach(k => { R[k] = (Array.isArray(R[k]) ? R[k] : []).filter(u => { const okc = have.has(u) && !seen.has(u); if (okc) seen.add(u); else fixed++; return okc; }); });
+    R.deck.forEach(c => { if (!seen.has(c.uid)) R.drawP.push(c.uid); });
+    R.nextUid = Math.max(R.nextUid || 1, ...R.deck.map(c => +c.uid + 1 || 1));
+    if (R.G && Array.isArray(R.G.cardHeld)) R.G.cardHeld = R.G.cardHeld.filter(h => h && have.has(h.uid));
+    R.repaired = fixed; return R;
+  }
   function handView(R) { return R.hand.map(u => { const c = card(R, u), v = view(R, c), why = canPlay(R, u); return Object.assign(v, { can: !why, why, cellsCan: v.target === 'cell' ? cellsFor(R, c) : null, places: v.target === 'shape' ? shapePlacements(R, def(c)).map(p => p.cells) : null }); }); }
   function deckView(R) { return R.deck.map(c => Object.assign(view(R, c), { where: R.hand.includes(c.uid) ? 'hand' : R.drawP.includes(c.uid) ? 'draw' : 'disc' })); }
   function dayView(R) { return { day: R.G.day, phase: R.phase, gold: R.G.gold, faith: R.G.faith, hand: handView(R), drawN: R.drawP.length, discN: R.disc.length, deckN: R.deck.length, retain: R.retain, combos: N.cardCombos(R.G), shop: (R.shop || []).map((s, i) => Object.assign({ i }, s, { card: view(R, { uid: 0, id: s.id, up: 0 }) })), offer: R.offer ? R.offer.cards.map(id => view(R, { uid: 0, id, up: 0 })) : null, needleOffer: R.needleOffer, upCost: upCost(R), rmCost: rmCost(R), log: R.log.splice(0), learned: R.learned.slice() }; }
 
   return { K, ALIEN, SIGNS, NHANDS, newMeta, newRun, addCard, costOf, view, canPlay, play, cellsFor, shapePlacements, endDay, nightBegin, nightEnd, foresee, evoBar, morning, syncHeld, draw,
-    takeReward, skipReward, rerollReward, shopOffer, shopBuy, upgrade, removeCard, upCost, rmCost,
+    takeReward, skipReward, rerollReward, shopOffer, shopBuy, upgrade, removeCard, upCost, rmCost, SINK, sinkCost, sinkOptions, buySink,
     needleStart, needleBet, needleReveal, needleFold, needlePublic, needleEval, needleBest,
     registerMutator, clearMutators, mutateDeck, behaviour, syncCounters, COUNTERS,
-    genome, moltPending, molt, layEgg, codex, genomeSummary, def, reMorning,
+    genome, moltPending, molt, layEgg, codex, genomeSummary, def, reMorning, repair,
     endRun, checkUnlocks, releaseUnlocks, rememberParts, knownName, realName, handView, deckView, dayView, openPool };
 })();
 if (typeof module !== 'undefined') module.exports = CARDMODE;

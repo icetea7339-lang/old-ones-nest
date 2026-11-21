@@ -808,3 +808,16 @@ button.dk-chip { cursor: pointer; }
 #chand .cm-cnt { white-space: normal; word-break: keep-all; overflow-wrap: anywhere; max-width: 100%; }
 
 .dkc-gene { font-size: 12px; padding: 2px 4px; }
+/* 진액을 쓸 곳, 다시 쓴 카드의 본디 효과 */
+.cm-sinks { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 6px; }
+.cm-sink { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; text-align: left; min-height: 44px; padding: 6px 9px; }
+.cm-sink b { font-size: 14px; } .cm-sink small { font-size: 13px; opacity: .85; white-space: normal; word-break: keep-all; }
+.dkc-bt { opacity: .7; margin-top: 1px; }
+/* 카드 판, 휴대폰: 본문 13px 이상, 누르는 것은 40px 이상 */
+@media (max-width: 760px) {
+  #game.cm #mapchips .chip, #game.cm .hbar { min-height: 40px; font-size: 13px; }
+  #game.cm #cm-sheet .small, #game.cm #cm-sheet small, #game.cm #cm-sheet p, #modal .cm-set .small, #modal .cm-ess + .small, #game.cm .cm-hint { font-size: 13px; }
+  #cm-sheet .btn.sm, #cm-sheet .dk-tab, #cm-sheet [data-c="close"] { min-height: 40px; }
+}
+/* 몸 창: 형질은 이름과 수만. 누르면 하는 일이 펼쳐진다 */
+button.cm-tagrow { display: flex; gap: 8px; align-items: center; min-height: 40px; width: 100%; background: none; border: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; padding: 0 4px; } .cm-taghint { margin: 0 0 4px 4.6em; }

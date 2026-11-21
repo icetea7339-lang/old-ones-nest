@@ -9,7 +9,11 @@ const dev = process.argv[2] || '', tag = (dev ? dev.replace(/\s+/g, '') : 'pc') 
   if (FZM.FZ) await p.addInitScript(FZM.initScript(FZM.FZ));
   await p.route('http://nest.test/', r => r.fulfill({ contentType: 'text/html', body: html })); await p.route(/fonts\./, r => r.abort());
   await p.goto('http://nest.test/'); await p.waitForTimeout(400);
-  let n = 0; const shot = async label => { await p.waitForTimeout(380); n++; await p.screenshot({ path: path.join(out, String(n).padStart(2, '0') + '_' + label + '.png') }); const cl = await p.evaluate(FZM.clipScript); const over = await p.evaluate(() => { const o = []; if (document.scrollingElement.scrollWidth > innerWidth + 1) o.push('옆으로 넘침'); return o; }); cl.concat(over).forEach(s => bad.push(label + ': ' + s)); };
+  let n = 0; const shot = async label => { await p.waitForTimeout(380); n++; await p.screenshot({ path: path.join(out, String(n).padStart(2, '0') + '_' + label + '.png') }); await leak(label); const cl = await p.evaluate(FZM.clipScript); const over = await p.evaluate(() => { const o = []; if (document.scrollingElement.scrollWidth > innerWidth + 1) o.push('옆으로 넘침'); return o; }); cl.concat(over).forEach(s => bad.push(label + ': ' + s)); };
+  // 카드 판 화면에 옛 판의 글(공포·포교·정수 …)이나 고치지 않은 조사 「을(를)」이 새어 나오지 않는다
+  let threatChecked = false;
+  const LEAK = /을\(를\)|이\(가\)|은\(는\)|와\(과\)|공포 [+−-]\d|변이 속삭임|포교|포로 자리|정수 [+−-]\d|적의 [+−-]\d|\d라운드 교전|\d ?방울/;
+  const leak = async label => { const m = await p.evaluate(re => { if (!window.__card || !__card.run) return null; const t = document.body.innerText.match(new RegExp(re)); return t ? t[0] : null; }, LEAK.source); if (m) bad.push(label + ': 옛 글 또는 조사 「' + m + '」'); };
   const tap = async sel => { const el = await p.$(sel); if (!el) throw new Error('없음: ' + sel); await el.click(); await p.waitForTimeout(140); };
   const tapCell = async i => { await p.evaluate(i => __card.cam(i), i); await p.waitForTimeout(500); const pt = await p.evaluate(i => __card.pt(i), i); await p.mouse.click(pt.x, pt.y); await p.waitForTimeout(160); };
   // 손에 카드를 쥐여 준다 (없으면 덱에 넣어서)
@@ -44,13 +48,16 @@ const dev = process.argv[2] || '', tag = (dev ? dev.replace(/\s+/g, '') : 'pc') 
   { const uid = await give('kin'); await tap(`#chand [data-c="card"][data-uid="${uid}"]`); await shot('kin_lift'); await tap('#chand [data-c="put"]'); const gone = await p.evaluate(uid => !__card.run.hand.includes(uid), uid); if (!gone) bad.push('권속 카드를 내지 못했다'); await shot('kin_put'); }
   // 창들
   await tap('[data-c="deck"]'); await shot('deck'); await tap('#cm-sheet [data-c="close"]');
-  await tap('#mnav [data-c="shop"]'); await shot('shop'); { const bb = await p.$('#cm-sheet [data-c="buy"]:not([disabled])'); if (bb) await bb.click(); } await tap('#cm-sheet [data-c="close"]');
+  await tap('#mnav [data-c="shop"]'); await shot('shop'); if (!(await p.$('#cm-sheet [data-c="sink"]'))) bad.push('가게에 진액 쓰는 곳(다시 뽑기·더 뽑기·먹이기·허물 재촉)이 없다'); { const bb = await p.$('#cm-sheet [data-c="buy"]:not([disabled])'); if (bb) await bb.click(); } await tap('#cm-sheet [data-c="close"]');
   await tap('#mnav [data-c="up"]'); await shot('upgrade'); { const u = await p.$('#cm-sheet [data-c="doup"]:not([disabled])'); if (u) { await u.click(); await shot('upgraded'); } } await tap('#cm-sheet [data-c="close"]');
   await tap('#mnav [data-c="rm"]'); await shot('remove'); await tap('#cm-sheet [data-c="close"]');
   { const el = await p.$('#chand .dkc'); const bb = await el.boundingBox(); await p.mouse.move(bb.x + bb.width / 2, bb.y + bb.height / 2); await p.mouse.down(); await p.waitForTimeout(650); await p.mouse.up(); await shot('detail'); await tap('#cm-sheet [data-c="close"]'); }
   if (await p.$('[data-c="combos"]')) { await tap('[data-c="combos"]'); await shot('combos'); await tap('#cm-sheet [data-c="close"]'); }
   // 밤: 조용한 밤 둘을 빨리 넘기고, 셋째 밤에 무리가 온다. 멈추면 기술 카드를 낸다
+  // 위험 표의 적 수 = 눌러서 여는 창의 적 수
+  const threatSame = async () => { if (!(await p.$('.cm-threat'))) return false; const a = await p.evaluate(() => (document.querySelector('.cm-threat').textContent.match(/적 (\d+)/) || [])[1]); await tap('.cm-threat'); const b2 = await p.evaluate(() => (((document.getElementById('cm-sheet') || {}).textContent || '').match(/적 (\d+) 가운데/) || [])[1]); await tap('#cm-sheet [data-c="close"]'); if (a && b2 && a !== b2) bad.push('위험 표의 적 ' + a + ' 과 창의 적 ' + b2 + ' 이 다르다'); return !!(a && b2); };
   const night = async (label, castSkill) => {
+    if (!threatChecked) threatChecked = await threatSame();
     await p.evaluate(() => { __card.ST.speed = 4; });
     await tap('#mnav [data-c="night"]');
     if (await p.$('#cm-ov [data-c="go"]')) { await shot(label + '_keep'); const k = await p.$('#cm-ov [data-c="keep"]'); if (k) await k.click(); await tap('#cm-ov [data-c="go"]'); }

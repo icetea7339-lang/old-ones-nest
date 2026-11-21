@@ -43,7 +43,7 @@ const CARDS2 = (function () {
     bighall: ['큰 위장', 70, 'r', '권속 6이 적 전원과 싸운다'],
     decoy: ['반짝이는 혹', 28, 'u', '적 몇이 진액을 들고 돌아간다'],
     shop: ['빨판 벽', 24, 'c', '지나는 적의 힘을 빤다'],
-    prison: ['고치 주머니', 24, 'c', '포로 자리 +4'],
+    prison: ['고치 주머니', 24, 'c', '고치 자리 +4'],
     chapel: ['기도하는 혀', 32, 'c', '매일 신앙 +3'],
     altar: ['달 삼킨 굴', 44, 'u', '정수가 차오른다'],
     pool: ['고인 체액', 34, 'c', '곁의 권속을 낫게 한다'],
@@ -87,8 +87,9 @@ const CARDS2 = (function () {
   const XS = [{ draw: 1 }, { ess: 6 }, { faith: 2 }, { heal: 0.15 }];
   const XT = { draw: '내일 한 장 더', ess: '진액 +6', faith: '신앙 +2', heal: '본체 체력 +15%' };
   N.SPELL_IDS.filter(id => !N.SPELL[id].free).forEach((id, n) => {
+  const SKFACE = { wave: '앞 칸으로 밀고 체력 10% 깎기', bite: '본체가 하나를 문다 (공격 4배)', call: '이 방 권속 공격 +80%', tide: '모든 권속 체력 60% 회복', star: '다음 함정이 두 번 터진다', charm: '하나를 홀려 제 편을 치게', scream: '약해진 적을 쫓아낸다', cocoon: '적 하나를 산 채로 싼다', eclipse: '이 방 적 한 라운드 멈춤', guard: '이 방 권속 피해 −55%', grip: '앞의 넷을 3라운드 붙든다', rock: '이 방 적 체력 −8% (맨 앞 두 배)', mark: '셋에게 낙인: 피해 +50%' };
     const s = N.SPELL[id], a = s.asp || 'none';
-    add({ id: 'sk_' + id, name: s.name, type: 'skill', spell: id, asp: a, rar: s.cost >= 5 ? 'u' : 'c', cost: 0, pow: 1, cmul: 1, text: s.desc.length > 22 ? s.desc.slice(0, 21) + '…' : s.desc, more: s.desc });
+    add({ id: 'sk_' + id, name: s.name, type: 'skill', spell: id, asp: a, rar: s.cost >= 5 ? 'u' : 'c', cost: 0, pow: 1, cmul: 1, text: SKFACE[id] || (s.desc.length > 22 ? s.desc.slice(0, 21) + '…' : s.desc), more: s.desc });
     add({ id: 'sk_' + id + '_deep', name: '깊은 ' + s.name, type: 'skill', spell: id, asp: a, rar: 'r', cost: 0, pow: 1.6, cmul: 1.3, text: s.name + ' ×1.6 (신앙 ×1.3)', more: s.desc });
     const x = XS[n % XS.length], xk = Object.keys(x)[0];
     add({ id: 'sk_' + id + '_lite', name: '옅은 ' + s.name, type: 'skill', spell: id, asp: a, rar: 'u', cost: 0, pow: 0.8, cmul: 0.5, x, text: s.name + ' ×0.8, 신앙 반 · ' + XT[xk], more: s.desc });
@@ -106,7 +107,7 @@ const CARDS2 = (function () {
     ['bl_reroll', '뒤척임', 'c', 0, { reroll: 1 }, '손을 버리고 그만큼 새로 받는다'],
     ['bl_kinheal', '핥아 주기', 'c', 0, { kinHeal: 1 }, '다친 권속이 모두 낫는다'],
     ['bl_exp', '꿈 나눠 주기', 'u', 0, { kinExp: 12 }, '권속 모두 경험 +12'],
-    ['bl_essence', '정수 한 방울', 'u', 0, { essAsp: 4 }, '본체의 빛깔 정수 +4'],
+    ['bl_essence', '짙은 한 방울', 'u', 0, { essAsp: 4 }, '본체의 빛깔이 한층 짙어진다'],
     ['bl_unearth', '냄새 맡기', 'c', 0, { reveal: 1 }, '묻힌 것 하나가 드러난다'],
     ['bl_copy', '메아리 살', 'r', 0, { copy: 1 }, '손의 다른 카드 하나를 덱에 복사'],
     ['bl_trapup', '돋친 가시', 'u', 0, { trapUp: 1 }, '함정 하나 레벨 +1'],

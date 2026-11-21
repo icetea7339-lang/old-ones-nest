@@ -25,8 +25,8 @@ const INTRO_LINES = [
   ['일곱 개의 바늘이 잠긴 둥지의 문을 꿰매고 있었다.', '그날 밤, 바늘 하나의 빛이 흐려졌다.'],
   ['위대한 것은 배고픔을 꿈꾸었다.', '잠결에 그것은 흐려진 틈 너머, 작고 푸른 세상 쪽으로 몸 한 가닥을 뻗었다.'],
   ['바늘이 다시 조여들었고, 뻗은 끝은 잘려 나갔다.', '살 한 방울이 떨어져 나왔다.'],
-  ['방울은 하늘을 태우며 별 사이 바다를 건넜다.', '들판 가장자리 마을, 물레골 사람들은 그것을 별똥별이라 여겼다.'],
-  ['캄캄한 들판에 떨어진 것은 손바닥만 한 살덩이였다.', '그 안에는 아주 작은 목소리 하나가 남아 있었다.'],
+  ['방울은 하늘을 태우며 별 사이 바다를 건넜다.', '위의 세상 사람들은 그것을 별똥별이라 여겼다. 그곳이 어떤 시절인지, 떨어지는 것은 알지 못했다.'],
+  ['캄캄한 땅에 떨어진 것은 손바닥만 한 살덩이였다.', '그 안에는 아주 작은 목소리 하나가 남아 있었다.'],
   [{ who: '잔향', text: '들으라. 나는 잔향이다. 네 안에 남은, 그의 목소리의 끝자락이다.' }, { who: '잔향', text: '먹고 자라 둥지를 지으라. 바늘이 이쪽으로 돌아설 때, 그가 건너오리라.' }]
 ];
 const IH = (a, b) => { const s = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return s - Math.floor(s); };
@@ -126,7 +126,7 @@ const INTRO_SHOTS = [
   },
 ];
 function playIntro(opts) {
-  opts = opts || {}; return new Promise(resolve => {
+  opts = opts || {}; INTRO_LINES[6][1] = opts.camp ? '들판 가장자리 마을, 물레골 사람들은 그것을 별똥별이라 여겼다.' : '위의 세상 사람들은 그것을 별똥별이라 여겼다. 그곳이 어떤 시절인지, 떨어지는 것은 알지 못했다.'; return new Promise(resolve => {
     if (!document.getElementById('introcss')) { const st = document.createElement('style'); st.id = 'introcss'; st.textContent = INTRO_CSS; document.head.appendChild(st); }
     const old = document.getElementById('intro'); if (old) old.remove();
     const root = document.createElement('div'); root.id = 'intro'; root.setAttribute('role', 'dialog'); root.setAttribute('aria-label', '여는 이야기');
@@ -168,7 +168,7 @@ window.playIntro = playIntro;
 //   opts: { noFilm, canSkip, asp, seed, look }  돌려주는 것: PRO.toGenomeSeed 의 씨앗 ({ aspect, sub, look, tags, top, parts, ... })
 async function playOpening(opts) {
   opts = opts || {};
-  if (!opts.noFilm && typeof playIntro === 'function') await playIntro();
+  if (!opts.noFilm && typeof playIntro === 'function') await playIntro({ camp: !!opts.camp });
   const seed = opts.seed || ((Date.now() ^ (Math.random() * 1e9)) >>> 0), asp = opts.asp || PRO.ASPS[seed % 5];
   let r = null; try { r = await runPrologue({ asp, seed, short: true, canSkip: !!opts.canSkip, look: opts.look }); } catch (e) { console.error(e); }
   if (!r) r = { skipped: true, home: asp, look: opts.look || null };

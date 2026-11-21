@@ -43,7 +43,19 @@ function bestCell(R, h) {
   if (d.type === 'trap') { const on = cs.filter(i => pos.has(i)); on.sort((a, b) => (G.cells[b].type === 'trap' || G.cells[b].type === 'ambush') - (G.cells[a].type === 'trap' || G.cells[a].type === 'ambush') || pos.get(a) - pos.get(b)); return on[0] ?? null; }
   return cs[0];
 }
-function dayPlay(R) {
+// 엉터리로 놓는 사람: 놓을 수 있는 카드를 아무 자리에나 놓는다 (배치가 결과를 바꾸는지 보려고)
+function dayRandom(R) {
+  const G = R.G, r = T.rng(T.hash('rnd' + R.seed + ':' + G.day)); let guard = 0;
+  while (guard++ < 14) {
+    const hs = CM.dayView(R).hand.filter(h => h.can && h.type !== 'skill' && h.type !== 'curse'); if (!hs.length) break;
+    const h = hs[Math.floor(r() * hs.length)]; let tgt = {};
+    if (h.target === 'shape') { if (!h.places || !h.places.length) break; tgt = { cells: h.places[Math.floor(r() * h.places.length)] }; }
+    if (h.target === 'cell') { const cs = h.cellsCan || []; if (!cs.length) break; tgt = { cell: cs[Math.floor(r() * cs.length)] }; }
+    if (!CM.play(R, h.uid, tgt).ok) break;
+  }
+}
+function dayPlay0(R) { return dayPlay(R, true); }
+function dayPlay(R, onlyCards) {
   const G = R.G; let guard = 0;
   while (guard++ < 14) {
     const v = CM.dayView(R), order = { boon: 0, shape: 1, organ: 2, trap: 3, kin: 4, curse: 5 };
@@ -63,11 +75,14 @@ function dayPlay(R) {
     }
     if (!did) break;
   }
+  if (onlyCards) return;
   // 남는 진액으로 상점·강화·빼기
   const k = S.cm(G);
   if (G.gold > 220 * k && R.shop) { const best = R.shop.map((s, i) => ({ s, i, sc: scoreCard(R, s.id) })).filter(x => !x.s.sold && x.s.price < G.gold - 120 * k).sort((a, b) => b.sc - a.sc)[0]; if (best && best.sc >= 3) CM.shopBuy(R, best.i); }
   if (G.gold > 260 * k) { const c = R.deck.filter(x => !x.up && def(x.id).type !== 'curse').sort((a, b) => scoreCard(R, b.id) - scoreCard(R, a.id))[0]; if (c) CM.upgrade(R, c.uid); }
   if (R.persona && R.persona.style && G.gold > 150 * k && R.deck.length > 10) { const off = R.deck.filter(x => { const d = def(x.id); return d.type !== 'shape' && !(d.tags || []).some(t => R.persona.tags.includes(t)); }).sort((a, b) => scoreCard(R, a.id) - scoreCard(R, b.id))[0]; if (off) CM.removeCard(R, off.uid); }
+  // 남은 진액은 쓴다: 허물 재촉 → 권속 먹이기 → 한 장 더 (진액이 쌓이지 않게)
+  if (CM.buySink && !process.env.NOSINK) { let g2 = 0; while (g2++ < 6) { const o = CM.sinkOptions(R).filter(x => x.ok && x.cost < G.gold - 90 * k); const pickS = o.find(x => x.id === 'hurry') || o.find(x => x.id === 'feed') || (R.hand.length < 6 ? o.find(x => x.id === 'draw') : null); if (!pickS || !CM.buySink(R, pickS.id).ok) break; if (pickS.id === 'draw') dayPlay0(R); } }
   if (G.gold > 200 * k) { const cu = R.deck.find(x => def(x.id).type === 'curse') || (R.deck.length > 16 ? R.deck.find(x => x.id === 'sh_one') : null); if (cu) CM.removeCard(R, cu.uid); }
 }
 function needlePlay(R) {
@@ -81,17 +96,17 @@ function play(seed, aspect, diff, mode, meta, egg, mk) {
   const R = mk ? mk(seed, aspect, meta) : CM.newRun(seed, { aspect, diff, meta, egg: egg || null, look, ease: process.env.EASE ? undefined : 1 }), G = R.G, st = { captive: 'mix', raid: 1, spend: 1 }, base = STEWARD.decide(st);
   if (mode === 'nogene') R.noGene = true; if (!process.env.NOPERSONA) R.persona = (process.env.STYLE && styleOf(process.env.STYLE)) || persona(seed);
   const pr = R.persona, rr0 = T.rng(T.hash('d' + seed));
-  const decide = mode === 'noskill' ? ctx => { const r = base(Object.assign({}, ctx, { opts: (ctx.opts || []).filter(o => S.SPELL[o.id] && S.SPELL[o.id].free) })); return r; } : pr ? ctx => { const r = base(ctx); return r && r.k && r.k !== 'none' && S.SPELL[r.k] && !S.SPELL[r.k].free && rr0() > pr.skill ? { k: 'none' } : r; } : base;
+  const decide = mode === 'nothing' ? () => ({ k: 'none' }) : mode === 'noskill' ? ctx => { const r = base(Object.assign({}, ctx, { opts: (ctx.opts || []).filter(o => S.SPELL[o.id] && S.SPELL[o.id].free) })); return r; } : pr ? ctx => { const r = base(ctx); return r && r.k && r.k !== 'none' && S.SPELL[r.k] && !S.SPELL[r.k].free && rr0() > pr.skill ? { k: 'none' } : r; } : base;
   let guard = 0;
   while (!R.over && guard++ < 90) {
     if (R.phase === 'reward') { const pr = R.persona, on = id => pr && pr.style && (def(id).tags || []).some(t => pr.tags.includes(t)); if (pr && pr.style && !R.offer.cards.some(on) && !R.rrd) { R.rrd = 1; const r = CM.rerollReward(R); if (r && r.ok) continue; } R.rrd = 0; const best = R.offer.cards.map((id, i) => ({ i, sc: scoreCard(R, id) })).sort((a, b) => b.sc - a.sc)[0]; if (best.sc >= 1.5 && (!pr || !pr.style || on(R.offer.cards[best.i]))) CM.takeReward(R, best.i); else CM.skipReward(R); continue; }
     if (G.day === 12 && !R.snap12) R.snap12 = [...new Set(R.deck.map(c => c.id).concat(R.gone || []))];
-    STEWARD.tasks(S, G, st, { seed, ban: [] }).forEach(t => t());
-    needlePlay(R);
-    dayPlay(R);
+    if (mode !== 'nothing') STEWARD.tasks(S, G, st, { seed, ban: [] }).forEach(t => t());
+    if (mode !== 'nothing') needlePlay(R);
+    if (mode === 'random') dayRandom(R); else if (mode !== 'nothing') dayPlay(R);
     if (mode === 'nocombo') { G.cardCombosOff = true; }
     const T = process.env.TRACE ? { d: G.day, kin: G.kin.filter(m => m.kind !== 'spawn').length, sp: G.kin.length, org: G.cells.filter((c, i) => c.dug && c.type !== 'empty' && i !== G.core).map(c => c.type).join('+'), tr: G.cells.reduce((a, c) => a + c.traps.length, 0), g: Math.round(G.gold), hp: Math.round(G.slime.hp), st: G.slime.stage, path: (S.paths(G)[0] || []).length, hand: R.hand.length } : null;
-    const rr = CM.endDay(R, decide); if (R.genome) (R.evoLog = R.evoLog || []).push([G.day, R.genome.evo || 0]); { const mq = (R.molts || []).length + (R.moltQ || 0); R.moltDays = R.moltDays || []; while (R.moltDays.length < mq) R.moltDays.push(G.day); } while (CM.moltPending(R)) CM.molt(R);
+    const g0 = G.gold, rr = CM.endDay(R, decide); { const b = rr.night && rr.night.battle; (R.curve = R.curve || []).push({ d: G.day - (R.phase === 'over' || G.over ? 0 : 1), n: b ? (b.count || b.party.length) : 0, g: Math.round(G.gold), dg: Math.round(G.gold - g0), hp: Math.round(G.slime.hp), fell: b ? !!b.fell : false }); } if (R.genome) (R.evoLog = R.evoLog || []).push([G.day, R.genome.evo || 0]); { const mq = (R.molts || []).length + (R.moltQ || 0); R.moltDays = R.moltDays || []; while (R.moltDays.length < mq) R.moltDays.push(G.day); } while (CM.moltPending(R)) CM.molt(R);
     if (T) { const b = rr.night && rr.night.battle; console.log(JSON.stringify(T) + (b ? ' | 밤 ' + b.count + '명 ' + b.result + ' 처치 ' + b.kills : ' | 조용') + ' → hp ' + Math.round(G.slime.hp) + (G.over ? ' 끝: ' + G.over.why : '')); }
   }
   return R;

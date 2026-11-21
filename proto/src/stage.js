@@ -388,7 +388,12 @@ function drawUnder(x, t) {
     x.save(); x.beginPath(); x.rect(er.x, 0, er.w, floorY(er)); x.clip(); x.globalCompositeOperation = 'lighter'; x.fillStyle = ST.mode === 'night' ? 'rgba(120,150,220,' + (0.10 + 0.02 * Math.sin(t / 700)) + ')' : 'rgba(255,232,176,' + (0.13 + 0.02 * Math.sin(t / 700)) + ')';
     x.beginPath(); x.moveTo(er.x + 38, 0); x.lineTo(er.x + 70, 0); x.lineTo(er.x + 100, floorY(er)); x.lineTo(er.x + 12, floorY(er)); x.fill(); x.restore(); }
   drawRoute(x, t);
-  if (ST.ents) { const es = Object.values(ST.ents); es.filter(e => e.side === 'def').forEach(e => drawUnit(x, e, t)); es.filter(e => e.side === 'inv').forEach(e => drawUnit(x, e, t)); }
+  if (ST.ents) { const es = Object.values(ST.ents); es.filter(e => e.side === 'def').forEach(e => drawUnit(x, e, t));
+    // 붐빌 때: 한 자리에 겹친 침입자는 여덟까지만 그리고 나머지는 수로 (그리기가 느려지지 않게)
+    const live = es.filter(e => e.side === 'inv'), byC = {}; live.forEach(e => { if (e.gone || e.dead) return drawUnit(x, e, t); const k = Math.round(e.x / 48) + ':' + Math.round(e.y / 48); (byC[k] = byC[k] || []).push(e); });
+    ST.drawn = { inv: live.length, hid: 0 };
+    for (const k in byC) { const g = byC[k]; if (g.length > 8) ST.drawn.hid += g.length - 8; g.forEach((e, n) => { if (n < 8) drawUnit(x, e, t); else if (e.dur) { const q = Math.min(1, (t - e.t0) / e.dur); e.x = e.fx + (e.tx - e.fx) * q; e.y = e.fy + (e.ty - e.fy) * q; if (q >= 1) e.dur = 0; } });
+      if (g.length > 8) { const e = g[7], sz = 16 * (e.scale || S); rect(x, '#0b0911cc', e.x + sz - 6, e.y - 10, 30, 16); txt(x, '+' + (g.length - 8), e.x + sz + 9, e.y + 3, '#fff3a0', 12, 'center'); } } }
   else {
     const by = {}; G.kin.forEach(m => { if (m.loc !== null) (by[m.loc] = by[m.loc] || []).push(m); });
     for (const loc in by) by[loc].forEach((m, k) => { const sm = m.kind === 'spawn', p = roamPos(m, defPos(loc === 'core' ? 'core' : +loc, k, sm), t, sm); if (!m.hurt && !m.strike) glow(x, '#cfeee0', p.x + (sm ? 8 : 16), p.y + (sm ? 8 : 16), sm ? 14 : 30, 0.2); x.globalAlpha = m.hurt || m.strike ? 0.4 : 1; { const fz = !sm && (NEST.stageOf(m) >= 2 || !!m.secret), sz = fz ? 64 : (m.evo && !sm) ? 48 : sm ? (m.evo ? 26 : 16) : 32; x.drawImage(frameOf(fz ? kinCanvasM(m) : kinCanvas(m.kind, !!m.evo), Math.floor(t / 420 + m.id * 0.37) % 2), p.x - (fz ? 16 : (m.evo && !sm) ? 8 : m.evo ? 5 : 0), Math.round(p.y + Math.sin(t / 500 + m.id) * 1) - (fz ? 32 : (m.evo && !sm) ? 16 : m.evo ? 10 : 0), sz, sz); } x.globalAlpha = 1; if (m.hurt) txt(x, '부상', p.x + 16, p.y - 14, '#ff9a92', 11, 'center'); else if (m.strike) txt(x, '파업', p.x + 16, p.y - 14, '#ffb347', 11, 'center'); });
@@ -523,18 +528,19 @@ function drawSurface(x, t) {
 }
 
 // 떠오르는 피해 글: 같은 자리에 가까운 때 뜬 것은 위로 한 줄씩 쌓아 겹치지 않게
-function floatStack() { const fl = ST.floats; for (let a = 0; a < fl.length; a++) { let n = 0; for (let b = 0; b < a; b++) if (Math.abs(fl[b].x - fl[a].x) < 40 && Math.abs(fl[b].y - fl[a].y) < 22 && fl[a].t0 - fl[b].t0 < 700) n++; fl[a].dy = n * 16; } }
+function floatStack() { const fl = ST.floats; for (let a = 0; a < fl.length; a++) { let n = 0; for (let b = 0; b < a; b++) if (Math.abs(fl[b].x - fl[a].x) < 40 && Math.abs(fl[b].y - fl[a].y) < 22 && fl[a].t0 - fl[b].t0 < 700) n++; fl[a].dy = Math.min(n, 4) * 16; fl[a].hideStack = n > 4; } }
 // ---------- 그리기 ----------
 function drawStage() {
   const c = $('stage'), x = c.getContext('2d'), t = now(); if (!G) return;
-  const dpr = window.devicePixelRatio || 1, bw = Math.round(c.clientWidth * dpr), bh = Math.round(c.clientHeight * dpr);
+  // 화소 그림이라 3배 화면도 2배로 그린다 (그릴 점이 반 남짓으로 줄어 휴대폰에서 덜 끊긴다)
+  const dpr = Math.min(2, window.devicePixelRatio || 1), bw = Math.round(c.clientWidth * dpr), bh = Math.round(c.clientHeight * dpr);
   if (bw > 0 && bh > 0 && (c.width !== bw || c.height !== bh)) { c.width = bw; c.height = bh; }
   // 높이에 맞춘다. 좁은 화면에서는 가로 일부만 보이고 카메라가 좌우로 움직인다.
   const fitH = G && c.clientHeight >= 360 ? Math.max(H, UH()) : H; ST.vh = H + (fitH - H) * ST.p; let VH = ST.vh, k0 = c.height / VH;
   // 카드 판: 둥지 너비 전체가 한 화면에 들어오게 맞춘다 (가까이 보기를 고르면 예전처럼). 남는 높이는 위아래로 나눈다
   ST.oyFit = 0; if (typeof cmFitOn === 'function' && cmFitOn() && ST.p > 0.999) { const kw = c.width / UW(); if (kw < k0) { k0 = kw; VH = c.height / k0; ST.vh = VH; ST.oyFit = Math.max(0, (VH - UH()) / 2); } }
   // 밤, 좁은 화면: 싸우는 방으로 당겨 본다 (방 하나가 화면 너비의 절반쯤). 움직임 줄이기를 켜면 부드럽게 다가가지 않고 바로 바뀐다
-  { const nzT = ST.mode === 'night' && ST.screen === 'under' && ST.p > 0.999 && c.clientWidth < 760 && !ST.march ? Math.max(1, Math.min(2.6, (c.width * 0.5) / (CW * k0))) : 1;
+  { const nzT = ST.mode === 'night' && ST.screen === 'under' && ST.p > 0.999 && !ST.march ? Math.max(1, Math.min(2.6, (c.width * (c.clientWidth < 760 ? 0.5 : 0.36)) / (CW * k0))) : 1;
     ST.nz = ST.nz || 1; ST.nz += (nzT - ST.nz) * (motionOk() ? 0.1 : 1); if (Math.abs(nzT - ST.nz) < 0.004) ST.nz = nzT;
     if (ST.nz > 1.001) { k0 *= ST.nz; VH = c.height / k0; ST.vh = VH; ST.oyFit = Math.max(0, (VH - UH()) / 2); } }
   const VW = c.width / k0; const WW = worldW(); ST.viewW = Math.min(WW, VW); ST.ox = Math.max(0, (VW - WW) / 2); ST.fm = Math.max(1, Math.min(1.7, 0.86 * dpr / k0));
@@ -553,7 +559,7 @@ function drawStage() {
   x.save(); x.translate(Math.round(ST.ox - ST.cam.x), Math.round((ST.oyFit || 0) - (ST.cam.y || 0)));
   ST.shook = 0; if (ST.shake > t && motionOk()) { const m = ST.shakeMag || 1; ST.shook = m; x.translate((Math.random() - 0.5) * 8 * m, (Math.random() - 0.5) * 6 * m); } else if (ST.shake <= t) ST.shakeMag = 0;
   if (ST.p < 0.999) { x.save(); x.translate(0, Math.round(-H * ST.p)); drawSurface(x, t); x.restore(); }
-  if (ST.p > 0.001) { x.save(); x.translate(0, Math.round(H * (1 - ST.p) - (ST.cam.v || 0))); drawUnder(x, t); ST.floats = ST.floats.filter(f => t - f.t0 < 800); floatStack(); ST.floats.forEach(f => { const k = (t - f.t0) / 800; x.globalAlpha = 1 - k; txt(x, f.s, f.x, f.y - k * 26 - (f.dy || 0), f.col, f.big ? 20 : 14, 'center'); x.globalAlpha = 1; }); x.restore(); }
+  if (ST.p > 0.001) { x.save(); x.translate(0, Math.round(H * (1 - ST.p) - (ST.cam.v || 0))); drawUnder(x, t); ST.floats = ST.floats.filter(f => t - f.t0 < 800); if (ST.floats.length > 24) ST.floats.splice(0, ST.floats.length - 24); floatStack(); ST.floats.forEach(f => { if (f.hideStack) return; const k = (t - f.t0) / 800; x.globalAlpha = 1 - k; txt(x, f.s, f.x, f.y - k * 26 - (f.dy || 0), f.col, f.big ? 20 : 14, 'center'); x.globalAlpha = 1; }); x.restore(); }
   x.restore();
   { const g = x.createRadialGradient(VW / 2, VH / 2, VH * 0.42, VW / 2, VH / 2, Math.max(VW, VH) * 0.78); g.addColorStop(0, 'rgba(5,3,12,0)'); g.addColorStop(1, 'rgba(5,3,12,' + (0.22 + 0.36 * ST.p).toFixed(2) + ')'); x.fillStyle = g; x.fillRect(0, 0, VW + 1, H); }
   if (ST.flash > t) rect(x, ST.flashCol || (motionOk() ? '#ffffff55' : '#ffffff1a'), 0, 0, VW + 1, VH); else ST.flashCol = null;
@@ -591,7 +597,7 @@ function setScreen(s) { if (ST.screen === s) return; ST.camMem[ST.screen] = ST.c
 
 // ---------- 밤 전투 재생 ----------
 const wait = ms => new Promise(res => ST.skip ? res() : setTimeout(res, ms / ST.speed));
-const nlog = (s, cls) => { const el = $('nlog'); if (!el || !s) return; const p = document.createElement('p'); p.className = 'small' + (cls ? ' ' + cls : ''); p.textContent = NEST.fj(s); el.prepend(p); while (el.children.length > 12) el.lastChild.remove(); };
+const nlog = (s, cls) => { const el = $('nlog'); if (!el || !s) return; if (typeof G !== 'undefined' && G && G.cardMode && typeof cmText === 'function') { s = cmText(s); if (!s) return; } const p = document.createElement('p'); p.className = 'small' + (cls ? ' ' + cls : ''); p.textContent = NEST.fj(s); el.prepend(p); while (el.children.length > 12) el.lastChild.remove(); };
 function moveTo(e, p, dur) { e.fx = e.x; e.fy = e.y; e.tx = p.x; e.ty = p.y; e.t0 = now(); e.dur = Math.max(1, dur / ST.speed); }
 function prepareNight() {
   const E = ST.ents = {}; ST.defs = {}; ST.floats = []; ST.sparks = []; ST.fire = {}; ST.sanfx = {}; ST.spfx = null; ST.pick = null;
@@ -617,7 +623,7 @@ async function playEvents(ev, from) {
       e.party.forEach((u, j) => { E[u.uid] = { id: u.uid, kind: u.kind, side: 'inv', can: invCanvas(u.kind), x: shaft.x + j * 10, y: shaft.y, hp: 1, sp: 1, scale: S }; });
       setScreen('under'); camCell(bp[0]); ST.label = e.txt || ''; burst(far.x + far.w / 2, floorY(far) - 10, ['#8a6a4a', '#5a4a3a', '#ece6d6'], 18, 0.9, 600); jolt(240, 1); sfx('trap'); await wait(900); ST.label = '';
     } else if (e.t === 'march') {
-      UI.sel = null; setScreen('surface'); $('nparty').innerHTML = e.party.map(u => invImg(u.kind, 32)).join(''); ST.label = NEST.VILL[e.vill].name + ' · ' + e.gname + ' ' + e.party.length + '명'; await wait(700);
+      UI.sel = null; setScreen('surface'); $('nparty').innerHTML = e.party.map(u => invImg(u.kind, 32)).join(''); ST.label = typeof G !== 'undefined' && G && G.cardMode && typeof cmMarchLabel === 'function' ? cmMarchLabel(e) : NEST.VILL[e.vill].name + ' · ' + e.gname + ' ' + e.party.length + '명'; await wait(700);
       ST.march = { t0: now(), dur: 1300 / ST.speed, est: { vill: e.vill, count: e.party.length, kinds: e.party.map(u => u.kind), grade: 1 } }; await wait(1350); ST.label = '';
       e.party.forEach((u, j) => { E[u.uid] = { id: u.uid, kind: u.kind, side: 'inv', can: invCanvas(u.kind), x: shaft.x, y: shaft.y - j * 14, hp: 1, sp: 1, scale: u.kind === 'sealer' ? 3 : S }; });
       ST.camMem.under = 0; setScreen('under'); await wait(450); ST.march = null;

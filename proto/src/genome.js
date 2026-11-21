@@ -55,14 +55,14 @@ const GENOME = (function () {
     let d = null;
     if (head.indexOf('gx_') === 0) {
       const tag = head.slice(3), rw = RW[tag]; if (!rw || src.type !== rw.on) return null;
-      d = Object.assign({}, src, rw.ch(src), { id, name: rw.pre + ' ' + base(src), baseName: base(src), text: rw.t, more: rw.pre + ' ' + base(src) + ': ' + rw.t + ' · 본디 「' + base(src) + '」: ' + (src.more || src.text) });
+      d = Object.assign({}, src, rw.ch(src), { id, name: rw.pre + ' ' + base(src), baseName: base(src), btext: src.text, text: rw.t, more: rw.pre + ' ' + base(src) + ': ' + rw.t + ' · 본디 「' + base(src) + '」: ' + (src.more || src.text) });
       d.gene = (src.gene || []).concat([tag]);
     } else if (head.indexOf('gc_') === 0) {
       const cid = head.slice(3), cmb = T.COMBOS.find(c => c.id === cid); if (!cmb) return null;
       const rws = cmb.tags.map(t => RW[t]).filter(rw => rw && rw.on === src.type); if (!rws.length) return null;
       let ch = {}; rws.forEach(rw => { ch = Object.assign(ch, rw.ch(Object.assign({}, src, ch))); });
       if (src.type === 'trap') ch.pow = r2((ch.pow || src.pow || 1) * 1.2); else if (src.type === 'kin') ch.lv = (ch.lv || src.lv || 0) + 1; else if (src.type === 'skill') ch.pow = r2((ch.pow || src.pow || 1) * 1.2); else if (src.type === 'organ') ch.lv2 = true; else if (src.type === 'shape') ch.cost = Math.max(1, Math.round((ch.cost != null ? ch.cost : src.cost || 0) * 0.7));
-      d = Object.assign({}, src, ch, { id, name: cmb.name, baseName: base(src), text: cmb.text.length > 20 ? cmb.text.slice(0, 19) + '…' : cmb.text, more: cmb.name + ': ' + cmb.text + ' · ' + rws.map(rw => rw.t).join(' · ') + ' · 본디 「' + base(src) + '」' });
+      d = Object.assign({}, src, ch, { id, name: cmb.name, baseName: base(src), btext: src.text, text: (rws[0].t.length > 22 ? rws[0].t.slice(0, 21) + '…' : rws[0].t), more: cmb.name + ': ' + cmb.text + ' · ' + rws.map(rw => rw.t).join(' · ') + ' · 본디 「' + base(src) + '」' });
       d.gene = (src.gene || []).concat(cmb.tags); d.combo = cid; if (d.rar === 'c' || d.rar === 's') d.rar = 'u'; else if (d.rar === 'u') d.rar = 'r';
     }
     if (!d) return null;
@@ -130,7 +130,7 @@ const GENOME = (function () {
   // need = 허물마다 넘어야 할 진화의 정수(쌓인 값). 본체(원래 게임의 몸)도 함께 한 단계 큰다: 첫 허물에 바탕 징조, 둘째에 섞인 징조
   const envN = (k, d) => (typeof process !== 'undefined' && process.env && process.env[k] != null ? +process.env[k] : d);
   // 빛깔마다 몸이 바뀌는 빠르기가 다르다 (성운은 별처럼 빨리 일그러지고, 심연은 느리게 가라앉는다)
-  const EVO = { asp: (typeof process !== 'undefined' && process.env && process.env.EVOA ? JSON.parse(process.env.EVOA) : { abyss: 0.78, nebula: 1.3, brood: 1.25, dusk: 0.95, hunger: 1.1 }), base: envN('EVOB', 1), k: envN('EVOK', 0.5), need: (typeof process !== 'undefined' && process.env && process.env.EVON ? process.env.EVON.split(',').map(Number) : [70, 430, 720, 1000]) };
+  const EVO = { asp: (typeof process !== 'undefined' && process.env && process.env.EVOA ? JSON.parse(process.env.EVOA) : { abyss: 0.9, nebula: 1.55, brood: 0.68, dusk: 1.05, hunger: 1.15 }), base: envN('EVOB', 1), k: envN('EVOK', 0.5), need: (typeof process !== 'undefined' && process.env && process.env.EVON ? process.env.EVON.split(',').map(Number) : [70, 430, 720, 1000]) };
   function moltNeed(R) { return EVO.need[(R.molts || []).length + (R.moltQ || 0)]; }
   function protMolt(G) {
     if (G.slime.stage >= 4) return false; const order = N.moltOrder(G);
@@ -156,7 +156,10 @@ const GENOME = (function () {
     const taken = {}, picks = {}; T.topTags(g, 2).forEach((t, k) => Object.assign(picks, pickFor(R, t, k ? 2 : 3, taken)));
     const combos = T.combosOf(g); combos.slice(0, 2).forEach(cmb => { const c = R.deck.find(x => !taken[x.uid] && canCombo(cmb, CD.BY[x.id])); if (c) { picks[c.uid] = 'gc_' + cmb.id + '__' + c.id; taken[c.uid] = 1; } });
     const mutated = R.noGene ? [] : applyPicks(R, picks);
-    const fx = R.noGene ? null : applyBody(R), lm = T.landmarkOf(g), nm = T.nameOf(g);
+    const fx = R.noGene ? null : applyBody(R), lm = T.landmarkOf(g);
+    // 앞 허물과 이름이 같으면 몸의 나이를 붙여 가른다 (같은 이름이 두 번 나오지 않게)
+    { g.epithet = null; const prevN = (R.molts || []).length ? R.molts[R.molts.length - 1].name : null; if (prevN && T.nameOf(g).name === prevN) g.epithet = ['', '', '한 번 더 벗은', '오래 묵은', '다 자란', '다 자란'][Math.min(5, g.stage || 2)] || '더 자란'; }
+    const nm = T.nameOf(g);
     R.st.molts = (R.st.molts || 0) + 1; if (lm) R.st.landmarks = (R.st.landmarks || 0) + 1;
     record(R, g);
     const res = { before, after: g, lines: T.narrate ? T.narrate(g) : T.describe(g), nums: T.describe(g), gained, combos: combos.map(c => ({ id: c.id, name: c.name, text: c.text })), landmark: lm ? { id: lm.id, name: lm.name, title: lm.title || lm.text || '' } : null, name: nm, mutated, body: fx, stage: g.stage };

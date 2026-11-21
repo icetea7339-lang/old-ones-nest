@@ -413,7 +413,7 @@ function goalHtml() {
 }
 function view() {
   const s = UI.sel, sh = UI.sheet; let h;
-  if (!s) h = sh === 'goal' ? goalHtml() : overview(); else if (s.t === 'cell') h = cellPanel(s.i); else if (s.t === 'vill') h = villPanel(s.v); else if (s.t === 'spot') h = spotPanel(); else h = plotPanel(s.p);
+  if (!s) h = G.cardMode && sh !== 'goal' ? '' : sh === 'goal' ? goalHtml() : overview(); else if (s.t === 'cell') h = cellPanel(s.i); else if (s.t === 'vill') h = villPanel(s.v); else if (s.t === 'spot') h = spotPanel(); else h = plotPanel(s.p);
   $('view').innerHTML = h;
   if (G.auto) $('foot').innerHTML = `<p class="small mute">교시 <b style="color:${G.edict ? ASPCOL[NEST.EDICT[G.edict].god] : 'inherit'}">「${G.edict ? NEST.EDICT[G.edict].name : '아직'}」</b> · ${AUTO.paused ? '멈춰 있다' : '권속들이 일하는 중'}</p><span class="bar"><i style="width:${Math.round(100 * AUTO.i / Math.max(1, AUTO.n))}%;background:var(--coin)"></i></span><div class="row nw"><button class="btn pri big grow" data-a="autopause">${AUTO.paused ? '▶ 다시 흐르게' : '⏸ 멈춤'} <kbd>E</kbd></button>${[1, 2, 4].map(v => btn('autospeed', { v }, v + '배', AUTO.speed === v ? 'on' : '')).join('')}</div>`;
   else $('foot').innerHTML = '';
@@ -680,7 +680,7 @@ function scene(lines) {
     let i = 0, timer = null, full = false;
     const show = () => {
       const L = lines[i], narr = L.narr, who = L.dream ? '꿈' : L.who || (narr ? '' : '잔향'), face = L.img || (narr ? '' : echoImg(96));
-      $('scene').innerHTML = `<div class="box${narr && !L.img ? ' narr' : ''}${L.dream ? ' dream' : ''}${L.cls ? ' ' + L.cls : ''}">${face}<div class="stack"><span class="who">${esc(who)}</span><p class="txt" id="stxt"></p><p class="small mute">클릭 또는 <kbd>Space</kbd> · <button class="btn sm" data-a="sceneskip">건너뛰기</button></p></div></div>`;
+      $('scene').innerHTML = `<div class="box${narr && !L.img ? ' narr' : ''}${L.dream ? ' dream' : ''}${L.cls ? ' ' + L.cls : ''}">${face}<div class="stack"><span class="who">${esc(who)}</span><p class="txt" id="stxt"></p><p class="small mute">${TOUCH || isMobile() ? '누르면 넘어간다' : '클릭 또는 <kbd>Space</kbd>'} · <button class="btn sm" data-a="sceneskip">건너뛰기</button></p></div></div>`;
       $('scene').hidden = false; let n = 0; full = false; clearInterval(timer);
       if (TOUCH) L.text = L.text.replace('Tab으로 올라가서', "지도 위 '지상' 버튼으로 올라가서");
       L.text = NEST.lx(L.text);
@@ -737,6 +737,7 @@ function checkSaves() {
   let bad = false; const has = k => { try { return localStorage.getItem('oldnest.' + k) != null; } catch (e) { return false; } };
   if (has('run') && !runOk(store.get('run'))) { setAside('run'); bad = true; }
   if (has('cardrun') && !cardRunOk(store.get('cardrun'))) { setAside('cardrun'); bad = true; }
+  if (has('camprun') && !(cardRunOk(store.get('camprun')) && store.get('camprun').camp)) { setAside('camprun'); bad = true; }
   if (UI.saveBad) { UI.saveBad = false; bad = true; }
   return bad ? SAVE_BAD : '';
 }
@@ -748,11 +749,11 @@ function showTitle() {
   const crun = store.get('cardrun'), cDay = crun && crun.G ? crun.G.day : 0, cAsp = crun && NEST.ASP[crun.aspect] ? NEST.ASP[crun.aspect] : '';
   const runStory = !!(run && run.story && NEST.STORYCH[run.story.ch]), runTxt = run ? (runStory ? run.story.ch + '장 「' + NEST.STORYCH[run.story.ch].title + '」 · ' : '') + run.day + '일째' : '';
   $('menu').innerHTML = (bad ? `<p class="small warnc w2" style="grid-column:1/-1;margin:0">${esc(bad)}</p>` : '')
-    + (crun ? btn('ccont', null, `이어하기 <small>${cDay}일째${cAsp ? ' · ' + cAsp : ''} · 카드로 짓는 둥지</small>`, 'pri w2') : '')
-    + btn('deck', null, `${crun ? '새로 시작' : '시작'} <small>카드로 굴을 짓고, 밤은 저절로 싸운다</small>`, (crun ? '' : 'pri ') + 'w2')
+    + (crun ? btn('ccont', null, `이어하기 <small>${cDay}일째${cAsp ? ' · ' + cAsp : ''}</small>`, 'pri w2') : '')
+    + btn('deck', null, crun ? '새로 시작' : '시작', (crun ? '' : 'pri ') + 'w2')
     + (run ? btn('continue', null, `${runStory ? '이야기 이어하기' : '옛 판 이어하기'} <small>${esc(runTxt)}</small>`, 'w2') : '')
-    + btn('story', null, `이야기 <small>${so.clear[1] ? Math.min(7, storyNext()) + '장부터' : '줄거리 따라 배우기'}</small>`) + btn('codex', null, '도감')
-    + btn('records', null, '기록 · 순위') + btn('help', null, '도움말') + btn('settings', null, '설정', 'w2')
+    + btn('story', null, '이야기') + btn('codex', null, '도감')
+    + btn('records', null, '기록') + btn('help', null, '도움말') + btn('settings', null, '설정', 'w2')
     // 자유(옛 방식)는 내렸다. 코드는 두고, 자동 시험에서만 그 문으로 들어간다 (이야기와 같은 엔진을 시험하려고)
     + (navigator.webdriver ? btn('new', null, '옛 방식 <small>시험용</small>') + btn('barracks', null, '명부 · 별똥별' + (free ? ' ●' : '')) : '');
   typeof music === 'function' && music('title');
@@ -864,7 +865,7 @@ function needlesSvg(n, fresh) {
 }
 function storySelectHtml() {
   const c = storyMeta().clear, nx = storyNext();
-  const rows = [1, 2, 3, 4, 5, 6, 7].map(n => { const d = NEST.STORYCH[n], open = !d.soon && (n === 1 || c[n - 1]); return btn('close', { v: 'ch' + n }, `<b>${n}장 · ${esc(d.title)}</b><small>${d.soon ? '곧 열린다' : c[n] ? '넘김 · 다시 하기' : open ? (n === nx ? '여기부터' : '열림') : '앞 장을 넘기면 열린다'}</small>${!d.soon && STX[n] && STX[n].brief ? '<span class="small" style="color:inherit;opacity:.82">' + esc(STX[n].brief) + '</span>' : ''}`, 'opt' + (open && n === nx ? ' pri' : ''), !open); }).join('');
+  const rows = [1, 2, 3, 4, 5, 6, 7].map(n => { const d = NEST.STORYCH[n], open = !d.soon && (n === 1 || c[n - 1]); return btn('close', { v: 'ch' + n }, `<b>${n}장 · ${esc(d.title)}</b><small>${d.soon ? '곧 열린다' : c[n] ? '넘김 · 다시 하기' : open ? (n === nx ? '여기부터' : '열림') : '앞 장을 넘기면 열린다'}</small>`, 'opt' + (open && n === nx ? ' pri' : ''), !open); }).join('');
   return M('이야기', `${needlesSvg(Object.keys(c).filter(k => c[k]).length)}<p class="small mute center">일곱 개의 바늘이 모두 이 세상 쪽으로 돌아서면, 별 사이 바다에 가라앉은 위대한 것이 건너온다.</p><div class="opts c1 storylist">${rows}</div>`, (typeof playIntro === 'function' ? btn('close', { v: 'film' }, '처음 이야기 다시 보기', '') : '') + closeBtn('돌아가기'));
 }
 async function storyMenu() { const v = await modal(storySelectHtml(), false, 'static'); if (v === 'film') { await playIntro(); return storyMenu(); } if (v && /^ch\d$/.test(v)) { if (v === 'ch1' && !META.introSeen && typeof playIntro === 'function' && !(navigator.webdriver && !window.__forceIntro)) await playIntro(); startChapter(+v.slice(2)); } }
@@ -934,7 +935,7 @@ async function morningFlow() {
 }
 // 밤의 손. 보통: 달이 기우는 밤은 방마다, 다른 밤은 큰 싸움에서 한 번. 방마다: 늘. 안 멈춤: 묻지 않는다
 function askHand(ctx) {
-  const mode = META.pause, ask = !ST.skip && mode !== 'never' && ctx.opts.some(o => o.ok) && (ctx.cell === 'core' || ctx.def > 0 || ctx.traps > 0 || ctx.n === 0) && (mode === 'always' || ctx.settle || (ctx.key && !ST.asked));
+  const mode = META.pause, force = G.cardMode && !ST.asked && !ST.skip && typeof cmForcePause === 'function' && cmForcePause(ctx), ask = force || (!ST.skip && mode !== 'never' && ctx.opts.some(o => o.ok) && (ctx.cell === 'core' || ctx.def > 0 || ctx.traps > 0 || ctx.n === 0) && (mode === 'always' || ctx.settle || (ctx.key && !ST.asked)));
   if (!ask) return Promise.resolve(G.auto ? STEWARD.decide({ spend: 1 })(ctx) : { k: 'none' });   // 맡겼으면 묻지 않는 때에는 권속들이 알아서 손을 쓴다
   ST.asked = true; ST.focus = locIdx(ctx.cell); ST.pick = null; camCell(ST.focus); handCtx = ctx;
   $('hand').innerHTML = G.cardMode && typeof cardAskHtml === 'function' ? cardAskHtml(ctx) : `<p class="h3">손을 쓸까? <small class="mute">남은 손 ${ctx.hands} · 신앙 ${Math.floor(ctx.faith)} · 적 ${ctx.enemies}</small></p>${isMobile() ? '' : `<p class="small mute">${esc(locName(ctx.cell))} · 적 ${ctx.enemies}명 · 숫자는 신앙, ◎는 무대에서 고른다</p>`}<div class="stack">${ctx.opts.map(o => `<button class="btn" data-a="hand" data-k="${o.id}" title="${esc(o.desc)}"${o.ok ? '' : ' disabled'}>${spellImg(o.id)} ${o.name}${o.cost ? ` <span class="num" style="color:#c8a8ff">${o.cost}</span>` : ''}${o.tgt ? ' ◎' : ''}</button>`).join('')}${btn('hand', { k: 'none' }, '그냥 둔다 <kbd>Space</kbd>', 'pri')}</div>`;

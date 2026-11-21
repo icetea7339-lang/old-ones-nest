@@ -13,7 +13,6 @@ cd "$(dirname "$0")"
 <div id="title" class="screen">
   <canvas id="tcv" class="px" width="320" height="150" role="img" aria-label="별이 떨어지는 밤, 동굴 앞의 점액 한 방울"></canvas>
   <h1>옛 것의 둥지</h1>
-  <p class="tag small">별에서 떨어진 것이, 먹은 것대로 변해 옛 것이 된다. 40일 뒤 별이 서는 밤까지.</p>
   <nav id="menu"></nav>
   <p id="nojs" class="tag small">버튼이 보이지 않나요? 지금 보는 화면은 파일 미리보기라서 게임이 실행되지 않습니다. 보낸 사람에게 인터넷 주소(링크)를 받아 사파리나 크롬에서 열어 주세요.</p>
   <p class="small mute" id="trec"></p>
