@@ -5,6 +5,10 @@ const S = require('./logic.js'), STEWARD = require('./steward.js'), CM = require
 const def = id => CD.BY[id] || CM.def({ id });
 // 판마다 버릇이 다른 사람: 좋아하는 카드 종류 하나와 꼬리표 둘 (몸이 여러 갈래로 가는지 재려고)
 const TYPES = ['trap', 'kin', 'organ', 'skill', 'shape'];
+// 일부러 한 갈래를 노리는 사람 (STYLE=이정표 id): 그 형질 꼬리표 카드만 고르고 내고, 홀로 가는 갈래는 권속을 들이지 않는다
+const STYLES = { pit: ['maw'], thousandeyes: ['eye'], lantern: ['glow'], veil: ['mirror'], tongue: ['tongue'], swarmone: ['swarm'], queen: ['egg', 'swarm'], shellmind: ['shell'], hedgehog: ['spike', 'shell'], trench: ['water', 'tent'], pitfall: ['trap', 'root'], forest: ['spore', 'root'], gourmand: ['gut', 'maw'], skywound: ['wing', 'star'], constel: ['star', 'glow'], nomad: ['shadow', 'wing'], plague: ['spore'], allfaces: ['face'], lastone: ['alone'], ossuary: ['bone'], crowned: ['horn'], hollow: ['gut', 'alone'], drowned: ['water', 'root', 'spore'], patient: ['maw', 'root'], madlight: ['glow', 'eye', 'mirror'], chorus: ['maw', 'face'], mimic: ['face', 'mirror'], scarred: ['shell', 'spike', 'bone'] };
+const NOKIN = { lastone: 1, hollow: 1 };
+function styleOf(id) { const tags = STYLES[id]; return tags ? { type: null, tags, skill: 1, style: id, nokin: !!NOKIN[id] } : null; }
 function persona(seed) { const r = T.rng(T.hash('p' + seed)); return { type: TYPES[Math.floor(r() * TYPES.length)], tags: [T.TAG_IDS[Math.floor(r() * T.TAG_IDS.length)], T.TAG_IDS[Math.floor(r() * T.TAG_IDS.length)]], skill: 0.55 + 0.45 * r() }; }
 
 function scoreCard(R, id) {
@@ -16,7 +20,7 @@ function scoreCard(R, id) {
   if (d.type === 'shape') s += R.deck.filter(c => def(c.id).type === 'shape').length < 5 ? 0.5 : -1;
   // 몸을 아는 사람: 지금 큰 형질의 꼬리표가 붙은 카드를 더 고른다. 버릇이 있으면 그쪽으로
   if (R.genome && !process.env.NOGENEPICK) { const top = T.topTags(R.genome, 2); s += 0.6 * (d.tags || []).filter(t => top.includes(t)).length; }
-  if (R.persona) { if (d.type === R.persona.type) s += 1.1; s += 0.8 * (d.tags || []).filter(t => R.persona.tags.includes(t)).length; }
+  if (R.persona) { if (d.type === R.persona.type) s += 1.1; s += (R.persona.style ? 3 : 0.8) * (d.tags || []).filter(t => R.persona.tags.includes(t)).length; if (R.persona.nokin && d.type === 'kin') s -= 4; }
   return s;
 }
 const pathCells = G => (S.paths(G)[0] || []);
@@ -43,11 +47,13 @@ function dayPlay(R) {
   const G = R.G; let guard = 0;
   while (guard++ < 14) {
     const v = CM.dayView(R), order = { boon: 0, shape: 1, organ: 2, trap: 3, kin: 4, curse: 5 };
-    const hs = v.hand.filter(h => h.can && h.type !== 'skill').sort((a, b) => order[a.type] - order[b.type]);
+    const pr = R.persona, tg = h => pr && pr.style ? (def(h.id).tags || []).filter(t => pr.tags.includes(t)).length : 0;
+    const hs = v.hand.filter(h => h.can && h.type !== 'skill').sort((a, b) => (tg(b) - tg(a)) * 10 + order[a.type] - order[b.type]);
     let did = false;
     for (const h of hs) {
       const d = def(h.id);
       if (h.type === 'curse' && G.gold < 80) continue;
+      if (h.type === 'kin' && R.persona && R.persona.nokin && G.kin.filter(m => m.kind !== 'spawn').length >= 1) continue;
       if (h.type === 'kin') { const cap = Object.values(S.capacity(G)).reduce((a, b) => a + b, 0), kin = G.kin.filter(m => m.kind !== 'spawn').length; if (G.gold - h.cost < 20 * S.cm(G) || kin >= cap + 1) continue; }
       if (d.fx && d.fx.needle && G.gold < 100) continue;
       let tgt = {};
@@ -61,6 +67,7 @@ function dayPlay(R) {
   const k = S.cm(G);
   if (G.gold > 220 * k && R.shop) { const best = R.shop.map((s, i) => ({ s, i, sc: scoreCard(R, s.id) })).filter(x => !x.s.sold && x.s.price < G.gold - 120 * k).sort((a, b) => b.sc - a.sc)[0]; if (best && best.sc >= 3) CM.shopBuy(R, best.i); }
   if (G.gold > 260 * k) { const c = R.deck.filter(x => !x.up && def(x.id).type !== 'curse').sort((a, b) => scoreCard(R, b.id) - scoreCard(R, a.id))[0]; if (c) CM.upgrade(R, c.uid); }
+  if (R.persona && R.persona.style && G.gold > 150 * k && R.deck.length > 10) { const off = R.deck.filter(x => { const d = def(x.id); return d.type !== 'shape' && !(d.tags || []).some(t => R.persona.tags.includes(t)); }).sort((a, b) => scoreCard(R, a.id) - scoreCard(R, b.id))[0]; if (off) CM.removeCard(R, off.uid); }
   if (G.gold > 200 * k) { const cu = R.deck.find(x => def(x.id).type === 'curse') || (R.deck.length > 16 ? R.deck.find(x => x.id === 'sh_one') : null); if (cu) CM.removeCard(R, cu.uid); }
 }
 function needlePlay(R) {
@@ -68,13 +75,14 @@ function needlePlay(R) {
   CM.needleStart(R); CM.needleBet(R, { kind: 'ess', n: 15 }); for (let k = 0; k < 3 && R.needle; k++) CM.needleReveal(R);
 }
 function play(seed, aspect, diff, mode, meta, egg) {
+  if (process.env.STYLE && STYLES[process.env.STYLE]) aspect = T.TAGS[STYLES[process.env.STYLE][0]].asp[0];
   const R = CM.newRun(seed, { aspect, diff, meta, egg: egg || null }), G = R.G, st = { captive: 'mix', raid: 1, spend: 1 }, base = STEWARD.decide(st);
-  if (mode === 'nogene') R.noGene = true; if (!process.env.NOPERSONA) R.persona = persona(seed);
+  if (mode === 'nogene') R.noGene = true; if (!process.env.NOPERSONA) R.persona = (process.env.STYLE && styleOf(process.env.STYLE)) || persona(seed);
   const pr = R.persona, rr0 = T.rng(T.hash('d' + seed));
   const decide = mode === 'noskill' ? ctx => { const r = base(Object.assign({}, ctx, { opts: (ctx.opts || []).filter(o => S.SPELL[o.id] && S.SPELL[o.id].free) })); return r; } : pr ? ctx => { const r = base(ctx); return r && r.k && r.k !== 'none' && S.SPELL[r.k] && !S.SPELL[r.k].free && rr0() > pr.skill ? { k: 'none' } : r; } : base;
   let guard = 0;
   while (!R.over && guard++ < 90) {
-    if (R.phase === 'reward') { const best = R.offer.cards.map((id, i) => ({ i, sc: scoreCard(R, id) })).sort((a, b) => b.sc - a.sc)[0]; if (best.sc >= 1.5) CM.takeReward(R, best.i); else CM.skipReward(R); continue; }
+    if (R.phase === 'reward') { const pr = R.persona, on = id => pr && pr.style && (def(id).tags || []).some(t => pr.tags.includes(t)); if (pr && pr.style && !R.offer.cards.some(on) && !R.rrd) { R.rrd = 1; const r = CM.rerollReward(R); if (r && r.ok) continue; } R.rrd = 0; const best = R.offer.cards.map((id, i) => ({ i, sc: scoreCard(R, id) })).sort((a, b) => b.sc - a.sc)[0]; if (best.sc >= 1.5 && (!pr || !pr.style || on(R.offer.cards[best.i]))) CM.takeReward(R, best.i); else CM.skipReward(R); continue; }
     if (G.day === 12 && !R.snap12) R.snap12 = [...new Set(R.deck.map(c => c.id).concat(R.gone || []))];
     STEWARD.tasks(S, G, st, { seed, ban: [] }).forEach(t => t());
     needlePlay(R);
@@ -86,7 +94,7 @@ function play(seed, aspect, diff, mode, meta, egg) {
   }
   return R;
 }
-module.exports = { play, scoreCard };
+module.exports = { play, scoreCard, STYLES };
 
 if (require.main === module) {
   const n = +(process.argv[2] || 100), which = process.argv[3] || 'all', diff = +(process.argv[4] || 1), mode = process.argv[5] || '', keep = process.env.META === 'keep';

@@ -90,6 +90,9 @@ const GENOME = (function () {
     for (const k in T.COUNTERS) { now[k] = +(behaviour[k] || 0); const x = now[k] - (R.geneLast[k] || 0); if (x > 0) { d[k] = x; any = true; } }
     const ct = behaviour.cardTags || {}; T.TAG_IDS.forEach(t => { const k = 'tag:' + t; now[k] = +(ct[t] || 0); const x = now[k] - (R.geneLast[k] || 0); if (x > 0) { d[k] = x; any = true; } });
     R.geneLast = now; if (any) T.addBehaviour(g, d);
+    // 덱 = 유전자: 밤마다 덱에 어떤 꼬리표가 얼마나 들었는지 쌓는다 (일부러 한 갈래를 모았는지 보는 잣대)
+    const dt = {}; let dn = 0; R.deck.forEach(c => { const dd = CD.BY[c.id] || (typeof ensure === 'function' ? ensure(c.id) : null); if (!dd || dd.type === 'shape' || dd.type === 'curse') return; dn++; (dd.tags || []).forEach(t => { dt[t] = (dt[t] || 0) + 1; }); });
+    g.deckN = (g.deckN || 0) + dn; g.deckT = g.deckT || {}; for (const t in dt) g.deckT[t] = (g.deckT[t] || 0) + dt[t];
   }
   const rngOf = (R, s) => T.rng(T.hash(R.seed + ':' + s));
   function pickFor(R, tag, n, taken) {

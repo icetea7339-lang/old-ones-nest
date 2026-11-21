@@ -728,6 +728,24 @@ button.dk-chip { cursor: pointer; }
 #cm-sheet .dk-x { position: sticky; top: 0; float: right; z-index: 3; margin: -2px -2px 0 8px; }
 .cm-keepg { width: 100%; max-width: 520px; margin: 8px 0; }
 @media (max-width: 420px) { .hbar .cm-act { display: none; } .hbar .cm-por { width: 22px; } .hbar .cm-por img { width: 22px; height: 22px; } }
+
+/* ===== 카드 판 빠른 손질: 손 띠, 끌어서 놓기, 몸이 다시 쓴 카드 ===== */
+#chand { position: relative; }
+#chand .cm-cnt { display: block; font-size: var(--t1); color: var(--mute); padding: 2px 4px 0; }
+#chand .cm-hand.cm-strip { display: flex; flex-wrap: nowrap; justify-content: center; gap: 8px; min-height: 0; padding: 18px 6px 6px; }
+#chand .cm-hand.cm-strip .dkc { margin-left: 0 !important; flex: none; }
+@media (max-width: 760px) {
+  #chand .cm-hand.cm-strip { justify-content: flex-start; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; scroll-padding-left: 6px; touch-action: pan-x; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  #chand .cm-hand.cm-strip::-webkit-scrollbar { display: none; }
+  #chand .cm-hand.cm-strip .dkc { width: calc((100vw - 44px) / 2.5); min-height: 0; scroll-snap-align: start; touch-action: pan-x; }
+  #chand .cm-hand.cm-strip .dkc.lift { transform: translateY(-10px); }
+}
+#cm-drag { position: fixed; z-index: 60; pointer-events: none; opacity: .92; transform: rotate(-4deg); transition: transform .08s; }
+#cm-drag.over { transform: rotate(0) scale(.82); opacity: .75; }
+.dkc.gene { outline: 2px dashed var(--gc); outline-offset: -6px; box-shadow: 0 0 12px color-mix(in srgb, var(--gc) 50%, transparent); }
+.dkc .dkc-art { position: relative; }
+.dkc-gene { position: absolute; right: -6px; bottom: -4px; font: 700 10px/1 var(--body); font-style: normal; color: #0b0c16; background: var(--gc, #fff3a0); padding: 2px 3px; border: 1px solid #07050a; white-space: nowrap; }
+.chip.cm-zoom { font-weight: 700; }
 </style>
 </head><body style="margin:0">
 <div id="title" class="screen">
@@ -2553,41 +2571,43 @@ const TRAITS = (function () {
   const shr = (g, t) => { if (!g.norm) return share(g, t); const top = TAG_IDS.filter(x => g.tags[x] > 0).sort((a, b) => g.tags[b] - g.tags[a]).slice(0, 4), s = top.reduce((a, x) => a + g.tags[x], 0); return s && top.includes(t) ? g.tags[t] / s : 0; };
   // 셈마다 크기가 다르다(정신 피해는 천 단위, 우두머리는 한두 번). 한 판에 흔히 쌓이는 만큼을 20 으로 맞춰 무게를 잰다
   const SCALE = { trapKills: 48, kinKills: 200, coreKills: 42, swallows: 120, infections: 100, risen: 26, captives: 50, converts: 3, eaten: 18, kinLost: 4, nightsAlone: 3, kinMade: 10, spawns: 20, skillsUsed: 27, wordsLearned: 8, coreDamage: 1800, digestKills: 10, waterKills: 70, pulled: 50, madness: 1500, routs: 1500, shapesPlaced: 14, organsPlaced: 10, trapsPlaced: 11, combos: 90, nightsDark: 11, bossKills: 2, ess_abyss: 190, ess_nebula: 170, ess_brood: 120, ess_dusk: 220, ess_hunger: 210 };
+  const TGX = typeof process !== 'undefined' && process.env && process.env.TGX ? +process.env.TGX : 1.0;
+  const TAGW = typeof process !== 'undefined' && process.env && process.env.TAGW ? +process.env.TAGW : 1.4;
   const GX = typeof process !== 'undefined' && process.env && process.env.GEXP ? +process.env.GEXP : 1.0;
   // 판마다 거의 같은 만큼 쌓이는 셈(굴·기관·함정 놓기, 어두운 밤, 족보, 정수)은 덜 친다: 몸은 남과 다르게 한 것으로 갈라진다
   const FLAT = { shapesPlaced: 0.35, organsPlaced: 0.45, trapsPlaced: 0.45, nightsDark: 0.5, combos: 0.55, ess_abyss: 0.6, ess_nebula: 0.6, ess_brood: 0.6, ess_dusk: 0.6, ess_hunger: 0.6, kinKills: 0.7, coreKills: 0.8 };
   const eff = (g, k, c) => g.norm ? (FLAT[k] || 1) * Math.pow(c * 20 / (SCALE[k] || 20), GX) : Math.sqrt(c);
   const LANDMARKS = [
-    { id: 'chorus', name: '합창하는 살', text: '입마다 다른 기도를 한다', when: g => shr(g, 'maw') + shr(g, 'face') > 0.55 && shr(g, 'maw') > 0.2 && cnt(g, 'converts') >= 5 },
-    { id: 'mimic', name: '사람이 되려던 것', text: '두 발로 서서 웃는 법을 배웠다', when: g => shr(g, 'face') + shr(g, 'mirror') > 0.5 && shr(g, 'face') > shr(g, 'mirror') && shr(g, 'face') < 0.7 && classOf(g).loco === 'l2' },
-    { id: 'madlight', name: '미치게 하는 빛', text: '바라본 것이 제 편을 친다', when: g => cnt(g, 'madness') >= 30 && shr(g, 'eye') < 0.45 && shr(g, 'glow') > 0.15 && shr(g, 'eye') + shr(g, 'glow') + shr(g, 'mirror') > 0.45 },
-    { id: 'forest', name: '걸어 다니는 숲', text: '포자만 먹고 자란 몸. 걸음마다 숲이 따라 걷는다', when: g => shr(g, 'spore') + shr(g, 'root') > 0.55 && shr(g, 'root') >= 0.1 && g.stage >= 3 },
-    { id: 'plague', name: '역병 그 자체', text: '닿는 것마다 자기 것이 된다', when: g => cnt(g, 'infections') >= 40 && shr(g, 'spore') > 0.3 && shr(g, 'root') < 0.1 },
-    { id: 'scarred', name: '흉터투성이', text: '받은 상처가 다 갑옷이 됐다', when: g => cnt(g, 'coreDamage') >= 1200 && cnt(g, 'coreKills') >= 8 && shr(g, 'shell') + shr(g, 'spike') + shr(g, 'bone') > 0.45 },
-    { id: 'echo', name: '위대한 것의 메아리', text: '다섯 빛깔이 다 섞였다. 저 아래의 것을 가장 닮았다', when: g => g.stage >= 5 && TAG_IDS.filter(t => share(g, t) > 0.045).length >= (g.norm ? 10 : 9) && Math.max.apply(null, TAG_IDS.map(t => share(g, t))) < (g.norm ? 0.11 : 0.15) },
-    { id: 'tiny', name: '작은 채로 다 큰 것', text: '끝까지 작았지만 누구보다 오래 살았다', when: g => g.stage <= 2 && cnt(g, 'bossKills') >= 8 },
-    { id: 'hollow', name: '속이 빈 것', text: '먹어도 먹어도 비어 있다', when: g => shr(g, 'gut') > 0.3 && shr(g, 'alone') > 0.25 },
-    { id: 'crowned', name: '뼈 왕관을 쓴 것', text: '우두머리들의 뿔을 이어 붙였다', when: g => shr(g, 'horn') > 0.3 && cnt(g, 'bossKills') >= 3 },
-    { id: 'patient', name: '기다리는 것', text: '한 자리에서 움직이지 않고 다 먹었다', when: g => classOf(g).loco === 'root' && shr(g, 'maw') > 0.15 && shr(g, 'maw') + shr(g, 'trap') > 0.4 },
-    { id: 'drowned', name: '가라앉은 정원', text: '물과 뿌리와 포자가 엉킨 몸', when: g => (g.tags.water || 0) > 0 && (g.tags.root || 0) > 0 && (g.tags.spore || 0) > 0 && shr(g, 'water') + shr(g, 'root') + shr(g, 'spore') > 0.6 },
-    { id: 'skywound', name: '하늘의 상처', text: '날개막 사이로 별 사이 바다가 보인다', when: g => shr(g, 'wing') + shr(g, 'star') > 0.5 },
-    { id: 'allfaces', name: '모두의 얼굴', text: '삼킨 사람들의 얼굴이 다 남아 있다', when: g => cnt(g, 'wordsLearned') >= 25 && shr(g, 'face') > 0.3 },
-    { id: 'lastone', name: '마지막 하나', text: '곁에 아무도 남지 않았다. 그래서 무엇보다 크다', when: g => shr(g, 'alone') > 0.4 && cnt(g, 'nightsAlone') >= 6 },
-    { id: 'ossuary', name: '걷는 납골당', text: '먹은 것의 뼈를 다 두르고 다닌다', when: g => shr(g, 'bone') > 0.4 && cnt(g, 'eaten') >= 30 },
-    { id: 'constel', name: '내려온 별자리', text: '몸에 바늘 일곱이 박혀 빛난다', when: g => shr(g, 'star') + shr(g, 'glow') > 0.5 && g.stage >= 4 },
-    { id: 'tongue', name: '굴을 핥는 혀', text: '혀가 굴 끝에서 끝까지 닿는다', when: g => shr(g, 'tongue') > 0.38 },
-    { id: 'swarmone', name: '하나인 떼', text: '수백 마리가 한 몸처럼 움직인다', when: g => shr(g, 'swarm') > 0.42 && shr(g, 'swarm') > shr(g, 'egg') },
-    { id: 'queen', name: '끝없는 어미', text: '숨 쉴 때마다 알이 떨어진다', when: g => shr(g, 'egg') + shr(g, 'swarm') > 0.55 },
-    { id: 'veil', name: '거울 너울', text: '보는 이마다 다른 것을 본다', when: g => shr(g, 'mirror') > 0.33 },
-    { id: 'shellmind', name: '껍데기 속의 생각', text: '껍데기를 몇 겹 둘렀는지 스스로도 모른다', when: g => shr(g, 'shell') > 0.4 && shr(g, 'shell') > shr(g, 'spike') * 1.5 },
-    { id: 'lantern', name: '등불 무리', text: '어둠 속의 작은 해들', when: g => shr(g, 'glow') > 0.38 },
-    { id: 'pit', name: '바닥 없는 아가리', text: '몸이 거의 입이다', when: g => shr(g, 'maw') > 0.45 },
-    { id: 'thousandeyes', name: '천의 눈', text: '어느 쪽에서 와도 보인다', when: g => shr(g, 'eye') > 0.42 },
-    { id: 'trench', name: '걸어 나온 해구', text: '물이 몸이고 몸이 물이다', when: g => shr(g, 'water') + shr(g, 'tent') > 0.55 },
-    { id: 'pitfall', name: '굴이 된 몸', text: '어디까지가 굴이고 어디부터 몸인지 모른다', when: g => shr(g, 'trap') + shr(g, 'root') > 0.5 },
-    { id: 'hedgehog', name: '찔리는 산', text: '가시가 가시를 낳았다', when: g => shr(g, 'spike') + shr(g, 'shell') > 0.55 },
-    { id: 'nomad', name: '그늘 나그네', text: '빛이 닿기 전에 늘 다른 곳에 있다', when: g => shr(g, 'shadow') + shr(g, 'wing') > 0.5 },
-    { id: 'gourmand', name: '다 먹는 배', text: '소화하는 소리가 굴 끝까지 들린다', when: g => shr(g, 'gut') + shr(g, 'maw') > 0.6 }
+    { id: 'chorus', name: '합창하는 살', text: '입마다 다른 기도를 한다', f: ['maw', 'face'], fx: g => cnt(g, 'converts') >= 3, when: g => shr(g, 'maw') + shr(g, 'face') > 0.55 && shr(g, 'maw') > 0.2 && cnt(g, 'converts') >= 5 },
+    { id: 'mimic', name: '사람이 되려던 것', text: '두 발로 서서 웃는 법을 배웠다', f: ['face', 'mirror'], when: g => shr(g, 'face') + shr(g, 'mirror') > 0.5 && shr(g, 'face') > shr(g, 'mirror') && shr(g, 'face') < 0.7 && classOf(g).loco === 'l2' },
+    { id: 'madlight', name: '미치게 하는 빛', text: '바라본 것이 제 편을 친다', f: ['glow', 'eye'], fx: g => cnt(g, 'madness') >= 2500, when: g => cnt(g, 'madness') >= 30 && shr(g, 'eye') < 0.45 && shr(g, 'glow') > 0.15 && shr(g, 'eye') + shr(g, 'glow') + shr(g, 'mirror') > 0.45 },
+    { id: 'forest', name: '걸어 다니는 숲', text: '포자만 먹고 자란 몸. 걸음마다 숲이 따라 걷는다', f: ['spore', 'root'], fx: g => g.stage >= 3, when: g => shr(g, 'spore') + shr(g, 'root') > 0.55 && shr(g, 'root') >= 0.1 && g.stage >= 3 },
+    { id: 'plague', name: '역병 그 자체', text: '닿는 것마다 자기 것이 된다', f: ['spore'], fx: g => cnt(g, 'infections') >= 100, when: g => cnt(g, 'infections') >= 100 && shr(g, 'spore') > 0.36 && shr(g, 'root') < 0.1 },
+    { id: 'scarred', name: '흉터투성이', text: '받은 상처가 다 갑옷이 됐다', f: ['shell', 'spike'], fx: g => cnt(g, 'coreDamage') >= 2500, when: g => cnt(g, 'coreDamage') >= 2000 && cnt(g, 'coreKills') >= 40 && shr(g, 'shell') + shr(g, 'spike') + shr(g, 'bone') > 0.46 },
+    { id: 'echo', name: '위대한 것의 메아리', text: '다섯 빛깔이 다 섞였다. 저 아래의 것을 가장 닮았다', when: g => g.stage >= 5 && TAG_IDS.filter(t => share(g, t) > 0.045).length >= (g.norm ? 10 : 9) && Math.max.apply(null, TAG_IDS.map(t => share(g, t))) < (g.norm ? 0.105 : 0.15) },
+    { id: 'tiny', name: '작은 채로 다 큰 것', text: '끝까지 작았지만 누구보다 오래 살았다', when: g => g.stage <= 3 && cnt(g, 'bossKills') >= 2 },
+    { id: 'hollow', name: '속이 빈 것', text: '먹어도 먹어도 비어 있다', f: ['gut', 'alone'], when: g => shr(g, 'gut') > 0.3 && shr(g, 'alone') > 0.25 },
+    { id: 'crowned', name: '뼈 왕관을 쓴 것', text: '우두머리들의 뿔을 이어 붙였다', f: ['horn'], fx: g => cnt(g, 'bossKills') >= 2, when: g => shr(g, 'horn') > 0.3 && cnt(g, 'bossKills') >= 3 },
+    { id: 'patient', name: '기다리는 것', text: '한 자리에서 움직이지 않고 다 먹었다', f: ['maw', 'root'], when: g => classOf(g).loco === 'root' && shr(g, 'maw') > 0.18 && shr(g, 'maw') + shr(g, 'trap') > 0.48 },
+    { id: 'drowned', name: '가라앉은 정원', text: '물과 뿌리와 포자가 엉킨 몸', f: ['water', 'root', 'spore'], when: g => (g.tags.water || 0) > 0 && (g.tags.root || 0) > 0 && (g.tags.spore || 0) > 0 && shr(g, 'water') + shr(g, 'root') + shr(g, 'spore') > 0.72 && Math.min(shr(g, 'water'), shr(g, 'root'), shr(g, 'spore')) > 0.14 },
+    { id: 'skywound', name: '하늘의 상처', text: '날개막 사이로 별 사이 바다가 보인다', f: ['wing', 'star'], when: g => shr(g, 'wing') + shr(g, 'star') > 0.5 },
+    { id: 'allfaces', name: '모두의 얼굴', text: '삼킨 사람들의 얼굴이 다 남아 있다', f: ['face'], fx: g => cnt(g, 'wordsLearned') >= 11, when: g => cnt(g, 'wordsLearned') >= 9 && shr(g, 'face') > 0.36 },
+    { id: 'lastone', name: '마지막 하나', text: '곁에 아무도 남지 않았다. 그래서 무엇보다 크다', f: ['alone'], fx: g => cnt(g, 'kinMade') <= 4, when: g => shr(g, 'alone') > 0.34 && cnt(g, 'nightsAlone') >= 6 },
+    { id: 'ossuary', name: '걷는 납골당', text: '먹은 것의 뼈를 다 두르고 다닌다', f: ['bone'], fx: g => cnt(g, 'eaten') >= 20, when: g => shr(g, 'bone') > 0.4 && cnt(g, 'eaten') >= 30 },
+    { id: 'constel', name: '내려온 별자리', text: '몸에 바늘 일곱이 박혀 빛난다', f: ['star', 'glow'], fx: g => g.stage >= 4, when: g => shr(g, 'star') + shr(g, 'glow') > 0.5 && g.stage >= 4 },
+    { id: 'tongue', name: '굴을 핥는 혀', text: '혀가 굴 끝에서 끝까지 닿는다', f: ['tongue'], when: g => shr(g, 'tongue') > 0.4 },
+    { id: 'swarmone', name: '하나인 떼', text: '수백 마리가 한 몸처럼 움직인다', f: ['swarm'], when: g => shr(g, 'swarm') > 0.42 && shr(g, 'swarm') > shr(g, 'egg') },
+    { id: 'queen', name: '끝없는 어미', text: '숨 쉴 때마다 알이 떨어진다', f: ['egg', 'swarm'], when: g => shr(g, 'egg') + shr(g, 'swarm') > 0.6 },
+    { id: 'veil', name: '거울 너울', text: '보는 이마다 다른 것을 본다', f: ['mirror'], when: g => shr(g, 'mirror') > 0.33 },
+    { id: 'shellmind', name: '껍데기 속의 생각', text: '껍데기를 몇 겹 둘렀는지 스스로도 모른다', f: ['shell'], when: g => shr(g, 'shell') > 0.4 && shr(g, 'shell') > shr(g, 'spike') * 1.5 },
+    { id: 'lantern', name: '등불 무리', text: '어둠 속의 작은 해들', f: ['glow'], when: g => shr(g, 'glow') > 0.38 },
+    { id: 'pit', name: '바닥 없는 아가리', text: '몸이 거의 입이다', f: ['maw'], when: g => shr(g, 'maw') > 0.45 },
+    { id: 'thousandeyes', name: '천의 눈', text: '어느 쪽에서 와도 보인다', f: ['eye'], when: g => shr(g, 'eye') > 0.42 },
+    { id: 'trench', name: '걸어 나온 해구', text: '물이 몸이고 몸이 물이다', f: ['water', 'tent'], when: g => shr(g, 'water') + shr(g, 'tent') > 0.6 },
+    { id: 'pitfall', name: '굴이 된 몸', text: '어디까지가 굴이고 어디부터 몸인지 모른다', f: ['trap', 'root'], when: g => shr(g, 'trap') + shr(g, 'root') > 0.57 },
+    { id: 'hedgehog', name: '찔리는 산', text: '가시가 가시를 낳았다', f: ['spike', 'shell'], when: g => shr(g, 'spike') + shr(g, 'shell') > 0.55 },
+    { id: 'nomad', name: '그늘 나그네', text: '빛이 닿기 전에 늘 다른 곳에 있다', f: ['shadow', 'wing'], when: g => shr(g, 'shadow') + shr(g, 'wing') > 0.5 },
+    { id: 'gourmand', name: '다 먹는 배', text: '소화하는 소리가 굴 끝까지 들린다', f: ['gut', 'maw'], when: g => shr(g, 'gut') + shr(g, 'maw') > 0.62 }
   ];
 
   // ---- 셈 → 무게 ----
@@ -2602,7 +2622,7 @@ const TRAITS = (function () {
     for (const t of TAG_IDS) {
       let w = 0; const from = [];
       for (const [k, m] of TAGS[t].feed) { const c = seen[k] || 0; if (!c) continue; const v = m * eff(g, k, c); w += v; from.push([k, c, v]); }
-      if (g.norm && seen['tag:' + t]) { const c = seen['tag:' + t], v = 1.4 * Math.pow(c * 20 / 8, GX); w += v; from.push(['tag:' + t, c, v]); }
+      if (g.norm && seen['tag:' + t]) { const c = seen['tag:' + t], v = TAGW * Math.pow(c * 20 / 8, TGX); w += v; from.push(['tag:' + t, c, v]); }
       if (TAGS[t].asp.includes(g.aspect)) w *= 1.25; else if (g.sub && TAGS[t].asp.includes(g.sub)) w *= 1.1;
       if (w > 0) { tags[t] = +(w * (0.94 + 0.12 * rng(hash(t + g.seed))())).toFixed(3); feed[t] = from.sort((a, b) => b[2] - a[2]).slice(0, 2).map(x => [x[0], x[1]]); }
     }
@@ -2612,7 +2632,16 @@ const TRAITS = (function () {
   const topTags = (g, n) => TAG_IDS.filter(t => g.tags[t] > 0).sort((a, b) => g.tags[b] - g.tags[a] || a.localeCompare(b)).slice(0, n || 3);
   // 짝: 두 형질이 다 위쪽 다섯 안에 있고 각각 전체의 8% 넘게
   function combosOf(g) { const top = topTags(g, 5); return COMBOS.filter(c => c.tags.every(t => top.includes(t) && share(g, t) > 0.08)).sort((a, b) => b.tags.length - a.tags.length); }
-  function landmarkOf(g) { for (const l of LANDMARKS) { try { if (l.when(g)) return l; } catch (e) { /* 조건이 아직 셀 수 없는 것 */ } } return null; }
+  // 카드 판(norm): 그 형질 꼬리표 카드를 일부러 많이 내야 닿는다. 형질이 위쪽에 있고, 그 꼬리표로 낸 카드가 충분해야 한다
+  const LM_N = typeof process !== 'undefined' && process.env && process.env.LMN ? +process.env.LMN : 10;
+  const LM_K = typeof process !== 'undefined' && process.env && process.env.LMK ? +process.env.LMK : 1.07;
+  // 덱(밤마다 쌓은 것)에서 그 꼬리표 카드가 차지한 몫, 그 꼬리표로 낸 수, 형질이 위쪽에 있는지 — 셋 다 맞아야 한다
+  const deckShare = (g, t) => g.deckN ? ((g.deckT || {})[t] || 0) / g.deckN : 0;
+  // 꼬리표마다 문턱: 평소처럼 노는 판(봇 150판)의 덱 몫 97% 지점보다 조금 위. 일부러 모아야 넘는다
+  const FTHR = { maw: 0.78, spore: 0.76, eye: 0.8, water: 0.79, bone: 0.32, tent: 0.22, egg: 0.75, spike: 0.1, face: 0.82, gut: 0.66, shadow: 0.69, star: 0.82, trap: 0.58, alone: 0.18, swarm: 0.44, shell: 0.25, wing: 0.25, glow: 0.27, root: 0.5, mirror: 0.22, tongue: 0.3, horn: 0.24 };
+  const focusOk = (g, l) => { if (g.stage < 3) return false; const top = topTags(g, 6); if (!l.f.every(t => top.includes(t))) return false; const k = l.f.length === 1 ? 1 : 0.92; return l.f.reduce((a, t) => a + deckShare(g, t) / (FTHR[t] || 0.5), 0) / l.f.length >= k * LM_K && (!l.fx || l.fx(g)); };
+  function landmarkOf(g) { for (const l of LANDMARKS) { try { if (g.norm && l.f ? focusOk(g, l) : l.when(g)) return l; } catch (e) { /* 조건이 아직 셀 수 없는 것 */ } } return null; }
+  const landmarkOk = (g, l) => { try { return g.norm && l.f ? focusOk(g, l) : !!l.when(g); } catch (e) { return false; } };
   const pickBy = (tbl, rnd) => { const ks = Object.keys(tbl); let best = ks[0], bv = -1; for (const k of ks) { const v = tbl[k] + rnd() * 0.35; if (v > bv) { bv = v; best = k; } } return best; };
   function classOf(g) {
     const r = rng(hash('cls' + g.seed + g.aspect)), lo = {}, po = {}, sy = {};
@@ -2654,7 +2683,7 @@ const TRAITS = (function () {
   function inherit(g) { const t = {}; topTags(g, 3).forEach(k => { t[k] = g.tags[k]; }); return { tags: t, aspect: g.aspect, name: nameOf(g).name }; }
   function summary(g) { const c = classOf(g), n = nameOf(g), lm = landmarkOf(g); return { name: n.name, title: n.title, cls: c, clsText: [POST[c.post], LOCO[c.loco], PLAN[c.plan], SYM[c.sym]].join(' · '), top: topTags(g, 3).map(t => TAGS[t].name), combos: combosOf(g).map(x => x.name), landmark: lm ? lm.name : null, lines: describe(g), hints: topTags(g, 3).map(t => TAGS[t].hint) }; }
 
-  return { ASPS, ASPN, COUNTERS, TAGS, TAG_IDS, LOCO, POST, SYM, PLAN, COMBOS, LANDMARKS, newGenome, addBehaviour, topTags, combosOf, landmarkOf, classOf, nameOf, describe, inherit, summary, share, hash, rng };
+  return { ASPS, ASPN, COUNTERS, TAGS, TAG_IDS, LOCO, POST, SYM, PLAN, COMBOS, LANDMARKS, newGenome, addBehaviour, topTags, combosOf, landmarkOf, landmarkOk, classOf, nameOf, describe, inherit, summary, share, hash, rng };
 })();
 if (typeof module !== 'undefined') module.exports = TRAITS;
 // 옛 것의 둥지 — 권속들의 판단. 본체가 일일이 시키지 않아도 둥지가 굴러가게 하는 머리.
@@ -4283,6 +4312,10 @@ const CARDS2 = (function () {
     if (d.type === 'kin' && d.kin === 'skeleton') t.push('bone');
     d.kw = d.tags; d.tags = uniq(t.length ? t : [AFALL[d.asp]]);
   });
+  // 드문 형질도 일부러 노릴 수 있게: 꼬리표가 15장이 안 되는 형질은 그 형질과 맞는 빛깔의 카드(꼬리표 둘 이하)에 덧붙인다. 굴 카드는 빼고, 고르는 것은 id 로 정해진다
+  { const AFF = { glow: ['nebula', 'abyss'], bone: ['hunger', 'dusk'], wing: ['nebula', 'dusk'], root: ['brood', 'abyss'], spike: ['hunger', 'brood'], shell: ['abyss', 'hunger'], swarm: ['brood', 'hunger'], horn: ['hunger', 'nebula'], tongue: ['hunger', 'brood'] }, hsh = id => { let h = 7; for (const ch of id) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return h; };
+    Object.keys(AFF).forEach(t => { const have = LIST.filter(d => d.type !== 'shape' && d.tags.includes(t)).length; if (have >= 15) return;
+      LIST.filter(d => d.type !== 'shape' && d.type !== 'curse' && AFF[t].includes(d.asp) && !d.tags.includes(t) && d.tags.length <= 2).sort((x, y) => (hsh(x.id + t) % 997) - (hsh(y.id + t) % 997)).slice(0, 15 - have).forEach(d => { d.tags.push(t); }); }); }
   const TAGS = uniq(LIST.reduce((a, d) => a.concat(d.tags), []));
   const tagged = tag => LIST.filter(d => d.tags.includes(tag));
 
@@ -4447,7 +4480,7 @@ const CARDMODE = (function () {
       res = ok(got.map(m => N.KIN[m.kind].name).join(', ') + ' 들어왔다');
     } else if (d.type === 'boon') { res = boon(R, c, d.fx, tgt); if (!res.ok) return res; }
     G.gold -= cost; R.st.maxGold = Math.max(R.st.maxGold, G.gold);
-    gs(G, 'cardsBy', d.type); gs(G, 'cardsAsp', d.asp); (d.tags || []).forEach(t => gs(G, 'cardTags', t)); if (d.type === 'shape') G.stats.shapesPlaced = (G.stats.shapesPlaced || 0) + 1; if (d.type === 'organ') G.stats.organsPlaced = (G.stats.organsPlaced || 0) + 1; if (d.type === 'trap') G.stats.trapsPlaced = (G.stats.trapsPlaced || 0) + 1;
+    gs(G, 'cardsBy', d.type); gs(G, 'cardsAsp', d.asp); if (d.type !== 'shape') (d.tags || []).forEach(t => gs(G, 'cardTags', t)); if (d.type === 'shape') G.stats.shapesPlaced = (G.stats.shapesPlaced || 0) + 1; if (d.type === 'organ') G.stats.organsPlaced = (G.stats.organsPlaced || 0) + 1; if (d.type === 'trap') G.stats.trapsPlaced = (G.stats.trapsPlaced || 0) + 1;
     if (d.type === 'kin') exhaust(R, uid); else discard(R, uid); syncHeld(R);
     return res;
   }
@@ -4480,13 +4513,13 @@ const CARDMODE = (function () {
     if (R.phase !== 'day') return fail('낮이 아니다');
     const G = R.G; while (R.moltQ && GEN()) GEN().molt(R); syncHeld(R);
     const cmb = N.cardCombos(G), mt = G.march.tonight; cmb.forEach(x => { R.st['cmb_' + x.id] = (R.st['cmb_' + x.id] || 0) + 1; gs(G, 'cmb', x.id); }); G.stats.combos = (G.stats.combos || 0) + cmb.length;
-    const kin0 = G.kin.filter(m => m.kind !== 'spawn').map(m => m.id), hp0 = G.slime.hp; if (mt && !G.kin.some(m => m.kind !== 'spawn' && m.loc !== null)) G.stats.nightsAlone = (G.stats.nightsAlone || 0) + 1;
+    const kin0 = G.kin.filter(m => m.kind !== 'spawn').map(m => m.id), hp0 = G.slime.hp; if (mt && G.kin.filter(m => m.kind !== 'spawn' && m.loc !== null).length <= 1) G.stats.nightsAlone = (G.stats.nightsAlone || 0) + 1;
     const curse = inHand(R, d => d.type === 'curse');
     if (mt && curse.some(c => def(c).fx.angry)) mt.angry = true;
     curse.forEach(c => { if (def(c).fx.nightTax) G.gold -= Math.round(def(c).fx.nightTax * cmG(R)); });
     const st0 = G.slime.stage, r = N.endDay(G, decide || (() => ({ k: 'none' })));
     if (G.slime.stage > st0) R.moltQ = (R.moltQ || 0) + (G.slime.stage - st0);
-    (G.cardUsed || []).forEach(uid => discard(R, uid)); G.cardUsed = []; G.cardHeld = [];
+    (G.cardUsed || []).forEach(uid => { const c = R.deck.find(x => x.uid === uid), d = c && def(c); if (d) (d.tags || []).forEach(t => gs(G, 'cardTags', t)); discard(R, uid); }); G.cardUsed = []; G.cardHeld = [];
     { const now = new Set(G.kin.map(m => m.id)), lost = kin0.filter(id => !now.has(id)).length; if (lost) G.stats.kinLost = (G.stats.kinLost || 0) + lost; if (r.battle) G.stats.coreDamage = (G.stats.coreDamage || 0) + Math.max(0, Math.round(hp0 - G.slime.hp)); }
     if (r.battle) { G.stats.routs = (G.stats.routs || 0) + (r.battle.fled || 0); if (!G.over && !r.battle.party.some(u => ['torch', 'lightcrew'].includes(u.kind) || (N.INV[u.kind] && N.INV[u.kind].flood))) G.stats.nightsDark = (G.stats.nightsDark || 0) + 1; }
     syncCounters(R); if (GEN() && R.genome) GEN().feed(R, behaviour(R));
@@ -4749,6 +4782,9 @@ const GENOME = (function () {
     for (const k in T.COUNTERS) { now[k] = +(behaviour[k] || 0); const x = now[k] - (R.geneLast[k] || 0); if (x > 0) { d[k] = x; any = true; } }
     const ct = behaviour.cardTags || {}; T.TAG_IDS.forEach(t => { const k = 'tag:' + t; now[k] = +(ct[t] || 0); const x = now[k] - (R.geneLast[k] || 0); if (x > 0) { d[k] = x; any = true; } });
     R.geneLast = now; if (any) T.addBehaviour(g, d);
+    // 덱 = 유전자: 밤마다 덱에 어떤 꼬리표가 얼마나 들었는지 쌓는다 (일부러 한 갈래를 모았는지 보는 잣대)
+    const dt = {}; let dn = 0; R.deck.forEach(c => { const dd = CD.BY[c.id] || (typeof ensure === 'function' ? ensure(c.id) : null); if (!dd || dd.type === 'shape' || dd.type === 'curse') return; dn++; (dd.tags || []).forEach(t => { dt[t] = (dt[t] || 0) + 1; }); });
+    g.deckN = (g.deckN || 0) + dn; g.deckT = g.deckT || {}; for (const t in dt) g.deckT[t] = (g.deckT[t] || 0) + dt[t];
   }
   const rngOf = (R, s) => T.rng(T.hash(R.seed + ':' + s));
   function pickFor(R, tag, n, taken) {
@@ -8589,8 +8625,10 @@ function drawStage() {
   const dpr = window.devicePixelRatio || 1, bw = Math.round(c.clientWidth * dpr), bh = Math.round(c.clientHeight * dpr);
   if (bw > 0 && bh > 0 && (c.width !== bw || c.height !== bh)) { c.width = bw; c.height = bh; }
   // 높이에 맞춘다. 좁은 화면에서는 가로 일부만 보이고 카메라가 좌우로 움직인다.
-  const fitH = G && c.clientHeight >= 360 ? Math.max(H, UH()) : H; ST.vh = H + (fitH - H) * ST.p; const VH = ST.vh;
-  const k0 = c.height / VH, VW = c.width / k0; const WW = worldW(); ST.viewW = Math.min(WW, VW); ST.ox = Math.max(0, (VW - WW) / 2); ST.fm = Math.max(1, Math.min(1.7, 0.86 * dpr / k0));
+  const fitH = G && c.clientHeight >= 360 ? Math.max(H, UH()) : H; ST.vh = H + (fitH - H) * ST.p; let VH = ST.vh, k0 = c.height / VH;
+  // 카드 판: 둥지 너비 전체가 한 화면에 들어오게 맞춘다 (가까이 보기를 고르면 예전처럼). 남는 높이는 위아래로 나눈다
+  ST.oyFit = 0; if (typeof cmFitOn === 'function' && cmFitOn() && ST.p > 0.999) { const kw = c.width / UW(); if (kw < k0) { k0 = kw; VH = c.height / k0; ST.vh = VH; ST.oyFit = Math.max(0, (VH - UH()) / 2); } }
+  const VW = c.width / k0; const WW = worldW(); ST.viewW = Math.min(WW, VW); ST.ox = Math.max(0, (VW - WW) / 2); ST.fm = Math.max(1, Math.min(1.7, 0.86 * dpr / k0));
   if (ST.camFor !== G) { ST.camFor = G; if (ST.screen === 'under' && ST.mode === 'day') { camCell(G.core, true); ST.camMem.under = ST.cam.tx; } }   // 새 판은 동굴 한 칸뿐이다. 그 칸이 먼저 보여야 한다
   if (ST.march && ST.screen === 'surface') camTo(pathPoint(ST.march.est.vill, 0.5 + 0.5 * Math.min(1, (t - ST.march.t0) / ST.march.dur)).x);
   const max = Math.max(0, worldW() - ST.viewW); ST.cam.tx = Math.max(0, Math.min(max, ST.cam.tx)); ST.cam.x += (ST.cam.tx - ST.cam.x) * 0.16; if (Math.abs(ST.cam.tx - ST.cam.x) < 0.5) ST.cam.x = ST.cam.tx;
@@ -8603,7 +8641,7 @@ function drawStage() {
     const ty = sy == null ? 0 : Math.max(0, Math.min(cov, sy - (VH - cov) / 2));
     ST.cam.y = ST.cam.y || 0; ST.cam.y += (ty - ST.cam.y) * 0.22; if (Math.abs(ty - ST.cam.y) < 0.5) ST.cam.y = ty;
   }
-  x.save(); x.translate(Math.round(ST.ox - ST.cam.x), -Math.round(ST.cam.y || 0));
+  x.save(); x.translate(Math.round(ST.ox - ST.cam.x), Math.round((ST.oyFit || 0) - (ST.cam.y || 0)));
   ST.shook = 0; if (ST.shake > t && motionOk()) { const m = ST.shakeMag || 1; ST.shook = m; x.translate((Math.random() - 0.5) * 8 * m, (Math.random() - 0.5) * 6 * m); } else if (ST.shake <= t) ST.shakeMag = 0;
   if (ST.p < 0.999) { x.save(); x.translate(0, Math.round(-H * ST.p)); drawSurface(x, t); x.restore(); }
   if (ST.p > 0.001) { x.save(); x.translate(0, Math.round(H * (1 - ST.p) - (ST.cam.v || 0))); drawUnder(x, t); ST.floats = ST.floats.filter(f => t - f.t0 < 800); ST.floats.forEach(f => { const k = (t - f.t0) / 800; x.globalAlpha = 1 - k; txt(x, f.s, f.x, f.y - k * 26, f.col, f.big ? 20 : 14, 'center'); x.globalAlpha = 1; }); x.restore(); }
@@ -10368,9 +10406,11 @@ window.__deck = { get R() { return DKU.R; }, DKU, DECK, rect: dkRect, open: deck
 // 같은 밤을 두 번 돈다: 화면에서 한 번(보여 주고 답을 적는다), 규칙에서 한 번(적은 답으로). 씨앗이 같으니 결과도 같다.
 const CMU = { run: null, sel: null, place: null, alts: [], altI: 0, tapCell: null, hint: null, hintKey: '', hints: [], ov: null, raf: 0, sheet: null, learnedN: 0, bodyKey: '', body: null, set0: null, down: null, lpT: 0, lpFired: false, egg: null, look: null, asp: null, nres: null, codexTab: 'card', codexAsp: 'all', deckTab: 'all', eggLaid: false };
 const cmMeta = () => { if (!META.cards) META.cards = CARDMODE.newMeta(); const m = META.cards; m.eggs = m.eggs || []; m.forms = m.forms || {}; m.marks = m.marks || {}; return m; };
-const cmDef = id => CARDS2.BY[id];
+const cmDef = id => CARDS2.BY[id] || (typeof CARDMODE !== 'undefined' && CARDMODE.def ? CARDMODE.def({ id }) : undefined);
 const cmCard = uid => CMU.run ? CMU.run.deck.find(c => c.uid === uid) : null;
 const cmOn = () => !!(CMU.run && G && G.cardMode && CMU.run.G === G && !$('game').hidden);
+// 카드 판에서는 둥지 너비 전체를 한 화면에 (stage.js 가 묻는다). '가까이'를 고르면 예전처럼 크게 보고 밀어서 본다. 카드를 들면 늘 전체로
+const cmFitOn = () => cmOn() && ST.screen === 'under' && (CMU.zoom !== 'near' || CMU.sel != null || !!(CMU.drag && CMU.drag.on));
 const cmCol = a => (typeof ASPCOL !== 'undefined' && ASPCOL[a]) || '#c8c0b0';
 const cmTagName = t => (typeof TRAITS !== 'undefined' && TRAITS.TAGS[t] ? TRAITS.TAGS[t].name : t);
 
@@ -10434,14 +10474,33 @@ function cmArtCanvas(v) {
   if (m === 'thorn') { for (let k = 0; k < 6; k++) { x.strokeStyle = k % 2 ? '#5a2a3a' : '#2a1018'; x.lineWidth = 2; x.beginPath(); x.moveTo(12, 12); x.lineTo(12 + Math.cos(k) * 11, 12 + Math.sin(k) * 11); x.stroke(); } disc(12, 12, 4, '#07050a'); r(11, 11, 2, 2, '#c8303a'); }
   return (CMART[key] = c);
 }
-const cmArtUrl = v => { const c = cmArtCanvas(v); return c.__u || (c.__u = c.toDataURL()); };
+// 몸이 다시 쓴 카드: 본디 그림 위에 형질 무늬를 덧그리고, 테두리를 형질 빛깔로
+const CMGCOL = { maw: '#ff5f57', spore: '#8fd05f', eye: '#b08fff', water: '#3ac0d8', bone: '#e8e0c8', tent: '#3aa890', egg: '#f0e0a0', spike: '#d8a060', face: '#f0b090', gut: '#b8d040', shadow: '#8a7aaa', star: '#fff3a0', trap: '#e8a860', alone: '#d07040', swarm: '#7ac050', shell: '#90a8c0', wing: '#b080d8', glow: '#ffe060', root: '#a07a48', mirror: '#c8e0f0', tongue: '#ff8aa8', horn: '#d8c8a0' };
+const cmGeneTag = v => { const g = v && v.gene; return g && g.length ? g[g.length - 1] : null; };
+function cmGeneArt(v) {
+  const tag = cmGeneTag(v), key = 'g:' + v.id; if (CMART[key]) return CMART[key];
+  const d = cmDef(v.id) || {}, src = d.from ? Object.assign({}, v, { id: d.from, gene: null }) : v, base = cmArtCanvas(src);
+  const c = document.createElement('canvas'); c.width = c.height = 24; const x = c.getContext('2d'); x.imageSmoothingEnabled = false; x.drawImage(base, 0, 0, 24, 24);
+  const col = CMGCOL[tag] || '#fff3a0', r = (a, b, w, h, k) => { x.fillStyle = k; x.fillRect(a, b, w, h); }, dot = (a, b, k) => { r(a, b, 2, 2, '#07050a'); r(a, b, 1, 1, k || col); };
+  const fam = { spore: 'dots', egg: 'dots', swarm: 'dots', glow: 'dots', star: 'dots', eye: 'eye', mirror: 'eye', water: 'wave', tongue: 'wave', bone: 'bars', shell: 'bars', spike: 'bars', horn: 'bars', tent: 'curl', root: 'curl', shadow: 'curl', wing: 'curl', maw: 'teeth', gut: 'teeth', trap: 'teeth', face: 'face', alone: 'one' }[tag] || 'dots';
+  if (fam === 'dots') [[2, 3], [18, 2], [3, 18], [20, 17], [11, 1]].forEach(([a, b]) => dot(a, b));
+  if (fam === 'eye') { r(16, 1, 7, 5, '#07050a'); r(17, 2, 5, 3, '#f5efe0'); r(19, 2, 2, 3, col); r(19, 3, 1, 1, '#07050a'); }
+  if (fam === 'wave') for (let i = 0; i < 24; i++) r(i, 20 + Math.round(Math.sin(i * 0.8) * 1.5), 1, 2, col);
+  if (fam === 'bars') for (let k = 0; k < 3; k++) { r(1, 3 + k * 7, 4, 2, '#07050a'); r(1, 3 + k * 7, 3, 1, col); r(20, 6 + k * 7, 4, 2, '#07050a'); r(21, 6 + k * 7, 3, 1, col); }
+  if (fam === 'curl') for (let i = 0; i < 9; i++) { r(1 + Math.round(Math.sin(i * 0.7) * 1.5), 23 - i * 2, 2, 2, col); r(21 + Math.round(Math.cos(i * 0.7) * 1.5), 23 - i * 2, 2, 2, col); }
+  if (fam === 'teeth') for (let k = 0; k < 6; k++) { r(1 + k * 4, 0, 3, 3, '#07050a'); r(2 + k * 4, 0, 1, 2, '#f5efe0'); r(1 + k * 4, 21, 3, 3, '#07050a'); r(2 + k * 4, 22, 1, 2, '#f5efe0'); }
+  if (fam === 'face') { r(16, 1, 7, 7, '#07050a'); r(17, 2, 5, 5, col); r(18, 3, 1, 1, '#07050a'); r(20, 3, 1, 1, '#07050a'); r(18, 5, 3, 1, '#7a3a2a'); }
+  if (fam === 'one') { r(18, 1, 5, 5, '#07050a'); r(19, 2, 3, 3, col); }
+  return (CMART[key] = c);
+}
+const cmArtUrl = v => { const c = cmGeneTag(v) ? cmGeneArt(v) : cmArtCanvas(v); return c.__u || (c.__u = c.toDataURL()); };
 // 카드 앞면 (.dkc 꼴을 그대로 쓴다)
 const CMTYPE = { shape: '굴', organ: '기관', trap: '부위', kin: '권속', skill: '기술', boon: '축복', curse: '저주' };
 function cmFace(v, o) {
   o = o || {}; if (!v) return ''; const d = cmDef(v.id) || {}, cost = o.cost != null ? o.cost : v.cost;
-  const cls = 'dkc asp-' + (v.asp || 'none') + ' rar-' + (v.type === 'curse' ? 'x' : v.rar) + ' t-' + v.type + (o.cls ? ' ' + o.cls : '');
+  const gt = cmGeneTag(v), cls = 'dkc asp-' + (v.asp || 'none') + ' rar-' + (v.type === 'curse' ? 'x' : v.rar) + ' t-' + v.type + (gt ? ' gene' : '') + (o.cls ? ' ' + o.cls : '');
   const tx = o.text != null ? o.text : v.type === 'skill' && !o.night ? '밤에 쓴다 · ' + v.text : v.text;
-  return `<div class="${cls}"${o.c ? ` data-c="${o.c}"` : ''}${o.uid != null ? ` data-uid="${o.uid}"` : ''}${o.i != null ? ` data-i="${o.i}"` : ''} data-id="${v.id}"><b class="dkc-cost${o.faith ? ' faith' : ''}">${v.type === 'curse' ? '✕' : v.type === 'skill' && !o.faith ? '夜' : cost}</b><i class="dkc-gem"></i><span class="dkc-art"><img src="${cmArtUrl(v)}" alt=""></span><b class="dkc-nm">${esc(v.name)}</b><span class="dkc-tx">${esc(tx)}</span><i class="dkc-ty">${CMTYPE[v.type] || ''}${d.asp && d.asp !== 'none' ? ' · ' + CARDS2.ASPN[d.asp] : ''}</i></div>`;
+  return `<div class="${cls}"${gt ? ` style="--gc:${CMGCOL[gt] || '#fff3a0'}"` : ''}${o.c ? ` data-c="${o.c}"` : ''}${o.uid != null ? ` data-uid="${o.uid}"` : ''}${o.i != null ? ` data-i="${o.i}"` : ''} data-id="${v.id}"><b class="dkc-cost${o.faith ? ' faith' : ''}">${v.type === 'curse' ? '✕' : v.type === 'skill' && !o.faith ? '夜' : cost}</b><i class="dkc-gem"></i><span class="dkc-art"><img src="${cmArtUrl(v)}" alt="">${gt ? `<i class="dkc-gene">${esc(cmTagName(gt))}</i>` : ''}</span><b class="dkc-nm">${esc(v.name)}</b><span class="dkc-tx">${esc(tx)}</span><i class="dkc-ty">${CMTYPE[v.type] || ''}${d.asp && d.asp !== 'none' ? ' · ' + CARDS2.ASPN[d.asp] : ''}</i></div>`;
 }
 const cmDefView = (id, up) => CMU.run ? CARDMODE.view(CMU.run, { uid: 0, id, up: up || 0 }) : cmBareView(id, up);
 function cmBareView(id, up) { const d = cmDef(id); return { uid: 0, id, name: d.name + (up ? '+' : ''), type: d.type, asp: d.asp, rar: d.rar, cost: d.type === 'skill' ? 0 : d.cost, text: d.text, more: d.more, up: up || 0 }; }
@@ -10458,9 +10517,15 @@ function cmMount() {
   document.addEventListener('click', cmClick);
   document.addEventListener('pointerdown', e => { const el = e.target.closest && e.target.closest('.dkc'); CMU.down = { x: e.clientX, y: e.clientY }; if (!el || !cmOnScreen()) return; clearTimeout(CMU.lpT); CMU.lpT = setTimeout(() => { CMU.lpEl = el; CMU.lpAt = Date.now(); cmDetail(el.dataset.id, el.dataset.uid); }, 480); });
   ['pointerup', 'pointercancel'].forEach(k => document.addEventListener(k, () => clearTimeout(CMU.lpT)));
+  // 끌어서 놓기: 손의 카드를 위로 끌어 지도에 놓는다 (옆으로 끌면 띠가 밀린다)
+  document.addEventListener('pointerdown', e => { const el = e.target.closest && e.target.closest('#chand .cm-hand .dkc'); if (!el || !cmOn() || ST.mode !== 'day' || busy || el.dataset.uid == null) return; CMU.drag = { uid: +el.dataset.uid, x0: e.clientX, y0: e.clientY, on: false }; });
+  document.addEventListener('pointermove', e => { const d = CMU.drag; if (!d) return; if (!d.on) { const dx = e.clientX - d.x0, dy = e.clientY - d.y0; if (Math.hypot(dx, dy) > 10) clearTimeout(CMU.lpT); if (dy < -16 && Math.abs(dy) > Math.abs(dx) * 1.1) cmDragStart(e); else return; } e.preventDefault(); cmDragMove(e); }, { passive: false });
+  document.addEventListener('pointerup', e => { if (CMU.drag && CMU.drag.on) cmDragEnd(e); CMU.drag = null; });
+  document.addEventListener('pointercancel', () => { if (CMU.drag && CMU.drag.on) cmDragEnd(null); CMU.drag = null; });
   document.addEventListener('contextmenu', e => { if (e.target.closest && e.target.closest('.dkc') && cmOnScreen()) e.preventDefault(); });
   // 카드를 들고 있을 때 지도를 누르면: 원래 게임의 칸 고르기보다 먼저 받는다
   window.addEventListener('click', e => {
+    if (Date.now() - (CMU.dragEnd || 0) < 450 && cmOn()) { e.stopImmediatePropagation(); e.preventDefault(); return; }
     if (e.target.id !== 'stage' || !cmOn() || ST.mode !== 'day' || CMU.sel == null || busy) return;
     if (CMU.down && Math.hypot(e.clientX - CMU.down.x, e.clientY - CMU.down.y) > 10) return;
     const [sx, sy] = stagePoint(e), col = Math.floor((sx - GX) / CW), row = Math.floor((sy - GY) / CH);
@@ -10522,6 +10587,7 @@ function cardTray() {
   const h = cmHints()[0]; if (h && CMU.sel == null) ch.push(`<button class="chip cm-hint" data-c="hint">한 장 더면 ${esc(h.name)}</button>`);
   if (run.needleOffer) ch.push(`<button class="chip todo hot" data-c="needle">✦ 바늘 점</button>`);
   if (G.march.tonight) ch.push(`<button class="chip nightchip" data-a="panel" data-v="goal">${nightChip()}</button>`);
+  if (isMobile()) ch.push(`<button class="chip cm-zoom" data-c="zoom">${CMU.zoom === 'near' ? '⤢ 전체' : '⤡ 가까이'}</button>`);
   $('mapchips').innerHTML = ST.mode === 'day' ? ch.join('') : '';
   const ib = (c, v, icon, label, extra, cls) => `<button class="btn ib ${cls || ''}" data-c="${c}"${v ? ` data-v="${v}"` : ''}>${icon}<span>${label}</span>${extra || ''}</button>`;
   $('game').classList.add('cm');
@@ -10544,7 +10610,7 @@ function cmHand() {
     else if (sel.target === 'cell') bar = `<p class="cm-tip">${sel.can ? '빛나는 칸을 누른다' : esc(sel.why)}</p><div class="cm-acts"><button class="btn" data-c="unsel">취소</button></div>`;
     else bar = `<div class="cm-acts">${sel.can ? `<button class="btn pri" data-c="put">내기 ${sel.cost || ''}</button>` : `<span class="cm-tip">${esc(sel.why)}</span>`}<button class="btn" data-c="unsel">취소</button></div>`;
   }
-  el.innerHTML = `${bar}<div class="dk-hand cm-hand" style="--n:${hv.length}">${hv.map(v => cmFace(v, { c: 'card', uid: v.uid, cls: (isMobile() ? 'mini ' : '') + (v.uid === CMU.sel ? 'lift' : '') + (v.can || v.type === 'skill' ? '' : ' no') })).join('') || '<p class="small mute">손이 비었다 · 밤을 맞는다</p>'}</div>`;
+  el.innerHTML = `${bar}<span class="cm-cnt">손 ${hv.length}${hv.length > 2 && isMobile() ? ' · 옆으로 밀기' : ''}${hv.length && !sel ? ' · 끌어서 놓기' : ''}</span><div class="dk-hand cm-hand cm-strip" style="--n:${hv.length}">${hv.map(v => cmFace(v, { c: 'card', uid: v.uid, cls: (isMobile() ? 'mini ' : '') + (v.uid === CMU.sel ? 'lift' : '') + (v.can || v.type === 'skill' ? '' : ' no') })).join('') || '<p class="small mute">손이 비었다 · 밤을 맞는다</p>'}</div>`;
 }
 function cardRender() { cmHand(); }
 
@@ -10569,6 +10635,29 @@ function cmPlay(uid, tgt) {
   cmSnd(d && d.type === 'shape' ? 'dig' : d && d.type === 'kin' ? 'up' : 'trap'); cmToast(r.msg);
   const before = CMU.cmbN || 0, now = NEST.cardCombos(G).length; if (now > before) { const n = NEST.cardCombos(G).slice(-1)[0]; if (n) cmBanner('◇ ' + n.name); } CMU.cmbN = now;
   cmSave(); render();
+}
+// ---- 끌어서 놓기 ----
+function cmCellAt(e) { const b = $('stage').getBoundingClientRect(); if (e.clientX < b.left || e.clientX > b.right || e.clientY < b.top || e.clientY > b.bottom || ST.screen !== 'under') return null; const [sx, sy] = stagePoint(e), col = Math.floor((sx - GX) / CW), row = Math.floor((sy - GY) / CH); return col < 0 || row < 0 || col >= G.cols || row >= G.rows ? null : row * G.cols + col; }
+function cmDragStart(e) {
+  const d = CMU.drag, c = cmCard(d.uid); if (!c) { CMU.drag = null; return; } d.on = true; clearTimeout(CMU.lpT);
+  CMU.sel = d.uid; CMU.place = null; CMU.alts = []; CMU.altI = 0; CMU.tapCell = null; CMU.dragCell = null; if (ST.screen !== 'under') setScreen('under'); UI.sel = null; render();
+  const g = document.createElement('div'); g.id = 'cm-drag'; g.innerHTML = cmFace(CARDMODE.view(CMU.run, c), { cls: 'mini' }); document.body.appendChild(g); cmSnd('click');
+}
+function cmDragMove(e) {
+  const g = $('cm-drag'); if (g) { g.style.left = Math.max(0, Math.min(innerWidth - g.offsetWidth, e.clientX - g.offsetWidth / 2)) + 'px'; g.style.top = Math.max(0, e.clientY - g.offsetHeight - 24) + 'px'; }
+  const v = CARDMODE.handView(CMU.run).find(z => z.uid === CMU.drag.uid), i = cmCellAt(e); if (!v) return;
+  if (g) g.classList.toggle('over', i != null);
+  if (v.target === 'shape') { if (i == null) { CMU.place = null; CMU.dragCell = null; return; } if (i === CMU.dragCell && CMU.alts.length) return; const alts = cmPlaces(v).filter(p => p.cells.includes(i)); CMU.dragCell = i; CMU.alts = alts; CMU.altI = alts.length ? CMU.altI % alts.length : 0; CMU.place = alts[CMU.altI] || null; CMU.tapCell = alts.length ? i : null; return; }
+  CMU.dragCell = i;
+}
+function cmDragEnd(e) {
+  const g = $('cm-drag'); if (g) g.remove(); CMU.dragEnd = Date.now();
+  const d = CMU.drag, v = d && CARDMODE.handView(CMU.run).find(z => z.uid === d.uid), i = e ? cmCellAt(e) : null; CMU.dragCell = null;
+  if (!v || i == null) return render();
+  if (v.target === 'shape') { if (CMU.place && CMU.place.cells.includes(i)) return cmPlay(v.uid, { cells: CMU.place.cells }); cmToast('그 자리에는 못 판다'); cmSnd('down'); return render(); }
+  if (v.target === 'cell') { if ((v.cellsCan || []).includes(i)) return cmPlay(v.uid, { cell: i }); cmToast('그 칸에는 못 놓는다'); cmSnd('down'); return render(); }
+  if (v.target === 'none' && v.can) return cmPlay(v.uid, {});
+  render();
 }
 function cmBanner(s) { const b = document.createElement('div'); b.className = 'cm-banner'; b.textContent = s; $('stagewrap').appendChild(b); setTimeout(() => b.remove(), 1700); cmSnd('evo'); }
 
@@ -10600,7 +10689,7 @@ function cmLoop(t) {
   if (cv.width !== W || cv.height !== Hh) { cv.width = W; cv.height = Hh; }
   const x = cv.getContext('2d'); x.setTransform(1, 0, 0, 1, 0, 0); x.clearRect(0, 0, W, Hh);
   if (ST.mode !== 'day' || ST.screen !== 'under' || ST.p < 0.98) return;
-  const u = b.height / (ST.vh || H) * dpr, ox = (ST.ox - ST.cam.x), oy = -(ST.cam.y || 0) - (ST.cam.v || 0);
+  const u = b.height / (ST.vh || H) * dpr, ox = (ST.ox - ST.cam.x), oy = (ST.oyFit || 0) - (ST.cam.y || 0) - (ST.cam.v || 0);
   const rc = i => { const r = cellRect(i); return { x: (r.x + ox) * u, y: (r.y + oy) * u, w: r.w * u, h: r.h * u }; };
   const box = (i, fill, line, lw, inset) => { const r = rc(i), k = (inset || 4) * u; if (fill) { x.fillStyle = fill; x.fillRect(r.x + k, r.y + k, r.w - 2 * k, r.h - 2 * k); } if (line) { x.strokeStyle = line; x.lineWidth = (lw || 2) * u; x.strokeRect(r.x + k, r.y + k, r.w - 2 * k, r.h - 2 * k); } };
   const pulse = 0.55 + 0.35 * Math.sin(t / 260);
@@ -10608,6 +10697,7 @@ function cmLoop(t) {
   NEST.cardCombos(G).forEach(cb => { (cb.cells || []).forEach(i => { const ii = i === 'core' ? G.core : i; if (typeof ii === 'number') box(ii, null, 'rgba(232,192,48,.55)', 2, 8); }); });
   const run = CMU.run, v = CMU.sel != null ? CARDMODE.handView(run).find(z => z.uid === CMU.sel) : null;
   if (v && v.target === 'cell') (v.cellsCan || []).forEach(i => box(i, `rgba(255,243,160,${0.12 + 0.12 * pulse})`, `rgba(255,243,160,${0.5 + 0.4 * pulse})`, 3));
+  if (v && CMU.dragCell != null && v.target !== 'shape') box(CMU.dragCell, (v.cellsCan || []).includes(CMU.dragCell) ? 'rgba(255,243,160,.35)' : 'rgba(255,95,87,.28)', '#ffffff', 3, 2);
   if (v && v.target === 'shape') {
     const can = new Set(); (v.places || []).forEach(p => p.forEach(i => can.add(i))); can.forEach(i => box(i, 'rgba(200,160,112,.10)', `rgba(232,168,96,${0.35 + 0.3 * pulse})`, 2));
     if (CMU.place) CMU.place.cells.forEach(i => { box(i, 'rgba(138,106,74,.72)', '#fff3a0', 3, 2); const r = rc(i); x.fillStyle = 'rgba(200,160,112,.9)'; x.fillRect(r.x + 8 * u, r.y + r.h - 14 * u, r.w - 16 * u, 4 * u); });
@@ -10734,7 +10824,7 @@ function cmCombosSheet() {
 }
 function cmDetail(id, uid) {
   if (!id) return; const run = CMU.run, c = uid ? cmCard(+uid) : null, v = c ? CARDMODE.view(run, c) : cmDefView(id), d = cmDef(id), un = d.unlock && CARDS2.UNLOCK[d.unlock];
-  cmSheet('detail', `<div class="dk-detail">${cmFace(v, { cls: 'big' })}<div class="dk-dt"><p><b>${esc(v.name)}</b> <span class="dk-tag" style="--c:${cmCol(d.asp)}">${CMTYPE[d.type]}${d.asp !== 'none' ? ' · ' + CARDS2.ASPN[d.asp] : ''}</span></p><p>${esc(d.more || d.text)}</p>${d.type !== 'curse' ? `<p class="dk-mute">강화하면: ${esc(CMUPTXT[d.type] || '세진다')}</p>` : ''}${(d.tags || []).length ? `<p class="dk-mute">몸의 꼬리표: ${d.tags.map(cmTagName).join(' · ')}</p>` : ''}${un ? `<p class="dk-lock">${un.hard ? '<span class="dk-hard">도전</span> ' : ''}${esc(un.text)}</p>` : ''}</div></div>`);
+  cmSheet('detail', `<div class="dk-detail">${cmFace(v, { cls: 'big' })}<div class="dk-dt"><p><b>${esc(v.name)}</b> <span class="dk-tag" style="--c:${cmCol(d.asp)}">${CMTYPE[d.type]}${d.asp !== 'none' ? ' · ' + CARDS2.ASPN[d.asp] : ''}</span></p><p>${esc(d.more || d.text)}</p>${d.from ? `<p class="dk-mute">← 원래 「${esc(d.baseName || (cmDef(d.from) || {}).name || d.from)}」 · 몸이 다시 쓴 카드</p>` : ''}${d.type !== 'curse' ? `<p class="dk-mute">강화하면: ${esc(CMUPTXT[d.type] || '세진다')}</p>` : ''}${(d.tags || []).length ? `<p class="dk-mute">몸의 꼬리표: ${d.tags.map(cmTagName).join(' · ')}</p>` : ''}${un ? `<p class="dk-lock">${un.hard ? '<span class="dk-hard">도전</span> ' : ''}${esc(un.text)}</p>` : ''}</div></div>`);
 }
 
 // ---- 바늘 점 ----
@@ -10813,6 +10903,7 @@ function cmClick(e) {
   const el = e.target.closest && e.target.closest('[data-c]'); if (!el || !CMU.run && !['asp', 'look', 'egg', 'begin', 'cont', 'codex', 'home', 'ctab', 'casp', 'cback'].includes(el.dataset.c)) return;
   // 길게 누른 뒤 손을 뗄 때 오는 누름은 넘긴다 (그 카드에서 온 것만)
   if (CMU.lpEl) { const same = e.target.closest('.dkc') === CMU.lpEl && Date.now() - CMU.lpAt < 900; CMU.lpEl = null; if (same) return; }
+  if (Date.now() - (CMU.dragEnd || 0) < 450) return;
   const c = el.dataset.c, v = el.dataset.v, run = CMU.run;
   if (c === 'asp') { CMU.asp = v; cmSnd('click'); return cmStart(); }
   if (c === 'look') { CMU.look = v; cmSnd('click'); return cmStart(); }
@@ -10855,13 +10946,14 @@ function cmClick(e) {
   if (c === 'rm') return cmRmSheet();
   if (c === 'dorm') { const r = CARDMODE.removeCard(run, +el.dataset.uid); cmToast(r.msg || (r.ok ? '뺐다' : '못 뺀다')); if (r.ok) cmSnd('click'); render(); cmSave(); return cmRmSheet(); }
   if (c === 'combos') return cmCombosSheet();
+  if (c === 'zoom') { CMU.zoom = CMU.zoom === 'near' ? 'fit' : 'near'; if (CMU.zoom === 'near') camCell(G.core, true); cmSnd('click'); return render(); }
   if (c === 'night') return cmNightAsk();
 }
 
 // 시험용
 window.__card = { get run() { return CMU.run; }, CMU, CARDMODE, open: cardOpen, begin: cmBegin, select: cmSelect, tap: cmTapCell, play: cmPlay, night: cardNight, finish: cardFinish, molt: cmMoltScreen, guess: cmMoltGuess, genome: cmGenome, needle: cmNeedle, codex: cmCodex, hints: cmHints, rect: i => cellRect(i), render: () => render(), cam: i => camCell(i, true), get META() { return META; }, get ST() { return ST; },
   // 칸 i 의 가운데를 화면 좌표로 (시험에서 지도를 누를 때)
-  pt(i) { const b = $('stage').getBoundingClientRect(), u = b.height / (ST.vh || H), r = cellRect(i); return { x: b.left + (r.x + r.w / 2 + ST.ox - ST.cam.x) * u, y: b.top + (r.y + r.h / 2 - (ST.cam.y || 0) - (ST.cam.v || 0)) * u }; } };
+  pt(i) { const b = $('stage').getBoundingClientRect(), u = b.height / (ST.vh || H), r = cellRect(i); return { x: b.left + (r.x + r.w / 2 + ST.ox - ST.cam.x) * u, y: b.top + (r.y + r.h / 2 + (ST.oyFit || 0) - (ST.cam.y || 0) - (ST.cam.v || 0)) * u }; } };
 // 옛 것의 둥지 — 화면 3/3: 글, 패널, 창, 낮과 밤의 흐름, 입력
 // ---------- 글 ----------
 const N_ = text => ({ narr: true, text }), E_ = text => ({ text: NEST.fj(text) });
@@ -11927,7 +12019,7 @@ function onAction(el) {
   if (a === 'raid') { const r = act(NEST.raid, d.v, num('l')); if (r.ok) { ST.shake = now() + 300; sfx('trap'); if (isMobile()) { UI.sel = null; render(); toast(r); } } return; }
   if (a === 'event') { const was = G.event ? G.event.id : '', o0 = G.origin, before = { origin: G.origin, body: G.slime.body, main: G.slime.main, sub: G.slime.sub, stage: G.slime.stage, muts: G.slime.muts.slice() }, r = act(NEST.resolveEvent, num('i')); if (r.ok) { closeModal(); if (was.startsWith('trait_') && G.origin !== o0) { META.codex.traits[G.origin] = 1; saveMeta(); sfx('evo'); ST.flash = now() + 250; modal(traitHtml(before), false, 'trait'); } } return; }
 }
-function stagePoint(e) { const b = $('stage').getBoundingClientRect(), u = b.height / (ST.vh || H); return [(e.clientX - b.left) / u - ST.ox + ST.cam.x, (e.clientY - b.top) / u + (ST.cam.y || 0) + (ST.screen === 'under' ? ST.cam.v || 0 : 0)]; }
+function stagePoint(e) { const b = $('stage').getBoundingClientRect(), u = b.height / (ST.vh || H); return [(e.clientX - b.left) / u - ST.ox + ST.cam.x, (e.clientY - b.top) / u - (ST.oyFit || 0) + (ST.cam.y || 0) + (ST.screen === 'under' ? ST.cam.v || 0 : 0)]; }
 function tipFor(h) {
   if (!h || !G) return '';
   if (h.t === 'cell') { const c = G.cells[h.i]; return c.dug ? NEST.ROOM[c.type].name + ' — ' + NEST.ROOM[c.type].desc : (NEST.canDig(G, h.i) ? '바위' : '바위 — 눌러서 판다'); }
@@ -11989,7 +12081,7 @@ function boot() {
     if (e.key === 'Tab') { e.preventDefault(); setScreen(ST.screen === 'under' ? 'surface' : 'under'); }
     if (e.key === 'e' || e.key === 'E' || e.key === 'ㄷ') { if (G && G.auto) { AUTO.paused = !AUTO.paused; render(); } else endDay(); }
   });
-  window.__nest = { get G() { return G; }, NEST, ST, render: () => render(), aim: (lx, ly) => camTo(lx, true, ly), cellAt: i => { const r = cellRect(i); return [r.x + r.w / 2, r.y + r.h / 2]; }, toClient: (lx, ly) => { const b = $('stage').getBoundingClientRect(), u = b.height / (ST.vh || H); return [b.left + (lx - ST.cam.x + ST.ox) * u, b.top + (ly - (ST.cam.y || 0) - (ST.screen === 'under' ? ST.cam.v || 0 : 0)) * u]; }, get META() { return META; }, endingScene, slimeCanvas, kinCanvas, kinCanvasM, KDRAW3, KSECRET, AUTO, invCanvasW };
+  window.__nest = { get G() { return G; }, NEST, ST, render: () => render(), aim: (lx, ly) => camTo(lx, true, ly), cellAt: i => { const r = cellRect(i); return [r.x + r.w / 2, r.y + r.h / 2]; }, toClient: (lx, ly) => { const b = $('stage').getBoundingClientRect(), u = b.height / (ST.vh || H); return [b.left + (lx - ST.cam.x + ST.ox) * u, b.top + (ly + (ST.oyFit || 0) - (ST.cam.y || 0) - (ST.screen === 'under' ? ST.cam.v || 0 : 0)) * u]; }, get META() { return META; }, endingScene, slimeCanvas, kinCanvas, kinCanvasM, KDRAW3, KSECRET, AUTO, invCanvasW };
   if (window.claude && window.claude.hot) try { window.claude.hot.onSnapshot && window.claude.hot.onSnapshot(() => ({ run: G })); } catch (e) { /* 무시 */ }
   initCloud(); showTitle(); requestAnimationFrame(loop);
   const nj = $('nojs'); if (nj) nj.remove();  // 여기까지 왔으면 정상 실행

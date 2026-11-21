@@ -88,41 +88,43 @@ const TRAITS = (function () {
   const shr = (g, t) => { if (!g.norm) return share(g, t); const top = TAG_IDS.filter(x => g.tags[x] > 0).sort((a, b) => g.tags[b] - g.tags[a]).slice(0, 4), s = top.reduce((a, x) => a + g.tags[x], 0); return s && top.includes(t) ? g.tags[t] / s : 0; };
   // 셈마다 크기가 다르다(정신 피해는 천 단위, 우두머리는 한두 번). 한 판에 흔히 쌓이는 만큼을 20 으로 맞춰 무게를 잰다
   const SCALE = { trapKills: 48, kinKills: 200, coreKills: 42, swallows: 120, infections: 100, risen: 26, captives: 50, converts: 3, eaten: 18, kinLost: 4, nightsAlone: 3, kinMade: 10, spawns: 20, skillsUsed: 27, wordsLearned: 8, coreDamage: 1800, digestKills: 10, waterKills: 70, pulled: 50, madness: 1500, routs: 1500, shapesPlaced: 14, organsPlaced: 10, trapsPlaced: 11, combos: 90, nightsDark: 11, bossKills: 2, ess_abyss: 190, ess_nebula: 170, ess_brood: 120, ess_dusk: 220, ess_hunger: 210 };
+  const TGX = typeof process !== 'undefined' && process.env && process.env.TGX ? +process.env.TGX : 1.0;
+  const TAGW = typeof process !== 'undefined' && process.env && process.env.TAGW ? +process.env.TAGW : 1.4;
   const GX = typeof process !== 'undefined' && process.env && process.env.GEXP ? +process.env.GEXP : 1.0;
   // 판마다 거의 같은 만큼 쌓이는 셈(굴·기관·함정 놓기, 어두운 밤, 족보, 정수)은 덜 친다: 몸은 남과 다르게 한 것으로 갈라진다
   const FLAT = { shapesPlaced: 0.35, organsPlaced: 0.45, trapsPlaced: 0.45, nightsDark: 0.5, combos: 0.55, ess_abyss: 0.6, ess_nebula: 0.6, ess_brood: 0.6, ess_dusk: 0.6, ess_hunger: 0.6, kinKills: 0.7, coreKills: 0.8 };
   const eff = (g, k, c) => g.norm ? (FLAT[k] || 1) * Math.pow(c * 20 / (SCALE[k] || 20), GX) : Math.sqrt(c);
   const LANDMARKS = [
-    { id: 'chorus', name: '합창하는 살', text: '입마다 다른 기도를 한다', when: g => shr(g, 'maw') + shr(g, 'face') > 0.55 && shr(g, 'maw') > 0.2 && cnt(g, 'converts') >= 5 },
-    { id: 'mimic', name: '사람이 되려던 것', text: '두 발로 서서 웃는 법을 배웠다', when: g => shr(g, 'face') + shr(g, 'mirror') > 0.5 && shr(g, 'face') > shr(g, 'mirror') && shr(g, 'face') < 0.7 && classOf(g).loco === 'l2' },
-    { id: 'madlight', name: '미치게 하는 빛', text: '바라본 것이 제 편을 친다', when: g => cnt(g, 'madness') >= 30 && shr(g, 'eye') < 0.45 && shr(g, 'glow') > 0.15 && shr(g, 'eye') + shr(g, 'glow') + shr(g, 'mirror') > 0.45 },
-    { id: 'forest', name: '걸어 다니는 숲', text: '포자만 먹고 자란 몸. 걸음마다 숲이 따라 걷는다', when: g => shr(g, 'spore') + shr(g, 'root') > 0.55 && shr(g, 'root') >= 0.1 && g.stage >= 3 },
-    { id: 'plague', name: '역병 그 자체', text: '닿는 것마다 자기 것이 된다', when: g => cnt(g, 'infections') >= 40 && shr(g, 'spore') > 0.3 && shr(g, 'root') < 0.1 },
-    { id: 'scarred', name: '흉터투성이', text: '받은 상처가 다 갑옷이 됐다', when: g => cnt(g, 'coreDamage') >= 1200 && cnt(g, 'coreKills') >= 8 && shr(g, 'shell') + shr(g, 'spike') + shr(g, 'bone') > 0.45 },
-    { id: 'echo', name: '위대한 것의 메아리', text: '다섯 빛깔이 다 섞였다. 저 아래의 것을 가장 닮았다', when: g => g.stage >= 5 && TAG_IDS.filter(t => share(g, t) > 0.045).length >= (g.norm ? 10 : 9) && Math.max.apply(null, TAG_IDS.map(t => share(g, t))) < (g.norm ? 0.11 : 0.15) },
-    { id: 'tiny', name: '작은 채로 다 큰 것', text: '끝까지 작았지만 누구보다 오래 살았다', when: g => g.stage <= 2 && cnt(g, 'bossKills') >= 8 },
-    { id: 'hollow', name: '속이 빈 것', text: '먹어도 먹어도 비어 있다', when: g => shr(g, 'gut') > 0.3 && shr(g, 'alone') > 0.25 },
-    { id: 'crowned', name: '뼈 왕관을 쓴 것', text: '우두머리들의 뿔을 이어 붙였다', when: g => shr(g, 'horn') > 0.3 && cnt(g, 'bossKills') >= 3 },
-    { id: 'patient', name: '기다리는 것', text: '한 자리에서 움직이지 않고 다 먹었다', when: g => classOf(g).loco === 'root' && shr(g, 'maw') > 0.15 && shr(g, 'maw') + shr(g, 'trap') > 0.4 },
-    { id: 'drowned', name: '가라앉은 정원', text: '물과 뿌리와 포자가 엉킨 몸', when: g => (g.tags.water || 0) > 0 && (g.tags.root || 0) > 0 && (g.tags.spore || 0) > 0 && shr(g, 'water') + shr(g, 'root') + shr(g, 'spore') > 0.6 },
-    { id: 'skywound', name: '하늘의 상처', text: '날개막 사이로 별 사이 바다가 보인다', when: g => shr(g, 'wing') + shr(g, 'star') > 0.5 },
-    { id: 'allfaces', name: '모두의 얼굴', text: '삼킨 사람들의 얼굴이 다 남아 있다', when: g => cnt(g, 'wordsLearned') >= 25 && shr(g, 'face') > 0.3 },
-    { id: 'lastone', name: '마지막 하나', text: '곁에 아무도 남지 않았다. 그래서 무엇보다 크다', when: g => shr(g, 'alone') > 0.4 && cnt(g, 'nightsAlone') >= 6 },
-    { id: 'ossuary', name: '걷는 납골당', text: '먹은 것의 뼈를 다 두르고 다닌다', when: g => shr(g, 'bone') > 0.4 && cnt(g, 'eaten') >= 30 },
-    { id: 'constel', name: '내려온 별자리', text: '몸에 바늘 일곱이 박혀 빛난다', when: g => shr(g, 'star') + shr(g, 'glow') > 0.5 && g.stage >= 4 },
-    { id: 'tongue', name: '굴을 핥는 혀', text: '혀가 굴 끝에서 끝까지 닿는다', when: g => shr(g, 'tongue') > 0.38 },
-    { id: 'swarmone', name: '하나인 떼', text: '수백 마리가 한 몸처럼 움직인다', when: g => shr(g, 'swarm') > 0.42 && shr(g, 'swarm') > shr(g, 'egg') },
-    { id: 'queen', name: '끝없는 어미', text: '숨 쉴 때마다 알이 떨어진다', when: g => shr(g, 'egg') + shr(g, 'swarm') > 0.55 },
-    { id: 'veil', name: '거울 너울', text: '보는 이마다 다른 것을 본다', when: g => shr(g, 'mirror') > 0.33 },
-    { id: 'shellmind', name: '껍데기 속의 생각', text: '껍데기를 몇 겹 둘렀는지 스스로도 모른다', when: g => shr(g, 'shell') > 0.4 && shr(g, 'shell') > shr(g, 'spike') * 1.5 },
-    { id: 'lantern', name: '등불 무리', text: '어둠 속의 작은 해들', when: g => shr(g, 'glow') > 0.38 },
-    { id: 'pit', name: '바닥 없는 아가리', text: '몸이 거의 입이다', when: g => shr(g, 'maw') > 0.45 },
-    { id: 'thousandeyes', name: '천의 눈', text: '어느 쪽에서 와도 보인다', when: g => shr(g, 'eye') > 0.42 },
-    { id: 'trench', name: '걸어 나온 해구', text: '물이 몸이고 몸이 물이다', when: g => shr(g, 'water') + shr(g, 'tent') > 0.55 },
-    { id: 'pitfall', name: '굴이 된 몸', text: '어디까지가 굴이고 어디부터 몸인지 모른다', when: g => shr(g, 'trap') + shr(g, 'root') > 0.5 },
-    { id: 'hedgehog', name: '찔리는 산', text: '가시가 가시를 낳았다', when: g => shr(g, 'spike') + shr(g, 'shell') > 0.55 },
-    { id: 'nomad', name: '그늘 나그네', text: '빛이 닿기 전에 늘 다른 곳에 있다', when: g => shr(g, 'shadow') + shr(g, 'wing') > 0.5 },
-    { id: 'gourmand', name: '다 먹는 배', text: '소화하는 소리가 굴 끝까지 들린다', when: g => shr(g, 'gut') + shr(g, 'maw') > 0.6 }
+    { id: 'chorus', name: '합창하는 살', text: '입마다 다른 기도를 한다', f: ['maw', 'face'], fx: g => cnt(g, 'converts') >= 3, when: g => shr(g, 'maw') + shr(g, 'face') > 0.55 && shr(g, 'maw') > 0.2 && cnt(g, 'converts') >= 5 },
+    { id: 'mimic', name: '사람이 되려던 것', text: '두 발로 서서 웃는 법을 배웠다', f: ['face', 'mirror'], when: g => shr(g, 'face') + shr(g, 'mirror') > 0.5 && shr(g, 'face') > shr(g, 'mirror') && shr(g, 'face') < 0.7 && classOf(g).loco === 'l2' },
+    { id: 'madlight', name: '미치게 하는 빛', text: '바라본 것이 제 편을 친다', f: ['glow', 'eye'], fx: g => cnt(g, 'madness') >= 2500, when: g => cnt(g, 'madness') >= 30 && shr(g, 'eye') < 0.45 && shr(g, 'glow') > 0.15 && shr(g, 'eye') + shr(g, 'glow') + shr(g, 'mirror') > 0.45 },
+    { id: 'forest', name: '걸어 다니는 숲', text: '포자만 먹고 자란 몸. 걸음마다 숲이 따라 걷는다', f: ['spore', 'root'], fx: g => g.stage >= 3, when: g => shr(g, 'spore') + shr(g, 'root') > 0.55 && shr(g, 'root') >= 0.1 && g.stage >= 3 },
+    { id: 'plague', name: '역병 그 자체', text: '닿는 것마다 자기 것이 된다', f: ['spore'], fx: g => cnt(g, 'infections') >= 100, when: g => cnt(g, 'infections') >= 100 && shr(g, 'spore') > 0.36 && shr(g, 'root') < 0.1 },
+    { id: 'scarred', name: '흉터투성이', text: '받은 상처가 다 갑옷이 됐다', f: ['shell', 'spike'], fx: g => cnt(g, 'coreDamage') >= 2500, when: g => cnt(g, 'coreDamage') >= 2000 && cnt(g, 'coreKills') >= 40 && shr(g, 'shell') + shr(g, 'spike') + shr(g, 'bone') > 0.46 },
+    { id: 'echo', name: '위대한 것의 메아리', text: '다섯 빛깔이 다 섞였다. 저 아래의 것을 가장 닮았다', when: g => g.stage >= 5 && TAG_IDS.filter(t => share(g, t) > 0.045).length >= (g.norm ? 10 : 9) && Math.max.apply(null, TAG_IDS.map(t => share(g, t))) < (g.norm ? 0.105 : 0.15) },
+    { id: 'tiny', name: '작은 채로 다 큰 것', text: '끝까지 작았지만 누구보다 오래 살았다', when: g => g.stage <= 3 && cnt(g, 'bossKills') >= 2 },
+    { id: 'hollow', name: '속이 빈 것', text: '먹어도 먹어도 비어 있다', f: ['gut', 'alone'], when: g => shr(g, 'gut') > 0.3 && shr(g, 'alone') > 0.25 },
+    { id: 'crowned', name: '뼈 왕관을 쓴 것', text: '우두머리들의 뿔을 이어 붙였다', f: ['horn'], fx: g => cnt(g, 'bossKills') >= 2, when: g => shr(g, 'horn') > 0.3 && cnt(g, 'bossKills') >= 3 },
+    { id: 'patient', name: '기다리는 것', text: '한 자리에서 움직이지 않고 다 먹었다', f: ['maw', 'root'], when: g => classOf(g).loco === 'root' && shr(g, 'maw') > 0.18 && shr(g, 'maw') + shr(g, 'trap') > 0.48 },
+    { id: 'drowned', name: '가라앉은 정원', text: '물과 뿌리와 포자가 엉킨 몸', f: ['water', 'root', 'spore'], when: g => (g.tags.water || 0) > 0 && (g.tags.root || 0) > 0 && (g.tags.spore || 0) > 0 && shr(g, 'water') + shr(g, 'root') + shr(g, 'spore') > 0.72 && Math.min(shr(g, 'water'), shr(g, 'root'), shr(g, 'spore')) > 0.14 },
+    { id: 'skywound', name: '하늘의 상처', text: '날개막 사이로 별 사이 바다가 보인다', f: ['wing', 'star'], when: g => shr(g, 'wing') + shr(g, 'star') > 0.5 },
+    { id: 'allfaces', name: '모두의 얼굴', text: '삼킨 사람들의 얼굴이 다 남아 있다', f: ['face'], fx: g => cnt(g, 'wordsLearned') >= 11, when: g => cnt(g, 'wordsLearned') >= 9 && shr(g, 'face') > 0.36 },
+    { id: 'lastone', name: '마지막 하나', text: '곁에 아무도 남지 않았다. 그래서 무엇보다 크다', f: ['alone'], fx: g => cnt(g, 'kinMade') <= 4, when: g => shr(g, 'alone') > 0.34 && cnt(g, 'nightsAlone') >= 6 },
+    { id: 'ossuary', name: '걷는 납골당', text: '먹은 것의 뼈를 다 두르고 다닌다', f: ['bone'], fx: g => cnt(g, 'eaten') >= 20, when: g => shr(g, 'bone') > 0.4 && cnt(g, 'eaten') >= 30 },
+    { id: 'constel', name: '내려온 별자리', text: '몸에 바늘 일곱이 박혀 빛난다', f: ['star', 'glow'], fx: g => g.stage >= 4, when: g => shr(g, 'star') + shr(g, 'glow') > 0.5 && g.stage >= 4 },
+    { id: 'tongue', name: '굴을 핥는 혀', text: '혀가 굴 끝에서 끝까지 닿는다', f: ['tongue'], when: g => shr(g, 'tongue') > 0.4 },
+    { id: 'swarmone', name: '하나인 떼', text: '수백 마리가 한 몸처럼 움직인다', f: ['swarm'], when: g => shr(g, 'swarm') > 0.42 && shr(g, 'swarm') > shr(g, 'egg') },
+    { id: 'queen', name: '끝없는 어미', text: '숨 쉴 때마다 알이 떨어진다', f: ['egg', 'swarm'], when: g => shr(g, 'egg') + shr(g, 'swarm') > 0.6 },
+    { id: 'veil', name: '거울 너울', text: '보는 이마다 다른 것을 본다', f: ['mirror'], when: g => shr(g, 'mirror') > 0.33 },
+    { id: 'shellmind', name: '껍데기 속의 생각', text: '껍데기를 몇 겹 둘렀는지 스스로도 모른다', f: ['shell'], when: g => shr(g, 'shell') > 0.4 && shr(g, 'shell') > shr(g, 'spike') * 1.5 },
+    { id: 'lantern', name: '등불 무리', text: '어둠 속의 작은 해들', f: ['glow'], when: g => shr(g, 'glow') > 0.38 },
+    { id: 'pit', name: '바닥 없는 아가리', text: '몸이 거의 입이다', f: ['maw'], when: g => shr(g, 'maw') > 0.45 },
+    { id: 'thousandeyes', name: '천의 눈', text: '어느 쪽에서 와도 보인다', f: ['eye'], when: g => shr(g, 'eye') > 0.42 },
+    { id: 'trench', name: '걸어 나온 해구', text: '물이 몸이고 몸이 물이다', f: ['water', 'tent'], when: g => shr(g, 'water') + shr(g, 'tent') > 0.6 },
+    { id: 'pitfall', name: '굴이 된 몸', text: '어디까지가 굴이고 어디부터 몸인지 모른다', f: ['trap', 'root'], when: g => shr(g, 'trap') + shr(g, 'root') > 0.57 },
+    { id: 'hedgehog', name: '찔리는 산', text: '가시가 가시를 낳았다', f: ['spike', 'shell'], when: g => shr(g, 'spike') + shr(g, 'shell') > 0.55 },
+    { id: 'nomad', name: '그늘 나그네', text: '빛이 닿기 전에 늘 다른 곳에 있다', f: ['shadow', 'wing'], when: g => shr(g, 'shadow') + shr(g, 'wing') > 0.5 },
+    { id: 'gourmand', name: '다 먹는 배', text: '소화하는 소리가 굴 끝까지 들린다', f: ['gut', 'maw'], when: g => shr(g, 'gut') + shr(g, 'maw') > 0.62 }
   ];
 
   // ---- 셈 → 무게 ----
@@ -137,7 +139,7 @@ const TRAITS = (function () {
     for (const t of TAG_IDS) {
       let w = 0; const from = [];
       for (const [k, m] of TAGS[t].feed) { const c = seen[k] || 0; if (!c) continue; const v = m * eff(g, k, c); w += v; from.push([k, c, v]); }
-      if (g.norm && seen['tag:' + t]) { const c = seen['tag:' + t], v = 1.4 * Math.pow(c * 20 / 8, GX); w += v; from.push(['tag:' + t, c, v]); }
+      if (g.norm && seen['tag:' + t]) { const c = seen['tag:' + t], v = TAGW * Math.pow(c * 20 / 8, TGX); w += v; from.push(['tag:' + t, c, v]); }
       if (TAGS[t].asp.includes(g.aspect)) w *= 1.25; else if (g.sub && TAGS[t].asp.includes(g.sub)) w *= 1.1;
       if (w > 0) { tags[t] = +(w * (0.94 + 0.12 * rng(hash(t + g.seed))())).toFixed(3); feed[t] = from.sort((a, b) => b[2] - a[2]).slice(0, 2).map(x => [x[0], x[1]]); }
     }
@@ -147,7 +149,16 @@ const TRAITS = (function () {
   const topTags = (g, n) => TAG_IDS.filter(t => g.tags[t] > 0).sort((a, b) => g.tags[b] - g.tags[a] || a.localeCompare(b)).slice(0, n || 3);
   // 짝: 두 형질이 다 위쪽 다섯 안에 있고 각각 전체의 8% 넘게
   function combosOf(g) { const top = topTags(g, 5); return COMBOS.filter(c => c.tags.every(t => top.includes(t) && share(g, t) > 0.08)).sort((a, b) => b.tags.length - a.tags.length); }
-  function landmarkOf(g) { for (const l of LANDMARKS) { try { if (l.when(g)) return l; } catch (e) { /* 조건이 아직 셀 수 없는 것 */ } } return null; }
+  // 카드 판(norm): 그 형질 꼬리표 카드를 일부러 많이 내야 닿는다. 형질이 위쪽에 있고, 그 꼬리표로 낸 카드가 충분해야 한다
+  const LM_N = typeof process !== 'undefined' && process.env && process.env.LMN ? +process.env.LMN : 10;
+  const LM_K = typeof process !== 'undefined' && process.env && process.env.LMK ? +process.env.LMK : 1.07;
+  // 덱(밤마다 쌓은 것)에서 그 꼬리표 카드가 차지한 몫, 그 꼬리표로 낸 수, 형질이 위쪽에 있는지 — 셋 다 맞아야 한다
+  const deckShare = (g, t) => g.deckN ? ((g.deckT || {})[t] || 0) / g.deckN : 0;
+  // 꼬리표마다 문턱: 평소처럼 노는 판(봇 150판)의 덱 몫 97% 지점보다 조금 위. 일부러 모아야 넘는다
+  const FTHR = { maw: 0.78, spore: 0.76, eye: 0.8, water: 0.79, bone: 0.32, tent: 0.22, egg: 0.75, spike: 0.1, face: 0.82, gut: 0.66, shadow: 0.69, star: 0.82, trap: 0.58, alone: 0.18, swarm: 0.44, shell: 0.25, wing: 0.25, glow: 0.27, root: 0.5, mirror: 0.22, tongue: 0.3, horn: 0.24 };
+  const focusOk = (g, l) => { if (g.stage < 3) return false; const top = topTags(g, 6); if (!l.f.every(t => top.includes(t))) return false; const k = l.f.length === 1 ? 1 : 0.92; return l.f.reduce((a, t) => a + deckShare(g, t) / (FTHR[t] || 0.5), 0) / l.f.length >= k * LM_K && (!l.fx || l.fx(g)); };
+  function landmarkOf(g) { for (const l of LANDMARKS) { try { if (g.norm && l.f ? focusOk(g, l) : l.when(g)) return l; } catch (e) { /* 조건이 아직 셀 수 없는 것 */ } } return null; }
+  const landmarkOk = (g, l) => { try { return g.norm && l.f ? focusOk(g, l) : !!l.when(g); } catch (e) { return false; } };
   const pickBy = (tbl, rnd) => { const ks = Object.keys(tbl); let best = ks[0], bv = -1; for (const k of ks) { const v = tbl[k] + rnd() * 0.35; if (v > bv) { bv = v; best = k; } } return best; };
   function classOf(g) {
     const r = rng(hash('cls' + g.seed + g.aspect)), lo = {}, po = {}, sy = {};
@@ -189,6 +200,6 @@ const TRAITS = (function () {
   function inherit(g) { const t = {}; topTags(g, 3).forEach(k => { t[k] = g.tags[k]; }); return { tags: t, aspect: g.aspect, name: nameOf(g).name }; }
   function summary(g) { const c = classOf(g), n = nameOf(g), lm = landmarkOf(g); return { name: n.name, title: n.title, cls: c, clsText: [POST[c.post], LOCO[c.loco], PLAN[c.plan], SYM[c.sym]].join(' · '), top: topTags(g, 3).map(t => TAGS[t].name), combos: combosOf(g).map(x => x.name), landmark: lm ? lm.name : null, lines: describe(g), hints: topTags(g, 3).map(t => TAGS[t].hint) }; }
 
-  return { ASPS, ASPN, COUNTERS, TAGS, TAG_IDS, LOCO, POST, SYM, PLAN, COMBOS, LANDMARKS, newGenome, addBehaviour, topTags, combosOf, landmarkOf, classOf, nameOf, describe, inherit, summary, share, hash, rng };
+  return { ASPS, ASPN, COUNTERS, TAGS, TAG_IDS, LOCO, POST, SYM, PLAN, COMBOS, LANDMARKS, newGenome, addBehaviour, topTags, combosOf, landmarkOf, landmarkOk, classOf, nameOf, describe, inherit, summary, share, hash, rng };
 })();
 if (typeof module !== 'undefined') module.exports = TRAITS;

@@ -25,6 +25,19 @@ const dev = process.argv[2] || '', tag = (dev ? dev.replace(/\s+/g, '') : 'pc') 
     const cell = await p.evaluate(uid => { const v = __card.CARDMODE.handView(__card.run).find(x => x.uid === uid); return v.places[0][0]; }, uid); await tapCell(cell); await shot('shape_ghost');
     if (await p.$('#chand [data-c="rot"]')) { await tap('#chand [data-c="rot"]'); await shot('shape_rot'); }
     const dug0 = await p.evaluate(() => __card.run.G.cells.filter(c => c.dug).length); await tap('#chand [data-c="put"]'); const dug1 = await p.evaluate(() => __card.run.G.cells.filter(c => c.dug).length); if (dug1 <= dug0) bad.push('굴 카드를 놓았는데 칸이 늘지 않았다'); await shot('shape_put'); }
+  // 끌어서 놓기: 손의 굴 카드를 위로 끌어 지도 칸 위에서 놓는다 (손가락을 따라 그림자가 움직인다)
+  { const uid = await give('shape', 'sh_bend'); await p.evaluate(uid => { const el = document.querySelector(`#chand [data-c="card"][data-uid="${uid}"]`); if (el) el.scrollIntoView({ inline: 'center', block: 'nearest' }); }, uid); await p.waitForTimeout(200);
+    const cell = await p.evaluate(uid => { const v = __card.CARDMODE.handView(__card.run).find(x => x.uid === uid); return v && v.places[0] ? v.places[0][0] : null; }, uid);
+    const box = await (await p.$(`#chand [data-c="card"][data-uid="${uid}"]`)).boundingBox(), sx = box.x + box.width / 2, sy = box.y + box.height / 2;
+    await p.mouse.move(sx, sy); await p.mouse.down(); await p.mouse.move(sx, sy - 30, { steps: 4 }); await p.waitForTimeout(250);
+    const pt = await p.evaluate(i => __card.pt(i), cell); await p.mouse.move(pt.x, pt.y, { steps: 8 }); await shot('drag_ghost');
+    const dug0 = await p.evaluate(() => __card.run.G.cells.filter(c => c.dug).length); await p.mouse.up(); await p.waitForTimeout(300);
+    const dug1 = await p.evaluate(() => __card.run.G.cells.filter(c => c.dug).length); if (dug1 <= dug0) bad.push('끌어서 놓았는데 칸이 늘지 않았다'); await shot('drag_put'); }
+  // 몸이 다시 쓴 카드: 손의 카드 하나를 형질이 바꾼 것으로 바꿔 보고, 표시(형질 빛깔 테두리·꼬리표·무늬)와 길게 누른 설명을 본다
+  { const uid = await p.evaluate(() => { const R = __card.run, CM = __card.CARDMODE, tags = ['spore', 'eye', 'maw', 'water', 'bone', 'tent', 'face', 'egg']; for (const u of R.hand) { const c = R.deck.find(x => x.uid === u); for (const t of tags) { const id = 'gx_' + t + '__' + c.id; if (CM.def({ id })) { c.from = c.id; c.id = id; __card.render(); return u; } } } return null; });
+    if (uid == null) bad.push('다시 쓴 카드를 만들지 못했다'); else { await p.evaluate(uid => { const el = document.querySelector(`#chand [data-uid="${uid}"]`); if (el) el.scrollIntoView({ inline: 'center', block: 'nearest' }); }, uid); await shot('gene_hand');
+      const gb = await (await p.$(`#chand [data-uid="${uid}"]`)).boundingBox(); await p.mouse.move(gb.x + gb.width / 2, gb.y + gb.height / 2); await p.mouse.down(); await p.waitForTimeout(650); await p.mouse.up(); await shot('gene_detail');
+      const has = await p.evaluate(() => !!document.querySelector('#cm-sheet .dkc.gene .dkc-gene') && /원래/.test(document.getElementById('cm-sheet').textContent)); if (!has) bad.push('다시 쓴 카드 표시나 원래 이름이 없다'); await p.evaluate(() => { const x = document.querySelector('#cm-sheet [data-c="close"]'); if (x) x.click(); }); } }
   // 기관·부위: 들고 → 빛나는 칸
   for (const ty of ['organ', 'trap']) { const uid = await give(ty); await tap(`#chand [data-c="card"][data-uid="${uid}"]`); await shot(ty + '_lift'); const cell = await p.evaluate(uid => { const v = __card.CARDMODE.handView(__card.run).find(x => x.uid === uid); return (v.cellsCan || [])[0]; }, uid); if (cell == null) { bad.push(ty + ': 놓을 칸이 없다'); await rer(); continue; } await tapCell(cell); const gone = await p.evaluate(uid => !__card.run.hand.includes(uid), uid); if (!gone) bad.push(ty + ' 카드를 놓지 못했다'); await shot(ty + '_put'); }
   // 권속: 들고 → 내기

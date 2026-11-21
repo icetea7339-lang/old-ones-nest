@@ -153,7 +153,7 @@ const CARDMODE = (function () {
       res = ok(got.map(m => N.KIN[m.kind].name).join(', ') + ' 들어왔다');
     } else if (d.type === 'boon') { res = boon(R, c, d.fx, tgt); if (!res.ok) return res; }
     G.gold -= cost; R.st.maxGold = Math.max(R.st.maxGold, G.gold);
-    gs(G, 'cardsBy', d.type); gs(G, 'cardsAsp', d.asp); (d.tags || []).forEach(t => gs(G, 'cardTags', t)); if (d.type === 'shape') G.stats.shapesPlaced = (G.stats.shapesPlaced || 0) + 1; if (d.type === 'organ') G.stats.organsPlaced = (G.stats.organsPlaced || 0) + 1; if (d.type === 'trap') G.stats.trapsPlaced = (G.stats.trapsPlaced || 0) + 1;
+    gs(G, 'cardsBy', d.type); gs(G, 'cardsAsp', d.asp); if (d.type !== 'shape') (d.tags || []).forEach(t => gs(G, 'cardTags', t)); if (d.type === 'shape') G.stats.shapesPlaced = (G.stats.shapesPlaced || 0) + 1; if (d.type === 'organ') G.stats.organsPlaced = (G.stats.organsPlaced || 0) + 1; if (d.type === 'trap') G.stats.trapsPlaced = (G.stats.trapsPlaced || 0) + 1;
     if (d.type === 'kin') exhaust(R, uid); else discard(R, uid); syncHeld(R);
     return res;
   }
@@ -186,13 +186,13 @@ const CARDMODE = (function () {
     if (R.phase !== 'day') return fail('낮이 아니다');
     const G = R.G; while (R.moltQ && GEN()) GEN().molt(R); syncHeld(R);
     const cmb = N.cardCombos(G), mt = G.march.tonight; cmb.forEach(x => { R.st['cmb_' + x.id] = (R.st['cmb_' + x.id] || 0) + 1; gs(G, 'cmb', x.id); }); G.stats.combos = (G.stats.combos || 0) + cmb.length;
-    const kin0 = G.kin.filter(m => m.kind !== 'spawn').map(m => m.id), hp0 = G.slime.hp; if (mt && !G.kin.some(m => m.kind !== 'spawn' && m.loc !== null)) G.stats.nightsAlone = (G.stats.nightsAlone || 0) + 1;
+    const kin0 = G.kin.filter(m => m.kind !== 'spawn').map(m => m.id), hp0 = G.slime.hp; if (mt && G.kin.filter(m => m.kind !== 'spawn' && m.loc !== null).length <= 1) G.stats.nightsAlone = (G.stats.nightsAlone || 0) + 1;
     const curse = inHand(R, d => d.type === 'curse');
     if (mt && curse.some(c => def(c).fx.angry)) mt.angry = true;
     curse.forEach(c => { if (def(c).fx.nightTax) G.gold -= Math.round(def(c).fx.nightTax * cmG(R)); });
     const st0 = G.slime.stage, r = N.endDay(G, decide || (() => ({ k: 'none' })));
     if (G.slime.stage > st0) R.moltQ = (R.moltQ || 0) + (G.slime.stage - st0);
-    (G.cardUsed || []).forEach(uid => discard(R, uid)); G.cardUsed = []; G.cardHeld = [];
+    (G.cardUsed || []).forEach(uid => { const c = R.deck.find(x => x.uid === uid), d = c && def(c); if (d) (d.tags || []).forEach(t => gs(G, 'cardTags', t)); discard(R, uid); }); G.cardUsed = []; G.cardHeld = [];
     { const now = new Set(G.kin.map(m => m.id)), lost = kin0.filter(id => !now.has(id)).length; if (lost) G.stats.kinLost = (G.stats.kinLost || 0) + lost; if (r.battle) G.stats.coreDamage = (G.stats.coreDamage || 0) + Math.max(0, Math.round(hp0 - G.slime.hp)); }
     if (r.battle) { G.stats.routs = (G.stats.routs || 0) + (r.battle.fled || 0); if (!G.over && !r.battle.party.some(u => ['torch', 'lightcrew'].includes(u.kind) || (N.INV[u.kind] && N.INV[u.kind].flood))) G.stats.nightsDark = (G.stats.nightsDark || 0) + 1; }
     syncCounters(R); if (GEN() && R.genome) GEN().feed(R, behaviour(R));

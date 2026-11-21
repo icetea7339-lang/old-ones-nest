@@ -528,8 +528,10 @@ function drawStage() {
   const dpr = window.devicePixelRatio || 1, bw = Math.round(c.clientWidth * dpr), bh = Math.round(c.clientHeight * dpr);
   if (bw > 0 && bh > 0 && (c.width !== bw || c.height !== bh)) { c.width = bw; c.height = bh; }
   // 높이에 맞춘다. 좁은 화면에서는 가로 일부만 보이고 카메라가 좌우로 움직인다.
-  const fitH = G && c.clientHeight >= 360 ? Math.max(H, UH()) : H; ST.vh = H + (fitH - H) * ST.p; const VH = ST.vh;
-  const k0 = c.height / VH, VW = c.width / k0; const WW = worldW(); ST.viewW = Math.min(WW, VW); ST.ox = Math.max(0, (VW - WW) / 2); ST.fm = Math.max(1, Math.min(1.7, 0.86 * dpr / k0));
+  const fitH = G && c.clientHeight >= 360 ? Math.max(H, UH()) : H; ST.vh = H + (fitH - H) * ST.p; let VH = ST.vh, k0 = c.height / VH;
+  // 카드 판: 둥지 너비 전체가 한 화면에 들어오게 맞춘다 (가까이 보기를 고르면 예전처럼). 남는 높이는 위아래로 나눈다
+  ST.oyFit = 0; if (typeof cmFitOn === 'function' && cmFitOn() && ST.p > 0.999) { const kw = c.width / UW(); if (kw < k0) { k0 = kw; VH = c.height / k0; ST.vh = VH; ST.oyFit = Math.max(0, (VH - UH()) / 2); } }
+  const VW = c.width / k0; const WW = worldW(); ST.viewW = Math.min(WW, VW); ST.ox = Math.max(0, (VW - WW) / 2); ST.fm = Math.max(1, Math.min(1.7, 0.86 * dpr / k0));
   if (ST.camFor !== G) { ST.camFor = G; if (ST.screen === 'under' && ST.mode === 'day') { camCell(G.core, true); ST.camMem.under = ST.cam.tx; } }   // 새 판은 동굴 한 칸뿐이다. 그 칸이 먼저 보여야 한다
   if (ST.march && ST.screen === 'surface') camTo(pathPoint(ST.march.est.vill, 0.5 + 0.5 * Math.min(1, (t - ST.march.t0) / ST.march.dur)).x);
   const max = Math.max(0, worldW() - ST.viewW); ST.cam.tx = Math.max(0, Math.min(max, ST.cam.tx)); ST.cam.x += (ST.cam.tx - ST.cam.x) * 0.16; if (Math.abs(ST.cam.tx - ST.cam.x) < 0.5) ST.cam.x = ST.cam.tx;
@@ -542,7 +544,7 @@ function drawStage() {
     const ty = sy == null ? 0 : Math.max(0, Math.min(cov, sy - (VH - cov) / 2));
     ST.cam.y = ST.cam.y || 0; ST.cam.y += (ty - ST.cam.y) * 0.22; if (Math.abs(ty - ST.cam.y) < 0.5) ST.cam.y = ty;
   }
-  x.save(); x.translate(Math.round(ST.ox - ST.cam.x), -Math.round(ST.cam.y || 0));
+  x.save(); x.translate(Math.round(ST.ox - ST.cam.x), Math.round((ST.oyFit || 0) - (ST.cam.y || 0)));
   ST.shook = 0; if (ST.shake > t && motionOk()) { const m = ST.shakeMag || 1; ST.shook = m; x.translate((Math.random() - 0.5) * 8 * m, (Math.random() - 0.5) * 6 * m); } else if (ST.shake <= t) ST.shakeMag = 0;
   if (ST.p < 0.999) { x.save(); x.translate(0, Math.round(-H * ST.p)); drawSurface(x, t); x.restore(); }
   if (ST.p > 0.001) { x.save(); x.translate(0, Math.round(H * (1 - ST.p) - (ST.cam.v || 0))); drawUnder(x, t); ST.floats = ST.floats.filter(f => t - f.t0 < 800); ST.floats.forEach(f => { const k = (t - f.t0) / 800; x.globalAlpha = 1 - k; txt(x, f.s, f.x, f.y - k * 26, f.col, f.big ? 20 : 14, 'center'); x.globalAlpha = 1; }); x.restore(); }

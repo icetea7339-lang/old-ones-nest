@@ -1063,7 +1063,7 @@ function onAction(el) {
   if (a === 'raid') { const r = act(NEST.raid, d.v, num('l')); if (r.ok) { ST.shake = now() + 300; sfx('trap'); if (isMobile()) { UI.sel = null; render(); toast(r); } } return; }
   if (a === 'event') { const was = G.event ? G.event.id : '', o0 = G.origin, before = { origin: G.origin, body: G.slime.body, main: G.slime.main, sub: G.slime.sub, stage: G.slime.stage, muts: G.slime.muts.slice() }, r = act(NEST.resolveEvent, num('i')); if (r.ok) { closeModal(); if (was.startsWith('trait_') && G.origin !== o0) { META.codex.traits[G.origin] = 1; saveMeta(); sfx('evo'); ST.flash = now() + 250; modal(traitHtml(before), false, 'trait'); } } return; }
 }
-function stagePoint(e) { const b = $('stage').getBoundingClientRect(), u = b.height / (ST.vh || H); return [(e.clientX - b.left) / u - ST.ox + ST.cam.x, (e.clientY - b.top) / u + (ST.cam.y || 0) + (ST.screen === 'under' ? ST.cam.v || 0 : 0)]; }
+function stagePoint(e) { const b = $('stage').getBoundingClientRect(), u = b.height / (ST.vh || H); return [(e.clientX - b.left) / u - ST.ox + ST.cam.x, (e.clientY - b.top) / u - (ST.oyFit || 0) + (ST.cam.y || 0) + (ST.screen === 'under' ? ST.cam.v || 0 : 0)]; }
 function tipFor(h) {
   if (!h || !G) return '';
   if (h.t === 'cell') { const c = G.cells[h.i]; return c.dug ? NEST.ROOM[c.type].name + ' — ' + NEST.ROOM[c.type].desc : (NEST.canDig(G, h.i) ? '바위' : '바위 — 눌러서 판다'); }
@@ -1125,7 +1125,7 @@ function boot() {
     if (e.key === 'Tab') { e.preventDefault(); setScreen(ST.screen === 'under' ? 'surface' : 'under'); }
     if (e.key === 'e' || e.key === 'E' || e.key === 'ㄷ') { if (G && G.auto) { AUTO.paused = !AUTO.paused; render(); } else endDay(); }
   });
-  window.__nest = { get G() { return G; }, NEST, ST, render: () => render(), aim: (lx, ly) => camTo(lx, true, ly), cellAt: i => { const r = cellRect(i); return [r.x + r.w / 2, r.y + r.h / 2]; }, toClient: (lx, ly) => { const b = $('stage').getBoundingClientRect(), u = b.height / (ST.vh || H); return [b.left + (lx - ST.cam.x + ST.ox) * u, b.top + (ly - (ST.cam.y || 0) - (ST.screen === 'under' ? ST.cam.v || 0 : 0)) * u]; }, get META() { return META; }, endingScene, slimeCanvas, kinCanvas, kinCanvasM, KDRAW3, KSECRET, AUTO, invCanvasW };
+  window.__nest = { get G() { return G; }, NEST, ST, render: () => render(), aim: (lx, ly) => camTo(lx, true, ly), cellAt: i => { const r = cellRect(i); return [r.x + r.w / 2, r.y + r.h / 2]; }, toClient: (lx, ly) => { const b = $('stage').getBoundingClientRect(), u = b.height / (ST.vh || H); return [b.left + (lx - ST.cam.x + ST.ox) * u, b.top + (ly + (ST.oyFit || 0) - (ST.cam.y || 0) - (ST.screen === 'under' ? ST.cam.v || 0 : 0)) * u]; }, get META() { return META; }, endingScene, slimeCanvas, kinCanvas, kinCanvasM, KDRAW3, KSECRET, AUTO, invCanvasW };
   if (window.claude && window.claude.hot) try { window.claude.hot.onSnapshot && window.claude.hot.onSnapshot(() => ({ run: G })); } catch (e) { /* 무시 */ }
   initCloud(); showTitle(); requestAnimationFrame(loop);
   const nj = $('nojs'); if (nj) nj.remove();  // 여기까지 왔으면 정상 실행

@@ -723,3 +723,21 @@ button.dk-chip { cursor: pointer; }
 #cm-sheet .dk-x { position: sticky; top: 0; float: right; z-index: 3; margin: -2px -2px 0 8px; }
 .cm-keepg { width: 100%; max-width: 520px; margin: 8px 0; }
 @media (max-width: 420px) { .hbar .cm-act { display: none; } .hbar .cm-por { width: 22px; } .hbar .cm-por img { width: 22px; height: 22px; } }
+
+/* ===== 카드 판 빠른 손질: 손 띠, 끌어서 놓기, 몸이 다시 쓴 카드 ===== */
+#chand { position: relative; }
+#chand .cm-cnt { display: block; font-size: var(--t1); color: var(--mute); padding: 2px 4px 0; }
+#chand .cm-hand.cm-strip { display: flex; flex-wrap: nowrap; justify-content: center; gap: 8px; min-height: 0; padding: 18px 6px 6px; }
+#chand .cm-hand.cm-strip .dkc { margin-left: 0 !important; flex: none; }
+@media (max-width: 760px) {
+  #chand .cm-hand.cm-strip { justify-content: flex-start; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; scroll-padding-left: 6px; touch-action: pan-x; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  #chand .cm-hand.cm-strip::-webkit-scrollbar { display: none; }
+  #chand .cm-hand.cm-strip .dkc { width: calc((100vw - 44px) / 2.5); min-height: 0; scroll-snap-align: start; touch-action: pan-x; }
+  #chand .cm-hand.cm-strip .dkc.lift { transform: translateY(-10px); }
+}
+#cm-drag { position: fixed; z-index: 60; pointer-events: none; opacity: .92; transform: rotate(-4deg); transition: transform .08s; }
+#cm-drag.over { transform: rotate(0) scale(.82); opacity: .75; }
+.dkc.gene { outline: 2px dashed var(--gc); outline-offset: -6px; box-shadow: 0 0 12px color-mix(in srgb, var(--gc) 50%, transparent); }
+.dkc .dkc-art { position: relative; }
+.dkc-gene { position: absolute; right: -6px; bottom: -4px; font: 700 10px/1 var(--body); font-style: normal; color: #0b0c16; background: var(--gc, #fff3a0); padding: 2px 3px; border: 1px solid #07050a; white-space: nowrap; }
+.chip.cm-zoom { font-weight: 700; }

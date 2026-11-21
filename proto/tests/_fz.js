@@ -20,7 +20,7 @@ const clipScript = () => {
     const rg = document.createRange(); rg.selectNodeContents(n); const rs = Array.from(rg.getClientRects()).filter(r => r.width > 0.5 && r.height > 0.5); if (!rs.length) continue;
     let why = null;
     for (const r of rs) {
-      if (r.right > vw + 1 || r.left < -1) { why = '화면 밖(가로)'; break; }
+      if ((r.right > vw + 1 || r.left < -1) && !(function () { for (let a = el; a; a = a.parentElement) { const s = getComputedStyle(a); if (/auto|scroll/.test(s.overflowX) && a.scrollWidth > a.clientWidth) return true; } return false; })()) { why = '화면 밖(가로)'; break; }
       let sx = false, sy = false;
       for (let a = el; a && a !== document.documentElement; a = a.parentElement) {
         const s = getComputedStyle(a), ox = s.overflowX, oy = s.overflowY; if (ox === 'visible' && oy === 'visible') continue;
