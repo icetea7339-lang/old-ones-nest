@@ -974,7 +974,7 @@ button.cm-tagrow { display: flex; gap: 8px; align-items: center; min-height: 40p
 #lr-shop .lr-card.on { box-shadow: 0 0 0 2px #fff3a0; }
 #lr-shop .lr-card.poor b, #lr-shop .lr-card.poor img { opacity: .5; }
 #lr-shop .lr-card.empty { border-style: dashed; border-color: #2a2740; background: none; }
-#lr-shop .lr-card > img { width: 44px; height: 44px; flex: 0 0 44px; }
+#lr-shop .lr-card > img:first-child { width: 44px; height: 44px; flex: 0 0 44px; }
 #lr-shop .lr-card b { font-size: 12px; line-height: 1.15; font-weight: 600; word-break: keep-all; text-align: center; flex: 1 1 auto; display: flex; align-items: center; }
 #lr-shop .lr-cmeta { display: flex; align-items: center; gap: 2px; }
 #lr-shop .lr-cmeta img { width: 14px; height: 14px; }
@@ -1068,4 +1068,14 @@ button.cm-tagrow { display: flex; gap: 8px; align-items: center; min-height: 40p
 #lr.wide #lr-sheet { align-items: center; }
 #lr.wide #lr-sheet .lr-sbody { border-radius: 14px; border-bottom: 1px solid #3a3658; }
 @media (prefers-reduced-motion: reduce) { .lr-lab, #lr .lr-glow, #lr-bench .lr-slot.pop, #lr-sheet .lr-sbody, #lr-sheet .lr-b b { animation: none; } }
+/* 역할 표지와 닿는 칸 */
+#lr .lr-role { width: 18px; height: 18px; flex: 0 0 18px; image-rendering: pixelated; vertical-align: -4px; }
+#lr-bench .lr-slot .lr-role { position: absolute; right: 1px; top: 1px; width: 18px; height: 18px; }
+#lr-shop .lr-card { position: relative; }
+#lr-shop .lr-card > .lr-role { position: absolute; left: 1px; top: 1px; width: 18px; height: 18px; }
+#lr-shop .lr-reach { display: none; font-size: 12px; line-height: 1.15; color: var(--mute); text-align: center; word-break: keep-all; }
+#lr.wide #lr-shop .lr-reach { display: block; }
+#lr-top .lr-selinfo small .lr-role { width: 18px; height: 18px; flex: 0 0 18px; margin-right: 3px; vertical-align: -5px; }
+#lr-sheet .lr-tags .lr-role { width: 18px; height: 18px; }
+#lr-sheet .lr-rolename { color: var(--text); font-weight: 600; }
 /* ==== LAIR-UI 끝 ==== */

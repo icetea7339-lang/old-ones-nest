@@ -30,7 +30,7 @@ function checkFight(f, tag) {
     if (e.type === 'cast') casts[e.sk] = (casts[e.sk] || 0) + 1; if (e.type === 'skillfx') { fxs[e.sk] = (fxs[e.sk] || 0) + 1; ok(typeof e.fx === 'string', tag + ': 연출 이름이 없다'); }
     if (e.type === 'win') { wins++; ok(i === f.timeline.length - 1, tag + ': 끝 사건이 마지막이 아니다'); }
   });
-  ok(wins === 1, tag + ': 끝 사건이 하나가 아니다'); ok(f.time > 2 && f.time <= 60.01, tag + ': 싸움 길이 ' + f.time);
+  ok(wins === 1, tag + ': 끝 사건이 하나가 아니다'); ok(f.time > 2 && f.time <= L.K.end + 0.01, tag + ': 싸움 길이 ' + f.time);
   ok(['win', 'loss'].includes(f.result) && f.breakdown.length >= f.units.length, tag + ': 결과가 이상하다');
   // 기절한 동안에는 움직이지 않는다
   const stun = {}; f.timeline.forEach(e => { if (e.type === 'status' && e.st === 'stun') { if (e.on) stun[e.u] = e.t + e.dur; else delete stun[e.u]; } if (e.type === 'die') delete stun[e.u]; if ((e.type === 'attack' || e.type === 'cast') && stun[e.u] != null) ok(e.t >= stun[e.u] - 0.11 || e.again, tag + ': 기절한 것이 움직였다 ' + e.u + '@' + e.t); });
@@ -117,11 +117,19 @@ Object.keys(L.SK).forEach(id => { ok(casts[id] > 0, '한 번도 안 쓰인 스�
   L.ROOM_IDS.forEach(id => len(L.roomInfo(id).short, id)); L.SYN_IDS.forEach(id => L.SYN[id].short.forEach(s => len(s, id))); Object.keys(L.FORM).forEach(f => ok(L.formInfo(f, 2).skill && L.formInfo(f).name, f + ' 모습'));
   const banned = /!|인간|괜찮|그래[.,]|해 봐|돋운/; const all = JSON.stringify([L.SK, L.ROOM, L.SYN, L.KIN, L.INV, L.FORM].map(t => Object.keys(t).map(k => [t[k].name, t[k].more, t[k].role]))); ok(!banned.test(all), '문체에 어긋나는 낱말');
 }
+// 9-2. 역할: 모두에게 역할과 닿는 칸 글이 있고, 싸움 기록에도 실린다. 탱커는 막은 몫을 남긴다
+{
+  L.KIN_IDS.forEach(k => { const i = L.unitInfo(k, 1); ok(L.ROLE[i.role] && i.roleName && /^(근접|원거리) \d칸$/.test(i.reach), k + ' 역할'); ok((i.role === 'ranged' || i.role === 'support') === (i.range > 1) || i.role === 'support', k + ' 역할과 닿는 칸이 어긋난다'); });
+  L.INV_IDS.forEach(k => { const i = L.invInfo(k, 2); ok(L.ROLE[i.role] && i.roleName && /^(근접|원거리) \d칸$/.test(i.reach), k + ' 역할'); });
+  const f = sim({ seed: 4, round: 2, nest: [N('shell', 20, 2), N('gazer', 31)], inv: [E('militia', 2, 2), E('militia', 2, 3), E('archer', 0, 2), E('knight', 2, 1)] });
+  ok(f.units.every(u => u.core || L.ROLE[u.role]), '처음 모습에 역할이 없다'); ok(f.timeline.some(e => e.type === 'hit' && e.blk > 0 && (e.u === 'k20' || /^e/.test(e.u))), '탱커가 막은 몫이 없다');
+  const first = id => { const e = f.timeline.find(x => x.type === 'attack' && x.u === id); return e ? e.t : 99; }; ok(first('k31') >= L.K.pace.back, '뒷줄이 한 박자 늦게 쏘지 않는다');
+}
 // 10. 균형 (짧게): 잘하는 쪽이 아무렇게나 하는 쪽보다 낫고, 싸움 길이가 알맞다
 {
   const w = nm => { let n = 0; for (let s = 1; s <= 40; s++) if (B.playRun(s * 7919 + 13, nm).R.over.win) n++; return n; }, d = w('decent'), r = w('random');
   ok(d >= 20 && d <= 34, '잘하는 쪽 승률 40판 중 ' + d); ok(r <= 10, '아무렇게나 하는 쪽 승률 40판 중 ' + r);
-  const avg = tsum.map((x, i) => x / Math.max(1, tn[i])); ok(avg[1] >= 22 && avg[1] <= 46 && avg[2] >= 25 && avg[2] <= 48, '싸움 길이 ' + avg.map(x => x.toFixed(0)).join('/'));
+  const avg = tsum.map((x, i) => x / Math.max(1, tn[i])); ok(avg[0] >= 34 && avg[1] >= 45 && avg[1] <= 70 && avg[2] >= 45 && avg[2] <= 75, '싸움 길이 ' + avg.map(x => x.toFixed(0)).join('/'));
   console.log('싸움 ' + fights + '번 · 길이 ' + avg.map(x => x.toFixed(0)).join('/') + '초 · 40판 승 ' + d + ' / ' + r + ' · 스킬 ' + Object.keys(casts).length + '가지');
 }
 console.log(bad ? '실패 ' + bad : '둥지 전투 규칙: 모두 맞음'); process.exitCode = bad ? 1 : 0;

@@ -12,32 +12,36 @@ const LAIR = (function () {
   const ASPN = { abyss: '심연', nebula: '성운', brood: '번식', dusk: '황혼', hunger: '기아' }, ASPS = Object.keys(ASPN);
   const CLSN = { guard: '수문장', hunter: '사냥꾼', caller: '부르는 것', mother: '어미' }, CLSS = Object.keys(CLSN);
   const STARM = [0, 1, 1.8, 3.2];
+  // 싸움에서 맡는 일. 화면은 이것으로 표식과 발밑 고리를 가른다
+  const ROLE = { tank: { name: '탱커', row: 'front' }, melee: { name: '근접 딜러', row: 'front' }, ranged: { name: '원거리 딜러', row: 'back' }, support: { name: '지원', row: 'back' }, dive: { name: '침투', row: 'any' } }, ROLE_IDS = Object.keys(ROLE);
+  const reachText = (range, role) => (range > 1 && role !== 'melee' && role !== 'tank' && role !== 'dive' ? '원거리 ' : '근접 ') + range + '칸';
   const K = {
     start: { gold: 14, level: 3, hp: 12, rounds: 3 }, xpNeed: { 3: 6, 4: 10, 5: 16 }, maxLv: 6, xpBuy: 4, xpCost: 4, xpFree: 2, reroll: 2,
     odds: { 3: [65, 30, 5], 4: [45, 40, 15], 5: [30, 45, 25], 6: [25, 40, 35] }, income: 10, interest: 5, interestMax: 2, winGold: 2, lossHp: 3,
-    roundHp: [2.2, 1.2, 1.05], roundAtk: [1.3, 1.7, 1.6], roundSan: [1.25, 1, 0.85], hpMul: 2, sanMul: 1.4, skillMul: 1.5, aggro: 2, engageAt: 12, frenzy: 24, frenzyUp: 0.08, sudden: 44, end: 60, manaAtk: 10, manaHit: 6, castWind: 0.35,
+    roundHp: [2.4, 1.2, 1.03], roundAtk: [1.3, 1.7, 1.56], roundSan: [1.25, 1, 0.85], hpMul: 2.6, sanMul: 1.82, skillMul: 1.5, aggro: 2, engageAt: 18, frenzy: 40, frenzyUp: 0.08, sudden: 72, end: 100, manaAtk: 10, manaHit: 6, castWind: 0.75,
+    pace: { as: 0.78, speed: 0.68, back: 1.2, leapAt: 2, leapDur: 0.5 },
     core: { hp: 1000, atk: 75, as: 0.6, range: 2, df: 30, mana: 110, lvHp: 0.2, rdHp: 0.1 },
   };
   // 권속 열둘. hp 체력 atk 공격 as 초당 공격 range 닿는 칸 df 방어 mana 스킬에 드는 마나 sanAtk 평타 정신 피해
   const KIN = {
-    shell: { name: '비늘지기', cost: 1, asp: 'abyss', cls: 'guard', hp: 650, atk: 40, as: 0.6, range: 1, df: 40, mana: 70, skill: 'clam' },
-    biter: { name: '깨물이', cost: 1, asp: 'brood', cls: 'hunter', hp: 450, atk: 55, as: 0.9, range: 1, df: 15, mana: 60, skill: 'rend' },
-    gazer: { name: '별보는 눈', cost: 1, asp: 'nebula', cls: 'caller', hp: 380, atk: 45, as: 0.7, range: 3, df: 10, mana: 60, sanAtk: 8, skill: 'gaze' },
-    hood: { name: '두건 쓴 것', cost: 1, asp: 'dusk', cls: 'caller', hp: 400, atk: 35, as: 0.7, range: 3, df: 10, mana: 70, sanAtk: 10, skill: 'whisper' },
-    gnaw: { name: '허기', cost: 1, asp: 'hunger', cls: 'hunter', hp: 480, atk: 60, as: 0.8, range: 1, df: 15, mana: 70, skill: 'devour' },
-    tangle: { name: '촉수 뭉치', cost: 2, asp: 'abyss', cls: 'hunter', hp: 600, atk: 55, as: 0.7, range: 1, df: 25, mana: 80, skill: 'drag' },
-    brood: { name: '알 품은 것', cost: 2, asp: 'brood', cls: 'mother', hp: 550, atk: 40, as: 0.6, range: 2, df: 20, mana: 80, skill: 'hatch' },
-    heap: { name: '눈 무더기', cost: 2, asp: 'nebula', cls: 'guard', hp: 800, atk: 45, as: 0.6, range: 1, df: 40, mana: 90, sanAtk: 6, skill: 'stare' },
-    mask: { name: '가면 쓴 것', cost: 2, asp: 'dusk', cls: 'hunter', hp: 560, atk: 70, as: 0.9, range: 1, df: 20, mana: 80, sanAtk: 5, skill: 'steal' },
-    maw: { name: '해구의 입', cost: 3, asp: 'abyss', cls: 'guard', hp: 1000, atk: 70, as: 0.6, range: 1, df: 50, mana: 100, skill: 'swallow' },
-    mother: { name: '포자 어미', cost: 3, asp: 'brood', cls: 'mother', hp: 750, atk: 50, as: 0.6, range: 3, df: 25, mana: 100, skill: 'spores' },
-    famine: { name: '통삼킴', cost: 3, asp: 'hunger', cls: 'hunter', hp: 800, atk: 95, as: 0.9, range: 1, df: 30, mana: 90, skill: 'charge' },
+    shell: { name: '비늘지기', role: 'tank', cost: 1, asp: 'abyss', cls: 'guard', hp: 650, atk: 40, as: 0.6, range: 1, df: 40, mana: 70, skill: 'clam' },
+    biter: { name: '깨물이', role: 'melee', cost: 1, asp: 'brood', cls: 'hunter', hp: 450, atk: 55, as: 0.9, range: 1, df: 15, mana: 60, skill: 'rend' },
+    gazer: { name: '별보는 눈', role: 'ranged', cost: 1, asp: 'nebula', cls: 'caller', hp: 380, atk: 45, as: 0.7, range: 3, df: 10, mana: 60, sanAtk: 8, skill: 'gaze' },
+    hood: { name: '두건 쓴 것', role: 'ranged', cost: 1, asp: 'dusk', cls: 'caller', hp: 400, atk: 35, as: 0.7, range: 3, df: 10, mana: 70, sanAtk: 10, skill: 'whisper' },
+    gnaw: { name: '허기', role: 'melee', cost: 1, asp: 'hunger', cls: 'hunter', hp: 480, atk: 60, as: 0.8, range: 1, df: 15, mana: 70, skill: 'devour' },
+    tangle: { name: '촉수 뭉치', role: 'melee', cost: 2, asp: 'abyss', cls: 'hunter', hp: 600, atk: 55, as: 0.7, range: 1, df: 25, mana: 80, skill: 'drag' },
+    brood: { name: '알 품은 것', role: 'support', cost: 2, asp: 'brood', cls: 'mother', hp: 550, atk: 40, as: 0.6, range: 2, df: 20, mana: 80, skill: 'hatch' },
+    heap: { name: '눈 무더기', role: 'tank', cost: 2, asp: 'nebula', cls: 'guard', hp: 800, atk: 45, as: 0.6, range: 1, df: 40, mana: 90, sanAtk: 6, skill: 'stare' },
+    mask: { name: '가면 쓴 것', role: 'melee', cost: 2, asp: 'dusk', cls: 'hunter', hp: 560, atk: 70, as: 0.9, range: 1, df: 20, mana: 80, sanAtk: 5, skill: 'steal' },
+    maw: { name: '해구의 입', role: 'tank', cost: 3, asp: 'abyss', cls: 'guard', hp: 1000, atk: 70, as: 0.6, range: 1, df: 50, mana: 100, skill: 'swallow' },
+    mother: { name: '포자 어미', role: 'support', cost: 3, asp: 'brood', cls: 'mother', hp: 750, atk: 50, as: 0.6, range: 3, df: 25, mana: 100, skill: 'spores' },
+    famine: { name: '통삼킴', role: 'melee', cost: 3, asp: 'hunger', cls: 'hunter', hp: 800, atk: 95, as: 0.9, range: 1, df: 30, mana: 90, skill: 'charge' },
   };
   const KIN_IDS = Object.keys(KIN);
   // 불려 나오는 것
   const SUMMON = {
-    spawn: { name: '새끼', hp: 160, atk: 22, as: 1, range: 1, df: 0 },
-    infected: { name: '감염체', hp: 200, atk: 30, as: 0.8, range: 1, df: 5 },
+    spawn: { name: '새끼', role: 'melee', hp: 160, atk: 22, as: 1, range: 1, df: 0 },
+    infected: { name: '감염체', role: 'melee', hp: 200, atk: 30, as: 0.8, range: 1, df: 5 },
   };
   // 본체의 다섯 모습 (가장 많이 모은 성향)과 처음 모습
   const FORM = {
@@ -46,18 +50,18 @@ const LAIR = (function () {
   };
   // 침입자 열둘. san 정신
   const INV = {
-    militia: { name: '민병', role: '앞줄', hp: 420, san: 60, atk: 40, as: 0.7, range: 1, df: 15, mana: 60, skill: 'pike', tier: 1 },
-    torch: { name: '횃불꾼', role: '앞줄', hp: 380, san: 55, atk: 35, as: 0.7, range: 1, df: 10, mana: 70, skill: 'arson', tier: 1 },
-    hound: { name: '사냥개', role: '돌진', hp: 300, san: 40, atk: 50, as: 1.1, range: 1, df: 5, mana: 50, speed: 2.6, skill: 'latch', tier: 1 },
-    knight: { name: '방패 기사', role: '탱커', hp: 900, san: 110, atk: 45, as: 0.6, range: 1, df: 60, mana: 80, skill: 'wall', tier: 2 },
-    archer: { name: '궁수', role: '뒷줄', hp: 380, san: 70, atk: 52, as: 0.8, range: 4, df: 5, mana: 70, skill: 'aim', weak: true, tier: 2 },
-    priest: { name: '사제', role: '치유', hp: 420, san: 140, atk: 25, as: 0.6, range: 3, df: 10, mana: 70, skill: 'pray', tier: 2 },
-    mage: { name: '마법사', role: '뒷줄', hp: 360, san: 90, atk: 40, as: 0.6, range: 4, df: 5, mana: 90, skill: 'pillar', tier: 2 },
-    rogue: { name: '도적', role: '침투', hp: 400, san: 70, atk: 70, as: 1, range: 1, df: 10, mana: 60, speed: 2.4, skill: 'shadow', leap: true, tier: 2 },
-    bard: { name: '음유시인', role: '지원', hp: 400, san: 100, atk: 30, as: 0.7, range: 3, df: 10, mana: 80, skill: 'anthem', tier: 2 },
-    inquis: { name: '심문관', role: '정예', hp: 800, san: 160, atk: 65, as: 0.7, range: 2, df: 35, mana: 80, skill: 'silence', elite: true, tier: 3 },
-    paladin: { name: '성기사', role: '정예', hp: 1100, san: 220, atk: 70, as: 0.6, range: 1, df: 60, mana: 90, skill: 'sanctum', elite: true, tier: 3 },
-    seeker: { name: '책을 쫓는 자', role: '우두머리', hp: 2000, san: 300, atk: 80, as: 0.7, range: 3, df: 30, mana: 100, skill: 'read', boss: true, noMad: true, tier: 4 },
+    militia: { name: '민병', tag: '앞줄', role: 'melee', hp: 420, san: 60, atk: 40, as: 0.7, range: 1, df: 15, mana: 60, skill: 'pike', tier: 1 },
+    torch: { name: '횃불꾼', tag: '앞줄', role: 'melee', hp: 380, san: 55, atk: 35, as: 0.7, range: 1, df: 10, mana: 70, skill: 'arson', tier: 1 },
+    hound: { name: '사냥개', tag: '돌진', role: 'melee', hp: 300, san: 40, atk: 50, as: 1.1, range: 1, df: 5, mana: 50, speed: 2.6, skill: 'latch', tier: 1 },
+    knight: { name: '방패 기사', tag: '탱커', role: 'tank', hp: 900, san: 110, atk: 45, as: 0.6, range: 1, df: 60, mana: 80, skill: 'wall', tier: 2 },
+    archer: { name: '궁수', tag: '뒷줄', role: 'ranged', hp: 380, san: 70, atk: 52, as: 0.8, range: 4, df: 5, mana: 70, skill: 'aim', weak: true, tier: 2 },
+    priest: { name: '사제', tag: '치유', role: 'support', hp: 420, san: 140, atk: 25, as: 0.6, range: 3, df: 10, mana: 70, skill: 'pray', tier: 2 },
+    mage: { name: '마법사', tag: '뒷줄', role: 'ranged', hp: 360, san: 90, atk: 40, as: 0.6, range: 4, df: 5, mana: 90, skill: 'pillar', tier: 2 },
+    rogue: { name: '도적', tag: '침투', role: 'dive', hp: 400, san: 70, atk: 70, as: 1, range: 1, df: 10, mana: 60, speed: 2.4, skill: 'shadow', leap: true, tier: 2 },
+    bard: { name: '음유시인', tag: '지원', role: 'support', hp: 400, san: 100, atk: 30, as: 0.7, range: 3, df: 10, mana: 80, skill: 'anthem', tier: 2 },
+    inquis: { name: '심문관', tag: '정예', role: 'melee', hp: 800, san: 160, atk: 65, as: 0.7, range: 2, df: 35, mana: 80, skill: 'silence', elite: true, tier: 3 },
+    paladin: { name: '성기사', tag: '정예', role: 'tank', hp: 1100, san: 220, atk: 70, as: 0.6, range: 1, df: 60, mana: 90, skill: 'sanctum', elite: true, tier: 3 },
+    seeker: { name: '책을 쫓는 자', tag: '우두머리', role: 'ranged', hp: 2000, san: 300, atk: 80, as: 0.7, range: 3, df: 30, mana: 100, skill: 'read', boss: true, noMad: true, tier: 4 },
   };
   const INV_IDS = Object.keys(INV);
   // 스킬: v = 별마다의 수치. 설명은 화면이 그대로 쓴다 (short 는 16자 안)
@@ -137,7 +141,7 @@ const LAIR = (function () {
     const rooms = (S.rooms || []).map((r, i) => ({ i, id: r.id, cells: r.cells.slice(), dead: false }));
     const roomAt = (cell, id) => rooms.find(r => !r.dead && r.id === id && r.cells.includes(cell));
     const has = (u, n) => !!u.st[n] && u.st[n].until > t + 1e-9;
-    function setSt(u, n, dur, v, by) { if (!u.alive) return; const on = !has(u, n); u.st[n] = { until: t + dur, v: v == null ? 1 : v, by: by ? by.id : null }; if (on || n === 'stun' || n === 'silenced') ev('status', { u: u.id, st: n, on: 1, dur: R1(dur), v: v == null ? 1 : v }); }
+    function setSt(u, n, dur, v, by) { if (!u.alive) return; const on = !has(u, n); u.st[n] = { until: t + dur, v: v == null ? 1 : v, by: by ? by.id : null }; if (on || n === 'stun' || n === 'silenced') ev('status', { u: u.id, st: n, on: 1, dur: R1(dur), v: v == null ? 1 : v, by: by ? by.id : null }); }
     function clrSt(u, n) { if (u.st[n]) { delete u.st[n]; ev('status', { u: u.id, st: n, on: 0 }); } }
     const dist = (a, b) => { let m = 99; for (const x of a.cells) for (const y of b.cells) m = Math.min(m, cheb(x, y)); return m; };
     const dcell = (a, cell) => { let m = 99; for (const x of a.cells) m = Math.min(m, cheb(x, cell)); return m; };
@@ -145,16 +149,16 @@ const LAIR = (function () {
     const byId = id => U.find(x => x.id === id);
     function add(o) {
       const d = o.def, m = o.mul || 1;
-      const u = { id: o.id, side: o.side, home: o.side, kind: o.kind, star: o.star || 1, cell: o.cell, cells: o.cells || [o.cell], name: d.name, mhp: Math.round(d.hp * (o.hmul || m) * K.hpMul), atk: d.atk * m, as: d.as, range: d.range, df: d.df, mmana: d.mana || 0, mana: 0,
-        msan: d.san ? Math.round(d.san * (o.smul || 1) * K.sanMul) : 0, sanAtk: (d.sanAtk || 0) * (0.6 + 0.4 * m), speed: d.speed || 1.6, skill: d.skill || null, asp: d.asp || null, cls: d.cls || null, boss: !!d.boss, elite: !!d.elite, noMad: !!d.noMad, weak: !!d.weak, leap: !!d.leap,
-        core: !!o.core, summon: !!o.summon, tierV: d.tier || d.cost || 0, st: {}, nextAtk: 0.3 + RN() * 0.5, freeAt: 0, tg: null, reT: 0, alive: true, mad: false, engage: o.side === 'inv' || !!o.summon, prov: null, firstCrit: 0, atkBonus: 0, eat: 0,
+      const u = { id: o.id, side: o.side, home: o.side, kind: o.kind, star: o.star || 1, cell: o.cell, cells: o.cells || [o.cell], name: d.name, mhp: Math.round(d.hp * (o.hmul || m) * K.hpMul), atk: d.atk * m, as: d.as * K.pace.as, range: d.range, df: d.df, mmana: d.mana || 0, mana: 0, role: d.role || (o.core ? 'core' : 'melee'),
+        msan: d.san ? Math.round(d.san * (o.smul || 1) * K.sanMul) : 0, sanAtk: (d.sanAtk || 0) * (0.6 + 0.4 * m), speed: (d.speed || 1.6) * K.pace.speed, skill: d.skill || null, asp: d.asp || null, cls: d.cls || null, boss: !!d.boss, elite: !!d.elite, noMad: !!d.noMad, weak: !!d.weak, leap: !!d.leap,
+        core: !!o.core, summon: !!o.summon, tierV: d.tier || d.cost || 0, st: {}, nextAtk: 0.3 + RN() * 0.5 + (d.range > 1 ? K.pace.back : 0), freeAt: d.range > 1 && !o.core && !o.summon ? K.pace.back : 0, tg: null, reT: 0, alive: true, mad: false, engage: o.side === 'inv' || !!o.summon, prov: null, firstCrit: 0, atkBonus: 0, eat: 0,
         stat: { dmg: 0, san: 0, heal: 0, kills: 0, casts: 0, taken: 0, conv: 0 } };
       u.hp = u.mhp; u.san = u.msan; u.cells.forEach(c => { occ[c] = u; }); U.push(u); return u;
     }
     const emptyNear = (cell, pred) => { let best = -1, bd = 99; for (let i = 0; i < N; i++) { if (occ[i] || (pred && !pred(i))) continue; const d = cheb(i, cell); if (d < bd) { bd = d; best = i; } } return best; };
     function summon(kind, near, side, mul, by, n) {
       const d = SUMMON[kind], bonus = side === 'nest' && tier('mother') >= 1 ? 1.4 : 1, out = [];
-      for (let k = 0; k < n; k++) { const c = emptyNear(near); if (c < 0) break; const u = add({ id: 's' + (++sid), side, kind, def: d, mul: (mul || 1) * bonus, cell: c, summon: true }); u.nextAtk = t + 0.4; ev('spawn', { u: u.id, kind, side, cell: c, by: by ? by.id : null, name: u.name, mhp: u.mhp }); out.push(u); }
+      for (let k = 0; k < n; k++) { const c = emptyNear(near); if (c < 0) break; const u = add({ id: 's' + (++sid), side, kind, def: d, mul: (mul || 1) * bonus, cell: c, summon: true }); u.nextAtk = t + 0.4; ev('spawn', { u: u.id, kind, side, cell: c, by: by ? by.id : null, name: u.name, mhp: u.mhp, role: u.role, range: u.range }); out.push(u); }
       return out;
     }
     const nSum = n => n + (tier('mother') >= 2 ? 1 : 0);
@@ -184,9 +188,9 @@ const LAIR = (function () {
     }
     // 피해: k = atk 평타 / skill 스킬 / dot 지속 / true 그대로 / san 정신만
     function hurt(src, tg, amt, o) {
-      if (!tg.alive) return 0; o = o || {}; let d = 0, sd = 0;
+      if (!tg.alive) return 0; o = o || {}; let d = 0, sd = 0, blk = 0;
       if (amt > 0) {
-        d = amt; if (o.k === 'skill' || o.k === 'dot') d *= K.skillMul; if (o.k !== 'true' && o.k !== 'dot') d *= 100 / (100 + tg.df);
+        d = amt; if (o.k === 'skill' || o.k === 'dot') d *= K.skillMul; if (o.k !== 'true' && o.k !== 'dot') { if (tg.role === 'tank') blk = Math.round(d * tg.df / (100 + tg.df)); d *= 100 / (100 + tg.df); }
         if (has(tg, 'shield')) d *= 1 - tg.st.shield.v;
         if (tg.kind === 'seeker' && tg.msan) d *= 1 + 0.6 * (1 - tg.san / tg.msan);
         if (tg.home === 'nest' && !tg.mad) { const ab = tier('abyss'); if (ab >= 2) d *= tg.asp === 'abyss' ? 0.6 : 0.8; else if (ab >= 1 && tg.asp === 'abyss') d *= 0.75; if (!tg.core && roomAt(tg.cell, 'bone')) d *= 0.7; }
@@ -196,7 +200,7 @@ const LAIR = (function () {
       if (o.san && tg.msan && tg.home === 'inv' && !tg.mad && !has(tg, 'immSan')) { sd = o.san; if (src && src.home === 'nest') sd *= 1 + [0, 0.3, 0.5][tier('nebula')]; sd = Math.min(tg.san, Math.round(sd)); tg.san -= sd; if (src) src.stat.san += sd; }
       if (!d && !sd) return 0;
       if (src && tg.home === 'nest' && !tg.mad && !tg.core && src.alive && dist(tg, src) > K.aggro) tg.prov = src.id;
-      ev('hit', { u: tg.id, by: src ? src.id : null, dmg: d, san: sd, hp: Math.max(0, tg.hp), sn: tg.san, m: Math.round(tg.mana), k: o.k || 'skill', sk: o.sk || null, crit: o.crit ? 1 : 0 });
+      ev('hit', { u: tg.id, by: src ? src.id : null, dmg: d, san: sd, hp: Math.max(0, tg.hp), sn: tg.san, m: Math.round(tg.mana), k: o.k || 'skill', sk: o.sk || null, crit: o.crit ? 1 : 0, blk: blk >= 8 ? blk : 0 });
       if (tg.hp <= 0) die(tg, src, o.how); else if (sd && tg.san <= 0) goMad(tg, src);
       if (src && tg.alive && src.home === 'nest' && !src.mad && src.asp === 'abyss' && tier('abyss') >= 1 && o.k === 'atk') setSt(tg, 'wet', 2, tier('abyss') >= 2 ? 0.4 : 0.2, src);
       return d;
@@ -323,9 +327,9 @@ const LAIR = (function () {
       const c = tier('caller'); if (c && u.cls === 'caller' && u.mmana) u.mana = u.mmana * (c >= 2 ? 0.6 : 0.4);
       const h = tier('hunter'); if (u.cls === 'hunter') { if (h >= 2) u.firstCrit = 2.5; if (roomAt(u.cell, 'shade')) { u.firstCrit = 3; ev('roomfx', { room: 'shade', kind: 'on', u: u.id, cell: u.cell }); } if (h >= 1) u.leap = true; }
     });
-    const init = U.map(u => ({ id: u.id, side: u.side, kind: u.kind, star: u.star, cell: u.cell, cells: u.cells.slice(), name: u.name, mhp: u.mhp, msan: u.msan, mmana: u.mmana, mana: Math.round(u.mana), range: u.range, skill: u.skill, boss: u.boss, elite: u.elite, core: u.core, form: u.form || null, asp: u.asp, cls: u.cls }));
+    const init = U.map(u => ({ id: u.id, side: u.side, kind: u.kind, star: u.star, cell: u.cell, cells: u.cells.slice(), name: u.name, mhp: u.mhp, msan: u.msan, mmana: u.mmana, mana: Math.round(u.mana), range: u.range, role: u.role, skill: u.skill, boss: u.boss, elite: u.elite, core: u.core, form: u.form || null, asp: u.asp, cls: u.cls }));
     // 뛰어드는 것들: 0.6초에 적의 뒷줄 곁으로
-    pend.push({ t: 0.6, fn: () => { U.filter(u => u.alive && u.leap && !u.core).forEach(u => { const fs = foes(u).filter(x => !x.core); if (!fs.length) return; const far = u.side === 'nest' ? (a, b) => rc(a.cell)[0] - rc(b.cell)[0] : (a, b) => rc(b.cell)[0] - rc(a.cell)[0], back = fs.slice().sort((a, b) => (b.range > 1) - (a.range > 1) || far(a, b) || a.hp - b.hp)[0]; const c = emptyNear(back.cell, i => cheb(i, back.cell) <= 1); if (c >= 0) { moveTo(u, c, 'leap', 0.35); u.freeAt = t + 0.4; u.nextAtk = t + 0.5; u.tg = back.id; u.reT = t + 2; u.engage = true; } }); } });
+    pend.push({ t: K.pace.leapAt, fn: () => { U.filter(u => u.alive && u.leap && !u.core).forEach(u => { const fs = foes(u).filter(x => !x.core); if (!fs.length) return; const far = u.side === 'nest' ? (a, b) => rc(a.cell)[0] - rc(b.cell)[0] : (a, b) => rc(b.cell)[0] - rc(a.cell)[0], back = fs.slice().sort((a, b) => (b.range > 1) - (a.range > 1) || far(a, b) || a.hp - b.hp)[0]; const c = emptyNear(back.cell, i => cheb(i, back.cell) <= 1); if (c >= 0) { moveTo(u, c, 'leap', K.pace.leapDur); u.freeAt = t + K.pace.leapDur + 0.1; u.nextAtk = t + K.pace.leapDur + 0.25; u.tg = back.id; u.reT = t + 2; u.engage = true; } }); } });
 
     function act(u) {
       if (has(u, 'stun') || t < u.freeAt) return;
@@ -459,9 +463,9 @@ const LAIR = (function () {
   function unitInfo(kind, star) {
     const d = KIN[kind], s = star || 1; if (!d) return null; const m = STARM[s];
     const hp = Math.round(d.hp * m * K.hpMul);
-    return { kind, name: d.name, star: s, cost: d.cost, asp: d.asp, aspName: ASPN[d.asp], cls: d.cls, clsName: CLSN[d.cls], hp, atk: Math.round(d.atk * m), as: d.as, df: d.df, range: d.range, mana: d.mana, sanAtk: Math.round((d.sanAtk || 0) * (0.6 + 0.4 * m)), short: `체력 ${hp} · 공격 ${Math.round(d.atk * m)}`, more: `${ASPN[d.asp]} · ${CLSN[d.cls]} · 닿는 칸 ${d.range}`, skill: skillInfo(d.skill, s) };
+    return { kind, name: d.name, star: s, cost: d.cost, asp: d.asp, aspName: ASPN[d.asp], cls: d.cls, clsName: CLSN[d.cls], hp, atk: Math.round(d.atk * m), as: d.as, df: d.df, range: d.range, role: d.role, roleName: ROLE[d.role].name, reach: reachText(d.range, d.role), row: ROLE[d.role].row, mana: d.mana, sanAtk: Math.round((d.sanAtk || 0) * (0.6 + 0.4 * m)), short: `체력 ${hp} · 공격 ${Math.round(d.atk * m)}`, more: `${ROLE[d.role].name} · ${reachText(d.range, d.role)} · ${ASPN[d.asp]} · ${CLSN[d.cls]}`, skill: skillInfo(d.skill, s) };
   }
-  function invInfo(kind, round) { const d = INV[kind]; if (!d) return null; const r = clamp(round || 1, 1, 3) - 1, hp = Math.round(d.hp * K.roundHp[r] * K.hpMul), san = Math.round(d.san * K.roundSan[r] * K.sanMul), atk = Math.round(d.atk * K.roundAtk[r]); return { kind, name: d.name, role: d.role, hp, san, atk, as: d.as, df: d.df, range: d.range, mana: d.mana, boss: !!d.boss, elite: !!d.elite, noMad: !!d.noMad, short: `체력 ${hp} · 정신 ${san}`, more: d.role + ' · 닿는 칸 ' + d.range, skill: skillInfo(d.skill, 1) }; }
+  function invInfo(kind, round) { const d = INV[kind]; if (!d) return null; const r = clamp(round || 1, 1, 3) - 1, hp = Math.round(d.hp * K.roundHp[r] * K.hpMul), san = Math.round(d.san * K.roundSan[r] * K.sanMul), atk = Math.round(d.atk * K.roundAtk[r]); return { kind, name: d.name, tag: d.tag, role: d.role, roleName: ROLE[d.role].name, reach: reachText(d.range, d.role), row: ROLE[d.role].row, hp, san, atk, as: d.as, df: d.df, range: d.range, mana: d.mana, boss: !!d.boss, elite: !!d.elite, noMad: !!d.noMad, short: hp >= 10000 ? `체력 ${hp}·정신 ${san}` : `체력 ${hp} · 정신 ${san}`, more: ROLE[d.role].name + ' · ' + reachText(d.range, d.role) + (d.tag && d.tag !== ROLE[d.role].name ? ' · ' + d.tag : ''), skill: skillInfo(d.skill, 1) }; }
   const roomInfo = id => (ROOM[id] ? { id, name: ROOM[id].name, len: ROOM[id].len, short: ROOM[id].short, more: ROOM[id].more } : null);
   function synInfo(id, n) { const s = SYN[id], tier = n >= s.need[1] ? 2 : n >= s.need[0] ? 1 : 0; return { id, name: s.name, n, need: s.need, tier, next: tier >= 2 ? null : s.need[tier], short: s.short[Math.max(0, tier - 1)], shorts: s.short, more: s.more, kind: ASPN[id] ? 'asp' : 'cls' }; }
   function formInfo(form, round) { const f = FORM[form] || FORM.drop; return { form, name: f.name, skill: skillInfo(f.skill, clamp(round || 1, 1, 3)) }; }
@@ -473,7 +477,7 @@ const LAIR = (function () {
       synergies: SYN_IDS.map(id => Object.assign(synInfo(id, sy[id].n), { core: sy[id].core })).filter(s => s.n > 0).sort((a, b) => b.tier - a.tier || b.n - a.n), form: formInfo(formOf(kinds), R.round),
       enemy: R.enemy.map(e => Object.assign({ cell: e.cell }, invInfo(e.kind, R.round))), costs: { reroll: K.reroll, xp: K.xpCost }, canXp: R.level < K.maxLv && R.gold >= K.xpCost, canReroll: R.gold >= K.reroll, merges: R.merges, hist: R.hist };
   }
-  return { COLS, ROWS, N, CORE, NEST_ROW, TICK, K, KIN, KIN_IDS, INV, INV_IDS, SUMMON, FORM, SK, ROOM, ROOM_IDS, SYN, SYN_IDS, ROUNDS, ASPN, ASPS, CLSN, CLSS, STARM, rc, idx, cheb, rnd, isNestCell,
+  return { COLS, ROWS, N, CORE, NEST_ROW, TICK, K, KIN, KIN_IDS, INV, INV_IDS, SUMMON, FORM, SK, ROOM, ROOM_IDS, SYN, SYN_IDS, ROUNDS, ASPN, ASPS, CLSN, CLSS, STARM, ROLE, ROLE_IDS, reachText, rc, idx, cheb, rnd, isNestCell,
     simulate, newRun, view, buy, sell, sellValue, reroll, buyXp, move, placeRoom, canPlaceRoom, roomSpots, roomCells, ready, setupOf, merge, synOf, formOf, cap, whereOf, unitInfo, invInfo, skillInfo, roomInfo, synInfo, formInfo, enemyOf };
 })();
 if (typeof module !== 'undefined') module.exports = LAIR;

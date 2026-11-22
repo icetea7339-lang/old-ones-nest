@@ -74,9 +74,12 @@ const LAIRART = (() => {
   const ANIM = { idle: { n: 8, dur: 1200, loop: true }, move: { n: 6, dur: 520, loop: true }, attack: { n: 8, dur: 460 }, cast: { n: 8, dur: 720 }, hit: { n: 4, dur: 260 }, die: { n: 10, dur: 850 }, mad: { n: 6, dur: 620, loop: true } };
   // 공격의 기울기: 뒤로 젖혔다가(-1) 내지르고(+1) 돌아온다
   const lean = f => f < 0.32 ? -ease(f / 0.32) : f < 0.5 ? lerp(-1, 1, ease((f - 0.32) / 0.18)) : lerp(1, 0, ease((f - 0.5) / 0.5));
+  // 쏘는 것: 앞으로 내지르지 않는다. 제자리에서 당기고(chg) 놓은 뒤 뒤로 밀린다(rec)
+  const SHOOT = { gazer: 1, hood: 1, brood: 1, mother: 1, archer: 1, priest: 1, mage: 1, bard: 1, seeker: 1 };
+  const chgOf = f => f < 0.32 ? ease(f / 0.32) : f < 0.41 ? 1 : Math.max(0, 1 - (f - 0.41) / 0.12), recOf = f => f < 0.41 ? 0 : f < 0.5 ? (f - 0.41) / 0.09 : 1 - ease((f - 0.5) / 0.5);
   function pose(R, anim, f) {
     const G = tf(), T = {}, fx = { flash: 0, melt: 0, puddle: 0, fade: 0, glow: 0, mad: anim === 'mad' ? 1 : 0 }, u = R.u, base = anim === 'idle' || anim === 'mad' || anim === 'cast' ? 1 : anim === 'move' ? 0.7 : 0.35;
-    const L = anim === 'attack' ? lean(f) : 0, rise = anim === 'cast' ? sin(Math.min(1, f * 1.15) * Math.PI) : 0, ds = anim === 'die' ? ease(Math.min(1, f / 0.6)) : 0, hr = anim === 'hit' ? (f < 0.25 ? f / 0.25 : 1 - ease((f - 0.25) / 0.75)) : 0;
+    const sh = anim === 'attack' && SHOOT[R.id] ? 1 : 0, chg = sh ? chgOf(f) : 0, rec = sh ? recOf(f) : 0, L = anim === 'attack' && !sh ? lean(f) : 0, rise = anim === 'cast' ? sin(Math.min(1, f * 1.15) * Math.PI) : 0, ds = anim === 'die' ? ease(Math.min(1, f / 0.6)) : 0, hr = anim === 'hit' ? (f < 0.25 ? f / 0.25 : 1 - ease((f - 0.25) / 0.75)) : 0;
     for (const p of R.parts) {
       const t = T[p.name] = tf(), a = p.amp, ph = f * TAU * (p.sp || 1) + p.ph, k = base * (anim === 'mad' ? 1.6 : 1);
       if (p.role === 'body') { t.sy = 1 + 0.052 * a * sin(ph) * k; t.sx = 1 - 0.03 * a * sin(ph) * k; }
@@ -89,7 +92,8 @@ const LAIRART = (() => {
       if (p.blink) t.m = ((f + p.ph / TAU) % 1) > 0.86 && (anim === 'idle' || anim === 'mad') ? 1 : 0;
       if (anim === 'move') { if (p.role === 'leg') t.rot = 0.5 * a * sin(f * TAU + p.ph); if (p.role === 'arm') t.rot = -0.3 * a * sin(f * TAU + p.ph); if (p.role === 'sway') t.rot = 0.2 * a * sin(ph) - 0.12; }
       if (anim === 'attack') {
-        if (p.strike) t.rot += p.strike * (f < 0.32 ? -0.75 * ease(f / 0.32) : f < 0.5 ? lerp(-0.75, 0.95, ease((f - 0.32) / 0.18)) : lerp(0.95, 0, ease((f - 0.5) / 0.5)));
+        if (sh) { if (p.cast) t.rot += p.cast * (0.8 * chg - 0.3 * rec); if (p.role === 'pulse') { t.sx *= 1 + 0.55 * chg; t.sy *= 1 + 0.55 * chg; } }
+        else if (p.strike) t.rot += p.strike * (f < 0.32 ? -0.75 * ease(f / 0.32) : f < 0.5 ? lerp(-0.75, 0.95, ease((f - 0.32) / 0.18)) : lerp(0.95, 0, ease((f - 0.5) / 0.5)));
         if (p.reach) { t.sx *= 1 + p.reach * Math.max(0, L); t.dx += (p.thrust || 0) * u * L; }
         if (p.jaw) t.rot += p.jaw * (f < 0.32 ? ease(f / 0.32) : f < 0.46 ? lerp(1, -0.12, (f - 0.32) / 0.14) : lerp(-0.12, 0, (f - 0.46) / 0.54));
         if (p.morph && p.bite) t.m = f < 0.32 ? ease(f / 0.32) : f < 0.46 ? 1 - (f - 0.32) / 0.14 : 0;
@@ -100,12 +104,13 @@ const LAIRART = (() => {
       if (anim === 'mad') { if (p.role === 'head') t.rot += 0.2 * sin(f * TAU * 2); if (p.role === 'arm') t.rot += 0.25 * sin(f * TAU * 2 + p.ph); }
     }
     if (anim === 'move') { G.dy = -Math.abs(sin(f * TAU)) * 2.2 * u; G.rot = 0.05; }
-    if (anim === 'attack') { G.rot = 0.13 * L; G.dx = (L < 0 ? 3 : 7) * u * L; G.sx = 1 + 0.07 * Math.max(0, L); G.sy = 1 - 0.06 * Math.max(0, -L) - 0.03 * Math.max(0, L); }
+    if (sh) { G.dx = -(1.2 * chg + 3.4 * rec) * u; G.rot = -0.05 * chg - 0.07 * rec; G.sy = 1 + 0.03 * chg - 0.03 * rec; }
+    else if (anim === 'attack') { G.rot = 0.13 * L; G.dx = (L < 0 ? 3 : 7) * u * L; G.sx = 1 + 0.07 * Math.max(0, L); G.sy = 1 - 0.06 * Math.max(0, -L) - 0.03 * Math.max(0, L); }
     if (anim === 'cast') { G.dy = -2.2 * u * rise; G.sy = 1 + 0.05 * rise; G.sx = 1 - 0.02 * rise; fx.glow = rise; }
     if (anim === 'hit') { G.dx = -3.5 * u * hr; G.rot = -0.15 * hr; G.sy = 1 - 0.07 * hr; fx.flash = f < 0.3 ? 1 : 0; }
     if (anim === 'die') { if (R.die === 'melt') { G.sy = lerp(1, 0.2, ds); G.sx = lerp(1, 1.32, ds); fx.melt = clamp((f - 0.3) / 0.6, 0, 1); fx.puddle = ease(Math.min(1, f / 0.8)); if (f < 0.12) fx.flash = 1; } else { G.rot = -1.5 * ease(Math.min(1, f / 0.5)); G.dy = -1.5 * u * sin(Math.min(1, f / 0.5) * Math.PI); G.dx = -4 * u * ds; fx.fade = clamp((f - 0.68) / 0.3, 0, 1); if (f < 0.12) fx.flash = 1; } }
     if (anim === 'mad') G.dx = ((Math.round(f * 6) * 7) % 3 - 1) * 0.8 * u;
-    if (R.pose) R.pose(anim, f, G, T, fx, { L, rise, ds, hr });
+    if (R.pose) R.pose(anim, f, G, T, fx, { L, rise, ds, hr, chg, rec, u });
     return { G, T, fx };
   }
   // 미친 빛깔: 살빛이 식고 보라가 낀다
@@ -217,6 +222,7 @@ const LAIRART = (() => {
     if (st >= 2) for (const [k, x, y] of [[0, 10, 14], [1, 39, 34]].concat(st >= 3 ? [[2, 39, 13]] : [])) R.part('moon' + k, { px: x, py: y, z: 6, role: 'float', ph: 2 + k * 2, amp: 1.5 }, D => { D.B(x, y, 2.6, 2.6, scl); D.flat(D.el(x + 0.5, y, 1.2, 1.4), p[1]); D.px(x + 0.6, y, INK); });
     R.part('star0', { px: 24, py: 24, z: 7, role: 'orbit', ph: 0.5, amp: 4 }, D => D.spark(37, 16, p[4], true));
     R.part('star1', { px: 24, py: 24, z: 7, role: 'orbit', ph: 3.6, amp: 3.4 }, D => D.spark(11, 31, p[4], false));
+    R.pose = (anim, f, G, T, fx, s) => { if (anim !== 'attack') return; const b = T.ball, k = 1 + 0.2 * s.chg - 0.1 * s.rec; b.sx *= k; b.sy *= k; b.m = f < 0.3 ? 0.42 * s.chg : 0; for (const n of ['star0', 'star1']) { T[n].dx *= 1 - 0.8 * s.chg; T[n].dy *= 1 - 0.8 * s.chg; } T.ringF.rot += 0.5 * s.chg; T.ringB.rot += 0.5 * s.chg; fx.glow = Math.max(fx.glow, 0.62 * s.chg); };
   } };
   // 촉수 하나: 굵게 시작해 가늘어지고, 안쪽에 빨판이 찍힌다
   const tent = (D, pts, r0, r1, p, suck) => { D.L(pts, r0, r1, p); if (suck) for (let i = 1; i < pts.length; i++) { const a = pts[i - 1], b = pts[i], n = Math.max(1, Math.round(Math.hypot(b[0] - a[0], b[1] - a[1]) / 3)); for (let k = 0; k < n; k++) { const f = (k + 0.5) / n; D.px(lerp(a[0], b[0], f) + 0.4, lerp(a[1], b[1], f) + 0.6, suck); } } };
@@ -437,7 +443,7 @@ const LAIRART = (() => {
       if (o.face) o.face(D, hy); else { D.rect(24.2, 17.8 + hy, 1, 2, INK); D.rect(27.4, 17.8 + hy, 1, 2, INK); D.px(29.4, 19.6 + hy, sk[3]); D.px(26, 21.4 + hy, sk[3]); D.px(27, 21.4 + hy, sk[3]); }
       if (o.hat) o.hat(D, hy);
     });
-    R.part('armF', { px: 27.5 + w * 0.5, py: 27 + hy, z: 7, role: 'arm', parent: 'torso', strike: o.strike == null ? 1 : o.strike, cast: o.cast || 0, drop: !!o.frontDrop }, D => { if (o.front) o.front(D, hy); });
+    R.part('armF', { px: 27.5 + w * 0.5, py: 27 + hy, z: 7, role: 'arm', parent: 'torso', strike: o.strike == null ? 1 : o.strike, cast: o.cast || 0, drop: !!o.frontDrop, morph: !!o.frontMorph }, (D, m) => { if (o.front) o.front(D, hy, m || 0); });
     if (o.extra) o.extra(R, hy);
   }
   const hand = (D, x, y, sk) => D.B(x, y, 1.4, 1.4, sk || P.skin);
@@ -470,21 +476,24 @@ const LAIRART = (() => {
     backItem: D => { D.G([[17, 22], [20, 21], [22, 33], [19, 34]], P.brown); for (let k = 0; k < 3; k++) { D.rect(17.4 + k, 18.6 - k * 0.6, 0.8, 3, P.wood[2]); D.px(17.4 + k, 18 - k * 0.6, P.red[2]); } },
     hat: D => { D.G([[19, 22.4], [19.4, 14.6], [23, 12], [28, 12.6], [30, 15.4], [24.6, 15.2], [22.6, 17.6], [22.6, 22.6]], P.green); D.L([[19.6, 14.6], [16.6, 17]], 1.2, 0.6, P.green); },
     back: D => { armTo(D, 21, 27, 26.6, 28.6, dkp(P.leather)); hand(D, 27.4, 28.6, P.skin2); D.L([[27.6, 28.6], [35, 28.2]], 0.5, 0.5, P.wood); D.px(35.8, 28.2, P.steel[2]); },
-    front: D => { armTo(D, 27.5, 27, 33, 28, P.leather); D.L([[32.6, 16], [36.6, 22], [36.6, 34], [32.6, 40]], 1, 0.7, P.wood); D.L([[32.6, 16], [32.6, 40]], 0.5, 0.5, ['#0000', '#e8e0d0', '#e8e0d0', '#e8e0d0'], null); hand(D, 34.6, 28); } }); } };
+    frontMorph: true,
+    front: (D, h, m) => { armTo(D, 27.5, 27, 33, 28, P.leather); D.L([[32.6, 16], [36.6, 22], [36.6, 34], [32.6, 40]], 1, 0.7, P.wood); const sx = 32.6 - 6.4 * m; D.L(m > 0.05 ? [[32.6, 16], [sx, 28.4], [32.6, 40]] : [[32.6, 16], [32.6, 40]], 0.5, 0.5, ['#0000', '#e8e0d0', '#e8e0d0', '#e8e0d0'], null); hand(D, 34.6, 28); } });
+    R.pose = (anim, f, G, T, fx, s) => { if (anim !== 'attack') return; T.armF.m = Math.round(s.chg * 4) / 4; T.armB.dx -= 6.4 * s.u * s.chg; T.armB.dy -= 0.6 * s.u * s.chg; T.armF.rot -= 0.06 * s.chg; T.head.rot -= 0.05 * s.chg; if (f >= 0.41 && f < 0.75) T.armB.dx += 2.2 * s.u * s.rec; }; } };
   // 사제: 흰 옷, 향로
   DEF.priest = { side: 'inv', build(R) { human(R, { top: P.white, robe: P.white, strike: 0.3, cast: -0.9,
     torso: D => { D.rect(22.6, 25.6, 1.6, 17, P.gold[1]); D.rect(25.6, 25.6, 1.6, 17, P.gold[1]); D.rect(22.6, 31, 4.6, 1, P.gold[3]); },
     hat: D => { D.G([[20.4, 14.6], [22.4, 7], [24.8, 4.6], [27.2, 7], [29.4, 14.6]], P.white); D.rect(20.6, 13.2, 8.8, 1.4, P.gold[1]); D.rect(24.4, 6.6, 1, 6, P.gold[1]); D.rect(22.6, 8.8, 4.6, 1, P.gold[1]); },
     front: D => { armTo(D, 27.5, 27, 32.6, 25.6, P.white); hand(D, 33.4, 25.4); D.L([[33.6, 26], [35.6, 32]], 0.5, 0.5, ['#0000', P.gold[3], P.gold[3], P.gold[3]], null); },
     back: D => { armTo(D, 21, 27, 19.6, 32, dkp(P.white)); D.G([[16.6, 30], [21, 30.6], [20.6, 35], [16.4, 34.4]], P.red); D.rect(18.2, 31.4, 1, 2.4, P.gold[1]); },
-    extra: R => { R.part('censer', { px: 35.6, py: 31, z: 9, role: 'sway', amp: 1.6, parent: 'armF' }, D => { D.B(35.8, 34, 2.4, 2.2, P.gold); D.rect(34.4, 33.4, 3, 0.7, P.gold[3]); D.px(35.6, 31.6, P.gold[1]); }); for (let k = 0; k < 2; k++) R.part('smoke' + k, { px: 36, py: 30, z: 0, role: 'float', ph: k * 3, amp: 2 }, D => { D.flat(D.el(38 + k * 3, 27 - k * 6, 1.8 - k * 0.5, 1.4 - k * 0.3), '#e8e0d088'); }); } }); } };
+    extra: R => { R.part('censer', { px: 35.6, py: 31, z: 9, role: 'sway', amp: 1.6, parent: 'armF' }, D => { D.B(35.8, 34, 2.4, 2.2, P.gold); D.rect(34.4, 33.4, 3, 0.7, P.gold[3]); D.px(35.6, 31.6, P.gold[1]); }); for (let k = 0; k < 2; k++) R.part('smoke' + k, { px: 36, py: 30, z: 0, role: 'float', ph: k * 3, amp: 2 }, D => { D.flat(D.el(38 + k * 3, 27 - k * 6, 1.8 - k * 0.5, 1.4 - k * 0.3), '#e8e0d088'); }); } });
+    R.glow = '#fff3a0'; R.pose = (anim, f, G, T, fx, s) => { if (anim !== 'attack') return; T.armF.rot -= 0.45 * s.chg; T.censer.rot += 0.9 * s.chg - 1.1 * s.rec; for (const n of ['smoke0', 'smoke1']) { T[n].dy -= 3 * s.u * s.chg; T[n].sx *= 1 + 0.8 * s.chg; T[n].sy *= 1 + 0.8 * s.chg; } fx.glow = Math.max(fx.glow, 0.3 * s.chg); }; } };
   // 마법사: 긴 지팡이, 별 무늬
   DEF.mage = { side: 'inv', build(R) { human(R, { top: P.blue, robe: P.blue, strike: 0.3, cast: -0.8, skin: P.skin,
     torso: D => { for (const [x, y] of [[21, 28], [26.6, 30], [22.6, 36], [28, 40], [19.6, 41], [24.6, 42.6]]) D.px(x, y, P.gold[2]); D.rect(19.8, 33, 8.6, 1, P.gold[1]); },
     face: D => { D.rect(24.2, 17.4, 1, 1.8, INK); D.rect(27.4, 17.4, 1, 1.8, INK); D.G([[21.6, 20], [29.6, 20], [28, 25], [25, 28.6], [22.6, 25]], P.hairG); },
     hat: D => { D.G([[19.6, 14.4], [22.6, 7], [21.4, 2.6], [26, 5.6], [29.6, 14.4]], P.blue); D.G([[15.4, 15.6], [16.6, 13.6], [33, 13.6], [34.2, 15.6]], P.blue); D.px(24.4, 9, P.gold[2]); D.px(23.6, 10, P.gold[2]); D.px(25.2, 10, P.gold[2]); D.px(24.4, 11, P.gold[2]); },
     front: D => { armTo(D, 27.5, 27, 32, 28.6, P.blue); D.L([[33.4, 44], [33.6, 11]], 0.9, 0.9, P.wood); D.L([[33.6, 11], [32, 8.4], [33, 6]], 0.8, 0.6, P.wood); hand(D, 33, 28.4); },
-    extra: R => R.part('gem', { px: 35, py: 8, z: 9, role: 'pulse', amp: 1.4, sp: 2, parent: 'armF' }, D => { D.B(35, 8, 2.2, 2.2, ['#3a1a08', '#f08a2a', '#ffe0a0', '#b0501a']); D.spark(35, 7.4, '#ffe0a0', true); }) }); R.glow = '#ffb040'; } };
+    extra: R => R.part('gem', { px: 35, py: 8, z: 9, role: 'pulse', amp: 1.4, sp: 2, parent: 'armF' }, D => { D.B(35, 8, 2.2, 2.2, ['#3a1a08', '#f08a2a', '#ffe0a0', '#b0501a']); D.spark(35, 7.4, '#ffe0a0', true); }) }); R.glow = '#ffb040'; R.pose = (anim, f, G, T, fx, s) => { if (anim !== 'attack') return; T.gem.sx *= 1 + 0.5 * s.chg; T.gem.sy *= 1 + 0.5 * s.chg; fx.glow = Math.max(fx.glow, 0.45 * s.chg); }; } };
   // 도적: 단검 둘, 웅크린 몸
   DEF.rogue = { side: 'inv', build(R) { human(R, { top: P.leather, bot: P.leather, crouch: true, strike: 1.1, backStrike: 0.8, cloak: [P.shadow[0], '#3a2e3a', '#5a4a58', '#221a24'],
     torso: D => { D.L([[20, 29], [28.4, 33]], 0.6, 0.6, ['#0000', P.brown[1], P.brown[1], P.brown[1]], null); D.rect(19.8, 34.4, 8.6, 1.2, P.brown[3]); D.px(26, 34.8, P.steel[2]); },
@@ -796,13 +805,13 @@ const LAIRART = (() => {
     for (let i = 0; i < 9; i++) { const f = (hsh(i, 2) + t * 1.3) % 1, x = b.x + (hsh(i, 4) - 0.5) * U * 0.8, y = gy - f * o.size * 1.6; g.a(k * (1 - f)); star(g, x, y, i % 2 ? '#fff3a0' : '#ffffff', i % 3 === 0); } g.a(1); };
   // 화살: 날아가 박힌다. 겨냥(snipe)은 먼저 표적에 금을 긋는다
   FX.arrow = (g, a, b, t, o) => { const U = o.size, k = seg(t, 0, 0.6), arc = o.arc == null ? 0.12 : o.arc, d = Math.hypot(b.x - a.x, b.y - a.y) || 1, pos = f => [lerp(a.x, b.x, f), lerp(a.y, b.y, f) - sin(f * Math.PI) * d * arc], p = pos(Math.min(k, 1)), q2 = pos(Math.max(0, Math.min(k, 1) - 0.06)), an = Math.atan2(p[1] - q2[1], p[0] - q2[0]) + (k >= 1 ? sin(t * 60) * 0.12 * (1 - seg(t, 0.6, 0.9)) : 0), L = U * 0.5, tx = p[0] - cos(an) * L, ty = p[1] - sin(an) * L;
-    if (k < 1) { g.a(0.5); for (let i = 1; i < 9; i++) { const r = pos(Math.max(0, k - i * 0.03)); g.sq(r[0], r[1], i < 4 ? '#ffffff' : '#fff3a0', i < 3 ? 2 : 1); } g.a(1); }
+    if (k < 1) { for (let i = 1; i < 14; i++) { const r = pos(Math.max(0, k - i * 0.035)); g.a(0.85 * (1 - i / 14)).sq(r[0], r[1], i < 5 ? '#ffffff' : o.col || '#fff3a0', i < 6 ? 2 : 1); } g.a(1); }
     g.a(1 - seg(t, 0.88, 1)); g.line(tx, ty, p[0], p[1], '#1c1008', 3).line(tx, ty, p[0], p[1], '#c08a50', 1); g.sq(p[0], p[1], '#1b1d2a', 3).sq(p[0], p[1], '#dce4f4', 1); for (const sd of [-1, 1]) g.line(tx, ty, tx - cos(an - sd * 0.6) * U * 0.1, ty - sin(an - sd * 0.6) * U * 0.1, o.col || '#e06050', 1);
     if (k >= 1 && t < 0.8) { const pp = seg(t, 0.6, 0.8); rays(g, b.x, b.y, U * 0.1 + pp * U * 0.14, 6, '#ffffff', 0.5, U * 0.12 * (1 - pp)); } g.a(1); };
   FX.snipe = (g, a, b, t, o) => { const U = o.size, aim = seg(t, 0, 0.4); if (t < 0.5) { const r = U * (0.7 - aim * 0.4); g.a(0.9).ring(b.x, b.y, r, r, '#a8242c', 1, f => (f * 4 + 0.07) % 1 < 0.86); for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) g.line(b.x + dx * r * 0.6, b.y + dy * r * 0.6, b.x + dx * r * 1.3, b.y + dy * r * 1.3, '#e06050', 1); g.dot(b.x, b.y, '#ffffff'); g.a(0.3).line(a.x, a.y, b.x, b.y, '#e06050', 1); g.a(1); }
     if (t >= 0.4) FX.arrow(g, a, b, seg(t, 0.4, 1), Object.assign({}, o, { arc: 0 })); };
   // 마법 탄
-  FX.bolt = (g, a, b, t, o) => { const U = o.size, k = ease(seg(t, 0, 0.7)), x = lerp(a.x, b.x, k), y = lerp(a.y, b.y, k), c = o.col || '#f08a2a', c2 = o.col2 || '#ffe0a0'; if (k < 1) { for (let i = 1; i < 7; i++) { const f = Math.max(0, k - i * 0.035); g.a(1 - i / 7).sq(lerp(a.x, b.x, f) + sin(f * 30 + i) * g.s, lerp(a.y, b.y, f) + cos(f * 30 + i) * g.s, i % 2 ? c : c2, i < 3 ? 3 : 2); } g.a(1).disc(x, y, U * 0.13, INK).disc(x, y, U * 0.1, c).disc(x - g.s, y - g.s, U * 0.05, c2); g.dot(x - g.s, y - g.s, '#ffffff'); } else { const p = seg(t, 0.7, 1); g.a(1 - p).ring(b.x, b.y, U * (0.1 + p * 0.3), U * (0.1 + p * 0.3), c, 2); rays(g, b.x, b.y, U * 0.16 * p + g.s * 2, 7, c2, 0.3, U * 0.14 * (1 - p)); g.a(1); } };
+  FX.bolt = (g, a, b, t, o) => { const U = o.size, k = ease(seg(t, 0, 0.7)), x = lerp(a.x, b.x, k), y = lerp(a.y, b.y, k), c = o.col || '#f08a2a', c2 = o.col2 || '#ffe0a0'; if (k < 1) { for (let i = 1; i < 12; i++) { const f = Math.max(0, k - i * 0.035); g.a(1 - i / 12).sq(lerp(a.x, b.x, f) + sin(f * 30 + i) * g.s, lerp(a.y, b.y, f) + cos(f * 30 + i) * g.s, i % 2 ? c : c2, i < 3 ? 3 : 2); } g.a(1).disc(x, y, U * 0.13, INK).disc(x, y, U * 0.1, c).disc(x - g.s, y - g.s, U * 0.05, c2); g.dot(x - g.s, y - g.s, '#ffffff'); } else { const p = seg(t, 0.7, 1); g.a(1 - p).ring(b.x, b.y, U * (0.1 + p * 0.3), U * (0.1 + p * 0.3), c, 2); rays(g, b.x, b.y, U * 0.16 * p + g.s * 2, 7, c2, 0.3, U * 0.14 * (1 - p)); g.a(1); } };
   // 그림자 걸음: 흩어졌다가 뒤에서 솟아 긋는다
   FX.backstab = (g, a, b, t, o) => { const U = o.size, out = seg(t, 0, 0.35), run = seg(t, 0.15, 0.6), inn = seg(t, 0.5, 0.75), cut = seg(t, 0.72, 0.95), sh = '#120c1a', vi = '#8a6ab0';
     if (out < 1) for (let i = 0; i < 44; i++) { const x = (hsh(i, 1) - 0.5) * U * 0.44, y = -hsh(i, 2) * U * 0.9; if (hsh(i, 3) > out * 0.9) g.dot(a.x + x * (1 + out), a.y + U * 0.3 + y + out * U * 0.3 * hsh(i, 4), i % 3 ? sh : vi, 2, 2); }
@@ -872,16 +881,21 @@ const LAIRART = (() => {
   // 맞는 불꽃, 진액, 치유
   FX.spark = (g, a, b, t, o) => { const U = o.size, c = o.col || '#fff3a0'; g.a(1 - t * t); rays(g, b.x, b.y, U * (0.06 + t * 0.22), 6, c, o.seed || 0.4, U * 0.16 * (1 - t), t < 0.4 ? 2 : 1); rays(g, b.x, b.y, U * (0.04 + t * 0.14), 6, '#ffffff', (o.seed || 0.4) + 0.52, U * 0.08 * (1 - t)); if (t < 0.35) star(g, b.x, b.y, '#ffffff', true); g.a(1); };
   FX.ichor = (g, a, b, t, o) => { const U = o.size, c = o.col || '#3aa89a', c2 = o.col2 || '#c0fff0'; for (let i = 0; i < 10; i++) { const an = -Math.PI / 2 + (hsh(i, o.seed || 1) - 0.5) * 2.6, v = U * (0.5 + hsh(i, 3) * 0.6), x = b.x + cos(an) * v * t, y = b.y + sin(an) * v * t + t * t * U * 0.9; g.a(1 - seg(t, 0.7, 1)).sq(x, y, INK, i % 3 ? 4 : 5).sq(x, y, i % 4 ? c : c2, i % 3 ? 2 : 3); } g.a(seg(t, 0.4, 0.7) * (1 - seg(t, 0.85, 1))).ell(b.x, b.y + U * 0.36, U * 0.3, U * 0.08, c); g.a(1); };
+  // 막음: 맞는 쪽 앞에 방패 꼴 빛이 섰다 꺼진다. a = 때린 쪽, b = 막은 쪽
+  FX.block = (g, a, b, t, o) => { const U = o.size, c = o.col || '#a8c8ff', d = Math.hypot(a.x - b.x, a.y - b.y) || 1, ux = (a.x - b.x) / d, uy = (a.y - b.y) / d, cx = b.x + ux * U * 0.24, cy = b.y + uy * U * 0.16, p = ease(Math.min(1, t * 2.2)), w = U * (0.15 + 0.07 * p), h = U * (0.2 + 0.08 * p);
+    g.a((1 - t * t) * 0.95); const pts = [[cx - w, cy - h], [cx + w, cy - h], [cx + w, cy + h * 0.2], [cx, cy + h], [cx - w, cy + h * 0.2]]; for (let i = 0; i < 5; i++) { const q = pts[i], r = pts[(i + 1) % 5]; g.line(q[0], q[1], r[0], r[1], '#0a1226', 4).line(q[0], q[1], r[0], r[1], t < 0.25 ? '#ffffff' : c, 2); }
+    if (t < 0.5) { g.line(cx, cy - h * 0.6, cx, cy + h * 0.5, '#ffffff', 1).line(cx - w * 0.6, cy - h * 0.15, cx + w * 0.6, cy - h * 0.15, '#ffffff', 1); rays(g, cx + ux * U * 0.08, cy + uy * U * 0.06, U * 0.1 + t * U * 0.2, 5, '#ffffff', 0.21, U * 0.1 * (1 - t * 2)); } g.a(1); };
   FX.heal = (g, a, b, t, o) => { const U = o.size, c = o.col || '#7af0a0'; for (let i = 0; i < 6; i++) { const f = (hsh(i, 1) * 0.5 + t) % 1, x = b.x + (hsh(i, 2) - 0.5) * U * 0.7, y = b.y + U * 0.2 - f * U * 0.9; g.a((1 - f) * (1 - seg(t, 0.8, 1))); g.dot(x - g.s, y, c, 3, 1).dot(x, y - g.s, c, 1, 3); g.dot(x, y, '#ffffff'); } g.a(1); };
   // 내 처음 이름들도 받는다
   Object.assign(FX, { spore: FX.cloud, bite: FX.bites, charge: FX.dash, fire: FX.firepillar, shield: FX.shieldwall, prayer: FX.light, shadow: FX.backstab, silence: FX.seal, sanctuary: FX.sanctum, book: FX.read, tide: FX.wave, eye: FX.skyeye, devour: FX.feast, splash: FX.ichor });
   function fx(name, ctx, from, to, t, o) { const f = FX[name]; if (!f) return false; o = Object.assign({ px: 2, size: 64 }, o); to = to || from; from = from || to; ctx.save(); ctx.imageSmoothingEnabled = false; f(pen(ctx, o.px), from, to, clamp(t, 0, 1), o); ctx.restore(); return true; }
   // 뜨는 숫자. kind: dmg crit san heal mad block gold
   const DIG = { 0: '111101101101111', 1: '010110010010111', 2: '111001111100111', 3: '111001111001111', 4: '101101111001001', 5: '111100111001111', 6: '111100111101111', 7: '111001010010010', 8: '111101111101111', 9: '111101111001111', '+': '000010111010000', '-': '000000111000000' };
-  const NUMC = { dmg: ['#ffffff', '#0c0812'], crit: ['#ffe060', '#3a0c08'], san: ['#cdbcff', '#1a0a3a'], heal: ['#7af0a0', '#062a14'], mad: ['#f070e8', '#2a0630'], block: ['#9aa0b4', '#0c0812'], gold: ['#8fe8d8', '#06141c'] };
-  function num(ctx, x, y, text, kind, t, px) { const s = (px || 2) * (kind === 'crit' ? 1.5 : 1) * (t < 0.12 ? 1.5 : 1), col = NUMC[kind] || NUMC.dmg, str = String(text), spiral = kind === 'san' || kind === 'mad', w = (str.length * 4 - 1 + (spiral ? 6 : 0)) * s, x0 = Math.round(x - w / 2 + (kind === 'crit' && t < 0.3 ? Math.sin(t * 90) * 2 : 0)), y0 = Math.round(y - 22 * ease(Math.min(1, t * 1.3)) - (kind === 'crit' ? 4 : 0));
+  const NUMC = { dmg: ['#ffffff', '#0c0812'], crit: ['#ffe060', '#3a0c08'], san: ['#cdbcff', '#1a0a3a'], heal: ['#7af0a0', '#062a14'], mad: ['#f070e8', '#2a0630'], block: ['#9aa0b4', '#0c0812'], guard: ['#a8c8ff', '#0a1226'], gold: ['#8fe8d8', '#06141c'] };
+  function num(ctx, x, y, text, kind, t, px) { const s = (px || 2) * (kind === 'crit' ? 1.5 : 1) * (t < 0.12 ? 1.5 : 1), col = NUMC[kind] || NUMC.dmg, str = String(text), spiral = kind === 'san' || kind === 'mad', shield = kind === 'guard', w = (str.length * 4 - 1 + (spiral || shield ? 6 : 0)) * s, x0 = Math.round(x - w / 2 + (kind === 'crit' && t < 0.3 ? Math.sin(t * 90) * 2 : 0)), y0 = Math.round(y - 22 * ease(Math.min(1, t * 1.3)) - (kind === 'crit' ? 4 : 0));
     ctx.save(); ctx.globalAlpha = 1 - seg(t, 0.72, 1); const cells = []; let cx = 0;
     if (spiral) { for (const [dx, dy] of [[1, 0], [2, 0], [3, 0], [0, 1], [4, 1], [0, 2], [2, 2], [4, 2], [0, 3], [2, 3], [3, 3], [1, 4], [4, 4], [2, 5], [3, 5]]) cells.push([dx, dy - 0.5]); cx = 6; }
+    if (shield) { for (let i = 0; i < 25; i++) if ('1111111111111110111000100'[i] === '1') cells.push([i % 5, Math.floor(i / 5)]); cx = 6; }
     for (const ch of str) { const d = DIG[ch]; if (d) for (let i = 0; i < 15; i++) if (d[i] === '1') cells.push([cx + i % 3, Math.floor(i / 3)]); cx += 4; }
     ctx.fillStyle = col[1]; for (const [dx, dy] of cells) ctx.fillRect(Math.round(x0 + dx * s - s), Math.round(y0 + dy * s - s), Math.ceil(s * 3), Math.ceil(s * 3)); ctx.fillStyle = col[0]; for (const [dx, dy] of cells) ctx.fillRect(Math.round(x0 + dx * s), Math.round(y0 + dy * s), Math.ceil(s), Math.ceil(s)); ctx.restore(); }
   // 머리 위 막대: 체력(편에 따라 빛깔), 정신(보라), 마나(얇은 줄), 방어막(흰 덧줄)
@@ -983,6 +997,11 @@ const LAIRART = (() => {
   };
   function sym(id, px) { px = px || 16; const k = 'sym:' + id + ':' + px; if (tcache[k]) return tcache[k]; const c = mk(px), x = c.getContext('2d'); if (ICON[id]) { const D = kit(16, 16); ICON[id](D); x.imageSmoothingEnabled = false; const sc = Math.max(1, Math.floor(px / 16)); x.drawImage(D.K.canvas(), PAD, PAD, 16, 16, Math.floor((px - 16 * sc) / 2), Math.floor((px - 16 * sc) / 2), 16 * sc, 16 * sc); } return (tcache[k] = c); }
   const aspIcon = sym, clsIcon = sym;
+  const ROLEG = { tank: '1111111111111111111111111111011111000111000001000', melee: '0000011000011100011100101100001100001010001000000', ranged: '0110000000100000001001111111000010000010000110000', support: '0011100001110011111111111111111111100111000011100', dive: '1000001010001000101001001001010001000101000001000' };
+  const ROLEC = { tank: '#a8c8ff', melee: '#ffb08a', ranged: '#ffe27a', support: '#8ff0a8', dive: '#e89cff' };
+  // 판 위에 바로 그린다: (cx, cy) 가운데, 한 점의 크기 s
+  function roleDraw(ctx, id, cx, cy, s) { const g = ROLEG[id]; if (!g) return false; s = s || 2; const w = 7 * s, x0 = Math.round(cx - w / 2), y0 = Math.round(cy - w / 2); ctx.fillStyle = '#0c0812'; ctx.fillRect(x0 - s - 1, y0 - s, w + 2 * s + 2, w + 2 * s); ctx.fillRect(x0 - s, y0 - s - 1, w + 2 * s, w + 2 * s + 2); ctx.fillStyle = ROLEC[id]; for (let i = 0; i < 49; i++) if (g[i] === '1') ctx.fillRect(x0 + (i % 7) * s, y0 + Math.floor(i / 7) * s, s, s); return true; }
+  function role(id, px) { px = px || 18; const k = 'role:' + id + ':' + px; if (tcache[k]) return tcache[k]; const c = mk(px), s = Math.max(1, Math.floor(px / 9)); roleDraw(c.getContext('2d'), id, px / 2, px / 2, s); return (tcache[k] = c); }
   // 본보기 판과 싸움 장면 (확인용). 너비에 맞춰 칸 크기를 잡는다
   const SAMPLE_ROOMS = [['pool', 0, 3, 3], ['bone', 3, 3, 3], ['nursery', 0, 4, 2], ['digest', 2, 4, 2], ['eye', 4, 4, 2], ['altar', 0, 5, 2], ['shade', 4, 5, 2]];
   function mockBoard(width, o) { o = o || {}; const S = Math.floor(width / 6 / 8) * 8, ox = Math.floor((width - S * 6) / 2), t = o.t || 0, w = wallTop(S, 6, t), c = mk(width, w.height + S * 6 + (o.extra || 0)), x = c.getContext('2d'); x.imageSmoothingEnabled = false; x.fillStyle = '#07050c'; x.fillRect(0, 0, c.width, c.height); x.drawImage(w, ox, 0);
@@ -1011,7 +1030,7 @@ const LAIRART = (() => {
     ['abyss', 'nebula', 'brood', 'dusk', 'hunger', 'guard', 'hunter', 'caller', 'mother'].forEach((id, n) => x.drawImage(sym(id, 16), c.ox + 6 + n * 22, by + 50));
     return c; }
   const prewarm = (list, star, anims) => { for (const id of list) { const h = BOSS[id] ? boss(id) : unit(id, star || 1); if (h) for (const an of anims || ['idle', 'attack']) for (let k = 0; k < ANIM[an].n; k++) h.frame(an, k * ANIM[an].dur / ANIM[an].n + 1); } };
-  const API = { unit, boss, icon, prewarm, ANIM, DEF, BOSS, P, PAD, lean, FX, fx, num, bar, tile, wallTop, entrance, room, ROOMS, aspIcon, clsIcon, sym, mockBoard, mockScene, ids: side => Object.keys(DEF).filter(k => (DEF[k].side || 'kin') === side) };
+  const API = { unit, boss, icon, prewarm, role, roleDraw, ROLEC, SHOOT, ANIM, DEF, BOSS, P, PAD, lean, FX, fx, num, bar, tile, wallTop, entrance, room, ROOMS, aspIcon, clsIcon, sym, mockBoard, mockScene, ids: side => Object.keys(DEF).filter(k => (DEF[k].side || 'kin') === side) };
   if (typeof window !== 'undefined') window.LAIRART = API;
   return API;
 })();

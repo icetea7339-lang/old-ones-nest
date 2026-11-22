@@ -12,10 +12,10 @@ P('- 레벨 오름에 드는 경험: ' + Object.keys(K.xpNeed).map(l => l + '→
 P('- 상점 확률 (1값/2값/3값 %): ' + Object.keys(K.odds).map(l => '레벨 ' + l + ' = ' + K.odds[l].join('/')).join(', ') + '.');
 P('- 별: 같은 권속 셋 = 2성, 2성 셋 = 3성. 체력과 공격 배수 ' + L.STARM.slice(1).join(' / ') + '. 파는 값 = 값 x 들어간 수 (1성 1, 2성 3, 3성 9).');
 P('- 전체 배수: 체력 x' + K.hpMul + ', 정신 x' + K.sanMul + ', 스킬과 지속 피해 x' + K.skillMul + '. 라운드별 침입자 체력 x' + K.roundHp.join('/') + ', 공격 x' + K.roundAtk.join('/') + ', 정신 x' + K.roundSan.join('/') + '.');
-P('- 본체: 체력 ' + K.core.hp * K.hpMul + ' (레벨마다 +' + K.core.lvHp * 100 + '%, 라운드마다 +' + K.core.rdHp * 100 + '%), 공격 ' + K.core.atk + ', 초당 ' + K.core.as + '번, 닿는 칸 ' + K.core.range + ', 방어 ' + K.core.df + ', 마나 ' + K.core.mana + '.'); P('');
+P('- 본체: 체력 ' + K.core.hp * K.hpMul + ' (레벨마다 +' + K.core.lvHp * 100 + '%, 라운드마다 +' + K.core.rdHp * 100 + '%), 공격 ' + K.core.atk + ', 초당 ' + +(K.core.as * K.pace.as).toFixed(2) + '번, 닿는 칸 ' + K.core.range + ', 방어 ' + K.core.df + ', 마나 ' + K.core.mana + '.'); P('');
 P('## 권속 12종 (표의 체력은 싸움에서의 실제 값)');
-head(['id', '이름', '값', '성향', '종류', '체력 1/2/3성', '공격 1/2/3성', '초당 공격', '닿는 칸', '방어', '마나', '정신 피해', '스킬']);
-L.KIN_IDS.forEach(k => { const i = [1, 2, 3].map(s => L.unitInfo(k, s)), a = i[0]; row([k, a.name, a.cost, a.aspName, a.clsName, i.map(x => x.hp).join(' / '), i.map(x => x.atk).join(' / '), a.as, a.range, a.df, a.mana, i.map(x => x.sanAtk).join(' / '), a.skill.name]); }); P('');
+head(['id', '이름', '값', '성향', '종류', '체력 1/2/3성', '공격 1/2/3성', '초당 공격', '역할 · 닿는 칸', '방어', '마나', '정신 피해', '스킬']);
+L.KIN_IDS.forEach(k => { const i = [1, 2, 3].map(s => L.unitInfo(k, s)), a = i[0]; row([k, a.name, a.cost, a.aspName, a.clsName, i.map(x => x.hp).join(' / '), i.map(x => x.atk).join(' / '), +(L.KIN[k].as * K.pace.as).toFixed(2), a.roleName + ' · ' + a.range, a.df, a.mana, i.map(x => x.sanAtk).join(' / '), a.skill.name]); }); P('');
 P('### 권속 스킬 (1/2/3성)');
 head(['권속', '스킬', '1성', '2성', '3성', '풀이']);
 L.KIN_IDS.forEach(k => { const s = L.KIN[k].skill, i = [1, 2, 3].map(l => L.skillInfo(s, l)); row([L.KIN[k].name, i[0].name + ' (' + s + ')', i[0].short, i[1].short, i[2].short, i[0].more]); }); P('');
@@ -24,7 +24,7 @@ P('## 본체 「옛 것」의 모습'); head(['모습', '이름', '되는 조건
 Object.keys(L.FORM).forEach(f => { const i = [1, 2, 3].map(r => L.formInfo(f, r)); row([f, i[0].name, f === 'drop' ? '성향이 갈리지 않았을 때' : L.ASPN[f] + ' 권속이 가장 많을 때', i[0].skill.name + ' (' + i[0].skill.id + ')', i.map(x => x.skill.short).join(' / '), i[0].skill.more]); }); P('');
 P('## 침입자 12종 (기본값. 싸움에서는 라운드 배수가 붙는다)');
 head(['id', '이름', '역할', '체력', '정신', '공격', '초당 공격', '닿는 칸', '방어', '마나', '스킬', '수치', '풀이']);
-L.INV_IDS.forEach(k => { const d = L.INV[k], i = L.invInfo(k, 2); row([k, d.name, d.role, d.hp * K.hpMul, Math.round(d.san * K.sanMul), d.atk, d.as, d.range, d.df, d.mana, i.skill.name + ' (' + d.skill + ')', i.skill.short, i.skill.more]); }); P('');
+L.INV_IDS.forEach(k => { const d = L.INV[k], i = L.invInfo(k, 2); row([k, d.name, i.roleName + (d.tag ? ' · ' + d.tag : ''), Math.round(d.hp * K.hpMul), Math.round(d.san * K.sanMul), d.atk, +(d.as * K.pace.as).toFixed(2), d.range, d.df, d.mana, i.skill.name + ' (' + d.skill + ')', i.skill.short, i.skill.more]); }); P('');
 P('## 라운드'); head(['라운드', '이름', '침입자 (이름 @ 행,열)']);
 L.ROUNDS.forEach((r, n) => row([n + 1, r.name, r.units.map(u => L.INV[u[0]].name + ' @' + u[1] + ',' + u[2]).join(' · ')])); P('');
 P('## 방 타일 8종'); head(['id', '이름', '칸', '효과', '풀이']);
