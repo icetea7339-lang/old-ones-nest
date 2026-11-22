@@ -3,7 +3,7 @@
 //   그림은 tests/lairart_out/ 에, 미리보기는 tests/lairart_preview.html 에 쓴다.
 const pw = require('playwright'), fs = require('fs'), path = require('path');
 const SRC = path.join(__dirname, '..', 'src'), OUT = path.join(__dirname, 'lairart_out'); fs.mkdirSync(OUT, { recursive: true });
-const mon = fs.readFileSync(path.join(SRC, 'monsters.js'), 'utf8'), sculpt = mon.slice(mon.indexOf('const _c32'), mon.indexOf('// 가면'));
+const mon = fs.readFileSync(path.join(SRC, 'base.js'), 'utf8'), sculpt = mon.slice(mon.indexOf('const _c32'));
 const lib = () => sculpt + '\n' + fs.readFileSync(path.join(SRC, 'lairart.js'), 'utf8');
 const mode = process.argv[2] || 'all', only = process.argv.slice(3);
 const PAGE = body => '<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>둥지 전투 그림</title><style>body{margin:0;background:#0d0c18;color:#cfc8d8;font:13px sans-serif}canvas{image-rendering:pixelated}</style></head><body>' + body + '</body></html>';
@@ -49,18 +49,8 @@ window.SHEET = function (cells, cols, scale, cw, ch, bg) {
     cells.forEach(function (c) { c.x.clearRect(0, 0, 240, 250); c.x.fillStyle = '#6a6478'; c.x.font = '12px sans-serif'; c.x.fillText(a, 6, 14); c.h.draw(c.x, 120, 215, a, lt, { scale: c.q.boss ? 2 : 3, flip: L.DEF[c.q.id] && L.DEF[c.q.id].side === 'inv' }); });
     requestAnimationFrame(loop); })(); })();
 </script>`));
-  if (mode === 'old' || mode === 'all') {
-    // 옛 그림(멈춘 한 장, 32 점)과 새 그림(리그, 48 점)을 같은 배율로 나란히. 합친 게임 파일에서 그린다
-    const html = fs.readFileSync(path.join(__dirname, '..', '..', 'PLAY-GAME.html'), 'utf8'), q = await b.newPage({ viewport: { width: 1300, height: 900 } }); q.on('pageerror', e => errs.push('게임: ' + e.message));
-    await q.route('http://nest.test/', r => r.fulfill({ contentType: 'text/html', body: html })); await q.route(/fonts\./, r => r.abort()); await q.goto('http://nest.test/'); await q.waitForTimeout(500);
-    const url = await q.evaluate(() => { const S = __nest.NEST, old = Object.keys(S.KIN).slice(0, 12), neu = LAIRART.ids('kin'), Z = 3, cw = 100, c = document.createElement('canvas'); c.width = cw * 12; c.height = 150 * 4 + 40; const x = c.getContext('2d'); x.imageSmoothingEnabled = false; x.fillStyle = '#15131f'; x.fillRect(0, 0, c.width, c.height); x.fillStyle = '#9a94a8'; x.font = '12px sans-serif';
-      x.fillText('옛 그림: 멈춘 한 장 (32 점, x3)', 6, 14); old.forEach((k, i) => { try { const cv = __nest.kinCanvas(k, false); x.drawImage(cv, i * cw + 2, 30, 96, 96); } catch (e) {} });
-      x.fillText('옛 그림: 진화', 6, 150); old.forEach((k, i) => { try { const cv = __nest.kinCanvas(k, true); x.drawImage(cv, i * cw + 2, 160, 96, 96); } catch (e) {} });
-      x.fillText('새 그림: 1성 (48 점, x3 을 줄여 같은 눈금) — 공격 순간', 6, 300); neu.forEach((id, i) => LAIRART.unit(id, 1).draw(x, i * cw + 50, 440, 'attack', 215, { scale: 2 }));
-      x.fillText('새 그림: 3성 (64 점)', 6, 470); neu.forEach((id, i) => LAIRART.unit(id, 3).draw(x, i * cw + 50, 625, 'idle', 200, { scale: 1.5 }));
-      return c.toDataURL('image/png'); });
-    fs.writeFileSync(path.join(OUT, 'old_vs_new.png'), Buffer.from(url.split(',')[1], 'base64')); console.log('그림', path.join(OUT, 'old_vs_new.png')); await q.close();
-  }
+  // 옛 그림과 견주기(old)는 옛 판을 내리면서 뺐다. 옛 그림은 src/old/ 에 있고 지은 판에는 없다.
+  if (mode === 'old') console.log('옛 그림은 지은 판에서 빠졌다 (src/old/). 견줄 것이 없다.');
   console.log(errs.length ? '오류: ' + errs.join(' | ') : 'no errors', '· 권속', ids.kin.length, '침입자', ids.inv.length, '본체', ids.boss.length, '연출', ids.fx.length, '방', ids.rooms.length);
   await b.close();
 })();

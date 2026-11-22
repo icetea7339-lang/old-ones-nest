@@ -17,9 +17,9 @@ const dev = process.argv[2] || '', tag = dev ? dev.replace(/\s+/g, '') : 'pc', o
   const tapCell = async c => { const pt = await p.evaluate(c => __lair.pt(c), c); await p.mouse.click(pt.x, pt.y); await p.waitForTimeout(100); };
   const ev = f => p.evaluate(f);
   await shot('title', true);
-  if (!(await p.$('[data-a="trend"]'))) throw new Error('제목에 「새 판 (시험)」이 없다');
+  if (!(await p.$('[data-a="start"]'))) throw new Error('제목에 「시작」이 없다');
   await p.evaluate(() => { window.__lairCoach = 1; });
-  await tap('[data-a="trend"]'); await ev(() => __lair.fresh(7)); await p.waitForTimeout(300); await shot('prep');
+  await tap('[data-a="start"]'); await ev(() => __lair.fresh(7)); await p.waitForTimeout(300); await shot('prep');
   if (!(await ev(() => !document.getElementById('lr-coach').hidden))) bad.push('첫 판인데 길잡이가 없다');
   const sc = await ev(() => __lair.U.scale); if (dev && sc * 64 < 52) bad.push('폰에서 칸이 너무 작다 ' + Math.round(sc * 64));
   // 상점 카드마다 역할 표지와 닿는 칸 글이 있다. 적 미리보기에도 표지가 있다

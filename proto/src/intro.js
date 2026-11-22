@@ -126,7 +126,7 @@ const INTRO_SHOTS = [
   },
 ];
 function playIntro(opts) {
-  opts = opts || {}; INTRO_LINES[6][1] = opts.camp ? '들판 가장자리 마을, 물레골 사람들은 그것을 별똥별이라 여겼다.' : '위의 세상 사람들은 그것을 별똥별이라 여겼다. 그곳이 어떤 시절인지, 떨어지는 것은 알지 못했다.'; return new Promise(resolve => {
+  opts = opts || {}; INTRO_LINES[6][1] = '위의 세상 사람들은 그것을 별똥별이라 여겼다. 그곳이 어떤 시절인지, 떨어지는 것은 알지 못했다.'; return new Promise(resolve => {
     if (!document.getElementById('introcss')) { const st = document.createElement('style'); st.id = 'introcss'; st.textContent = INTRO_CSS; document.head.appendChild(st); }
     const old = document.getElementById('intro'); if (old) old.remove();
     const root = document.createElement('div'); root.id = 'intro'; root.setAttribute('role', 'dialog'); root.setAttribute('aria-label', '여는 이야기');
@@ -164,14 +164,3 @@ function playIntro(opts) {
   });
 }
 window.playIntro = playIntro;
-// 처음 하는 사람의 시작: 여는 이야기 → 짧은 한 방울 → 카드 판 첫 몸의 씨앗을 돌려준다
-//   opts: { noFilm, canSkip, asp, seed, look }  돌려주는 것: PRO.toGenomeSeed 의 씨앗 ({ aspect, sub, look, tags, top, parts, ... })
-async function playOpening(opts) {
-  opts = opts || {};
-  if (!opts.noFilm && typeof playIntro === 'function') await playIntro({ camp: !!opts.camp });
-  const seed = opts.seed || ((Date.now() ^ (Math.random() * 1e9)) >>> 0), asp = opts.asp || PRO.ASPS[seed % 5];
-  let r = null; try { r = await runPrologue({ asp, seed, short: true, canSkip: !!opts.canSkip, look: opts.look }); } catch (e) { console.error(e); }
-  if (!r) r = { skipped: true, home: asp, look: opts.look || null };
-  return r.genomeSeed || PRO.toGenomeSeed(r);
-}
-window.playOpening = playOpening;

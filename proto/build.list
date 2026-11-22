@@ -1,0 +1,4 @@
+# 짓는 순서. build.sh, tests/lint.sh, tests/voice.js 가 함께 읽는다.
+# RULES: 화면 없이 도는 규칙(첫 script). UI: 한 함수 안에 이어 붙는 화면 파일(둘째 script).
+RULES="src/lair.js"
+UI="src/base.js src/audio.js src/lairart.js src/intro.js src/trace.js src/lairui.js src/shell.js"

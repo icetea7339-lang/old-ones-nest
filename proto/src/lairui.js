@@ -63,18 +63,46 @@ function lrSize() {
   let sc = Math.min(availW / LW, availH / H); if (wide) sc = Math.min(sc, 1.75); sc = Math.max(0.6, sc);
   LU.scale = sc; cv.style.width = Math.floor(LW * sc) + 'px'; cv.style.height = Math.floor(H * sc) + 'px'; wrap.style.width = Math.floor(LW * sc) + 'px'; wrap.style.height = Math.floor(H * sc) + 'px';
 }
-function lairOpen() {
+// run: 이어할 판(lairSaved() 가 돌려준 것). 없으면 새 판
+function lairOpen(run) {
   lrMount(); const t = $('title'); if (t) t.hidden = true; $('lr').hidden = false;
   try { LU.wallH = LAIRART.wallTop(LS, 6, 0).height; } catch (e) { LU.wallH = 45; }
-  lrNew(); if (!LU.raf) { LU.last = performance.now(); LU.raf = requestAnimationFrame(lrLoop); }
+  lrNew(0, run); if (!LU.raf) { LU.last = performance.now(); LU.raf = requestAnimationFrame(lrLoop); }
 }
-function lrNew(seed) {
-  LU.seed = seed || ((Date.now() % 1000000) + 1); LU.R = LAIR.newRun(LU.seed); LU.phase = 'prep'; LU.sel = null; LU.roomPick = null; LU.F = null; LU.res = null; LU.sheet = null; LU.speed = lrSpeedLoad(); LU.paused = false; LU.bg = null;
+function lrNew(seed, run) {
+  LU.seed = run ? run.seed : seed || ((Date.now() % 1000000) + 1); LU.R = run || LAIR.newRun(LU.seed); LU.phase = 'prep'; LU.sel = null; LU.roomPick = null; LU.F = null; LU.res = null; LU.sheet = null; LU.speed = lrSpeedLoad(); LU.paused = false; LU.bg = null;
   const coachOk = !(navigator.webdriver && !window.__lairCoach); LU.tut = coachOk && !(META && META.lairTut) ? 0 : -1;
   $('lr-sheet').hidden = true; $('lr-ov').innerHTML = ''; lrDraw(); lrSize(); lrWarmPrep();
   try { if (typeof music === 'function') music('day'); } catch (e) { /* 음악 없이 */ }
+  try { if (typeof traceLive === 'function') traceLive({ start: !run }); } catch (e) { /* 기록 없이 */ }
 }
-function lrExit() { $('lr').hidden = true; cancelAnimationFrame(LU.raf); LU.raf = 0; LU.F = null; if (typeof showTitle === 'function') showTitle(); }
+function lrExit() { lrSave(); try { if (typeof traceLive === 'function') { TRACE.last = 0; traceLive({ left: true }); } } catch (e) { /* 기록 없이 */ } $('lr').hidden = true; cancelAnimationFrame(LU.raf); LU.raf = 0; LU.F = null; LU.phase = 'prep'; if (typeof showTitle === 'function') showTitle(); }
+
+// ---- 저장, 본 것, 지난 판 ----
+// 저장은 준비 때마다(무언가 바꿀 때마다) 그리고 싸움을 시작한 직후에 한다. 싸움 결과는 시작할 때 이미 정해지므로, 싸움 도중에 나가면 다음 준비에서 잇는다.
+const LSAVE = 'lairrun';
+function lrSave() { const R = LU.R; try { if (!R || typeof store === 'undefined') return; if (R.phase === 'over') store.del(LSAVE); else store.set(LSAVE, R); } catch (e) { /* 저장 없이 */ } }
+// 이어할 판이 있으면 돌려준다. 읽지 못하거나 규칙 판이 다르면 치우고 null
+function lairSaved() {
+  let R = null; try { R = typeof store === 'undefined' ? null : store.get(LSAVE); } catch (e) { R = null; } if (R == null) return null;
+  try { if (typeof R === 'object' && !Array.isArray(R) && R.phase !== 'over' && R.v === LAIR.newRun(1).v && R.unit && Array.isArray(R.shop) && Array.isArray(R.bench) && R.board && Array.isArray(R.rooms) && isFinite(R.round) && isFinite(R.hp)) { LAIR.view(R); return R; } } catch (e) { /* 아래에서 치운다 */ }
+  try { store.set('old.' + LSAVE, R); store.del(LSAVE); } catch (e) { /* 저장 없이 */ } return null;
+}
+// 도감에 쓸 것: 가게에 나왔거나 가진 권속(별), 마주친 침입자, 받은 방, 본체의 모습
+function lrSeen(v) {
+  try { if (!META || !META.seen) return; const S = META.seen; let ch = false; const mark = (k, id, n) => { if (id && (S[k][id] || 0) < n) { S[k][id] = n; ch = true; } };
+    v.shop.forEach(q => { if (q) mark('kin', q.kind, 1); }); v.bench.forEach(u => { if (u) mark('kin', u.kind, 1 + u.star); }); v.board.forEach(u => mark('kin', u.kind, 1 + u.star));
+    v.enemy.forEach(e => mark('inv', e.kind, 1)); v.roomOffer.forEach(r => mark('room', r.id, 1)); v.rooms.forEach(r => mark('room', r.id, 2)); if (v.form) mark('form', v.form.form, 1);
+    if (ch) saveMeta(); } catch (e) { /* 저장 없이 */ }
+}
+// 판이 끝나면 한 줄 남긴다. 최근 10판
+function lrRecord(f) {
+  const R = LU.R; if (!R || !R.over) return;
+  try { if (!META) return; const team = f.units.filter(u => u.side === 'nest' && !u.core && !u.summon).map(u => [u.kind, u.star || 1]).slice(0, 12);
+    META.last = (META.last || []).concat([{ t: Date.now(), win: !!R.over.win, round: R.over.round || R.round, rounds: R.rounds, hp: Math.max(0, R.hp), level: R.level, form: f.form || 'drop', team, wins: R.hist.filter(h => h.win).length }]).slice(-10);
+    META.runs = (META.runs || 0) + 1; if (R.over.win) META.wins = (META.wins || 0) + 1; saveMeta(); } catch (e) { /* 저장 없이 */ }
+  try { if (typeof traceEnd === 'function') traceEnd(R.over.win ? 'win' : 'lose'); } catch (e) { /* 기록 없이 */ }
+}
 
 // ---- 준비 화면 (DOM) ----
 function lrDraw() {
@@ -89,7 +117,7 @@ function lrDraw() {
     + `<button class="lr-roombtn${v.roomOffer.length ? ' pri' : ''}" data-l="room"${v.roomOffer.length ? '' : ' disabled'}>${LU.roomPick != null ? '취소' : '방'}</button>`;
   $('lr-shop').innerHTML = `<div class="lr-acts"><button data-l="reroll"${v.canReroll ? '' : ' disabled'}>뽑기 ${v.costs.reroll}</button><button data-l="xp"${v.canXp ? '' : ' disabled'}>넓히기 ${v.costs.xp}<i class="lr-xp"><b style="width:${v.xpNeed ? Math.round(v.xp / v.xpNeed * 100) : 100}%"></b></i></button></div>`
     + v.shop.map((s, i) => s ? `<button class="lr-card c${s.cost}${LU.sel && LU.sel.shop === i ? ' on' : ''}${s.can ? '' : ' poor'}" data-l="shop" data-i="${i}"><img src="${lrIcon(s.kind, 1, 44)}" alt="">${lrRoleImg(s.role, 18)}<b>${esc(s.name)}</b><span class="lr-cmeta"><img src="${lrSym(s.asp, 16)}" alt="${esc(s.aspName)}"><img src="${lrSym(s.cls, 16)}" alt="${esc(s.clsName)}"><em>${s.cost}</em></span><small class="lr-reach">${esc(s.reach)}</small></button>` : '<div class="lr-card empty"></div>').join('');
-  lrTop(v); lrCoach(); lrRowTip();
+  lrTop(v); lrCoach(); lrRowTip(); lrSeen(v); lrSave();
 }
 // 처음 권속을 집었을 때 한 번: 어느 줄에 세우는지
 function lrRowTip() { if (!(LU.sel && LU.sel.uid) || LU.phase !== 'prep' || (navigator.webdriver && !window.__lairCoach)) return; try { if (!META || META.lairRow) return; META.lairRow = 1; saveMeta(); } catch (e) { return; } lrToast('탱커는 앞줄, 원거리는 뒷줄에 세운다.'); LU.toastT = LU.t + 4200; }
@@ -235,6 +263,7 @@ function lrWarmStep(budget) { const t0 = performance.now(); while (LU.warm.lengt
 function lrFight() {
   const R = LU.R, v0 = lrView(), name = v0.roundName, round = R.round, bar = { round, name, gold: v0.gold, level: v0.level, placed: v0.placed, cap: v0.cap, hp: v0.hp }; LU.sel = null; LU.roomPick = null;
   const res = LAIR.ready(R); if (!res.ok) return lrToast(res.msg);
+  lrSave(); if (R.phase === 'over') lrRecord(res.fight); else { try { if (typeof traceLive === 'function') traceLive(); } catch (e) { /* 기록 없이 */ } }
   const f = res.fight, F = { tl: f.timeline, i: 0, T: 0, ents: {}, fx: [], zones: [], nums: [], lines: [], late: [], feed: [], stop: 0, shake: 0, shakeMag: 0, intro: 1500, slowUntil: 0, slowK: 1, slows: 0, slowSeen: {}, blocks: 0, shots: 0, taunts: 0, real: 0, done: false, endAt: 0, res, name, round, bar, labs: [], rooms: f.rooms.map(r => ({ id: r.id, cells: r.cells, erased: false, pulse: 0 })), syn: f.syn, form: f.form, banner: null, consumed: 0, mads: 0, casts: 0 };
   f.units.forEach(u => { F.ents[u.id] = lrEnt(u); }); F.chips = lrSynChips(v0, f.syn);
   { const w = f.timeline.find(e => e.type === 'win'); let last = null; f.timeline.forEach(e => { if (e.type === 'die') last = e; }); if (w && last && w.t - last.t < 1) last.last = 1; }
@@ -504,4 +533,4 @@ function lrLoop(now) {
   if (LU.toastT && now > LU.toastT) { $('lr-toast').hidden = true; LU.toastT = 0; }
 }
 // 시험용
-if (typeof window !== 'undefined') window.__lair = { get R() { return LU.R; }, get U() { return LU; }, get F() { return LU.F; }, L: typeof LAIR !== 'undefined' ? LAIR : null, open: () => lairOpen(), fresh: seed => lrNew(seed), view: () => lrView(), pt(c) { const r = $('lr-cv').getBoundingClientRect(); return { x: r.left + lcx(c) * LU.scale, y: r.top + lcy(c) * LU.scale }; }, redraw: () => { lrWarmPrep(); lrDraw(); }, give(kind, star, cell) { const R = LU.R, uid = R.nextUid++; R.unit[uid] = { uid, kind, star: star || 1 }; if (cell != null) R.board[cell] = uid; else R.bench[R.bench.indexOf(null)] = uid; return uid; }, sheet: s => lrSheet(s), dbg: () => LU.dbg, speeds: () => LSPD.map(q => q[0]), stats() { const F = LU.F; return F ? { T: F.T, i: F.i, n: F.tl.length, done: F.done, intro: F.intro, real: F.real / 1000, slows: F.slows, blocks: F.blocks, shots: F.shots, taunts: F.taunts, alive: Object.keys(F.ents).filter(id => !F.ents[id].dead && !F.ents[id].core).length, mads: F.mads, casts: F.casts, late: F.late.length, ents: Object.keys(F.ents).length, frames: LU.fpsN } : null; } };
+if (typeof window !== 'undefined') window.__lair = { get R() { return LU.R; }, get U() { return LU; }, get F() { return LU.F; }, L: typeof LAIR !== 'undefined' ? LAIR : null, open: run => lairOpen(run), saved: () => lairSaved(), fresh: seed => lrNew(seed), view: () => lrView(), pt(c) { const r = $('lr-cv').getBoundingClientRect(); return { x: r.left + lcx(c) * LU.scale, y: r.top + lcy(c) * LU.scale }; }, redraw: () => { lrWarmPrep(); lrDraw(); }, give(kind, star, cell) { const R = LU.R, uid = R.nextUid++; R.unit[uid] = { uid, kind, star: star || 1 }; if (cell != null) R.board[cell] = uid; else R.bench[R.bench.indexOf(null)] = uid; return uid; }, sheet: s => lrSheet(s), dbg: () => LU.dbg, speeds: () => LSPD.map(q => q[0]), stats() { const F = LU.F; return F ? { T: F.T, i: F.i, n: F.tl.length, done: F.done, intro: F.intro, real: F.real / 1000, slows: F.slows, blocks: F.blocks, shots: F.shots, taunts: F.taunts, alive: Object.keys(F.ents).filter(id => !F.ents[id].dead && !F.ents[id].core).length, mads: F.mads, casts: F.casts, late: F.late.length, ents: Object.keys(F.ents).length, frames: LU.fpsN } : null; } };

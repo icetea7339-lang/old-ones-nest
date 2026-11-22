@@ -7,7 +7,7 @@ const dev = process.argv[2] || '', RATE = +(process.env.RATE || 4), WANT = +(pro
   const b = await pw.chromium.launch(), ctx = await FZM.context(b, dev), p = await ctx.newPage(), errs = []; p.setDefaultTimeout(20000);
   p.on('pageerror', e => errs.push(e.message));
   await p.route('http://nest.test/', r => r.fulfill({ contentType: 'text/html', body: html })); await p.route(/fonts\./, r => r.abort());
-  await p.goto('http://nest.test/'); await p.waitForTimeout(400); await p.click('[data-a="trend"]');
+  await p.goto('http://nest.test/'); await p.waitForTimeout(400); await p.click('[data-a="start"]');
   await p.evaluate(() => { __lair.fresh(11); const R = __lair.R, L = __lair.L, g = __lair.give; R.round = 3; R.level = 6; R.enemy = L.enemyOf(R, 3); g('shell', 2, 20); g('gnaw', 2, 21); g('gazer', 2, 27); g('hood', 2, 28); g('tangle', 1, 19); g('brood', 2, 25); g('mother', 1, 34); __lair.redraw(); });
   const cdp = await ctx.newCDPSession(p); await cdp.send('Emulation.setCPUThrottlingRate', { rate: RATE });
   await p.waitForTimeout(2500);

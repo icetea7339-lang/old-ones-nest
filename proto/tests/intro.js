@@ -39,7 +39,7 @@ const devName = process.argv[2], tag = devName ? devName.replace(/\s+/g, '') : '
   await p.click('#intro .iskip'); await p.waitForTimeout(300);
   const gone = await p.evaluate(() => !document.getElementById('intro') && window.__introDone);
   if (!gone) bad.push('건너뛰기가 안 된다');
-  const seen = await p.evaluate(() => __nest.META.introSeen === 1);
+  const seen = await p.evaluate(() => __shell.meta.introSeen === 1);
   if (!seen) bad.push('본 표시가 남지 않았다');
   console.log(tag, '장면 ' + n + '개', bad.length ? '실패 ' + bad.join(' | ') : '통과', errs.length ? 'errors: ' + errs.join(' | ') : 'no errors');
   await b.close(); process.exit(bad.length || errs.length ? 1 : 0);

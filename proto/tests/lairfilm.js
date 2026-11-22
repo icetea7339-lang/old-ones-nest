@@ -5,7 +5,7 @@ const t0 = +(process.argv[2] || 2), gap = +(process.argv[3] || 70), spd = +(proc
 (async () => {
   const b = await pw.chromium.launch(), ctx = await b.newContext({ viewport: { width: 390, height: 664 }, deviceScaleFactor: 1 }), p = await ctx.newPage(); p.on('pageerror', e => console.log('ERR', e.message));
   await p.route('http://nest.test/', r => r.fulfill({ contentType: 'text/html', body: html })); await p.route(/fonts\./, r => r.abort());
-  await p.goto('http://nest.test/'); await p.waitForTimeout(300); await p.click('[data-a="trend"]');
+  await p.goto('http://nest.test/'); await p.waitForTimeout(300); await p.click('[data-a="start"]');
   await p.evaluate(() => { __lair.fresh(7); const g = __lair.give; __lair.R.level = 6; g('shell', 2, 20); g('gnaw', 1, 21); g('gazer', 2, 27); g('hood', 1, 28); g('tangle', 1, 19); g('biter', 1, 22); g('brood', 1, 25); __lair.redraw(); });
   await p.waitForTimeout(1500); await p.click('#lr-top [data-l="fight"]'); await p.evaluate(s => { __lair.U.speed = s; }, spd);
   await p.waitForFunction(t => __lair.F && __lair.F.T >= t, t0, { timeout: 60000 });
