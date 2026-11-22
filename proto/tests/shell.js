@@ -1,4 +1,4 @@
-// 겉 시험: 첫 화면 → 도감 · 도움말 · 설정 → 시작(자동 시험에서는 영상을 건너뛴다) → 준비 → 다시 열어 이어하기 → 끝까지 → 지난 판
+// 겉 시험: 첫 화면 → 도감(일곱 갈래) · 도움말(여덟 쪽) · 설정 → 시작(자동 시험에서는 영상을 건너뛴다) → 준비 → 다시 열어 이어하기 → 끝까지 → 지난 판
 // 영상을 억지로 틀었을 때(처음 한 번만), 망가진 저장·옛 저장을 넣었을 때 첫 화면이 멈추지 않는지, 연결이 있을 때 그만둔 곳이 적히는지도 본다
 // node tests/shell.js [기기: 비우면 PC | "iPhone 14" | a360]   큰 글씨는 FZ=1.3
 const pw = require('playwright'), fs = require('fs'), path = require('path'), FZM = require('./_fz.js');
@@ -27,14 +27,15 @@ const dev = process.argv[2] || '', tag = (dev ? dev.replace(/\s+/g, '') : 'pc') 
   await shot(p, 'title');
   // 도감: 아직 본 것이 없다
   await tap(p, '[data-a="codex"]');
-  { const d = await p.evaluate(() => ({ tabs: document.querySelectorAll('#modal .sh-tab').length, cells: document.querySelectorAll('#modal .sh-cell').length, open: document.querySelectorAll('#modal .sh-cell:not([disabled])').length })); if (d.tabs !== 5 || d.cells !== 12) bad.push('도감 칸 수 ' + JSON.stringify(d)); if (d.open) bad.push('본 적 없는 권속이 열려 있다 ' + d.open); }
+  { const d = await p.evaluate(() => ({ tabs: document.querySelectorAll('#modal .sh-tab').length, cells: document.querySelectorAll('#modal .sh-cell').length, open: document.querySelectorAll('#modal .sh-cell:not([disabled])').length })); if (d.tabs !== 7 || d.cells !== 20) bad.push('도감 칸 수 ' + JSON.stringify(d)); if (d.open) bad.push('본 적 없는 권속이 열려 있다 ' + d.open); }
   await shot(p, 'codex_empty');
-  for (const t of ['inv', 'room', 'syn', 'form']) { await tap(p, `#modal .sh-tab[data-v="${t}"]`); await shot(p, 'codex_' + t + '_empty'); }
+  for (const [t, want] of [['inv', 19], ['cast', 6], ['myth', 43], ['room', 8], ['syn', 9], ['form', 6]]) { await tap(p, `#modal .sh-tab[data-v="${t}"]`); const k = await p.evaluate(() => document.querySelectorAll('#modal .sh-cell').length); if (k !== want) bad.push('도감 ' + t + ' 칸 수 ' + k + ' (' + want + ')'); await shot(p, 'codex_' + t + '_empty'); }
   if ((await p.evaluate(() => document.querySelectorAll('#modal .sh-cell:not([disabled])').length)) !== 1) bad.push('본체는 처음 모습 하나만 열려 있어야 한다');
   await tap(p, '#modal .sh-x'); if ((await state(p)).modal) bad.push('도감이 닫히지 않는다');
-  // 도움말 다섯 장
+  // 도움말 여덟 쪽
   await tap(p, '[data-a="help"]');
-  for (const pg of ['board', 'role', 'syn', 'room', 'mad']) { await tap(p, `#modal .sh-tab[data-v="${pg}"]`); const len = await p.evaluate(() => document.querySelector('#modal .sh-body').textContent.trim().length); if (len < 40) bad.push('도움말 ' + pg + ' 이 비었다'); await shot(p, 'help_' + pg); }
+  if ((await p.evaluate(() => document.querySelectorAll('#modal .sh-tab').length)) !== 8) bad.push('도움말이 여덟 쪽이 아니다');
+  for (const pg of ['board', 'econ', 'role', 'syn', 'room', 'mad', 'myth', 'enc']) { await tap(p, `#modal .sh-tab[data-v="${pg}"]`); const len = await p.evaluate(() => document.querySelector('#modal .sh-body').textContent.trim().length); if (len < 40) bad.push('도움말 ' + pg + ' 이 비었다'); await shot(p, 'help_' + pg); }
   if (!(await p.$('#modal [data-a="film"]'))) bad.push('도움말에 여는 이야기 단추가 없다');
   await p.keyboard.press('Escape'); await p.waitForTimeout(100); if ((await state(p)).modal) bad.push('Esc 로 창이 닫히지 않는다');
   // 설정
@@ -52,11 +53,12 @@ const dev = process.argv[2] || '', tag = (dev ? dev.replace(/\s+/g, '') : 'pc') 
   if (!before.saved || before.bench !== 1) bad.push('준비에서 저장되지 않았다 ' + JSON.stringify(before));
   await p.reload(); await p.waitForTimeout(400);
   if ((await menu(p)) !== 'cont start codex help set') bad.push('다시 열었을 때 이어하기가 없다: ' + (await menu(p)));
+  { const t = await p.evaluate(() => document.querySelector('[data-a="cont"] small').textContent); if (!/^1막 · 1\/15$/.test(t)) bad.push('이어하기에 막과 라운드가 없다: ' + t); }
   await shot(p, 'title_cont');
   await tap(p, '[data-a="cont"]'); await p.waitForTimeout(300);
   { const a = await p.evaluate(() => ({ seed: __lair.R.seed, gold: __lair.R.gold, bench: __lair.R.bench.filter(Boolean).length, phase: __lair.U.phase })); if (a.seed !== before.seed || a.gold !== before.gold || a.bench !== before.bench || a.phase !== 'prep') bad.push('이어하기가 같은 판이 아니다 ' + JSON.stringify(a) + ' / ' + JSON.stringify(before)); }
   await shot(p, 'cont_prep');
-  await tap(p, '#lr [data-l="exit"]'); { const s = await state(p); if (!s.title || s.lr) bad.push('나가기가 첫 화면으로 가지 않는다'); }
+  await tap(p, '#lr-bar .lr-menu'); await tap(p, '#lr-sheet [data-l=\"exit\"]'); { const s = await state(p); if (!s.title || s.lr) bad.push('나가기가 첫 화면으로 가지 않는다'); }
   // 도감: 가게에 나온 권속과 다음 침입자가 열렸다
   await tap(p, '[data-a="codex"]');
   { const k = await p.evaluate(() => document.querySelectorAll('#modal .sh-cell:not([disabled])').length); if (k < 2) bad.push('본 권속이 도감에 열리지 않았다 ' + k); }
@@ -74,10 +76,11 @@ const dev = process.argv[2] || '', tag = (dev ? dev.replace(/\s+/g, '') : 'pc') 
   await tap(p, '#modal [data-a="close"]'); if ((await menu(p)).indexOf('cont') < 0) bad.push('그만둔다를 눌렀는데 하던 판이 사라졌다');
   await tap(p, '[data-a="start"]'); await tap(p, '#modal [data-a="fresh"]'); await p.waitForTimeout(300);
   { const a = await p.evaluate(() => ({ round: __lair.R.round, bench: __lair.R.bench.filter(Boolean).length, phase: __lair.U.phase })); if (a.round !== 1 || a.bench !== 0 || a.phase !== 'prep') bad.push('새로 시작이 새 판이 아니다 ' + JSON.stringify(a)); }
-  let over = false;
+  let over = false; const lfAuto = () => p.evaluate(() => { window.__lf.auto = true; const R = __lair.R; if (R && __lf.pending(R)) __lf.run(R, () => __lair.redraw()); });
+  await lfAuto();
   for (let k = 0; k < 40 && !over; k++) {
-    await p.evaluate(() => { if (!Object.keys(__lair.R.board).length) { __lair.give('shell', 1, 20); __lair.redraw(); } }); await tap(p, '#lr [data-l="fight"]'); await p.evaluate(() => { __lair.U.speed = 60; });
-    if (k === 0) { await p.reload(); await p.waitForTimeout(400); if ((await menu(p)).indexOf('cont') < 0) { bad.push('싸움 도중에 닫으면 이어하기가 없다'); break; } await tap(p, '[data-a="cont"]'); await p.waitForTimeout(200); const s = await state(p); if (s.phase !== 'prep' || s.round !== 2) bad.push('싸움 도중에 닫았다 열면 다음 준비여야 한다 ' + JSON.stringify(s)); continue; }
+    await lfAuto(); await p.evaluate(() => { if (!Object.keys(__lair.R.board).length) { __lair.give('shell', 1, 20); __lair.redraw(); } }); await tap(p, '#lr [data-l="fight"]'); await p.evaluate(() => { __lair.U.speed = 60; });
+    if (k === 0) { await p.reload(); await p.waitForTimeout(400); if ((await menu(p)).indexOf('cont') < 0) { bad.push('싸움 도중에 닫으면 이어하기가 없다'); break; } await p.evaluate(() => { window.__lf.auto = true; }); await tap(p, '[data-a="cont"]'); await p.waitForTimeout(200); await lfAuto(); const s = await state(p); if (s.phase !== 'prep' || s.round !== 2 || (await p.evaluate(() => __lair.R.phase)) !== 'prep') bad.push('싸움 도중에 닫았다 열면 다음 준비여야 한다 ' + JSON.stringify(s)); continue; }
     await p.waitForSelector('#lr-sheet .lr-sbody.res', { timeout: 20000 });
     over = await p.evaluate(() => __lair.R.phase === 'over');
     if (!over) await tap(p, '#lr-sheet [data-l="next"]');
@@ -87,8 +90,20 @@ const dev = process.argv[2] || '', tag = (dev ? dev.replace(/\s+/g, '') : 'pc') 
   await tap(p, '#lr-sheet [data-l="exit"]');
   if ((await menu(p)) !== 'start codex help set last') bad.push('끝난 뒤 첫 화면 단추: ' + (await menu(p)));
   await tap(p, '[data-a="last"]'); if ((await p.evaluate(() => document.querySelectorAll('#modal .sh-run').length)) !== 1) bad.push('지난 판이 한 줄이 아니다'); await shot(p, 'last');
-  await p.evaluate(() => { const m = __shell.meta; for (let i = 0; i < 14; i++) m.last.push({ t: Date.now() - i * 86400000, win: i % 3 === 0, round: 1 + i % 3, rounds: 3, hp: 20 - i, level: 3 + i % 4, form: 'abyss', team: [['shell', 1], ['biter', 2], ['gazer', 3], ['hood', 1], ['gnaw', 1], ['tangle', 2], ['brood', 1], ['heap', 1], ['mask', 1]] }); localStorage.setItem('oldnest.meta', JSON.stringify(m)); });
-  await p.reload(); await p.waitForTimeout(400); await tap(p, '[data-a="last"]'); if ((await p.evaluate(() => document.querySelectorAll('#modal .sh-run').length)) !== 10) bad.push('지난 판은 열 줄까지다'); await shot(p, 'last_full'); await tap(p, '#modal .sh-x');
+  await p.evaluate(() => { const m = __shell.meta; for (let i = 0; i < 14; i++) m.last.push({ t: Date.now() - i * 86400000, win: i % 3 === 0, round: 1 + i, rounds: 15, act: 1 + i % 3, hp: 20 - i, level: 3 + i % 4, form: 'abyss', step: 1 + i % 3, mythos: ['deepbell', 'pooled', 'nope', 7], team: [['shell', 1], ['biter', 2], ['gazer', 3], ['hood', 1], ['gnaw', 1], ['tangle', 2], ['brood', 1], ['heap', 1], ['mask', 1]] }); m.seenCards = { deepbell: 1, pooled: 1, usury: 1 }; m.seenStep = { abyss: 2 }; m.seen.inv.c_eda = 1; m.seen.form.abyss = 1; localStorage.setItem('oldnest.meta', JSON.stringify(m)); });
+  await p.reload(); await p.waitForTimeout(400); await tap(p, '[data-a="last"]'); if ((await p.evaluate(() => document.querySelectorAll('#modal .sh-run').length)) !== 10) bad.push('지난 판은 열 줄까지다'); if ((await p.evaluate(() => document.querySelectorAll('#modal .sh-run .sh-myth span').length)) !== 20) bad.push('지난 판에 받아들인 신화가 없다'); await shot(p, 'last_full'); await tap(p, '#modal .sh-x');
+  // 도감: 본 신화, 조사자, 본체의 단계
+  await tap(p, '[data-a="codex"]'); await tap(p, '#modal .sh-tab[data-v="myth"]');
+  { const d = await p.evaluate(() => ({ open: document.querySelectorAll('#modal .sh-cell:not([disabled])').length, tiers: document.querySelectorAll('#modal .sh-tier').length })); if (d.open !== 3 || d.tiers !== 3) bad.push('도감 신화 갈래 ' + JSON.stringify(d)); }
+  await shot(p, 'codex_myth'); await tap(p, '#modal .sh-cell[data-v="usury"]');
+  { const d = await p.evaluate(() => ({ pw: (document.querySelector('#modal .lf-pw') || {}).textContent || '', pr: (document.querySelector('#modal .lf-pr') || {}).textContent || '', t3: !!document.querySelector('#modal .sh-card.t3') })); if (d.pw.length < 4 || d.pr.length < 4 || !d.t3) bad.push('도감 신화 상세 ' + JSON.stringify(d)); }
+  await shot(p, 'codex_myth_detail'); await tap(p, '#modal [data-a="cback"]');
+  await tap(p, '#modal .sh-tab[data-v="cast"]'); if (await p.evaluate(() => document.querySelector('#modal .sh-cell[data-v="eda"]').disabled)) bad.push('만난 조사자가 도감에 열리지 않았다'); await shot(p, 'codex_cast'); await tap(p, '#modal .sh-cell[data-v="eda"]');
+  { const d = await p.evaluate(() => ({ st: document.querySelectorAll('#modal .sh-st').length, hist: (document.querySelector('#modal .sh-hist') || {}).textContent || '', sk: !!document.querySelector('#modal .sh-skill b') })); if (d.st !== 3 || d.hist.length < 10 || !d.sk) bad.push('조사자 상세 ' + JSON.stringify(d)); }
+  await shot(p, 'codex_cast_detail'); await tap(p, '#modal [data-a="cback"]');
+  await tap(p, '#modal .sh-tab[data-v="form"]'); await tap(p, '#modal .sh-cell[data-v="abyss"]');
+  { const d = await p.evaluate(() => Array.from(document.querySelectorAll('#modal .sh-star')).map(b => (b.disabled ? 'x' : 'o')).join('')); if (d !== 'oox') bad.push('본체의 단계 단추 ' + d); }
+  await tap(p, '#modal [data-a="cstar"][data-v="2"]'); if ((await p.evaluate(() => document.querySelector('#modal canvas.big').dataset.step)) !== '2') bad.push('본체 2단계가 열리지 않는다'); await shot(p, 'codex_form_step2'); await tap(p, '#modal .sh-x');
   // 기록 지우기
   await tap(p, '[data-a="set"]'); await tap(p, '#modal [data-a="wipe"]'); await shot(p, 'ask_wipe'); await tap(p, '#modal [data-a="wipeok"]');
   if ((await menu(p)) !== 'start codex help set') bad.push('지운 뒤 첫 화면 단추: ' + (await menu(p)));
@@ -101,9 +116,9 @@ const dev = process.argv[2] || '', tag = (dev ? dev.replace(/\s+/g, '') : 'pc') 
     if (!(await q.$('#intro'))) bad.push('처음 시작인데 영상이 뜨지 않았다'); else { if ((await state(q)).lr) bad.push('영상 도중에 판이 열렸다'); await shot(q, 'film'); await tap(q, '#intro .iskip'); await q.waitForTimeout(300); }
     { const s = await state(q); if (!s.lr || s.phase !== 'prep') bad.push('영상 뒤에 바로 판이 열리지 않았다 ' + JSON.stringify(s)); }
     if (!(await q.evaluate(() => __shell.meta.introSeen))) bad.push('영상을 본 것이 적히지 않았다');
-    await tap(q, '#lr [data-l="exit"]'); await tap(q, '[data-a="start"]'); await tap(q, '#modal [data-a="fresh"]'); await q.waitForTimeout(300);
+    await tap(q, '#lr-bar .lr-menu'); await tap(q, '#lr-sheet [data-l=\"exit\"]'); await tap(q, '[data-a="start"]'); await tap(q, '#modal [data-a="fresh"]'); await q.waitForTimeout(300);
     if (await q.$('#intro')) bad.push('영상이 두 번째에도 떴다');
-    await tap(q, '#lr [data-l="exit"]'); await tap(q, '[data-a="help"]'); await tap(q, '#modal [data-a="film"]'); await q.waitForTimeout(300);
+    await tap(q, '#lr-bar .lr-menu'); await tap(q, '#lr-sheet [data-l=\"exit\"]'); await tap(q, '[data-a="help"]'); await tap(q, '#modal [data-a="film"]'); await q.waitForTimeout(300);
     if (!(await q.$('#intro'))) bad.push('도움말에서 영상을 다시 볼 수 없다'); else { await tap(q, '#intro .iskip'); await q.waitForTimeout(200); const s = await state(q); if (!s.title || s.lr) bad.push('다시 본 영상 뒤에 첫 화면이 아니다'); }
     await c2.close(); }
 
@@ -124,7 +139,7 @@ const dev = process.argv[2] || '', tag = (dev ? dev.replace(/\s+/g, '') : 'pc') 
     const c3 = await FZM.context(b, dev), e0 = errs.length;
     const q = await open(c3, `try { if (!sessionStorage.getItem('inj')) { sessionStorage.setItem('inj', '1'); const K = ${JSON.stringify(keys)}; for (const k in K) localStorage.setItem('oldnest.' + k, K[k]); } } catch (e) {}`);
     const mn = await menu(q); if (!/^(cont )?start codex help set( last)?$/.test(mn)) bad.push(name + ': 첫 화면 단추가 없다 (' + mn + ')');
-    if (name !== '옛 저장' && mn.indexOf('cont') >= 0) { await tap(q, '[data-a="cont"]'); await q.waitForTimeout(300); const s = await state(q); if (!s.lr && !s.title) bad.push(name + ': 이어하기가 빈 화면으로 갔다'); if (s.lr) await tap(q, '#lr [data-l="exit"]'); }
+    if (name !== '옛 저장' && mn.indexOf('cont') >= 0) { await tap(q, '[data-a="cont"]'); await q.waitForTimeout(300); const s = await state(q); if (!s.lr && !s.title) bad.push(name + ': 이어하기가 빈 화면으로 갔다'); if (s.lr) await tap(q, '#lr-bar .lr-menu'); await tap(q, '#lr-sheet [data-l=\"exit\"]'); }
     if (name === '옛 저장') { const keysNow = await q.evaluate(() => Object.keys(localStorage).filter(k => k.indexOf('oldnest.') === 0).sort().join(' ')); if (mn.indexOf('cont') >= 0) bad.push(name + ': 옛 판을 이어하려 한다'); for (const k of ['run', 'cardrun', 'story', 'camp']) { if (keysNow.split(' ').includes('oldnest.' + k)) bad.push(name + ': oldnest.' + k + ' 가 그대로다'); if (!keysNow.split(' ').includes('oldnest.old.' + k)) bad.push(name + ': oldnest.old.' + k + ' 로 치워지지 않았다'); } }
     if (check) { const m = await q.evaluate(() => __shell.meta), why = check(m); if (why) bad.push(name + ': ' + why); }
     for (const a of ['codex', 'help', 'set']) { await tap(q, `[data-a="${a}"]`); await q.waitForTimeout(80); if (!(await state(q)).modal) bad.push(name + ': ' + a + ' 창이 열리지 않는다'); await tap(q, '#modal .sh-x'); }

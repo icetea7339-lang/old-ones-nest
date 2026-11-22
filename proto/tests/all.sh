@@ -14,6 +14,11 @@ run lairui_iphone14 node tests/lairui.js "iPhone 14" &
 run lairui_a360 node tests/lairui.js a360 &
 run lairui_a360_fz13 env FZ=1.3 node tests/lairui.js a360 &
 wait
+run lairflow_pc node tests/lairflow.js &
+run lairflow_iphone14 node tests/lairflow.js "iPhone 14" &
+run lairflow_a360 node tests/lairflow.js a360 &
+run lairflow_a360_fz13 env FZ=1.3 node tests/lairflow.js a360 &
+wait
 run shell_pc node tests/shell.js &
 run shell_iphone14 node tests/shell.js "iPhone 14" &
 run shell_a360 node tests/shell.js a360 &

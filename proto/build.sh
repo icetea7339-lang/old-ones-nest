@@ -11,7 +11,7 @@ cd "$(dirname "$0")"
   echo '<style>'
   printf '@font-face { font-family: "Nest Sans"; font-weight: 400; font-display: swap; src: url(data:font/woff2;base64,'; base64 -w0 fonts/NestSans-Regular.woff2; echo ') format("woff2"); }'
   printf '@font-face { font-family: "Nest Sans"; font-weight: 600 900; font-display: swap; src: url(data:font/woff2;base64,'; base64 -w0 fonts/NestSans-Bold.woff2; echo ') format("woff2"); }'
-  cat src/style.css; echo '</style>'
+  cat src/style.css src/flow.css; echo '</style>'
   cat <<'HTML'
 <div id="title" class="screen">
   <canvas id="tcv" class="px" width="384" height="173" role="img" aria-label="둥지의 안쪽. 본체와 권속 몇이 숨을 쉰다."></canvas>

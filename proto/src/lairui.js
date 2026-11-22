@@ -1,23 +1,25 @@
-// 둥지 전투 (시험) 화면: 상점에서 권속을 사서 둥지에 세우고, 방을 깔고, 저절로 싸우는 것을 본다. 세 번의 싸움.
+// 둥지 전투 화면: 상점에서 권속을 사서 둥지에 세우고, 방을 깔고, 저절로 싸우는 것을 본다. 세 막, 막마다 다섯 번의 싸움.
+// 싸움 사이의 고르는 화면(보상, 신화 단계, 조우)은 lairflow.js (LF) 가 띄운다. 여기서는 LF.pending / LF.run 만 부른다.
 // 규칙은 lair.js (LAIR), 그림과 움직임은 lairart.js (LAIRART). 이 파일은 그리기와 누르기, 싸움을 다시 보여 주는 일만 한다.
-const LU = { dbg: { badges: 0, range: [], rows: [], dive: 0 }, R: null, phase: 'prep', sel: null, drag: null, roomPick: null, sheet: null, speed: 1, paused: false, F: null, res: null, raf: 0, last: 0, t: 0, wallH: 45, bg: null, tut: -1, tutT: 0, hitAt: 0, castAt: 0, seed: 0, warm: [], warmed: {}, pops: {}, toastT: 0 };
+const LU = { dbg: { badges: 0, range: [], rows: [], dive: 0, dice: 0 }, flow: false, R: null, phase: 'prep', sel: null, drag: null, roomPick: null, sheet: null, speed: 1, paused: false, F: null, res: null, raf: 0, last: 0, t: 0, wallH: 45, bg: null, tut: -1, tutT: 0, hitAt: 0, castAt: 0, seed: 0, warm: [], warmed: {}, pops: {}, toastT: 0 };
 const LS = 64, LW = 384;
 const LCOL = { abyss: '#3ac0d8', nebula: '#b08fff', brood: '#8fd05f', dusk: '#f0a04a', hunger: '#ff5f57' };
 const LNAR = {
   win: '횃불이 하나씩 꺼졌다. 굴은 다시 젖은 숨소리로 돌아갔다.',
   lose: '발소리가 가장 깊은 방까지 내려왔다. 그것은 몸을 움츠렸다.',
-  end: '책을 든 자는 등불을 떨어뜨리고 달아났다. 그가 본 것은 어느 장부에도 적히지 않았다.',
+  boss: '가장 앞에 섰던 자가 쓰러졌다. 남은 자들은 등불을 버리고 위로 달아났다.',
+  again: '그들은 물러나지 않았다. 굴 어귀에서 횃불이 다시 줄을 맞추었다.',
+  end: '책은 덮였다. 그것을 읽던 자는 굴의 일부가 되었고, 위의 마을에는 아침이 오지 않았다.',
   fall: '등불이 둥지의 가장 안쪽을 비추었다. 읽힌 것은 더 이상 숨을 수 없었다.',
 };
 const LTUT = [
   { key: 'shop', text: '권속을 눌러 고르고, 다시 눌러 산다.', at: '#lr-shop .lr-card' },
   { key: 'place', text: '대기석의 권속을 누른 다음 둥지 칸을 눌러 세운다.', at: '#lr-bench .lr-slot.has' },
   { key: 'syn', text: '같은 성향이나 종류가 모이면 힘이 붙는다. 누르면 보인다.', at: '#lr-top .lr-syn', ok: 1 },
-  { key: 'room', text: '방을 하나 골라 둥지 칸에 깐다. 그 위에 선 권속이 힘을 받는다.', at: '#lr-bench [data-l="room"]' },
   { key: 'fight', text: '「싸운다」를 누르면 저절로 싸운다. 마나가 차면 스킬을 쓴다.', at: '#lr-top [data-l="fight"]' },
 ];
-const LBIG = { swallow: 1, feast: 1, firepillar: 1, wave: 1, slam: 1, dash: 1, readblast: 1, cloud: 1, skyeye: 1, chorus: 1, shieldwall: 1, sanctum: 1, mask: 1, beam: 1 };
-const LFXDUR = { beam: 0.75, pierce: 0.5, whisper: 0.7, lash: 0.6, bites: 0.7, bigbite: 0.6, latch: 0.7, backstab: 0.6, snipe: 0.7, seal: 1.2, madburst: 0.8, shell: 2, eyes: 0.9, slam: 0.8, feast: 0.9, readblast: 0.9, light: 1, sanctum: 4, song: 1, shieldwall: 3, wave: 1.1, swallow: 1.1, mask: 0.9, cloud: 1.4, firepillar: 1, hatch: 0.7, rise: 0.8, chorus: 0.9, skyeye: 1, pull: 0.8, dash: 0.5, read: 1.2, echo: 0.7, eat: 0.6, on: 0.6, spark: 0.25, ichor: 0.5, heal: 0.7, bolt: 0.2, arrow: 0.24 };
+const LBIG = { meteor: 1, rift: 1, smite: 1, rebirth: 1, possess: 1, swallow: 1, feast: 1, firepillar: 1, wave: 1, slam: 1, dash: 1, readblast: 1, cloud: 1, skyeye: 1, chorus: 1, shieldwall: 1, sanctum: 1, mask: 1, beam: 1 };
+const LFXDUR = { meteor: 1.1, toll: 1, ink: 1.2, reap: 0.6, sermon: 0.9, rift: 1.3, rebirth: 0.9, banner: 1, mark: 0.8, smite: 0.8, exorcise: 1.1, flask: 1.1, possess: 0.9, snare: 0.7, beam: 0.75, pierce: 0.5, whisper: 0.7, lash: 0.6, bites: 0.7, bigbite: 0.6, latch: 0.7, backstab: 0.6, snipe: 0.7, seal: 1.2, madburst: 0.8, shell: 2, eyes: 0.9, slam: 0.8, feast: 0.9, readblast: 0.9, light: 1, sanctum: 4, song: 1, shieldwall: 3, wave: 1.1, swallow: 1.1, mask: 0.9, cloud: 1.4, firepillar: 1, hatch: 0.7, rise: 0.8, chorus: 0.9, skyeye: 1, pull: 0.8, dash: 0.5, read: 1.2, echo: 0.7, eat: 0.6, on: 0.6, spark: 0.25, ichor: 0.5, heal: 0.7, bolt: 0.2, arrow: 0.24 };
 // 빠르기: 느리게 / 보통 / 빠르게. 고른 것을 기억한다
 const LSPD = [[0.6, '느리게'], [1, '보통'], [2, '빠르게']];
 const lrSpeedLoad = () => { let v = 0; try { v = +(META && META.lairSpeed); } catch (e) { v = 0; } return LSPD.some(q => q[0] === v) ? v : 1; };
@@ -25,14 +27,27 @@ function lrSpeedSet(v) { LU.speed = v; try { if (META) { META.lairSpeed = v; sav
 // 쏘는 공격: 놓는 때(rel)와 날아가는 시간(fly). 붙어 치는 공격은 hit 에 닿는다
 const LSHOT = { rel: 0.19, fly: 0.26, hit: 0.21 };
 const LROLE = { tank: '앞줄에서 맞는다. 방어가 높아 피해를 많이 막는다.', melee: '앞줄에서 붙어 때린다.', ranged: '뒷줄에서 멀리 쏜다.', support: '뒷줄에서 아군을 돕는다.', dive: '싸움이 시작되면 곧 뒷줄로 뛰어든다.' };
-const LSTC = { stun: '#ffe060', silenced: '#ff5f57', burn: '#ff9a3a', bleed: '#c8303a', infected: '#a8e04a', wet: '#5ab8f0', taunted: '#f0a04a', atkup: '#ffd040', atkdown: '#8a92a8', fed: '#ff8a8a' };
+const LSTC = { marked: '#ff4060', corrode: '#9ad04a', stun: '#ffe060', silenced: '#ff5f57', burn: '#ff9a3a', bleed: '#c8303a', infected: '#a8e04a', wet: '#5ab8f0', taunted: '#f0a04a', atkup: '#ffd040', atkdown: '#8a92a8', fed: '#ff8a8a' };
 
 // ---- 작은 도구 ----
 const lq = sel => document.querySelector(sel);
 const lcx = c => (c % 6) * LS + LS / 2, lcy = c => LU.wallH + Math.floor(c / 6) * LS + LS / 2;
 const lcen = cells => { let x = 0, y = 0; cells.forEach(c => { x += lcx(c); y += lcy(c); }); return { x: x / cells.length, y: y / cells.length }; };
 const LURL = {};
-function lrIcon(id, star, px) { const k = id + ':' + (star || 1) + ':' + px; if (!LURL[k]) { try { LURL[k] = LAIRART.icon(id, star || 1, px).toDataURL(); } catch (e) { LURL[k] = ''; } } return LURL[k]; }
+// 새 그림이 아직 없는 유닛은 규칙이 적어 둔 빌린 그림(art)으로 그린다. st = 조사자의 덧그림('poss' 홀림, 'hurt' 붕대)
+function lrArtId(kind, st) { const d = LAIR.KIN[kind] || LAIR.INV[kind] || LAIR.SUMMON[kind] || {}; if (st && LAIRART.DEF[kind + '_' + st]) return kind + '_' + st; return LAIRART.DEF[kind] ? kind : d.art && LAIRART.DEF[d.art] ? d.art : kind; }
+const lrUnitH = (kind, star, st) => { const id = lrArtId(kind, st); return LAIRART.unit(id, id === kind || LAIR.KIN[kind] ? star || 1 : 1); };
+const lrBossH = (form, step) => LAIRART.boss(step ? form || 'drop' : 'drop', step || 0);
+// 연출 이름: 그림이 없으면 닮은 옛 연출로
+const LFXALT = { meteor: 'firepillar', toll: 'eyes', ink: 'cloud', reap: 'backstab', sermon: 'rise', rift: 'skyeye', rebirth: 'hatch', banner: 'song', mark: 'seal', smite: 'slam', exorcise: 'light', flask: 'cloud', possess: 'rise', snare: 'latch' };
+const lrFxName = n => (LAIRART.FX && LAIRART.FX[n] ? n : LFXALT[n] || n);
+// 본체 초상: 'boss:모습:단계'. 단계가 0 이면 떨어진 한 방울
+function lrBossIcon(form, step, px) { const h = lrBossH(form, step), src = h.frame('idle', 0), C = h.w, d = src.getContext('2d').getImageData(0, 0, C, C).data; let x0 = C, y0 = C, x1 = 0, y1 = 0; for (let y = 0; y < C; y++) for (let x = 0; x < C; x++) if (d[(y * C + x) * 4 + 3] > 200) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; } const w = Math.max(1, x1 - x0 + 1), hh = Math.max(1, y1 - y0 + 1), sc = Math.min(px / w, px / hh), k2 = sc >= 1 ? Math.floor(sc) : sc, c = document.createElement('canvas'); c.width = c.height = px; const x = c.getContext('2d'); x.imageSmoothingEnabled = false; x.drawImage(src, x0, y0, w, hh, Math.round((px - w * k2) / 2), Math.round((px - hh * k2) * 0.7), Math.round(w * k2), Math.round(hh * k2)); return c; }
+function lrIcon(id, star, px) {
+  const k = id + ':' + (star || 1) + ':' + px; if (LURL[k] != null) return LURL[k];
+  try { if (typeof id === 'string' && id.indexOf('boss:') === 0) { const q = id.split(':'); LURL[k] = lrBossIcon(q[1], q[2] == null ? (q[1] === 'drop' ? 0 : 1) : +q[2], px).toDataURL(); } else { const q = String(id).split('/'), aid = lrArtId(q[0], q[1]); LURL[k] = LAIRART.icon(aid, aid === q[0] || LAIR.KIN[q[0]] ? star || 1 : 1, px).toDataURL(); } } catch (e) { LURL[k] = ''; }
+  return LURL[k];
+}
 function lrSym(id, px) { const k = 'sym:' + id + ':' + px; if (!LURL[k]) { try { LURL[k] = LAIRART.sym(id, px).toDataURL(); } catch (e) { LURL[k] = ''; } } return LURL[k]; }
 function lrRoleImg(role, px) { if (!LAIR.ROLE[role]) return ''; const k = 'role:' + role + ':' + px; if (!LURL[k]) { try { LURL[k] = LAIRART.role(role, px).toDataURL(); } catch (e) { LURL[k] = ''; } } return `<img class="lr-role" data-role="${role}" src="${LURL[k]}" alt="${esc(LAIR.ROLE[role].name)}">`; }
 function lrRoomIcon(id) { const k = 'room:' + id; if (!LURL[k]) { try { LURL[k] = LAIRART.room(id, 48, 0, 1, 0).toDataURL(); } catch (e) { LURL[k] = ''; } } return LURL[k]; }
@@ -51,7 +66,7 @@ function lrMount() {
   document.body.appendChild(el);
   el.addEventListener('click', lrClick);
   el.addEventListener('pointerdown', lrDown); el.addEventListener('pointermove', lrMove); el.addEventListener('pointerup', lrUp); el.addEventListener('pointercancel', () => { LU.drag = null; $('lr-drag').hidden = true; });
-  window.addEventListener('resize', () => { if (!el.hidden) lrSize(); });
+  window.addEventListener('resize', () => { if (!el.hidden) { lrBarFit(); lrSize(); } });
   window.addEventListener('keydown', e => { if (el.hidden) return; if (e.key === 'Escape') { if (LU.sheet) lrSheetClose(); else if (LU.roomPick != null) { LU.roomPick = null; lrDraw(); } else if (LU.sel) { LU.sel = null; lrDraw(); } } if (LU.phase === 'fight' && (e.key === ' ' || e.key === 'p')) { LU.paused = !LU.paused; lrFightPanel(); e.preventDefault(); } if (LU.phase === 'fight' && e.key.length === 1 && '123'.includes(e.key)) lrSpeedSet(LSPD[+e.key - 1][0]); });
 }
 function lrSize() {
@@ -61,7 +76,7 @@ function lrSize() {
   const barH = $('lr-bar').offsetHeight || 44, sideH = wide ? 0 : ($('lr-side').offsetHeight || 170);
   const availH = vh - barH - sideH - (wide ? 20 : 6), availW = wide ? vw - 470 : vw;
   let sc = Math.min(availW / LW, availH / H); if (wide) sc = Math.min(sc, 1.75); sc = Math.max(0.6, sc);
-  LU.scale = sc; cv.style.width = Math.floor(LW * sc) + 'px'; cv.style.height = Math.floor(H * sc) + 'px'; wrap.style.width = Math.floor(LW * sc) + 'px'; wrap.style.height = Math.floor(H * sc) + 'px';
+  LU.scale = sc; cv.style.width = Math.floor(LW * sc) + 'px'; cv.style.height = Math.floor(H * sc) + 'px'; wrap.style.width = Math.floor(LW * sc) + 'px'; wrap.style.height = Math.floor(H * sc) + 'px'; lrPrepTags();
 }
 // run: 이어할 판(lairSaved() 가 돌려준 것). 없으면 새 판
 function lairOpen(run) {
@@ -70,54 +85,84 @@ function lairOpen(run) {
   lrNew(0, run); if (!LU.raf) { LU.last = performance.now(); LU.raf = requestAnimationFrame(lrLoop); }
 }
 function lrNew(seed, run) {
-  LU.seed = run ? run.seed : seed || ((Date.now() % 1000000) + 1); LU.R = run || LAIR.newRun(LU.seed); LU.phase = 'prep'; LU.sel = null; LU.roomPick = null; LU.F = null; LU.res = null; LU.sheet = null; LU.speed = lrSpeedLoad(); LU.paused = false; LU.bg = null;
+  LU.seed = run ? run.seed : seed || ((Date.now() % 1000000) + 1); LU.R = run || LAIR.newRun(LU.seed); LU.phase = 'prep'; LU.sel = null; LU.roomPick = null; LU.F = null; LU.res = null; LU.sheet = null; LU.speed = lrSpeedLoad(); LU.paused = false; LU.bg = null; LU.flow = false;
   const coachOk = !(navigator.webdriver && !window.__lairCoach); LU.tut = coachOk && !(META && META.lairTut) ? 0 : -1;
   $('lr-sheet').hidden = true; $('lr-ov').innerHTML = ''; lrDraw(); lrSize(); lrWarmPrep();
   try { if (typeof music === 'function') music('day'); } catch (e) { /* 음악 없이 */ }
   try { if (typeof traceLive === 'function') traceLive({ start: !run }); } catch (e) { /* 기록 없이 */ }
+  lrFlow();
 }
-function lrExit() { lrSave(); try { if (typeof traceLive === 'function') { TRACE.last = 0; traceLive({ left: true }); } } catch (e) { /* 기록 없이 */ } $('lr').hidden = true; cancelAnimationFrame(LU.raf); LU.raf = 0; LU.F = null; LU.phase = 'prep'; if (typeof showTitle === 'function') showTitle(); }
+function lrExit() { lrSave(); try { if (typeof traceLive === 'function') { TRACE.last = 0; traceLive({ left: true }); } } catch (e) { /* 기록 없이 */ } $('lr').hidden = true; cancelAnimationFrame(LU.raf); LU.raf = 0; LU.F = null; LU.phase = 'prep'; LU.sheet = null; $('lr-sheet').hidden = true; if (typeof showTitle === 'function') showTitle(); }
+// 고를 것이 있으면(보상, 신화 단계, 조우) 고르는 화면에 넘기고, 끝나면 준비 화면으로 돌아온다
+function lrFlow() {
+  const R = LU.R; if (!R || LU.flow || typeof LF === 'undefined' || !LF.pending(R)) return false;
+  LU.flow = true; $('lr-coach').hidden = true; const rooms0 = R.roomOffer.length, lv0 = R.level;
+  LF.run(R, () => { LU.flow = false; lrSave(); lrBossIconsReset(); lrWarmPrep(); lrDraw(); lrSize(); if (R.roomOffer.length > rooms0) lrToast('방을 얻었다. 「방」을 눌러 깐다.'); else if (R.level > lv0) lrToast('둥지 Lv ' + R.level); });
+  return true;
+}
+// 본체의 모습이 바뀌면 초상을 다시 그린다
+function lrBossIconsReset() { Object.keys(LURL).forEach(k => { if (k.indexOf('boss:') === 0) delete LURL[k]; }); }
 
 // ---- 저장, 본 것, 지난 판 ----
-// 저장은 준비 때마다(무언가 바꿀 때마다) 그리고 싸움을 시작한 직후에 한다. 싸움 결과는 시작할 때 이미 정해지므로, 싸움 도중에 나가면 다음 준비에서 잇는다.
+// 저장은 준비 때마다(무언가 바꿀 때마다) 그리고 싸움을 시작한 직후에 한다. 싸움 결과는 시작할 때 이미 정해지므로, 싸움 도중에 나가면 다음 준비(또는 고르는 화면)에서 잇는다.
 const LSAVE = 'lairrun';
-function lrSave() { const R = LU.R; try { if (!R || typeof store === 'undefined') return; if (R.phase === 'over') store.del(LSAVE); else store.set(LSAVE, R); } catch (e) { /* 저장 없이 */ } }
+function lrSave() { const R = LU.R; try { if (!R || typeof store === 'undefined') return; if (R.phase === 'over') store.del(LSAVE); else store.set(LSAVE, JSON.parse(LAIR.save(R))); } catch (e) { /* 저장 없이 */ } }
 // 이어할 판이 있으면 돌려준다. 읽지 못하거나 규칙 판이 다르면 치우고 null
 function lairSaved() {
-  let R = null; try { R = typeof store === 'undefined' ? null : store.get(LSAVE); } catch (e) { R = null; } if (R == null) return null;
-  try { if (typeof R === 'object' && !Array.isArray(R) && R.phase !== 'over' && R.v === LAIR.newRun(1).v && R.unit && Array.isArray(R.shop) && Array.isArray(R.bench) && R.board && Array.isArray(R.rooms) && isFinite(R.round) && isFinite(R.hp)) { LAIR.view(R); return R; } } catch (e) { /* 아래에서 치운다 */ }
-  try { store.set('old.' + LSAVE, R); store.del(LSAVE); } catch (e) { /* 저장 없이 */ } return null;
+  let raw = null; try { raw = typeof store === 'undefined' ? null : store.get(LSAVE); } catch (e) { raw = null; } if (raw == null) return null;
+  try { const R = LAIR.load(raw); if (R && R.phase !== 'over' && !R.taste && Array.isArray(R.shop) && Array.isArray(R.rooms) && isFinite(R.round) && isFinite(R.hp)) { LAIR.view(R); return R; } } catch (e) { /* 아래에서 치운다 */ }
+  try { store.set('old.' + LSAVE, raw); store.del(LSAVE); } catch (e) { /* 저장 없이 */ } return null;
 }
 // 도감에 쓸 것: 가게에 나왔거나 가진 권속(별), 마주친 침입자, 받은 방, 본체의 모습
 function lrSeen(v) {
-  try { if (!META || !META.seen) return; const S = META.seen; let ch = false; const mark = (k, id, n) => { if (id && (S[k][id] || 0) < n) { S[k][id] = n; ch = true; } };
+  try { if (!META || !META.seen) return; const S = META.seen; let ch = false; const mark = (k, id, n) => { if (!S[k]) S[k] = {}; if (id && (S[k][id] || 0) < n) { S[k][id] = n; ch = true; } };
     v.shop.forEach(q => { if (q) mark('kin', q.kind, 1); }); v.bench.forEach(u => { if (u) mark('kin', u.kind, 1 + u.star); }); v.board.forEach(u => mark('kin', u.kind, 1 + u.star));
-    v.enemy.forEach(e => mark('inv', e.kind, 1)); v.roomOffer.forEach(r => mark('room', r.id, 1)); v.rooms.forEach(r => mark('room', r.id, 2)); if (v.form) mark('form', v.form.form, 1);
+    v.enemy.forEach(e => mark('inv', e.kind, 1)); v.roomOffer.forEach(r => mark('room', r.id, 1)); v.rooms.forEach(r => mark('room', r.id, 2)); if (v.form) mark('form', v.form.form, Math.max(1, v.form.step || 0));
     if (ch) saveMeta(); } catch (e) { /* 저장 없이 */ }
 }
+// 판 내내 누가 얼마나 했나 (판 끝 화면에 쓴다). R 에 얹어 두어 이어하기에도 남는다
+function lrTally(f) { const R = LU.R; try { const T = R.uiTop = R.uiTop || {}; f.breakdown.forEach(b => { if (b.side !== 'nest' || b.summon || b.kind === 'core' || !LAIR.KIN[b.kind]) return; T[b.kind] = Math.round((T[b.kind] || 0) + b.dmg + b.san); }); } catch (e) { /* 없어도 된다 */ } }
 // 판이 끝나면 한 줄 남긴다. 최근 10판
 function lrRecord(f) {
   const R = LU.R; if (!R || !R.over) return;
-  try { if (!META) return; const team = f.units.filter(u => u.side === 'nest' && !u.core && !u.summon).map(u => [u.kind, u.star || 1]).slice(0, 12);
-    META.last = (META.last || []).concat([{ t: Date.now(), win: !!R.over.win, round: R.over.round || R.round, rounds: R.rounds, hp: Math.max(0, R.hp), level: R.level, form: f.form || 'drop', team, wins: R.hist.filter(h => h.win).length }]).slice(-10);
+  try { if (!META) return; const team = f.units.filter(u => u.side === 'nest' && !u.core && !u.summon && LAIR.KIN[u.kind]).map(u => [u.kind, u.star || 1]).slice(0, 12);
+    META.last = (META.last || []).concat([{ t: Date.now(), win: !!R.over.win, round: R.over.round || R.round, rounds: R.rounds, act: R.over.act || R.act, hp: Math.max(0, R.hp), level: R.level, form: R.awake ? R.form : 'drop', step: R.awake || 0, mythos: R.mythos ? R.mythos.picked.slice() : [], team, wins: R.hist.filter(h => h.win).length }]).slice(-10);
     META.runs = (META.runs || 0) + 1; if (R.over.win) META.wins = (META.wins || 0) + 1; saveMeta(); } catch (e) { /* 저장 없이 */ }
   try { if (typeof traceEnd === 'function') traceEnd(R.over.win ? 'win' : 'lose'); } catch (e) { /* 기록 없이 */ }
 }
 
 // ---- 준비 화면 (DOM) ----
+const LROM = ['', 'Ⅰ', 'Ⅱ', 'Ⅲ'];
+// 위쪽 두 줄: 진액 · 레벨 · 연속 · 목숨 · 공포와 깨어남 · 메뉴 / 막과 열다섯 라운드
+function lrBarHtml(v) {
+  const hist = {}; (v.hist || []).forEach(h => { hist[h.round] = h.win ? 'w' : 'l'; });
+  const my = (LAIR.K.full.mythosAt || []), cells = []; for (let r = 1; r <= v.rounds; r++) { const boss = r % v.per === 0, cls = ['lr-tc']; if (r < v.round) cls.push(hist[r] === 'l' ? 'l' : 'w'); if (r === v.round) cls.push('cur'); if (boss) cls.push('boss'); if (my.includes(r)) cls.push(v.mythos && v.mythos.phase > my.indexOf(r) ? 'myd' : 'my'); cells.push(`<i class="${cls.join(' ')}"></i>` + (boss && r < v.rounds ? '<i class="lr-tg"></i>' : '')); }
+  const s = v.streak || 0, aw = v.awaken, fearTo = aw.next || aw.max, here = (v.cast || []).filter(c => c.here);
+  const notes = here.map(c => `<button class="lr-castb" data-l="cast" data-id="${c.id}" aria-label="${esc(c.name)}"><img src="${lrIcon(lrCastIcon(c, v), 1, 26)}" alt=""></button>`).join('') + (v.zealots ? `<button class="lr-note2 z" data-l="run" aria-label="광신도 ${v.zealots}"><img src="${lrIcon('zealot', 1, 22)}" alt="">${v.zealots}</button>` : '') + (v.curses && v.curses.length ? `<button class="lr-note2 c" data-l="run" aria-label="저주 ${v.curses.length}"><i></i>${v.curses.length}</button>` : '');
+  return `<div class="lr-b1"><button class="lr-stat lr-gold" data-l="econ" aria-label="진액 ${v.gold}"><i></i>${v.gold}</button><button class="lr-stat lr-lv" data-l="econ" aria-label="둥지 레벨 ${v.level}, 세운 수 ${v.placed}/${v.cap}">Lv ${v.level}<small>${v.placed}/${v.cap}</small></button>${Math.abs(s) >= 2 ? `<button class="lr-stat lr-strk ${s > 0 ? 'w' : 'l'}" data-l="econ" aria-label="${s > 0 ? '연승' : '연패'} ${Math.abs(s)}"><i></i>${Math.abs(s)}</button>` : ''}<button class="lr-stat lr-hp" data-l="run" aria-label="목숨 ${v.hp}"><i></i>${v.hp}</button><button class="lr-stat lr-fear${aw.world ? ' w' + aw.world : ''}" data-l="core" aria-label="깨어남 ${aw.step}, 공포 ${aw.fear}"><i class="lr-eye"></i><span class="lr-pips">${[1, 2, 3].map(k => `<i class="${aw.step >= k ? 'on' : ''}"></i>`).join('')}</span>${aw.fear}/${fearTo}</button><button class="lr-menu" data-l="menu" aria-label="메뉴"><i></i></button></div>
+<div class="lr-b2"><button class="lr-trackb" data-l="run" aria-label="${v.act}막 ${v.rin}/${v.per}"><b class="lr-act">${LROM[v.act] || v.act}</b><span class="lr-track">${cells.join('')}</span></button>${notes ? `<span class="lr-notes">${notes}</span>` : ''}</div>`;
+}
+// 조사자의 초상 id: 홀린 채 왔으면 '/poss', 다쳤거나 미쳤다가 돌아왔으면 '/hurt'
+function lrCastSt(c, v) { const e = v && v.enemy ? v.enemy.find(q => q.cast === c.id) : null; return (e && e.poss) || c.state === 'eaten' ? 'poss' : c.state === 'mad' || c.state === 'hurt' ? 'hurt' : ''; }
+function lrCastIcon(c, v) { const st = lrCastSt(c, v); return st ? c.kind + '/' + st : c.kind; }
+// 좁은 화면이나 큰 글씨에서 위 줄이 넘치면 덜 중요한 것부터 접는다 (세운 수 → 깨어남 눈금)
+function lrBarFit() { const bar = $('lr-bar'), b1 = bar.querySelector('.lr-b1'); bar.classList.remove('t1', 't2'); if (!b1) return; if (b1.scrollWidth > b1.clientWidth + 1) bar.classList.add('t1'); if (b1.scrollWidth > b1.clientWidth + 1) bar.classList.add('t2'); }
 function lrDraw() {
-  const v = lrView(), R = LU.R, fight = LU.phase === 'fight';
-  const bv = fight && LU.F ? LU.F.bar : { round: Math.min(v.round, v.rounds), name: v.roundName, gold: v.gold, level: v.level, placed: v.placed, cap: v.cap, hp: v.hp };
-  $('lr-bar').innerHTML = `<b class="lr-round">${bv.round}/${v.rounds}</b><span class="lr-rn">${esc(bv.name)}</span>
-<span class="lr-stat lr-gold"><i></i>${bv.gold}</span><span class="lr-stat">Lv ${bv.level} · ${bv.placed}/${bv.cap}</span><span class="lr-stat lr-hp"><i></i>${bv.hp}</span><button data-l="exit" aria-label="나가기">✕</button>`;
+  const fight = LU.phase === 'fight', v = fight && LU.F ? LU.F.v0 : lrView();
+  $('lr-bar').innerHTML = lrBarHtml(v); lrBarFit(); requestAnimationFrame(lrBarFit);
   $('lr-bench').hidden = fight; $('lr-shop').hidden = fight; $('lr-fight').hidden = !fight;
   if (fight) { lrFightPanel(); lrTop(v); lrCoach(); return; }
-  const selU = LU.sel && LU.sel.uid;
+  const selU = LU.sel && LU.sel.uid, nR = v.roomOffer.length, maxed = v.level >= v.maxLv;
   $('lr-bench').innerHTML = v.bench.map((u, i) => u ? `<div class="lr-slot has${selU === u.uid ? ' on' : ''}${LU.pops[u.uid] > LU.t ? ' pop' : ''}" data-bench="${i}" data-u="${u.uid}" role="button" aria-label="${esc(u.name)} ${u.star}성 ${esc(u.roleName)}"><img src="${lrIcon(u.kind, u.star, 44)}" alt="">${lrStars(u.star)}${lrRoleImg(u.role, 18)}</div>` : `<div class="lr-slot" data-bench="${i}"></div>`).join('')
-    + `<button class="lr-roombtn${v.roomOffer.length ? ' pri' : ''}" data-l="room"${v.roomOffer.length ? '' : ' disabled'}>${LU.roomPick != null ? '취소' : '방'}</button>`;
-  $('lr-shop').innerHTML = `<div class="lr-acts"><button data-l="reroll"${v.canReroll ? '' : ' disabled'}>뽑기 ${v.costs.reroll}</button><button data-l="xp"${v.canXp ? '' : ' disabled'}>넓히기 ${v.costs.xp}<i class="lr-xp"><b style="width:${v.xpNeed ? Math.round(v.xp / v.xpNeed * 100) : 100}%"></b></i></button></div>`
+    + `<button class="lr-roombtn${nR ? ' pri' : ''}" data-l="room"${nR ? '' : ' disabled'}>${LU.roomPick != null ? '취소' : '방' + (nR > 1 ? ' ' + nR : '')}</button>`;
+  $('lr-shop').innerHTML = `<div class="lr-acts"><button data-l="reroll"${v.canReroll ? '' : ' disabled'}${v.freeRoll ? ' class="free"' : ''}>뽑기 ${v.costs.reroll}</button><button data-l="xp"${v.canXp ? '' : ' disabled'}>${maxed ? 'Lv ' + v.level : '넓히기 ' + v.costs.xp}${maxed ? '' : `<i class="lr-xp"><b style="width:${v.xpNeed ? Math.round(v.xp / v.xpNeed * 100) : 100}%"></b></i>`}</button></div>`
     + v.shop.map((s, i) => s ? `<button class="lr-card c${s.cost}${LU.sel && LU.sel.shop === i ? ' on' : ''}${s.can ? '' : ' poor'}" data-l="shop" data-i="${i}"><img src="${lrIcon(s.kind, 1, 44)}" alt="">${lrRoleImg(s.role, 18)}<b>${esc(s.name)}</b><span class="lr-cmeta"><img src="${lrSym(s.asp, 16)}" alt="${esc(s.aspName)}"><img src="${lrSym(s.cls, 16)}" alt="${esc(s.clsName)}"><em>${s.cost}</em></span><small class="lr-reach">${esc(s.reach)}</small></button>` : '<div class="lr-card empty"></div>').join('');
-  lrTop(v); lrCoach(); lrRowTip(); lrSeen(v); lrSave();
+  lrTop(v); lrPrepTags(v); lrCoach(); lrRowTip(); lrSeen(v); if (!LU.flow) lrSave();
+}
+// 준비 때 조사자의 머리 위에 이름을 띄운다
+function lrPrepTags(v) {
+  const ov = $('lr-ov'); if (!ov || LU.phase !== 'prep') return; ov.querySelectorAll('.lr-tag').forEach(e => e.remove()); const sc = LU.scale || 1; v = v || lrView();
+  v.enemy.forEach(e => { if (!e.cast) return; const d = document.createElement('span'); d.className = 'lr-tag'; d.textContent = e.name; const hw = (e.name.length * 12 + 12) / 2; d.style.left = Math.max(hw + 2, Math.min(LW * sc - hw - 2, lcx(e.cell) * sc)) + 'px'; d.style.top = ((lcy(e.cell) + 23) * sc) + 'px'; ov.appendChild(d); });
 }
 // 처음 권속을 집었을 때 한 번: 어느 줄에 세우는지
 function lrRowTip() { if (!(LU.sel && LU.sel.uid) || LU.phase !== 'prep' || (navigator.webdriver && !window.__lairCoach)) return; try { if (!META || META.lairRow) return; META.lairRow = 1; saveMeta(); } catch (e) { return; } lrToast('탱커는 앞줄, 원거리는 뒷줄에 세운다.'); LU.toastT = LU.t + 4200; }
@@ -128,9 +173,9 @@ function lrTop(v) {
   const s = LU.sel;
   if (s && s.shop != null && v.shop[s.shop]) { const u = v.shop[s.shop]; top.innerHTML = `<div class="lr-selinfo" data-l="info" data-kind="${u.kind}" data-star="1"><img src="${lrIcon(u.kind, 1, 36)}" alt=""><span><b>${esc(u.name)}</b><small>${lrRoleImg(u.role, 18)}${esc(u.roleName)} · ${u.range}칸 · ${esc(u.skill.name)}</small></span></div><button class="pri" data-l="buy" data-i="${s.shop}"${u.can ? '' : ' disabled'}>산다 ${u.cost}</button>`; return; }
   if (s && s.uid && LU.R.unit[s.uid]) { const u = LAIR.unitInfo(LU.R.unit[s.uid].kind, LU.R.unit[s.uid].star); top.innerHTML = `<div class="lr-selinfo" data-l="info" data-kind="${u.kind}" data-star="${u.star}"><img src="${lrIcon(u.kind, u.star, 36)}" alt=""><span><b>${esc(u.name)} ${lrStars(u.star)}</b><small>${lrRoleImg(u.role, 18)}${esc(u.roleName)} · ${u.range}칸 · ${esc(u.skill.name)}</small></span></div><button data-l="sell" data-u="${s.uid}">팔기 ${LAIR.sellValue(LU.R.unit[s.uid])}</button>`; return; }
-  top.innerHTML = `<div class="lr-syns">${lrSynChips(v) || '<span class="lr-hint">권속을 세운다</span>'}</div><button class="pri" data-l="fight"${v.placed ? '' : ' disabled'}>싸운다</button>`;
+  top.innerHTML = `<div class="lr-syns">${lrSynChips(v) || '<span class="lr-hint">권속을 세운다</span>'}</div>${v.elite ? `<button class="lr-elite${v.elite.on ? ' on' : ''}" data-l="elite" aria-pressed="${!!v.elite.on}">정예</button>` : ''}<button class="pri" data-l="fight"${v.placed ? '' : ' disabled'}>싸운다</button>`;
 }
-function lrSynChips(v, only) { const all = v.synergies.filter(s => !only || only[s.id]), max = only ? 6 : 4, show = all.length > max ? all.slice(0, max - 1) : all; return show.map(s => `<button class="lr-syn t${s.tier}" data-l="syn" data-id="${s.id}"><img src="${lrSym(s.id, 16)}" alt="${esc(s.name)}">${s.n}/${s.next || s.need[1]}</button>`).join('') + (all.length > show.length ? `<button class="lr-syn" data-l="syns">+${all.length - show.length}</button>` : ''); }
+function lrSynChips(v, only) { const all = v.synergies.filter(s => !only || only[s.id]), max = only ? 6 : 4, show = all.length > max ? all.slice(0, max - 1) : all; return show.map(s => `<button class="lr-syn t${s.tier}" data-l="syn" data-id="${s.id}"><img src="${lrSym(s.id, 16)}" alt="${esc(s.name)}">${s.n}/${s.next || s.need[s.need.length - 1]}</button>`).join('') + (all.length > show.length ? `<button class="lr-syn" data-l="syns">+${all.length - show.length}</button>` : ''); }
 function lrFightPanel() {
   const F = LU.F; if (!F) return;
   $('lr-fight').innerHTML = `<div class="lr-speed">${LSPD.map(q => `<button data-l="speed" data-v="${q[0]}" class="${LU.speed === q[0] ? 'on' : ''}" aria-pressed="${LU.speed === q[0]}">${q[1]}</button>`).join('')}<button data-l="pause" class="${LU.paused ? 'on' : ''}">${LU.paused ? '이어서' : '멈춤'}</button></div>${F.chips ? `<div class="lr-syns">${F.chips}</div>` : ''}<div id="lr-feed">${lrFeedHtml()}</div>`;
@@ -140,13 +185,12 @@ function lrToast(msg) { const t = $('lr-toast'), r = $('lr-boardwrap').getBoundi
 
 // ---- 길잡이 ----
 function lrCoach() {
-  const c = $('lr-coach'); if (LU.tut < 0 || LU.tut >= LTUT.length || LU.sheet) { c.hidden = true; return; }
+  const c = $('lr-coach'); if (LU.tut < 0 || LU.tut >= LTUT.length || LU.sheet || LU.flow) { c.hidden = true; return; }
   const v = lrView(), R = LU.R;
   if (LU.phase === 'prep') {
     if (LU.tut === 0 && Object.keys(R.unit).length) LU.tut = 1;
     if (LU.tut === 1 && v.placed) LU.tut = 2;
     if (LU.tut === 2 && !v.synergies.length) LU.tut = 3;
-    if (LU.tut === 3 && !v.roomOffer.length) LU.tut = 4;
   } else { LU.tut = LTUT.length; if (META) { META.lairTut = 1; try { saveMeta(); } catch (e) { /* 저장 없이 */ } } c.hidden = true; return; }
   const st = LTUT[LU.tut], at = lq(st.at); if (!at) { c.hidden = true; return; }
   c.innerHTML = `<p>${esc(st.text)}</p><span>${st.ok ? '<button data-l="tutok">알았다</button>' : ''}<button data-l="tutoff">안내 끄기</button></span>`; c.hidden = false;
@@ -159,13 +203,13 @@ function lrCoach() {
 // ---- 누르기 ----
 function lrClick(e) {
   if (e.target.id === 'lr-sheet' && LU.sheet && LU.sheet.kind !== 'result') return lrSheetClose();
-  if (e.target.id === 'lr-cv' && LU.phase === 'fight' && LU.F && !LU.sheet) { const r = e.target.getBoundingClientRect(), px = (e.clientX - r.left) / LU.scale, py = (e.clientY - r.top) / LU.scale; let best = null, bd = 34; for (const id in LU.F.ents) { const q = LU.F.ents[id]; if (q.dead || q.summon) continue; const d = Math.hypot(q.x - px, q.y - 8 - py) * (q.core ? 0.6 : 1); if (d < bd) { bd = d; best = q; } } if (best) lrSheet(best.core ? { kind: 'core', form: best.form } : best.side === 'inv' ? { kind: 'inv', id: best.kind, round: LU.F.round } : { kind: 'unit', id: best.kind, star: best.star }); return; }
+  if (e.target.id === 'lr-cv' && LU.phase === 'fight' && LU.F && !LU.sheet) { const r = e.target.getBoundingClientRect(), px = (e.clientX - r.left) / LU.scale, py = (e.clientY - r.top) / LU.scale; let best = null, bd = 34; for (const id in LU.F.ents) { const q = LU.F.ents[id]; if (q.dead || q.summon) continue; const d = Math.hypot(q.x - px, q.y - 8 - py) * (q.core ? 0.6 : 1); if (d < bd) { bd = d; best = q; } } if (best) lrSheet(best.core ? { kind: 'core' } : best.cast ? { kind: 'cast', id: best.cast } : best.side === 'inv' ? { kind: 'inv', id: best.kind } : { kind: 'unit', id: best.kind, star: best.star }); return; }
   const b = e.target.closest('[data-l]'); if (!b || b.disabled) return; const a = b.dataset.l, R = LU.R;
-  if (a === 'exit') return lrExit();
+  if (a === 'exit') { if (LU.sheet && LU.sheet.kind === 'result' && R.phase === 'over') { LU.sheet = null; $('lr-sheet').hidden = true; } return lrExit(); }
   if (a === 'tutoff') { LU.tut = -1; if (META) { META.lairTut = 1; try { saveMeta(); } catch (er) { /* 저장 없이 */ } } $('lr-coach').hidden = true; document.querySelectorAll('#lr .lr-glow').forEach(x => x.classList.remove('lr-glow')); return; }
   if (a === 'tutok') { LU.tut++; return lrCoach(); }
   if (a === 'close') return lrSheetClose();
-  if (a === 'speed') return lrSpeedSet(+b.dataset.v);
+  if (a === 'speed') { lrSpeedSet(+b.dataset.v); if (LU.sheet && LU.sheet.kind === 'menu') lrSheet({ kind: 'menu' }); return; }
   if (a === 'pause') { LU.paused = !LU.paused; return lrFightPanel(); }
   if (a === 'next') return lrNext();
   if (a === 'again') { lrSheetClose(); return lrNew(); }
@@ -173,7 +217,10 @@ function lrClick(e) {
   if (a === 'syns') return lrSheet({ kind: 'syns' });
   if (a === 'info') return lrSheet({ kind: 'unit', id: b.dataset.kind, star: +b.dataset.star || 1 });
   if (a === 'roominfo') return lrSheet({ kind: 'room', id: b.dataset.id });
-  if (LU.phase !== 'prep') return;
+  if (a === 'econ' || a === 'run' || a === 'core' || a === 'menu') { lrSay('click'); return lrSheet({ kind: a }); }
+  if (a === 'cast') return lrSheet({ kind: 'cast', id: b.dataset.id });
+  if (a === 'tog') { const k = b.dataset.v; META[k] = !(k === 'sound' ? META.sound : META[k] !== false); try { saveMeta(); if (k === 'music' && typeof musicSet === 'function') musicSet(META.music); } catch (er) { /* 저장 없이 */ } return lrSheet({ kind: 'menu' }); }
+  if (LU.phase !== 'prep' || LU.flow) return;
   if (a === 'shop') { const i = +b.dataset.i; if (LU.sel && LU.sel.shop === i) return lrBuy(i); LU.sel = { shop: i }; lrSay('click'); return lrDraw(); }
   if (a === 'buy') return lrBuy(+b.dataset.i);
   if (a === 'sell') { const r = LAIR.sell(R, +b.dataset.u); if (r.ok) { lrSay('coin'); LU.sel = null; } else lrToast(r.msg); return lrDraw(); }
@@ -181,6 +228,8 @@ function lrClick(e) {
   if (a === 'xp') { const r = LAIR.buyXp(R); if (r.ok) { lrSay(r.up ? 'up' : 'click'); if (r.up) lrToast('둥지 Lv ' + R.level); } else lrToast(r.msg); return lrDraw(); }
   if (a === 'room') { if (LU.roomPick != null) { LU.roomPick = null; return lrDraw(); } return lrSheet({ kind: 'rooms' }); }
   if (a === 'pickroom') { LU.roomPick = +b.dataset.i; LU.sel = null; lrSheetClose(); return lrDraw(); }
+  if (a === 'elite') return lrSheet({ kind: 'elite' });
+  if (a === 'eliteset') { const r = LAIR.setElite(R, b.dataset.v === '1'); if (!r.ok) lrToast(r.msg); else lrSay('thud'); lrSheetClose(); lrWarmPrep(); return lrDraw(); }
   if (a === 'fight') return lrFight();
 }
 function lrBuy(i) {
@@ -190,9 +239,9 @@ function lrBuy(i) {
 function lrMergePop(m) { LU.pops[m.uid] = LU.t + 900; lrSay('combo'); const w = LAIR.whereOf(LU.R, m.uid); if (w && w.cell != null) LU.cellPop = { cell: w.cell, t0: LU.t }; lrToast(LAIR.KIN[m.kind].name + ' ' + '★'.repeat(m.star)); }
 // 판의 칸을 찾는다 (화면 좌표 → 칸)
 function lrCellAt(cx, cy) { const cv = $('lr-cv'), r = cv.getBoundingClientRect(), x = (cx - r.left) / LU.scale, y = (cy - r.top) / LU.scale - LU.wallH; if (x < 0 || y < 0 || x >= LW || y >= LS * 6) return -1; return Math.floor(y / LS) * 6 + Math.floor(x / LS); }
-function lrUnitAtCell(c) { const R = LU.R; if (R.board[c]) return { uid: R.board[c] }; if (LAIR.CORE.includes(c)) return { core: true }; const e = R.enemy.find(q => q.cell === c); return e ? { enemy: e } : null; }
+function lrUnitAtCell(c) { const R = LU.R; if (R.board[c]) return { uid: R.board[c] }; if (LAIR.CORE.includes(c)) return { core: true }; const e = LAIR.curEnemy(R).find(q => q.cell === c); return e ? { enemy: e } : null; }
 function lrDown(e) {
-  if (LU.phase !== 'prep' || LU.sheet) return; const slot = e.target.closest('.lr-slot'), onCv = e.target.id === 'lr-cv';
+  if (LU.phase !== 'prep' || LU.sheet || LU.flow) return; const slot = e.target.closest('.lr-slot'), onCv = e.target.id === 'lr-cv';
   if (!slot && !onCv) return;
   let uid = null, cell = -1;
   if (slot) uid = slot.dataset.u ? +slot.dataset.u : null; else { cell = lrCellAt(e.clientX, e.clientY); const u = cell >= 0 ? lrUnitAtCell(cell) : null; uid = u && u.uid ? u.uid : null; }
@@ -218,7 +267,7 @@ function lrUp(e) {
   const u = lrUnitAtCell(cell);
   if (LU.sel && LU.sel.uid && LAIR.isNestCell(cell) && !(u && u.core) && !(u && u.uid === LU.sel.uid)) return lrMoveTo(LU.sel.uid, { cell });
   if (u && u.uid) { LU.sel = LU.sel && LU.sel.uid === u.uid ? null : { uid: u.uid }; lrSay('click'); return lrDraw(); }
-  if (u && u.enemy) return lrSheet({ kind: 'inv', id: u.enemy.kind });
+  if (u && u.enemy) return lrSheet(u.enemy.cast ? { kind: 'cast', id: u.enemy.cast } : { kind: 'inv', id: u.enemy.kind, cell: u.enemy.cell });
   if (u && u.core) return lrSheet({ kind: 'core' });
   const rm = LU.R.rooms.find(r => r.cells.includes(cell)); if (rm && !LU.sel) return lrSheet({ kind: 'room', id: rm.id });
   LU.sel = null; lrDraw();
@@ -235,60 +284,93 @@ function lrPlaceRoom(cell) {
 }
 
 // ---- 아래에서 올라오는 창 ----
+const lrStat = (k, n) => `<span class="lr-st"><small>${k}</small><b>${n}</b></span>`;
+const lrSkillHtml = (sk, extra) => (sk ? `<div class="lr-skill"><b>${esc(sk.name)}</b><span>${esc(sk.short)}</span><p>${esc(sk.more)}</p>${extra || ''}</div>` : '');
+const lrTog = (k, name, on) => `<p class="lr-setrow"><span>${name}</span><button data-l="tog" data-v="${k}" class="${on ? 'on' : ''}" aria-pressed="${!!on}">${on ? '켬' : '끔'}</button></p>`;
+function lrSheetView() { return LU.phase === 'fight' && LU.F ? LU.F.v0 : lrView(); }
 function lrSheet(s) {
-  LU.sheet = s; const el = $('lr-sheet'), v = lrView(); let h = '';
-  const stat = (k, n) => `<span class="lr-st"><small>${k}</small><b>${n}</b></span>`;
-  if (s.kind === 'unit') { const u = LAIR.unitInfo(s.id, s.star); h = `<div class="lr-shead"><canvas id="lr-prev" width="96" height="96"></canvas><div><h3>${esc(u.name)} ${lrStars(u.star)}</h3><p class="lr-tags">${lrRoleImg(u.role, 18)}<b class="lr-rolename">${esc(u.roleName)}</b> · ${esc(u.reach)}</p><p class="lr-tags"><img src="${lrSym(u.asp, 16)}" alt="">${esc(u.aspName)} <img src="${lrSym(u.cls, 16)}" alt="">${esc(u.clsName)}</p></div></div><div class="lr-stats">${stat('체력', u.hp)}${stat('공격', u.atk)}${stat('방어', u.df)}${stat('닿는 칸', u.range)}${stat('마나', u.mana)}${u.sanAtk ? stat('정신 피해', u.sanAtk) : ''}</div><div class="lr-skill"><b>${esc(u.skill.name)}</b><span>${esc(u.skill.short)}</span><p>${esc(u.skill.more)}</p></div><p class="lr-note">${esc(LROLE[u.role] || '')}</p>`; }
-  if (s.kind === 'inv') { const u = LAIR.invInfo(s.id, s.round || LU.R.round); h = `<div class="lr-shead"><canvas id="lr-prev" width="96" height="96"></canvas><div><h3>${esc(u.name)}</h3><p class="lr-tags">${lrRoleImg(u.role, 18)}<b class="lr-rolename">${esc(u.roleName)}</b> · ${esc(u.reach)}${u.elite ? ' · 정예' : ''}${u.boss ? ' · 우두머리' : ''}</p></div></div><div class="lr-stats">${stat('체력', u.hp)}${stat('정신', u.noMad ? '—' : u.san)}${stat('공격', u.atk)}${stat('방어', u.df)}${stat('닿는 칸', u.range)}</div><div class="lr-skill"><b>${esc(u.skill.name)}</b><span>${esc(u.skill.short)}</span><p>${esc(u.skill.more)}</p></div><p class="lr-note">${esc(LROLE[u.role] || '')}</p>`; }
-  if (s.kind === 'core') { const f = s.form ? LAIR.formInfo(s.form, LU.F ? LU.F.round : LU.R.round) : v.form; h = `<div class="lr-shead"><canvas id="lr-prev" width="96" height="96"></canvas><div><h3>${esc(f.name)}</h3><p class="lr-tags">본체 · 체력 ${v.hp}</p></div></div><div class="lr-skill"><b>${esc(f.skill.name)}</b><span>${esc(f.skill.short)}</span><p>${esc(f.skill.more)}</p></div><p class="lr-note">가장 많이 모은 성향을 따라 모습이 바뀐다.</p>`; }
+  LU.sheet = s; const el = $('lr-sheet'), v = lrSheetView(), R = LU.R; let h = ''; $('lr-toast').hidden = true; LU.toastT = 0;
+  if (s.kind === 'unit') { const u = LAIR.unitInfo(s.id, s.star); h = `<div class="lr-shead"><canvas id="lr-prev" width="96" height="96"></canvas><div><h3>${esc(u.name)} ${lrStars(u.star)}</h3><p class="lr-tags">${lrRoleImg(u.role, 18)}<b class="lr-rolename">${esc(u.roleName)}</b> · ${esc(u.reach)} · 값 ${u.cost}</p><p class="lr-tags"><img src="${lrSym(u.asp, 16)}" alt="">${esc(u.aspName)} <img src="${lrSym(u.cls, 16)}" alt="">${esc(u.clsName)}</p></div></div><div class="lr-stats">${lrStat('체력', u.hp)}${lrStat('공격', u.atk)}${lrStat('방어', u.df)}${lrStat('닿는 칸', u.range)}${lrStat('마나', u.mana)}${u.sanAtk ? lrStat('정신 피해', u.sanAtk) : ''}</div>${lrSkillHtml(u.skill)}<p class="lr-note">${esc(LROLE[u.role] || '')}</p>`; }
+  if (s.kind === 'inv') { const e = v.enemy.find(q => q.kind === s.id && (s.cell == null || q.cell === s.cell)) || (v.elite ? v.elite.enemy.find(q => q.kind === s.id) : null), u = e || LAIR.invInfo(s.id, v.round, LAIR.scaleOf(R));
+    h = `<div class="lr-shead"><canvas id="lr-prev" width="96" height="96"></canvas><div><h3>${esc(u.name)}</h3><p class="lr-tags">${lrRoleImg(u.role, 18)}<b class="lr-rolename">${esc(u.roleName)}</b> · ${esc(u.reach)}${u.boss ? ' · 우두머리' : u.elite ? ' · 정예' : ''}</p></div></div><div class="lr-stats">${lrStat('체력', u.hp)}${lrStat('정신', u.noMad ? '—' : u.san)}${lrStat('의지', u.will || '—')}${lrStat('공격', u.atk)}${lrStat('방어', u.df)}${lrStat('닿는 칸', u.range)}</div>${lrSkillHtml(u.skill)}<p class="lr-note">${esc(LROLE[u.role] || '')}${u.will ? ' 공포 판정에서 의지만큼 주사위를 굴린다.' : ''}</p>`; }
+  if (s.kind === 'cast') { const c = (v.cast || []).find(q => q.id === s.id) || LAIR.castInfo(R, s.id), e = v.enemy.find(q => q.cast === c.id);
+    h = `<div class="lr-shead"><canvas id="lr-prev" width="96" height="96"></canvas><div><h3>${esc(c.name)}</h3><p class="lr-tags">${esc(c.role)}${c.here ? ' · 이번 무리' : ''}</p></div></div><div class="lr-stats">${lrStat('의지', c.will)}${lrStat('지식', c.lore)}${lrStat('힘', c.might)}${e ? lrStat('체력', e.hp) + lrStat('정신', e.noMad ? '—' : e.san) : ''}</div><p class="lr-nar">${esc(c.hist)}</p><p class="lr-note lr-cstate ${c.state}">${esc(c.note)}</p>${lrSkillHtml(c.skill)}${c.seen ? `<p class="lr-sum"><span>마주침 ${c.seen}</span>${c.mad ? `<span class="m">미침 ${c.mad}</span>` : ''}${c.killed ? `<span>쓰러짐 ${c.killed}</span>` : ''}${c.eaten ? `<span class="l">삼켜짐 ${c.eaten}</span>` : ''}</p>` : ''}`; }
+  if (s.kind === 'core') { const f = v.form, aw = v.awaken, my = v.mythos;
+    h = `<div class="lr-shead"><canvas id="lr-prev" width="96" height="96"></canvas><div><h3>${esc(f.name)}</h3><p class="lr-tags">본체 · 깨어남 ${aw.step}/3${my.next ? ' · 다음 신화 단계 ' + my.next + '라운드' : ''}</p></div></div><div class="lr-stats">${lrStat('체력', f.hp)}${lrStat('공격', f.atk)}${lrStat('닿는 칸', f.range)}${lrStat('마나', f.mana)}</div>${lrSkillHtml(f.skill, f.t2 ? `<p class="lr-t2">${esc(f.t2)}</p>` : '')}`
+      + (my.picked.length ? `<h4>고른 신화</h4><div class="lr-cards">${my.picked.map(c => `<div class="lr-mc t${c.tier}"><p><img src="${lrSym(c.asp, 16)}" alt=""><b>${esc(c.name)}</b><small>${esc(c.tierName)}</small></p><span class="pw">${esc(c.power)}</span><span class="pr">${esc(c.price)}</span></div>`).join('')}</div>` : '')
+      + `<h4>공포 ${aw.fear}/${aw.max}</h4><div class="lr-fearbar"><b style="width:${Math.round(aw.fear / aw.max * 100)}%"></b>${aw.effects.map(e => `<i style="left:${Math.round(e.at / aw.max * 100)}%"></i>`).join('')}</div><div class="lr-tiers">${aw.effects.map(e => `<p class="${e.on ? 'on' : ''}"><b>${e.at}</b>${esc(e.world)}</p>`).join('')}</div><p class="lr-note">이기면 공포가 오르고 지면 내린다. 공포가 높을수록 신화 단계에 더 큰 것이 온다.</p>`; }
   if (s.kind === 'syn') { const info = v.synergies.find(q => q.id === s.id) || LAIR.synInfo(s.id, 0), mem = LAIR.KIN_IDS.filter(k => LAIR.KIN[k].asp === s.id || LAIR.KIN[k].cls === s.id), have = new Set(v.board.map(b => b.kind));
-    h = `<div class="lr-shead"><img class="lr-big" src="${lrSym(s.id, 32)}" alt=""><div><h3>${esc(info.name)}</h3><p class="lr-tags">${info.n} 모임</p></div></div><div class="lr-tiers">${info.need.map((n, i) => `<p class="${info.tier > i ? 'on' : ''}"><b>${n}</b>${esc(info.shorts[i])}</p>`).join('')}</div><p class="lr-note">${esc(info.more)}</p><div class="lr-mem">${mem.map(k => `<button data-l="info" data-kind="${k}" data-star="1" class="${have.has(k) ? 'on' : ''}"><img src="${lrIcon(k, 1, 36)}" alt="${esc(LAIR.KIN[k].name)}"></button>`).join('')}</div>`; }
+    h = `<div class="lr-shead"><img class="lr-big" src="${lrSym(s.id, 32)}" alt=""><div><h3>${esc(info.name)}</h3><p class="lr-tags">${info.n} 모임${info.plus ? ' (본체 +' + info.plus + ')' : ''}</p></div></div><div class="lr-tiers">${info.need.map((n, i) => `<p class="${info.tier > i ? 'on' : ''}"><b>${n}</b>${esc(info.shorts[i])}</p>`).join('')}</div><p class="lr-note">${esc(info.more)}</p><div class="lr-mem">${mem.map(k => `<button data-l="info" data-kind="${k}" data-star="1" class="${have.has(k) ? 'on' : ''}"><img src="${lrIcon(k, 1, 36)}" alt="${esc(LAIR.KIN[k].name)}"><small>${LAIR.KIN[k].cost}</small></button>`).join('')}</div>`; }
   if (s.kind === 'room') { const r = LAIR.roomInfo(s.id); h = `<div class="lr-shead"><img class="lr-big" src="${lrRoomIcon(s.id)}" alt=""><div><h3>${esc(r.name)}</h3><p class="lr-tags">${r.len}칸</p></div></div><div class="lr-skill"><span>${esc(r.short)}</span><p>${esc(r.more)}</p></div>`; }
-  if (s.kind === 'rooms') h = `<h3>방 하나</h3><div class="lr-rooms">${v.roomOffer.map(r => `<button data-l="pickroom" data-i="${r.i}"><img src="${lrRoomIcon(r.id)}" alt=""><b>${esc(r.name)}</b><span>${esc(r.short)}</span><small>${r.len}칸</small></button>`).join('')}</div>`;
-  if (s.kind === 'syns') h = `<h3>모인 것</h3><div class="lr-rooms">${v.synergies.map(q => `<button data-l="syn" data-id="${q.id}"><img src="${lrSym(q.id, 32)}" alt=""><b>${esc(q.name)}</b><span>${esc(q.short)}</span><small>${q.n}/${q.next || q.need[1]}</small></button>`).join('')}</div>`;
+  if (s.kind === 'rooms') h = `<h3>방</h3><div class="lr-rooms">${v.roomOffer.map(r => `<button data-l="pickroom" data-i="${r.i}"${r.spots.length ? '' : ' disabled'}><img src="${lrRoomIcon(r.id)}" alt=""><b>${esc(r.name)}</b><span>${esc(r.short)}</span><small>${r.len}칸</small></button>`).join('')}</div>`;
+  if (s.kind === 'syns') h = `<h3>모인 것</h3><div class="lr-rooms">${v.synergies.map(q => `<button data-l="syn" data-id="${q.id}"><img src="${lrSym(q.id, 32)}" alt=""><b>${esc(q.name)}</b><span>${esc(q.short)}</span><small>${q.n}/${q.next || q.need[q.need.length - 1]}</small></button>`).join('')}</div>`;
+  if (s.kind === 'econ') { const e = v.econ, w = e.ifWin, l = e.ifLoss, st = v.streak || 0, costs = ['', 1, 2, 3, 4, 5];
+    h = `<h3>진액 ${v.gold}</h3><table class="lr-tb"><tr><th></th><th>기본</th><th>이자</th><th>연속</th><th>승리</th><th>합</th></tr><tr class="w"><th>이기면</th><td>${w.base}</td><td>${w.interest}</td><td>${w.streak}</td><td>${w.win}</td><td><b>+${w.total}</b></td></tr><tr class="l"><th>지면</th><td>${l.base}</td><td>${l.interest}</td><td>${l.streak}</td><td>—</td><td><b>+${l.total}</b></td></tr></table>`
+      + `<p class="lr-sum"><span>이자 ${e.per}마다 1 · 최대 ${e.interestMax}</span>${e.nextAt ? `<span class="g">다음 이자 ${e.nextAt}</span>` : ''}${st ? `<span class="${st > 0 ? 'w' : 'l'}">${st > 0 ? '연승' : '연패'} ${Math.abs(st)}</span>` : ''}</p>`
+      + `<h4>상점에 나오는 값 · Lv ${v.level}</h4><table class="lr-tb odds"><tr><th>Lv</th>${costs.slice(1).map(c => `<th class="c${c}">${c}</th>`).join('')}</tr>${Object.keys(v.oddsTable).map(lv => `<tr class="${+lv === v.level ? 'on' : ''}"><th>${lv}</th>${v.oddsTable[lv].map(p => `<td>${p ? p + '%' : '—'}</td>`).join('')}</tr>`).join('')}</table>`
+      + `<p class="lr-sum"><span>뽑기 ${v.costs.reroll}${v.freeRoll ? ' (이번 한 번)' : ''}</span><span>넓히기 ${v.costs.xp} → 경험 +${LAIR.K.xpBuy}</span><span>싸움마다 경험 +${v.xpRound}</span>${v.level < v.maxLv ? `<span>경험 ${v.xp}/${v.xpNeed}</span>` : ''}<span>세울 수 ${v.cap}</span></p>`; }
+  if (s.kind === 'run') { const hist = {}; v.hist.forEach(q => { hist[q.round] = q; });
+    h = `<h3>${v.act}막 ${esc(v.actName)}</h3><p class="lr-tags">${v.rin}/${v.per} · ${esc(v.roundName)}${v.retry ? ' · 다시 ' + v.retry : ''}</p><div class="lr-acts2">${[1, 2, 3].slice(0, v.acts).map(a => { const A = LAIR.actInfo(a); return `<div class="${a === v.act ? 'on' : ''}"><p><b>${a}막 ${esc(A.name)}</b><small>${esc(A.boss)}</small></p><span class="lr-track">${Array.from({ length: v.per }, (_, k) => { const r = (a - 1) * v.per + k + 1, q = hist[r]; return `<i class="lr-tc${r < v.round ? (q && !q.win ? ' l' : ' w') : ''}${r === v.round ? ' cur' : ''}${k === v.per - 1 ? ' boss' : ''}${LAIR.K.full.mythosAt.includes(r) ? (v.mythos.phase > LAIR.K.full.mythosAt.indexOf(r) ? ' myd' : ' my') : ''}"></i>`; }).join('')}</span></div>`; }).join('')}</div><p class="lr-leg"><span><i class="lr-tc my"></i>신화 단계</span><span><i class="lr-tc boss"></i>우두머리</span></p>`
+      + `<h4>조사자</h4><div class="lr-rooms">${(v.cast || []).map(c => `<button data-l="cast" data-id="${c.id}"><img src="${lrIcon(lrCastIcon(c, v), 1, 44)}" alt=""><b>${esc(c.name)}</b><span>${esc(c.role)} · 의지 ${c.will}</span><small class="lr-cstate ${c.state}">${esc(LCST[c.state] || '')}</small></button>`).join('')}</div>`
+      + (v.zealots ? `<p class="lr-sum"><span class="m">광신도 ${v.zealots}</span></p>` : '')
+      + (v.curses.length ? `<h4>저주</h4><div class="lr-tiers">${v.curses.map(c => `<p class="on"><b>${c.left}</b>${esc(c.name)} · ${esc(c.short)}</p>`).join('')}</div>` : ''); }
+  if (s.kind === 'elite') { const e = v.elite; if (!e) return lrSheetClose();
+    h = `<h3>${esc(e.name)}</h3><p class="lr-tags">${esc(e.preview)}</p><div class="lr-skill"><b>이기면</b><span>${esc(e.reward)}</span></div><div class="lr-btns"><button class="pri" data-l="eliteset" data-v="${e.on ? 0 : 1}"${e.on && e.forced ? ' disabled' : ''}>${e.on ? (e.forced ? '물릴 수 없다' : '정예를 물린다') : '정예를 부른다'}</button></div>`; }
+  if (s.kind === 'menu') h = `<h3>메뉴</h3>${lrTog('sound', '효과음', META.sound)}${lrTog('music', '음악', META.music !== false)}${lrTog('shake', '흔들림과 번쩍임', META.shake !== false)}<p class="lr-setrow"><span>빠르기</span><span class="lr-speed">${LSPD.map(q => `<button data-l="speed" data-v="${q[0]}" class="${LU.speed === q[0] ? 'on' : ''}" aria-pressed="${LU.speed === q[0]}">${q[1]}</button>`).join('')}</span></p><div class="lr-btns"><button data-l="exit">나가기</button><button class="pri" data-l="close">돌아간다</button></div>`;
   if (s.kind === 'result') h = lrResultHtml();
-  el.innerHTML = `<div class="lr-sbody${s.kind === 'result' ? ' res' : ''}">${s.kind === 'result' ? '' : '<button class="lr-x" data-l="close" aria-label="닫기">✕</button>'}${h}</div>`; el.hidden = false; $('lr-coach').hidden = true;
+  const modal = s.kind === 'result';
+  el.innerHTML = `<div class="lr-sbody${modal ? ' res' : ''}">${modal ? '' : '<button class="lr-x" data-l="close" aria-label="닫기">✕</button>'}${h}</div>`; el.hidden = false; $('lr-coach').hidden = true;
+  if (modal) { lrResFit(); requestAnimationFrame(lrResFit); }
 }
+// 결과 창이 화면보다 길면 덜 중요한 줄부터 접는다 (그 밖 → 기여 줄 → 진액 내역)
+function lrResFit() { const b = lq('#lr-sheet .lr-sbody.res'); if (!b) return; const over = () => b.scrollHeight > b.clientHeight + 1, drop = sel => { const q = b.querySelectorAll(sel); if (!q.length) return false; q[q.length - 1].remove(); return true; }; if (over()) drop('.lr-rest'); while (over() && b.querySelectorAll('.lr-row').length > 2 && drop('.lr-row')) { /* 줄인다 */ } if (over()) drop('.lr-eco2'); if (over()) drop('.lr-nar'); }
+const LCST = { fresh: '아직 오지 않았다', mad: '미쳤었다', hurt: '쓰러졌었다', eaten: '삼켜졌다', bold: '살아 돌아갔다', gone: '오지 않는다' };
 function lrSheetClose() { LU.sheet = null; $('lr-sheet').hidden = true; lrCoach(); }
 function lrSheetAnim(now) {
-  const s = LU.sheet, cv = $('lr-prev'); if (!s || !cv) return; const x = cv.getContext('2d'); x.clearRect(0, 0, 96, 96);
-  const h = s.kind === 'core' ? LAIRART.boss(s.form || LAIR.formOf(Object.keys(LU.R.board).map(c => LU.R.unit[LU.R.board[c]].kind))) : LAIRART.unit(s.id, s.star || 1); if (!h) return;
+  const s = LU.sheet, cv = $('lr-prev'); if (!s || !cv) return; const x = cv.getContext('2d'), v = lrSheetView(); x.clearRect(0, 0, 96, 96);
+  let h = null;
+  if (s.kind === 'core') h = lrBossH(v.form.form, v.form.step);
+  else if (s.kind === 'cast') { const c = (v.cast || []).find(q => q.id === s.id); h = c ? lrUnitH(c.kind, 1, lrCastSt(c, v)) : null; }
+  else if (s.kind === 'unit' || s.kind === 'inv') h = lrUnitH(s.id, s.star || 1);
+  if (!h) return;
   const cyc = now % 4200, anim = cyc < 2200 ? 'idle' : cyc < 2700 ? 'attack' : cyc < 3500 ? 'cast' : 'idle', t = anim === 'idle' ? now : anim === 'attack' ? cyc - 2200 : cyc - 2700;
   h.draw(x, 48, 86, anim, t, { scale: h.size > 72 ? 1 : 1.4 });
 }
 
 // ---- 싸움 ----
-function lrWarmPrep() { const R = LU.R; if (!R) return; const add = (id, star) => { const k = id + ':' + star; if (!LU.warmed[k]) { LU.warmed[k] = 1; ['idle', 'attack', 'cast', 'move', 'hit', 'die'].forEach(an => LU.warm.push([id, star, an])); } }; Object.keys(R.unit).forEach(id => add(R.unit[id].kind, R.unit[id].star)); R.enemy.forEach(e => add(e.kind, 1)); R.shop.forEach(k => { if (k) add(k, 1); }); }
+function lrWarmPrep() { const R = LU.R; if (!R) return; const add = (id, star) => { const k = id + ':' + star; if (!LU.warmed[k]) { LU.warmed[k] = 1; ['idle', 'attack', 'cast', 'move', 'hit', 'die'].forEach(an => LU.warm.push([id, star, an])); } }; Object.keys(R.unit).forEach(id => add(lrArtId(R.unit[id].kind), R.unit[id].star)); LAIR.curEnemy(R).forEach(e => add(lrArtId(e.kind, e.poss ? 'poss' : ''), 1)); R.shop.forEach(k => { if (k) add(lrArtId(k), 1); }); }
 function lrWarmStep(budget) { const t0 = performance.now(); while (LU.warm.length && performance.now() - t0 < budget) { const [id, star, an] = LU.warm.shift(); try { LAIRART.prewarm([id], star, [an]); } catch (e) { /* 그림이 없으면 건너뛴다 */ } } }
 function lrFight() {
-  const R = LU.R, v0 = lrView(), name = v0.roundName, round = R.round, bar = { round, name, gold: v0.gold, level: v0.level, placed: v0.placed, cap: v0.cap, hp: v0.hp }; LU.sel = null; LU.roomPick = null;
+  const R = LU.R, v0 = lrView(), name = v0.roundName, round = R.round; if (LU.flow || LU.phase !== 'prep') return; LU.sel = null; LU.roomPick = null;
+  const castSt = {}; (v0.cast || []).forEach(c => { castSt[c.id] = lrCastSt(c, v0); });
   const res = LAIR.ready(R); if (!res.ok) return lrToast(res.msg);
-  lrSave(); if (R.phase === 'over') lrRecord(res.fight); else { try { if (typeof traceLive === 'function') traceLive(); } catch (e) { /* 기록 없이 */ } }
-  const f = res.fight, F = { tl: f.timeline, i: 0, T: 0, ents: {}, fx: [], zones: [], nums: [], lines: [], late: [], feed: [], stop: 0, shake: 0, shakeMag: 0, intro: 1500, slowUntil: 0, slowK: 1, slows: 0, slowSeen: {}, blocks: 0, shots: 0, taunts: 0, real: 0, done: false, endAt: 0, res, name, round, bar, labs: [], rooms: f.rooms.map(r => ({ id: r.id, cells: r.cells, erased: false, pulse: 0 })), syn: f.syn, form: f.form, banner: null, consumed: 0, mads: 0, casts: 0 };
-  f.units.forEach(u => { F.ents[u.id] = lrEnt(u); }); F.chips = lrSynChips(v0, f.syn);
+  lrTally(res.fight); lrSave(); if (R.phase === 'over') lrRecord(res.fight); else { try { if (typeof traceLive === 'function') traceLive(); } catch (e) { /* 기록 없이 */ } }
+  const f = res.fight, boss = !!v0.boss, F = { tl: f.timeline, i: 0, T: 0, ents: {}, fx: [], zones: [], nums: [], lines: [], late: [], feed: [], dice: [], stop: 0, shake: 0, shakeMag: 0, intro: boss ? 2300 : 1500, slowUntil: 0, slowK: 1, slows: 0, slowSeen: {}, blocks: 0, shots: 0, taunts: 0, checks: 0, bigChecks: 0, boons: 0, boonAt: {}, real: 0, done: false, endAt: 0, res, name, round, v0, step: v0.form.step, labs: [], rooms: f.rooms.map(r => ({ id: r.id, cells: r.cells, erased: false, pulse: 0 })), syn: f.syn, form: f.form, banner: null, consumed: 0, mads: 0, casts: 0 };
+  f.units.forEach(u => { const e = F.ents[u.id] = lrEnt(u); if (u.cast) e.artSt = castSt[u.cast] || ''; }); F.chips = lrSynChips(v0, f.syn);
   { const w = f.timeline.find(e => e.type === 'win'); let last = null; f.timeline.forEach(e => { if (e.type === 'die') last = e; }); if (w && last && w.t - last.t < 1) last.last = 1; }
-  LU.F = F; LU.res = res; LU.phase = 'fight'; LU.speed = LU.speed || 1; LU.paused = false; $('lr-ov').innerHTML = '';
-  Object.keys(F.ents).forEach(id => { const e = F.ents[id]; if (!e.core) ['mad'].forEach(an => { if (e.side === 'inv') LU.warm.push([e.kind, 1, an]); }); });
-  { const ids = Object.keys(f.syn || {}), d = document.createElement('div'); d.className = 'lr-intro'; d.innerHTML = `<b>${esc(name)}</b>` + (ids.length ? `<span>${ids.map(id => `<i><img src="${lrSym(id, 16)}" alt="">${esc(LAIR.SYN[id].name)} ${f.syn[id] >= 2 ? LAIR.SYN[id].need[1] : LAIR.SYN[id].need[0]}</i>`).join('')}</span>` : ''); $('lr-ov').appendChild(d); setTimeout(() => d.remove(), 1500); }
-  lrSay('night'); try { if (typeof music === 'function') music(round >= 3 ? 'boss' : 'night'); } catch (e) { /* 음악 없이 */ }
+  LU.F = F; LU.res = res; LU.phase = 'fight'; LU.speed = LU.speed || 1; LU.paused = false; $('lr-ov').innerHTML = ''; $('lr-toast').hidden = true; LU.toastT = 0;
+  Object.keys(F.ents).forEach(id => { const e = F.ents[id]; if (!e.core && e.side === 'inv') LU.warm.push([lrArtId(e.kind, e.artSt), 1, 'mad']); });
+  { const ids = Object.keys(f.syn || {}), d = document.createElement('div'), ms = boss ? 2300 : 1500; d.className = 'lr-intro' + (boss ? ' boss' : ''); d.style.animationDuration = ms + 'ms';
+    d.innerHTML = (boss ? `<small>${v0.act}막 ${esc(v0.actName)}</small>` : '') + `<b>${esc(name)}</b>` + (v0.elite && v0.elite.on ? '<em>정예</em>' : '') + (ids.length ? `<span>${ids.map(id => `<i><img src="${lrSym(id, 16)}" alt="">${esc(LAIR.SYN[id].name)} ${LAIR.SYN[id].full[Math.max(0, f.syn[id] - 1)]}</i>`).join('')}</span>` : ''); $('lr-ov').appendChild(d); setTimeout(() => d.remove(), ms); }
+  lrSay('night'); try { if (typeof music === 'function') music(boss ? 'boss' : 'night'); } catch (e) { /* 음악 없이 */ }
   const first = LU.tut >= 0 && LU.tut < LTUT.length; lrDraw(); lrSize(); if (first) { lrToast('위 줄은 체력, 파란 줄은 마나, 보라 줄은 정신이다.'); LU.toastT = LU.t + 5200; }
 }
 function lrEnt(u) {
   const p = lcen(u.cells && u.cells.length ? u.cells : [u.cell]);
-  return { id: u.id, side: u.side, kind: u.kind, star: u.star || 1, core: !!u.core, form: u.form, boss: !!u.boss, elite: !!u.elite, name: u.name, asp: u.asp, cls: u.cls, x: p.x, y: p.y, fx: p.x, fy: p.y, tx: p.x, ty: p.y, mv0: 0, mvDur: 0, mvAnim: '', anim: 'idle', a0: 0, hp: u.mhp, mhp: u.mhp, san: u.msan || 0, msan: u.msan || 0, mana: u.mana || 0, mmana: u.mmana || 100, mad: false, dead: false, dieT: -1, st: {}, flash: 0, rx: 0, ry: 0, face: u.side === 'inv' ? 1 : 0, lunge: null, pop: 0, off: Math.random() * 1200, ranged: 0, dot: 0, dotT: 0, shield: 0, swallow: false, role: u.role || (u.core ? 'core' : 'melee'), range: u.range || 1, summon: !!u.summon };
+  return { id: u.id, side: u.side, kind: u.kind, cast: u.cast || null, will: u.will || 0, artSt: '', star: u.star || 1, core: !!u.core, form: u.form, boss: !!u.boss, elite: !!u.elite, name: u.name, asp: u.asp, cls: u.cls, x: p.x, y: p.y, fx: p.x, fy: p.y, tx: p.x, ty: p.y, mv0: 0, mvDur: 0, mvAnim: '', anim: 'idle', a0: 0, hp: u.mhp, mhp: u.mhp, san: u.msan || 0, msan: u.msan || 0, mana: u.mana || 0, mmana: u.mmana || 100, mad: false, dead: false, dieT: -1, st: {}, flash: 0, rx: 0, ry: 0, face: u.side === 'inv' ? 1 : 0, lunge: null, pop: 0, off: Math.random() * 1200, ranged: 0, dot: 0, dotT: 0, shield: 0, swallow: false, role: u.role || (u.core ? 'core' : 'melee'), range: u.range || 1, summon: !!u.summon };
 }
-function lrHandle(e) { if (e.core) return LAIRART.boss(e.form || 'drop'); if (e.kind === 'seeker') { const k = e.msan ? e.san / e.msan : 1; return LAIRART.unit('seeker', k > 0.66 ? 1 : k > 0.33 ? 2 : 3); } return LAIRART.unit(e.kind, e.star) || LAIRART.unit('spawn', 1); }
+function lrHandle(e) { if (e.core) return lrBossH(e.form || 'drop', LU.F ? LU.F.step : 0); const aid = lrArtId(e.kind, e.artSt); if (aid === 'seeker') { const k = e.msan ? e.san / e.msan : 1; return LAIRART.unit('seeker', k > 0.66 ? 1 : k > 0.33 ? 2 : 3); } return LAIRART.unit(aid, aid === e.kind || LAIR.KIN[e.kind] ? e.star : 1) || LAIRART.unit('spawn', 1); }
 function lrSetAnim(e, anim, T) { e.anim = anim; e.a0 = T; }
 function lrLabel(x, y, text, cls, ms) {
   const F = LU.F, sc = LU.scale, hw = (text.length * 12.5 + 16) / 2 / sc; ms = ms || 1100; x = Math.max(hw + 2, Math.min(LW - hw - 2, x)); y = Math.max(LU.wallH + 4, y);
-  if (F) { F.labs = F.labs.filter(l => l.until > LU.t); for (let k = 0; k < 4; k++) { if (F.labs.some(l => Math.abs(l.x - x) < hw + l.hw && Math.abs(l.y - y) < 19 / sc)) y -= 20 / sc; else break; } y = Math.max(22 / sc, y); F.labs.push({ x, y, hw, until: LU.t + ms }); }
+  if (F) { F.labs = F.labs.filter(l => l.until > LU.t); for (let k = 0; k < 4; k++) { if (F.labs.some(l => Math.abs(l.x - x) < hw + l.hw && Math.abs(l.y - y) < 19 / sc)) y -= 20 / sc; else break; } y = Math.max(38 / sc, y); F.labs.push({ x, y, hw, until: LU.t + ms }); }
   const d = document.createElement('span'); d.className = 'lr-lab ' + (cls || ''); d.textContent = text; d.style.left = (x * sc) + 'px'; d.style.top = (y * sc) + 'px'; d.style.animationDuration = ms + 'ms'; $('lr-ov').appendChild(d); setTimeout(() => d.remove(), ms);
 }
 function lrNum(F, x, y, text, kind, id) {
   if (id && typeof text === 'number' && text > 0) { const q = F.nums.find(n => n.id === id && n.kind === kind && LU.t - n.t0 < 420); if (q) { q.val += text; q.text = Math.round(q.val); q.t0 = Math.max(q.t0, LU.t - 110); return; } }
   if (F.nums.length > 18) F.nums.shift(); F.nums.push({ x, y, text: typeof text === 'number' ? Math.round(text) : text, val: typeof text === 'number' ? text : 0, kind, id, t0: LU.t });
 }
-function lrAddFx(F, name, a, b, o, dur, under, delay) { F.fx.push({ name, a, b: b || a, t0: F.T + (delay || 0), dur: dur || LFXDUR[name] || 0.6, o: o || {}, under: !!under }); if (F.fx.length > 40) F.fx.shift(); }
+function lrAddFx(F, name, a, b, o, dur, under, delay) { dur = dur || LFXDUR[name]; name = lrFxName(name); F.fx.push({ name, a, b: b || a, t0: F.T + (delay || 0), dur: dur || LFXDUR[name] || 0.6, o: o || {}, under: !!under }); if (F.fx.length > 40) F.fx.shift(); }
 function lrStop(F, ms, mag) { F.stop = Math.max(F.stop, ms); if (mag && typeof motionOk === 'function' && motionOk()) { F.shake = LU.t + 220; F.shakeMag = Math.max(F.shakeMag, mag); } }
 // 큰 순간: 잠깐 느리게 흐른다 (흔들림을 끈 사람에게는 하지 않는다)
 function lrSlow(F, ms, k) { if (typeof motionOk === 'function' && !motionOk()) return; F.slowUntil = Math.max(F.slowUntil, LU.t + ms / Math.max(1, LU.speed)); F.slowK = k; F.slows++; }
@@ -332,14 +414,14 @@ function lrEv(F, ev) {
     case 'cast': {
       if (!u) return; const tg = E[ev.tg]; if (tg) lrFace(u, tg.x); lrSetAnim(u, 'cast', T); u.mana = 0; F.casts++; u.castT = T; u.castDur = Math.max(0.3, ev.dur || 0.42);
       if (!ev.again && !F.slowSeen[u.id] && (u.core || u.boss || (u.side === 'nest' && LAIR.KIN[u.kind] && LAIR.KIN[u.kind].cost >= 3))) { F.slowSeen[u.id] = 1; lrSlow(F, 700, 0.4); }
-      const sk = LAIR.SK[ev.sk]; if (sk && !ev.again) { lrLabel(u.x, u.y - (u.core ? 92 : 64), sk.name, 'sk ' + (u.side === 'nest' && !u.madSide ? 'nest' : 'inv'), Math.max(1000, 1250 / Math.sqrt(LU.speed))); F.feed.push({ icon: u.core ? 'boss:' + (u.form || 'drop') : u.kind, star: u.core ? 1 : u.star, name: u.name, sk: sk.name, side: u.side }); if (F.feed.length > 6) F.feed.shift(); const fd = $('lr-feed'); if (fd) fd.innerHTML = lrFeedHtml(); }
+      const sk = LAIR.SK[ev.sk]; if (sk && !ev.again) { lrLabel(u.x, u.y - (u.core ? 92 : 64), sk.name, 'sk ' + (u.side === 'nest' && !u.madSide ? 'nest' : 'inv'), Math.max(1000, 1250 / Math.sqrt(LU.speed))); F.feed.push({ icon: u.core ? 'boss:' + (u.form || 'drop') + ':' + F.step : u.cast && u.artSt ? u.kind + '/' + u.artSt : u.kind, star: u.core ? 1 : u.star, name: u.name, sk: sk.name, side: u.side }); if (F.feed.length > 6) F.feed.shift(); const fd = $('lr-feed'); if (fd) fd.innerHTML = lrFeedHtml(); }
       if (tg) F.lines.push({ a: ev.u, b: ev.tg, until: T + (ev.dur || 0.35) + 0.25, side: u.side });
       if (LU.t - LU.castAt > 160) { LU.castAt = LU.t; lrSay('spell'); }
       return;
     }
     case 'skillfx': return lrSkillFx(F, ev);
     case 'status': {
-      if (!u) return; if (ev.on) { u.st[ev.st] = { until: T + (ev.dur || 1), v: ev.v }; if (ev.st === 'shield') u.shield = 1; if (ev.st === 'stun') lrNum(F, u.x, u.y - 40, 0, 'block'); } else { delete u.st[ev.st]; if (ev.st === 'shield') u.shield = 0; }
+      if (!u) return; if (ev.on) { u.st[ev.st] = { until: T + (ev.dur || 1), v: ev.v }; if (ev.st === 'shield') u.shield = 1; if (ev.st === 'stun') lrNum(F, u.x, u.y - 40, 0, 'block'); if (ev.st === 'marked' && !(u.markT > T - 1)) { u.markT = T; lrLabel(u.x, u.y - 62, '표식', 'inv', 900); } } else { delete u.st[ev.st]; if (ev.st === 'shield') u.shield = 0; }
       if (ev.on && ev.st === 'taunted' && ev.by && E[ev.by] && !E[ev.by].dead) { const by = E[ev.by]; F.taunts++; F.lines.push({ a: ev.u, b: ev.by, until: T + 1, t0: T, side: by.side, aggro: 1 }); if (!(by.tauntT > T - 0.4)) { by.tauntT = T; lrAddFx(F, 'on', { x: by.x, y: by.y - 8 }, null, { col: '#f0a04a' }, 0.6); } }
       return;
     }
@@ -355,7 +437,24 @@ function lrEv(F, ev) {
       return;
     }
     case 'spawn': {
-      const p = C(ev.cell); F.ents[ev.u] = lrEnt({ id: ev.u, side: ev.side, kind: ev.kind, star: 1, cell: ev.cell, cells: [ev.cell], name: ev.name, mhp: ev.mhp, msan: 0, mmana: 0, mana: 0, role: ev.role, range: ev.range }); F.ents[ev.u].pop = T; F.ents[ev.u].summon = true; lrAddFx(F, ev.kind === 'infected' ? 'rise' : 'on', p, null, { col: '#c8e870' }, 0.5);
+      const p = C(ev.cell);
+      if (ev.revive && F.ents[ev.u]) { const q = F.ents[ev.u]; q.dead = false; q.dieT = -1; q.swallow = false; q.hp = ev.hp != null ? ev.hp : q.mhp; q.lag = q.hp / q.mhp; q.x = q.fx = q.tx = p.x; q.y = q.fy = q.ty = p.y; q.mvDur = 0; q.st = { wet: { until: T + 2, v: 1 } }; q.pop = T; lrSetAnim(q, 'idle', T); lrLabel(p.x, p.y - 62, '다시 낳았다', 'sk nest', 1200); lrStop(F, 120, 2); return; }
+      F.ents[ev.u] = lrEnt({ id: ev.u, side: ev.side, kind: ev.kind, star: ev.star || 1, cell: ev.cell, cells: [ev.cell], name: ev.name, mhp: ev.mhp, msan: 0, mmana: 0, mana: 0, role: ev.role, range: ev.range }); F.ents[ev.u].pop = T; F.ents[ev.u].summon = true; lrAddFx(F, ev.kind === 'spawn' || ev.kind === 'brute' ? 'on' : 'rise', p, null, { col: '#c8e870' }, 0.5);
+      return;
+    }
+    // 공포 판정: 주사위가 머리 위에서 굴러 멎는다. 우두머리·조사자의 판정과 본체·값진 권속의 스킬이 부른 판정은 크게
+    case 'check': {
+      if (!u) return; const by = E[ev.by], big = !!(u.boss || u.cast || (ev.why === 'skill' && by && by.core)), mo = typeof motionOk !== 'function' || motionOk(), roll = mo ? (big ? 800 : 520) : 0, hold = big ? 1300 : 900;
+      F.checks++; if (big) F.bigChecks++; F.dice = F.dice.filter(d => d.id !== u.id); F.dice.push({ id: u.id, dice: ev.dice.slice(), face: ev.face, ok: ev.ok, res: ev.res, big, t0: LU.t, roll, until: LU.t + roll + hold, said: false, seed: Math.floor(ev.t * 97) });
+      if (F.dice.length > 8) F.dice.shift(); if (big) { lrSlow(F, 900, 0.35); lrSay('click'); }
+      // 처음 보는 판정에는 한 번 일러 준다
+      if (!LU.toastT && META && !META.lairDice && !(navigator.webdriver && !window.__lairCoach)) { META.lairDice = 1; try { saveMeta(); } catch (er) { /* 저장 없이 */ } lrToast('공포 판정: 의지만큼 굴린다. ' + ev.face + ' 이상이 둘이면 버틴다.'); LU.toastT = LU.t + 4800; }
+      return;
+    }
+    // 신화의 권능이 돌았다: 카드 이름이 짧게 뜬다 (같은 카드는 잠깐 쉬었다가)
+    case 'boon': {
+      const c = ev.card && LAIR.MYTHOS[ev.card]; F.boons++; if (!c || F.boonAt[ev.card] > T - 2.5) return; F.boonAt[ev.card] = T;
+      const at = u ? { x: u.x, y: u.y } : ev.cell != null ? C(ev.cell) : lcen(LAIR.CORE); lrLabel(at.x, at.y - (u && u.core ? 92 : 58), c.name, 'boon', 1300); lrAddFx(F, 'on', { x: at.x, y: at.y - 8 }, null, { col: LCOL[c.asp] || '#ffd040' }, 0.6);
       return;
     }
     case 'roomfx': {
@@ -381,6 +480,10 @@ function lrSkillFx(F, ev) {
   if (fxn === 'dash') return add(C(ev.from), C(ev.to != null ? ev.to : ev.from));
   if (fxn === 'swallow') return add(me || C(ev.from), ev.to != null ? C(ev.to) : first);
   if (fxn === 'pull') return add(me || C(ev.from), ev.to != null ? C(ev.to) : first);
+  if (fxn === 'meteor' || fxn === 'ink' || fxn === 'flask') return add(ev.from != null ? C(ev.from) : me, ev.cell != null ? C(ev.cell) : first, { r: 1.4 });
+  if (fxn === 'rift') { const real = lrFxName('rift') === 'rift'; if (real) return add(me, { x: LW / 2, y: LU.wallH + LS * 1.5 }, { w: LW }); (ev.tgs || []).slice(0, 6).forEach(id => { const p = P(id); if (p) lrAddFx(F, 'rift', p, p, {}); }); return; }
+  if (fxn === 'sermon' || fxn === 'possess' || fxn === 'rebirth') { const cs = ev.cells || []; if (!cs.length) return add(me, me, { r: 1.2 }); cs.forEach(c => lrAddFx(F, fxn, C(c), C(c), { r: 1.2 })); return; }
+  if (fxn === 'toll' || fxn === 'banner' || fxn === 'exorcise') return add(me, me, { r: ev.r || 2 }, fxn === 'banner');
   if (fxn === 'cloud' || fxn === 'firepillar') return add(ev.from != null ? C(ev.from) : me, ev.cell != null ? C(ev.cell) : first, { r: fxn === 'cloud' ? 1.7 : 1.1 });
   if (fxn === 'madburst' || fxn === 'rise') { const p = ev.cells && ev.cells.length ? C(ev.cells[0]) : me; return add(p, p, { r: 1.4 }); }
   if (fxn === 'hatch') { const cs = ev.cells || []; return add(me || (cs.length ? C(cs[0]) : null), cs.length ? lcen(cs) : me, { n: Math.max(1, cs.length) }); }
@@ -418,18 +521,33 @@ function lrShowResult() {
   const fd = $('lr-feed'); if (fd) fd.innerHTML = ''; lrSheet({ kind: 'result' });
 }
 function lrResultHtml() {
-  const F = LU.F, res = F.res, f = res.fight, R = LU.R, over = R.phase === 'over', bd = f.breakdown.filter(b => b.side === 'nest');
-  const rows = {}; bd.forEach(b => { const k = b.summon ? 's:' + b.kind : b.id, r = rows[k] = rows[k] || { name: b.name, kind: b.kind === 'core' ? 'boss:' + (f.form || 'drop') : b.kind, star: b.star, n: 0, dmg: 0, san: 0, heal: 0, kills: 0, conv: 0 }; r.n++; r.dmg += b.dmg; r.san += b.san; r.heal += b.heal; r.kills += b.kills; r.conv += b.conv || 0; });
-  const list = Object.keys(rows).map(k => rows[k]).sort((a, b) => (b.dmg + b.san) - (a.dmg + a.san)), top = list.slice(0, 5), rest = list.slice(5), mx = Math.max(1, ...list.map(r => r.dmg)), mxs = Math.max(1, ...list.map(r => r.san));
+  const F = LU.F, res = F.res, f = res.fight, R = LU.R, over = R.phase === 'over', bd = f.breakdown.filter(b => b.side === 'nest'), v0 = F.v0;
+  const rows = {}; bd.forEach(b => { const k = b.summon ? 's:' + b.kind : b.id, r = rows[k] = rows[k] || { name: b.name, kind: b.kind === 'core' ? 'boss:' + (f.form || 'drop') + ':' + F.step : b.kind, star: b.star, n: 0, dmg: 0, san: 0, heal: 0, kills: 0, conv: 0 }; r.n++; r.dmg += b.dmg; r.san += b.san; r.heal += b.heal; r.kills += b.kills; r.conv += b.conv || 0; });
+  const list = Object.keys(rows).map(k => rows[k]).sort((a, b) => (b.dmg + b.san) - (a.dmg + a.san)), top = list.slice(0, over ? 3 : 4), rest = list.slice(top.length), mx = Math.max(1, ...list.map(r => r.dmg)), mxs = Math.max(1, ...list.map(r => r.san));
   const row = r => `<div class="lr-row"><img src="${lrIcon(r.kind, r.star, 32)}" alt=""><div><p><b>${esc(r.name)}${r.n > 1 ? ' ×' + r.n : ''}</b><span>${Math.round(r.dmg)}</span></p><i class="lr-b"><b style="width:${Math.round(r.dmg / mx * 100)}%"></b></i>${r.san > 0 ? `<i class="lr-b san"><b style="width:${Math.round(r.san / mxs * 100)}%"></b></i>` : ''}<small>${[r.san > 0 ? '정신 ' + Math.round(r.san) : '', r.kills ? '처치 ' + r.kills : '', r.conv ? '미침 ' + r.conv : '', r.heal > 0 ? '회복 ' + Math.round(r.heal) : ''].filter(Boolean).join(' · ')}</small></div></div>`;
   const others = rest.length ? `<p class="lr-rest">그 밖 ${rest.length} · ${Math.round(rest.reduce((s, r) => s + r.dmg, 0))}</p>` : '';
-  const line = over ? (R.over.win ? LNAR.end : R.hp <= 0 ? LNAR.fall : LNAR.lose) : res.win ? LNAR.win : LNAR.lose;
-  const foot = over ? `<p class="lr-sum">${R.hist.map(h => `<span class="${h.win ? 'w' : 'l'}">${h.round} ${h.win ? '이김' : '짐'}</span>`).join('')}</p><div class="lr-btns"><button class="pri" data-l="again">다시 한 판</button><button data-l="exit">나가기</button></div>`
-    : `<p class="lr-sum"><span class="g">진액 +${res.income}</span>${res.lost ? `<span class="l">본체 −${res.lost}</span>` : ''}${f.converted ? `<span class="m">미친 적 ${f.converted}</span>` : ''}<span>${Math.round(f.time)}초</span></p><div class="lr-btns"><button class="pri" data-l="next">다음 싸움</button></div>`;
-  return `<h3 class="${res.win ? 'win' : 'lose'}">${res.win ? '막아 냈다' : '뚫렸다'}</h3><p class="lr-nar">${esc(line)}</p><h4>누가 얼마나 했나</h4>${top.map(row).join('')}${others}${foot}`;
+  const who = `<h4>누가 얼마나 했나</h4>${top.map(row).join('')}${others}`;
+  // 조사자의 끝
+  const castRows = (res.cast || []).map(c => { const ci = (v0.cast || []).find(q => q.id === c.id) || LAIR.castInfo(R, c.id), end = c.how === 'swallow' ? ['삼켜졌다', 'l'] : c.mad ? ['미쳤다', 'm'] : !c.alive ? ['쓰러졌다', ''] : ['살아 돌아갔다', 'w']; return `<button class="lr-castrow" data-l="cast" data-id="${c.id}"><img src="${lrIcon(lrCastIcon(ci, v0), 1, 32)}" alt=""><b>${esc(ci.name)}</b><span class="${end[1]}">${end[0]}</span></button>`; }).join('');
+  if (over) {
+    const win = !!R.over.win, form = LAIR.coreInfo(R), picked = R.mythos.picked.map(LAIR.cardInfo), T = R.uiTop || {}, best = Object.keys(T).sort((a, b) => T[b] - T[a]).slice(0, 3), wins = R.hist.filter(h => h.win).length, hist = {}; R.hist.forEach(h => { hist[h.round] = h.win; });
+    const track = Array.from({ length: R.rounds }, (_, k) => { const r = k + 1; return `<i class="lr-tc${hist[r] == null ? '' : hist[r] ? ' w' : ' l'}${r % 5 === 0 ? ' boss' : ''}"></i>` + (r % 5 === 0 && r < R.rounds ? '<i class="lr-tg"></i>' : ''); }).join('');
+    return `<h3 class="${win ? 'win' : 'lose'}">${win ? '둥지는 남았다' : '둥지가 읽혔다'}</h3><p class="lr-nar">${esc(win ? LNAR.end : LNAR.fall)}</p>
+<div class="lr-end"><img src="${lrIcon('boss:' + form.form + ':' + form.step, 1, 64)}" alt=""><div><b>${esc(form.name)}</b><span>깨어남 ${form.step}/3 · Lv ${R.level}</span><span>${R.over.round}/${R.rounds} 라운드 · ${wins}승 ${R.hist.length - wins}패</span></div></div><p class="lr-track end">${track}</p>`
+      + (picked.length ? `<h4>고른 신화</h4><p class="lr-sum">${picked.map(c => `<span class="t${c.tier}"><img src="${lrSym(c.asp, 16)}" alt="">${esc(c.name)}</span>`).join('')}</p>` : '')
+      + (best.length ? `<h4>가장 많이 한 권속</h4><p class="lr-sum">${best.map(k => `<span><img class="lr-ki" src="${lrIcon(k, 1, 28)}" alt="">${esc(LAIR.KIN[k].name)} ${T[k]}</span>`).join('')}</p>` : '')
+      + `<div class="lr-btns"><button class="pri" data-l="again">다시 한 판</button><button data-l="exit">나가기</button></div>`;
+  }
+  const e = res.econ, parts = [['기본', e.base], ['이자', e.interest], ['연속', e.streak], ['승리', e.win], ['방', f.gold], ['우두머리', res.bossGold]].filter(q => q[1] > 0), fe = res.fear, nx = res.next;
+  const line = res.win ? (res.boss ? LNAR.boss : LNAR.win) : res.boss ? LNAR.again : LNAR.lose;
+  const sum = `<p class="lr-sum"><span class="g">진액 +${res.income}</span>${res.lost ? `<span class="l">목숨 −${res.lost}</span>` : ''}${fe && fe.delta ? `<span class="f">공포 ${fe.delta > 0 ? '+' : '−'}${Math.abs(fe.delta)}</span>` : ''}${f.converted ? `<span class="m">미친 적 ${f.converted}</span>` : ''}${res.zealots ? `<span class="m">광신도 ${res.zealots}</span>` : ''}${res.levelUp ? `<span class="w">둥지 Lv ${R.level}</span>` : ''}<span>${Math.round(f.time)}초</span></p><p class="lr-eco2">${parts.map(q => `${q[0]} ${q[1]}`).join(' · ')}</p>`
+    + (fe && fe.worldUp ? `<p class="lr-world">공포 ${fe.now} · ${esc(LAIR.WORLD[fe.world - 1] || '')}</p>` : '') + (res.boss && !res.win ? '<p class="lr-world">우두머리가 다시 온다.</p>' : '');
+  const go = nx === 'mythos' ? '신화 단계' : nx === 'choice' ? '보상' : nx === 'encounter' ? '조우' : res.boss && !res.win ? '다시 맞선다' : '다음 싸움';
+  return `<h3 class="${res.win ? 'win' : 'lose'}">${res.win ? '막아 냈다' : '뚫렸다'}</h3><p class="lr-nar">${esc(line)}</p>${sum}${castRows ? `<div class="lr-castrows">${castRows}</div>` : ''}${who}<div class="lr-btns"><button class="pri" data-l="next">${go}</button></div>`;
 }
 function lrNext() {
-  lrSheetClose(); const R = LU.R; LU.F = null; LU.phase = 'prep'; $('lr-ov').innerHTML = ''; if (LU.res && LU.res.levelUp) lrToast('둥지 Lv ' + R.level); LU.res = null; lrWarmPrep(); lrDraw(); lrSize();
+  lrSheetClose(); const R = LU.R; LU.F = null; LU.phase = 'prep'; $('lr-ov').innerHTML = ''; const up = LU.res && LU.res.levelUp; LU.res = null; lrWarmPrep(); lrDraw(); lrSize();
+  if (!lrFlow() && up) lrToast('둥지 Lv ' + R.level);
 }
 
 // ---- 그리기 ----
@@ -453,7 +571,7 @@ function lrDrawUnit(x, h, px, py, anim, t, o) {
 function lrStarPips(x, cx, y, n) { if (n < 2) return; const w = n * 7 - 1; for (let k = 0; k < n; k++) { x.fillStyle = '#0c0812'; x.fillRect(cx - w / 2 + k * 7 - 1, y - 1, 7, 7); x.fillStyle = n >= 3 ? '#ffd040' : '#d8e0f0'; x.fillRect(cx - w / 2 + k * 7, y, 5, 5); } }
 function lrRender(now) {
   const cv = $('lr-cv'), x = cv.getContext('2d'), R = LU.R, F = LU.F, gnd = LS * 0.3, t = now / 1000; if (!R) return;
-  LU.dbg = { badges: 0, range: [], rows: [], dive: 0 };
+  LU.dbg = { badges: 0, range: [], rows: [], dive: 0, dice: 0 };
   x.imageSmoothingEnabled = false; x.setTransform(1, 0, 0, 1, 0, 0); x.fillStyle = '#07050c'; x.fillRect(0, 0, cv.width, cv.height);
   if (F && F.shake > LU.t) { const m = F.shakeMag * (F.shake - LU.t) / 220; x.translate(Math.round((Math.random() - 0.5) * 2 * m), Math.round((Math.random() - 0.5) * 2 * m)); } else if (F) F.shakeMag = 0;
   x.drawImage(LAIRART.wallTop(LS, 6, t), 0, 0); x.drawImage(lrBg(), 0, LU.wallH);
@@ -477,13 +595,14 @@ function lrRenderPrep(x, now, gnd) {
       if (at >= 0) for (let c = 0; c < 36; c++) { if (c === at || LAIR.cheb(at, c) > lu.range) continue; LU.dbg.range.push(c); const px = lcx(c), py = lcy(c), h = LS / 2 - 5; x.save(); x.fillStyle = 'rgba(255,226,122,' + (c < 18 ? 0.2 : 0.08) + ')'; x.fillRect(px - h, py - h, h * 2, h * 2); x.strokeStyle = 'rgba(255,226,122,.9)'; x.lineWidth = 2; for (const [sx, sy] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) { x.beginPath(); x.moveTo(px + sx * h, py + sy * (h - 8)); x.lineTo(px + sx * h, py + sy * h); x.lineTo(px + sx * (h - 8), py + sy * h); x.stroke(); } x.restore(); } }
   }
   const list = [];
-  R.enemy.forEach(e => list.push({ y: lcy(e.cell), d: () => { const h = LAIRART.unit(e.kind, 1), px = lcx(e.cell), py = lcy(e.cell) + gnd; const role = LAIR.INV[e.kind] ? LAIR.INV[e.kind].role : 'melee'; lrRing(x, px, py - 2, '#c8303a', 17, role); lrDrawUnit(x, h, px, py, 'idle', now + e.cell * 97, { flip: true, alpha: 0.92 }); } }));
-  Object.keys(R.board).forEach(c => { const uid = R.board[c], u = R.unit[uid]; c = +c; list.push({ y: lcy(c) + (uid === sel ? 1 : 0), d: () => { const h = LAIRART.unit(u.kind, u.star), px = lcx(c), up = uid === sel ? 7 + Math.sin(now / 160) * 2 : 0, py = lcy(c) + gnd; let sc = 1; if (LU.cellPop && LU.cellPop.cell === c && LU.t - LU.cellPop.t0 < 320) { const k = (LU.t - LU.cellPop.t0) / 320; sc = 1 + (LU.cellPop.soft ? 0.12 : 0.35) * Math.sin(k * 3.1416); } lrRing(x, px, py - 2, uid === sel ? '#fff3a0' : '#2fa8a0', 17, LAIR.KIN[u.kind].role); lrDrawUnit(x, h, px, py - up, 'idle', now + c * 131, { scale: sc }); lrStarPips(x, px, py - h.size * 0.86 - 8 - up, u.star); } }); });
-  const form = LAIR.formOf(Object.keys(R.board).map(c => R.unit[R.board[c]].kind)), cp = lcen(LAIR.CORE);
-  list.push({ y: cp.y - 1, d: () => { lrRing(x, cp.x, cp.y + gnd, '#2fa8a0', 40); lrDrawUnit(x, LAIRART.boss(form), cp.x, cp.y + gnd + 4, 'idle', now, {}); } });
+  const foes = LAIR.curEnemy(R);
+  foes.forEach(e => list.push({ y: lcy(e.cell), d: () => { const h = lrUnitH(e.kind, 1, e.poss ? 'poss' : e.cast && R.cast && R.cast.mem[e.cast] && (R.cast.mem[e.cast].state === 'mad' || R.cast.mem[e.cast].state === 'hurt') ? 'hurt' : ''), px = lcx(e.cell), py = lcy(e.cell) + gnd; const role = LAIR.INV[e.kind] ? LAIR.INV[e.kind].role : 'melee'; lrRing(x, px, py - 2, e.cast ? '#ffb040' : '#c8303a', LAIR.INV[e.kind] && LAIR.INV[e.kind].boss ? 22 : 17, role); lrDrawUnit(x, h, px, py, 'idle', now + e.cell * 97, { flip: true, alpha: 0.92 }); } }));
+  Object.keys(R.board).forEach(c => { const uid = R.board[c], u = R.unit[uid]; c = +c; list.push({ y: lcy(c) + (uid === sel ? 1 : 0), d: () => { const h = lrUnitH(u.kind, u.star), px = lcx(c), up = uid === sel ? 7 + Math.sin(now / 160) * 2 : 0, py = lcy(c) + gnd; let sc = 1; if (LU.cellPop && LU.cellPop.cell === c && LU.t - LU.cellPop.t0 < 320) { const k = (LU.t - LU.cellPop.t0) / 320; sc = 1 + (LU.cellPop.soft ? 0.12 : 0.35) * Math.sin(k * 3.1416); } lrRing(x, px, py - 2, uid === sel ? '#fff3a0' : '#2fa8a0', 17, LAIR.KIN[u.kind].role); lrDrawUnit(x, h, px, py - up, 'idle', now + c * 131, { scale: sc }); lrStarPips(x, px, py - h.size * 0.86 - 8 - up, u.star); } }); });
+  const cp = lcen(LAIR.CORE);
+  list.push({ y: cp.y - 1, d: () => { lrRing(x, cp.x, cp.y + gnd, '#2fa8a0', 40); lrDrawUnit(x, lrBossH(R.form, R.awake), cp.x, cp.y + gnd + 4, 'idle', now, {}); } });
   list.sort((a, b) => a.y - b.y).forEach(q => q.d());
   // 역할 표지는 몸 위에 그린다. 침투하는 적은 뛰어들 뒷줄까지 줄을 긋는다
-  R.enemy.forEach(e => { const role = LAIR.INV[e.kind] ? LAIR.INV[e.kind].role : 'melee'; lrBadge(x, role, lcx(e.cell), lcy(e.cell) + gnd - 2);
+  foes.forEach(e => { const role = LAIR.INV[e.kind] ? LAIR.INV[e.kind].role : 'melee'; lrBadge(x, role, lcx(e.cell), lcy(e.cell) + gnd - 2);
     if (role === 'dive') { LU.dbg.dive++; const x0 = lcx(e.cell), y0 = lcy(e.cell) + 8, col = e.cell % 6, x1 = lcx(30 + (col === 2 ? 1 : col === 3 ? 4 : col)), y1 = lcy(30) - 6, mx = (x0 + x1) / 2 + (col < 3 ? -40 : 40), my = (y0 + y1) / 2; x.save(); x.strokeStyle = LAIRART.ROLEC.dive; x.globalAlpha = 0.85; x.lineWidth = 2; x.setLineDash([6, 5]); x.lineDashOffset = -now / 45; x.beginPath(); x.moveTo(x0, y0); x.quadraticCurveTo(mx, my, x1, y1); x.stroke(); x.setLineDash([]); const an = Math.atan2(y1 - my, x1 - mx); x.fillStyle = LAIRART.ROLEC.dive; x.beginPath(); x.moveTo(x1 + Math.cos(an) * 6, y1 + Math.sin(an) * 6); x.lineTo(x1 + Math.cos(an + 2.5) * 9, y1 + Math.sin(an + 2.5) * 9); x.lineTo(x1 + Math.cos(an - 2.5) * 9, y1 + Math.sin(an - 2.5) * 9); x.fill(); x.restore(); } });
   Object.keys(R.board).forEach(c => { const u = R.unit[R.board[c]]; lrBadge(x, LAIR.KIN[u.kind].role, lcx(+c), lcy(+c) + gnd - 2); });
 }
@@ -503,7 +622,7 @@ function lrRenderFight(x, now, gnd) {
     if (e.dead) { const k = T - e.dieT; if (e.swallow) { sc = Math.max(0.05, 1 - k / 0.3); alpha = sc; } else if (k > 0.85) alpha = Math.max(0, 1 - (k - 0.85) / 0.3); }
     if (e.st.stealth) alpha *= 0.45;
     if (e.core) py += 4;
-    if (!e.dead) lrRing(x, e.x, e.y + gnd - 2 + (e.core ? 4 : 0), e.mad ? '#f070e8' : e.side === 'nest' ? '#2fa8a0' : '#c8303a', e.core ? 40 : e.boss ? 22 : 17, e.core ? null : e.role);
+    if (!e.dead) lrRing(x, e.x, e.y + gnd - 2 + (e.core ? 4 : 0), e.mad ? '#f070e8' : e.side === 'nest' ? '#2fa8a0' : e.cast ? '#ffb040' : '#c8303a', e.core ? 40 : e.boss ? 22 : 17, e.core ? null : e.role);
     if (e.castT != null && T - e.castT < e.castDur && !e.dead) { const k = (T - e.castT) / e.castDur, col = e.side === 'nest' ? (LCOL[e.asp] || '#8fe8d8') : '#ffb060', rw = (e.core ? 54 : 30) * (1.25 - k * 0.75); x.save(); x.globalAlpha = 0.35 + 0.55 * k; x.strokeStyle = col; x.lineWidth = 2; x.beginPath(); x.ellipse(Math.round(e.x), Math.round(e.y + gnd - 2), rw, rw * 0.4, 0, 0, 6.2832); x.stroke(); x.globalAlpha = 0.18 * k; x.fillStyle = col; x.fill(); x.restore(); }
     const anim = e.anim, at = anim === 'idle' || anim === 'move' || anim === 'mad' ? ms + e.off : (T - e.a0) * 1000;
     lrDrawUnit(x, h, px, py, anim, at, { flip: !!e.face, mad: e.mad, scale: sc, alpha, white: e.flash > LU.t });
@@ -517,10 +636,30 @@ function lrRenderFight(x, now, gnd) {
     let k = 0; for (const st in e.st) { if (!LSTC[st]) continue; const sx = Math.round(e.x - w / 2 + k * 7), sy = Math.round(top + (e.msan && !e.mad ? 14 : 10)); x.fillStyle = '#0c0812'; x.fillRect(sx - 1, sy - 1, 7, 7); x.fillStyle = LSTC[st]; x.fillRect(sx, sy, 5, 5); if (st === 'stun' || st === 'silenced') { x.fillStyle = '#0c0812'; x.fillRect(sx + 2, sy + 1, 1, 3); x.fillRect(sx + 1, sy + 2, 3, 1); } k++; }
   });
   list.forEach(e => { if (!e.dead && !e.core) lrBadge(x, e.role, e.x, e.y + gnd - 2); });
+  list.forEach(e => { if (e.dead || !e.st.marked) return; const cy = e.y + gnd - 26, r = 15 + Math.sin(now / 130) * 1.5; x.save(); x.strokeStyle = '#ff4060'; x.lineWidth = 2; x.setLineDash([5, 4]); x.lineDashOffset = now / 50; x.beginPath(); x.arc(Math.round(e.x), Math.round(cy), r, 0, 6.2832); x.stroke(); x.restore(); });
   F.fx.forEach(f => { if (!f.under && f.a && T >= f.t0) LAIRART.fx(f.name, x, f.a, f.b, (T - f.t0) / f.dur, Object.assign({}, fxo, f.o)); });
   const nl = 820 / Math.sqrt(LU.speed); F.nums = F.nums.filter(n => LU.t - n.t0 < nl); F.nums.forEach(n => LAIRART.num(x, n.x, n.y, n.text, n.kind, (LU.t - n.t0) / nl, n.kind === 'crit' ? 4 / 3 : n.kind === 'guard' ? 1.5 : 2));
+  lrDiceDraw(x, F, gnd);
   // 시작 알림 · 광란
   if (F.banner && F.banner.until > LU.t && !F.banner.shown) { F.banner.shown = 1; lrLabel(LW / 2, LU.wallH + 26, F.banner.text, 'ban', F.banner.until - LU.t); }
+}
+// 공포 판정의 주사위: 뼈로 깎은 흰 주사위. 성공한 눈은 보랏빛 테, 실패는 어둡게
+const LPIP = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
+function lrDie(x, px, py, s, n, state) {
+  const u = Math.max(1, Math.round(s / 6)); px = Math.round(px); py = Math.round(py); x.save(); if (state === 'fail') x.globalAlpha = 0.55;
+  if (state === 'ok') { x.fillStyle = '#b48cff'; x.fillRect(px - 2 * u, py - 2 * u, s + 4 * u, s + 4 * u); }
+  x.fillStyle = '#0c0812'; x.fillRect(px - u, py - u, s + 2 * u, s + 2 * u); x.fillStyle = '#e9e2cf'; x.fillRect(px, py, s, s); x.fillStyle = '#cfc6ae'; x.fillRect(px, py + s - u, s, u);
+  const g = (s - 2 * u) / 3; x.fillStyle = '#0c0812'; (LPIP[n] || LPIP[1]).forEach(k => { const cx = px + u + g * (k % 3) + g / 2, cy = py + u + g * Math.floor(k / 3) + g / 2 - u / 2, r = Math.max(1, Math.round(u * 0.9)); x.fillRect(Math.round(cx - r / 2), Math.round(cy - r / 2), r, r); });
+  x.restore();
+}
+const LCHK = { froze: ['얼어붙었다', 'mad'], shaken: ['흔들렸다', 'inv'], held: ['버텼다', 'held'] };
+function lrDiceDraw(x, F, gnd) {
+  F.dice = F.dice.filter(d => d.until > LU.t && F.ents[d.id] && !F.ents[d.id].dead);
+  F.dice.forEach(d => {
+    const e = F.ents[d.id], h = lrHandle(e), s = d.big ? 18 : 13, gap = d.big ? 4 : 3, n = d.dice.length, w = n * s + (n - 1) * gap, top = e.y + gnd - (h ? h.size : 48) * 0.86 - (d.big ? 36 : 28), el = LU.t - d.t0, rolling = el < d.roll, x0 = Math.max(4, Math.min(LW - w - 4, e.x - w / 2));
+    d.dice.forEach((v, i) => { const face = rolling ? 1 + ((d.seed + i * 5 + Math.floor(el / 70) * (i + 2)) % 6) : v, jy = rolling ? Math.round(Math.sin(el / 45 + i * 1.7) * 2) : 0; lrDie(x, x0 + i * (s + gap), top + jy, s, face, rolling ? '' : v >= d.face ? 'ok' : 'fail'); LU.dbg.dice++; });
+    if (!rolling && !d.said) { d.said = true; const L = LCHK[d.res]; if (L && (d.big || d.res === 'froze')) lrLabel(e.x, top - 4, L[0], L[1], d.big ? 1300 : 900); if (d.res === 'froze') { lrAddFx(F, 'madburst', { x: e.x, y: e.y - 8 }, null, { r: d.big ? 1.2 : 0.7 }, 0.5); if (d.big) lrStop(F, 140, 3); lrSay('mad'); } else if (d.big) lrSay(d.res === 'held' ? 'thud' : 'hit'); }
+  });
 }
 function lrLoop(now) {
   LU.raf = requestAnimationFrame(lrLoop); const dt = Math.min(100, now - LU.last); LU.last = now; LU.t = now;
@@ -533,4 +672,4 @@ function lrLoop(now) {
   if (LU.toastT && now > LU.toastT) { $('lr-toast').hidden = true; LU.toastT = 0; }
 }
 // 시험용
-if (typeof window !== 'undefined') window.__lair = { get R() { return LU.R; }, get U() { return LU; }, get F() { return LU.F; }, L: typeof LAIR !== 'undefined' ? LAIR : null, open: run => lairOpen(run), saved: () => lairSaved(), fresh: seed => lrNew(seed), view: () => lrView(), pt(c) { const r = $('lr-cv').getBoundingClientRect(); return { x: r.left + lcx(c) * LU.scale, y: r.top + lcy(c) * LU.scale }; }, redraw: () => { lrWarmPrep(); lrDraw(); }, give(kind, star, cell) { const R = LU.R, uid = R.nextUid++; R.unit[uid] = { uid, kind, star: star || 1 }; if (cell != null) R.board[cell] = uid; else R.bench[R.bench.indexOf(null)] = uid; return uid; }, sheet: s => lrSheet(s), dbg: () => LU.dbg, speeds: () => LSPD.map(q => q[0]), stats() { const F = LU.F; return F ? { T: F.T, i: F.i, n: F.tl.length, done: F.done, intro: F.intro, real: F.real / 1000, slows: F.slows, blocks: F.blocks, shots: F.shots, taunts: F.taunts, alive: Object.keys(F.ents).filter(id => !F.ents[id].dead && !F.ents[id].core).length, mads: F.mads, casts: F.casts, late: F.late.length, ents: Object.keys(F.ents).length, frames: LU.fpsN } : null; } };
+if (typeof window !== 'undefined') window.__lair = { get R() { return LU.R; }, get U() { return LU; }, get F() { return LU.F; }, L: typeof LAIR !== 'undefined' ? LAIR : null, open: run => lairOpen(run), saved: () => lairSaved(), fresh: seed => lrNew(seed), view: () => lrView(), flow: () => lrFlow(), art: (k, st) => lrArtId(k, st), pt(c) { const r = $('lr-cv').getBoundingClientRect(); return { x: r.left + lcx(c) * LU.scale, y: r.top + lcy(c) * LU.scale }; }, redraw: () => { lrWarmPrep(); lrDraw(); }, give(kind, star, cell) { const R = LU.R, uid = R.nextUid++; R.unit[uid] = { uid, kind, star: star || 1 }; if (cell != null) R.board[cell] = uid; else R.bench[R.bench.indexOf(null)] = uid; return uid; }, sheet: s => lrSheet(s), dbg: () => LU.dbg, speeds: () => LSPD.map(q => q[0]), stats() { const F = LU.F; return F ? { T: F.T, i: F.i, n: F.tl.length, done: F.done, intro: F.intro, real: F.real / 1000, slows: F.slows, blocks: F.blocks, shots: F.shots, taunts: F.taunts, checks: F.checks, bigChecks: F.bigChecks, boons: F.boons, dice: F.dice.length, alive: Object.keys(F.ents).filter(id => !F.ents[id].dead && !F.ents[id].core).length, mads: F.mads, casts: F.casts, late: F.late.length, ents: Object.keys(F.ents).length, frames: LU.fpsN } : null; } };

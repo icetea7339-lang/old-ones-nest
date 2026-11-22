@@ -1,0 +1,48 @@
+// 둥지 전투 그림 2 (ART-INV2: 2·3막 침입자, 이름 있는 조사자, 사람 꼴로 불려 나오는 것, 새 연출) 확인.
+//   node tests/lairart2.js [check|units|cast|strips|compare|fx|all] [id, …]
+//   그림은 tests/lairart2_out/ 에 쓴다. check 는 새 id 전부 × 모든 움직임 × 모든 프레임을 한 번씩 그려 예외가 없는지 본다(실패하면 1 로 끝난다).
+const pw = require('playwright'), fs = require('fs'), path = require('path');
+const SRC = path.join(__dirname, '..', 'src'), OUT = path.join(__dirname, 'lairart2_out'); fs.mkdirSync(OUT, { recursive: true });
+const mon = fs.readFileSync(path.join(SRC, 'base.js'), 'utf8'), sculpt = mon.slice(mon.indexOf('const _c32'));
+const lib = () => sculpt + '\n' + fs.readFileSync(path.join(SRC, 'lairart.js'), 'utf8');
+const mode = process.argv[2] || 'all', only = process.argv.slice(3);
+const INV = ['crossbow', 'banner', 'tracker', 'templar', 'exorcist', 'alchemist', 'seekerm'], SUM = ['cultist', 'zealot', 'possessed'], CAST = ['eda', 'rowen', 'mirel', 'tov', 'isel', 'vasco'], FXN = ['banner', 'mark', 'smite', 'exorcise', 'flask', 'possess', 'snare'];
+const CASTIDS = [].concat.apply([], CAST.map(c => ['c_' + c, 'c_' + c + '_hurt', 'c_' + c + '_poss'])), ALL = INV.concat(SUM, CASTIDS);
+const OLD = ['militia', 'torch', 'hound', 'knight', 'archer', 'priest', 'mage', 'rogue', 'bard', 'inquis', 'paladin', 'seeker'];
+const PAGE = body => '<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>둥지 전투 그림 2</title><style>body{margin:0;background:#0d0c18;color:#cfc8d8;font:13px sans-serif}canvas{image-rendering:pixelated}</style></head><body>' + body + '</body></html>';
+const TOOLS = `
+window.SHEET = function (cells, cols, scale, cw, ch, bg) {
+  var rows = Math.ceil(cells.length / cols), c = document.createElement('canvas'); c.width = cols * cw; c.height = rows * ch; var x = c.getContext('2d'); x.imageSmoothingEnabled = false; x.fillStyle = bg || '#0d0c18'; x.fillRect(0, 0, c.width, c.height);
+  cells.forEach(function (q, i) { var ox = (i % cols) * cw, oy = Math.floor(i / cols) * ch; x.fillStyle = q.bg || ((i + Math.floor(i / cols)) % 2 ? '#15131f' : '#1b1826'); x.fillRect(ox, oy, cw, ch);
+    if (q.draw) q.draw(x, ox, oy, cw, ch); else { var h = LAIRART.unit(q.id, q.star || 1); if (h) h.draw(x, ox + cw / 2, oy + ch - 26, q.anim || 'idle', q.t || 0, { scale: q.scale || scale, flip: q.flip, mad: q.mad }); else { x.fillStyle = '#a03030'; x.fillText('없음 ' + q.id, ox + 6, oy + 20); } }
+    if (q.label) { x.fillStyle = '#9a94a8'; x.font = '12px sans-serif'; x.fillText(q.label, ox + 6, oy + ch - 8); } });
+  return c.toDataURL('image/png'); };
+`;
+(async () => {
+  const b = await pw.chromium.launch(), p = await b.newPage({ viewport: { width: 1200, height: 900 } }), errs = [];
+  p.on('pageerror', e => errs.push(e.message)); p.on('console', m => { if (m.type() === 'error') errs.push(m.text()); });
+  await p.setContent(PAGE('<script>' + lib() + '\n' + TOOLS + '</script>'));
+  const save = async (name, expr, arg) => { const url = await p.evaluate(expr, arg); fs.writeFileSync(path.join(OUT, name + '.png'), Buffer.from(url.split(',')[1], 'base64')); console.log('그림', path.join(OUT, name + '.png')); };
+  const want = m => mode === 'all' || mode === m, pick = list => (only.length ? list.filter(k => only.includes(k)) : list);
+  let bad = 0;
+  if (want('check')) {
+    const r = await p.evaluate(([ids, fxn]) => { const out = { missing: [], thrown: [], frames: 0, fxMissing: [], fxThrown: [] };
+      for (const id of ids) { const h = LAIRART.unit(id, 1); if (!h) { out.missing.push(id); continue; } for (const an of Object.keys(LAIRART.ANIM)) for (let k = 0; k < LAIRART.ANIM[an].n; k++) { try { h.frame(an, k * LAIRART.ANIM[an].dur / LAIRART.ANIM[an].n + 1); h.frame(an, k * LAIRART.ANIM[an].dur / LAIRART.ANIM[an].n + 1, { mad: 1 }); out.frames += 2; } catch (e) { out.thrown.push(id + ' ' + an + ' ' + k + ': ' + e.message); } } try { LAIRART.icon(id, 1, 44); } catch (e) { out.thrown.push(id + ' icon: ' + e.message); } }
+      const c = document.createElement('canvas'); c.width = 400; c.height = 400; const x = c.getContext('2d');
+      for (const n of fxn) { if (!LAIRART.FX[n]) { out.fxMissing.push(n); continue; } for (let k = 0; k <= 20; k++) { try { LAIRART.fx(n, x, { x: 80, y: 320 }, { x: 300, y: 100 }, k / 20, { px: 2 }); LAIRART.fx(n, x, { x: 200, y: 200 }, { x: 200, y: 200 }, k / 20, { px: 2, r: 2 }); } catch (e) { out.fxThrown.push(n + ' ' + k + ': ' + e.message); } } }
+      return out; }, [ALL, FXN]);
+    bad = r.missing.length + r.thrown.length + r.fxMissing.length + r.fxThrown.length;
+    console.log('검사: 유닛', ALL.length, '프레임', r.frames, '· 없는 유닛', r.missing.join(',') || '없음', '· 없는 연출', r.fxMissing.join(',') || '없음'); r.thrown.concat(r.fxThrown).slice(0, 12).forEach(s => console.log('  예외', s));
+  }
+  if (want('units')) { await save('inv2_units', a => SHEET(a.map(id => ({ id, label: id, t: 150, flip: false })), 5, 4, 330, 370), pick(INV.concat(SUM))); }
+  if (want('cast')) { for (let i = 0; i < CAST.length; i += 3) await save('inv2_cast' + (i / 3 + 1), a => SHEET([].concat.apply([], a.map(c => ['', '_hurt', '_poss'].map(s => ({ id: 'c_' + c + s, label: 'c_' + c + s, t: 150 })))), 3, 5, 400, 430), CAST.slice(i, i + 3)); }
+  if (want('strips')) {
+    const cols = [['idle', 0], ['idle', 600], ['move', 130], ['attack', 120], ['attack', 215], ['attack', 300], ['cast', 250], ['cast', 400], ['hit', 30], ['die', 250], ['die', 480], ['die', 700], ['mad', 200]];
+    const list = pick(INV.concat(SUM, CAST.map(c => 'c_' + c))); for (let i = 0; i < list.length; i += 6) await save('inv2_strip' + (i / 6 + 1), ([l, cols]) => SHEET([].concat.apply([], l.map(id => cols.map(c => ({ id, anim: c[0], t: c[1], label: c[0] + ' ' + c[1] })))), cols.length, 2, 150, 180), [list.slice(i, i + 6), cols]);
+  }
+  if (want('compare')) { await save('inv2_compare', ([o, n, cs]) => SHEET(o.map(id => ({ id, label: id })).concat(n.map(id => ({ id, label: id })), cs.map(id => ({ id, label: id }))), 12, 2, 130, 170, '#15131f'), [OLD, INV.concat(SUM), CASTIDS.filter(k => !/_/.test(k.slice(2)))]);
+    await save('inv2_small', ([o, n, cs]) => SHEET(o.concat(n, cs).map(id => ({ id, flip: true })), 14, 1, 76, 92, '#1a2a32'), [OLD, INV.concat(SUM), CASTIDS]); }
+  if (want('fx')) { const names = pick(FXN); for (let i = 0; i < names.length; i += 4) await save('inv2_fx' + (i / 4 + 1), names => SHEET([].concat.apply([], names.map(n => [0.08, 0.2, 0.32, 0.44, 0.56, 0.7, 0.84, 0.95].map(t => ({ label: n + ' ' + t, draw: (x, ox, oy, cw, ch) => LAIRART.fx(n, x, { x: ox + 56, y: oy + ch - 60 }, { x: ox + cw - 76, y: oy + 110 }, t, { px: 2 }) })))), 8, 1, 230, 250), names.slice(i, i + 4)); }
+  console.log(errs.length ? '오류: ' + errs.join(' | ') : 'no errors');
+  await b.close(); if (bad || errs.length) process.exit(1);
+})();

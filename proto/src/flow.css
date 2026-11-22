@@ -1,0 +1,131 @@
+/* 고르는 화면(보상, 신화 단계, 조우)의 스타일. src/lairflow.js 가 쓴다. 아래쪽은 겉(src/shell.js)의 도감·도움말에 더한 것. */
+#lf { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; padding: calc(env(safe-area-inset-top, 0px) + 8px) 8px calc(var(--sab) + 8px); background: #06050cf4; color: var(--text); font-family: var(--body); font-size: 14px; line-height: 1.45; -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+#lf, #lf * { box-sizing: border-box; touch-action: manipulation; }
+#lf p, #lf h2 { margin: 0; }
+#lf button { font-family: inherit; }
+.lf-box { --tc: #8a90b8; width: min(100%, 520px); max-height: 100%; display: flex; flex-direction: column; background: #15122a; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.lf-box.t1 { --tc: #7fc4c0; }
+.lf-box.t2 { --tc: #b48cff; }
+.lf-box.t3 { --tc: #f2b04a; }
+.lf-head { display: flex; align-items: center; gap: 10px; padding: 8px 6px 6px 14px; flex: none; }
+.lf-head h2 { flex: 1 1 auto; min-width: 0; font-size: 18px; line-height: 1.25; }
+.lf-sub { flex: none; color: var(--mute); font-size: 13px; }
+.lf-exit { flex: none; align-self: flex-start; min-height: 40px; padding: 0 10px; background: none; border: 0; color: var(--mute); font-size: 13px; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.lf-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding: 4px 12px 10px; }
+.lf-foot { display: flex; gap: 8px; padding: 8px 12px 12px; flex: none; }
+.lf-foot .btn { flex: 1 1 0; min-width: 0; flex-wrap: wrap; row-gap: 0; line-height: 1.2; }
+.lf-foot .btn:disabled { opacity: .45; cursor: default; }
+.lf-guide { color: var(--mute); font-size: 13px; }
+.lf-ic, .lf-pic, .lf-boss, .lf-awcv { image-rendering: pixelated; }
+.lf-ic { flex: none; vertical-align: middle; }
+.lf-more { display: block; color: var(--mute); font-size: 13px; line-height: 1.45; }
+.lf-more .ok, .lf-more .no { display: block; }
+#lf .ok { color: #9be0a8; }
+#lf .no { color: #ff9c8f; }
+
+/* 보상과 조우의 고를 것 */
+.lf-list { display: flex; flex-direction: column; gap: 6px; }
+.lf-opt { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 56px; padding: 6px 10px 6px 6px; background: var(--ink); border: 1px solid var(--line); border-radius: 8px; color: var(--text); font-size: 14px; text-align: left; cursor: pointer; }
+.lf-opt.txt { padding: 8px 12px; }
+.lf-opt.on { border-color: var(--coin); background: #1d1a36; }
+.lf-opt:disabled { opacity: .45; cursor: default; }
+.lf-pic { flex: none; width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; border-radius: 6px; background: #0d0b1a; }
+.lf-coin { color: var(--coin); font-family: var(--display); font-weight: 700; font-size: 22px; font-variant-numeric: tabular-nums; }
+.lf-otx { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.lf-otx b { font-size: 16px; line-height: 1.25; }
+.lf-osh { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; color: var(--mute); font-size: 13px; }
+.lf-opt.on .lf-osh { color: var(--text); }
+
+/* 주사위: 뼈로 깎은 흰 주사위. 성공은 보랏빛 테, 실패는 어둡게 */
+.lf-die { flex: none; display: inline-grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); width: 44px; height: 44px; padding: 6px; gap: 2px; background: #e9e2cf; border: 2px solid #0c0812; border-radius: 8px; box-shadow: inset 0 -3px 0 #c9c0a6; }
+.lf-die i { display: block; border-radius: 50%; }
+.lf-die i.p { background: #0c0812; }
+.lf-die.ok { box-shadow: inset 0 -3px 0 #c9c0a6, 0 0 0 2px #b48cff, 0 0 12px #b48cffaa; }
+.lf-die.no { opacity: .55; }
+.lf-die.roll { transform: rotate(-6deg); }
+.lf-die.mini { width: 18px; height: 18px; padding: 2px; gap: 1px; border-width: 1px; border-radius: 4px; box-shadow: none; vertical-align: middle; }
+.lf-encpic .lf-die { width: 40px; height: 40px; }
+.lf-tray { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; padding: 14px 6px 8px; background: #0d0b1a; border-radius: 8px; }
+.lf-rollres { text-align: center; font-size: 16px; }
+.lf-rollres b { font-size: 20px; }
+.lf-rollres.wait { color: var(--mute); }
+.lf-stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
+.lf-stat { display: flex; flex-direction: column; align-items: center; padding: 3px 2px; background: var(--ink); border: 1px solid transparent; border-radius: 6px; line-height: 1.2; }
+.lf-stat small { color: var(--mute); font-size: 12px; }
+.lf-stat b { font-size: 16px; font-variant-numeric: tabular-nums; }
+.lf-stat.on { border-color: #b48cff; }
+.lf-stat.coin b { color: var(--coin); }
+.lf-text { font-size: 15px; line-height: 1.6; }
+.lf-chosen { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; padding-top: 4px; border-top: 1px solid var(--line); }
+.lf-chosen b { font-size: 16px; }
+.lf-chosen span { color: var(--mute); font-size: 13px; }
+.lf-verdict { font-weight: 700; }
+.lf-gains { display: flex; flex-wrap: wrap; gap: 6px; }
+.lf-gains span { padding: 3px 8px; background: var(--ink); border-radius: 6px; font-size: 14px; }
+
+/* 신화 단계 */
+.lf-box.mythos, .lf-box.awake { border-color: var(--tc); }
+.lf-box.mythos .lf-head { align-items: center; background: linear-gradient(180deg, color-mix(in srgb, var(--tc) 22%, transparent), transparent); }
+.lf-box.t3.mythos, .lf-box.t3.awake { box-shadow: 0 0 0 1px #7a2a20, 0 0 28px #f2b04a44; }
+.lf-boss { flex: none; width: 96px; height: 96px; }
+.lf-mh { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.lf-phase { color: var(--mute); font-size: 13px; }
+.lf-phase b { color: var(--text); font-size: 15px; }
+.lf-tier { font-family: var(--display); font-weight: 700; font-size: 22px; line-height: 1.2; color: var(--tc); }
+.lf-box.t2 .lf-tier { letter-spacing: .04em; }
+.lf-box.t3 .lf-tier { letter-spacing: .1em; text-shadow: 0 0 10px #f2b04a88; }
+.lf-syns { display: flex; flex-wrap: wrap; gap: 4px 8px; color: var(--mute); font-size: 13px; }
+.lf-syn { display: inline-flex; align-items: center; gap: 2px; }
+.lf-cards { display: grid; gap: 6px; }
+.lf-card { display: flex; flex-direction: column; gap: 4px; width: 100%; padding: 8px 10px; background: var(--ink); border: 1px solid var(--line); border-left: 4px solid var(--tc); border-radius: 8px; color: var(--text); font-size: 14px; text-align: left; cursor: pointer; }
+.lf-card.on { border-color: var(--coin); border-left-color: var(--tc); background: #1d1a36; }
+.lf-ch { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; }
+.lf-ch b { font-size: 16px; line-height: 1.25; }
+.lf-ch small { margin-left: auto; color: var(--mute); font-size: 12px; }
+.lf-pw, .lf-pr { display: flex; align-items: baseline; gap: 8px; line-height: 1.35; }
+.lf-pw i, .lf-pr i { flex: none; font-style: normal; font-size: 12px; padding: 0 5px; border-radius: 4px; }
+.lf-pw { color: #f4efe0; font-weight: 600; }
+.lf-pw i { background: #2a5a56; color: #c8fff4; font-weight: 400; }
+.lf-pr { color: #ff9c8f; }
+.lf-pr i { background: #5a2226; color: #ffd0c8; }
+.lf-picked { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; color: var(--mute); font-size: 13px; }
+.lf-picked span { display: inline-flex; align-items: center; gap: 3px; color: var(--text); }
+@media (min-width: 760px) {
+  .lf-box.mythos { width: min(100%, 880px); }
+  .lf-box.mythos .lf-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; }
+}
+
+/* 깨어남 */
+.lf-box.awake .lf-body { align-items: center; padding-top: 14px; }
+.lf-awcv { flex: none; width: min(256px, 34vh); height: min(256px, 34vh); background: radial-gradient(circle at 50% 70%, color-mix(in srgb, var(--tc) 26%, #0d0b1a), #0d0b1a 70%); border-radius: 10px; }
+.lf-awtx { align-self: stretch; display: flex; flex-direction: column; gap: 6px; opacity: 0; transition: opacity .5s; }
+.lf-awtx.show { opacity: 1; }
+.lf-awtx h2 { font-size: 22px; line-height: 1.25; text-align: center; color: var(--tc); }
+.lf-step { text-align: center; color: var(--mute); font-size: 13px; }
+.lf-skill { color: var(--mute); font-size: 13px; }
+.lf-skill b { color: var(--coin); }
+.lf-got { display: flex; flex-direction: column; gap: 3px; padding: 8px 10px; background: var(--ink); border-left: 4px solid var(--tc); border-radius: 8px; }
+
+/* ==== 겉에 더한 것 (src/shell.js) ==== */
+h3.sh-tier { display: flex; align-items: baseline; gap: 8px; font-family: var(--display); font-size: 15px; }
+.sh-tier.t1 { color: #7fc4c0; } .sh-tier.t2 { color: #b48cff; } .sh-tier.t3 { color: #f2b04a; }
+h3.sh-tier small { color: var(--mute); font-weight: 400; }
+.sh-grid.cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.sh-cell.card { flex-direction: row; justify-content: flex-start; gap: 6px; min-height: 44px; padding: 4px 8px; font-size: 13px; text-align: left; }
+.sh-cell.card .sh-ic { margin: 0; }
+.sh-card { display: flex; flex-direction: column; gap: 4px; padding: 8px 10px; background: var(--ink); border-left: 4px solid var(--tc, #8a90b8); border-radius: 8px; }
+.sh-card.t1 { --tc: #7fc4c0; } .sh-card.t2 { --tc: #b48cff; } .sh-card.t3 { --tc: #f2b04a; }
+.sh-hist { font-size: 14px; line-height: 1.6; }
+.sh-odds { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
+.sh-odds th, .sh-odds td { padding: 4px 2px; text-align: center; border-bottom: 1px solid var(--line); }
+.sh-odds th { color: var(--mute); font-weight: 400; }
+.sh-odds td:first-child, .sh-odds th:first-child { text-align: left; color: var(--mute); }
+.sh-dice { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 10px; background: var(--ink); border-radius: 8px; }
+.sh-dice span.t { color: var(--mute); font-size: 13px; }
+.sh-run .sh-myth { display: flex; flex-wrap: wrap; gap: 2px 8px; margin-top: 2px; min-height: 0; color: var(--mute); font-size: 13px; }
+.sh-run .sh-myth span { display: inline-flex; align-items: center; gap: 3px; }
+.sh-stars { flex-wrap: wrap; }
+.sh-star:disabled { opacity: .5; cursor: default; }
+.lf-die.sm { width: 28px; height: 28px; padding: 4px; gap: 1px; border-radius: 6px; box-shadow: inset 0 -2px 0 #c9c0a6; }
+.lf-die.sm.ok { box-shadow: inset 0 -2px 0 #c9c0a6, 0 0 0 2px #b48cff; }
+.sh-dice span.t b { color: var(--text); margin-right: 6px; }
