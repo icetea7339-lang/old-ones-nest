@@ -373,6 +373,22 @@ const BO_TESTED = {};
   const fz = sim({ seed: 1, zealots: 2, nest: [N('shell', 20)], inv: [E('militia', 2, 2)] }); ok(fz.timeline.filter(e => e.type === 'spawn' && e.kind === 'zealot' && e.t === 0 && e.side === 'nest').length === 2, '광신도가 싸움의 처음에 선다');
   const Z = L.newRun(83); Z.zealots = 1; Z.cult = 1; ok(L.setupOf(Z).zealots === 2 && L.view(Z).zealots === 2 && L.view(Z).cult === 1, '광신도의 수');
 }
+// 19-2. 3막의 우두머리가 부르는 홀린 자: 기아의 먹이가 되지 않고, 정신을 잃으면 미친다
+{
+  ok(L.SUMMON.possessed.san > 0 && L.INV.seekerm.readAtk < 0.8, '홀린 자에게 정신이 있다');
+  let fed = 0, starved = 0, wrong = 0, mad = 0, turned = 0;
+  for (let s = 1; s <= 10; s++) {
+    const f = sim({ seed: s, round: 3, scale: { hp: 0.5, atk: 0.4, san: 1 }, check: F0.check, nest: [N('famine', 20, 3), N('gnaw', 21, 3), N('hollow', 19, 3), N('gulp', 22, 3)], inv: [E('seekerm', 1, 2), E('militia', 2, 1), E('militia', 2, 4)], syn: { hunger: 2 } }), kind = {}; checkFight(f, '홀린 자#' + s);
+    f.timeline.forEach(e => { if (e.type === 'spawn') kind[e.u] = e.kind; });
+    f.timeline.filter(e => e.type === 'die' && /^[es]/.test(e.u) && e.by && /^k/.test(e.by)).forEach(e => { const ate = f.timeline.some(x => x.type === 'synergy' && x.id === 'hunger' && x.fx === 'eat' && x.u === e.by && x.t === e.t), both = f.timeline.filter(x => x.type === 'die' && x.by === e.by && x.t === e.t).length > 1; if (both) return; if (kind[e.u] === 'possessed') { starved++; if (ate) wrong++; } else if (/^e/.test(e.u)) { if (ate) fed++; } });
+    const g = sim({ seed: s, round: 3, scale: { hp: 1.5, atk: 0.3, san: 0.6 }, check: F0.check, nest: [N('hood', 26, 3), N('gazer', 27, 3), N('heap', 20, 3), N('bell', 21, 3), N('rift', 28, 2)], inv: [E('seekerm', 1, 2), E('militia', 2, 1)], syn: { nebula: 2, dusk: 1 } }), gk = {}; checkFight(g, '홀린 자의 광기#' + s);
+    g.timeline.forEach(e => { if (e.type === 'spawn') gk[e.u] = e.kind; });
+    g.timeline.filter(e => e.type === 'mad' && gk[e.u] === 'possessed').forEach(e => { mad++; if (g.timeline.some(x => x.type === 'attack' && x.u === e.u && x.t > e.t && (/^e/.test(x.tg) || gk[x.tg] === 'possessed'))) turned++; });
+    ok(!g.timeline.some(e => e.type === 'mad' && e.u === 'e1'), '책을 쫓는 자는 미치지 않는다 (3막)');
+  }
+  ok(starved > 0 && wrong === 0 && fed > 0, '기아는 불려 나온 것을 잡아서는 배를 채우지 못한다 (홀린 자 ' + starved + ', 잘못 먹음 ' + wrong + ', 침입자를 먹음 ' + fed + ')');
+  ok(mad > 0 && turned > 0, '홀린 자가 미쳐서 제 편을 친다 (' + mad + ' / ' + turned + ')');
+}
 // 20. 정예: 켜면 더 센 무리, 이기면 더 좋은 것
 {
   const R = L.newRun(91); R.round = 3; R.rin = 3; R.mythos.phase = 1; const p = L.partyOf(R, 1, 3); R.enemy = p.base.units; R.enemyName = p.base.name; R.alt = p.alt; R.elite = false;

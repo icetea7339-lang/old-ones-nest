@@ -579,9 +579,9 @@ const LAIR = (function () {
       mythosAt: [2, 7, 12], tier: [[55, 35, 10], [40, 40, 20], [25, 45, 30]], fearTier: 1.5, awake: [{ hp: 1, atk: 1 }, { hp: 1.2, atk: 1.15 }, { hp: 1.45, atk: 1.35 }, { hp: 1.8, atk: 1.6 }],
       // 공포 판정: heavy/normal = 성공 0/1 일 때 잃는 정신의 비율, stun = 얼어붙는 시간. 공포: 이기면 +1 (권속을 잃지 않았거나, 셋 이상 미쳤거나, 정예를 삼키거나 미치게 했으면 +1 더), 지면 −1. fearAt 을 넘을 때마다 세상이 답한다
       check: { heavy: 0.5, normal: 0.2, stun: 2, bleed: 5, contact: 3, moment: 3 }, sumUp: 0.035, fearMax: 18, fearAt: [6, 12, 18], encounter: 0.5, rerollBase: 2, zealMax: 2,
-      invHp: [3.6, 2.7, 1.8, 1.25, 1.05, 3.6, 2.2, 2.2, 1.7, 1.6, 4.4, 3, 3.1, 3.5, 2.6],
-      invAtk: [0.75, 1.05, 1.58, 1.97, 3.5, 2.57, 2.34, 3, 2.79, 3.5, 3.33, 3.88, 3.66, 3.66, 4.8],
-      invSan: [1.05, 1.05, 1.05, 1.1, 1.3, 1.5, 1.45, 1.65, 1.6, 1.35, 1.9, 2, 2.05, 2, 1.8] },
+      invHp: [3.6, 2.7, 1.8, 1.25, 1.05, 3.17, 1.94, 1.94, 1.5, 1.6, 3.87, 2.64, 2.73, 3.08, 3],
+      invAtk: [0.75, 1.05, 1.58, 1.97, 3.5, 2.67, 2.43, 3.12, 2.9, 3.5, 3.46, 4.04, 3.81, 3.81, 4.4],
+      invSan: [1.05, 1.05, 1.05, 1.1, 1.3, 1.68, 1.62, 1.85, 1.79, 1.35, 2.13, 2.24, 2.3, 2.24, 2] },
   };
   // 닿지 않아도 쓰는 스킬
   const FAR = { hatch: 1, spawning: 1, pray: 1, anthem: 1, read: 1, readall: 1, sermon: 1, rebirth: 1, rally: 1, exorcise: 1, skyrift: 1, mark: 1, reap: 1, c_note: 1, c_hymn: 1, c_snare: 1, c_fire: 1, c_lamp: 1 };
@@ -599,11 +599,11 @@ const LAIR = (function () {
     maw: { name: '해구의 입', role: 'tank', cost: 3, asp: 'abyss', cls: 'guard', hp: 1000, atk: 70, as: 0.6, range: 1, df: 50, mana: 100, skill: 'swallow' },
     mother: { name: '포자 어미', role: 'support', cost: 3, asp: 'brood', cls: 'mother', hp: 750, atk: 50, as: 0.6, range: 3, df: 25, mana: 100, skill: 'spores' },
     famine: { name: '통삼킴', role: 'melee', cost: 3, asp: 'hunger', cls: 'hunter', hp: 800, atk: 95, as: 0.9, range: 1, df: 30, mana: 90, skill: 'charge' },
-    gulp: { name: '배불뚝이', role: 'tank', cost: 2, asp: 'hunger', cls: 'guard', hp: 850, atk: 50, as: 0.6, range: 1, df: 35, mana: 80, skill: 'gorge', gen: 2, art: 'gnaw' },
+    gulp: { name: '배불뚝이', role: 'tank', cost: 2, asp: 'hunger', cls: 'guard', hp: 980, atk: 50, as: 0.6, range: 1, df: 40, mana: 80, skill: 'gorge', gen: 2, art: 'gnaw' },
     orbit: { name: '도는 눈들', role: 'ranged', cost: 3, asp: 'nebula', cls: 'caller', hp: 600, atk: 65, as: 0.7, range: 3, df: 15, mana: 90, sanAtk: 10, skill: 'meteor', gen: 2, art: 'gazer' },
     bell: { name: '종 든 것', role: 'tank', cost: 3, asp: 'dusk', cls: 'guard', hp: 950, atk: 55, as: 0.6, range: 1, df: 45, mana: 90, sanAtk: 8, skill: 'toll', gen: 2, art: 'hood' },
     ink: { name: '먹물 뿜는 것', role: 'ranged', cost: 4, asp: 'abyss', cls: 'caller', hp: 800, atk: 80, as: 0.7, range: 3, df: 20, mana: 100, skill: 'inkcloud', gen: 2, art: 'tangle' },
-    hollow: { name: '텅 빈 것', role: 'melee', cost: 4, asp: 'hunger', cls: 'hunter', hp: 1000, atk: 125, as: 0.9, range: 1, df: 30, mana: 90, skill: 'reap', gen: 2, art: 'famine' },
+    hollow: { name: '텅 빈 것', role: 'melee', cost: 4, asp: 'hunger', cls: 'hunter', hp: 1000, atk: 135, as: 0.9, range: 1, df: 30, mana: 90, skill: 'reap', gen: 2, art: 'famine' },
     preach: { name: '설교하는 것', role: 'support', cost: 4, asp: 'dusk', cls: 'mother', hp: 850, atk: 60, as: 0.7, range: 3, df: 20, mana: 100, sanAtk: 14, skill: 'sermon', gen: 2, art: 'mask' },
     rift: { name: '하늘의 틈', role: 'ranged', cost: 5, asp: 'nebula', cls: 'caller', hp: 950, atk: 95, as: 0.7, range: 4, df: 25, mana: 130, sanAtk: 16, skill: 'skyrift', gen: 2, art: 'heap' },
     queen: { name: '굴의 여왕', role: 'support', cost: 5, asp: 'brood', cls: 'mother', hp: 1300, atk: 80, as: 0.6, range: 2, df: 35, mana: 120, skill: 'rebirth', gen: 2, art: 'mother' },
@@ -614,8 +614,8 @@ const LAIR = (function () {
     spawn: { name: '새끼', role: 'melee', hp: 160, atk: 22, as: 1, range: 1, df: 0 },
     infected: { name: '감염체', role: 'melee', hp: 200, atk: 30, as: 0.8, range: 1, df: 5 },
     brute: { name: '큰 새끼', role: 'melee', hp: 520, atk: 60, as: 0.8, range: 1, df: 15, art: 'spawn' },
-    cultist: { name: '신도', role: 'ranged', hp: 440, atk: 38, as: 0.7, range: 3, df: 5, sanAtk: 16, art: 'infected' },
-    possessed: { name: '홀린 자', role: 'melee', hp: 480, san: 160, atk: 55, as: 0.8, range: 1, df: 10, art: 'infected' },
+    cultist: { name: '신도', role: 'ranged', hp: 380, atk: 38, as: 0.7, range: 3, df: 5, sanAtk: 12, art: 'infected' },
+    possessed: { name: '홀린 자', role: 'melee', hp: 480, san: 200, atk: 55, as: 0.8, range: 1, df: 10, art: 'infected' },
     zealot: { name: '광신도', role: 'melee', hp: 340, atk: 36, as: 0.8, range: 1, df: 5, art: 'infected' },
   };
   // 본체의 다섯 모습 (가장 많이 모은 성향)과 처음 모습
@@ -692,10 +692,10 @@ const LAIR = (function () {
     read: { name: '읽는다', short: () => '방 하나를 지움', more: '방 하나를 읽어 그 효과를 지운다. 정신이 깎일수록 더 세게 치지만 더 쉽게 다친다. 미치지 않는다.' },
     gorge: { name: '꿀꺽', mul: [2, 2.5, 3.5], short: l => `한 입 ×${P3([2, 2.5, 3.5], l)} · 흡수`, more: '크게 한 입 물고, 준 피해만큼 체력을 되찾는다. 3초 동안 받는 피해가 40% 준다.' },
     meteor: { name: '떨어지는 별', dmg: [110, 190, 360], san: [20, 35, 60], short: l => `범위 ${P3([110, 190, 360], l)} · 정신 ${P3([20, 35, 60], l)}`, more: '가장 뭉친 곳에 별이 떨어진다. 한 칸 둘레의 적 전부가 체력과 정신을 잃는다.' },
-    toll: { name: '종소리', san: [30, 50, 85], dur: [2, 2.5, 3], short: l => `도발 ${P3([2, 2.5, 3], l)}초 · 정신 ${P3([30, 50, 85], l)}`, more: '종을 친다. 두 칸 안의 적이 정신을 잃고 제게로 끌려온다. 그동안 받는 피해가 절반이 된다.' },
+    toll: { name: '종소리', san: [25, 40, 70], dur: [2, 2.5, 3], short: l => `도발 ${P3([2, 2.5, 3], l)}초 · 정신 ${P3([25, 40, 70], l)}`, more: '종을 친다. 두 칸 안의 적이 정신을 잃고 제게로 끌려온다. 그동안 받는 피해가 절반이 된다.' },
     inkcloud: { name: '먹물', dmg: [100, 170, 320], sil: [3, 4, 5], short: l => `범위 ${P3([100, 170, 320], l)} · 침묵 ${P3([3, 4, 5], l)}초`, more: '스킬이 가장 가까워진 적에게 먹물을 뿜는다. 한 칸 둘레의 적이 피해를 입고, 입이 막히고, 젖는다.' },
     reap: { name: '거둠', mul: [3, 3.6, 5], cut: [20, 25, 33], short: l => `×${P3([3, 3.6, 5], l)} · ${P3([20, 25, 33], l)}% 아래 처형`, more: '가장 약해진 적 곁으로 뛰어들어 친다. 체력이 낮은 적은 그대로 죽는다 (우두머리는 빼고). 죽이면 두 번까지 다시 쓴다.' },
-    sermon: { name: '부름', n: [2, 2, 3], heal: [150, 250, 450], short: l => `신도 ${P3([2, 2, 3], l)} · 광인 회복 ${P3([150, 250, 450], l)}`, more: '신도를 불러낸다. 신도는 멀리서 쏘며 정신을 깎는다. 미친 적들은 체력을 되찾는다.' },
+    sermon: { name: '부름', n: [1, 2, 2], heal: [150, 250, 450], short: l => `신도 ${P3([1, 2, 2], l)} · 광인 회복 ${P3([150, 250, 450], l)}`, more: '신도를 불러낸다. 신도는 멀리서 쏘며 정신을 깎는다. 미친 적들은 체력을 되찾는다.' },
     skyrift: { name: '하늘이 열린다', dmg: [90, 150, 280], san: [30, 45, 80], cut: [20, 25, 35], short: l => `전체 정신 ${P3([30, 45, 80], l)} · 광기`, more: '모든 적이 체력과 정신을 잃는다. 정신이 20/25/35% 아래로 떨어진 적은 곧바로 미친다.' },
     rebirth: { name: '다시 낳음', hp: [40, 60, 100], short: l => `권속 부활 · 체력 ${P3([40, 60, 100], l)}%`, more: '죽은 권속 가운데 가장 값진 하나를 되살린다 (권속마다 한 번). 죽은 권속이 없으면 큰 새끼 하나를 낳는다.' },
     bolt: { name: '꿰뚫는 살', mul: [2, 2, 2], short: () => '한 줄 꿰뚫음 ×2', more: '한 줄 위의 것 전부를 꿴다.' },
@@ -754,8 +754,9 @@ const LAIR = (function () {
   ASPS.forEach(a => { SYN[a].full = [2, 4, 5]; }); CLSS.forEach(c => { SYN[c].full = [2, 4]; });
   SYN.abyss.short.push('모두 −25%·심연 −45%'); SYN.nebula.short.push('정신 피해 +80%'); SYN.brood.short.push('죽으면 새끼 3'); SYN.dusk.short.push('곁 정신 50·광인 +50%'); SYN.hunger.short.push('회복 20% · 네 번까지');
   // 온전한 판의 심연: 덜 단단하고, 젖은 적이 둥지의 공격에 더 다친다 (싸움이 늘어지지 않게)
-  SYN.abyss.fullShort = ['심연 −20%·젖음 +20%', '모두 −8%·젖음 +40%', '모두 −12%·젖음 +60%'];
-  SYN.abyss.fullMore = '심연 권속이 피해를 덜 받는다 (20/28/36%). 그들의 공격은 적을 3초 동안 적셔 느리게 하고, 젖은 적은 둥지의 모든 공격에 더 다친다 (20/40/60%).';
+  SYN.abyss.fullShort = ['심연 −20%·젖음 +21%', '모두 −8%·젖음 +42%', '모두 −12%·젖음 +62%'];
+  SYN.dusk.fullShort = ['미치면 곁 정신 15', '곁 정신 28·광인 +30%', '곁 정신 40·광인 +50%'];
+  SYN.abyss.fullMore = '심연 권속이 피해를 덜 받는다 (20/28/36%). 그들의 공격은 적을 3초 동안 적셔 느리게 하고, 젖은 적은 둥지의 모든 공격에 더 다친다 (21/42/62%).';
   // 라운드마다 오는 것 (r 줄, c 칸: 줄 0 이 맨 뒤, 줄 2 가 앞)
   const ROUNDS = [
     { name: '민병 무리', units: [['militia', 2, 1], ['militia', 2, 2], ['torch', 2, 3], ['militia', 2, 4], ['hound', 1, 0], ['hound', 1, 5]] },
@@ -806,7 +807,7 @@ const LAIR = (function () {
       U.forEach(x => { if (x.tg === u.id) x.tg = null; if (x.st.taunted && x.st.taunted.by === u.id) delete x.st.taunted; });
       ev('mad', { u: u.id, by: by ? by.id : null });
       if (bo.madstrong) { u.atkBonus += bo.madstrong; bev('madstrong', { u: u.id }); heal(u, u.mhp * bo.madstrong, null); }
-      const dk = tier('dusk'); if (dk >= 1) { if (dk >= 2) u.atkBonus += dk >= 3 ? 0.5 : 0.3; const tg = foes(u).filter(x => dist(x, u) <= 1 && x.msan); if (tg.length) ev('synergy', { id: 'dusk', fx: 'echo', u: u.id, tgs: tg.map(x => x.id) }); tg.forEach(x => hurt(by || u, x, 0, { san: [0, 20, 35, 50][dk], k: 'san', sk: 'dusk' })); }
+      const dk = tier('dusk'); if (dk >= 1) { if (dk >= 2) u.atkBonus += dk >= 3 ? 0.5 : 0.3; const tg = foes(u).filter(x => dist(x, u) <= 1 && x.msan); if (tg.length) ev('synergy', { id: 'dusk', fx: 'echo', u: u.id, tgs: tg.map(x => x.id) }); tg.forEach(x => hurt(by || u, x, 0, { san: (fullRun ? [0, 15, 28, 40] : [0, 20, 35, 50])[dk], k: 'san', sk: 'dusk' })); }
     }
     function cleanse(u, by) { if (!u.alive || !u.mad) return; if (bo.keepMad) { bev('keepMad', { u: u.id }); return; } u.mad = false; u.side = 'inv'; u.san = Math.round(u.msan * 0.4); u.tg = null; conv--; U.forEach(x => { if (x.tg === u.id) x.tg = null; }); ev('cleanse', { u: u.id, by: by ? by.id : null, sn: u.san }); }
     function die(u, by, how) {
@@ -828,7 +829,7 @@ const LAIR = (function () {
         if (u.asp === 'brood' && tier('brood') >= 1) { ev('synergy', { id: 'brood', fx: 'hatch', u: u.id, cell: u.cell }); summon('spawn', u.cell, 'nest', STARM[u.star], u, tier('brood')); }
         if (roomAt(u.cell, 'nursery')) { ev('roomfx', { room: 'nursery', kind: 'hatch', cell: u.cell }); summon('spawn', u.cell, 'nest', STARM[u.star], u, rl('nursery')); }
       }
-      if (by && by.alive && by.home === 'nest' && !by.mad && wasInv) { const hg = tier('hunger'); if (hg >= 1 && (by.asp === 'hunger' || hg >= 2) && !by.summon && !u.summon) { heal(by, by.mhp * [0, 0.15, 0.2, 0.2][hg], by); if (by.eat < (hg >= 3 ? 4 : 3)) { by.eat++; by.atkBonus += [0, 0.1, 0.15, 0.15][hg]; } ev('synergy', { id: 'hunger', fx: 'eat', u: by.id }); } }
+      if (by && by.alive && by.home === 'nest' && !by.mad && wasInv) { const hg = tier('hunger'); if (hg >= 1 && (by.asp === 'hunger' || hg >= 2) && !by.summon && !u.summon) { heal(by, by.mhp * [0, 0.15, 0.2, 0.2][hg] * (fullRun && by.core ? 0.3 : 1), by); if (by.eat < (hg >= 3 ? 4 : 3)) { by.eat++; by.atkBonus += [0, 0.1, 0.15, 0.15][hg]; } ev('synergy', { id: 'hunger', fx: 'eat', u: by.id }); } }
     }
     // 피해: k = atk 평타 / skill 스킬 / dot 지속 / true 그대로 / san 정신만
     function hurt(src, tg, amt, o) {
@@ -836,7 +837,7 @@ const LAIR = (function () {
       if (amt > 0) {
         d = amt; if (o.k === 'skill' || o.k === 'dot') d *= K.skillMul; if (o.k !== 'true' && o.k !== 'dot') { const df = has(tg, 'corrode') ? tg.df * (1 - tg.st.corrode.v) : tg.df; if (tg.role === 'tank') blk = Math.round(d * df / (100 + df)); d *= 100 / (100 + df); }
         if (has(tg, 'shield')) d *= 1 - tg.st.shield.v;
-        if (fullRun && src && src.home === 'nest' && !src.mad && tg.side !== 'nest' && tier('abyss') && has(tg, 'wet')) d *= 1 + [0, 0.2, 0.4, 0.6][tier('abyss')];
+        if (fullRun && src && src.home === 'nest' && !src.mad && tg.side !== 'nest' && tier('abyss') && has(tg, 'wet')) d *= 1 + [0, 0.21, 0.42, 0.62][tier('abyss')];
         if (tg.reader && tg.msan) d *= 1 + tg.readHurt * (1 - tg.san / tg.msan);
         if (has(tg, 'marked')) d *= 1 + tg.st.marked.v; if (bo.giant && tg.home === 'inv' && (tg.boss || tg.elite)) d *= 1 + bo.giant;
         if (tg.home === 'nest' && !tg.mad) { const ab = tier('abyss'); if (fullRun) { if (ab) d *= 1 - (tg.asp === 'abyss' ? [0, 0.2, 0.28, 0.36][ab] : [0, 0, 0.08, 0.12][ab]); } else if (ab >= 3) d *= tg.asp === 'abyss' ? 0.55 : 0.75; else if (ab >= 2) d *= tg.asp === 'abyss' ? 0.6 : 0.8; else if (ab >= 1 && tg.asp === 'abyss') d *= 0.75; if (!tg.core && roomAt(tg.cell, 'bone')) d *= 1 - rl('bone'); }
@@ -950,9 +951,9 @@ const LAIR = (function () {
         const tg = foes(u).filter(x => x.msan && !x.noMad).sort((a, b) => a.san / a.msan - b.san / b.msan || a.cell - b.cell).slice(0, u.t2 ? 5 : 3), mads = pals(u).filter(x => x.mad);
         ev('skillfx', { u: u.id, sk: 'chorus', fx: 'chorus', tgs: tg.map(x => x.id), pals: mads.map(x => x.id) });
         if (!tg.length) foes(u).slice(0, 3).forEach(x => hurt(u, x, 120, { k: 'skill', sk: 'chorus' }));
-        tg.forEach(x => hurt(u, x, sc ? 120 * l : 0, { san: P3(SK.chorus.san, l), k: sc ? 'skill' : 'san', sk: 'chorus' })); pals(u).filter(x => x.mad).forEach(x => { heal(x, 100, u); setSt(x, 'atkup', 5, 0.3, u); });
+        tg.forEach(x => hurt(u, x, sc ? 40 * l : 0, { san: P3(SK.chorus.san, l), k: sc ? 'skill' : 'san', sk: 'chorus' })); pals(u).filter(x => x.mad).forEach(x => { heal(x, 100, u); setSt(x, 'atkup', 5, 0.3, u); });
       },
-      feast(u, l) { const rr = u.t2 ? 3 : 2, tg = foes(u).filter(x => dist(x, u) <= rr); let sum = 0; ev('skillfx', { u: u.id, sk: 'feast', fx: 'feast', cells: u.cells, tgs: tg.map(x => x.id), r: rr }); tg.forEach(x => { sum += hurt(u, x, pow(u) * P3(SK.feast.mul, l) * (fullRun ? 0.65 : 1), { k: 'skill', sk: 'feast' }); }); heal(u, sum * (u.t2 ? 0.6 : 0.5), u); },
+      feast(u, l) { const rr = u.t2 ? 3 : 2, tg = foes(u).filter(x => dist(x, u) <= rr); let sum = 0; ev('skillfx', { u: u.id, sk: 'feast', fx: 'feast', cells: u.cells, tgs: tg.map(x => x.id), r: rr }); tg.forEach(x => { sum += hurt(u, x, pow(u) * P3(SK.feast.mul, l) * (fullRun ? 0.62 : 1), { k: 'skill', sk: 'feast' }); }); heal(u, sum * 0.5, u); },
       pike(u, l) { const tg = pickTarget(u); if (!tg) return; const from = closest(u, tg), d = dirTo(from, tcell(u, tg)), cells = lineFrom(from, d[0], d[1], 2), hit = foes(u).filter(x => x === tg || x.cells.some(c => cells.includes(c))); ev('skillfx', { u: u.id, sk: 'pike', fx: 'pierce', from, cells, tgs: hit.map(x => x.id) }); hit.forEach(x => hurt(u, x, pow(u) * P3(SK.pike.mul, l), { k: 'skill', sk: 'pike' })); },
       arson(u, l) { const tg = pickTarget(u); if (!tg) return; const c = tcell(u, tg), p = rc(c), cells = [c]; [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(([dr, dc]) => { if (inb(p[0] + dr, p[1] + dc)) cells.push(idx(p[0] + dr, p[1] + dc)); }); zones.push({ kind: 'burn', cells, until: t + 4, side: u.side, by: u.id, dps: P3(SK.arson.dps, l) * (u.atk / 35) }); ev('skillfx', { u: u.id, sk: 'arson', fx: 'burnzone', from: u.cell, cells, dur: 4 }); },
       latch(u, l) { const tg = pickTarget(u) || nearest(u, foes(u)); if (!tg) return; if (dist(u, tg) > 1) { const c = emptyNear(tcell(u, tg), i => dcell(tg, i) <= 1); if (c >= 0 && dcell(u, c) <= 4) { moveTo(u, c, 'leap', 0.25); u.freeAt = t + 0.25; } } ev('skillfx', { u: u.id, sk: 'latch', fx: 'latch', tgs: [tg.id] }); if (dist(u, tg) <= 1) { hurt(u, tg, pow(u) * 1.5, { k: 'skill', sk: 'latch' }); if (tg.alive) { if (!tg.core) setSt(tg, 'stun', 1, 1, u); setSt(tg, 'bleed', 4, pow(u) * 0.3, u); } } },
@@ -1132,7 +1133,7 @@ const LAIR = (function () {
     nebula: { part: '눈', names: ['별에서 내려다보는 것', '감지 않는 눈'], t2: '모든 적 기절 1초' },
     brood: { part: '알 어미', names: ['새끼 떼의 어미', '굴을 메운 어미'], t2: '큰 새끼 1 더' },
     dusk: { part: '두건 쓴 합창', names: ['두건 쓴 무리의 주인', '끝나지 않는 합창'], t2: '합창 대상 다섯' },
-    hunger: { part: '아가리', names: ['끝없는 아가리', '바닥 없는 아가리'], t2: '세 칸 · 흡수 60%' },
+    hunger: { part: '아가리', names: ['끝없는 아가리', '바닥 없는 아가리'], t2: '대식이 세 칸까지' },
   };
   // 신화: 권능 (pw) 과 대가 (pr). tier 1 속삭임 / 2 징조 / 3 현현. asp = 본체가 따라가는 성향
   //   숫자 열쇠는 더해진다: cap 세우는 수, interestCap, freeRoll, xpRound, winGold, third, mergeGold, income, rerollCost, xpCost, lossMore, shopUp, invHp/invAtk/invSan, bossUp, eliteForce, coreHp/coreAtk/coreMana/coreRange
@@ -1143,37 +1144,37 @@ const LAIR = (function () {
     starseat: { name: '별을 세는 자리', tier: 1, asp: 'nebula', cat: '시너지', power: '성운 +1', price: '침입자 정신 +15%', more: '성운 권속을 하나 더 가진 것으로 센다. 하늘을 본 적이 있는 자들만 굴로 보내진다.', pw: { syn: { nebula: 1 } }, pr: { invSan: 0.15 } },
     oldclutch: { name: '묵은 알자리', tier: 1, asp: 'brood', cat: '시너지', power: '번식 +1 · 새끼 1', price: '침입자 공격 +4%', more: '번식 권속을 하나 더 가진 것으로 센다. 싸움이 시작되면 본체 앞에 새끼 하나가 나온다.', pw: { syn: { brood: 1 }, bo: { hatchstart: 1 } }, pr: { invAtk: 0.04 } },
     underhood: { name: '두건 아래의 얼굴', tier: 1, asp: 'dusk', cat: '시너지', power: '황혼 +1 · 적 정신 −8%', price: '무리마다 사냥개 1', more: '황혼 권속을 하나 더 가진 것으로 센다. 모든 적이 정신이 8% 깎인 채 싸움을 시작한다. 냄새를 맡은 사냥개가 무리마다 하나씩 온다.', pw: { syn: { dusk: 1 }, bo: { sanfrenzy: 0.08 } }, pr: { extra: ['hound'] } },
-    emptybelly: { name: '비어 있는 배', tier: 1, asp: 'hunger', cat: '시너지', power: '기아 +1', price: '권속 체력 −8%', more: '기아 권속을 하나 더 가진 것으로 센다. 굶주림은 권속의 살도 깎는다.', pw: { syn: { hunger: 1 } }, pr: { bo: { kinWeak: 0.08 } } },
+    emptybelly: { name: '비어 있는 배', tier: 1, asp: 'hunger', cat: '시너지', power: '기아 +1', price: '권속 체력 −4%', more: '기아 권속을 하나 더 가진 것으로 센다. 굶주림은 권속의 살도 깎는다.', pw: { syn: { hunger: 1 } }, pr: { bo: { kinWeak: 0.04 } } },
     pooled: { name: '고인 진액', tier: 1, asp: 'abyss', cat: '살림', power: '이자 상한 +2 · 진액 +4', price: '다시 뽑기 값 +1', more: '이자를 7까지 받고, 진액 4를 곧바로 얻는다. 고인 것은 쉽게 움직이지 않는다.', pw: { interestCap: 2, now: { gold: 4 } }, pr: { rerollCost: 1 } },
     rummage: { name: '뒤적이는 손', tier: 1, asp: 'hunger', cat: '살림', power: '첫 다시 뽑기 공짜', price: '수입 −1', more: '라운드마다 첫 다시 뽑기에는 진액이 들지 않는다. 라운드 수입이 1 준다.', pw: { freeRoll: 1 }, pr: { income: -1 } },
     thickshell: { name: '두꺼운 껍질', tier: 1, asp: 'abyss', cat: '싸움', power: '권속 체력 +12%', price: '침입자 공격 +6%', more: '둥지에 세운 권속 전부의 체력이 오른다. 침입자들은 더 벼린 날을 들고 온다.', pw: { bo: { thick: 0.12 } }, pr: { invAtk: 0.06 } },
-    whetted: { name: '벼린 이빨', tier: 1, asp: 'hunger', cat: '싸움', power: '권속 공격 +10%', price: '침입자 체력 +10%', more: '둥지에 세운 권속 전부의 공격이 오른다. 침입자들은 더 두꺼운 갑옷을 입고 온다.', pw: { bo: { sharp: 0.1 } }, pr: { invHp: 0.1 } },
+    whetted: { name: '벼린 이빨', tier: 1, asp: 'hunger', cat: '싸움', power: '권속 공격 +10%', price: '침입자 체력 +5%', more: '둥지에 세운 권속 전부의 공격이 오른다. 침입자들은 더 두꺼운 갑옷을 입고 온다.', pw: { bo: { sharp: 0.1 } }, pr: { invHp: 0.05 } },
     thinmind: { name: '얇아진 정신', tier: 1, asp: 'dusk', cat: '광기', power: '적 정신 −20%', price: '침입자 체력 +5%', more: '모든 적이 정신이 깎인 채 싸움을 시작한다. 침입자들은 더 두꺼운 갑옷을 입고 온다.', pw: { bo: { sanfrenzy: 0.2 } }, pr: { invHp: 0.05 } },
     firstbreath: { name: '첫 숨', tier: 1, asp: 'nebula', cat: '싸움', power: '마나 50%로 시작', price: '침입자 공격 +8%', more: '권속은 마나를 절반 채운 채 싸움을 시작한다.', pw: { bo: { firstfree: 0.5 } }, pr: { invAtk: 0.08 } },
     earlyegg: { name: '먼저 깬 알', tier: 1, asp: 'brood', cat: '싸움', power: '시작할 때 새끼 3', price: '무리마다 횃불꾼 1', more: '싸움이 시작되면 본체 앞에 새끼 셋이 나온다. 횃불 든 자가 무리마다 하나씩 온다.', pw: { bo: { hatchstart: 3 } }, pr: { extra: ['torch'] } },
     deeproot: { name: '깊은 뿌리', tier: 1, asp: 'brood', cat: '본체', power: '본체 체력 +40%', price: '지면 목숨 −1 더', more: '본체의 체력이 오른다. 뿌리가 깊을수록 뽑힐 때 더 많이 찢긴다.', pw: { coreHp: 0.4 }, pr: { lossMore: 1 } },
-    livingwall: { name: '살아 있는 벽', tier: 1, asp: 'dusk', cat: '방', power: '방 1 · 방이 안 지워진다', price: '우두머리 +6%', more: '방 타일 하나를 곧바로 얻는다. 방은 읽혀도 지워지지 않고, 방 위에 선 권속은 공격 +15%. 우두머리의 체력과 공격이 6% 오른다.', pw: { now: { room: 1 }, bo: { noErase: 1, roomplus: 0.15 } }, pr: { bossUp: 0.06 } },
+    livingwall: { name: '살아 있는 벽', tier: 1, asp: 'dusk', cat: '방', power: '방이 지워지지 않는다', price: '우두머리 +10%', more: '방은 읽혀도 지워지지 않고, 방 위에 선 권속은 공격 +15%. 우두머리의 체력과 공격이 10% 오른다.', pw: { bo: { noErase: 1, roomplus: 0.15 } }, pr: { bossUp: 0.1 } },
     eyelids: { name: '천 개의 눈꺼풀', tier: 2, asp: 'nebula', cat: '광기', power: '판정 주사위 −1', price: '침입자 체력 +6%', more: '침입자는 공포 판정에서 주사위를 하나 덜 굴린다 (적어도 하나는 굴린다). 침입자들은 더 두꺼운 갑옷을 입고 온다.', pw: { bo: { dieless: 1 } }, pr: { invHp: 0.06 } },
     widehall: { name: '넓어지는 굴', tier: 2, asp: 'brood', cat: '살림', power: '세우는 수 +1', price: '침입자 체력 +4%', more: '둥지에 권속 하나를 더 세운다. 굴이 넓어진 만큼 들어오는 것도 단단해진다.', pw: { cap: 1 }, pr: { invHp: 0.04 } },
     lastbreath: { name: '마지막 숨', tier: 2, asp: 'abyss', cat: '싸움', power: '죽음을 두 번 버틴다', price: '지면 목숨 −1 더', more: '싸움마다 처음 쓰러지는 권속 둘이 체력 50%로 버틴다.', pw: { bo: { laststand: 2 } }, pr: { lossMore: 1 } },
     burstskull: { name: '터지는 머리', tier: 2, asp: 'dusk', cat: '광기', power: '미친 적 죽으면 폭발', price: '침입자 체력 +4%', more: '미친 적이 죽으면 터진다. 곁의 적이 그 최대 체력의 40%만큼 피해를 입는다.', pw: { bo: { madburst: 0.4 } }, pr: { invHp: 0.04 } },
     manymouths: { name: '많은 입', tier: 2, asp: 'brood', cat: '싸움', power: '불린 것 +40%', price: '무리마다 연금술사 1', more: '새끼, 감염체, 신도처럼 불려 나온 것들의 체력과 공격이 오른다.', pw: { bo: { spawnplus: 0.4 } }, pr: { extra: ['alchemist'] } },
     firstcry: { name: '첫 울음', tier: 2, asp: 'nebula', cat: '싸움', power: '시작할 때 기절 2.5초', price: '침입자 공격 +5%', more: '싸움이 시작되면 우두머리가 아닌 적 전부가 기절한다.', pw: { bo: { stunstart: 2.5 } }, pr: { invAtk: 0.05 } },
-    bigbiter: { name: '큰 것을 무는 이', tier: 2, asp: 'hunger', cat: '싸움', power: '정예·우두머리 +14%', price: '정예가 늘 온다', more: '정예와 우두머리가 받는 피해가 14% 오른다. 막마다 셋째 라운드의 정예를 물릴 수 없다.', pw: { bo: { giant: 0.14 } }, pr: { eliteForce: 1 } },
+    bigbiter: { name: '큰 것을 무는 이', tier: 2, asp: 'hunger', cat: '싸움', power: '정예 +10% · 공격 +8%', price: '정예가 늘 온다', more: '정예와 우두머리가 받는 피해가 10% 오르고, 권속 전부의 공격이 8% 오른다. 막마다 셋째 라운드의 정예를 물릴 수 없다.', pw: { bo: { giant: 0.1, sharp: 0.08 } }, pr: { eliteForce: 1 } },
     digger: { name: '굴 파는 것', tier: 2, asp: 'abyss', cat: '살림', power: '라운드마다 경험 +2', price: '수입 −1', more: '라운드가 끝날 때마다 경험을 2 더 얻는다. 라운드 수입이 1 준다.', pw: { xpRound: 2 }, pr: { income: -1 } },
     gatething: { name: '문 앞에 선 것', tier: 2, asp: 'abyss', cat: '시너지', power: '수문장 +1 · 체력 +8%', price: '침입자 공격 +5%', more: '수문장을 하나 더 가진 것으로 센다. 권속 전부의 체력이 8% 오른다.', pw: { syn: { guard: 1 }, bo: { thick: 0.08 } }, pr: { invAtk: 0.05 } },
-    nighthunt: { name: '밤 사냥', tier: 2, asp: 'hunger', cat: '시너지', power: '사냥꾼 +1 · 공격 +4%', price: '침입자 체력 +8%', more: '사냥꾼을 하나 더 가진 것으로 센다. 권속 전부의 공격이 4% 오른다.', pw: { syn: { hunter: 1 }, bo: { sharp: 0.04 } }, pr: { invHp: 0.08 } },
+    nighthunt: { name: '밤 사냥', tier: 2, asp: 'hunger', cat: '시너지', power: '사냥꾼 +1 · 공격 +4%', price: '침입자 체력 +4%', more: '사냥꾼을 하나 더 가진 것으로 센다. 권속 전부의 공격이 4% 오른다.', pw: { syn: { hunter: 1 }, bo: { sharp: 0.04 } }, pr: { invHp: 0.04 } },
     callvoice: { name: '부르는 목소리', tier: 2, asp: 'nebula', cat: '시너지', power: '부르는 것 +1·마나 +10%', price: '무리마다 기수 1', more: '「부르는 것」을 하나 더 가진 것으로 센다. 권속의 마나가 10% 빨리 찬다.', pw: { syn: { caller: 1 }, bo: { manaFast: 0.1 } }, pr: { extra: ['banner'] } },
     grandmother: { name: '어미의 어미', tier: 2, asp: 'brood', cat: '시너지', power: '어미 +1 · 죽으면 새끼 1', price: '무리마다 마법사 1', more: '「어미」를 하나 더 가진 것으로 센다. 권속이 죽으면 그 자리에서 새끼 하나가 나온다. 불을 다루는 자가 무리마다 하나씩 온다.', pw: { syn: { mother: 1 }, bo: { eggsac: 1 } }, pr: { extra: ['mage'] } },
     redsill: { name: '붉은 문지방', tier: 2, asp: 'dusk', cat: '광기', power: '성공은 6뿐 · 정신 −10%', price: '침입자 체력 +3%', more: '공포 판정에서 5는 성공이 아니다. 모든 적이 정신이 10% 깎인 채 싸움을 시작한다.', pw: { bo: { six: 1, sanfrenzy: 0.1 } }, pr: { invHp: 0.03 } },
     newfaith: { name: '새 신도', tier: 2, asp: 'dusk', cat: '광기', power: '광인 회복·공격 +60%', price: '침입자 체력 +3%', more: '적이 미치면 체력의 60%를 되찾고 공격이 60% 오른다.', pw: { bo: { madstrong: 0.6 } }, pr: { invHp: 0.03 } },
-    hungrycore: { name: '굶주린 본체', tier: 2, asp: 'hunger', cat: '본체', power: '본체 공격 +25%·흡수', price: '침입자 체력 +10%', more: '본체의 공격이 오르고, 적이 죽을 때마다 본체가 체력의 3%를 되찾는다.', pw: { coreAtk: 0.25, bo: { corefeed: 0.03 } }, pr: { invHp: 0.1 } },
+    hungrycore: { name: '굶주린 본체', tier: 2, asp: 'hunger', cat: '본체', power: '본체 공격 +25%·흡수', price: '침입자 체력 +5%', more: '본체의 공격이 오르고, 적이 죽을 때마다 본체가 체력의 3%를 되찾는다.', pw: { coreAtk: 0.25, bo: { corefeed: 0.03 } }, pr: { invHp: 0.05 } },
     wallhears: { name: '벽이 듣는다', tier: 2, asp: 'nebula', cat: '방', power: '방 타일 2', price: '읽는 방 +1', more: '방 타일 둘을 곧바로 얻는다. 책을 쫓는 자는 읽을 때마다 방 하나를 더 지운다.', pw: { now: { room: 2 } }, pr: { bo: { readPlus: 1 } } },
     secondheart: { name: '두 번째 심장', tier: 3, asp: 'abyss', cat: '시너지', power: '심연 +2', price: '무리마다 성기사 1', more: '심연 권속을 둘 더 가진 것으로 센다. 성기사가 무리마다 하나씩 온다.', pw: { syn: { abyss: 2 } }, pr: { extra: ['paladin'] } },
     opensky: { name: '열린 하늘', tier: 3, asp: 'nebula', cat: '시너지', power: '성운 +2 · 주사위 −1', price: '무리마다 구마사 1', more: '성운 권속을 둘 더 가진 것으로 센다. 침입자는 공포 판정에서 주사위를 하나 덜 굴린다. 구마사가 무리마다 하나씩 온다.', pw: { syn: { nebula: 2 }, bo: { dieless: 1 } }, pr: { extra: ['exorcist'] } },
-    endlessbrood: { name: '끝없는 산란', tier: 3, asp: 'brood', cat: '시너지', power: '번식 +2·불린 것 +40%', price: '무리마다 마법사 1', more: '번식 권속을 둘 더 가진 것으로 센다. 불려 나온 것들의 체력과 공격이 40% 오른다. 불을 다루는 자가 무리마다 하나씩 온다.', pw: { syn: { brood: 2 }, bo: { spawnplus: 0.4 } }, pr: { extra: ['mage'] } },
-    allsing: { name: '모두가 합창한다', tier: 3, asp: 'dusk', cat: '시너지', power: '황혼 +2 · 광인 고정', price: '침입자 체력 +6%', more: '황혼 권속을 둘 더 가진 것으로 센다. 미친 적은 다시 제정신으로 돌아가지 못한다.', pw: { syn: { dusk: 2 }, bo: { keepMad: 1 } }, pr: { invHp: 0.06 } },
-    bottomless: { name: '바닥 없는 배', tier: 3, asp: 'hunger', cat: '시너지', power: '기아 +2·평타 흡수 12%', price: '침입자 공격 +10%', more: '기아 권속을 둘 더 가진 것으로 센다. 권속이 평타로 준 피해의 12%만큼 체력을 되찾는다.', pw: { syn: { hunger: 2 }, bo: { vamp: 0.12 } }, pr: { invAtk: 0.1 } },
+    endlessbrood: { name: '끝없는 산란', tier: 3, asp: 'brood', cat: '시너지', power: '번식 +2·불린 것 +50%', price: '침입자 공격 +6%', more: '번식 권속을 둘 더 가진 것으로 센다. 불려 나온 것들의 체력과 공격이 50% 오른다.', pw: { syn: { brood: 2 }, bo: { spawnplus: 0.5 } }, pr: { invAtk: 0.06 } },
+    allsing: { name: '모두가 합창한다', tier: 3, asp: 'dusk', cat: '시너지', power: '황혼 +2 · 광인 고정', price: '침입자 체력 +12%', more: '황혼 권속을 둘 더 가진 것으로 센다. 미친 적은 다시 제정신으로 돌아가지 못한다.', pw: { syn: { dusk: 2 }, bo: { keepMad: 1 } }, pr: { invHp: 0.12 } },
+    bottomless: { name: '바닥 없는 배', tier: 3, asp: 'hunger', cat: '시너지', power: '기아 +2·평타 흡수 15%', price: '침입자 공격 +6%', more: '기아 권속을 둘 더 가진 것으로 센다. 권속이 평타로 준 피해의 15%만큼 체력을 되찾는다.', pw: { syn: { hunger: 2 }, bo: { vamp: 0.15 } }, pr: { invAtk: 0.06 } },
     deepening: { name: '끝없이 넓어지는 굴', tier: 3, asp: 'abyss', cat: '살림', power: '세우는 수 +2', price: '침입자 체력·공격 +8%', more: '둥지에 권속 둘을 더 세운다.', pw: { cap: 2 }, pr: { invHp: 0.08, invAtk: 0.08 } },
     sleeperbreath: { name: '잠든 이의 숨', tier: 3, asp: 'nebula', cat: '싸움', power: '마나 80%로 시작·+10%', price: '심문관 1 · 공격 +5%', more: '권속은 마나를 80% 채운 채 싸움을 시작하고, 마나가 10% 빨리 찬다. 입을 막는 심문관이 무리마다 하나씩 오고, 침입자의 공격이 5% 오른다.', pw: { bo: { firstfree: 0.8, manaFast: 0.1 } }, pr: { extra: ['inquis'], invAtk: 0.05 } },
     undying: { name: '죽지 않는 것들', tier: 3, asp: 'brood', cat: '싸움', power: '모든 권속 죽음 1번 버팀', price: '침입자 공격 +15%', more: '권속은 저마다 싸움에서 한 번, 쓰러질 때 체력 50%로 버틴다.', pw: { bo: { laststand: 99 } }, pr: { invAtk: 0.15 } },
