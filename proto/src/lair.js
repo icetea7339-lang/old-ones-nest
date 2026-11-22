@@ -24,14 +24,14 @@ const LAIR = (function () {
     // 온전한 판: 3막 x 5라운드. invHp/invAtk/invSan 은 라운드 1~15 의 침입자 배수
     full: { gold: 10, level: 3, life: 20, acts: 3, per: 5, eliteAt: 3, income: 5, interestPer: 10, interestMax: 5, winGold: 1, streak: [0, 0, 1, 2, 3], xpRound: 2, maxLv: 8, xpNeed: { 3: 6, 4: 10, 5: 18, 6: 28, 7: 40 },
       odds: { 3: [70, 25, 5, 0, 0], 4: [50, 33, 15, 2, 0], 5: [35, 35, 24, 5, 1], 6: [22, 33, 30, 12, 3], 7: [18, 27, 33, 17, 5], 8: [12, 22, 33, 23, 10] },
-      lossBase: [3, 3, 4], lossPer: 0.5, lossMax: 8, bossLoss: 2, giftGold: [5, 6, 7], eliteGold: [14, 20, 26], bossGold: [8, 12], bossUnit: [2, 3], eliteMul: 1.04, eliteBonus: [5, 7, 9], eliteUnit: [3, 4, 5], coreHp: 0.06, coreAtk: 0.07,
+      lossBase: [3, 3, 4], lossPer: 0.5, lossMax: 8, bossLoss: 2, giftGold: [5, 6, 7], eliteGold: [16, 24, 32], bossGold: [8, 12], bossUnit: [2, 3], eliteMul: 1.04, eliteBonus: [10, 14, 18], eliteHeal: [2, 2, 2], eliteLoss: [2, 2, 2], eliteUnit: [3, 4, 5], coreHp: 0.06, coreAtk: 0.07,
       // 신화 단계: 라운드 2/7/12. tier = 단계마다 속삭임/징조/현현 의 무게, fearTier = 공포 1마다 현현 쪽으로 옮기는 무게. awake = 깨어남 단계마다 본체 배수
       mythosAt: [2, 7, 12], tier: [[55, 35, 10], [40, 40, 20], [25, 45, 30]], fearTier: 1.5, awake: [{ hp: 1, atk: 1 }, { hp: 1.2, atk: 1.15 }, { hp: 1.45, atk: 1.35 }, { hp: 1.8, atk: 1.6 }],
       // 공포 판정: heavy/normal = 성공 0/1 일 때 잃는 정신의 비율, stun = 얼어붙는 시간. 공포: 이기면 +1 (권속을 잃지 않았거나, 셋 이상 미쳤거나, 정예를 삼키거나 미치게 했으면 +1 더), 지면 −1. fearAt 을 넘을 때마다 세상이 답한다
-      check: { heavy: 0.5, normal: 0.2, stun: 2, bleed: 4, contact: 3, moment: 3 }, sumUp: 0.035, fearMax: 18, fearAt: [6, 12, 18], encounter: 0.5, rerollBase: 2, zealMax: 2,
-      invHp: [3.6, 2.7, 1.8, 1.25, 1.05, 3.6, 2.2, 2.2, 1.7, 1.45, 4.4, 3, 3.1, 3.5, 1.1],
-      invAtk: [0.75, 1.05, 1.4, 1.75, 3.1, 2.57, 2.34, 3, 2.79, 3.76, 3.33, 3.88, 3.66, 3.66, 4.8],
-      invSan: [1.05, 1.05, 1.05, 1.1, 1.3, 1.25, 1.2, 1.4, 1.35, 1.45, 1.55, 1.65, 1.7, 1.65, 1.95] },
+      check: { heavy: 0.5, normal: 0.2, stun: 2, bleed: 5, contact: 3, moment: 3 }, sumUp: 0.035, fearMax: 18, fearAt: [6, 12, 18], encounter: 0.5, rerollBase: 2, zealMax: 2,
+      invHp: [3.6, 2.7, 1.8, 1.25, 1.05, 3.6, 2.2, 2.2, 1.7, 1.6, 4.4, 3, 3.1, 3.5, 2.6],
+      invAtk: [0.75, 1.05, 1.58, 1.97, 3.5, 2.57, 2.34, 3, 2.79, 3.5, 3.33, 3.88, 3.66, 3.66, 4.8],
+      invSan: [1.05, 1.05, 1.05, 1.1, 1.3, 1.5, 1.45, 1.65, 1.6, 1.35, 1.9, 2, 2.05, 2, 1.8] },
   };
   // 닿지 않아도 쓰는 스킬
   const FAR = { hatch: 1, spawning: 1, pray: 1, anthem: 1, read: 1, readall: 1, sermon: 1, rebirth: 1, rally: 1, exorcise: 1, skyrift: 1, mark: 1, reap: 1, c_note: 1, c_hymn: 1, c_snare: 1, c_fire: 1, c_lamp: 1 };
@@ -49,11 +49,11 @@ const LAIR = (function () {
     maw: { name: '해구의 입', role: 'tank', cost: 3, asp: 'abyss', cls: 'guard', hp: 1000, atk: 70, as: 0.6, range: 1, df: 50, mana: 100, skill: 'swallow' },
     mother: { name: '포자 어미', role: 'support', cost: 3, asp: 'brood', cls: 'mother', hp: 750, atk: 50, as: 0.6, range: 3, df: 25, mana: 100, skill: 'spores' },
     famine: { name: '통삼킴', role: 'melee', cost: 3, asp: 'hunger', cls: 'hunter', hp: 800, atk: 95, as: 0.9, range: 1, df: 30, mana: 90, skill: 'charge' },
-    gulp: { name: '배불뚝이', role: 'tank', cost: 2, asp: 'hunger', cls: 'guard', hp: 780, atk: 50, as: 0.6, range: 1, df: 35, mana: 80, skill: 'gorge', gen: 2, art: 'gnaw' },
+    gulp: { name: '배불뚝이', role: 'tank', cost: 2, asp: 'hunger', cls: 'guard', hp: 850, atk: 50, as: 0.6, range: 1, df: 35, mana: 80, skill: 'gorge', gen: 2, art: 'gnaw' },
     orbit: { name: '도는 눈들', role: 'ranged', cost: 3, asp: 'nebula', cls: 'caller', hp: 600, atk: 65, as: 0.7, range: 3, df: 15, mana: 90, sanAtk: 10, skill: 'meteor', gen: 2, art: 'gazer' },
     bell: { name: '종 든 것', role: 'tank', cost: 3, asp: 'dusk', cls: 'guard', hp: 950, atk: 55, as: 0.6, range: 1, df: 45, mana: 90, sanAtk: 8, skill: 'toll', gen: 2, art: 'hood' },
     ink: { name: '먹물 뿜는 것', role: 'ranged', cost: 4, asp: 'abyss', cls: 'caller', hp: 800, atk: 80, as: 0.7, range: 3, df: 20, mana: 100, skill: 'inkcloud', gen: 2, art: 'tangle' },
-    hollow: { name: '텅 빈 것', role: 'melee', cost: 4, asp: 'hunger', cls: 'hunter', hp: 950, atk: 115, as: 0.9, range: 1, df: 30, mana: 90, skill: 'reap', gen: 2, art: 'famine' },
+    hollow: { name: '텅 빈 것', role: 'melee', cost: 4, asp: 'hunger', cls: 'hunter', hp: 1000, atk: 125, as: 0.9, range: 1, df: 30, mana: 90, skill: 'reap', gen: 2, art: 'famine' },
     preach: { name: '설교하는 것', role: 'support', cost: 4, asp: 'dusk', cls: 'mother', hp: 850, atk: 60, as: 0.7, range: 3, df: 20, mana: 100, sanAtk: 14, skill: 'sermon', gen: 2, art: 'mask' },
     rift: { name: '하늘의 틈', role: 'ranged', cost: 5, asp: 'nebula', cls: 'caller', hp: 950, atk: 95, as: 0.7, range: 4, df: 25, mana: 130, sanAtk: 16, skill: 'skyrift', gen: 2, art: 'heap' },
     queen: { name: '굴의 여왕', role: 'support', cost: 5, asp: 'brood', cls: 'mother', hp: 1300, atk: 80, as: 0.6, range: 2, df: 35, mana: 120, skill: 'rebirth', gen: 2, art: 'mother' },
@@ -65,7 +65,7 @@ const LAIR = (function () {
     infected: { name: '감염체', role: 'melee', hp: 200, atk: 30, as: 0.8, range: 1, df: 5 },
     brute: { name: '큰 새끼', role: 'melee', hp: 520, atk: 60, as: 0.8, range: 1, df: 15, art: 'spawn' },
     cultist: { name: '신도', role: 'ranged', hp: 440, atk: 38, as: 0.7, range: 3, df: 5, sanAtk: 16, art: 'infected' },
-    possessed: { name: '홀린 자', role: 'melee', hp: 480, atk: 55, as: 0.8, range: 1, df: 10, art: 'infected' },
+    possessed: { name: '홀린 자', role: 'melee', hp: 480, san: 160, atk: 55, as: 0.8, range: 1, df: 10, art: 'infected' },
     zealot: { name: '광신도', role: 'melee', hp: 340, atk: 36, as: 0.8, range: 1, df: 5, art: 'infected' },
   };
   // 본체의 다섯 모습 (가장 많이 모은 성향)과 처음 모습
@@ -94,7 +94,7 @@ const LAIR = (function () {
     templar: { name: '성전사', tag: '앞줄', role: 'melee', hp: 780, san: 150, atk: 72, as: 0.8, range: 1, df: 30, mana: 80, skill: 'smite', tier: 3, art: 'knight' },
     exorcist: { name: '구마사', tag: '지원', role: 'support', hp: 460, san: 200, atk: 30, as: 0.6, range: 3, df: 10, mana: 90, skill: 'exorcise', tier: 3, art: 'priest' },
     alchemist: { name: '연금술사', tag: '뒷줄', role: 'ranged', hp: 400, san: 90, atk: 45, as: 0.6, range: 4, df: 5, mana: 90, skill: 'flask', tier: 3, art: 'mage' },
-    seekerm: { name: '책을 쫓는 자', tag: '우두머리', role: 'ranged', hp: 3000, san: 400, atk: 95, as: 0.7, range: 3, df: 35, mana: 100, skill: 'readall', boss: true, noMad: true, reader: true, tier: 4, art: 'seeker' },
+    seekerm: { name: '책을 쫓는 자', tag: '우두머리', role: 'ranged', hp: 3000, san: 400, atk: 95, as: 0.7, range: 3, df: 35, mana: 100, skill: 'readall', boss: true, noMad: true, reader: true, readAtk: 0.3, readHurt: 0.8, tier: 4, art: 'seeker' },
     // 이름 있는 조사자 여섯. 판마다 되풀이해 온다 (CAST 에 내력이 있다)
     c_eda: { name: '에다 볼크', tag: '조사자', role: 'ranged', hp: 520, san: 150, atk: 55, as: 0.6, range: 4, df: 10, mana: 80, skill: 'c_note', elite: true, tier: 3, art: 'mage', cast: 'eda' },
     c_rowen: { name: '로웬 하스', tag: '조사자', role: 'tank', hp: 1200, san: 180, atk: 75, as: 0.6, range: 1, df: 55, mana: 90, skill: 'c_oath', elite: true, tier: 3, art: 'knight', cast: 'rowen' },
@@ -105,7 +105,7 @@ const LAIR = (function () {
   };
   const INV_IDS = Object.keys(INV);
   // 의지: 공포 판정에서 굴리는 주사위 수 (1~4)
-  const WILL = { militia: 1, torch: 1, hound: 1, knight: 2, archer: 1, priest: 3, mage: 2, rogue: 2, bard: 2, inquis: 3, paladin: 4, seeker: 4, crossbow: 2, banner: 2, tracker: 2, templar: 3, exorcist: 4, alchemist: 2, seekerm: 4, c_eda: 3, c_rowen: 3, c_mirel: 4, c_tov: 2, c_isel: 2, c_vasco: 4 };
+  const WILL = { militia: 1, torch: 1, hound: 1, knight: 2, archer: 1, priest: 3, mage: 2, rogue: 2, bard: 2, inquis: 3, paladin: 4, seeker: 4, crossbow: 2, banner: 2, tracker: 2, templar: 3, exorcist: 4, alchemist: 2, seekerm: 3, c_eda: 3, c_rowen: 3, c_mirel: 4, c_tov: 2, c_isel: 2, c_vasco: 4 };
   INV_IDS.forEach(k => { INV[k].will = WILL[k] || 1; });
   // 스킬: v = 별마다의 수치. 설명은 화면이 그대로 쓴다 (short 는 16자 안)
   const P3 = (a, l) => a[clamp(l, 1, 3) - 1];
@@ -202,7 +202,7 @@ const LAIR = (function () {
   const SYN_IDS = Object.keys(SYN);
   // 온전한 판의 문턱: 성향 2/4/5 (권속은 성향마다 넷, 다섯째는 진화한 본체), 종류 2/4
   ASPS.forEach(a => { SYN[a].full = [2, 4, 5]; }); CLSS.forEach(c => { SYN[c].full = [2, 4]; });
-  SYN.abyss.short.push('모두 −25%·심연 −45%'); SYN.nebula.short.push('정신 피해 +80%'); SYN.brood.short.push('죽으면 새끼 3'); SYN.dusk.short.push('곁 정신 50·광인 +50%'); SYN.hunger.short.push('회복 25% · 공격 +20%');
+  SYN.abyss.short.push('모두 −25%·심연 −45%'); SYN.nebula.short.push('정신 피해 +80%'); SYN.brood.short.push('죽으면 새끼 3'); SYN.dusk.short.push('곁 정신 50·광인 +50%'); SYN.hunger.short.push('회복 20% · 네 번까지');
   // 온전한 판의 심연: 덜 단단하고, 젖은 적이 둥지의 공격에 더 다친다 (싸움이 늘어지지 않게)
   SYN.abyss.fullShort = ['심연 −20%·젖음 +20%', '모두 −8%·젖음 +40%', '모두 −12%·젖음 +60%'];
   SYN.abyss.fullMore = '심연 권속이 피해를 덜 받는다 (20/28/36%). 그들의 공격은 적을 3초 동안 적셔 느리게 하고, 젖은 적은 둥지의 모든 공격에 더 다친다 (20/40/60%).';
@@ -236,7 +236,7 @@ const LAIR = (function () {
     function add(o) {
       const d = o.def, m = o.mul || 1;
       const u = { id: o.id, side: o.side, home: o.side, kind: o.kind, star: o.star || 1, cell: o.cell, cells: o.cells || [o.cell], name: d.name, mhp: Math.round(d.hp * (o.hmul || m) * K.hpMul), atk: d.atk * m, as: d.as * K.pace.as, range: d.range, df: d.df, mmana: d.mana || 0, mana: 0, role: d.role || (o.core ? 'core' : 'melee'),
-        msan: d.san ? Math.round(d.san * (o.smul || 1) * K.sanMul) : 0, sanAtk: (d.sanAtk || 0) * (0.6 + 0.4 * m), speed: (d.speed || 1.6) * K.pace.speed, skill: d.skill || null, asp: d.asp || null, cls: d.cls || null, boss: !!d.boss, elite: !!d.elite, noMad: !!d.noMad, weak: !!d.weak, leap: !!d.leap, reader: !!d.reader, art: d.art || o.kind, will: o.will != null ? o.will : d.will || 0, cast: o.cast || null, chk: 0,
+        msan: d.san ? Math.round(d.san * (o.smul || 1) * K.sanMul) : 0, sanAtk: (d.sanAtk || 0) * (0.6 + 0.4 * m), speed: (d.speed || 1.6) * K.pace.speed, skill: d.skill || null, asp: d.asp || null, cls: d.cls || null, boss: !!d.boss, elite: !!d.elite, noMad: !!d.noMad, weak: !!d.weak, leap: !!d.leap, reader: !!d.reader, readAtk: d.readAtk != null ? d.readAtk : 0.8, readHurt: d.readHurt != null ? d.readHurt : 0.6, art: d.art || o.kind, will: o.will != null ? o.will : d.will || 0, cast: o.cast || null, chk: 0,
         core: !!o.core, summon: !!o.summon, tierV: d.tier || d.cost || 0, st: {}, nextAtk: 0.3 + RN() * 0.5 + (d.range > 1 ? K.pace.back : 0), freeAt: d.range > 1 && !o.core && !o.summon ? K.pace.back : 0, tg: null, reT: 0, alive: true, mad: false, engage: o.side === 'inv' || !!o.summon, prov: null, firstCrit: 0, atkBonus: 0, eat: 0,
         stat: { dmg: 0, san: 0, heal: 0, kills: 0, casts: 0, taken: 0, conv: 0 } };
       u.hp = u.mhp; u.san = u.msan; u.cells.forEach(c => { occ[c] = u; }); U.push(u); return u;
@@ -248,7 +248,7 @@ const LAIR = (function () {
       return out;
     }
     const nSum = n => n + (tier('mother') >= 2 ? 1 : 0);
-    const pow = u => { let a = u.atk * (1 + u.atkBonus) * (t > K.frenzy ? 1 + K.frenzyUp * (t - K.frenzy) : 1); if (has(u, 'atkup')) a *= 1 + u.st.atkup.v; if (has(u, 'atkdown')) a *= 1 - u.st.atkdown.v; if (u.reader) a *= 1 + 0.8 * (1 - u.san / u.msan); if (u.home === 'nest' && !u.summon && u.asp === 'abyss' && roomAt(u.cell, 'pool')) a *= 1 + rl('poolAtk'); if (bo.roomplus && u.home === 'nest' && !u.summon && !u.core && rooms.some(r => !r.dead && r.cells.includes(u.cell))) a *= 1 + bo.roomplus; return a; };
+    const pow = u => { let a = u.atk * (1 + u.atkBonus) * (t > K.frenzy ? 1 + K.frenzyUp * (t - K.frenzy) : 1); if (has(u, 'atkup')) a *= 1 + u.st.atkup.v; if (has(u, 'atkdown')) a *= 1 - u.st.atkdown.v; if (u.reader) a *= 1 + u.readAtk * (1 - u.san / u.msan); if (u.home === 'nest' && !u.summon && u.asp === 'abyss' && roomAt(u.cell, 'pool')) a *= 1 + rl('poolAtk'); if (bo.roomplus && u.home === 'nest' && !u.summon && !u.core && rooms.some(r => !r.dead && r.cells.includes(u.cell))) a *= 1 + bo.roomplus; return a; };
     function heal(u, amt, by) { if (!u.alive || amt <= 0) return 0; const h = Math.min(u.mhp - u.hp, Math.round(amt)); if (h <= 0) return 0; u.hp += h; if (by) by.stat.heal += h; ev('heal', { u: u.id, by: by ? by.id : null, amt: h, hp: u.hp }); return h; }
     function gainMana(u, x) { if (!u.mmana || !u.alive) return; let m = x; if (u.home === 'nest' && !u.mad) { if (u.cls === 'caller' && roomAt(u.cell, 'altar')) m *= 1 + rl('altar'); if (tier('caller') >= 2) m *= 1.25; if (bo.manaFast) m *= 1 + bo.manaFast; } u.mana = Math.min(u.mmana, u.mana + m); }
     function goMad(u, by) {
@@ -278,7 +278,7 @@ const LAIR = (function () {
         if (u.asp === 'brood' && tier('brood') >= 1) { ev('synergy', { id: 'brood', fx: 'hatch', u: u.id, cell: u.cell }); summon('spawn', u.cell, 'nest', STARM[u.star], u, tier('brood')); }
         if (roomAt(u.cell, 'nursery')) { ev('roomfx', { room: 'nursery', kind: 'hatch', cell: u.cell }); summon('spawn', u.cell, 'nest', STARM[u.star], u, rl('nursery')); }
       }
-      if (by && by.alive && by.home === 'nest' && !by.mad && wasInv) { const hg = tier('hunger'); if (hg >= 1 && (by.asp === 'hunger' || hg >= 2) && !by.summon) { heal(by, by.mhp * [0, 0.15, 0.2, 0.25][hg], by); if (by.eat < (hg >= 3 ? 4 : 3)) { by.eat++; by.atkBonus += [0, 0.1, 0.15, 0.2][hg]; } ev('synergy', { id: 'hunger', fx: 'eat', u: by.id }); } }
+      if (by && by.alive && by.home === 'nest' && !by.mad && wasInv) { const hg = tier('hunger'); if (hg >= 1 && (by.asp === 'hunger' || hg >= 2) && !by.summon && !u.summon) { heal(by, by.mhp * [0, 0.15, 0.2, 0.2][hg], by); if (by.eat < (hg >= 3 ? 4 : 3)) { by.eat++; by.atkBonus += [0, 0.1, 0.15, 0.15][hg]; } ev('synergy', { id: 'hunger', fx: 'eat', u: by.id }); } }
     }
     // 피해: k = atk 평타 / skill 스킬 / dot 지속 / true 그대로 / san 정신만
     function hurt(src, tg, amt, o) {
@@ -287,7 +287,7 @@ const LAIR = (function () {
         d = amt; if (o.k === 'skill' || o.k === 'dot') d *= K.skillMul; if (o.k !== 'true' && o.k !== 'dot') { const df = has(tg, 'corrode') ? tg.df * (1 - tg.st.corrode.v) : tg.df; if (tg.role === 'tank') blk = Math.round(d * df / (100 + df)); d *= 100 / (100 + df); }
         if (has(tg, 'shield')) d *= 1 - tg.st.shield.v;
         if (fullRun && src && src.home === 'nest' && !src.mad && tg.side !== 'nest' && tier('abyss') && has(tg, 'wet')) d *= 1 + [0, 0.2, 0.4, 0.6][tier('abyss')];
-        if (tg.reader && tg.msan) d *= 1 + 0.6 * (1 - tg.san / tg.msan);
+        if (tg.reader && tg.msan) d *= 1 + tg.readHurt * (1 - tg.san / tg.msan);
         if (has(tg, 'marked')) d *= 1 + tg.st.marked.v; if (bo.giant && tg.home === 'inv' && (tg.boss || tg.elite)) d *= 1 + bo.giant;
         if (tg.home === 'nest' && !tg.mad) { const ab = tier('abyss'); if (fullRun) { if (ab) d *= 1 - (tg.asp === 'abyss' ? [0, 0.2, 0.28, 0.36][ab] : [0, 0, 0.08, 0.12][ab]); } else if (ab >= 3) d *= tg.asp === 'abyss' ? 0.55 : 0.75; else if (ab >= 2) d *= tg.asp === 'abyss' ? 0.6 : 0.8; else if (ab >= 1 && tg.asp === 'abyss') d *= 0.75; if (!tg.core && roomAt(tg.cell, 'bone')) d *= 1 - rl('bone'); }
         if (o.crit) d *= o.crit;
@@ -402,7 +402,7 @@ const LAIR = (function () {
         if (!tg.length) foes(u).slice(0, 3).forEach(x => hurt(u, x, 120, { k: 'skill', sk: 'chorus' }));
         tg.forEach(x => hurt(u, x, sc ? 120 * l : 0, { san: P3(SK.chorus.san, l), k: sc ? 'skill' : 'san', sk: 'chorus' })); pals(u).filter(x => x.mad).forEach(x => { heal(x, 100, u); setSt(x, 'atkup', 5, 0.3, u); });
       },
-      feast(u, l) { const rr = u.t2 ? 3 : 2, tg = foes(u).filter(x => dist(x, u) <= rr); let sum = 0; ev('skillfx', { u: u.id, sk: 'feast', fx: 'feast', cells: u.cells, tgs: tg.map(x => x.id), r: rr }); tg.forEach(x => { sum += hurt(u, x, pow(u) * P3(SK.feast.mul, l), { k: 'skill', sk: 'feast' }); }); heal(u, sum * (u.t2 ? 0.8 : 0.5), u); },
+      feast(u, l) { const rr = u.t2 ? 3 : 2, tg = foes(u).filter(x => dist(x, u) <= rr); let sum = 0; ev('skillfx', { u: u.id, sk: 'feast', fx: 'feast', cells: u.cells, tgs: tg.map(x => x.id), r: rr }); tg.forEach(x => { sum += hurt(u, x, pow(u) * P3(SK.feast.mul, l) * (fullRun ? 0.65 : 1), { k: 'skill', sk: 'feast' }); }); heal(u, sum * (u.t2 ? 0.6 : 0.5), u); },
       pike(u, l) { const tg = pickTarget(u); if (!tg) return; const from = closest(u, tg), d = dirTo(from, tcell(u, tg)), cells = lineFrom(from, d[0], d[1], 2), hit = foes(u).filter(x => x === tg || x.cells.some(c => cells.includes(c))); ev('skillfx', { u: u.id, sk: 'pike', fx: 'pierce', from, cells, tgs: hit.map(x => x.id) }); hit.forEach(x => hurt(u, x, pow(u) * P3(SK.pike.mul, l), { k: 'skill', sk: 'pike' })); },
       arson(u, l) { const tg = pickTarget(u); if (!tg) return; const c = tcell(u, tg), p = rc(c), cells = [c]; [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(([dr, dc]) => { if (inb(p[0] + dr, p[1] + dc)) cells.push(idx(p[0] + dr, p[1] + dc)); }); zones.push({ kind: 'burn', cells, until: t + 4, side: u.side, by: u.id, dps: P3(SK.arson.dps, l) * (u.atk / 35) }); ev('skillfx', { u: u.id, sk: 'arson', fx: 'burnzone', from: u.cell, cells, dur: 4 }); },
       latch(u, l) { const tg = pickTarget(u) || nearest(u, foes(u)); if (!tg) return; if (dist(u, tg) > 1) { const c = emptyNear(tcell(u, tg), i => dcell(tg, i) <= 1); if (c >= 0 && dcell(u, c) <= 4) { moveTo(u, c, 'leap', 0.25); u.freeAt = t + 0.25; } } ev('skillfx', { u: u.id, sk: 'latch', fx: 'latch', tgs: [tg.id] }); if (dist(u, tg) <= 1) { hurt(u, tg, pow(u) * 1.5, { k: 'skill', sk: 'latch' }); if (tg.alive) { if (!tg.core) setSt(tg, 'stun', 1, 1, u); setSt(tg, 'bleed', 4, pow(u) * 0.3, u); } } },
@@ -472,7 +472,7 @@ const LAIR = (function () {
         const cnt = r => U.filter(x => x.alive && x.side !== u.side && r.cells.includes(x.cell)).length, live = (bo.noErase || u.side !== 'inv' ? [] : rooms.filter(r => !r.dead)).sort((a, b) => cnt(b) - cnt(a) || a.i - b.i).slice(0, 2 + (bo.readPlus || 0));
         live.forEach(r => { r.dead = true; ev('skillfx', { u: u.id, sk: 'readall', fx: 'read', cells: r.cells, room: r.i }); ev('roomfx', { room: r.id, i: r.i, kind: 'erase', cells: r.cells }); foes(u).filter(x => r.cells.includes(x.cell)).forEach(x => hurt(u, x, 60, { k: 'skill', sk: 'readall' })); });
         const tg = foes(u).filter(x => dist(x, u) <= 2); ev('skillfx', { u: u.id, sk: 'readall', fx: 'readblast', cells: u.cells, tgs: tg.map(x => x.id), r: 2 }); tg.forEach(x => { hurt(u, x, pow(u) * 1.2, { k: 'skill', sk: 'readall' }); if (x.alive && !x.core) setSt(x, 'silenced', 3, 1, u); });
-        if (u.alive) { const out = summon('possessed', u.cell, u.side, u.atk / 95, u, 2); if (out.length) ev('skillfx', { u: u.id, sk: 'readall', fx: 'possess', cells: out.map(x => x.cell), tgs: out.map(x => x.id) }); }
+        if (u.alive) { const out = summon('possessed', u.cell, u.side, Math.min(2.5, u.atk / 95), u, 2); if (out.length) ev('skillfx', { u: u.id, sk: 'readall', fx: 'possess', cells: out.map(x => x.cell), tgs: out.map(x => x.id) }); }
       },
     };
     // ───── 세우기 ─────
@@ -582,7 +582,7 @@ const LAIR = (function () {
     nebula: { part: '눈', names: ['별에서 내려다보는 것', '감지 않는 눈'], t2: '모든 적 기절 1초' },
     brood: { part: '알 어미', names: ['새끼 떼의 어미', '굴을 메운 어미'], t2: '큰 새끼 1 더' },
     dusk: { part: '두건 쓴 합창', names: ['두건 쓴 무리의 주인', '끝나지 않는 합창'], t2: '합창 대상 다섯' },
-    hunger: { part: '아가리', names: ['끝없는 아가리', '바닥 없는 아가리'], t2: '세 칸 · 흡수 80%' },
+    hunger: { part: '아가리', names: ['끝없는 아가리', '바닥 없는 아가리'], t2: '세 칸 · 흡수 60%' },
   };
   // 신화: 권능 (pw) 과 대가 (pr). tier 1 속삭임 / 2 징조 / 3 현현. asp = 본체가 따라가는 성향
   //   숫자 열쇠는 더해진다: cap 세우는 수, interestCap, freeRoll, xpRound, winGold, third, mergeGold, income, rerollCost, xpCost, lossMore, shopUp, invHp/invAtk/invSan, bossUp, eliteForce, coreHp/coreAtk/coreMana/coreRange
@@ -609,7 +609,7 @@ const LAIR = (function () {
     burstskull: { name: '터지는 머리', tier: 2, asp: 'dusk', cat: '광기', power: '미친 적 죽으면 폭발', price: '침입자 체력 +4%', more: '미친 적이 죽으면 터진다. 곁의 적이 그 최대 체력의 40%만큼 피해를 입는다.', pw: { bo: { madburst: 0.4 } }, pr: { invHp: 0.04 } },
     manymouths: { name: '많은 입', tier: 2, asp: 'brood', cat: '싸움', power: '불린 것 +40%', price: '무리마다 연금술사 1', more: '새끼, 감염체, 신도처럼 불려 나온 것들의 체력과 공격이 오른다.', pw: { bo: { spawnplus: 0.4 } }, pr: { extra: ['alchemist'] } },
     firstcry: { name: '첫 울음', tier: 2, asp: 'nebula', cat: '싸움', power: '시작할 때 기절 2.5초', price: '침입자 공격 +5%', more: '싸움이 시작되면 우두머리가 아닌 적 전부가 기절한다.', pw: { bo: { stunstart: 2.5 } }, pr: { invAtk: 0.05 } },
-    bigbiter: { name: '큰 것을 무는 이', tier: 2, asp: 'hunger', cat: '싸움', power: '정예·우두머리 +18%', price: '정예가 늘 온다', more: '정예와 우두머리가 받는 피해가 18% 오른다. 막마다 셋째 라운드의 정예를 물릴 수 없다.', pw: { bo: { giant: 0.18 } }, pr: { eliteForce: 1 } },
+    bigbiter: { name: '큰 것을 무는 이', tier: 2, asp: 'hunger', cat: '싸움', power: '정예·우두머리 +14%', price: '정예가 늘 온다', more: '정예와 우두머리가 받는 피해가 14% 오른다. 막마다 셋째 라운드의 정예를 물릴 수 없다.', pw: { bo: { giant: 0.14 } }, pr: { eliteForce: 1 } },
     digger: { name: '굴 파는 것', tier: 2, asp: 'abyss', cat: '살림', power: '라운드마다 경험 +2', price: '수입 −1', more: '라운드가 끝날 때마다 경험을 2 더 얻는다. 라운드 수입이 1 준다.', pw: { xpRound: 2 }, pr: { income: -1 } },
     gatething: { name: '문 앞에 선 것', tier: 2, asp: 'abyss', cat: '시너지', power: '수문장 +1 · 체력 +8%', price: '침입자 공격 +5%', more: '수문장을 하나 더 가진 것으로 센다. 권속 전부의 체력이 8% 오른다.', pw: { syn: { guard: 1 }, bo: { thick: 0.08 } }, pr: { invAtk: 0.05 } },
     nighthunt: { name: '밤 사냥', tier: 2, asp: 'hunger', cat: '시너지', power: '사냥꾼 +1 · 공격 +4%', price: '침입자 체력 +8%', more: '사냥꾼을 하나 더 가진 것으로 센다. 권속 전부의 공격이 4% 오른다.', pw: { syn: { hunter: 1 }, bo: { sharp: 0.04 } }, pr: { invHp: 0.08 } },
@@ -617,13 +617,13 @@ const LAIR = (function () {
     grandmother: { name: '어미의 어미', tier: 2, asp: 'brood', cat: '시너지', power: '어미 +1 · 죽으면 새끼 1', price: '무리마다 마법사 1', more: '「어미」를 하나 더 가진 것으로 센다. 권속이 죽으면 그 자리에서 새끼 하나가 나온다. 불을 다루는 자가 무리마다 하나씩 온다.', pw: { syn: { mother: 1 }, bo: { eggsac: 1 } }, pr: { extra: ['mage'] } },
     redsill: { name: '붉은 문지방', tier: 2, asp: 'dusk', cat: '광기', power: '성공은 6뿐 · 정신 −10%', price: '침입자 체력 +3%', more: '공포 판정에서 5는 성공이 아니다. 모든 적이 정신이 10% 깎인 채 싸움을 시작한다.', pw: { bo: { six: 1, sanfrenzy: 0.1 } }, pr: { invHp: 0.03 } },
     newfaith: { name: '새 신도', tier: 2, asp: 'dusk', cat: '광기', power: '광인 회복·공격 +60%', price: '침입자 체력 +3%', more: '적이 미치면 체력의 60%를 되찾고 공격이 60% 오른다.', pw: { bo: { madstrong: 0.6 } }, pr: { invHp: 0.03 } },
-    hungrycore: { name: '굶주린 본체', tier: 2, asp: 'hunger', cat: '본체', power: '본체 공격 +30%·흡수', price: '침입자 체력 +10%', more: '본체의 공격이 오르고, 적이 죽을 때마다 본체가 체력의 4%를 되찾는다.', pw: { coreAtk: 0.3, bo: { corefeed: 0.04 } }, pr: { invHp: 0.1 } },
+    hungrycore: { name: '굶주린 본체', tier: 2, asp: 'hunger', cat: '본체', power: '본체 공격 +25%·흡수', price: '침입자 체력 +10%', more: '본체의 공격이 오르고, 적이 죽을 때마다 본체가 체력의 3%를 되찾는다.', pw: { coreAtk: 0.25, bo: { corefeed: 0.03 } }, pr: { invHp: 0.1 } },
     wallhears: { name: '벽이 듣는다', tier: 2, asp: 'nebula', cat: '방', power: '방 타일 2', price: '읽는 방 +1', more: '방 타일 둘을 곧바로 얻는다. 책을 쫓는 자는 읽을 때마다 방 하나를 더 지운다.', pw: { now: { room: 2 } }, pr: { bo: { readPlus: 1 } } },
     secondheart: { name: '두 번째 심장', tier: 3, asp: 'abyss', cat: '시너지', power: '심연 +2', price: '무리마다 성기사 1', more: '심연 권속을 둘 더 가진 것으로 센다. 성기사가 무리마다 하나씩 온다.', pw: { syn: { abyss: 2 } }, pr: { extra: ['paladin'] } },
     opensky: { name: '열린 하늘', tier: 3, asp: 'nebula', cat: '시너지', power: '성운 +2 · 주사위 −1', price: '무리마다 구마사 1', more: '성운 권속을 둘 더 가진 것으로 센다. 침입자는 공포 판정에서 주사위를 하나 덜 굴린다. 구마사가 무리마다 하나씩 온다.', pw: { syn: { nebula: 2 }, bo: { dieless: 1 } }, pr: { extra: ['exorcist'] } },
     endlessbrood: { name: '끝없는 산란', tier: 3, asp: 'brood', cat: '시너지', power: '번식 +2·불린 것 +40%', price: '무리마다 마법사 1', more: '번식 권속을 둘 더 가진 것으로 센다. 불려 나온 것들의 체력과 공격이 40% 오른다. 불을 다루는 자가 무리마다 하나씩 온다.', pw: { syn: { brood: 2 }, bo: { spawnplus: 0.4 } }, pr: { extra: ['mage'] } },
     allsing: { name: '모두가 합창한다', tier: 3, asp: 'dusk', cat: '시너지', power: '황혼 +2 · 광인 고정', price: '침입자 체력 +6%', more: '황혼 권속을 둘 더 가진 것으로 센다. 미친 적은 다시 제정신으로 돌아가지 못한다.', pw: { syn: { dusk: 2 }, bo: { keepMad: 1 } }, pr: { invHp: 0.06 } },
-    bottomless: { name: '바닥 없는 배', tier: 3, asp: 'hunger', cat: '시너지', power: '기아 +2·평타 흡수 15%', price: '침입자 공격 +10%', more: '기아 권속을 둘 더 가진 것으로 센다. 권속이 평타로 준 피해의 15%만큼 체력을 되찾는다.', pw: { syn: { hunger: 2 }, bo: { vamp: 0.15 } }, pr: { invAtk: 0.1 } },
+    bottomless: { name: '바닥 없는 배', tier: 3, asp: 'hunger', cat: '시너지', power: '기아 +2·평타 흡수 12%', price: '침입자 공격 +10%', more: '기아 권속을 둘 더 가진 것으로 센다. 권속이 평타로 준 피해의 12%만큼 체력을 되찾는다.', pw: { syn: { hunger: 2 }, bo: { vamp: 0.12 } }, pr: { invAtk: 0.1 } },
     deepening: { name: '끝없이 넓어지는 굴', tier: 3, asp: 'abyss', cat: '살림', power: '세우는 수 +2', price: '침입자 체력·공격 +8%', more: '둥지에 권속 둘을 더 세운다.', pw: { cap: 2 }, pr: { invHp: 0.08, invAtk: 0.08 } },
     sleeperbreath: { name: '잠든 이의 숨', tier: 3, asp: 'nebula', cat: '싸움', power: '마나 80%로 시작·+10%', price: '심문관 1 · 공격 +5%', more: '권속은 마나를 80% 채운 채 싸움을 시작하고, 마나가 10% 빨리 찬다. 입을 막는 심문관이 무리마다 하나씩 오고, 침입자의 공격이 5% 오른다.', pw: { bo: { firstfree: 0.8, manaFast: 0.1 } }, pr: { extra: ['inquis'], invAtk: 0.05 } },
     undying: { name: '죽지 않는 것들', tier: 3, asp: 'brood', cat: '싸움', power: '모든 권속 죽음 1번 버팀', price: '침입자 공격 +15%', more: '권속은 저마다 싸움에서 한 번, 쓰러질 때 체력 50%로 버틴다.', pw: { bo: { laststand: 99 } }, pr: { invAtk: 0.15 } },
@@ -658,84 +658,84 @@ const LAIR = (function () {
   const ENC = {
     pilgrim: { title: '문 앞의 순례자', text: '길을 잃은 순례자 하나가 굴 어귀에 무릎을 꿇고 있었다. 그는 제가 찾던 성소에 닿았다고 믿는 듯하였다. 기도는 낮고 길었으며, 안쪽의 어둠은 그것을 끝까지 들었다.', ch: [
       { id: 'eat', label: '삼킨다', stat: 'hunger', need: 1, ok: ['기도는 중간에서 끊겼다.', { gold: 6 }], no: ['그는 달아났고, 마을은 굴의 자리를 알게 되었다.', { curse: 'watched' }] },
-      { id: 'whisper', label: '속삭인다', stat: 'whisper', need: 2, ok: ['그는 일어나 안으로 걸어 들어왔다. 다시 나가지 않았다.', { cult: 1 }], no: ['그는 귀를 막고 산을 내려갔다.', { fear: 1 }] },
-      { id: 'leave', label: '둔다', ok: ['그는 해가 질 때까지 기도하다가 돌아갔다.', { xp: 2 }] }] },
+      { id: 'whisper', label: '속삭인다', stat: 'whisper', need: 2, ok: ['그는 일어나 안으로 걸어 들어왔다. 다시 나가지 않았다.', { cult: 1, omen: 3, xp: 4 }], no: ['그는 귀를 막고 산을 내려갔다.', { fear: 2 }] },
+      { id: 'leave', label: '둔다', ok: ['그는 해가 질 때까지 기도하다가 돌아갔다.', { xp: 4 }] }] },
     deserter: { title: '탈영병의 지도', text: '갑옷을 반쯤 벗어 던진 병사가 굴 앞에 지도 한 장을 내려놓았다. 토벌대가 올 길이 붉은 먹으로 그어져 있었다. 그는 값으로 제 목숨만을 청하였다.', ch: [
-      { id: 'take', label: '받는다', stat: 'menace', need: 1, ok: ['지도는 틀리지 않았다. 오는 자들의 걸음을 미리 알았다.', { omen: 2 }], no: ['지도는 미끼였다.', { curse: 'watched' }] },
-      { id: 'eat', label: '삼킨다', stat: 'hunger', need: 1, ok: ['그가 청한 값은 치러지지 않았다.', { gold: 5 }], no: ['그는 칼을 버리지 않았었다.', { life: -1 }] },
-      { id: 'leave', label: '돌려보낸다', ok: ['그는 굴에서 본 것을 누구에게도 말하지 않았다.', { fear: -1 }] }] },
+      { id: 'take', label: '받는다', stat: 'menace', need: 1, ok: ['지도는 틀리지 않았다. 오는 자들의 걸음을 미리 알았다.', { omen: 2, gold: 3 }], no: ['지도는 미끼였다.', { curse: 'watched' }] },
+      { id: 'eat', label: '삼킨다', stat: 'hunger', need: 1, ok: ['그가 청한 값은 치러지지 않았다.', { gold: 6 }], no: ['그는 칼을 버리지 않았었다.', { life: -1 }] },
+      { id: 'leave', label: '돌려보낸다', ok: ['그는 굴에서 본 것을 누구에게도 말하지 않았다.', { fear: -2, xp: 2 }] }] },
     dreamchild: { title: '물을 꿈꾸는 아이', text: '마을의 아이 하나가 밤마다 같은 꿈을 꾸었다. 꿈속에서 아이는 검은 물가에 서 있었고, 물은 아이의 이름을 알고 있었다. 그날 밤 아이는 잠든 채로 굴 어귀까지 걸어왔다.', ch: [
-      { id: 'deepen', label: '꿈을 깊게 한다', stat: 'whisper', need: 2, ok: ['아이가 본 물이 굴 바닥에 고였다.', { room: 1 }], no: ['아이는 비명을 지르며 깨어났다. 마을의 창마다 불이 켜졌다.', { fear: 2 }] },
-      { id: 'eat', label: '삼킨다', stat: 'hunger', need: 1, ok: ['아이는 돌아가지 않았다.', { gold: 4, fear: 1 }], no: ['아이를 찾는 횃불이 산을 메웠다.', { curse: 'watched' }] },
-      { id: 'leave', label: '돌려보낸다', ok: ['아이는 제 침상에서 깨어났고, 발이 젖어 있었다.', { xp: 2 }] }] },
+      { id: 'deepen', label: '꿈을 깊게 한다', stat: 'whisper', need: 2, ok: ['아이가 본 물이 굴 바닥에 고였다.', { room: 1, xp: 6 }], no: ['아이는 비명을 지르며 깨어났다. 마을의 창마다 불이 켜졌다.', { fear: 2 }] },
+      { id: 'eat', label: '삼킨다', stat: 'hunger', need: 1, ok: ['아이는 돌아가지 않았다.', { gold: 7, fear: 1 }], no: ['아이를 찾는 횃불이 산을 메웠다.', { curse: 'watched' }] },
+      { id: 'leave', label: '돌려보낸다', ok: ['아이는 제 침상에서 깨어났고, 발이 젖어 있었다.', { xp: 4 }] }] },
     envoy: { title: '다른 굴의 사절', text: '두건을 쓴 사절이 다른 굴의 이름으로 찾아왔다. 그는 제 주인이 더 오래되었다고 말하였고, 조공을 요구하였다. 그의 그림자는 그보다 한 박자 늦게 움직였다.', ch: [
-      { id: 'cow', label: '위압한다', stat: 'menace', need: 2, ok: ['사절은 가져온 것을 두고 물러갔다.', { gold: 10 }], no: ['사절은 웃지 않고 제 몫을 거두어 갔다.', { gold: -5 }] },
-      { id: 'eat', label: '삼킨다', stat: 'hunger', need: 2, ok: ['두건 아래에 있던 것은 굴의 것이 되었다.', { unit: [2, 2] }], no: ['삼킨 것은 목에 걸려 오래 내려가지 않았다.', { curse: 'sealed' }] },
-      { id: 'pay', label: '조공을 낸다', cost: 4, ok: ['사절은 값을 세고 돌아갔다. 한동안 길이 조용하였다.', { fear: -1 }] }] },
+      { id: 'cow', label: '위압한다', stat: 'menace', need: 2, ok: ['사절은 가져온 것을 두고 물러갔다.', { gold: 14 }], no: ['사절은 웃지 않고 제 몫을 거두어 갔다.', { gold: -4 }] },
+      { id: 'eat', label: '삼킨다', stat: 'hunger', need: 2, ok: ['두건 아래에 있던 것은 굴의 것이 되었다.', { unit: [3, 2], gold: 4 }], no: ['삼킨 것은 목에 걸려 오래 내려가지 않았다.', { curse: 'sealed' }] },
+      { id: 'pay', label: '조공을 낸다', cost: 3, ok: ['사절은 값을 세고 돌아갔다. 한동안 길이 조용하였다.', { fear: -2, omen: 2 }] }] },
     scholar: { title: '탁본을 뜨는 학자', text: '늙은 학자가 굴 벽의 무늬에 종이를 대고 숯을 문지르고 있었다. 그는 무늬가 글자라는 것을 알아보았다. 그것이 읽는 쪽을 읽는다는 것은 알지 못하였다.', ch: [
-      { id: 'let', label: '읽게 둔다', stat: 'whisper', need: 1, ok: ['그는 사흘 뒤에 돌아와, 제가 읽은 것을 벽에 보태었다.', { xp: 5 }], no: ['그는 종이를 불태우고 교단에 편지를 썼다.', { fear: 1 }] },
-      { id: 'eat', label: '삼킨다', stat: 'hunger', need: 1, ok: ['숯과 종이만이 어귀에 남았다.', { gold: 5 }], no: ['그의 제자들이 스승을 찾으러 왔다.', { life: -1 }] }] },
+      { id: 'let', label: '읽게 둔다', stat: 'whisper', need: 1, ok: ['그는 사흘 뒤에 돌아와, 제가 읽은 것을 벽에 보태었다.', { xp: 7 }], no: ['그는 종이를 불태우고 교단에 편지를 썼다.', { fear: 1 }] },
+      { id: 'eat', label: '삼킨다', stat: 'hunger', need: 1, ok: ['숯과 종이만이 어귀에 남았다.', { gold: 7 }], no: ['그의 제자들이 스승을 찾으러 왔다.', { life: -1 }] }] },
     midwife: { title: '산파의 등불', text: '산파 하나가 등불을 들고 굴 안쪽의 울음소리를 따라 들어왔다. 그녀는 그것이 갓난것의 울음이라고 믿었다. 알들은 불빛 쪽으로 천천히 돌아누웠다.', ch: [
-      { id: 'egg', label: '알을 맡긴다', stat: 'brood', need: 2, ok: ['알 하나가 그녀의 손에서 일찍 깨었다.', { unit: [1, 2] }], no: ['그녀는 등불을 떨어뜨렸고, 알자리 한쪽이 탔다.', { curse: 'hungry' }] },
-      { id: 'leave', label: '돌려보낸다', ok: ['그녀는 빈손으로 돌아갔고, 그 뒤로 아이를 받지 않았다.', { xp: 2 }] }] },
+      { id: 'egg', label: '알을 맡긴다', stat: 'brood', need: 2, ok: ['알 하나가 그녀의 손에서 일찍 깨었다.', { unit: [2, 2], zeal: 2, gold: 3 }], no: ['그녀는 등불을 떨어뜨렸고, 알자리 한쪽이 탔다.', { curse: 'hungry' }] },
+      { id: 'leave', label: '돌려보낸다', ok: ['그녀는 빈손으로 돌아갔고, 그 뒤로 아이를 받지 않았다.', { xp: 4 }] }] },
     tollman: { title: '통행세를 걷는 자', text: '고갯길의 세리가 굴 앞을 제 길목으로 삼았다. 그는 드나드는 것마다 값을 매겼고, 굴에서 나오는 것에도 값을 매기려 하였다.', ch: [
       { id: 'cow', label: '위압한다', stat: 'menace', need: 1, ok: ['그는 걷은 것을 모두 두고 달아났다.', { gold: 7 }], no: ['그는 병사들을 데리고 돌아와 제 몫을 받아 갔다.', { gold: -3 }] },
-      { id: 'eat', label: '삼킨다', stat: 'hunger', need: 1, ok: ['길목은 다시 비었다.', { gold: 5, fear: 1 }], no: ['세리의 장부가 관청에 닿았다.', { curse: 'watched' }] }] },
+      { id: 'eat', label: '삼킨다', stat: 'hunger', need: 1, ok: ['길목은 다시 비었다.', { gold: 6, xp: 3, fear: 1 }], no: ['세리의 장부가 관청에 닿았다.', { curse: 'watched' }] }] },
     bellringer: { title: '종을 치는 사내', text: '마을의 종지기가 밤마다 굴 쪽을 향해 종을 쳤다. 종소리는 무엇인가를 쫓으려는 것이었다. 안쪽의 것들은 그것을 부름으로 들었다.', ch: [
-      { id: 'bell', label: '종을 가져온다', stat: 'menace', need: 2, ok: ['종은 굴 안에 걸렸고, 치는 이 없이 울었다.', { room: 1 }], no: ['종루에 불이 올랐고, 온 골짜기가 그것을 보았다.', { fear: 2 }] },
-      { id: 'answer', label: '답한다', stat: 'whisper', need: 2, ok: ['종지기는 줄을 놓고 소리가 난 쪽으로 걸어왔다.', { cult: 1 }], no: ['답은 너무 컸다. 본체의 목이 쉬었다.', { curse: 'sealed' }] },
-      { id: 'leave', label: '둔다', ok: ['종은 새벽까지 울렸다.', { xp: 2 }] }] },
+      { id: 'bell', label: '종을 가져온다', stat: 'menace', need: 2, ok: ['종은 굴 안에 걸렸고, 치는 이 없이 울었다.', { room: 1, gold: 6 }], no: ['종루에 불이 올랐고, 온 골짜기가 그것을 보았다.', { fear: 2 }] },
+      { id: 'answer', label: '답한다', stat: 'whisper', need: 2, ok: ['종지기는 줄을 놓고 소리가 난 쪽으로 걸어왔다.', { cult: 1, omen: 3, xp: 4 }], no: ['답은 너무 컸다. 본체의 목이 쉬었다.', { curse: 'sealed' }] },
+      { id: 'leave', label: '둔다', ok: ['종은 새벽까지 울렸다.', { xp: 4 }] }] },
     shepherd: { title: '양을 잃은 목동', text: '목동이 잃은 양을 찾아 굴 어귀까지 내려왔다. 양은 이미 안쪽에 있었고, 더는 양이 아니었다.', ch: [
-      { id: 'return', label: '양을 돌려준다', stat: 'brood', need: 1, ok: ['돌아간 양은 우리 안의 다른 것들을 바꾸어 놓았다.', { gold: 4, fear: 1 }], no: ['목동은 돌아온 것을 알아보고 불에 태웠다.', { curse: 'hungry' }] },
-      { id: 'eat', label: '목동도 들인다', stat: 'hunger', need: 2, ok: ['지팡이만이 어귀에 남았다.', { unit: [2, 1], gold: 3 }], no: ['목동의 개가 먼저 물었다.', { life: -1 }] }] },
+      { id: 'return', label: '양을 돌려준다', stat: 'brood', need: 1, ok: ['돌아간 양은 우리 안의 다른 것들을 바꾸어 놓았다.', { gold: 7, fear: 1 }], no: ['목동은 돌아온 것을 알아보고 불에 태웠다.', { curse: 'hungry' }] },
+      { id: 'eat', label: '목동도 들인다', stat: 'hunger', need: 2, ok: ['지팡이만이 어귀에 남았다.', { unit: [3, 2], gold: 3 }], no: ['목동의 개가 먼저 물었다.', { life: -1 }] }] },
     relic: { title: '성물을 든 수사', text: '젊은 수사가 뼈 한 조각이 든 함을 품에 안고 굴 앞에 섰다. 그는 그것이 어둠을 물리친다고 배웠다. 함 속의 뼈는 굴 쪽으로 기울었다.', ch: [
-      { id: 'seize', label: '빼앗는다', stat: 'menace', need: 2, ok: ['뼈는 제자리를 찾은 듯 굴 벽에 박혔다.', { room: 1, gold: 3 }], no: ['함이 열리며 본체의 목이 탔다.', { curse: 'sealed' }] },
-      { id: 'whisper', label: '속삭인다', stat: 'whisper', need: 2, ok: ['수사는 수도원으로 돌아가 형제들에게 밤마다 같은 말을 하였다.', { omen: 3 }], no: ['그는 성가를 부르며 뒷걸음질하였다.', { fear: 1 }] }] },
+      { id: 'seize', label: '빼앗는다', stat: 'menace', need: 2, ok: ['뼈는 제자리를 찾은 듯 굴 벽에 박혔다.', { room: 1, gold: 6 }], no: ['함이 열리며 본체의 목이 탔다.', { curse: 'sealed' }] },
+      { id: 'whisper', label: '속삭인다', stat: 'whisper', need: 2, ok: ['수사는 수도원으로 돌아가 형제들에게 밤마다 같은 말을 하였다.', { omen: 5, xp: 4 }], no: ['그는 성가를 부르며 뒷걸음질하였다.', { fear: 1 }] }] },
     flood: { title: '차오르는 물', text: '비가 사흘을 내려 굴 아래쪽에 물이 찼다. 물은 빠지지 않았고, 밤이면 수면 아래에서 무엇인가 숨을 쉬었다.', ch: [
-      { id: 'welcome', label: '물을 들인다', stat: 'brood', need: 2, ok: ['물과 함께 온 것이 권속의 자리에 앉았다.', { unit: [2, 2] }], no: ['물은 알자리까지 올라왔다.', { curse: 'hungry' }] },
+      { id: 'welcome', label: '물을 들인다', stat: 'brood', need: 2, ok: ['물과 함께 온 것이 권속의 자리에 앉았다.', { unit: [3, 2], xp: 6 }], no: ['물은 알자리까지 올라왔다.', { curse: 'hungry' }] },
       { id: 'dig', label: '물길을 판다', stat: 'menace', need: 1, ok: ['물은 굴이 정한 자리에 고였다.', { room: 1 }], no: ['물길은 무너졌고, 고쳐 파는 데 진액이 들었다.', { gold: -3 }] }] },
     merchant: { title: '밤에 온 상인', text: '상인 하나가 달이 없는 밤에 수레를 끌고 왔다. 그는 무엇을 파는지 말하지 않았고, 무엇을 받는지도 말하지 않았다. 수레의 덮개 아래에서 무엇인가 긁는 소리가 났다.', ch: [
-      { id: 'buy', label: '값을 치른다', cost: 6, ok: ['덮개 아래에 있던 것이 굴로 기어 들어왔다.', { unit: [3, 1] }] },
-      { id: 'tip', label: '수레를 뒤집는다', stat: 'menace', need: 2, ok: ['상인은 수레를 버리고 갔다.', { unit: [3, 1], gold: 4 }], no: ['수레에서 나온 것은 굴의 편이 아니었다.', { life: -1 }] },
-      { id: 'leave', label: '보낸다', ok: ['수레는 날이 밝기 전에 고개를 넘었다.', { xp: 1 }] }] },
+      { id: 'buy', label: '값을 치른다', cost: 6, ok: ['덮개 아래에 있던 것이 굴로 기어 들어왔다.', { unit: [3, 2] }] },
+      { id: 'tip', label: '수레를 뒤집는다', stat: 'menace', need: 2, ok: ['상인은 수레를 버리고 갔다.', { unit: [3, 2], gold: 5 }], no: ['수레에서 나온 것은 굴의 편이 아니었다.', { life: -1 }] },
+      { id: 'leave', label: '보낸다', ok: ['수레는 날이 밝기 전에 고개를 넘었다.', { xp: 3 }] }] },
     twins: { title: '쌍둥이의 내기', text: '쌍둥이 형제가 누가 더 깊이 들어가는지를 두고 내기를 하였다. 한 사람은 횃불을 들었고 한 사람은 들지 않았다.', ch: [
-      { id: 'eat', label: '하나만 삼킨다', stat: 'hunger', need: 1, ok: ['남은 하나는 내기에 이겼다고 말하고 다녔다.', { gold: 4, fear: 1 }], no: ['둘은 함께 달아나 함께 떠들었다.', { curse: 'watched' }] },
-      { id: 'whisper', label: '둘 다 속인다', stat: 'whisper', need: 3, ok: ['둘은 서로를 형이라 부르며 굴의 문을 지켰다.', { cult: 1, zeal: 1 }], no: ['한 사람이 다른 사람을 끌고 나갔다.', { fear: 2 }] }] },
+      { id: 'eat', label: '하나만 삼킨다', stat: 'hunger', need: 1, ok: ['남은 하나는 내기에 이겼다고 말하고 다녔다.', { gold: 7, fear: 1 }], no: ['둘은 함께 달아나 함께 떠들었다.', { curse: 'watched' }] },
+      { id: 'whisper', label: '둘 다 속인다', stat: 'whisper', need: 3, ok: ['둘은 서로를 형이라 부르며 굴의 문을 지켰다.', { cult: 2, zeal: 2, omen: 3, xp: 5 }], no: ['한 사람이 다른 사람을 끌고 나갔다.', { fear: 2 }] }] },
     gravedigger: { title: '무덤 파는 이', text: '무덤 파는 이가 굴 가까이에 새 구덩이를 팠다. 그는 묻을 것을 가져오지 않았다. 그는 구덩이 곁에 앉아 기다렸다.', ch: [
       { id: 'fill', label: '채워 준다', stat: 'brood', need: 1, ok: ['그는 값을 치르고 흙을 덮었다.', { gold: 6 }], no: ['그는 구덩이 속을 들여다보고는 삽을 두고 갔다.', { fear: 1 }] },
-      { id: 'bury', label: '그를 묻는다', stat: 'hunger', need: 2, ok: ['구덩이는 딱 맞았다.', { xp: 6 }], no: ['그는 삽을 쓸 줄 알았다.', { life: -1 }] }] },
+      { id: 'bury', label: '그를 묻는다', stat: 'hunger', need: 2, ok: ['구덩이는 딱 맞았다.', { xp: 10, gold: 4 }], no: ['그는 삽을 쓸 줄 알았다.', { life: -1 }] }] },
     choirboy: { title: '성가대의 아이', text: '성가대에서 쫓겨난 아이가 굴 앞에서 혼자 노래하였다. 음은 맞지 않았다. 안쪽에서 누군가 낮은 음을 받쳐 주었다.', ch: [
-      { id: 'sing', label: '함께 부른다', stat: 'whisper', need: 1, ok: ['아이는 그 노래를 마을에 가져갔다.', { omen: 2 }], no: ['아이의 목소리가 갈라졌고, 사제가 그 까닭을 물었다.', { fear: 1 }] },
-      { id: 'adopt', label: '들인다', stat: 'brood', need: 2, ok: ['아이는 굴에서 음을 맞추는 법을 배웠다.', { cult: 1 }], no: ['아이의 노래가 본체의 목에 걸렸다.', { curse: 'sealed' }] }] },
+      { id: 'sing', label: '함께 부른다', stat: 'whisper', need: 1, ok: ['아이는 그 노래를 마을에 가져갔다.', { omen: 3, gold: 3 }], no: ['아이의 목소리가 갈라졌고, 사제가 그 까닭을 물었다.', { fear: 1 }] },
+      { id: 'adopt', label: '들인다', stat: 'brood', need: 2, ok: ['아이는 굴에서 음을 맞추는 법을 배웠다.', { cult: 1, xp: 5, gold: 3 }], no: ['아이의 노래가 본체의 목에 걸렸다.', { curse: 'sealed' }] }] },
     hounddog: { title: '돌아오지 않는 개', text: '사냥꾼의 개가 굴 앞에서 짖다가 그쳤다. 개는 꼬리를 내리고 안으로 들어갔고, 사냥꾼은 밖에서 이름을 불렀다.', ch: [
-      { id: 'return', label: '개를 돌려보낸다', stat: 'whisper', need: 2, ok: ['돌아간 개는 밤마다 주인의 침상 곁에서 굴 쪽을 보았다.', { omen: 2, fear: 1 }], no: ['사냥꾼은 개의 눈을 보고 활을 들었다.', { curse: 'watched' }] },
-      { id: 'feed', label: '개를 먹인다', stat: 'hunger', need: 1, ok: ['개였던 것이 권속 사이에 누웠다.', { unit: [1, 2] }], no: ['개는 먹이만 물고 달아났다.', { gold: -2 }] }] },
+      { id: 'return', label: '개를 돌려보낸다', stat: 'whisper', need: 2, ok: ['돌아간 개는 밤마다 주인의 침상 곁에서 굴 쪽을 보았다.', { omen: 4, xp: 6, fear: 1 }], no: ['사냥꾼은 개의 눈을 보고 활을 들었다.', { curse: 'watched' }] },
+      { id: 'feed', label: '개를 먹인다', stat: 'hunger', need: 1, ok: ['개였던 것이 권속 사이에 누웠다.', { unit: [2, 2] }], no: ['개는 먹이만 물고 달아났다.', { gold: -2 }] }] },
     census: { title: '머릿수를 세는 관리', text: '관리가 장부를 들고 골짜기의 머릿수를 세러 왔다. 그는 굴 앞에서 붓을 멈추었다. 장부에는 이미 한 줄이 더 적혀 있었다.', ch: [
-      { id: 'amend', label: '장부를 고친다', stat: 'whisper', need: 2, ok: ['골짜기는 장부에서 지워졌고, 한동안 잊혔다.', { fear: -2 }], no: ['고친 자리가 번져 더 눈에 띄었다.', { curse: 'watched' }] },
+      { id: 'amend', label: '장부를 고친다', stat: 'whisper', need: 2, ok: ['골짜기는 장부에서 지워졌고, 한동안 잊혔다.', { fear: -3, gold: 8 }], no: ['고친 자리가 번져 더 눈에 띄었다.', { curse: 'watched' }] },
       { id: 'eat', label: '삼킨다', stat: 'hunger', need: 1, ok: ['장부는 굴 안에서 마지막 줄까지 채워졌다.', { gold: 6 }], no: ['관리를 찾는 이들이 장부의 마지막 쪽을 읽었다.', { fear: 2 }] }] },
     smith: { title: '대장장이의 못', text: '대장장이가 굴 어귀에 쇠못을 박아 문을 달려 하였다. 못은 돌에 들어가지 않고 휘었다. 그는 그것을 제 솜씨의 탓으로 여겼다.', ch: [
       { id: 'door', label: '문을 달게 둔다', stat: 'menace', need: 1, ok: ['문은 안쪽에서만 열렸다.', { room: 1 }], no: ['문은 밖에서 잠겼고, 권속 몇이 며칠을 굶었다.', { curse: 'hungry' }] },
-      { id: 'chase', label: '쫓는다', stat: 'menace', need: 2, ok: ['그는 연장을 두고 달아났다.', { gold: 8 }], no: ['그는 달아나며 본 것을 대장간에서 떠들었다.', { fear: 1 }] }] },
+      { id: 'chase', label: '쫓는다', stat: 'menace', need: 2, ok: ['그는 연장을 두고 달아났다.', { gold: 14 }], no: ['그는 달아나며 본 것을 대장간에서 떠들었다.', { fear: 1 }] }] },
     plague: { title: '역병 든 수레', text: '역병으로 죽은 이들을 실은 수레가 고갯길에 버려져 있었다. 끌던 말은 달아났고, 까마귀도 내려앉지 않았다.', ch: [
-      { id: 'gather', label: '거두어 들인다', stat: 'brood', need: 2, ok: ['수레에 누웠던 것들이 굴 앞에서 일어섰다.', { zeal: 2, gold: 4 }], no: ['병은 굴 안을 가리지 않았다.', { curse: 'hungry' }] },
-      { id: 'eat', label: '먹는다', stat: 'hunger', need: 2, ok: ['수레는 비었고, 굴은 넓어졌다.', { xp: 6, gold: 3 }], no: ['먹은 것이 본체 안에서 오래 썩었다.', { life: -1 }] },
-      { id: 'leave', label: '둔다', ok: ['수레는 첫눈이 올 때까지 그 자리에 있었다.', {}] }] },
+      { id: 'gather', label: '거두어 들인다', stat: 'brood', need: 2, ok: ['수레에 누웠던 것들이 굴 앞에서 일어섰다.', { cult: 1, zeal: 2, gold: 4 }], no: ['병은 굴 안을 가리지 않았다.', { curse: 'hungry' }] },
+      { id: 'eat', label: '먹는다', stat: 'hunger', need: 2, ok: ['수레는 비었고, 굴은 넓어졌다.', { xp: 8, gold: 5 }], no: ['먹은 것이 본체 안에서 오래 썩었다.', { life: -1 }] },
+      { id: 'leave', label: '둔다', ok: ['수레는 첫눈이 올 때까지 그 자리에 있었다.', { fear: -1, xp: 3 }] }] },
     astronomer: { title: '별을 재는 이', text: '천문을 보는 이가 언덕에 관측대를 세웠다. 그는 별 하나가 제자리에 있지 않다고 적었다. 그 별은 굴의 천장에 있었다.', ch: [
-      { id: 'show', label: '보여 준다', stat: 'whisper', need: 2, ok: ['그는 관측대를 버리고 별이 있는 쪽으로 내려왔다.', { unit: [3, 1] }], no: ['그는 본 것을 그려 교단에 보냈다.', { fear: 2 }] },
-      { id: 'topple', label: '관측대를 무너뜨린다', stat: 'menace', need: 1, ok: ['놋쇠와 유리는 진액으로 녹았다.', { gold: 5 }], no: ['무너지는 소리가 아랫마을까지 내려갔다.', { curse: 'watched' }] }] },
+      { id: 'show', label: '보여 준다', stat: 'whisper', need: 2, ok: ['그는 관측대를 버리고 별이 있는 쪽으로 내려왔다.', { unit: [3, 2], omen: 2 }], no: ['그는 본 것을 그려 교단에 보냈다.', { fear: 2 }] },
+      { id: 'topple', label: '관측대를 무너뜨린다', stat: 'menace', need: 1, ok: ['놋쇠와 유리는 진액으로 녹았다.', { gold: 7 }], no: ['무너지는 소리가 아랫마을까지 내려갔다.', { curse: 'watched' }] }] },
     wedding: { title: '혼례 행렬', text: '혼례 행렬이 길을 잘못 들어 굴 앞을 지났다. 악사들은 연주를 멈추지 않았고, 신부는 면사포 너머로 굴 안을 오래 보았다.', ch: [
-      { id: 'invite', label: '안으로 부른다', stat: 'whisper', need: 3, ok: ['잔치는 굴 안에서 이어졌고, 끝나지 않았다.', { cult: 2 }], no: ['신랑이 신부의 손을 끌었다. 행렬은 마을마다 그 일을 말하였다.', { fear: 2, curse: 'watched' }] },
-      { id: 'steal', label: '잔칫상을 가로챈다', stat: 'hunger', need: 1, ok: ['행렬은 빈 수레를 끌고 갔다.', { gold: 5 }], no: ['수레에는 지키는 이가 있었다.', { gold: -2 }] },
-      { id: 'leave', label: '보낸다', ok: ['행렬은 고개를 넘었다. 신부는 한 번 돌아보았다.', { xp: 2 }] }] },
+      { id: 'invite', label: '안으로 부른다', stat: 'whisper', need: 3, ok: ['잔치는 굴 안에서 이어졌고, 끝나지 않았다.', { cult: 3, gold: 10 }], no: ['신랑이 신부의 손을 끌었다. 행렬은 마을마다 그 일을 말하였다.', { fear: 2, gold: -3 }] },
+      { id: 'steal', label: '잔칫상을 가로챈다', stat: 'hunger', need: 1, ok: ['행렬은 빈 수레를 끌고 갔다.', { gold: 6 }], no: ['수레에는 지키는 이가 있었다.', { gold: -2 }] },
+      { id: 'leave', label: '보낸다', ok: ['행렬은 고개를 넘었다. 신부는 한 번 돌아보았다.', { xp: 4 }] }] },
     mirror: { title: '거울 파는 노파', text: '노파가 굴 앞에 거울을 늘어놓았다. 거울에는 굴 안의 것들이 비치지 않았고, 그 자리에 다른 것들이 서 있었다.', ch: [
-      { id: 'buy', label: '거울을 산다', cost: 5, ok: ['거울은 굴 어귀에 걸렸다. 들어오는 자들은 먼저 그것을 보았다.', { omen: 3 }] },
-      { id: 'break', label: '깨뜨린다', stat: 'menace', need: 2, ok: ['조각마다 다른 굴이 비쳤다. 노파는 값을 두고 갔다.', { gold: 6, xp: 3 }], no: ['깨진 것은 거울만이 아니었다.', { curse: 'sealed' }] }] },
+      { id: 'buy', label: '거울을 산다', cost: 5, ok: ['거울은 굴 어귀에 걸렸다. 들어오는 자들은 먼저 그것을 보았다.', { omen: 4, xp: 2 }] },
+      { id: 'break', label: '깨뜨린다', stat: 'menace', need: 2, ok: ['조각마다 다른 굴이 비쳤다. 노파는 값을 두고 갔다.', { gold: 10, xp: 5 }], no: ['깨진 것은 거울만이 아니었다.', { curse: 'sealed' }] }] },
     oathbreaker: { title: '맹세를 깬 기사', text: '문장을 긁어낸 기사가 칼을 땅에 꽂고 굴 앞에 섰다. 그는 섬길 것을 찾는다고 말하였다. 그의 눈은 오래 잠들지 못한 눈이었다.', ch: [
-      { id: 'accept', label: '받아들인다', stat: 'menace', need: 2, ok: ['그는 갑옷을 벗지 않은 채 권속이 되었다.', { unit: [3, 1], zeal: 1 }], no: ['그는 섬길 것이 아니라 벨 것을 찾고 있었다.', { life: -1 }] },
-      { id: 'test', label: '시험한다', stat: 'whisper', need: 2, ok: ['그는 물음마다 옳게 답하였고, 문 앞에 섰다.', { cult: 1 }], no: ['그는 셋째 물음에서 칼을 뽑아 들고 물러갔다.', { fear: 1 }] }] },
+      { id: 'accept', label: '받아들인다', stat: 'menace', need: 2, ok: ['그는 갑옷을 벗지 않은 채 권속이 되었다.', { unit: [3, 2], zeal: 2 }], no: ['그는 섬길 것이 아니라 벨 것을 찾고 있었다.', { life: -1 }] },
+      { id: 'test', label: '시험한다', stat: 'whisper', need: 2, ok: ['그는 물음마다 옳게 답하였고, 문 앞에 섰다.', { cult: 1, omen: 2, xp: 5 }], no: ['그는 셋째 물음에서 칼을 뽑아 들고 물러갔다.', { fear: 1 }] }] },
     well: { title: '마른 우물', text: '마을의 우물이 말랐다. 사람들은 두레박을 더 깊이 내렸고, 두레박은 굴의 천장을 두드렸다.', ch: [
-      { id: 'water', label: '물을 올려 보낸다', stat: 'brood', need: 1, ok: ['마을은 그 물을 마셨고 한동안 조용하였다.', { fear: -1, gold: 4 }], no: ['물맛을 본 이들이 우물을 메웠다.', { fear: 1 }] },
-      { id: 'pull', label: '두레박을 당긴다', stat: 'hunger', need: 2, ok: ['줄 끝에 매달려 온 것은 두레박만이 아니었다.', { unit: [2, 1], gold: 3 }], no: ['줄이 끊어졌고, 사람들은 우물 속을 등불로 비추었다.', { curse: 'watched' }] }] },
+      { id: 'water', label: '물을 올려 보낸다', stat: 'brood', need: 1, ok: ['마을은 그 물을 마셨고 한동안 조용하였다.', { fear: -1, gold: 6 }], no: ['물맛을 본 이들이 우물을 메웠다.', { fear: 1 }] },
+      { id: 'pull', label: '두레박을 당긴다', stat: 'hunger', need: 2, ok: ['줄 끝에 매달려 온 것은 두레박만이 아니었다.', { unit: [3, 2], gold: 4 }], no: ['줄이 끊어졌고, 사람들은 우물 속을 등불로 비추었다.', { curse: 'watched' }] }] },
   };
   const ENC_IDS = Object.keys(ENC);
   // ───────── 준비 ─────────
@@ -1011,12 +1011,13 @@ const LAIR = (function () {
   }
   function readyFull(R) {
     const F0 = K.full, M = modOf(R), f = simulate(setupOf(R)); R.fights++; const win = f.result === 'win', boss = R.rin >= F0.per, elite = !!(R.elite && R.alt), act = R.act, a = act - 1, more = M.lossMore || 0;
-    let lost = 0; if (!win) { lost = Math.min(F0.lossMax + more, F0.lossBase[a] + Math.ceil(f.survivors * F0.lossPer) + (boss ? F0.bossLoss : 0) + more); R.hp = Math.max(0, R.hp - lost); }
+    const el = elite ? F0.eliteLoss[a] : 0; let lost = 0; if (!win) { lost = Math.min(F0.lossMax + more + el, F0.lossBase[a] + Math.ceil(f.survivors * F0.lossPer) + (boss ? F0.bossLoss : 0) + more + el); R.hp = Math.max(0, R.hp - lost); }
     const e = econOf(R, win), gift = boss && win && act < F0.acts ? F0.bossGold[a] : 0, eb = elite && win ? F0.eliteBonus[a] : 0, income = e.total + f.gold + gift + eb; R.streak = win ? Math.max(1, R.streak + 1) : Math.min(-1, R.streak - 1);
     const w0 = R.world, df = addFear(R, win ? Math.min(2, 1 + (f.lostKin === 0 || f.converted >= 3 || f.eliteDown > 0 ? 1 : 0) + (f.madLeft > F0.zealMax ? 1 : 0)) : -1);
     castAfter(R, f, act); R.zealots = win ? Math.min(F0.zealMax, f.madLeft) : 0; R.curses = R.curses.map(c => ({ id: c.id, left: c.left - 1 })).filter(c => c.left > 0); if (R.omen > 0) R.omen--;
     R.hist.push({ round: R.round, act, rin: R.rin, name: curName(R), boss, elite, win, time: f.time, lost, converted: f.converted, gold: income, fear: R.fear, checks: f.checks });
-    const res = { fight: f, win, lost, income, econ: e, bossGold: gift, eliteBonus: eb, round: R.round, act, rin: R.rin, boss, elite, fear: { delta: df, now: R.fear, world: R.world, worldUp: R.world > w0 }, zealots: R.zealots, cast: f.cast };
+    const eh = elite && win ? Math.min(R.hpMax - R.hp, F0.eliteHeal[a]) : 0; R.hp += eh;
+    const res = { fight: f, win, lost, income, econ: e, bossGold: gift, eliteBonus: eb, eliteHeal: eh, round: R.round, act, rin: R.rin, boss, elite, fear: { delta: df, now: R.fear, world: R.world, worldUp: R.world > w0 }, zealots: R.zealots, cast: f.cast };
     if (R.hp <= 0) { R.phase = 'over'; R.over = { win: false, round: R.round, act, why: '본체가 무너졌다' }; res.next = 'over'; return ok(res); }
     if (boss && win && act >= F0.acts) { R.phase = 'over'; R.over = { win: true, round: R.round, act, why: '책을 쫓는 자가 쓰러졌다' }; res.next = 'over'; return ok(res); }
     R.gold += income; R.xp += F0.xpRound + (M.xpRound || 0); res.levelUp = levelUp(R); R.merges = []; R.freeRoll = !!M.freeRoll;
@@ -1086,7 +1087,7 @@ const LAIR = (function () {
     return Object.assign(V, { act: R.act, acts: F0.acts, actName: ACTS[R.act - 1].name, rin: R.rin, per: F0.per, boss: R.rin >= F0.per, retry: R.retry, preview: previewOf(curEnemy(R)), maxLv: F0.maxLv, xpRound: F0.xpRound + (M.xpRound || 0), freeRoll: !!R.freeRoll,
       streak: R.streak, econ: { base: ew.base, per: F0.interestPer, interest: ew.interest, interestMax: ew.interestMax, nextAt: ew.interest < ew.interestMax ? (ew.interest + 1) * F0.interestPer : null, ifWin: ew, ifLoss: el },
       odds: oddsOf(R.level + (M.shopUp || 0)), oddsTable: F0.odds, choice: choiceView(R), picks: R.picks,
-      elite: R.alt ? { on: !!R.elite, forced: !!M.eliteForce, name: R.alt.name, preview: previewOf(R.alt.units), reward: '진액 +' + F0.eliteBonus[R.act - 1] + ' 을 받고, 2성 권속 · 진액 ' + F0.eliteGold[R.act - 1] + ' · 방 가운데 하나', enemy: R.alt.units.map(ev) } : null,
+      elite: R.alt ? { on: !!R.elite, forced: !!M.eliteForce, name: R.alt.name, preview: previewOf(R.alt.units), reward: '진액 +' + F0.eliteBonus[R.act - 1] + ', 목숨 +' + F0.eliteHeal[R.act - 1] + ' 을 받고, 2성 권속 · 진액 ' + F0.eliteGold[R.act - 1] + ' · 방 가운데 하나. 지면 목숨을 ' + F0.eliteLoss[R.act - 1] + ' 더 잃는다', enemy: R.alt.units.map(ev) } : null,
       mythos: { phase: My.phase, next: My.phase < F0.mythosAt.length ? F0.mythosAt[My.phase] : null, tier: My.offer ? My.tier : 0, tierName: My.offer ? TIERN[My.tier] : '', offer: My.offer ? My.offer.map(cardInfo) : null, picked: My.picked.map(cardInfo), rerollLeft: My.rerollLeft },
       awaken: { step: R.awake, form: R.awake ? R.form : 'drop', fear: R.fear, max: F0.fearMax, next: nextFear, world: R.world, effects: F0.fearAt.map((at, i) => ({ at, world: WORLD[i], on: R.world > i })) },
       encounter: encounterView(R), stats: Object.keys(STAT).map(id => ({ id, name: STAT[id], dice: nestStat(R, id) })),

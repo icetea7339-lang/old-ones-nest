@@ -76,10 +76,12 @@ function playTaste(seed, name) {
   return { R, log };
 }
 // ───────── 온전한 판 ─────────
-//   decent 는 정예를 가려 받는다: 바로 앞 싸움을 권속 하나 이하만 잃고 본체가 거의 멀쩡한 채 이겼을 때만
+//   decent 는 정예를 가려 받는다: 다른 씨앗으로 정예 싸움을 두 번 미리 돌려 보아 둘 다 이기고, 목숨이 6 이상일 때만
 //   noecon: 이자도 레벨도 안 챙긴다 (들어오는 대로 다 쓴다). greedy: 진액 50 을 깔고 간다. noelite/allelite: 정예를 안 고른다/늘 고른다. goldpick/roompick: 라운드 사이에 진액/방을 먼저 고른다
 const FSTRAT = { decent: {}, random: { random: true }, abyss: { focus: 'abyss' }, nebula: { focus: 'nebula' }, brood: { focus: 'brood' }, dusk: { focus: 'dusk' }, hunger: { focus: 'hunger' },
-  noecon: { noecon: true, noxp: true }, greedy: { floor: 50 }, noelite: { elite: 'never' }, allelite: { elite: 'always' }, goldpick: { pick: 'gold' }, roompick: { pick: 'room' } };
+  noecon: { noecon: true, noxp: true }, greedy: { floor: 50 }, noelite: { elite: 'never' }, allelite: { elite: 'always' }, goldpick: { pick: 'gold' }, roompick: { pick: 'room' },
+  // 조우: encpick 늘 조우를 고른다, encskip 안 고른다, encsafe 판정 없는 갈래만, enctest 판정 있는 갈래만
+  encpick: { pick: 'encounter' }, encskip: { enc: 'skip' }, encsafe: { enc: 'safe' }, enctest: { enc: 'test' } };
 const SOFF = +(process.env.SOFF || 0);
 const LVT = [3, 3, 4, 4, 5, 5, 6, 6, 6, 7, 7, 7, 8, 8, 8], SV = [0, 1, 1.9, 3.6];
 const valOf = (R, u, st) => (1 + 0.8 * L.KIN[u.kind].cost) * SV[u.star] * (st.focus && L.KIN[u.kind].asp === st.focus ? 1.25 : 1);
@@ -154,7 +156,7 @@ function pickChoice(R, st, rng) {
   const v = L.view(R).choice, n = v.opts.length, at = t => v.opts.findIndex(o => o.type === t);
   if (st.random) { for (let k = 0; k < 12; k++) if (L.choose(R, Math.floor(rng() * n)).ok) return; }
   const few = R.rooms.length + R.roomOffer.length < 3;
-  const pref = v.kind === 'reward' ? (st.pick ? [st.pick] : []).concat(few ? ['room', 'encounter', 'gold'] : ['encounter', 'gold', 'room']) : ['unit', 'room', 'gold'];
+  const pref = v.kind === 'reward' ? (st.pick ? [st.pick] : []).concat(st.enc === 'skip' ? ['room', 'gold'] : few ? ['room', 'encounter', 'gold'] : ['encounter', 'gold', 'room']) : ['unit', 'room', 'gold'];
   pref.map(at).filter(i => i >= 0).concat([0, 1, 2]).some(i => L.choose(R, i).ok);
 }
 // 신화: 단계(tier)는 셋이 같으니, 성향이 맞는 쪽 + 조금의 흔들림으로 고른다 (흔들림이 있어야 카드마다 표가 모인다)
@@ -165,14 +167,39 @@ function pickMythos(R, st, rng) {
   let best = 0, bv = -1; offer.forEach((c, i) => { const x = val(c); if (x > bv) { bv = x; best = i; } }); L.mythosPick(R, best);
 }
 // 조우: 얻는 것의 어림값과 성공할 확률로 고른다. 실패하면 진액이 넉넉할 때 두 번까지 다시 굴린다
-const GV = g => (g.gold || 0) + 0.8 * (g.xp || 0) + 4 * (g.life || 0) + (g.unit ? 1.2 * g.unit[0] * Math.pow(3, g.unit[1] - 1) : 0) + 6 * (g.room || 0) - (g.curse ? 5 : 0) + 6 * (g.cult || 0) + 1.5 * (g.omen || 0) + 1.5 * (g.zeal || 0);
+// 얻는 것의 진액 환산 (어림): 경험 1, 목숨 4, 공포 −1, 권속 = 값 x 들어간 수, 방 6, 저주 −3~−6, 광신도(판 끝까지) 5, 징조·다음 싸움 광신도 1.5
+const CURSEV = { watched: 6, hungry: 5, sealed: 3, debt: 4 };
+const GV = g => (g.gold || 0) + (g.xp || 0) + 4 * (g.life || 0) - (g.fear || 0) + (g.unit ? g.unit[0] * Math.pow(3, g.unit[1] - 1) : 0) + 6 * (g.room || 0) - (g.curse ? CURSEV[g.curse] : 0) + 5 * (g.cult || 0) + 1.5 * (g.omen || 0) + 1.5 * (g.zeal || 0);
+// 조우의 득실 표: 갈래마다 주사위 2/3/4/5 일 때의 성공 확률 (다시 굴리기 없이) 과 진액 환산 기대값 (이득이면 세 번까지 다시 굴린다고 보고).
+// 표시: 늘정답 = 제 주사위가 2 여도 남의 5 보다 낫다, 버림 = 제 주사위가 5 여도 남의 2 보다 못하다, 손해 = 주사위 5 에서도 기대값이 음수
+function encEV(c, n) {
+  if (!c.stat) return GV(c.ok[1]) - (c.cost || 0);
+  const ok = GV(c.ok[1]), no = GV(c.no[1]), base = L.K.full.rerollBase, C = (a, b) => { let r = 1; for (let i = 0; i < b; i++) r = r * (a - i) / (i + 1); return r; }, P = (m, j) => C(m, j) * Math.pow(1 / 3, j) * Math.pow(2 / 3, m - j);
+  const V = (k, r) => { if (k >= c.need) return ok; let best = no; if (r < 3) { let x = -(base + r); for (let j = 0; j <= n - k; j++) x += P(n - k, j) * V(k + j, r + 1); best = Math.max(best, x); } return best; };
+  let e = 0; for (let k = 0; k <= n; k++) e += P(n, k) * V(k, 0); return e;
+}
+function encTable() {
+  const out = [], DN = [2, 3, 4, 5];
+  L.ENC_IDS.forEach(id => {
+    const d = L.ENC[id], ev = d.ch.map(c => DN.map(n => encEV(c, n)));
+    d.ch.forEach((c, i) => { const oth = d.ch.map((x, j) => j).filter(j => j !== i), flag = oth.every(j => ev[i][0] > ev[j][3] + 0.5) ? '늘정답' : oth.some(j => ev[j][0] >= ev[i][3] + 0.5) ? '버림' : ev[i][3] < 0 ? '손해' : '';
+      out.push({ id, title: d.title, label: c.label, test: c.stat ? L.STAT[c.stat] + ' ' + c.need : c.cost ? '진액 ' + c.cost : '-', p: c.stat ? DN.map(n => Math.round(100 * pOk(n, c.need))) : null, ok: GV(c.ok[1]) - (c.cost || 0), no: c.no ? GV(c.no[1]) : null, ev: ev[i].map(x => Math.round(x * 10) / 10), flag }); });
+  });
+  return out;
+}
 function pOk(n, need) { let p = 0; const C = (a, b) => { let r = 1; for (let i = 0; i < b; i++) r = r * (a - i) / (i + 1); return r; }; for (let k = need; k <= n; k++) p += C(n, k) * Math.pow(1 / 3, k) * Math.pow(2 / 3, n - k); return p; }
 function playEncounter(R, st, rng) {
   const v = L.view(R).encounter, d = L.ENC[v.id]; let best = v.choices[0].id, bv = -99;
-  v.choices.forEach((c, i) => { if (!c.can) return; const x = d.ch[i], p = c.test ? pOk(c.test.dice, c.test.need) : 1, ev = st.random ? rng() : p * GV(x.ok[1]) + (1 - p) * (x.no ? GV(x.no[1]) : 0) - c.cost; if (ev > bv) { bv = ev; best = c.id; } });
+  v.choices.forEach((c, i) => { if (!c.can) return; const x = d.ch[i], p = c.test ? pOk(c.test.dice, c.test.need) : 1, ev = st.random ? rng() : st.enc === 'safe' ? (c.test ? -50 + p : 0) : st.enc === 'test' ? (c.test ? p : -1) : encEV(x, c.test ? c.test.dice : 0); if (ev > bv) { bv = ev; best = c.id; } });
   let r = L.encounterChoose(R, best);
   for (let k = 0; k < 2 && r.ok && r.canReroll && !st.random && !st.noecon && R.gold >= r.rerollCost + 10; k++) r = L.encounterReroll(R);
   return L.encounterResolve(R);
+}
+// 정예를 받을 만한 판인가: 다른 씨앗으로 정예 싸움을 두 번 미리 돌려 보아 둘 다 이길 때만 (사람이 무리를 보고 가늠하는 것을 흉내 낸다. 실제 싸움의 씨앗은 쓰지 않는다)
+function eliteLooksGood(R) {
+  if (!R.alt || !L.setElite(R, true).ok) return false;
+  let ok = true; for (let k = 1; k <= 2 && ok; k++) ok = L.simulate(L.setupOf(R, (R.seed + 7717 * k + R.round * 131) | 0)).result === 'win';
+  L.setElite(R, false); return ok;
 }
 function playFull(seed, name) {
   const st = FSTRAT[name] || { card: name.replace(/^card:/, '') }, rng = mk(seed * 31 + 7), R = L.newRun(seed), log = []; let strong = false;
@@ -181,7 +208,7 @@ function playFull(seed, name) {
     if (R.phase === 'mythos') { pickMythos(R, st, rng); continue; }
     if (R.phase === 'encounter') { playEncounter(R, st, rng); continue; }
     placeRooms(R, st, rng); shopFull(R, st, rng); arrangeFull(R, st, rng);
-    if (R.alt) L.setElite(R, st.random ? rng() < 0.5 : st.elite === 'always' ? true : st.elite === 'never' ? false : strong && R.hp >= 8);
+    if (R.alt) L.setElite(R, st.random ? rng() < 0.5 : st.elite === 'always' ? true : st.elite === 'never' ? false : R.hp >= 6 && eliteLooksGood(R));
     const kinds = Object.keys(R.board).map(c => R.unit[R.board[c]]), r = L.ready(R);
     strong = r.win && r.fight.lostKin <= 1 && r.fight.coreHp >= r.fight.coreMhp * 0.8;
     log.push({ round: r.round, act: r.act, rin: r.rin, boss: r.boss, elite: r.elite, win: r.win, time: r.fight.time, conv: r.fight.converted, checks: r.fight.checks, lost: r.lost, level: R.level, fear: R.fear, kinds: kinds.map(u => u.kind), stars: kinds.map(u => u.star), bd: r.fight.breakdown, core: r.fight.coreHp / r.fight.coreMhp });
@@ -217,16 +244,17 @@ function reportFull(name, n, quiet) {
   }
   if (!quiet) {
     console.log(`${name.padEnd(8)} 끝까지 ${pc(o.win, n)}% | 1막 ${pc(o.a1, n)}% | 2막 ${pc(o.a2, n)}% | 끝난 라운드 ${(o.rounds / n).toFixed(1)} | 레벨 ${(o.lvl / n).toFixed(1)} | 공포 ${(o.fear / n).toFixed(1)} (세상 ${(o.world / n).toFixed(1)}) | 조우 ${(o.enc / n).toFixed(1)} | 판정 ${(o.checks / Math.max(1, o.fights)).toFixed(1)}/싸움 | 신화 속삭임/징조/현현 ${o.tier.slice(1).join('/')} | 평균 별 ${(o.stars / Math.max(1, o.units)).toFixed(2)} | 정예 ${o.elite}번 중 ${pc(o.ewin, o.elite)}% | 이긴 판의 남은 목숨 ${o.win ? (o.hp / o.win).toFixed(1) : '-'}`);
-    console.log('         라운드 승률 ' + o.rw.map((w, i) => (o.rn[i] ? pc(w, o.rn[i]) : '-')).join(' ') + ' | 싸움 길이 ' + o.time.map((x, i) => (o.rn[i] ? (x / o.rn[i]).toFixed(0) : '-')).join(' '));
+    console.log('         마지막 우두머리 ' + o.rw[14] + '/' + o.rn[14] + ' | 라운드 승률 ' + o.rw.map((w, i) => (o.rn[i] ? pc(w, o.rn[i]) : '-')).join(' ') + ' | 싸움 길이 ' + o.time.map((x, i) => (o.rn[i] ? (x / o.rn[i]).toFixed(0) : '-')).join(' '));
   }
   if (process.env.CARDJSON) console.log('CARDJSON ' + JSON.stringify({ n, win: o.win, card: o.card, cardWin: o.cardWin }));
   if (process.env.CARDS) { const base = pc(o.win, n); console.log('신화: 고른 판 수 / 그 판이 끝까지 간 비율 (전체 ' + base + '%)'); [1, 2, 3].forEach(t => console.log('  ' + L.TIERN[t] + ': ' + L.MYTHOS_IDS.filter(id => L.MYTHOS[id].tier === t).map(id => `${L.MYTHOS[id].name} ${o.card[id] || 0}/${o.card[id] ? pc(o.cardWin[id] || 0, o.card[id]) : '-'}%`).join(' · '))); }
   return o;
 }
-if (require.main === module) {
+if (require.main === module && process.env.ENC) { encTable().forEach(r => console.log([r.title, r.label, r.test, r.p ? r.p.join('/') + '%' : '-', r.ok, r.no == null ? '-' : r.no, r.ev.join('/'), r.flag].join(' | '))); }
+else if (require.main === module) {
   const taste = !!process.env.TASTE, n = +(process.argv[2] || 200), table = taste ? STRAT : FSTRAT, names = process.argv.slice(3).length ? process.argv.slice(3) : Object.keys(table), all = { pick: {}, pwin: {}, casts: {}, fights: 0 };
   names.forEach(nm => { const o = taste ? report(nm, n) : reportFull(nm, n); if (nm !== 'random' && nm !== 'blob') { for (const k in o.pick) { all.pick[k] = (all.pick[k] || 0) + o.pick[k]; all.pwin[k] = (all.pwin[k] || 0) + (o.pwin[k] || 0); } all.fights += o.rn.reduce((a, b) => a + b, 0); } for (const k in o.casts) all.casts[k] = (all.casts[k] || 0) + o.casts[k]; });
   console.log('권속: 나온 싸움 비율 / 그 싸움 승률  ' + L.KIN_IDS.filter(k => !taste || !L.KIN[k].gen).map(k => `${L.KIN[k].name} ${Math.round(100 * (all.pick[k] || 0) / Math.max(1, all.fights))}%/${all.pick[k] ? Math.round(100 * all.pwin[k] / all.pick[k]) : 0}%`).join(' · '));
   console.log('스킬 쓴 횟수  ' + Object.keys(all.casts).sort((a, b) => all.casts[b] - all.casts[a]).map(k => ((L.KIN[k] || L.INV[k] || { name: k }).name) + ' ' + all.casts[k]).join(' · '));
 }
-module.exports = { playRun, playTaste, playFull, report, reportFull, STRAT, FSTRAT, shopping, arrange, pickRoom, shopFull, arrangeFull, placeRooms, pickChoice, pickMythos, playEncounter };
+module.exports = { encTable, encEV, GV, pOk, playRun, playTaste, playFull, report, reportFull, STRAT, FSTRAT, shopping, arrange, pickRoom, shopFull, arrangeFull, placeRooms, pickChoice, pickMythos, playEncounter };
