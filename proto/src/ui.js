@@ -1038,7 +1038,7 @@ function onAction(el) {
   if (a === 'new') return void newRun();
   if (a === 'story') return void (typeof campOpen === 'function' ? campOpen() : storyMenu());
   if (a === 'deck') return void cardOpen();
-  if (a === 'trend') return void (typeof trendOpen === 'function' && trendOpen());
+  if (a === 'trend') return void (typeof lairOpen === 'function' ? lairOpen() : typeof trendOpen === 'function' && trendOpen());
   if (a === 'reroll') { if (META.dust < REROLL || signPool().length < 2) return; META.dust -= REROLL; rollSign(); sfx('spell'); return closeModal('redraw'); }
   if (a === 'continue') { const run = store.get('run'); if (!run) return; try { if (!runOk(run)) throw new Error('bad run'); G = NEST.migrate(run); G.auto = false; NEST.applyWorld(G.world); showGame();
       if (G.nightLock === G.day) { busy = false; UI.confirmEnd = true; render(); endDay(); } else morningFlow(); } catch (e) { console.error(e); setAside('run'); UI.saveBad = true; G = null; showTitle(); } return; }
