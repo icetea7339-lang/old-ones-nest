@@ -1,8 +1,8 @@
-// 둥지 전투의 그리기 속도: 2막 우두머리 싸움(양쪽 16 이상, 공포 판정의 주사위 포함)을 CPU 4배 느리게 하여 초당 그림 수를 잰다. 확인: 30 이상.
-// node tests/lairperf.js [기기: 비우면 PC | "iPhone 14"]   환경: RATE=4 WANT=30 SPEED=1
+// 둥지 전투의 그리기 속도: 2막 우두머리 싸움(양쪽 16 이상, 공포 판정의 주사위 포함)을 CPU 4배 느리게 하여 초당 그림 수를 잰다. 확인: 50 이상 (싸움 아래의 살아 있는 막대와 기록을 고치면서도).
+// node tests/lairperf.js [기기: 비우면 PC | "iPhone 14"]   환경: RATE=4 WANT=50 SPEED=1
 const pw = require('playwright'), fs = require('fs'), path = require('path'), FZM = require('./_fz.js');
 const html = fs.readFileSync(path.join(__dirname, '..', '..', 'PLAY-GAME.html'), 'utf8');
-const dev = process.argv[2] || '', RATE = +(process.env.RATE || 4), WANT = +(process.env.WANT || 30), SPEED = +(process.env.SPEED || 1);
+const dev = process.argv[2] || '', RATE = +(process.env.RATE || 4), WANT = +(process.env.WANT || 50), SPEED = +(process.env.SPEED || 1);
 (async () => {
   const b = await pw.chromium.launch(), ctx = await FZM.context(b, dev), p = await ctx.newPage(), errs = []; p.setDefaultTimeout(20000);
   p.on('pageerror', e => errs.push(e.message));

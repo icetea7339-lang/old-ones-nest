@@ -1,6 +1,7 @@
 // 둥지 전투 화면 시험 (온전한 판: 세 막 x 다섯 라운드)
 // 제목 → 새 판 → 사기 · 세우기 · 끌어 옮기기 · 합치기 · 창들(권속, 적, 본체, 진액, 판, 조사자, 메뉴) · 방 깔기 → 싸움(공포 판정의 주사위) → 결과 → 신화 단계(LF 가 저절로 고른다)
 // → 나갔다가 이어하기 → 둘째 싸움은 「보통」 빠르기를 잰다 → 정예 켜기 → 열다섯째 라운드까지 → 판 끝 화면 → 다시 한 판 → 팔기 → 나가기
+// 싸움 중에는 역할 표지를 그리지 않고, 이름표는 셋까지만 뜨고, 큰 판정만 주사위 판이 뜨고, 판 아래에 「누가 얼마나」와 큰 일의 기록이 있다. 우두머리에게 지면 「다시 온다」.
 // 고르는 화면(보상, 신화 단계, 조우)은 lairflow.js 의 몫이라 여기서는 window.__lf.auto 를 켜고 지나간다.
 // node tests/lairui.js [기기: 비우면 PC | "iPhone 14" | a360]
 const pw = require('playwright'), fs = require('fs'), path = require('path'), FZM = require('./_fz.js');
@@ -31,6 +32,7 @@ const dev = process.argv[2] || '', tag = dev ? dev.replace(/\s+/g, '') : 'pc', o
   // 위 줄: 진액, 레벨, 목숨, 공포와 깨어남, 메뉴 / 열다섯 칸 (우두머리 셋, 신화 단계 셋, 지금 하나)
   { const d = await ev(() => { const q = s => document.querySelectorAll(s).length; return { gold: q('#lr-bar .lr-gold'), lv: q('#lr-bar .lr-lv'), hp: q('#lr-bar .lr-hp'), fear: q('#lr-bar .lr-fear .lr-pips i'), menu: q('#lr-bar .lr-menu'), tc: q('#lr-bar .lr-tc'), boss: q('#lr-bar .lr-tc.boss'), my: q('#lr-bar .lr-tc.my'), cur: q('#lr-bar .lr-tc.cur'), h: document.getElementById('lr-bar').offsetHeight }; });
     if (d.gold !== 1 || d.lv !== 1 || d.hp !== 1 || d.fear !== 3 || d.menu !== 1) bad.push('위 줄에 빠진 것이 있다 ' + JSON.stringify(d)); if (d.tc !== 15 || d.boss !== 3 || d.my !== 3 || d.cur !== 1) bad.push('라운드 줄이 맞지 않는다 ' + JSON.stringify(d)); if (d.h > 96) bad.push('위 줄이 두 줄을 넘는다 ' + d.h); }
+  { const d = await ev(() => ({ tall: document.getElementById('lr').classList.contains('tall'), info: !document.getElementById('lr-info').hidden, foes: document.querySelectorAll('#lr-info .lr-foe').length, rest: __lair.U.rest })); if (d.tall !== d.info || (d.tall && !d.foes)) bad.push('다음 무리 줄이 맞지 않는다 ' + JSON.stringify(d)); }
   // 상점 카드마다 역할 표지와 닿는 칸 글이 있다. 적 미리보기에도 표지가 있다
   { const c = await ev(() => Array.from(document.querySelectorAll('#lr-shop .lr-card:not(.empty)')).map(e => ({ role: !!e.querySelector('.lr-role[data-role]'), reach: (e.querySelector('.lr-reach') || {}).textContent || '', cost: /\bc[1-5]\b/.test(e.className) }))); if (!c.length || c.some(q => !q.role || !q.cost || !/^(근접|원거리) \d칸$/.test(q.reach))) bad.push('상점 카드에 역할이나 닿는 칸, 값 테가 없다 ' + JSON.stringify(c));
     const d = await ev(() => ({ b: __lair.dbg().badges, e: __lair.L.curEnemy(__lair.R).length })); if (d.b !== d.e || !d.e) bad.push('적 미리보기의 역할 표지 ' + d.b + '/' + d.e); }
@@ -69,7 +71,10 @@ const dev = process.argv[2] || '', tag = dev ? dev.replace(/\s+/g, '') : 'pc', o
   if (!(await ev(() => Object.values(__lair.R.unit).some(u => u.kind === 'gazer' && u.star === 2)))) bad.push('셋을 샀는데 별이 오르지 않았다');
   await p.waitForTimeout(1700);
   await tap('#lr-bench .lr-slot.has'); await tapCell(27);
-  await tap('#lr-shop .lr-card[data-i="3"]'); await tap('#lr-top [data-l="buy"]'); await tap('#lr-bench .lr-slot.has'); await tapCell(28); await p.waitForTimeout(80); { const d = await ev(() => ({ b: __lair.dbg().badges, n: Object.keys(__lair.R.board).length + __lair.L.curEnemy(__lair.R).length })); if (d.b !== d.n) bad.push('판 위 역할 표지 ' + d.b + '/' + d.n); } await shot('board');
+  await tap('#lr-shop .lr-card[data-i="3"]'); await tap('#lr-top [data-l="buy"]'); await tap('#lr-bench .lr-slot.has'); await tapCell(28); await p.waitForTimeout(80); { const d = await ev(() => ({ b: __lair.dbg().badges, n: Object.keys(__lair.R.board).length + __lair.L.curEnemy(__lair.R).length })); if (d.b !== d.n) bad.push('판 위 역할 표지 ' + d.b + '/' + d.n); }
+  // 본체 바로 윗줄에 권속이 서면 본체의 솟은 데가 흐려진다 (권속을 가리지 않는다)
+  { const f1 = await ev(() => __lair.dbg().coreFade); await ev(() => { const R = __lair.R; R.board[24] = R.board[26]; R.board[29] = R.board[27]; delete R.board[26]; delete R.board[27]; __lair.redraw(); }); await p.waitForTimeout(120); const f0 = await ev(() => __lair.dbg().coreFade); await ev(() => { const R = __lair.R; R.board[26] = R.board[24]; R.board[27] = R.board[29]; delete R.board[24]; delete R.board[29]; __lair.redraw(); }); await p.waitForTimeout(120); if (f1 !== 1 || f0 !== 0) bad.push('본체 윗줄의 권속에 따라 본체가 흐려지지 않는다 ' + f1 + '/' + f0); }
+  await shot('board');
   // 시너지
   if (await p.$('#lr-top [data-l="syn"]')) { await tap('#lr-top [data-l="syn"]'); await p.waitForTimeout(250); await shot('sheet_syn'); if (!(await p.$('#lr-sheet .lr-tiers'))) bad.push('시너지 창에 단계가 없다'); await closeSheet(); } else bad.push('권속을 넷 세웠는데 시너지 칩이 없다');
   // 진액 창: 이기면/지면, 레벨별 상점 확률
@@ -87,7 +92,7 @@ const dev = process.argv[2] || '', tag = dev ? dev.replace(/\s+/g, '') : 'pc', o
   await tap('#lr-sheet [data-l="pickroom"][data-i="0"]'); await shot('room_spots');
   { const spot = await ev(() => __lair.view().roomOffer[__lair.U.roomPick].spots[0]); await tapCell(spot); if ((await ev(() => __lair.R.rooms.length)) !== 1 || (await ev(() => __lair.R.roomOffer.length)) !== 1) bad.push('방을 깔지 못했다'); await shot('room_placed'); }
   // 싸움
-  const seenAll = {}, tot = { checks: 0, big: 0, boons: 0, fights: 0 };
+  const seenAll = {}, tot = { checks: 0, big: 0, boons: 0, fights: 0, bigCasts: 0, smallCasts: 0 };
   // mode: 'fast' = 빨리 감는다, 'pace' = 「보통」 빠르기로 얼마간 재고 나서 감는다
   const fight = async (label, mode, want) => {
     const boss = await ev(() => !!__lair.view().boss);
@@ -107,9 +112,11 @@ const dev = process.argv[2] || '', tag = dev ? dev.replace(/\s+/g, '') : 'pc', o
     await ev(s => { __lair.U.speed = s; }, mode === 'quick' ? 14 : 6);
     const seen = {}; let last = -1, stuck = 0, fin = null;
     for (let k = 0; k < 900; k++) {
-      const st = await ev(() => { const s = __lair.stats(), F = __lair.F; if (!s) return null; const E = F.ents; s.cast = Object.values(E).some(e => e.anim === 'cast' && !e.core); s.core = E.core && E.core.anim === 'cast'; s.fx = F.fx.length; s.sheet = !document.getElementById('lr-sheet').hidden; s.badges = __lair.dbg().badges; s.drawn = __lair.dbg().dice; return s; });
+      const st = await ev(() => { const s = __lair.stats(), F = __lair.F; if (!s) return null; const E = F.ents; s.cast = Object.values(E).some(e => e.anim === 'cast' && !e.core); s.core = E.core && E.core.anim === 'cast'; s.fx = F.fx.length; s.sheet = !document.getElementById('lr-sheet').hidden; s.badges = __lair.dbg().badges; s.drawn = document.querySelectorAll('#lr-ov .lr-dice .lr-die').length; s.labDom = document.querySelectorAll('#lr-ov .lr-lab:not(.ban)').length; s.rows = document.querySelectorAll('#lr-meter p').length; s.feed = document.querySelectorAll('#lr-feed p').length; s.feedN = __lair.U.feedN; return s; });
       if (!st) break; fin = st;
-      if (!st.sheet && !st.done && st.badges !== st.alive) bad.push(label + ': 역할 표지 ' + st.badges + '/' + st.alive + ' T=' + st.T.toFixed(1));
+      if (!st.sheet && !st.done && st.badges !== 0) bad.push(label + ': 싸움 중에 역할 표지가 그려진다 ' + st.badges + ' T=' + st.T.toFixed(1));
+      if (st.labDom > 3 || st.labs > 3) bad.push(label + ': 이름표가 셋을 넘는다 ' + st.labDom + '/' + st.labs + ' T=' + st.T.toFixed(1)); if (st.drawn > 12) bad.push(label + ': 주사위 판이 둘을 넘는다 ' + st.drawn); if (st.rows > 4 || st.feed > st.feedN) bad.push(label + ': 아래 판이 넘친다 ' + st.rows + ' ' + st.feed + '/' + st.feedN);
+      if (st.rows) seen.meter = 1; if (st.feed) seen.feed = 1; if (st.crowd) seenAll.crowd = 1;
       if (st.drawn > 0) { seen.dice = 1; if (!seenAll.dice) { seenAll.dice = 1; await snap(label + '_dice'); } }
       if (st.bigChecks && st.drawn > 0 && !seenAll.bigdice) { seenAll.bigdice = 1; await snap(label + '_bigdice'); }
       if (st.boons && !seenAll.boon) { seenAll.boon = 1; await snap(label + '_boon'); }
@@ -121,16 +128,16 @@ const dev = process.argv[2] || '', tag = dev ? dev.replace(/\s+/g, '') : 'pc', o
       await p.waitForTimeout(mode === 'quick' ? 40 : 60);
     }
     (want || []).forEach(w => { if (!seen[w]) bad.push(label + ': ' + w + ' 장면을 못 봤다'); });
-    if (fin) { tot.checks += fin.checks; tot.big += fin.bigChecks; tot.boons += fin.boons; tot.fights++; const want = await ev(() => __lair.U.res.fight.checks); if (fin.checks !== want) bad.push(label + ': 공포 판정을 다 보여 주지 않았다 ' + fin.checks + '/' + want); }
+    if (fin) { tot.checks += fin.checks; tot.big += fin.bigChecks; tot.boons += fin.boons; tot.fights++; tot.bigCasts += fin.bigCasts; tot.smallCasts += fin.smallCasts; if (!seen.meter) bad.push(label + ': 「누가 얼마나」 막대가 없었다'); const want = await ev(() => __lair.U.res.fight.checks); if (fin.checks !== want) bad.push(label + ': 공포 판정을 다 보여 주지 않았다 ' + fin.checks + '/' + want); }
     await p.waitForTimeout(mode === 'quick' ? 250 : 800);
     const r = await ev(() => { const q = s => document.querySelector('#lr-sheet ' + s), res = __lair.U.res; return { row: !!q('.lr-row'), eco: (q('.lr-eco2') || {}).textContent || '', sum: (q('.lr-sum') || {}).textContent || '', income: res.income, over: __lair.R.phase === 'over', castRows: document.querySelectorAll('#lr-sheet .lr-castrow').length, cast: (res.cast || []).length, world: (q('.lr-world') || {}).textContent || '', boss: res.boss, win: res.win, next: (q('[data-l="next"]') || {}).textContent || '', nx: res.next }; });
-    if (mode !== 'quick' || (r.castRows && !seenAll.castres) || (r.boss && !seenAll.bossres) || r.over) { if (r.castRows) seenAll.castres = 1; if (r.boss) seenAll.bossres = 1; await shot(label + '_result'); }
+    if (mode !== 'quick' || (r.castRows && !seenAll.castres) || (r.boss && !seenAll.bossres) || r.over || (r.boss && !r.win)) { if (r.castRows) seenAll.castres = 1; if (r.boss) seenAll.bossres = 1; await shot(label + '_result'); }
     if (!r.over) { if (!r.row) bad.push(label + ': 결과에 기여 줄이 없다'); if (!/기본 \d/.test(r.eco) || r.sum.indexOf('진액 +' + r.income) < 0) bad.push(label + ': 결과에 진액 내역이 없다 ' + JSON.stringify(r)); if (r.castRows !== r.cast) bad.push(label + ': 조사자의 끝이 ' + r.castRows + '/' + r.cast); if (r.boss && !r.win && !/다시 온다/.test(r.world)) bad.push(label + ': 우두머리에게 졌는데 다시 온다는 말이 없다');
       const wantNext = { mythos: '신화 단계', choice: '보상', encounter: '조우' }[r.nx]; if (wantNext && r.next !== wantNext) bad.push(label + ': 다음 단추가 ' + r.next + ' (' + r.nx + ')'); }
     return r;
   };
   const next = async () => { await tap('#lr-sheet [data-l="next"]'); await p.waitForTimeout(150); const d = await ev(() => ({ ph: __lair.R.phase, flow: __lair.U.flow, up: __lair.U.phase })); if (d.ph !== 'prep' || d.flow || d.up !== 'prep') bad.push('결과 뒤에 준비로 돌아오지 않았다 ' + JSON.stringify(d)); };
-  const r1 = await fight('f1', 'fast', ['cast', 'mid', 'dice']);
+  const r1 = await fight('f1', 'fast', ['cast', 'mid']);
   if (r1.win && r1.nx !== 'choice') bad.push('이긴 첫 싸움 뒤에 고를 것이 없다 ' + r1.nx);
   await next();
   // 둘째 라운드의 준비 앞에 신화 단계가 지나갔다: 본체가 한 단계 깨어났다
@@ -161,11 +168,14 @@ const dev = process.argv[2] || '', tag = dev ? dev.replace(/\s+/g, '') : 'pc', o
   // 판 끝 화면
   { const d = await ev(() => { const R = __lair.R, q = s => document.querySelector('#lr-sheet ' + s); return { over: R.over, end: !!q('.lr-end'), again: !!q('[data-l="again"]'), exit: !!q('[data-l="exit"]'), my: document.querySelectorAll('#lr-sheet .lr-sum .t1, #lr-sheet .lr-sum .t2, #lr-sheet .lr-sum .t3').length, picked: R.mythos.picked.length, tc: document.querySelectorAll('#lr-sheet .lr-track.end .lr-tc').length, best: document.querySelectorAll('#lr-sheet .lr-ki').length, saved: localStorage.getItem('oldnest.lairrun'), last: (__shell.meta.last || []).slice(-1)[0] }; });
     if (!end || !d.over) bad.push('판이 끝나지 않았다'); else { if (d.over.round !== 15 || !d.over.win) bad.push('열다섯째 라운드를 이기지 못했다 ' + JSON.stringify(d.over)); if (!d.end || !d.again || !d.exit) bad.push('판 끝 화면에 빠진 것이 있다 ' + JSON.stringify(d)); if (d.picked !== 3 || d.my !== 3) bad.push('판 끝 화면에 고른 신화 셋이 없다 ' + d.my + '/' + d.picked); if (d.tc !== 15) bad.push('판 끝 화면의 라운드 줄 ' + d.tc); if (!d.best) bad.push('판 끝 화면에 가장 많이 한 권속이 없다'); if (d.saved) bad.push('끝난 판의 저장이 남았다'); if (!d.last || d.last.rounds !== 15 || d.last.step !== 3 || !Array.isArray(d.last.mythos)) bad.push('지난 판 기록이 맞지 않는다 ' + JSON.stringify(d.last)); } }
-  if (!seenAll.dice) bad.push('공포 판정의 주사위를 한 번도 못 봤다'); if (!tot.checks) bad.push('공포 판정이 없었다'); if (!seenAll.bossintro) bad.push('우두머리 알림을 못 봤다'); if (!seenAll.castres) bad.push('결과에서 조사자의 끝을 못 봤다');
+  if (tot.big && !seenAll.dice) bad.push('큰 판정이 있었는데 주사위 판을 못 봤다'); if (!tot.big) bad.push('큰 판정이 한 번도 없었다'); if (!tot.checks) bad.push('공포 판정이 없었다'); if (!tot.bigCasts || !tot.smallCasts) bad.push('큰 스킬과 작은 스킬이 갈리지 않았다 ' + tot.bigCasts + '/' + tot.smallCasts); if (!seenAll.crowd) bad.push('큰 무리의 싸움이 없었다'); if (!seenAll.bossintro) bad.push('우두머리 알림을 못 봤다'); if (!seenAll.castres) bad.push('결과에서 조사자의 끝을 못 봤다');
   if (await p.$('#lr-sheet [data-l="again"]')) { await tap('#lr-sheet [data-l="again"]'); await p.waitForTimeout(200); if ((await ev(() => __lair.R.round)) !== 1 || (await ev(() => __lair.U.phase)) !== 'prep') bad.push('다시 한 판이 처음으로 돌아가지 않았다'); await shot('again');
     // 팔기: 사서 고르고 판다 · 대기석에서 상점으로 끌어도 팔린다
     { await tap('#lr-shop .lr-card[data-i="0"]'); await tap('#lr-top [data-l="buy"]'); const g0 = await ev(() => __lair.R.gold); await tap('#lr-bench .lr-slot.has'); await tap('#lr-top [data-l="sell"]'); if ((await ev(() => Object.keys(__lair.R.unit).length)) !== 0 || (await ev(() => __lair.R.gold)) <= g0) bad.push('팔기가 안 된다');
       await tap('#lr-shop .lr-card[data-i="1"]'); await tap('#lr-top [data-l="buy"]'); const s = await p.$('#lr-bench .lr-slot.has'), r = await s.boundingBox(), sh = await (await p.$('#lr-shop .lr-card[data-i="3"]')).boundingBox(); await p.mouse.move(r.x + r.width / 2, r.y + r.height / 2); await p.mouse.down(); await p.mouse.move(r.x + r.width / 2 + 20, r.y + 30, { steps: 4 }); await p.mouse.move(sh.x + sh.width / 2, sh.y + sh.height / 2, { steps: 5 }); await p.mouse.up(); await p.waitForTimeout(120); if ((await ev(() => Object.keys(__lair.R.unit).length)) !== 0) bad.push('상점으로 끌어서 팔지 못했다'); await shot('sold'); }
+    // 우두머리에게 지면 같은 우두머리가 다시 온다: 약한 둥지로 1막의 끝에 선다
+    { await ev(() => { const R = __lair.R, L = __lair.L; R.mythos.picked = [L.MYTHOS_IDS.find(id => L.MYTHOS[id].tier === 1)]; R.mythos.phase = 1; R.awake = 1; R.form = L.MYTHOS[R.mythos.picked[0]].asp; R.act = 1; R.rin = 5; R.round = 5; const pt = L.partyOf(R, 1, 5); R.enemy = pt.base.units; R.enemyName = pt.base.name; R.alt = null; R.elite = false; __lair.give('biter', 1, 21); __lair.redraw(); });
+      await p.waitForTimeout(300); const r = await fight('retry', 'quick'); if (!r.boss || r.win) bad.push('우두머리에게 지지 않았다 ' + JSON.stringify({ b: r.boss, w: r.win })); else { if (r.next !== '다시 맞선다') bad.push('우두머리에게 진 뒤의 단추가 ' + r.next); await next(); const d = await ev(() => ({ round: __lair.R.round, rin: __lair.R.rin, retry: __lair.R.retry, hp: __lair.R.hp, cur: document.querySelectorAll('#lr-bar .lr-tc.cur.boss').length })); if (d.round !== 5 || d.rin !== 5 || d.retry !== 1 || d.cur !== 1) bad.push('우두머리가 다시 오지 않았다 ' + JSON.stringify(d)); await shot('retry_prep'); } }
     await tap('#lr-bar .lr-menu'); await tap('#lr-sheet [data-l="exit"]'); if (await ev(() => !document.getElementById('lr').hidden)) bad.push('나가기가 안 된다'); }
   await b.close();
   console.log(JSON.stringify({ tag, shots: n, tot, seen: Object.keys(seenAll), end: end && { over: end.over }, errs, bad }, null, 1)); if (errs.length || bad.length) process.exit(1);

@@ -61,7 +61,7 @@ function lrMount() {
   const el = document.createElement('div'); el.id = 'lr'; el.hidden = true;
   el.innerHTML = `<div id="lr-bar"></div>
 <div id="lr-main"><div id="lr-boardwrap"><canvas id="lr-cv" width="${LW}" height="429"></canvas><div id="lr-ov"></div><div id="lr-top"></div></div>
-<div id="lr-side"><div id="lr-bench"></div><div id="lr-shop"></div><div id="lr-fight" hidden></div></div></div>
+<div id="lr-side"><div id="lr-info" hidden></div><div id="lr-bench"></div><div id="lr-shop"></div><div id="lr-fight" hidden></div></div></div>
 <div id="lr-sheet" hidden></div><div id="lr-coach" hidden></div><div id="lr-toast" hidden></div><img id="lr-drag" alt="" hidden>`;
   document.body.appendChild(el);
   el.addEventListener('click', lrClick);
@@ -69,14 +69,20 @@ function lrMount() {
   window.addEventListener('resize', () => { if (!el.hidden) { lrBarFit(); lrSize(); } });
   window.addEventListener('keydown', e => { if (el.hidden) return; if (e.key === 'Escape') { if (LU.sheet) lrSheetClose(); else if (LU.roomPick != null) { LU.roomPick = null; lrDraw(); } else if (LU.sel) { LU.sel = null; lrDraw(); } } if (LU.phase === 'fight' && (e.key === ' ' || e.key === 'p')) { LU.paused = !LU.paused; lrFightPanel(); e.preventDefault(); } if (LU.phase === 'fight' && e.key.length === 1 && '123'.includes(e.key)) lrSpeedSet(LSPD[+e.key - 1][0]); });
 }
+// 세로 폰에서 판 아래에 남는 높이(rest)를 잰다. 40 이상이면 tall, 86 이상이면 tall2: 준비 때는 다음 무리 줄과 큰 상점 카드, 싸움 때는 시너지 줄과 긴 기록
+const LSIDE = 158;
 function lrSize() {
-  const cv = $('lr-cv'), wrap = $('lr-boardwrap'), vw = window.innerWidth, vh = window.innerHeight, wide = vw >= 900, H = LU.wallH + LS * 6;
-  $('lr').classList.toggle('wide', wide);
+  const cv = $('lr-cv'), wrap = $('lr-boardwrap'), lr = $('lr'), vw = window.innerWidth, vh = window.innerHeight, wide = vw >= 900, H = LU.wallH + LS * 6;
+  lr.classList.toggle('wide', wide);
   if (cv.height !== H) cv.height = H;
-  const barH = $('lr-bar').offsetHeight || 44, sideH = wide ? 0 : ($('lr-side').offsetHeight || 170);
-  const availH = vh - barH - sideH - (wide ? 20 : 6), availW = wide ? vw - 470 : vw;
+  const barH = $('lr-bar').offsetHeight || 68;
+  const availH = vh - barH - (wide ? 20 : LSIDE + 6), availW = wide ? vw - 470 : vw;
   let sc = Math.min(availW / LW, availH / H); if (wide) sc = Math.min(sc, 1.75); sc = Math.max(0.6, sc);
-  LU.scale = sc; cv.style.width = Math.floor(LW * sc) + 'px'; cv.style.height = Math.floor(H * sc) + 'px'; wrap.style.width = Math.floor(LW * sc) + 'px'; wrap.style.height = Math.floor(H * sc) + 'px'; lrPrepTags();
+  LU.scale = sc; cv.style.width = Math.floor(LW * sc) + 'px'; cv.style.height = Math.floor(H * sc) + 'px'; wrap.style.width = Math.floor(LW * sc) + 'px'; wrap.style.height = Math.floor(H * sc) + 'px';
+  const rest = wide ? 0 : vh - barH - Math.floor(H * sc) - LSIDE, t1 = rest >= 40, t2 = rest >= 86, ch = lr.classList.contains('tall') !== t1 || lr.classList.contains('tall2') !== t2;
+  lr.classList.toggle('tall', t1); lr.classList.toggle('tall2', t2); LU.rest = rest;
+  if (ch && LU.R) { if (LU.phase === 'fight') lrFightPanel(); else lrInfo(); }
+  lrPrepTags();
 }
 // run: 이어할 판(lairSaved() 가 돌려준 것). 없으면 새 판
 function lairOpen(run) {
@@ -87,12 +93,12 @@ function lairOpen(run) {
 function lrNew(seed, run) {
   LU.seed = run ? run.seed : seed || ((Date.now() % 1000000) + 1); LU.R = run || LAIR.newRun(LU.seed); LU.phase = 'prep'; LU.sel = null; LU.roomPick = null; LU.F = null; LU.res = null; LU.sheet = null; LU.speed = lrSpeedLoad(); LU.paused = false; LU.bg = null; LU.flow = false;
   const coachOk = !(navigator.webdriver && !window.__lairCoach); LU.tut = coachOk && !(META && META.lairTut) ? 0 : -1;
-  $('lr-sheet').hidden = true; $('lr-ov').innerHTML = ''; lrDraw(); lrSize(); lrWarmPrep();
+  $('lr-sheet').hidden = true; $('lr').classList.remove('sheeton'); $('lr-ov').innerHTML = ''; lrDraw(); lrSize(); lrWarmPrep();
   try { if (typeof music === 'function') music('day'); } catch (e) { /* 음악 없이 */ }
   try { if (typeof traceLive === 'function') traceLive({ start: !run }); } catch (e) { /* 기록 없이 */ }
   lrFlow();
 }
-function lrExit() { lrSave(); try { if (typeof traceLive === 'function') { TRACE.last = 0; traceLive({ left: true }); } } catch (e) { /* 기록 없이 */ } $('lr').hidden = true; cancelAnimationFrame(LU.raf); LU.raf = 0; LU.F = null; LU.phase = 'prep'; LU.sheet = null; $('lr-sheet').hidden = true; if (typeof showTitle === 'function') showTitle(); }
+function lrExit() { lrSave(); try { if (typeof traceLive === 'function') { TRACE.last = 0; traceLive({ left: true }); } } catch (e) { /* 기록 없이 */ } $('lr').hidden = true; cancelAnimationFrame(LU.raf); LU.raf = 0; LU.F = null; LU.phase = 'prep'; LU.sheet = null; $('lr-sheet').hidden = true; $('lr').classList.remove('sheeton'); if (typeof showTitle === 'function') showTitle(); }
 // 고를 것이 있으면(보상, 신화 단계, 조우) 고르는 화면에 넘기고, 끝나면 준비 화면으로 돌아온다
 function lrFlow() {
   const R = LU.R; if (!R || LU.flow || typeof LF === 'undefined' || !LF.pending(R)) return false;
@@ -150,14 +156,15 @@ function lrBarFit() { const bar = $('lr-bar'), b1 = bar.querySelector('.lr-b1');
 function lrDraw() {
   const fight = LU.phase === 'fight', v = fight && LU.F ? LU.F.v0 : lrView();
   $('lr-bar').innerHTML = lrBarHtml(v); lrBarFit(); requestAnimationFrame(lrBarFit);
+  $('lr').classList.toggle('nomo', typeof motionOk === 'function' && !motionOk());
   $('lr-bench').hidden = fight; $('lr-shop').hidden = fight; $('lr-fight').hidden = !fight;
-  if (fight) { lrFightPanel(); lrTop(v); lrCoach(); return; }
+  if (fight) { $('lr-info').hidden = true; lrFightPanel(); lrTop(v); lrCoach(); return; }
   const selU = LU.sel && LU.sel.uid, nR = v.roomOffer.length, maxed = v.level >= v.maxLv;
   $('lr-bench').innerHTML = v.bench.map((u, i) => u ? `<div class="lr-slot has${selU === u.uid ? ' on' : ''}${LU.pops[u.uid] > LU.t ? ' pop' : ''}" data-bench="${i}" data-u="${u.uid}" role="button" aria-label="${esc(u.name)} ${u.star}성 ${esc(u.roleName)}"><img src="${lrIcon(u.kind, u.star, 44)}" alt="">${lrStars(u.star)}${lrRoleImg(u.role, 18)}</div>` : `<div class="lr-slot" data-bench="${i}"></div>`).join('')
     + `<button class="lr-roombtn${nR ? ' pri' : ''}" data-l="room"${nR ? '' : ' disabled'}>${LU.roomPick != null ? '취소' : '방' + (nR > 1 ? ' ' + nR : '')}</button>`;
   $('lr-shop').innerHTML = `<div class="lr-acts"><button data-l="reroll"${v.canReroll ? '' : ' disabled'}${v.freeRoll ? ' class="free"' : ''}>뽑기 ${v.costs.reroll}</button><button data-l="xp"${v.canXp ? '' : ' disabled'}>${maxed ? 'Lv ' + v.level : '넓히기 ' + v.costs.xp}${maxed ? '' : `<i class="lr-xp"><b style="width:${v.xpNeed ? Math.round(v.xp / v.xpNeed * 100) : 100}%"></b></i>`}</button></div>`
-    + v.shop.map((s, i) => s ? `<button class="lr-card c${s.cost}${LU.sel && LU.sel.shop === i ? ' on' : ''}${s.can ? '' : ' poor'}" data-l="shop" data-i="${i}"><img src="${lrIcon(s.kind, 1, 44)}" alt="">${lrRoleImg(s.role, 18)}<b>${esc(s.name)}</b><span class="lr-cmeta"><img src="${lrSym(s.asp, 16)}" alt="${esc(s.aspName)}"><img src="${lrSym(s.cls, 16)}" alt="${esc(s.clsName)}"><em>${s.cost}</em></span><small class="lr-reach">${esc(s.reach)}</small></button>` : '<div class="lr-card empty"></div>').join('');
-  lrTop(v); lrPrepTags(v); lrCoach(); lrRowTip(); lrSeen(v); if (!LU.flow) lrSave();
+    + v.shop.map((s, i) => s ? `<button class="lr-card c${s.cost}${LU.sel && LU.sel.shop === i ? ' on' : ''}${s.can ? '' : ' poor'}" data-l="shop" data-i="${i}"><img src="${lrIcon(s.kind, 1, 44)}" alt="">${lrRoleImg(s.role, 18)}<b>${esc(s.name)}</b><span class="lr-cmeta"><img src="${lrSym(s.asp, 16)}" alt="${esc(s.aspName)}"><img src="${lrSym(s.cls, 16)}" alt="${esc(s.clsName)}"><em>${s.cost}</em></span><small class="lr-reach">${esc(s.reach)}</small><small class="lr-skn">${esc(s.skill.name)}</small></button>` : '<div class="lr-card empty"></div>').join('');
+  lrTop(v); lrInfo(v); lrPrepTags(v); lrCoach(); lrRowTip(); lrSeen(v); if (!LU.flow) lrSave();
 }
 // 준비 때 조사자의 머리 위에 이름을 띄운다
 function lrPrepTags(v) {
@@ -177,10 +184,32 @@ function lrTop(v) {
 }
 function lrSynChips(v, only) { const all = v.synergies.filter(s => !only || only[s.id]), max = only ? 6 : 4, show = all.length > max ? all.slice(0, max - 1) : all; return show.map(s => `<button class="lr-syn t${s.tier}" data-l="syn" data-id="${s.id}"><img src="${lrSym(s.id, 16)}" alt="${esc(s.name)}">${s.n}/${s.next || s.need[s.need.length - 1]}</button>`).join('') + (all.length > show.length ? `<button class="lr-syn" data-l="syns">+${all.length - show.length}</button>` : ''); }
 function lrFightPanel() {
-  const F = LU.F; if (!F) return;
-  $('lr-fight').innerHTML = `<div class="lr-speed">${LSPD.map(q => `<button data-l="speed" data-v="${q[0]}" class="${LU.speed === q[0] ? 'on' : ''}" aria-pressed="${LU.speed === q[0]}">${q[1]}</button>`).join('')}<button data-l="pause" class="${LU.paused ? 'on' : ''}">${LU.paused ? '이어서' : '멈춤'}</button></div>${F.chips ? `<div class="lr-syns">${F.chips}</div>` : ''}<div id="lr-feed">${lrFeedHtml()}</div>`;
+  const F = LU.F; if (!F) return; const lr = $('lr'), roomy = lr.classList.contains('wide') || lr.classList.contains('tall');
+  $('lr-fight').innerHTML = `<div class="lr-speed">${LSPD.map(q => `<button data-l="speed" data-v="${q[0]}" class="${LU.speed === q[0] ? 'on' : ''}" aria-pressed="${LU.speed === q[0]}">${q[1]}</button>`).join('')}<button data-l="pause" class="${LU.paused ? 'on' : ''}">${LU.paused ? '이어서' : '멈춤'}</button></div>${F.chips && roomy ? `<div class="lr-syns">${F.chips}</div>` : ''}<div id="lr-meter">${lrMeterHtml()}</div><div id="lr-feed"></div>`;
+  const fd = $('lr-feed'), side = $('lr-side'), room = lr.classList.contains('wide') ? 150 : side.getBoundingClientRect().bottom - fd.getBoundingClientRect().top - 2; LU.feedN = Math.max(1, Math.min(5, Math.floor((room + 2) / 30))); fd.innerHTML = lrFeedHtml();
 }
-function lrFeedHtml() { const F = LU.F; return F ? F.feed.slice(F.chips ? -2 : -3).map(f => `<p class="${f.side}"><img src="${lrIcon(f.icon, f.star, 28)}" alt=""><b>${esc(f.name)}</b><span>${esc(f.sk)}</span></p>`).join('') : ''; }
+// 누가 얼마나: 싸우는 동안 살아 있는 막대. 위 넷 (피해는 주황, 정신 피해는 보라)
+function lrMeterHtml() {
+  const F = LU.F; if (!F) return ''; const M = F.meter, rows = Object.keys(M).map(k => M[k]).filter(r => r.dmg + r.san > 0).sort((a, b) => (b.dmg + b.san) - (a.dmg + a.san)).slice(0, 4), mx = Math.max(1, ...rows.map(r => r.dmg + r.san));
+  return rows.map(r => `<p><img src="${lrIcon(r.icon, r.star, 24)}" alt=""><span class="lr-mn">${esc(r.name)}</span><span class="lr-mb"><b style="width:${(r.dmg / mx * 100).toFixed(1)}%"></b><i style="width:${(r.san / mx * 100).toFixed(1)}%"></i></span><em>${Math.round(r.dmg + r.san)}</em></p>`).join('');
+}
+function lrMeterAdd(F, by, dmg, san) {
+  if (!by || by.side !== 'nest' || !(dmg > 0 || san > 0)) return; const k = by.core ? 'core' : by.summon ? 's:' + by.kind : by.id;
+  const r = F.meter[k] = F.meter[k] || { name: by.name, icon: by.core ? 'boss:' + (by.form || 'drop') + ':' + F.step : by.kind, star: by.core || by.summon ? 1 : by.star, dmg: 0, san: 0 }; r.dmg += dmg || 0; r.san += san || 0; F.meterDirty = true;
+}
+// 방금 일어난 큰 일: 큰 스킬, 미침, 값진 것의 죽음, 신화의 권능, 큰 판정
+function lrFeed(F, e, text, cls) { F.feed.push({ img: e && e.img ? e.img : null, icon: e && !e.img ? (e.core ? 'boss:' + (e.form || 'drop') + ':' + F.step : e.cast && e.artSt ? e.kind + '/' + e.artSt : e.kind) : null, star: e && !e.core && e.side === 'nest' ? e.star : 1, name: e ? e.name : '', sk: text, side: e ? (e.side === 'nest' ? 'nest' : 'inv') : 'boon', cls: cls || '' }); if (F.feed.length > 8) F.feed.shift(); const fd = $('lr-feed'); if (fd) fd.innerHTML = lrFeedHtml(); }
+function lrFeedHtml() { const F = LU.F, n = LU.feedN || 2; return F ? F.feed.slice(-n).reverse().map(f => `<p class="${f.side} ${f.cls}">${f.img ? `<img src="${f.img}" alt="">` : f.icon ? `<img src="${lrIcon(f.icon, f.star, 28)}" alt="">` : '<i class="lr-eye"></i>'}${f.name ? `<b>${esc(f.name)}</b>` : ''}<span>${esc(f.sk)}</span></p>`).join('') : ''; }
+// 준비 때 높은 화면의 남는 자리: 다음 무리의 이름과 얼굴들
+function lrInfo(v) {
+  const el = $('lr-info'); if (!el) return; const show = LU.phase === 'prep' && $('lr').classList.contains('tall'); el.hidden = !show; if (!show) return; v = v || lrView();
+  const g = {}, order = []; v.enemy.forEach(e => { const k = e.cast ? 'c:' + e.cast : e.kind; if (!g[k]) { g[k] = { e, n: 0 }; order.push(k); } g[k].n++; });
+  order.sort((a, b) => (g[b].e.boss ? 4 : g[b].e.cast ? 3 : g[b].e.elite ? 2 : 1) - (g[a].e.boss ? 4 : g[a].e.cast ? 3 : g[a].e.elite ? 2 : 1));
+  el.innerHTML = `<span class="lr-rn" role="button" tabindex="0" data-l="run">${esc(v.roundName)}</span><span class="lr-foes">${order.slice(0, 7).map(k => { const q = g[k], e = q.e, c = e.cast ? (v.cast || []).find(x => x.id === e.cast) : null; return `<span role="button" tabindex="0" data-l="${e.cast ? 'cast' : 'invinfo'}" data-id="${e.cast || e.kind}" class="lr-foe ${e.boss ? 'boss' : e.cast ? 'cast' : e.elite ? 'elite' : ''}" aria-label="${esc(e.name)} ${q.n}"><img src="${lrIcon(c ? lrCastIcon(c, v) : e.kind, 1, 28)}" alt="">${q.n > 1 ? `<em>${q.n}</em>` : ''}</span>`; }).join('')}</span>`;
+  lrInfoFit(); requestAnimationFrame(lrInfoFit);
+}
+// 이름이 길거나 글씨가 크면 얼굴을 뒤에서부터 덜어 낸다
+function lrInfoFit() { const el = $('lr-info'); if (!el || el.hidden) return; const foes = el.querySelector('.lr-foes'); let n = 0; while (foes && el.scrollWidth > el.clientWidth + 1 && foes.children.length > 2 && n++ < 6) foes.lastChild.remove(); }
 function lrToast(msg) { const t = $('lr-toast'), r = $('lr-boardwrap').getBoundingClientRect(); t.textContent = msg; t.hidden = false; t.style.left = (r.left + r.width / 2) + 'px'; t.style.top = (r.top + (LU.phase === 'fight' ? 50 : LU.wallH + LS * 3 - 18) * (LU.scale || 1)) + 'px'; LU.toastT = LU.t + 1600; }
 
 // ---- 길잡이 ----
@@ -205,7 +234,7 @@ function lrClick(e) {
   if (e.target.id === 'lr-sheet' && LU.sheet && LU.sheet.kind !== 'result') return lrSheetClose();
   if (e.target.id === 'lr-cv' && LU.phase === 'fight' && LU.F && !LU.sheet) { const r = e.target.getBoundingClientRect(), px = (e.clientX - r.left) / LU.scale, py = (e.clientY - r.top) / LU.scale; let best = null, bd = 34; for (const id in LU.F.ents) { const q = LU.F.ents[id]; if (q.dead || q.summon) continue; const d = Math.hypot(q.x - px, q.y - 8 - py) * (q.core ? 0.6 : 1); if (d < bd) { bd = d; best = q; } } if (best) lrSheet(best.core ? { kind: 'core' } : best.cast ? { kind: 'cast', id: best.cast } : best.side === 'inv' ? { kind: 'inv', id: best.kind } : { kind: 'unit', id: best.kind, star: best.star }); return; }
   const b = e.target.closest('[data-l]'); if (!b || b.disabled) return; const a = b.dataset.l, R = LU.R;
-  if (a === 'exit') { if (LU.sheet && LU.sheet.kind === 'result' && R.phase === 'over') { LU.sheet = null; $('lr-sheet').hidden = true; } return lrExit(); }
+  if (a === 'exit') { if (LU.sheet && LU.sheet.kind === 'result' && R.phase === 'over') { LU.sheet = null; $('lr-sheet').hidden = true; $('lr').classList.remove('sheeton'); } return lrExit(); }
   if (a === 'tutoff') { LU.tut = -1; if (META) { META.lairTut = 1; try { saveMeta(); } catch (er) { /* 저장 없이 */ } } $('lr-coach').hidden = true; document.querySelectorAll('#lr .lr-glow').forEach(x => x.classList.remove('lr-glow')); return; }
   if (a === 'tutok') { LU.tut++; return lrCoach(); }
   if (a === 'close') return lrSheetClose();
@@ -219,6 +248,7 @@ function lrClick(e) {
   if (a === 'roominfo') return lrSheet({ kind: 'room', id: b.dataset.id });
   if (a === 'econ' || a === 'run' || a === 'core' || a === 'menu') { lrSay('click'); return lrSheet({ kind: a }); }
   if (a === 'cast') return lrSheet({ kind: 'cast', id: b.dataset.id });
+  if (a === 'invinfo') return lrSheet({ kind: 'inv', id: b.dataset.id });
   if (a === 'tog') { const k = b.dataset.v; META[k] = !(k === 'sound' ? META.sound : META[k] !== false); try { saveMeta(); if (k === 'music' && typeof musicSet === 'function') musicSet(META.music); } catch (er) { /* 저장 없이 */ } return lrSheet({ kind: 'menu' }); }
   if (LU.phase !== 'prep' || LU.flow) return;
   if (a === 'shop') { const i = +b.dataset.i; if (LU.sel && LU.sel.shop === i) return lrBuy(i); LU.sel = { shop: i }; lrSay('click'); return lrDraw(); }
@@ -319,13 +349,13 @@ function lrSheet(s) {
   if (s.kind === 'menu') h = `<h3>메뉴</h3>${lrTog('sound', '효과음', META.sound)}${lrTog('music', '음악', META.music !== false)}${lrTog('shake', '흔들림과 번쩍임', META.shake !== false)}<p class="lr-setrow"><span>빠르기</span><span class="lr-speed">${LSPD.map(q => `<button data-l="speed" data-v="${q[0]}" class="${LU.speed === q[0] ? 'on' : ''}" aria-pressed="${LU.speed === q[0]}">${q[1]}</button>`).join('')}</span></p><div class="lr-btns"><button data-l="exit">나가기</button><button class="pri" data-l="close">돌아간다</button></div>`;
   if (s.kind === 'result') h = lrResultHtml();
   const modal = s.kind === 'result';
-  el.innerHTML = `<div class="lr-sbody${modal ? ' res' : ''}">${modal ? '' : '<button class="lr-x" data-l="close" aria-label="닫기">✕</button>'}${h}</div>`; el.hidden = false; $('lr-coach').hidden = true;
+  el.innerHTML = `<div class="lr-sbody${modal ? ' res' : ''}">${modal ? '' : '<button class="lr-x" data-l="close" aria-label="닫기">✕</button>'}${h}</div>`; el.hidden = false; $('lr-coach').hidden = true; $('lr').classList.add('sheeton');
   if (modal) { lrResFit(); requestAnimationFrame(lrResFit); }
 }
 // 결과 창이 화면보다 길면 덜 중요한 줄부터 접는다 (그 밖 → 기여 줄 → 진액 내역)
 function lrResFit() { const b = lq('#lr-sheet .lr-sbody.res'); if (!b) return; const over = () => b.scrollHeight > b.clientHeight + 1, drop = sel => { const q = b.querySelectorAll(sel); if (!q.length) return false; q[q.length - 1].remove(); return true; }; if (over()) drop('.lr-rest'); while (over() && b.querySelectorAll('.lr-row').length > 2 && drop('.lr-row')) { /* 줄인다 */ } if (over()) drop('.lr-eco2'); if (over()) drop('.lr-nar'); }
 const LCST = { fresh: '아직 오지 않았다', mad: '미쳤었다', hurt: '쓰러졌었다', eaten: '삼켜졌다', bold: '살아 돌아갔다', gone: '오지 않는다' };
-function lrSheetClose() { LU.sheet = null; $('lr-sheet').hidden = true; lrCoach(); }
+function lrSheetClose() { LU.sheet = null; $('lr-sheet').hidden = true; $('lr').classList.remove('sheeton'); lrCoach(); }
 function lrSheetAnim(now) {
   const s = LU.sheet, cv = $('lr-prev'); if (!s || !cv) return; const x = cv.getContext('2d'), v = lrSheetView(); x.clearRect(0, 0, 96, 96);
   let h = null;
@@ -345,8 +375,8 @@ function lrFight() {
   const castSt = {}; (v0.cast || []).forEach(c => { castSt[c.id] = lrCastSt(c, v0); });
   const res = LAIR.ready(R); if (!res.ok) return lrToast(res.msg);
   lrTally(res.fight); lrSave(); if (R.phase === 'over') lrRecord(res.fight); else { try { if (typeof traceLive === 'function') traceLive(); } catch (e) { /* 기록 없이 */ } }
-  const f = res.fight, boss = !!v0.boss, F = { tl: f.timeline, i: 0, T: 0, ents: {}, fx: [], zones: [], nums: [], lines: [], late: [], feed: [], dice: [], stop: 0, shake: 0, shakeMag: 0, intro: boss ? 2300 : 1500, slowUntil: 0, slowK: 1, slows: 0, slowSeen: {}, blocks: 0, shots: 0, taunts: 0, checks: 0, bigChecks: 0, boons: 0, boonAt: {}, real: 0, done: false, endAt: 0, res, name, round, v0, step: v0.form.step, labs: [], rooms: f.rooms.map(r => ({ id: r.id, cells: r.cells, erased: false, pulse: 0 })), syn: f.syn, form: f.form, banner: null, consumed: 0, mads: 0, casts: 0 };
-  f.units.forEach(u => { const e = F.ents[u.id] = lrEnt(u); if (u.cast) e.artSt = castSt[u.cast] || ''; }); F.chips = lrSynChips(v0, f.syn);
+  const f = res.fight, boss = !!v0.boss, F = { tl: f.timeline, i: 0, T: 0, ents: {}, fx: [], zones: [], nums: [], lines: [], late: [], feed: [], meter: {}, meterDirty: false, meterAt: 0, plates: [], crowd: false, stop: 0, shake: 0, shakeMag: 0, intro: boss ? 2300 : 1500, slowUntil: 0, slowK: 1, slows: 0, slowSeen: {}, blocks: 0, shots: 0, taunts: 0, checks: 0, bigChecks: 0, boons: 0, boonAt: {}, real: 0, done: false, endAt: 0, res, name, round, v0, step: v0.form.step, labs: [], rooms: f.rooms.map(r => ({ id: r.id, cells: r.cells, erased: false, pulse: 0 })), syn: f.syn, form: f.form, banner: null, consumed: 0, mads: 0, casts: 0, bigCasts: 0, smallCasts: 0, frozen: 0 };
+  f.units.forEach(u => { const e = F.ents[u.id] = lrEnt(u); if (u.cast) e.artSt = castSt[u.cast] || ''; e.minor = !!LMINOR[u.kind]; }); F.chips = lrSynChips(v0, f.syn);
   { const w = f.timeline.find(e => e.type === 'win'); let last = null; f.timeline.forEach(e => { if (e.type === 'die') last = e; }); if (w && last && w.t - last.t < 1) last.last = 1; }
   LU.F = F; LU.res = res; LU.phase = 'fight'; LU.speed = LU.speed || 1; LU.paused = false; $('lr-ov').innerHTML = ''; $('lr-toast').hidden = true; LU.toastT = 0;
   Object.keys(F.ents).forEach(id => { const e = F.ents[id]; if (!e.core && e.side === 'inv') LU.warm.push([lrArtId(e.kind, e.artSt), 1, 'mad']); });
@@ -359,17 +389,31 @@ function lrEnt(u) {
   const p = lcen(u.cells && u.cells.length ? u.cells : [u.cell]);
   return { id: u.id, side: u.side, kind: u.kind, cast: u.cast || null, will: u.will || 0, artSt: '', star: u.star || 1, core: !!u.core, form: u.form, boss: !!u.boss, elite: !!u.elite, name: u.name, asp: u.asp, cls: u.cls, x: p.x, y: p.y, fx: p.x, fy: p.y, tx: p.x, ty: p.y, mv0: 0, mvDur: 0, mvAnim: '', anim: 'idle', a0: 0, hp: u.mhp, mhp: u.mhp, san: u.msan || 0, msan: u.msan || 0, mana: u.mana || 0, mmana: u.mmana || 100, mad: false, dead: false, dieT: -1, st: {}, flash: 0, rx: 0, ry: 0, face: u.side === 'inv' ? 1 : 0, lunge: null, pop: 0, off: Math.random() * 1200, ranged: 0, dot: 0, dotT: 0, shield: 0, swallow: false, role: u.role || (u.core ? 'core' : 'melee'), range: u.range || 1, summon: !!u.summon };
 }
+// 주역을 가리지 않게 작고 흐리게 그리는 것
+const LMINOR = { spawn: 1, infected: 1 };
 function lrHandle(e) { if (e.core) return lrBossH(e.form || 'drop', LU.F ? LU.F.step : 0); const aid = lrArtId(e.kind, e.artSt); if (aid === 'seeker') { const k = e.msan ? e.san / e.msan : 1; return LAIRART.unit('seeker', k > 0.66 ? 1 : k > 0.33 ? 2 : 3); } return LAIRART.unit(aid, aid === e.kind || LAIR.KIN[e.kind] ? e.star : 1) || LAIRART.unit('spawn', 1); }
 function lrSetAnim(e, anim, T) { e.anim = anim; e.a0 = T; }
-function lrLabel(x, y, text, cls, ms) {
-  const F = LU.F, sc = LU.scale, hw = (text.length * 12.5 + 16) / 2 / sc; ms = ms || 1100; x = Math.max(hw + 2, Math.min(LW - hw - 2, x)); y = Math.max(LU.wallH + 4, y);
-  if (F) { F.labs = F.labs.filter(l => l.until > LU.t); for (let k = 0; k < 4; k++) { if (F.labs.some(l => Math.abs(l.x - x) < hw + l.hw && Math.abs(l.y - y) < 19 / sc)) y -= 20 / sc; else break; } y = Math.max(38 / sc, y); F.labs.push({ x, y, hw, until: LU.t + ms }); }
-  const d = document.createElement('span'); d.className = 'lr-lab ' + (cls || ''); d.textContent = text; d.style.left = (x * sc) + 'px'; d.style.top = (y * sc) + 'px'; d.style.animationDuration = ms + 'ms'; $('lr-ov').appendChild(d); setTimeout(() => d.remove(), ms);
+// pri: 3 = 본체·우두머리의 스킬, 2 = 조사자·값진 권속의 스킬과 미침, 1 = 그 밖. 셋이 떠 있으면 더 가벼운 것을 지우고 뜨거나, 뜨지 않는다
+const LLABMAX = 3;
+function lrLabClean(F) { F.labs = F.labs.filter(l => { if (l.until > LU.t) return true; if (l.el) l.el.remove(); return false; }); }
+function lrLabel(x, y, text, cls, ms, pri) {
+  const F = LU.F, sc = LU.scale, hw = (text.length * 12.5 + 16) / 2 / sc, ban = /\bban\b/.test(cls || ''); ms = ms || 1100; pri = pri || 1; x = Math.max(hw + 2, Math.min(LW - hw - 2, x)); y = Math.max(LU.wallH + 4, y);
+  if (F) {
+    lrLabClean(F);
+    if (!ban) { const live = F.labs.filter(l => !l.ban); if (live.length >= LLABMAX) { const low = live.reduce((a, b) => (b.pri < a.pri || (b.pri === a.pri && b.until < a.until) ? b : a)); if (low.pri >= pri) return false; if (low.el) low.el.remove(); F.labs = F.labs.filter(l => l !== low); } }
+    for (let k = 0; k < 4; k++) { if (F.labs.some(l => Math.abs(l.x - x) < hw + l.hw && Math.abs(l.y - y) < 19 / sc)) y -= 20 / sc; else break; } y = Math.max(38 / sc, y);
+  }
+  const d = document.createElement('span'); d.className = 'lr-lab ' + (cls || '') + (pri >= 3 ? ' p3' : ''); d.textContent = text; d.style.left = (x * sc) + 'px'; d.style.top = (y * sc) + 'px'; d.style.animationDuration = ms + 'ms'; $('lr-ov').appendChild(d); setTimeout(() => d.remove(), ms);
+  if (F) F.labs.push({ x, y, hw, until: LU.t + ms, pri, ban, el: d }); return true;
 }
+// grp: 'hp'(피해) · 'san'(정신) · 'guard'(막음) · 'heal'. 같은 유닛·같은 갈래는 0.4초 안에서 하나로 더한다. 치명이 섞이면 치명으로 보인다
 function lrNum(F, x, y, text, kind, id) {
-  if (id && typeof text === 'number' && text > 0) { const q = F.nums.find(n => n.id === id && n.kind === kind && LU.t - n.t0 < 420); if (q) { q.val += text; q.text = Math.round(q.val); q.t0 = Math.max(q.t0, LU.t - 110); return; } }
-  if (F.nums.length > 18) F.nums.shift(); F.nums.push({ x, y, text: typeof text === 'number' ? Math.round(text) : text, val: typeof text === 'number' ? text : 0, kind, id, t0: LU.t });
+  const grp = kind === 'crit' || kind === 'dmg' ? 'hp' : kind;
+  if (id && typeof text === 'number' && text > 0) { const q = F.nums.find(n => n.id === id && n.grp === grp && LU.t - n.t1 < 400 && LU.t - n.t0 < 900); if (q) { q.val += text; q.text = Math.round(q.val); if (kind === 'crit') q.kind = 'crit'; q.t1 = LU.t; q.t0 = Math.max(q.t0, LU.t - 110); return; } }
+  if (F.nums.length > (F.crowd ? 12 : 18)) F.nums.shift(); F.nums.push({ x, y, text: typeof text === 'number' ? Math.round(text) : text, val: typeof text === 'number' ? text : 0, kind, grp, id, t0: LU.t, t1: LU.t });
 }
+// 이름표와 느린 화면을 받는 큰 것: 본체, 우두머리, 조사자, 값 4~5 권속
+const lrBig = u => !!u && (u.core || u.boss || !!u.cast || (u.side === 'nest' && !u.summon && LAIR.KIN[u.kind] && LAIR.KIN[u.kind].cost >= 4));
 function lrAddFx(F, name, a, b, o, dur, under, delay) { dur = dur || LFXDUR[name]; name = lrFxName(name); F.fx.push({ name, a, b: b || a, t0: F.T + (delay || 0), dur: dur || LFXDUR[name] || 0.6, o: o || {}, under: !!under }); if (F.fx.length > 40) F.fx.shift(); }
 function lrStop(F, ms, mag) { F.stop = Math.max(F.stop, ms); if (mag && typeof motionOk === 'function' && motionOk()) { F.shake = LU.t + 220; F.shakeMag = Math.max(F.shakeMag, mag); } }
 // 큰 순간: 잠깐 느리게 흐른다 (흔들림을 끈 사람에게는 하지 않는다)
@@ -400,72 +444,77 @@ function lrEv(F, ev) {
     case 'hit': {
       if (ev.k === 'atk' && !ev._late) { const by = E[ev.by]; F.late.push({ at: ev.t + (by && by.ranged ? LSHOT.rel + LSHOT.fly : LSHOT.hit), ev: Object.assign({ _late: 1 }, ev) }); return; }
       if (!u) return; u.hp = ev.hp; if (ev.sn != null && u.msan) u.san = ev.sn; if (ev.m != null) u.mana = ev.m;
-      const by = E[ev.by];
-      if (ev.k === 'dot' || ev.k === 'true') { u.dot += ev.dmg; if (T - u.dotT > 1 && u.dot > 0) { lrNum(F, u.x, u.y - 30, Math.round(u.dot), 'block'); u.dot = 0; u.dotT = T; } return; }
+      const by = E[ev.by], crowd = F.crowd, kill = ev.hp <= 0; lrMeterAdd(F, by, ev.dmg, u.msan && !u.mad ? ev.san : 0);
+      if (ev.k === 'dot' || ev.k === 'true') { u.dot += ev.dmg; if (T - u.dotT > 1 && u.dot > 0) { if (!crowd) lrNum(F, u.x, u.y - 30, Math.round(u.dot), 'block'); u.dot = 0; u.dotT = T; } return; }
       u.flash = LU.t + 100; if (!(u.lag > u.hp / u.mhp + 0.001)) u.lagHold = T + 0.2; if (by) { const dx = u.x - by.x, dy = u.y - by.y, d = Math.hypot(dx, dy) || 1; u.rx = dx / d * 5; u.ry = dy / d * 5; }
       if (!u.dead && (u.anim === 'idle' || u.anim === 'move' || u.anim === 'mad') && u.mvDur === 0) lrSetAnim(u, 'hit', T);
-      if (ev.dmg > 0) lrNum(F, u.x, u.y - 34, ev.dmg, ev.crit || (ev.k === 'skill' && ev.dmg >= u.mhp * 0.15) ? 'crit' : 'dmg', u.id);
-      if (ev.san > 0 && u.msan && !u.mad) lrNum(F, u.x + 16, u.y - 20, ev.san, 'san', u.id);
+      // 무리가 크면(양쪽 합 12 이상) 작은 평타 숫자와 막은 숫자는 감춘다. 치명, 처치, 스킬, 큰 정신 피해는 남는다
+      const crit = !!ev.crit || (ev.k === 'skill' && ev.dmg >= u.mhp * 0.15), small = ev.k === 'atk' && !crit && !kill;
+      if (ev.dmg > 0 && !(crowd && (small || u.minor))) lrNum(F, u.x, u.y - 34, ev.dmg, crit ? 'crit' : 'dmg', u.id);
+      if (ev.san > 0 && u.msan && !u.mad && (!crowd || ev.san >= u.msan * 0.1 || ev.sn <= 0)) lrNum(F, u.x + 16, u.y - 20, ev.san, 'san', u.id);
       if (ev.k === 'atk') lrAddFx(F, 'spark', { x: u.x, y: u.y - 12 }, null, { col: by && by.side === 'nest' ? '#c0fff0' : '#ffd0a0', seed: (ev.t * 7) % 1 }, 0.22);
-      if (ev.blk > 0 && by) { F.blocks++; if (!(u.blkT > T - 0.45)) { u.blkT = T; lrAddFx(F, 'block', { x: by.x, y: by.y - 12 }, { x: u.x, y: u.y - 14 }, null, 0.36); } lrNum(F, u.x - 18, u.y - 14, ev.blk, 'guard', u.id); }
+      if (ev.blk > 0 && by) { F.blocks++; if (!(u.blkT > T - 0.45)) { u.blkT = T; lrAddFx(F, 'block', { x: by.x, y: by.y - 12 }, { x: u.x, y: u.y - 14 }, null, 0.36); } if (!crowd) lrNum(F, u.x - 18, u.y - 14, ev.blk, 'guard', u.id); }
       if (LU.t - LU.hitAt > 70 / LU.speed) { LU.hitAt = LU.t; lrSay('hit'); }
       return;
     }
+    // 스킬: 큰 것만 이름표·느린 화면·기록을 받는다. 작은 것은 발밑 고리와 짧은 반짝임, 연출만
     case 'cast': {
-      if (!u) return; const tg = E[ev.tg]; if (tg) lrFace(u, tg.x); lrSetAnim(u, 'cast', T); u.mana = 0; F.casts++; u.castT = T; u.castDur = Math.max(0.3, ev.dur || 0.42);
-      if (!ev.again && !F.slowSeen[u.id] && (u.core || u.boss || (u.side === 'nest' && LAIR.KIN[u.kind] && LAIR.KIN[u.kind].cost >= 3))) { F.slowSeen[u.id] = 1; lrSlow(F, 700, 0.4); }
-      const sk = LAIR.SK[ev.sk]; if (sk && !ev.again) { lrLabel(u.x, u.y - (u.core ? 92 : 64), sk.name, 'sk ' + (u.side === 'nest' && !u.madSide ? 'nest' : 'inv'), Math.max(1000, 1250 / Math.sqrt(LU.speed))); F.feed.push({ icon: u.core ? 'boss:' + (u.form || 'drop') + ':' + F.step : u.cast && u.artSt ? u.kind + '/' + u.artSt : u.kind, star: u.core ? 1 : u.star, name: u.name, sk: sk.name, side: u.side }); if (F.feed.length > 6) F.feed.shift(); const fd = $('lr-feed'); if (fd) fd.innerHTML = lrFeedHtml(); }
-      if (tg) F.lines.push({ a: ev.u, b: ev.tg, until: T + (ev.dur || 0.35) + 0.25, side: u.side });
+      if (!u) return; const tg = E[ev.tg], big = lrBig(u); if (tg) lrFace(u, tg.x); lrSetAnim(u, 'cast', T); u.mana = 0; F.casts++; u.castT = T; u.castDur = Math.max(0.3, ev.dur || 0.42);
+      if (big && !ev.again && !F.slowSeen[u.id]) { F.slowSeen[u.id] = 1; lrSlow(F, 700, 0.4); }
+      const sk = LAIR.SK[ev.sk];
+      if (sk && !ev.again) { if (big) { F.bigCasts++; lrLabel(u.x, u.y - (u.core ? 92 : 64), sk.name, 'sk ' + (u.side === 'nest' && !u.madSide ? 'nest' : 'inv'), Math.max(1000, 1250 / Math.sqrt(LU.speed)), u.core || u.boss ? 3 : 2); lrFeed(F, u, sk.name); } else { F.smallCasts++; u.glow = LU.t + 260; } }
+      if (tg && big) F.lines.push({ a: ev.u, b: ev.tg, until: T + (ev.dur || 0.35) + 0.25, side: u.side });
       if (LU.t - LU.castAt > 160) { LU.castAt = LU.t; lrSay('spell'); }
       return;
     }
     case 'skillfx': return lrSkillFx(F, ev);
     case 'status': {
-      if (!u) return; if (ev.on) { u.st[ev.st] = { until: T + (ev.dur || 1), v: ev.v }; if (ev.st === 'shield') u.shield = 1; if (ev.st === 'stun') lrNum(F, u.x, u.y - 40, 0, 'block'); if (ev.st === 'marked' && !(u.markT > T - 1)) { u.markT = T; lrLabel(u.x, u.y - 62, '표식', 'inv', 900); } } else { delete u.st[ev.st]; if (ev.st === 'shield') u.shield = 0; }
-      if (ev.on && ev.st === 'taunted' && ev.by && E[ev.by] && !E[ev.by].dead) { const by = E[ev.by]; F.taunts++; F.lines.push({ a: ev.u, b: ev.by, until: T + 1, t0: T, side: by.side, aggro: 1 }); if (!(by.tauntT > T - 0.4)) { by.tauntT = T; lrAddFx(F, 'on', { x: by.x, y: by.y - 8 }, null, { col: '#f0a04a' }, 0.6); } }
+      if (!u) return; if (ev.on) { u.st[ev.st] = { until: T + (ev.dur || 1), v: ev.v }; if (ev.st === 'shield') u.shield = 1; if (ev.st === 'stun' && !F.crowd) lrNum(F, u.x, u.y - 40, 0, 'block'); if (ev.st === 'marked' && !(u.markT > T - 1)) { u.markT = T; lrLabel(u.x, u.y - 62, '표식', 'inv', 900, 1); } } else { delete u.st[ev.st]; if (ev.st === 'shield') u.shield = 0; }
+      if (ev.on && ev.st === 'taunted' && ev.by && E[ev.by] && !E[ev.by].dead) { const by = E[ev.by]; F.taunts++; if (!F.crowd || lrBig(by)) F.lines.push({ a: ev.u, b: ev.by, until: T + 1, t0: T, side: by.side, aggro: 1 }); if (!(by.tauntT > T - 0.4)) { by.tauntT = T; lrAddFx(F, 'on', { x: by.x, y: by.y - 8 }, null, { col: '#f0a04a' }, 0.6); } }
       return;
     }
     case 'mad': {
-      if (!u) return; u.mad = true; u.san = 0; F.mads++; lrSetAnim(u, 'mad', T); lrAddFx(F, 'madburst', { x: u.x, y: u.y - 8 }, null, { r: 1.2 }, 0.8); lrLabel(u.x, u.y - 62, '미쳤다', 'mad', 1300); lrNum(F, u.x, u.y - 30, 0, 'mad'); lrStop(F, 150, 3); lrSay('mad'); if (F.mads === 1) lrSlow(F, 800, 0.35);
+      if (!u) return; u.mad = true; u.san = 0; F.mads++; lrSetAnim(u, 'mad', T); lrAddFx(F, 'madburst', { x: u.x, y: u.y - 8 }, null, { r: 1.2 }, 0.8); lrLabel(u.x, u.y - 62, '미쳤다', 'mad', 1300, u.boss || u.cast ? 3 : 2); lrNum(F, u.x, u.y - 30, 0, 'mad'); lrStop(F, 150, 3); lrSay('mad'); if (F.mads === 1 || lrBig(u)) lrSlow(F, 800, 0.35); lrFeed(F, u, '미쳤다', 'mad');
       return;
     }
-    case 'cleanse': { if (!u) return; u.mad = false; if (ev.sn != null) u.san = ev.sn; lrAddFx(F, 'heal', { x: u.x, y: u.y - 8 }, null, { col: '#fff3a0' }); lrLabel(u.x, u.y - 62, '깨어났다', 'inv', 1000); return; }
+    case 'cleanse': { if (!u) return; u.mad = false; if (ev.sn != null) u.san = ev.sn; lrAddFx(F, 'heal', { x: u.x, y: u.y - 8 }, null, { col: '#fff3a0' }); lrLabel(u.x, u.y - 62, '깨어났다', 'inv', 1000, 1); return; }
     case 'die': {
       if (!ev._late) { let at = 0; F.late.forEach(l => { if (l.ev.u === ev.u && l.ev.type === 'hit') at = Math.max(at, l.at); }); if (at > T) { F.late.push({ at: at + 0.01, ev: Object.assign({ _late: 1 }, ev) }); return; } }
       if (!u) return; if (ev.last) lrSlow(F, 900, 0.3); u.dead = true; u.dieT = T; u.hp = 0; u.swallow = ev.how === 'swallow'; lrSetAnim(u, 'die', T);
-      if (u.side === 'nest' && !u.swallow) lrAddFx(F, 'ichor', { x: u.x, y: u.y - 6 }, null, { seed: u.x % 7 }); if (u.boss || u.elite) lrStop(F, 180, 4); lrSay('die');
+      if (u.side === 'nest' && !u.swallow && !u.minor) lrAddFx(F, 'ichor', { x: u.x, y: u.y - 6 }, null, { seed: u.x % 7 }); if (u.boss || u.elite) lrStop(F, 180, 4); lrSay('die');
+      if (!u.summon && (lrBig(u) || u.elite || (u.side === 'nest' && u.star >= 2))) lrFeed(F, u, u.swallow ? '삼켜졌다' : '쓰러졌다', 'die');
       return;
     }
     case 'spawn': {
       const p = C(ev.cell);
-      if (ev.revive && F.ents[ev.u]) { const q = F.ents[ev.u]; q.dead = false; q.dieT = -1; q.swallow = false; q.hp = ev.hp != null ? ev.hp : q.mhp; q.lag = q.hp / q.mhp; q.x = q.fx = q.tx = p.x; q.y = q.fy = q.ty = p.y; q.mvDur = 0; q.st = { wet: { until: T + 2, v: 1 } }; q.pop = T; lrSetAnim(q, 'idle', T); lrLabel(p.x, p.y - 62, '다시 낳았다', 'sk nest', 1200); lrStop(F, 120, 2); return; }
-      F.ents[ev.u] = lrEnt({ id: ev.u, side: ev.side, kind: ev.kind, star: ev.star || 1, cell: ev.cell, cells: [ev.cell], name: ev.name, mhp: ev.mhp, msan: 0, mmana: 0, mana: 0, role: ev.role, range: ev.range }); F.ents[ev.u].pop = T; F.ents[ev.u].summon = true; lrAddFx(F, ev.kind === 'spawn' || ev.kind === 'brute' ? 'on' : 'rise', p, null, { col: '#c8e870' }, 0.5);
+      if (ev.revive && F.ents[ev.u]) { const q = F.ents[ev.u]; q.dead = false; q.dieT = -1; q.swallow = false; q.hp = ev.hp != null ? ev.hp : q.mhp; q.lag = q.hp / q.mhp; q.x = q.fx = q.tx = p.x; q.y = q.fy = q.ty = p.y; q.mvDur = 0; q.st = { wet: { until: T + 2, v: 1 } }; q.pop = T; lrSetAnim(q, 'idle', T); lrLabel(p.x, p.y - 62, '다시 낳았다', 'sk nest', 1200, 2); lrFeed(F, q, '다시 낳았다'); lrStop(F, 120, 2); return; }
+      const n = F.ents[ev.u] = lrEnt({ id: ev.u, side: ev.side, kind: ev.kind, star: ev.star || 1, cell: ev.cell, cells: [ev.cell], name: ev.name, mhp: ev.mhp, msan: 0, mmana: 0, mana: 0, role: ev.role, range: ev.range }); n.pop = T; n.summon = true; n.minor = !!LMINOR[ev.kind]; lrAddFx(F, ev.kind === 'spawn' || ev.kind === 'brute' ? 'on' : 'rise', p, null, { col: '#c8e870' }, 0.5);
       return;
     }
-    // 공포 판정: 주사위가 머리 위에서 굴러 멎는다. 우두머리·조사자의 판정과 본체·값진 권속의 스킬이 부른 판정은 크게
+    // 공포 판정. 큰 것(우두머리·조사자의 판정, 본체 스킬이 부른 판정)만 주사위가 굴러 멎는다. 작은 것은 얼어붙었을 때만 짧게 알린다
     case 'check': {
-      if (!u) return; const by = E[ev.by], big = !!(u.boss || u.cast || (ev.why === 'skill' && by && by.core)), mo = typeof motionOk !== 'function' || motionOk(), roll = mo ? (big ? 800 : 520) : 0, hold = big ? 1300 : 900;
-      F.checks++; if (big) F.bigChecks++; F.dice = F.dice.filter(d => d.id !== u.id); F.dice.push({ id: u.id, dice: ev.dice.slice(), face: ev.face, ok: ev.ok, res: ev.res, big, t0: LU.t, roll, until: LU.t + roll + hold, said: false, seed: Math.floor(ev.t * 97) });
-      if (F.dice.length > 8) F.dice.shift(); if (big) { lrSlow(F, 900, 0.35); lrSay('click'); }
+      if (!u) return; const by = E[ev.by], big = !!(u.boss || u.cast || (ev.why === 'skill' && by && by.core)); F.checks++;
+      if (!big) { if (ev.res === 'froze') { F.frozen++; lrAddFx(F, 'madburst', { x: u.x, y: u.y - 8 }, null, { r: 0.7 }, 0.5); lrLabel(u.x, u.y - 58, LCHK.froze[0], 'mad sm', 800, 1); if (LU.t - (F.frozeAt || 0) > 300) { F.frozeAt = LU.t; lrSay('mad'); } } return; }
+      F.bigChecks++; lrPlate(F, u, ev); lrSlow(F, 900, 0.35); lrSay('click');
       // 처음 보는 판정에는 한 번 일러 준다
       if (!LU.toastT && META && !META.lairDice && !(navigator.webdriver && !window.__lairCoach)) { META.lairDice = 1; try { saveMeta(); } catch (er) { /* 저장 없이 */ } lrToast('공포 판정: 의지만큼 굴린다. ' + ev.face + ' 이상이 둘이면 버틴다.'); LU.toastT = LU.t + 4800; }
       return;
     }
     // 신화의 권능이 돌았다: 카드 이름이 짧게 뜬다 (같은 카드는 잠깐 쉬었다가)
     case 'boon': {
-      const c = ev.card && LAIR.MYTHOS[ev.card]; F.boons++; if (!c || F.boonAt[ev.card] > T - 2.5) return; F.boonAt[ev.card] = T;
-      const at = u ? { x: u.x, y: u.y } : ev.cell != null ? C(ev.cell) : lcen(LAIR.CORE); lrLabel(at.x, at.y - (u && u.core ? 92 : 58), c.name, 'boon', 1300); lrAddFx(F, 'on', { x: at.x, y: at.y - 8 }, null, { col: LCOL[c.asp] || '#ffd040' }, 0.6);
+      const c = ev.card && LAIR.MYTHOS[ev.card]; F.boons++; if (!c || F.boonAt[ev.card] > T - 4) return; F.boonAt[ev.card] = T;
+      const at = u ? { x: u.x, y: u.y } : ev.cell != null ? C(ev.cell) : lcen(LAIR.CORE); lrAddFx(F, 'on', { x: at.x, y: at.y - 8 }, null, { col: LCOL[c.asp] || '#ffd040' }, 0.6); if (!F.crowd) lrLabel(at.x, at.y - (u && u.core ? 92 : 58), c.name, 'boon', 1300, 1); lrFeed(F, null, c.name, 'boon');
       return;
     }
     case 'roomfx': {
       const rm = F.rooms.find(r => r.id === ev.room && (ev.i == null || true)); if (rm) rm.pulse = LU.t + 420;
       if (ev.kind === 'gold' && ev.cell != null) lrNum(F, lcx(ev.cell), lcy(ev.cell) - 20, '+' + (ev.amt || 1), 'gold');
-      if (ev.kind === 'erase') { const r2 = F.rooms.find(r => r.id === ev.room && !r.erased) || rm; if (r2) { r2.erased = true; const p = lcen(r2.cells); lrLabel(p.x, p.y - 18, '읽혔다', 'inv', 1500); lrAddFx(F, 'readblast', p, null, { r: 1 }, 0.8); lrStop(F, 160, 3); } }
+      if (ev.kind === 'erase') { const r2 = F.rooms.find(r => r.id === ev.room && !r.erased) || rm; if (r2) { r2.erased = true; const p = lcen(r2.cells); lrLabel(p.x, p.y - 18, '읽혔다', 'inv', 1500, 2); lrFeed(F, { img: lrRoomIcon(r2.id), name: LAIR.ROOM[r2.id].name, side: 'inv' }, '읽혔다', 'die'); lrAddFx(F, 'readblast', p, null, { r: 1 }, 0.8); lrStop(F, 160, 3); } }
       if (ev.kind === 'end') F.zones = F.zones.filter(z => !(ev.cells && z.cells.join() === ev.cells.join()));
       if ((ev.kind === 'wet' || ev.kind === 'infect' || ev.kind === 'on' || ev.kind === 'hatch') && ev.cell != null) lrAddFx(F, 'on', C(ev.cell), null, { col: ev.kind === 'wet' ? '#6ab8e0' : ev.kind === 'infect' ? '#c8d848' : ev.kind === 'hatch' ? '#d8e8a0' : '#8a6ab0' }, 0.45);
       return;
     }
-    case 'heal': { if (!u) return; u.hp = ev.hp; if (ev.amt >= 8) lrNum(F, u.x - 12, u.y - 26, '+' + Math.round(ev.amt), 'heal'); return; }
+    case 'heal': { if (!u) return; u.hp = ev.hp; if (ev.amt >= (F.crowd ? Math.max(40, u.mhp * 0.08) : 8)) lrNum(F, u.x - 12, u.y - 26, '+' + Math.round(ev.amt), 'heal'); return; }
     case 'sanity': { if (u && ev.sn != null) u.san = ev.sn; return; }
     case 'frenzy': F.banner = { text: '격해진다', until: LU.t + 1600 }; return;
     case 'sudden': F.banner = { text: '굴이 무너진다', until: LU.t + 1800 }; lrStop(F, 0, 3); return;
@@ -514,6 +563,8 @@ function lrStep(dt) {
     for (const k in e.st) if (e.st[k].until < T) { delete e.st[k]; if (k === 'shield') e.shield = 0; }
   }
   F.fx = F.fx.filter(f => T - f.t0 < f.dur); F.zones = F.zones.filter(z => z.until > T); F.lines = F.lines.filter(l => l.until > T);
+  { let n = 0; for (const id in F.ents) { const e = F.ents[id]; if (!e.dead && !e.core) n++; } F.crowd = n >= 12; } lrLabClean(F);
+  if (F.meterDirty && LU.t - F.meterAt > 300) { F.meterAt = LU.t; F.meterDirty = false; const m = $('lr-meter'); if (m) m.innerHTML = lrMeterHtml(); }
   if (F.done && LU.t >= F.endAt && !LU.sheet) lrShowResult();
 }
 function lrShowResult() {
@@ -563,6 +614,17 @@ function lrRing(x, cx, cy, col, w, role) {
 // 역할 표지: 고리의 왼쪽 아래 모서리
 function lrBadge(x, role, cx, cy) { if (LAIRART.roleDraw(x, role, cx - 22, cy + 3, 2)) LU.dbg.badges++; }
 const LTMP = { c: null };
+const LCORE_FADE = 0.45;
+// front = 본체의 솟은 데 앞에 누가 서 있는가. 그러면 맨 아랫줄의 윗금 위쪽은 흐리게 그린다
+function lrDrawCore(x, h, px, py, anim, t, o, front) {
+  if (!h) return; LU.dbg.coreFade = front ? 1 : 0;
+  if (!front) return lrDrawUnit(x, h, px, py, anim, t, o);
+  const cut = LU.wallH + LS * 5, a = o.alpha == null ? 1 : o.alpha;
+  x.save(); x.beginPath(); x.rect(-20, cut, LW + 40, LS * 2); x.clip(); lrDrawUnit(x, h, px, py, anim, t, o); x.restore();
+  x.save(); x.beginPath(); x.rect(-20, -20, LW + 40, cut + 20); x.clip(); lrDrawUnit(x, h, px, py, anim, t, Object.assign({}, o, { alpha: a * LCORE_FADE })); x.restore();
+}
+// 본체 그림의 폭 안, 바로 윗줄에 선 것이 있는가 (xs = 그 줄에 선 것들의 x)
+const lrCoreFront = (h, xs) => { const cx = lcen(LAIR.CORE).x, hw = (h ? h.size : 80) / 2 + 14; return xs.some(q => Math.abs(q - cx) < hw); };
 function lrDrawUnit(x, h, px, py, anim, t, o) {
   if (!h) return; h.draw(x, px, py, anim, t, o);
   if (o.white) { const c = LTMP.c || (LTMP.c = document.createElement('canvas')), fr = h.frame(anim, t, o); if (c.width < fr.width || c.height < fr.height) { c.width = Math.max(c.width, fr.width); c.height = Math.max(c.height, fr.height); } const g = c.getContext('2d'); g.globalCompositeOperation = 'source-over'; g.clearRect(0, 0, c.width, c.height); g.drawImage(fr, 0, 0); g.globalCompositeOperation = 'source-in'; g.fillStyle = '#ffffff'; g.fillRect(0, 0, fr.width, fr.height);
@@ -571,7 +633,7 @@ function lrDrawUnit(x, h, px, py, anim, t, o) {
 function lrStarPips(x, cx, y, n) { if (n < 2) return; const w = n * 7 - 1; for (let k = 0; k < n; k++) { x.fillStyle = '#0c0812'; x.fillRect(cx - w / 2 + k * 7 - 1, y - 1, 7, 7); x.fillStyle = n >= 3 ? '#ffd040' : '#d8e0f0'; x.fillRect(cx - w / 2 + k * 7, y, 5, 5); } }
 function lrRender(now) {
   const cv = $('lr-cv'), x = cv.getContext('2d'), R = LU.R, F = LU.F, gnd = LS * 0.3, t = now / 1000; if (!R) return;
-  LU.dbg = { badges: 0, range: [], rows: [], dive: 0, dice: 0 };
+  LU.dbg = { badges: 0, range: [], rows: [], dive: 0, dice: 0, coreFade: 0 };
   x.imageSmoothingEnabled = false; x.setTransform(1, 0, 0, 1, 0, 0); x.fillStyle = '#07050c'; x.fillRect(0, 0, cv.width, cv.height);
   if (F && F.shake > LU.t) { const m = F.shakeMag * (F.shake - LU.t) / 220; x.translate(Math.round((Math.random() - 0.5) * 2 * m), Math.round((Math.random() - 0.5) * 2 * m)); } else if (F) F.shakeMag = 0;
   x.drawImage(LAIRART.wallTop(LS, 6, t), 0, 0); x.drawImage(lrBg(), 0, LU.wallH);
@@ -599,66 +661,83 @@ function lrRenderPrep(x, now, gnd) {
   foes.forEach(e => list.push({ y: lcy(e.cell), d: () => { const h = lrUnitH(e.kind, 1, e.poss ? 'poss' : e.cast && R.cast && R.cast.mem[e.cast] && (R.cast.mem[e.cast].state === 'mad' || R.cast.mem[e.cast].state === 'hurt') ? 'hurt' : ''), px = lcx(e.cell), py = lcy(e.cell) + gnd; const role = LAIR.INV[e.kind] ? LAIR.INV[e.kind].role : 'melee'; lrRing(x, px, py - 2, e.cast ? '#ffb040' : '#c8303a', LAIR.INV[e.kind] && LAIR.INV[e.kind].boss ? 22 : 17, role); lrDrawUnit(x, h, px, py, 'idle', now + e.cell * 97, { flip: true, alpha: 0.92 }); } }));
   Object.keys(R.board).forEach(c => { const uid = R.board[c], u = R.unit[uid]; c = +c; list.push({ y: lcy(c) + (uid === sel ? 1 : 0), d: () => { const h = lrUnitH(u.kind, u.star), px = lcx(c), up = uid === sel ? 7 + Math.sin(now / 160) * 2 : 0, py = lcy(c) + gnd; let sc = 1; if (LU.cellPop && LU.cellPop.cell === c && LU.t - LU.cellPop.t0 < 320) { const k = (LU.t - LU.cellPop.t0) / 320; sc = 1 + (LU.cellPop.soft ? 0.12 : 0.35) * Math.sin(k * 3.1416); } lrRing(x, px, py - 2, uid === sel ? '#fff3a0' : '#2fa8a0', 17, LAIR.KIN[u.kind].role); lrDrawUnit(x, h, px, py - up, 'idle', now + c * 131, { scale: sc }); lrStarPips(x, px, py - h.size * 0.86 - 8 - up, u.star); } }); });
   const cp = lcen(LAIR.CORE);
-  list.push({ y: cp.y - 1, d: () => { lrRing(x, cp.x, cp.y + gnd, '#2fa8a0', 40); lrDrawUnit(x, lrBossH(R.form, R.awake), cp.x, cp.y + gnd + 4, 'idle', now, {}); } });
+  { const bh = lrBossH(R.form, R.awake), front = lrCoreFront(bh, Object.keys(R.board).map(Number).filter(c => Math.floor(c / 6) === 4).map(lcx)); list.push({ y: -1, d: () => { lrRing(x, cp.x, cp.y + gnd, '#2fa8a0', 40); lrDrawCore(x, bh, cp.x, cp.y + gnd + 4, 'idle', now, {}, front); } }); }
   list.sort((a, b) => a.y - b.y).forEach(q => q.d());
   // 역할 표지는 몸 위에 그린다. 침투하는 적은 뛰어들 뒷줄까지 줄을 긋는다
   foes.forEach(e => { const role = LAIR.INV[e.kind] ? LAIR.INV[e.kind].role : 'melee'; lrBadge(x, role, lcx(e.cell), lcy(e.cell) + gnd - 2);
     if (role === 'dive') { LU.dbg.dive++; const x0 = lcx(e.cell), y0 = lcy(e.cell) + 8, col = e.cell % 6, x1 = lcx(30 + (col === 2 ? 1 : col === 3 ? 4 : col)), y1 = lcy(30) - 6, mx = (x0 + x1) / 2 + (col < 3 ? -40 : 40), my = (y0 + y1) / 2; x.save(); x.strokeStyle = LAIRART.ROLEC.dive; x.globalAlpha = 0.85; x.lineWidth = 2; x.setLineDash([6, 5]); x.lineDashOffset = -now / 45; x.beginPath(); x.moveTo(x0, y0); x.quadraticCurveTo(mx, my, x1, y1); x.stroke(); x.setLineDash([]); const an = Math.atan2(y1 - my, x1 - mx); x.fillStyle = LAIRART.ROLEC.dive; x.beginPath(); x.moveTo(x1 + Math.cos(an) * 6, y1 + Math.sin(an) * 6); x.lineTo(x1 + Math.cos(an + 2.5) * 9, y1 + Math.sin(an + 2.5) * 9); x.lineTo(x1 + Math.cos(an - 2.5) * 9, y1 + Math.sin(an - 2.5) * 9); x.fill(); x.restore(); } });
   Object.keys(R.board).forEach(c => { const u = R.unit[R.board[c]]; lrBadge(x, LAIR.KIN[u.kind].role, lcx(+c), lcy(+c) + gnd - 2); });
 }
+// 싸움 중의 막대: 얇게 한 덩어리로. 체력(3) · 정신(2, 보라) · 마나(1, 파랑). 작은 것(새끼, 감염체)은 체력만
+function lrBars(x, e, top, w) {
+  const x0 = Math.round(e.x - w / 2), iw = w - 2, inv = e.side === 'inv' && !e.mad, hasSan = !!e.msan && !e.mad, hasMana = !!e.mmana && !e.minor, hh = e.minor ? 2 : e.core || e.boss ? 4 : 3, H = 2 + hh + (hasSan ? 3 : 0) + (hasMana ? 2 : 0);
+  top = Math.round(top); x.fillStyle = '#0c0812'; x.fillRect(x0, top, w, H); x.fillStyle = '#2a2434'; x.fillRect(x0 + 1, top + 1, iw, hh);
+  const hf = Math.max(0, Math.min(1, e.hp / e.mhp)), fw = Math.round(iw * hf), lw = Math.round(iw * Math.min(1, e.lag || 0)) - fw;
+  if (lw > 0) { x.fillStyle = '#ffffff'; x.fillRect(x0 + 1 + fw, top + 1, lw, hh); }
+  if (fw > 0) { x.fillStyle = e.mad ? '#f070e8' : inv ? '#e85040' : '#3ad8b0'; x.fillRect(x0 + 1, top + 1, fw, hh); x.fillStyle = e.mad ? '#ffc8f8' : inv ? '#ffb0a0' : '#c0fff0'; x.fillRect(x0 + 1, top + 1, fw, 1); }
+  if (e.shield) { x.fillStyle = '#bfe8ff'; x.fillRect(x0, top - 1, w, 1); }
+  let y = top + 1 + hh;
+  if (hasSan) { x.fillStyle = '#1a1230'; x.fillRect(x0 + 1, y + 1, iw, 2); x.fillStyle = '#b08fff'; x.fillRect(x0 + 1, y + 1, Math.round(iw * Math.max(0, Math.min(1, e.san / e.msan))), 2); y += 3; }
+  if (hasMana) { const mk = Math.max(0, Math.min(1, e.mana / e.mmana)); x.fillStyle = '#10182c'; x.fillRect(x0 + 1, y + 1, iw, 1); x.fillStyle = mk >= 1 ? '#fff3a0' : '#4aa8ff'; x.fillRect(x0 + 1, y + 1, Math.round(iw * mk), 1); }
+  return H;
+}
 function lrRenderFight(x, now, gnd) {
   const F = LU.F, T = F.T, ms = T * 1000, fxo = { px: 2, size: LS };
   F.zones.forEach(z => z.cells.forEach(c => LAIRART.fx('burnzone', x, { x: lcx(c), y: lcy(c) }, { x: lcx(c), y: lcy(c) }, ((T - z.t0) * 1.3) % 1, fxo)));
   F.fx.forEach(f => { if (f.under && f.a && T >= f.t0) LAIRART.fx(f.name, x, f.a, f.b, (T - f.t0) / f.dur, Object.assign({}, fxo, f.o)); });
-  const list = Object.keys(F.ents).map(id => F.ents[id]).filter(e => !(e.dead && T - e.dieT > (e.swallow ? 0.3 : 1.15))).sort((a, b) => a.y - b.y);
+  // 죽은 것은 먼저(밑에), 그다음 위에서 아래로
+  const lay = e => (e.dead ? 0 : e.core && e.anim !== 'cast' ? 1 : 2), list = Object.keys(F.ents).map(id => F.ents[id]).filter(e => !(e.dead && T - e.dieT > (e.swallow ? 0.3 : 1))).sort((a, b) => lay(a) - lay(b) || a.y - b.y);
+  const rowY = lcy(24), coreFront = lrCoreFront(lrBossH(F.form || 'drop', F.step), list.filter(e => !e.dead && !e.core && Math.abs(e.y - rowY) < LS * 0.55).map(e => e.x));
   // 겨누는 줄
   F.lines.forEach(l => { const a = l.pa || lrPos(F, l.a), b = l.pb || lrPos(F, l.b); if (!a || !b) return; if (l.aggro) { const k = Math.max(0, (l.until - T)); x.save(); x.globalAlpha = Math.min(1, k * 2); x.strokeStyle = '#f0a04a'; x.lineWidth = 2; x.setLineDash([7, 4]); x.lineDashOffset = -now / 25; x.beginPath(); x.moveTo(Math.round(a.x), Math.round(a.y - 10)); x.lineTo(Math.round(b.x), Math.round(b.y - 10)); x.stroke(); x.restore(); return; } x.save(); x.strokeStyle = l.side === 'nest' ? 'rgba(143,232,216,.8)' : 'rgba(255,150,120,.8)'; x.lineWidth = 1; x.setLineDash([3, 3]); x.lineDashOffset = -now / 40; x.beginPath(); x.moveTo(Math.round(a.x), Math.round(a.y - 10)); x.lineTo(Math.round(b.x), Math.round(b.y - 10)); x.stroke(); x.restore(); });
   list.forEach(e => {
-    const h = lrHandle(e); if (!h) return; let px = e.x + e.rx, py = e.y + gnd + e.ry, sc = 1, alpha = 1;
+    const h = lrHandle(e); if (!h) return; let px = e.x + e.rx, py = e.y + gnd + e.ry, sc = e.minor ? 0.8 : 1, alpha = e.minor ? 0.85 : 1;
     if (e.lunge) { const k = (T - e.lunge.t0) / 0.46; if (k >= 1) e.lunge = null; else { const s = e.lunge.r ? (k < 0.41 ? 0 : -(k < 0.5 ? (k - 0.41) / 0.09 : 1 - (k - 0.5) / 0.5)) : k < 0.3 ? -0.2 * (k / 0.3) : k < 0.45 ? -0.2 + 1.2 * ((k - 0.3) / 0.15) : k < 0.6 ? 1 : 1 - (k - 0.6) / 0.4; px += e.lunge.ux * e.lunge.len * s; py += e.lunge.uy * e.lunge.len * s; } }
     if (e.mvDur > 0 && (e.mvAnim === 'leap')) { const k = Math.min(1, (T - e.mv0) / e.mvDur); py -= Math.sin(k * 3.1416) * 26; }
     if (e.mvDur > 0 && e.mvAnim === 'blink') alpha = 0.4;
-    if (e.pop && T - e.pop < 0.3) sc = 0.3 + 0.7 * ((T - e.pop) / 0.3);
-    if (e.dead) { const k = T - e.dieT; if (e.swallow) { sc = Math.max(0.05, 1 - k / 0.3); alpha = sc; } else if (k > 0.85) alpha = Math.max(0, 1 - (k - 0.85) / 0.3); }
+    if (e.pop && T - e.pop < 0.3) sc *= 0.3 + 0.7 * ((T - e.pop) / 0.3);
+    // 쓰러진 것은 곧 흐려져 주역을 가리지 않는다
+    if (e.dead) { const k = T - e.dieT; if (e.swallow) { sc = Math.max(0.05, 1 - k / 0.3); alpha = sc; } else alpha *= k < 0.25 ? 1 - k * 1.6 : k < 0.7 ? 0.6 : Math.max(0, 0.6 * (1 - (k - 0.7) / 0.3)); }
     if (e.st.stealth) alpha *= 0.45;
     if (e.core) py += 4;
-    if (!e.dead) lrRing(x, e.x, e.y + gnd - 2 + (e.core ? 4 : 0), e.mad ? '#f070e8' : e.side === 'nest' ? '#2fa8a0' : e.cast ? '#ffb040' : '#c8303a', e.core ? 40 : e.boss ? 22 : 17, e.core ? null : e.role);
+    if (!e.dead) lrRing(x, e.x, e.y + gnd - 2 + (e.core ? 4 : 0), e.mad ? '#f070e8' : e.side === 'nest' ? '#2fa8a0' : e.cast ? '#ffb040' : '#c8303a', e.core ? 40 : e.boss ? 22 : e.minor ? 11 : 17, e.core ? null : e.role);
     if (e.castT != null && T - e.castT < e.castDur && !e.dead) { const k = (T - e.castT) / e.castDur, col = e.side === 'nest' ? (LCOL[e.asp] || '#8fe8d8') : '#ffb060', rw = (e.core ? 54 : 30) * (1.25 - k * 0.75); x.save(); x.globalAlpha = 0.35 + 0.55 * k; x.strokeStyle = col; x.lineWidth = 2; x.beginPath(); x.ellipse(Math.round(e.x), Math.round(e.y + gnd - 2), rw, rw * 0.4, 0, 0, 6.2832); x.stroke(); x.globalAlpha = 0.18 * k; x.fillStyle = col; x.fill(); x.restore(); }
     const anim = e.anim, at = anim === 'idle' || anim === 'move' || anim === 'mad' ? ms + e.off : (T - e.a0) * 1000;
-    lrDrawUnit(x, h, px, py, anim, at, { flip: !!e.face, mad: e.mad, scale: sc, alpha, white: e.flash > LU.t });
+    const o = { flip: !!e.face, mad: e.mad, scale: sc, alpha, white: e.flash > LU.t || e.glow > LU.t };
+    if (e.core) lrDrawCore(x, h, px, py, anim, at, o, coreFront && anim !== 'cast' && !e.dead); else lrDrawUnit(x, h, px, py, anim, at, o);
   });
-  // 막대와 상태
+  // 막대와 상태 (역할 표지는 싸움 중에는 그리지 않는다: 발밑 고리의 모양이 역할이다)
   list.forEach(e => {
-    if (e.dead) return; const h = lrHandle(e), top = e.y + gnd - (h ? h.size : 48) * 0.86 - (e.core ? 2 : 8), w = e.core ? 64 : e.boss ? 44 : 32;
-    LAIRART.bar(x, e.x, top, w, e.hp / e.mhp, e.msan && !e.mad ? e.san / e.msan : null, { side: e.side === 'inv' && !e.mad ? 'inv' : 'kin', mana: e.mmana ? e.mana / e.mmana : null, shield: e.shield });
-    { const hf = Math.max(0, e.hp / e.mhp), fw = Math.round((w - 2) * hf), lw = Math.round((w - 2) * Math.min(1, e.lag || 0)) - fw; if (lw > 0) { x.fillStyle = '#ffffff'; x.fillRect(Math.round(e.x - w / 2) + 1 + fw, top + 1, lw, 4); } }
-    lrStarPips(x, e.x, top - 8, e.side === 'nest' && !e.core && !e.summon ? e.star : 0);
-    let k = 0; for (const st in e.st) { if (!LSTC[st]) continue; const sx = Math.round(e.x - w / 2 + k * 7), sy = Math.round(top + (e.msan && !e.mad ? 14 : 10)); x.fillStyle = '#0c0812'; x.fillRect(sx - 1, sy - 1, 7, 7); x.fillStyle = LSTC[st]; x.fillRect(sx, sy, 5, 5); if (st === 'stun' || st === 'silenced') { x.fillStyle = '#0c0812'; x.fillRect(sx + 2, sy + 1, 1, 3); x.fillRect(sx + 1, sy + 2, 3, 1); } k++; }
+    if (e.dead) return; const h = lrHandle(e), top = e.core ? Math.max(e.y + gnd - (h ? h.size : 80) * 0.86 - 2, LU.wallH + LS * 5 - 22) : e.y + gnd - (h ? h.size : 48) * (e.minor ? 0.7 : 0.86) - 7, w = e.core ? 64 : e.boss ? 44 : e.minor ? 16 : 28, bh = lrBars(x, e, top, w);
+    if (e.minor) return;
+    lrStarPips(x, e.x, top - 7, e.side === 'nest' && !e.core && !e.summon ? e.star : 0);
+    let k = 0; for (const st in e.st) { if (!LSTC[st] || k >= 4) continue; const sx = Math.round(e.x - w / 2 + 1 + k * 6), sy = Math.round(top + bh + 1); x.fillStyle = '#0c0812'; x.fillRect(sx - 1, sy - 1, 6, 6); x.fillStyle = LSTC[st]; x.fillRect(sx, sy, 4, 4); k++; }
   });
-  list.forEach(e => { if (!e.dead && !e.core) lrBadge(x, e.role, e.x, e.y + gnd - 2); });
   list.forEach(e => { if (e.dead || !e.st.marked) return; const cy = e.y + gnd - 26, r = 15 + Math.sin(now / 130) * 1.5; x.save(); x.strokeStyle = '#ff4060'; x.lineWidth = 2; x.setLineDash([5, 4]); x.lineDashOffset = now / 50; x.beginPath(); x.arc(Math.round(e.x), Math.round(cy), r, 0, 6.2832); x.stroke(); x.restore(); });
   F.fx.forEach(f => { if (!f.under && f.a && T >= f.t0) LAIRART.fx(f.name, x, f.a, f.b, (T - f.t0) / f.dur, Object.assign({}, fxo, f.o)); });
   const nl = 820 / Math.sqrt(LU.speed); F.nums = F.nums.filter(n => LU.t - n.t0 < nl); F.nums.forEach(n => LAIRART.num(x, n.x, n.y, n.text, n.kind, (LU.t - n.t0) / nl, n.kind === 'crit' ? 4 / 3 : n.kind === 'guard' ? 1.5 : 2));
-  lrDiceDraw(x, F, gnd);
+  lrPlates(F, gnd);
   // 시작 알림 · 광란
   if (F.banner && F.banner.until > LU.t && !F.banner.shown) { F.banner.shown = 1; lrLabel(LW / 2, LU.wallH + 26, F.banner.text, 'ban', F.banner.until - LU.t); }
 }
-// 공포 판정의 주사위: 뼈로 깎은 흰 주사위. 성공한 눈은 보랏빛 테, 실패는 어둡게
+// 큰 공포 판정의 주사위 판: 뼈로 깎은 흰 주사위. 성공한 눈은 보랏빛 테, 실패는 어둡게. 이름표보다 위에 뜨는 DOM 이고, 멎으면 결과가 함께 적힌다
 const LPIP = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
-function lrDie(x, px, py, s, n, state) {
-  const u = Math.max(1, Math.round(s / 6)); px = Math.round(px); py = Math.round(py); x.save(); if (state === 'fail') x.globalAlpha = 0.55;
-  if (state === 'ok') { x.fillStyle = '#b48cff'; x.fillRect(px - 2 * u, py - 2 * u, s + 4 * u, s + 4 * u); }
-  x.fillStyle = '#0c0812'; x.fillRect(px - u, py - u, s + 2 * u, s + 2 * u); x.fillStyle = '#e9e2cf'; x.fillRect(px, py, s, s); x.fillStyle = '#cfc6ae'; x.fillRect(px, py + s - u, s, u);
-  const g = (s - 2 * u) / 3; x.fillStyle = '#0c0812'; (LPIP[n] || LPIP[1]).forEach(k => { const cx = px + u + g * (k % 3) + g / 2, cy = py + u + g * Math.floor(k / 3) + g / 2 - u / 2, r = Math.max(1, Math.round(u * 0.9)); x.fillRect(Math.round(cx - r / 2), Math.round(cy - r / 2), r, r); });
-  x.restore();
-}
 const LCHK = { froze: ['얼어붙었다', 'mad'], shaken: ['흔들렸다', 'inv'], held: ['버텼다', 'held'] };
-function lrDiceDraw(x, F, gnd) {
-  F.dice = F.dice.filter(d => d.until > LU.t && F.ents[d.id] && !F.ents[d.id].dead);
-  F.dice.forEach(d => {
-    const e = F.ents[d.id], h = lrHandle(e), s = d.big ? 18 : 13, gap = d.big ? 4 : 3, n = d.dice.length, w = n * s + (n - 1) * gap, top = e.y + gnd - (h ? h.size : 48) * 0.86 - (d.big ? 36 : 28), el = LU.t - d.t0, rolling = el < d.roll, x0 = Math.max(4, Math.min(LW - w - 4, e.x - w / 2));
-    d.dice.forEach((v, i) => { const face = rolling ? 1 + ((d.seed + i * 5 + Math.floor(el / 70) * (i + 2)) % 6) : v, jy = rolling ? Math.round(Math.sin(el / 45 + i * 1.7) * 2) : 0; lrDie(x, x0 + i * (s + gap), top + jy, s, face, rolling ? '' : v >= d.face ? 'ok' : 'fail'); LU.dbg.dice++; });
-    if (!rolling && !d.said) { d.said = true; const L = LCHK[d.res]; if (L && (d.big || d.res === 'froze')) lrLabel(e.x, top - 4, L[0], L[1], d.big ? 1300 : 900); if (d.res === 'froze') { lrAddFx(F, 'madburst', { x: e.x, y: e.y - 8 }, null, { r: d.big ? 1.2 : 0.7 }, 0.5); if (d.big) lrStop(F, 140, 3); lrSay('mad'); } else if (d.big) lrSay(d.res === 'held' ? 'thud' : 'hit'); }
+function lrPlate(F, u, ev) {
+  const mo = typeof motionOk !== 'function' || motionOk(), roll = mo ? 800 : 0, d = document.createElement('div'); d.className = 'lr-dice';
+  d.innerHTML = `<span>${ev.dice.map(() => '<i class="lr-die">' + '<u></u>'.repeat(9) + '</i>').join('')}</span><b></b>`;
+  while (F.plates.length >= 2) F.plates.shift().el.remove();
+  $('lr-ov').appendChild(d); F.plates.push({ el: d, id: u.id, dice: ev.dice.slice(), face: ev.face, res: ev.res, t0: LU.t, roll, until: LU.t + roll + 1500, said: false, seed: Math.floor(ev.t * 97), last: -9 });
+}
+function lrPlateFace(die, n, cls) { const us = die.children, on = LPIP[n] || LPIP[1]; for (let k = 0; k < 9; k++) us[k].className = on.includes(k) ? 'on' : ''; die.className = 'lr-die ' + cls; }
+function lrPlates(F, gnd) {
+  if (!F.plates.length) return; F.plates = F.plates.filter(p => { if (p.until > LU.t && F.ents[p.id] && p.el.parentNode) return true; p.el.remove(); return false; });
+  F.plates.forEach(p => {
+    const e = F.ents[p.id], h = lrHandle(e), sc = LU.scale, top = e.y + gnd - (h ? h.size : 48) * 0.86 - 12, el = LU.t - p.t0, rolling = el < p.roll, dice = p.el.firstChild.children, hw = dice.length * 13 + 8;
+    p.el.style.left = Math.max(hw, Math.min(LW * sc - hw, e.x * sc)) + 'px'; p.el.style.top = Math.max(64, top * sc) + 'px';
+    const tick = rolling ? Math.floor(el / 80) : -1; if (tick !== p.last) { p.last = tick; for (let i = 0; i < dice.length; i++) lrPlateFace(dice[i], rolling ? 1 + ((p.seed + i * 5 + tick * (i + 2)) % 6) : p.dice[i], rolling ? 'roll' : p.dice[i] >= p.face ? 'ok' : 'fail'); }
+    if (!rolling && !p.said) { p.said = true; const L = LCHK[p.res]; p.el.lastChild.textContent = L[0]; p.el.classList.add(p.res); lrFeed(F, e, L[0], p.res === 'froze' ? 'mad' : ''); if (p.res === 'froze') { lrAddFx(F, 'madburst', { x: e.x, y: e.y - 8 }, null, { r: 1.2 }, 0.5); lrStop(F, 140, 3); lrSay('mad'); } else lrSay(p.res === 'held' ? 'thud' : 'hit'); }
+    LU.dbg.dice += dice.length;
   });
 }
 function lrLoop(now) {
@@ -672,4 +751,4 @@ function lrLoop(now) {
   if (LU.toastT && now > LU.toastT) { $('lr-toast').hidden = true; LU.toastT = 0; }
 }
 // 시험용
-if (typeof window !== 'undefined') window.__lair = { get R() { return LU.R; }, get U() { return LU; }, get F() { return LU.F; }, L: typeof LAIR !== 'undefined' ? LAIR : null, open: run => lairOpen(run), saved: () => lairSaved(), fresh: seed => lrNew(seed), view: () => lrView(), flow: () => lrFlow(), art: (k, st) => lrArtId(k, st), pt(c) { const r = $('lr-cv').getBoundingClientRect(); return { x: r.left + lcx(c) * LU.scale, y: r.top + lcy(c) * LU.scale }; }, redraw: () => { lrWarmPrep(); lrDraw(); }, give(kind, star, cell) { const R = LU.R, uid = R.nextUid++; R.unit[uid] = { uid, kind, star: star || 1 }; if (cell != null) R.board[cell] = uid; else R.bench[R.bench.indexOf(null)] = uid; return uid; }, sheet: s => lrSheet(s), dbg: () => LU.dbg, speeds: () => LSPD.map(q => q[0]), stats() { const F = LU.F; return F ? { T: F.T, i: F.i, n: F.tl.length, done: F.done, intro: F.intro, real: F.real / 1000, slows: F.slows, blocks: F.blocks, shots: F.shots, taunts: F.taunts, checks: F.checks, bigChecks: F.bigChecks, boons: F.boons, dice: F.dice.length, alive: Object.keys(F.ents).filter(id => !F.ents[id].dead && !F.ents[id].core).length, mads: F.mads, casts: F.casts, late: F.late.length, ents: Object.keys(F.ents).length, frames: LU.fpsN } : null; } };
+if (typeof window !== 'undefined') window.__lair = { get R() { return LU.R; }, get U() { return LU; }, get F() { return LU.F; }, L: typeof LAIR !== 'undefined' ? LAIR : null, open: run => lairOpen(run), saved: () => lairSaved(), fresh: seed => lrNew(seed), view: () => lrView(), flow: () => lrFlow(), art: (k, st) => lrArtId(k, st), pt(c) { const r = $('lr-cv').getBoundingClientRect(); return { x: r.left + lcx(c) * LU.scale, y: r.top + lcy(c) * LU.scale }; }, redraw: () => { lrWarmPrep(); lrDraw(); }, give(kind, star, cell) { const R = LU.R, uid = R.nextUid++; R.unit[uid] = { uid, kind, star: star || 1 }; if (cell != null) R.board[cell] = uid; else R.bench[R.bench.indexOf(null)] = uid; return uid; }, sheet: s => lrSheet(s), dbg: () => LU.dbg, speeds: () => LSPD.map(q => q[0]), stats() { const F = LU.F; return F ? { T: F.T, i: F.i, n: F.tl.length, done: F.done, intro: F.intro, real: F.real / 1000, slows: F.slows, blocks: F.blocks, shots: F.shots, taunts: F.taunts, checks: F.checks, bigChecks: F.bigChecks, boons: F.boons, dice: F.plates.length, bigCasts: F.bigCasts, smallCasts: F.smallCasts, frozen: F.frozen, crowd: F.crowd, labs: F.labs.filter(l => l.until > LU.t && !l.ban).length, meter: Object.keys(F.meter).length, alive: Object.keys(F.ents).filter(id => !F.ents[id].dead && !F.ents[id].core).length, mads: F.mads, casts: F.casts, late: F.late.length, ents: Object.keys(F.ents).length, frames: LU.fpsN } : null; } };
