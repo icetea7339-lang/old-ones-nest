@@ -752,6 +752,7 @@ function showTitle() {
     + (crun ? btn('ccont', null, `이어하기 <small>${cDay}일째${cAsp ? ' · ' + cAsp : ''}</small>`, 'pri w2') : '')
     + btn('deck', null, crun ? '새로 시작' : '시작', (crun ? '' : 'pri ') + 'w2')
     + (run ? btn('continue', null, `${runStory ? '이야기 이어하기' : '옛 판 이어하기'} <small>${esc(runTxt)}</small>`, 'w2') : '')
+    + btn('trend', null, '새 판 (시험)', 'w2')
     + btn('story', null, '이야기') + btn('codex', null, '도감')
     + btn('records', null, '기록') + btn('help', null, '도움말') + btn('settings', null, '설정', 'w2')
     // 자유(옛 방식)는 내렸다. 코드는 두고, 자동 시험에서만 그 문으로 들어간다 (이야기와 같은 엔진을 시험하려고)
@@ -1037,6 +1038,7 @@ function onAction(el) {
   if (a === 'new') return void newRun();
   if (a === 'story') return void (typeof campOpen === 'function' ? campOpen() : storyMenu());
   if (a === 'deck') return void cardOpen();
+  if (a === 'trend') return void (typeof trendOpen === 'function' && trendOpen());
   if (a === 'reroll') { if (META.dust < REROLL || signPool().length < 2) return; META.dust -= REROLL; rollSign(); sfx('spell'); return closeModal('redraw'); }
   if (a === 'continue') { const run = store.get('run'); if (!run) return; try { if (!runOk(run)) throw new Error('bad run'); G = NEST.migrate(run); G.auto = false; NEST.applyWorld(G.world); showGame();
       if (G.nightLock === G.day) { busy = false; UI.confirmEnd = true; render(); endDay(); } else morningFlow(); } catch (e) { console.error(e); setAside('run'); UI.saveBad = true; G = null; showTitle(); } return; }
