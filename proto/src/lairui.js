@@ -303,7 +303,7 @@ function lrEv(F, ev) {
     case 'cast': {
       if (!u) return; const tg = E[ev.tg]; if (tg) lrFace(u, tg.x); lrSetAnim(u, 'cast', T); u.mana = 0; F.casts++; u.castT = T; u.castDur = Math.max(0.3, ev.dur || 0.42);
       if (!ev.again && !F.slowSeen[u.id] && (u.core || u.boss || (u.side === 'nest' && LAIR.KIN[u.kind] && LAIR.KIN[u.kind].cost >= 3))) { F.slowSeen[u.id] = 1; lrSlow(F, 700, 0.4); }
-      const sk = LAIR.SK[ev.sk]; if (sk && !ev.again) { lrLabel(u.x, u.y - (u.core ? 92 : 64), sk.name, 'sk ' + (u.side === 'nest' && !u.madSide ? 'nest' : 'inv'), Math.max(1000, 1250 / Math.sqrt(LU.speed))); F.feed.push({ icon: u.core ? (u.form || 'drop') : u.kind, star: u.core ? 1 : u.star, name: u.name, sk: sk.name, side: u.side }); if (F.feed.length > 6) F.feed.shift(); const fd = $('lr-feed'); if (fd) fd.innerHTML = lrFeedHtml(); }
+      const sk = LAIR.SK[ev.sk]; if (sk && !ev.again) { lrLabel(u.x, u.y - (u.core ? 92 : 64), sk.name, 'sk ' + (u.side === 'nest' && !u.madSide ? 'nest' : 'inv'), Math.max(1000, 1250 / Math.sqrt(LU.speed))); F.feed.push({ icon: u.core ? 'boss:' + (u.form || 'drop') : u.kind, star: u.core ? 1 : u.star, name: u.name, sk: sk.name, side: u.side }); if (F.feed.length > 6) F.feed.shift(); const fd = $('lr-feed'); if (fd) fd.innerHTML = lrFeedHtml(); }
       if (tg) F.lines.push({ a: ev.u, b: ev.tg, until: T + (ev.dur || 0.35) + 0.25, side: u.side });
       if (LU.t - LU.castAt > 160) { LU.castAt = LU.t; lrSay('spell'); }
       return;
@@ -390,7 +390,7 @@ function lrShowResult() {
 }
 function lrResultHtml() {
   const F = LU.F, res = F.res, f = res.fight, R = LU.R, over = R.phase === 'over', bd = f.breakdown.filter(b => b.side === 'nest');
-  const rows = {}; bd.forEach(b => { const k = b.summon ? 's:' + b.kind : b.id, r = rows[k] = rows[k] || { name: b.name, kind: b.kind === 'core' ? (f.form || 'drop') : b.kind, star: b.star, n: 0, dmg: 0, san: 0, heal: 0, kills: 0, conv: 0 }; r.n++; r.dmg += b.dmg; r.san += b.san; r.heal += b.heal; r.kills += b.kills; r.conv += b.conv || 0; });
+  const rows = {}; bd.forEach(b => { const k = b.summon ? 's:' + b.kind : b.id, r = rows[k] = rows[k] || { name: b.name, kind: b.kind === 'core' ? 'boss:' + (f.form || 'drop') : b.kind, star: b.star, n: 0, dmg: 0, san: 0, heal: 0, kills: 0, conv: 0 }; r.n++; r.dmg += b.dmg; r.san += b.san; r.heal += b.heal; r.kills += b.kills; r.conv += b.conv || 0; });
   const list = Object.keys(rows).map(k => rows[k]).sort((a, b) => (b.dmg + b.san) - (a.dmg + a.san)), top = list.slice(0, 5), rest = list.slice(5), mx = Math.max(1, ...list.map(r => r.dmg)), mxs = Math.max(1, ...list.map(r => r.san));
   const row = r => `<div class="lr-row"><img src="${lrIcon(r.kind, r.star, 32)}" alt=""><div><p><b>${esc(r.name)}${r.n > 1 ? ' ×' + r.n : ''}</b><span>${Math.round(r.dmg)}</span></p><i class="lr-b"><b style="width:${Math.round(r.dmg / mx * 100)}%"></b></i>${r.san > 0 ? `<i class="lr-b san"><b style="width:${Math.round(r.san / mxs * 100)}%"></b></i>` : ''}<small>${[r.san > 0 ? '정신 ' + Math.round(r.san) : '', r.kills ? '처치 ' + r.kills : '', r.conv ? '미침 ' + r.conv : '', r.heal > 0 ? '회복 ' + Math.round(r.heal) : ''].filter(Boolean).join(' · ')}</small></div></div>`;
   const others = rest.length ? `<p class="lr-rest">그 밖 ${rest.length} · ${Math.round(rest.reduce((s, r) => s + r.dmg, 0))}</p>` : '';
