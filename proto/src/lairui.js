@@ -80,6 +80,7 @@ function lrSize() {
   const barH = $('lr-bar').offsetHeight || (lr.classList.contains('replay') ? 40 : 68);
   const availH = vh - barH - (wide ? 20 : LSIDE + 6), availW = wide ? vw - 470 : vw;
   let sc = Math.min(availW / LW, availH / H); if (wide) sc = Math.min(sc, 1.75); sc = Math.max(0.6, sc);
+  if (LU.replay && LU.crop && lrCropFit(availW, availH)) { lrPrepTags(); return; }
   LU.scale = sc; cv.style.width = Math.floor(LW * sc) + 'px'; cv.style.height = Math.floor(H * sc) + 'px'; wrap.style.width = Math.floor(LW * sc) + 'px'; wrap.style.height = Math.floor(H * sc) + 'px';
   const rest = wide ? 0 : vh - barH - Math.floor(H * sc) - LSIDE, t1 = rest >= 40, t2 = rest >= 86, ch = lr.classList.contains('tall') !== t1 || lr.classList.contains('tall2') !== t2;
   lr.classList.toggle('tall', t1); lr.classList.toggle('tall2', t2); LU.rest = rest;
@@ -403,15 +404,33 @@ function lairReplay(f, o) {
   f.units.forEach(u => { const e = F.ents[u.id] = lrEnt(u); e.minor = !!LMINOR[u.kind]; if (e.hp < e.mhp) e.lag = e.hp / e.mhp; });
   { const w = f.timeline.find(e => e.type === 'win'); let last = null; f.timeline.forEach(e => { if (e.type === 'die') last = e; }); if (w && last && w.t - last.t < 1) last.last = 1; }
   LU.F = F; LU.res = F.res; $('lr-ov').innerHTML = ''; $('lr-toast').hidden = true; LU.toastT = 0;
-  $('lr-bar').innerHTML = `<div class="lr-b1 lr-rp"><b>${esc(F.name)}</b>${o.sub ? `<small>${esc(o.sub)}</small>` : ''}<button class="lr-rpskip" data-l="rskip">넘기기</button></div>`;
-  { const fit = () => { const b1 = $('lr-bar').querySelector('.lr-rp'), sm = b1 && b1.querySelector('small'); if (sm && b1.scrollWidth > b1.clientWidth + 1) sm.remove(); }; fit(); requestAnimationFrame(fit); }
-  { const d = document.createElement('div'); d.className = 'lr-intro'; d.style.animationDuration = '900ms'; d.innerHTML = `<b>${esc(F.name)}</b>`; $('lr-ov').appendChild(d); setTimeout(() => d.remove(), 900); }
+  $('lr-bar').innerHTML = `<div class="lr-b1 lr-rp"><span class="lr-rpt"><b>${esc(F.name)}</b>${o.sub ? `<small>${esc(o.sub)}</small>` : ''}</span><button class="lr-rpskip" data-l="rskip">넘기기</button></div>`;
+  { const d = document.createElement('div'); d.className = 'lr-intro'; d.style.animationDuration = '900ms'; d.innerHTML = `<b>${esc(F.name)}</b>`; $('lr-boardwrap').appendChild(d); setTimeout(() => d.remove(), 900); }
+  LU.crop = o.crop === false ? null : lrCropOf(f);
   Object.keys(F.ents).forEach(id => { const e = F.ents[id]; LU.warm.push([e.core ? null : lrArtId(e.kind, e.artSt), e.star || 1, 'attack']); }); LU.warm = LU.warm.filter(q => q[0]);
   lrFightPanel(); lrSize(); if (!LU.raf) { LU.last = performance.now(); LU.raf = requestAnimationFrame(lrLoop); }
 }
+// 싸움이 쓰는 칸만: 처음 선 칸, 걸어간 칸, 불려 나온 칸을 감싸는 상자 (막대·이름표가 들어갈 위쪽 여백과 함께). 캔버스 좌표
+function lrCropOf(f) {
+  let r0 = 9, r1 = -1, c0 = 9, c1 = -1; const add = c => { if (c == null || c < 0 || c > 35) return; const r = Math.floor(c / 6), q = c % 6; r0 = Math.min(r0, r); r1 = Math.max(r1, r); c0 = Math.min(c0, q); c1 = Math.max(c1, q); };
+  f.units.forEach(u => { if (u.core) return; (u.cells && u.cells.length ? u.cells : [u.cell]).forEach(add); }); f.timeline.forEach(e => { if (e.type === 'move') add(e.to); if (e.type === 'spawn') add(e.cell); });
+  if (r1 < 0) return null; const y0 = Math.max(0, LU.wallH + r0 * LS - 40), y1 = LU.wallH + (r1 + 1) * LS + 6, x0 = Math.max(0, c0 * LS - 6), x1 = Math.min(LW, (c1 + 1) * LS + 6);
+  return { x0, y0, w: x1 - x0, h: y1 - y0 };
+}
+// 재생 때 상자에 맞춰 판을 키운다. 화면의 가로세로에 맞게 상자를 넓히고(판 밖으로는 안 나간다), 넘치는 데는 잘라 낸다
+function lrCropFit(availW, availH) {
+  const C = LU.crop, cv = $('lr-cv'), wrap = $('lr-boardwrap'), ov = $('lr-ov'), H = LU.wallH + LS * 6; if (!C) return false;
+  let { x0, y0, w, h } = C; const A = availW / availH;
+  if (w / h < A) { const nw = Math.min(LW, h * A); x0 = Math.max(0, Math.min(LW - nw, x0 - (nw - w) / 2)); w = nw; } else { const nh = Math.min(H, w / A); y0 = Math.max(0, Math.min(H - nh, y0 - (nh - h) / 2)); h = nh; }
+  const sc = Math.max(0.6, Math.min(2.2, availW / w, availH / h)), tf = `translate(${-Math.round(x0 * sc)}px, ${-Math.round(y0 * sc)}px)`; LU.scale = sc;
+  cv.style.width = Math.floor(LW * sc) + 'px'; cv.style.height = Math.floor(H * sc) + 'px'; cv.style.transform = tf; cv.style.transformOrigin = '0 0';
+  Object.assign(ov.style, { width: Math.floor(LW * sc) + 'px', height: Math.floor(H * sc) + 'px', right: 'auto', bottom: 'auto', transform: tf, transformOrigin: '0 0' });
+  wrap.style.width = Math.floor(w * sc) + 'px'; wrap.style.height = Math.floor(h * sc) + 'px'; return true;
+}
+function lrCropReset() { const cv = $('lr-cv'), ov = $('lr-ov'); if (!cv) return; cv.style.transform = ''; Object.assign(ov.style, { width: '', height: '', right: '', bottom: '', transform: '' }); LU.crop = null; }
 // 다시 보기를 끝낸다 (끝까지 보았거나 넘겼을 때). done 은 한 번만
 function lrReplayEnd() {
-  const o = LU.replay; if (!o) return; LU.replay = null; LU.F = null; LU.phase = 'prep'; const lr = $('lr'); lr.hidden = true; lr.classList.remove('replay'); $('lr-ov').innerHTML = ''; $('lr-top').hidden = false;
+  const o = LU.replay; if (!o) return; LU.replay = null; lrCropReset(); LU.F = null; LU.phase = 'prep'; const lr = $('lr'); lr.hidden = true; lr.classList.remove('replay'); $('lr-ov').innerHTML = ''; $('lr-top').hidden = false;
   ['lr-bench', 'lr-shop'].forEach(id => { $(id).hidden = false; }); $('lr-fight').hidden = true; $('lr-bar').innerHTML = '';
   if (o.done) o.done();
 }

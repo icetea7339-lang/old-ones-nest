@@ -217,7 +217,7 @@ const LAIR = (function () {
   // ───────── 싸움 ─────────
   // S: { seed, nest: [{uid, kind, star, cell}], inv: [{kind, cell}], rooms: [{id, cells}], level, round, form, syn: {id: 단계} }
   // 선택 인자 (굴 짓기가 쓴다. 없으면 둥지 전투 그대로): hpMul / sanMul (전체 배수 대신), noCore (본체 없이), clock { engage, frenzy, sudden, end },
-  //   inv[].hp / san (시작 체력·정신), inv[].mad (미친 채 시작), inv[].st [{ n, dur, v }] (시작 상태), nest[].hp (시작 체력), keep (결과에 final 과 시작 체력을 싣는다)
+  //   inv[].hp / san (시작 체력·정신), inv[].mad (미친 채 시작), inv[].st [{ n, dur, v }] (시작 상태), inv[].noLeap (뛰어들지 않는다), nest[].leap (싸움이 시작되면 적의 뒷줄로 뛰어든다), nest[].hp (시작 체력), keep (결과에 final 과 시작 체력을 싣는다)
   function simulate(S) {
     const rs = { s: (S.seed | 0) ^ 0x51ed }, RN = () => rnd(rs);
     const T = [], U = [], occ = new Array(N).fill(null), pend = [], zones = [];
@@ -483,9 +483,9 @@ const LAIR = (function () {
     const lv = S.level || 3, cd = K.core, form = FORM[S.form] ? S.form : 'drop';
     const core = add({ id: 'core', side: 'nest', kind: 'core', core: true, cell: CORE[0], cells: CORE.slice(), def: { name: FORM[form].name, hp: sc ? cd.hp * sc.hp : cd.hp * (1 + cd.lvHp * (lv - 3)) * (1 + cd.rdHp * (round - 1)), atk: sc ? cd.atk * sc.atk : cd.atk * (1 + 0.15 * (round - 1)), as: cd.as, range: cd.range + ((sc && sc.range) || 0), df: cd.df, mana: cd.mana - ((sc && sc.manaCut) || 0), skill: FORM[form].skill, asp: form === 'drop' ? null : form } });
     core.form = form; core.engage = true; if (S.noCore) { core.alive = false; core.cells.forEach(c => { if (occ[c] === core) occ[c] = null; }); } core.t2 = !!(sc && sc.t2);
-    (S.nest || []).forEach(n => { const d = KIN[n.kind]; if (!d || occ[n.cell]) return; const u = add({ id: 'k' + n.uid, side: 'nest', kind: n.kind, star: n.star, cell: n.cell, def: d, mul: STARM[n.star || 1] }); if (n.hp != null) u.hp = Math.max(1, Math.min(u.mhp, Math.round(n.hp))); });
+    (S.nest || []).forEach(n => { const d = KIN[n.kind]; if (!d || occ[n.cell]) return; const u = add({ id: 'k' + n.uid, side: 'nest', kind: n.kind, star: n.star, cell: n.cell, def: d, mul: STARM[n.star || 1] }); if (n.hp != null) u.hp = Math.max(1, Math.min(u.mhp, Math.round(n.hp))); if (n.leap) u.leap = true; });
     const sl = S.scale || null, rm = sl ? sl.atk : K.roundAtk[round - 1] || 1, rh = sl ? sl.hp : K.roundHp[round - 1] || 1, sm = (sl ? sl.san : K.roundSan[round - 1] || 1) * (1 - (bo.sanfrenzy || 0));
-    (S.inv || []).forEach(n => { const d = INV[n.kind]; if (!d || occ[n.cell]) return; add({ id: 'e' + (++eid), side: 'inv', kind: n.kind, cell: n.cell, will: n.will, cast: n.cast, def: n.poss ? Object.assign({}, d, { name: '홀린 ' + d.name, san: 0, noMad: true }) : d, mul: rm * (n.mul || 1), hmul: rh * (n.mul || 1), smul: sm }); const u = U[U.length - 1]; u.src = S.inv.indexOf(n); if (n.hp != null) u.hp = Math.max(1, Math.min(u.mhp, Math.round(n.hp))); if (n.san != null && u.msan) u.san = Math.max(0, Math.min(u.msan, Math.round(n.san))); });
+    (S.inv || []).forEach(n => { const d = INV[n.kind]; if (!d || occ[n.cell]) return; add({ id: 'e' + (++eid), side: 'inv', kind: n.kind, cell: n.cell, will: n.will, cast: n.cast, def: n.poss ? Object.assign({}, d, { name: '홀린 ' + d.name, san: 0, noMad: true }) : d, mul: rm * (n.mul || 1), hmul: rh * (n.mul || 1), smul: sm }); const u = U[U.length - 1]; u.src = S.inv.indexOf(n); if (n.noLeap) u.leap = false; if (n.hp != null) u.hp = Math.max(1, Math.min(u.mhp, Math.round(n.hp))); if (n.san != null && u.msan) u.san = Math.max(0, Math.min(u.msan, Math.round(n.san))); });
     // 시너지와 방: 싸움이 시작될 때 붙는 것
     SYN_IDS.forEach(id => { if (tier(id)) ev('synergy', { id, tier: tier(id), fx: 'on' }); });
     U.forEach(u => {

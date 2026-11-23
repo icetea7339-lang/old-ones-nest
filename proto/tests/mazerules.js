@@ -87,7 +87,7 @@ function checkFight(f, tag) {
 // 6-2. 굴 속의 어둠: 걸은 칸마다 정신이 깎인다
 {
   const M = MZ.newRun(17), r = MZ.raid(M), w = r.steps.filter(s => s.type === 'walk'), cells = w.reduce((a, s) => a + s.cells.length, 0), eggStep = r.steps.find(s => s.type === 'egg');
-  ok(w.every(s => typeof s.san === 'number' && Array.isArray(s.mad)) && w.reduce((a, s) => a + s.san, 0) === (cells - 1) * MZ.MK.darkSan, '걷는 구간마다 깎인 정신이 실린다');
+  ok(w.every(s => typeof s.san === 'number' && Array.isArray(s.mad)) && Math.abs(w.reduce((a, s) => a + s.san, 0) - ((cells - 1) * MZ.MK.darkSan + MZ.MK.darkGrow * (cells - 1) * (cells - 2) / 2)) < 1e-6, '걷는 구간마다 깎인 정신이 실린다 (걸을수록 더 깎인다)');
   const Q = MZ.newRun(18); Q.gold = 99; Q.raid = 4; [C(0, 1), C(0, 0), C(1, 0), C(2, 0), C(3, 0), C(4, 0), C(5, 0), C(6, 0), C(6, 1)].forEach(c => MZ.dig(Q, c)); [C(1, 2), C(2, 2), C(3, 2), C(4, 2), C(5, 2)].forEach(c => MZ.fill(Q, c)); Q.grid.forEach(g => { if (g.use === 'path') g.use = 'path'; });
   const long = MZ.pathOf(Q, 1); ok(long.len > 8, '긴 굴 ' + long.len);
 }
@@ -126,5 +126,42 @@ function checkFight(f, tag) {
 {
   const M = MZ.newRun(50), errs = [MZ.dig(M, 0), MZ.fill(M, 7), MZ.setUse(M, 0, 'trap', 'x'), MZ.buy(M, 9), MZ.sell(M, 99), MZ.move(M, 99, { cell: 7 })];
   ok(errs.every(e => !e.ok && typeof e.msg === 'string' && e.msg.length > 0 && e.msg.length <= 20 && !/!|\?/.test(e.msg)), '실패의 글');
+}
+// 11. 헤매는 일행 · 길잡이 · 보상
+{
+  // 막다른 굴: 가운데를 4행에서 끊고 오른쪽으로 돌아간다
+  const dead = seed => { const M = MZ.newRun(seed); M.gold = 99; [C(2, 3), C(2, 4), C(3, 4), C(4, 4), C(5, 4), C(6, 4), C(6, 3)].forEach(c => MZ.dig(M, c)); MZ.fill(M, C(5, 2)); return M; };
+  const M = dead(60), p1 = MZ.pathOf(M, 1), p1b = MZ.pathOf(clone(M), 1);
+  ok(JSON.stringify(p1) === JSON.stringify(p1b) && JSON.stringify(MZ.pathOf(M, 1)) === JSON.stringify(p1), '헤매는 길은 정해져 있다 (같은 굴 같은 길)');
+  ok(!p1.scout && p1.cells.join() === [2, 7, 12, 17, 22, 17, 12, 13, 14, 19, 24, 29, 34, 33, 32, 37].join() && p1.back.map(b => (b ? 1 : 0)).join('') === '0000011000000000' && p1.len === 16, '더 깊은 쪽으로 가다가 막다르면 되돌아간다 ' + p1.cells.join(','));
+  const p2 = MZ.pathOf(M, 2); ok(p2.scout && p2.cells.join() === p2.scoutPath.join() && p2.scoutPath.join() === [2, 7, 12, 13, 14, 19, 24, 29, 34, 33, 32, 37].join() && p2.back.every(b => !b), '길잡이가 있으면 가장 짧은 길로 온다');
+  const v = MZ.view(M).next; ok(v.path.join() === p1.cells.join() && v.back.join() === p1.back.join() && v.scout === false && Array.isArray(v.scoutPath) && Array.isArray(v.lostAt), '미리보기에 되돌아감과 길잡이의 길');
+  // 걷는 이: 길잡이를 잃으면 그 자리부터 헤맨다
+  const W = MZ.walker(M, MZ.RAIDS[1].units), seen = []; for (let k = 0; k < 3; k++) seen.push(W.next().cell); W.lose(); for (let k = 0; k < 4; k++) seen.push(W.next().cell);
+  ok(seen.join() === [2, 7, 12, 17, 22, 17, 12].join() && W.mode === 'lost', '길잡이를 잃으면 갈림길에서 더 깊은 막다른 굴로 간다 ' + seen.join(','));
+  // 실제 침입: 앞쪽 방에서 길잡이가 쓰러지면 헤맨다
+  let downLost = false, same = false;
+  const KS = ['biter', 'gnaw', 'mask', 'tangle', 'famine', 'hood', 'gazer'];
+  for (let s = 1; s <= 40 && !(downLost && same); s++) {
+    const Q = dead(70 + s); Q.raid = 2; Q.level = 6; MZ.setUse(Q, C(1, 2), 'kin'); give(Q, KS[s % 7], 1 + (s % 2), C(1, 2)); give(Q, 'shell', 2, C(6, 2));
+    const pv = MZ.pathOf(Q, 2), r = MZ.raid(Q), fs = r.steps.filter(x => x.type === 'fight'), walked = r.steps.filter(x => x.type === 'walk').reduce((a, x) => a.concat(x.cells), []);
+    r.steps.filter(x => x.type === 'walk').forEach(x => ok(Array.isArray(x.back) && x.back.length === x.cells.length && typeof x.lost === 'boolean', '걷기 단계의 되돌아감'));
+    if (fs[0] && fs[0].scoutDown && fs[0].after.inv.some(p => p.alive && !p.mad)) { const i = r.steps.indexOf(fs[0]), w = r.steps[i + 1]; if (w && w.type === 'walk' && w.lost && walked.includes(C(4, 2)) && r.steps.some(x => x.type === 'walk' && x.back.some(b => b))) downLost = true; }
+    if (fs[0] && !fs[0].after.inv.some(p => MZ.SCOUTS.includes(p.kind) && !p.alive) && r.result.survivors > 0 && walked.join() === pv.cells.join()) same = true;
+  }
+  ok(downLost, '앞쪽 방에서 길잡이가 쓰러지면 그 자리부터 헤맨다'); ok(same, '길잡이가 살아 있으면 미리보기 = 실제 길');
+  // 되돌아 지나는 방: 남은 권속과 다시 싸운다
+  let again = false; for (let s = 1; s <= 36 && !again; s++) { const Q = dead(100 + s); Q.level = 6; MZ.setUse(Q, C(3, 2), 'kin'); for (let j = 0; j < 1 + (s % 2); j++) give(Q, ['shell', 'heap', 'maw'][(s + j) % 3], 1 + (Math.floor(s / 2) % 3), C(3, 2)); const r = MZ.raid(Q), at = r.steps.filter(x => x.type === 'fight' && x.cell === C(3, 2)); if (at.length === 2 && at[1].back && at[1].before.kin.every(k => k.alive)) again = true; }
+  ok(again, '되돌아 지나는 방에서 남은 권속과 다시 싸운다');
+  // 무거운 자: 오래 헤매면 바위를 부수고 알 쪽으로
+  const B = MZ.newRun(15); B.raid = 4; [C(0, 3), C(0, 4), C(1, 4), C(2, 4), C(2, 3), C(2, 2), C(2, 1), C(2, 0), C(3, 0), C(4, 0), C(4, 1), C(4, 2), C(4, 3), C(4, 4), C(5, 4), C(6, 4), C(6, 3)].forEach(c => Object.assign(B.grid[c], { dug: true, use: 'path' })); [C(1, 2), C(3, 2), C(5, 2)].forEach(c => Object.assign(B.grid[c], { dug: false, use: null }));
+  const h4 = MZ.pathOf(B, 4), h1 = MZ.pathOf(B, 1); ok(h4.breaks.length === 1 && h4.len <= h1.len - MZ.MK.breakMin && h1.breaks.length === 0 && h4.cells.indexOf(h4.breaks[0]) > MZ.MK.lostBreak, '헤매던 무거운 자가 바위를 부순다 ' + h1.len + '→' + h4.len);
+  // 보상: 막으면 방 하나 / 함정 하나 무료
+  const R = MZ.newRun(31); R.level = 6; [C(1, 2), C(3, 2)].forEach((c, i) => { MZ.setUse(R, c, 'kin'); give(R, ['shell', 'maw', 'heap'][i], 3, c); give(R, 'famine', 3, c); }); const rr = MZ.raid(R), rv = MZ.view(R).reward;
+  ok(rr.result.win && rv && rv.opts.length === 2 && rv.opts[0].type === 'room' && rv.opts[1].type === 'trap' && rv.opts.every(o => o.name && o.short && o.id), '막으면 보상: 방 종류 / 함정');
+  const g0 = R.gold, id = rv.opts[1].id; ok(MZ.takeReward(R, 1).ok && !MZ.view(R).reward && MZ.view(R).free.length === 1 && MZ.view(R).free[0].id === id && !MZ.takeReward(R, 0).ok, '보상을 받는다');
+  ok(MZ.setUse(R, C(4, 2), 'trap', id).ok && R.gold === g0 && !R.free.length && MZ.setUse(R, C(5, 2), 'trap', id).ok && R.gold === g0 - MZ.MK.trapCost, '받은 함정은 한 번 무료');
+  const L2 = MZ.newRun(32); const r2 = MZ.raid(L2); ok(!r2.result.win && !MZ.view(L2).reward, '못 막으면 보상이 없다');
+  const R3 = clone(R); R3.reward = { opts: [{ type: 'room', id: 'pool' }, { type: 'trap', id: 'tr_teeth' }] }; MZ.raid(R3); ok(!R3.reward || R3.reward !== null && R3.hist.length === 2, '받지 않은 보상은 다음 침입이 오면 사라진다');
 }
 console.log(bad ? '실패 ' + bad : '굴 짓기 규칙: 모두 맞음'); process.exitCode = bad ? 1 : 0;
