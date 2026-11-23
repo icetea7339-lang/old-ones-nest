@@ -47,6 +47,9 @@ wait
 run mazedaily_iphone14 node tests/mazedaily.js "iPhone 14" &
 run mazedaily_a360 node tests/mazedaily.js a360 &
 wait
+run mazeshare_iphone14 node tests/mazeshare.js "iPhone 14" &
+run mazeshare_a360 node tests/mazeshare.js a360 &
+wait
 run lairperf node tests/lairperf.js
 N=$(wc -l < "$LOG/count"); B=$(wc -l < "$LOG/failed")
 if [ "$B" -eq 0 ]; then echo "모두 통과 ($N)"; else echo "실패 $B / $N"; exit 1; fi

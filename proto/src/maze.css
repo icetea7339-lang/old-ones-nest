@@ -263,3 +263,15 @@
 #mz-sheet .mz-best { margin: 8px 0 0; font-size: 14px; color: var(--mute); text-align: center; } #mz-sheet .mz-best.new { color: #ffd040; font-weight: 700; }
 #mz-sheet .mz-marks { margin: 6px 0 8px; text-align: center; font-size: 16px; letter-spacing: 2px; color: #c8bce8; word-break: break-all; }
 #mz-copybox textarea { width: 100%; box-sizing: border-box; margin-top: 8px; padding: 8px; font: inherit; font-size: 14px; color: var(--text); background: #0f0d18; border: 1px solid #3a3658; border-radius: 8px; resize: none; -webkit-user-select: text; user-select: text; }
+/* ===== 굴 나누기 · 들이치기 ===== */
+#mz #mz-bench .mz-pslot { flex: 1 1 0; min-width: 0; min-height: 0; padding: 0; position: relative; border: 1px dashed #4e3434; border-radius: 8px; background: #171012; display: flex; align-items: center; justify-content: center; }
+#mz #mz-bench .mz-pslot.has { border-style: solid; border-color: #d87a5a; background: #2a1816; }
+#mz-bench .mz-pslot img { width: 36px; height: 36px; image-rendering: pixelated; } #mz-bench .mz-pslot em { position: absolute; left: 3px; top: 1px; font-style: normal; font-size: 12px; font-weight: 700; color: var(--coin); }
+#mz-bar .mz-atk { flex-direction: column; align-items: flex-start; line-height: 1.1; } #mz-bar .mz-atk b { font-size: 13px; color: #ffb0a0; } #mz-bar .mz-atk small { font-size: 11px; }
+#mz-shop .mz-roster { display: grid; grid-template-columns: repeat(auto-fill, minmax(62px, 1fr)); gap: 4px; max-height: 176px; overflow-y: auto; }
+#mz #mz-shop .mz-roster .mz-card { height: 84px; } #mz-shop .mz-roster .mz-card small { font-size: 10px; color: #e8c890; line-height: 1.1; }
+.mz-paste textarea, .mz-codebox textarea { width: 100%; box-sizing: border-box; padding: 8px; font: inherit; font-size: 14px; color: var(--text); background: #0f0d18; border: 1px solid #3a3658; border-radius: 8px; resize: vertical; word-break: break-all; -webkit-user-select: text; user-select: text; }
+.mz-paste .mz-why { color: #ff9a8a; margin: 6px 0 0; } .mz-paste .mz-row2 { margin-top: 10px; }
+#mz-atknote { position: absolute; left: 50%; bottom: 6px; transform: translateX(-50%); z-index: 3; margin: 0; padding: 3px 10px; white-space: nowrap; font-size: 12px; color: #ffe0b0; background: #0b0a14e6; border: 1px solid #e8b048; border-radius: 6px; pointer-events: none; }
+#mz-sheet .mz-center { text-align: center; }
+#mz-raid .mz-ptyb small { font-size: 11px; color: var(--mute); }

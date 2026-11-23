@@ -334,4 +334,28 @@ function checkFight(f, tag) {
   ok(play(A) === play(B), '오늘의 판: 같은 선택이면 같은 결과'); ok(MZ.newDaily('nope').daily === new Date().toISOString().slice(0, 10), '날짜가 틀리면 오늘');
   ok(JSON.stringify(MZ.newDaily('2026-11-23').shop) !== JSON.stringify(MZ.newDaily('2026-11-25').shop) || MZ.newDaily('2026-11-23').seed !== MZ.newDaily('2026-11-25').seed, '다른 날은 다른 판');
 }
+// 17. 굴 나누기 (글자 코드) · 들이치기
+{
+  const M = MZ.newRun(51); M.gold = 99; M.level = 6; [C(2, 3), C(3, 3), C(4, 3), C(2, 1)].forEach(c => MZ.dig(M, c)); MZ.setUse(M, C(2, 2), 'kin', 'bone'); MZ.setUse(M, C(3, 3), 'trap', 'tr_whisper'); MZ.setUse(M, C(2, 1), 'trap', 'tr_maw');
+  give(M, 'maw', 2, C(2, 2)); give(M, 'shell', 3, C(2, 2)); give(M, 'gazer', 1, 'core'); M.body = { form: 'abyss', step: 2, prev: null }; M.score.raids = 7;
+  const code = MZ.exportNest(M), im = MZ.importNest(code);
+  ok(/^NEST1-[0-9A-Za-z]+$/.test(code) && code.length <= 120, '코드: 영숫자, 120자 안 (' + code.length + '자)');
+  ok(im.ok && im.nest.level === 6 && im.nest.raids === 7 && im.nest.body.form === 'abyss' && im.nest.body.step === 2 && im.nest.grid.every((g, i) => g.dug === M.grid[i].dug && g.use === M.grid[i].use && (g.room || null) === (M.grid[i].room || null) && (g.trap || null) === (M.grid[i].trap || null)) && im.nest.units.length === 3 && im.nest.units.some(u => u.cell === 'core' && u.kind === 'gazer') && im.nest.units.some(u => u.cell === C(2, 2) && u.kind === 'shell' && u.star === 3), '코드 왕복: 내보낸 굴 = 가져온 굴');
+  ok(MZ.exportNest(MZ.newAttack(code, 1)) === code, '받은 굴을 다시 내보내도 같은 코드');
+  const flip = code.slice(0, 12) + (code[12] === 'a' ? 'b' : 'a') + code.slice(13);
+  ok(!MZ.importNest(flip).ok && MZ.importNest(flip).msg === '깨진 코드다' && MZ.importNest('NEST1-abc!').msg === '코드에 쓸 수 없는 글자가 있다' && MZ.importNest('hello').msg === '굴 코드가 아니다' && !MZ.importNest(code.slice(0, -2)).ok && !MZ.importNest(code + 'x').ok && MZ.newAttack(flip, 1) === null, '고친 코드·깨진 코드는 거부');
+  // 들이치기
+  const A = MZ.newAttack(code, 9), v = MZ.view(A);
+  ok(A.mode === 'attack' && v.attack.budget === MZ.MK.attack.budget + Math.min(MZ.MK.attack.bonusMax, Math.floor(7 / MZ.MK.attack.perRaids)) && v.attack.gold === v.attack.budget && v.roster.length === MZ.ROSTER.length && v.roster.every(r => r.cost >= 1 && r.cost <= 6 && r.name) && v.roster.some(r => r.scout) && v.roster.some(r => r.breaker), '들이치기: 진액과 명단');
+  ok(MZ.dig(A, C(1, 1)).msg === '받은 굴은 고칠 수 없다' && MZ.setUse(A, C(2, 2), 'path').msg === '받은 굴은 고칠 수 없다' && MZ.buy(A, 0).msg === '받은 굴은 고칠 수 없다', '받은 굴은 고칠 수 없다');
+  ok(MZ.attack(A).msg === '일행이 없다', '일행 없이는 못 들이친다');
+  ['tracker', 'paladin', 'militia', 'hound', 'torch'].forEach(k => MZ.hire(A, k)); ok(A.attack.party.length === 5 && MZ.hire(A, 'militia').msg === '일행이 찼다' && MZ.unhire(A, 4).ok && A.attack.party.length === 4, '고용과 내보내기, 다섯까지');
+  const tot = A.attack.party.reduce((a, k) => a + MZ.ROSTER.find(r => r[0] === k)[1], 0), g0 = A.attack.gold; A.attack.gold = 2; ok(g0 === A.attack.budget - tot && MZ.hire(A, 'c_tov').msg === '진액이 모자란다', '진액이 모자라면 못 데려간다'); A.attack.gold = g0;
+  const B = JSON.parse(JSON.stringify(A)), r1 = MZ.attack(A), r2 = MZ.attack(B);
+  ok(r1.ok && JSON.stringify(r1.result) === JSON.stringify(r2.result) && JSON.stringify(r1.steps.map(x => x.type)) === JSON.stringify(r2.steps.map(x => x.type)), '같은 코드·같은 일행·같은 씨앗이면 같은 결과');
+  ok(r1.steps.every(x => ['walk', 'trap', 'fight', 'egg', 'warp', 'break'].includes(x.type)) && r1.result.eggDmg >= 0 && r1.result.eggDmg <= 15 && r1.result.score === r1.result.eggDmg * 100 + Math.max(0, 99 - r1.result.walked) && A.egg === A.eggMax, '결과: 알을 깎은 양, 알은 다시 찬다');
+  MZ.attack(A); const r3 = MZ.attack(A); ok(r3.ok && A.attack.tries === 3 && MZ.attack(A).msg === '더 해 볼 수 없다' && MZ.hire(A, 'militia').msg !== undefined && A.attack.best.score === Math.max(...A.attack.results.map(x => x.score)), '세 번까지, 가장 좋은 것이 기록');
+  const t = MZ.attackResultText(A); ok(/^받은 굴 들이치기 · 알 \d+\/15 깎음 · 일행 \d\n3번 가운데 가장 좋은 것 · 걸은 칸 \d+/.test(t) && MZ.view(A).attack.text === t, '결과 글');
+  const S = MZ.load(MZ.save(A)); ok(S && S.mode === 'attack' && JSON.stringify(MZ.view(S).attack) === JSON.stringify(MZ.view(A).attack), '저장·불러오기: 들이치기');
+}
 console.log(bad ? '실패 ' + bad : '굴 짓기 규칙: 모두 맞음'); process.exitCode = bad ? 1 : 0;

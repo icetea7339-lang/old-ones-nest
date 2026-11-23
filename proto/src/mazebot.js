@@ -54,7 +54,7 @@ function shop(M, st, rng, keep) {
 const ROOMFOR = { abyss: 'pool', nebula: 'eye', brood: 'spore', dusk: 'eye', hunger: 'shade' };
 function arrange(M, st, rng) {
   Object.keys(M.board).forEach(c => { M.board[c].slice().forEach(uid => MZ.move(M, uid, { bench: null })); });
-  const us = owned(M).sort((a, b) => val(b, st) - val(a, st) || a.uid - b.uid).slice(0, M.level), P = MZ.pathOf(M, M.raid);
+  const us = owned(M).sort((a, b) => val(b, st) - val(a, st) || a.uid - b.uid).slice(0, M.level), P = MZ.pathOf(M, st.previewKinds || M.raid);
   const per = st.per || 2, front = st.front && P.scout && (st.front === true || st.front.includes(M.raid)), fN = front ? st.frontN || per : per;
   const coreN = Math.min(front && st.frontCore != null ? st.frontCore : st.core || 0, us.length), coreUs = us.slice(0, coreN), rest = us.slice(coreN);
   const nRooms = rest.length ? 1 + Math.ceil(Math.max(0, rest.length - fN) / per) : 0, okc = c => c !== MZ.ENT && c !== MZ.EXIT && M.grid[c].use !== 'trap' && !(st.plan || []).some(x => x[0] === c), pass = {};
@@ -167,7 +167,58 @@ function reportStory(name, pol, n, retry) {
   if (process.env.FORMS) console.log('         모습 ' + Object.keys(o.forms).sort().map(f => f + ' ' + o.forms[f][0] + '판 ' + pc(o.forms[f][1], o.forms[f][0]) + '%').join(' | '));
   return o;
 }
+// ───── 굴 나누기 · 들이치기 봇 ─────
+// 굴 짓는 봇이 침입 upto 앞까지 지은 굴 (중간에 알이 깨지면 마지막으로 지은 굴). 나눌 굴은 누가 올지 모르므로 길잡이가 올 때의 길에 맞춰 다시 세운다 (SHARE=0 이면 그대로)
+function buildNest(seed, name, upto) {
+  const st = STRAT[name], rng = mk(seed * 31 + 7), M = MZ.newRun(seed); let code = null;
+  while (M.phase === 'prep' && M.raid <= upto) {
+    if (M.awaken) { awakenTurn(M, st, rng); continue; }
+    if (st.random) randomTurn(M, rng); else { build(M, st, st.digKeep != null ? st.digKeep : M.raid === 1 ? 6 : 4); shop(M, st, rng, st.traps ? st.trapGold || 4 : 0); arrange(M, st, rng); traps(M, st); }
+    if (M.raid === upto) { if (process.env.SHARE !== '0' && !st.random) { const s2 = Object.assign({}, st, { previewKinds: ['tracker', 'militia'] }, st.dig ? { front: true, frontN: 3, frontCore: 1 } : {}); arrange(M, s2, rng); } code = MZ.exportNest(M); break; }
+    code = MZ.exportNest(M); MZ.raid(M);
+  }
+  return code;
+}
+// 들이치는 봇: any (아무렇게나 셋), fit (일행 후보를 여럿 꾸려 미리보기의 길로 어림하고 좋은 셋을 해 본다)
+//   어림: 길이 길면 어둠에 미치는 자가 늘고, 길 위의 권속 방마다 싸움, 살아 닿는 자의 알 피해 합
+function guessParty(M, kinds) {
+  const sc = MZ.MK.attack, P = MZ.pathOf(M, kinds), Lw = P.len, dark = MZ.MK.darkSan * Lw + MZ.MK.darkGrow * Lw * (Lw - 1) / 2;
+  const cells = [...new Set(P.cells)], wh = cells.filter(c => M.grid[c].use === 'trap' && M.grid[c].trap === 'tr_whisper').length, whis = wh ? 45 * (1 + (wh > 1 ? 0.5 : 0) + Math.max(0, wh - 2) * 0.25) : 0;
+  const rooms = cells.filter(c => M.grid[c].use === 'kin' && (M.board[c] || []).length).reduce((a, c) => a + M.board[c].reduce((x, u) => x + M.unit[u].star, 0), 0) + (M.board.core || []).length + 2;
+  let pow = 0, egg = 0; kinds.forEach(k => { const d = L.INV[k], san = d.noMad ? 1e9 : d.san * MZ.MK.sanMul * sc.san; if (san <= dark + whis) return; pow += d.hp * sc.hp / 100 + d.atk * sc.atk / 10; egg += (d.tier || 1) + (d.boss ? 2 : 0); });
+  return egg * Math.min(1, pow / (rooms * 18)) - Lw * 0.01;
+}
+function pickParty(M, pol, rng, k) {
+  const A = M.attack, R = MZ.ROSTER;
+  while (A.party.length) MZ.unhire(M, 0);
+  if (pol === 'any') { for (let g = 0; g < 30 && A.party.length < MZ.MK.attack.size; g++) { const c = R.filter(r => r[1] <= A.gold); if (!c.length) break; MZ.hire(M, c[Math.floor(rng() * c.length)][0]); } return; }
+  if (!M._cands) {
+    const out = [], heads = [[], ['tracker'], ['paladin'], ['tracker', 'paladin'], ['exorcist'], ['tracker', 'exorcist'], ['inquis'], ['c_tov']], fills = ['militia', 'hound', 'torch', 'knight', 'templar', 'inquis', 'archer', 'crossbow'];
+    for (const h of heads) for (const f of fills) for (const f2 of fills) {
+      const party = h.slice(); let gold = A.budget - h.reduce((a, x) => a + (R.find(r => r[0] === x) || [0, 99])[1], 0); if (gold < 0) continue;
+      for (const x of [f, f2, f, f2, f]) { if (party.length >= MZ.MK.attack.size) break; const c = (R.find(r => r[0] === x) || [0, 99])[1]; if (c <= gold) { party.push(x); gold -= c; } }
+      while (party.length < MZ.MK.attack.size && gold >= 1) { party.push('militia'); gold -= 1; }
+      out.push({ party, v: guessParty(M, party) });
+    }
+    out.sort((a, b) => b.v - a.v); const seen = new Set(); M._cands = out.filter(o => { const key = o.party.slice().sort().join(); if (seen.has(key)) return false; seen.add(key); return true; });
+  }
+  const c = M._cands[k] || M._cands[0]; c.party.forEach(x => MZ.hire(M, x));
+}
+function attackBot(code, pol, seed) {
+  const M = MZ.newAttack(code, seed), rng = mk(seed * 13 + 5); if (!M) return null;
+  for (let k = 0; k < M.attack.max; k++) { pickParty(M, pol, rng, k); if (!M.attack.party.length) break; MZ.attack(M); }
+  return M.attack.best;
+}
+function reportAttack(builders, pols, n, upto) {
+  for (const b of builders) {
+    const codes = []; for (let s = 1; s <= n; s++) codes.push(buildNest(s * 7919 + 13, b, upto));
+    const len = codes.reduce((a, c) => a + c.length, 0) / n, row = [];
+    for (const pol of pols) { let dmg = 0, full = 0, walk = 0; codes.forEach((c, i) => { const best = attackBot(c, pol, i + 1); dmg += best.eggDmg; if (best.egg <= 0) full++; walk += best.walked; }); row.push(`${pol} 알 ${(dmg / n).toFixed(1)}/15 깸 ${Math.round(100 * full / n)}% 걸음 ${(walk / n).toFixed(0)}`); }
+    console.log(`${b.padEnd(10)} 코드 ${len.toFixed(0)}자 | ${row.join(' | ')}`);
+  }
+}
 if (process.env.SSET) { const t = JSON.parse(process.env.SSET); for (const k in t) Object.assign(STRAT[k], t[k]); }
-if (require.main === module && process.argv[2] === 'story') { const n = +(process.argv[3] || 100), retry = +(process.env.RETRY || 0); (process.argv.slice(4).length ? process.argv.slice(4) : ['mixed:any']).forEach(x => { const [a, b] = x.split(':'); reportStory(a, b || 'any', n, retry); }); }
+if (require.main === module && process.argv[2] === 'attack') { const n = +(process.argv[3] || 50), up = +(process.env.UPTO || 5); reportAttack(process.argv.slice(4).length ? process.argv.slice(4) : ['straight', 'mixed', 'maze'], ['any', 'fit'], n, up); }
+else if (require.main === module && process.argv[2] === 'story') { const n = +(process.argv[3] || 100), retry = +(process.env.RETRY || 0); (process.argv.slice(4).length ? process.argv.slice(4) : ['mixed:any']).forEach(x => { const [a, b] = x.split(':'); reportStory(a, b || 'any', n, retry); }); }
 else if (require.main === module) { const n = +(process.argv[2] || 100), names = process.argv.slice(3).length ? process.argv.slice(3) : Object.keys(STRAT); names.forEach(nm => report(nm, n)); }
-module.exports = { playRun, report, playStory, reportStory, STRAT, build, shop, arrange, traps };
+module.exports = { playRun, report, buildNest, attackBot, reportAttack, playStory, reportStory, STRAT, build, shop, arrange, traps };

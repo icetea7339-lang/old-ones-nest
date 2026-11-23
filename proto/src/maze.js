@@ -33,6 +33,8 @@ const MAZE = (() => {
     //   (무리가 누구든 같은 곡선, 우두머리는 bossHp·bossAtk 배). heads 마다 하나가 더 붙는다 (붙는 자의 길잡이·무거운 자 몫은 n 과 함께 오른다).
     //   bossEvery 마다 우두머리 침입 (seekerEvery 마다 책을 쫓는 자, 그 밖에는 성기사단장), mixAt 부터 새 무리 (교회 / 조사자). 판 칸 상한은 dugStep 침입마다 +1 (dugMax 까지), 레벨 상한은 lvEvery 침입마다 +1 (lvMax 까지)
     endless: { regen: 3, regenWin: 0, regenFrom: 3, hpBase: 6500, hpStep: 1000, atkBase: 365, atkStep: 60, bossHp: 1.3, bossAtk: 1.2, heads: 4, bossEvery: 5, seekerEvery: 10, mixAt: [8, 12], dugStep: 2, dugMax: 32, lvEvery: 4, lvMax: 9, xpNeed: { 6: 22, 7: 28, 8: 34 } },
+    // 들이치기: 받은 굴을 칠 때의 진액 (budget + 받은 굴이 버틴 침입 perRaids 마다 1, bonusMax 까지), 일행 크기, 해 볼 수, 침입자 배수
+    attack: { budget: 18, perRaids: 3, bonusMax: 6, size: 5, tries: 3, hp: 2.0, atk: 1.6, san: 0.6 },
     // 이야기 모드: 알·진액·장 사이에 이어지는 것, 장마다 파는 칸 상한, 침입자 배수(장의 배수에 곱함), 밤의 한 수
     story: { egg: 14, gold: 16, heal: 2, keepGold: 0.5, chapterGold: 8, refund: 1, dugCap: [8, 15, 17, 19, 21, 23, 24], hpMul: 3.2, atkMul: 3.2, sanMul: 0.4,
       alertMax: 10, alertDecay: 2, alert1: 3, alert2: 6, alert3: 9, nightGold: 6, huntLamp: 0.8, huntTower: 0.6, huntStep: 0.05, towerWeak: 0.6, waterCost: 3 },
@@ -121,13 +123,14 @@ const MAZE = (() => {
     if (M.phase !== 'prep') return '지금은 메울 수 없다'; if (!locksOf(M).dig) return '아직 메울 수 없다'; const g = M.grid[cell]; if (!g || !g.dug) return '판 칸이 아니다'; if (fixedCell(cell)) return '메울 수 없는 칸이다'; if ((M.board[cell] || []).length) return '권속을 먼저 옮긴다';
     if (!connected(M, c => c !== cell && M.grid[c].dug)) return '길이 끊긴다'; if (M.grid.some((g, i) => i !== cell && g.use === 'trap' && g.trap === 'tr_maw' && sole(M, i, cell))) return '삼키는 구멍이 외길이 된다'; return null;
   }
-  function dig(M, cell) { const e = canDig(M, cell); if (e) return fail(e); const cost = digCost(cell); M.gold -= cost; Object.assign(M.grid[cell], { dug: true, use: 'path', room: null, trap: null }); return ok({ cell, cost }); }
-  function fill(M, cell) { const e = canFill(M, cell); if (e) return fail(e); const back = fillGold(cell); M.gold += back; Object.assign(M.grid[cell], { dug: false, use: null, room: null, trap: null }); delete M.board[cell]; return ok({ cell, gold: back }); }
+  function dig(M, cell) { if (M.mode === 'attack') return fail('받은 굴은 고칠 수 없다'); const e = canDig(M, cell); if (e) return fail(e); const cost = digCost(cell); M.gold -= cost; Object.assign(M.grid[cell], { dug: true, use: 'path', room: null, trap: null }); return ok({ cell, cost }); }
+  function fill(M, cell) { if (M.mode === 'attack') return fail('받은 굴은 고칠 수 없다'); const e = canFill(M, cell); if (e) return fail(e); const back = fillGold(cell); M.gold += back; Object.assign(M.grid[cell], { dug: false, use: null, room: null, trap: null }); delete M.board[cell]; return ok({ cell, gold: back }); }
   const trapCost = id => (TRAP[id] && TRAP[id].cost) || MK.trapCost;
   // 막은 침입의 보상으로 받은 무료 방·함정 (id 목록)
   const freeTake = (M, id) => (M.free || []).includes(id), freeUse = (M, id) => { M.free.splice(M.free.indexOf(id), 1); };
   // 쓰임: path 통로 / kin 권속 방 (id = 방 종류, 없으면 그대로) / trap 함정 (id = 함정 종류)
   function setUse(M, cell, use, id) {
+    if (M.mode === 'attack') return fail('받은 굴은 고칠 수 없다'); 
     if (M.phase !== 'prep') return fail('지금은 바꿀 수 없다'); const g = M.grid[cell]; if (!g || !g.dug) return fail('판 칸이 아니다'); if (fixedCell(cell)) return fail('바꿀 수 없는 칸이다');
     if (!USES.includes(use)) return fail('없는 쓰임이다'); const here = M.board[cell] || [];
     if (use === 'kin') {
@@ -258,25 +261,27 @@ const MAZE = (() => {
     if (out.length) M.merges = M.merges.concat(out); return out;
   }
   function buy(M, i) {
+    if (M.mode === 'attack') return fail('받은 굴은 고칠 수 없다'); 
     if (M.phase !== 'prep') return fail('지금은 살 수 없다'); const kind = M.shop[i]; if (!kind) return fail('빈 자리다'); const cost = L.KIN[kind].cost; if (M.gold < cost) return fail('진액이 모자란다');
     const slot = M.bench.indexOf(null), same = owned(M).filter(u => u.kind === kind && u.star === 1).length; if (slot < 0 && same < 2) return fail('대기석이 찼다');
     M.gold -= cost; M.shop[i] = null; const uid = M.nextUid++; M.unit[uid] = { uid, kind, star: 1 }; if (slot >= 0) M.bench[slot] = uid; else M.bench.push(uid);
     const merged = merge(M); M.bench = M.bench.slice(0, 6); while (M.bench.length < 6) M.bench.push(null); return ok({ uid, merged });
   }
   const sellValue = u => L.KIN[u.kind].cost * Math.pow(3, u.star - 1);
-  function sell(M, uid) { if (M.phase !== 'prep') return fail('지금은 팔 수 없다'); const u = M.unit[uid]; if (!u) return fail('없는 권속이다'); const v = sellValue(u); removeUnit(M, uid); M.gold += v; return ok({ gold: v }); }
-  function reroll(M) { if (M.phase !== 'prep') return fail('지금은 안 된다'); if (M.gold < MK.reroll) return fail('진액이 모자란다'); M.gold -= MK.reroll; rollShop(M); return ok(); }
+  function sell(M, uid) { if (M.mode === 'attack') return fail('받은 굴은 고칠 수 없다'); if (M.phase !== 'prep') return fail('지금은 팔 수 없다'); const u = M.unit[uid]; if (!u) return fail('없는 권속이다'); const v = sellValue(u); removeUnit(M, uid); M.gold += v; return ok({ gold: v }); }
+  function reroll(M) { if (M.mode === 'attack') return fail('받은 굴은 고칠 수 없다'); if (M.phase !== 'prep') return fail('지금은 안 된다'); if (M.gold < MK.reroll) return fail('진액이 모자란다'); M.gold -= MK.reroll; rollShop(M); return ok(); }
   // 레벨 상한: 끝없는 자유에서는 침입이 쌓이면 오른다
   const maxLvOf = M => (M.endless ? Math.min(MK.endless.lvMax, MK.maxLv + Math.floor(Math.max(0, M.raid - 1) / MK.endless.lvEvery)) : MK.maxLv);
   const xpNeedOf = lv => MK.xpNeed[lv] || MK.endless.xpNeed[lv] || 40;
   function levelUp(M) { let up = 0; const mx = maxLvOf(M); while (M.level < mx && M.xp >= xpNeedOf(M.level)) { M.xp -= xpNeedOf(M.level); M.level++; up++; } if (M.level >= mx) M.xp = 0; return up; }
-  function buyXp(M) { if (M.phase !== 'prep') return fail('지금은 안 된다'); if (M.level >= maxLvOf(M)) return fail('더 넓힐 수 없다'); if (M.gold < MK.xpCost) return fail('진액이 모자란다'); M.gold -= MK.xpCost; M.xp += MK.xpBuy; return ok({ up: levelUp(M) }); }
+  function buyXp(M) { if (M.mode === 'attack') return fail('받은 굴은 고칠 수 없다'); if (M.phase !== 'prep') return fail('지금은 안 된다'); if (M.level >= maxLvOf(M)) return fail('더 넓힐 수 없다'); if (M.gold < MK.xpCost) return fail('진액이 모자란다'); M.gold -= MK.xpCost; M.xp += MK.xpBuy; return ok({ up: levelUp(M) }); }
   const roomCap = (cell, M) => (cell === CORE ? MK.coreMax + (M ? bodyOf(M).slots : 0) : MK.roomMax);
   // 옮기기: to = { core: true } (본체 방) / { cell } (판 통로 칸이면 값 없이 권속 방이 된다, 권속 방이면 그대로) / { bench } (빈 자리, 없으면 아무 빈 자리)
   function placeWhy(M, cell) {
     if (cell === CORE) return null; const g = M.grid[cell]; if (!g) return '없는 칸이다'; if (!g.dug) return '바위다. 먼저 판다'; if (g.use === 'trap') return '함정 칸이다'; if (fixedCell(cell)) return '입구와 출구에는 세울 수 없다'; return null;
   }
   function move(M, uid, to) {
+    if (M.mode === 'attack') return fail('받은 굴은 고칠 수 없다'); 
     if (M.phase !== 'prep') return fail('지금은 옮길 수 없다'); if (!M.unit[uid]) return fail('없는 권속이다'); const from = whereOf(M, uid);
     if (to && (to.core || to.cell != null)) {
       const cell = to.core ? CORE : to.cell, e = placeWhy(M, cell); if (e) return fail(e); if (from.cell === cell) return ok({ cell });
@@ -370,6 +375,7 @@ const MAZE = (() => {
     M.last = { raid: M.raid, result, path: walked };
     let next = 'prep';
     if (M.mode === 'story') { M.next = {}; next = storyAfter(M, win, income); return ok({ steps, result, path: P, next, raidId: D.id }); }
+    if (M.mode === 'attack') return ok({ steps, result, path: P, next: 'attack', party });
     if (M.score) { M.score.kills += party.filter(p => !p.alive).length; if (M.egg > 0) M.score.raids = M.raid; M.score.egg = M.egg; M.score.total = scoreTotal(M.score); }
     if (M.egg <= 0) { M.phase = 'over'; M.over = { win: false, raid: M.raid, why: '알이 깨졌다', score: Object.assign({}, M.score || {}) }; next = 'over'; }
     else if (!M.endless && M.raid >= M.raids) { M.phase = 'over'; M.over = { win: true, raid: M.raid, why: '네 번을 막았다' }; next = 'over'; }
@@ -447,6 +453,7 @@ const MAZE = (() => {
   // 침입 n 의 정의 (자유: RAIDS + MK.raidMul / 이야기: 장의 무리 + 경계 + 밤의 한 수)
   function raidOf(M, n) {
     n = n || M.raid;
+    if (M.mode === 'attack') return { id: 'atk', name: '들이치는 일행', units: M.attack.party.slice(), scale: { hp: MK.attack.hp, atk: MK.attack.atk, san: MK.attack.san }, mad: [] };
     if (M.mode !== 'story') { if (n > RAIDS.length && M.endless) return endlessRaid(M, n); const i = clamp(n, 1, RAIDS.length) - 1; return { id: 'r' + (i + 1), name: RAIDS[i].name, units: RAIDS[i].units, scale: scaleOf(n), mad: [] }; }
     const S = MK.story, list = chapterRaids(M), d = list[clamp(n, 1, list.length) - 1], cur = n === M.raid, nx = cur ? M.next || {} : {}, lk = locksOf(M), used = [];
     let units = (d.alt && M.eyes[d.alt.eye] >= d.alt.at ? d.alt.units : d.units).slice(), hp = d.hp * S.hpMul, atk = d.atk * S.atkMul; const mad = [];
@@ -569,6 +576,77 @@ const MAZE = (() => {
     M.awaken = null; M.awakened = g.step; if (M.phase === 'prep') rollShop(M); return ok({ form, step: g.step, mixed: g.mixed, gift, egg: M.egg });
   }
   function awakenView(M) { return { step: M.awaken.step, offer: M.awaken.offer.map((form, i) => Object.assign({ i, form, name: L.FORM[form].name, asp: FORMS[form].asp }, awakenGains(M, form))) }; }
+  // ───────── 굴 나누기 (글자 코드) · 들이치기 ─────────
+  // 코드: 'NEST1-' + base62 (0-9A-Za-z). 비트: 판(3) 레벨(4) 버틴 침입(7) 본체 모습(3) 단계(2) 옛 모습(3) / 칸 40 x 5 (0 바위 1 통로 2~10 권속 방 (방 종류 없음, 방 여덟) 11~17 함정) /
+  //   권속 수(5) x [칸(6, 40 = 본체 방) 종류(5) 별(2)] / 검사 값(16)
+  const B62 = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', CODE_HEAD = 'NEST1-', CODE_V = 1;
+  const BODY_IDS = ['drop'].concat(FORM_IDS);
+  const fnv16 = bits => { let h = 0x811c9dc5; for (let i = 0; i < bits.length; i++) { h ^= bits.charCodeAt(i); h = Math.imul(h, 0x01000193); } return (h ^ (h >>> 16)) & 0xffff; };
+  const putBits = (arr, v, n) => { for (let i = n - 1; i >= 0; i--) arr.push((v >> i) & 1); };
+  function cellCode(g) { if (!g.dug) return 0; if (g.use === 'kin') return 2 + (g.room ? L.ROOM_IDS.indexOf(g.room) + 1 : 0); if (g.use === 'trap') return 11 + TRAP_IDS.indexOf(g.trap); return 1; }
+  function nestOf(M) {
+    const units = []; Object.keys(M.board).forEach(c => (M.board[c] || []).forEach(uid => { const u = M.unit[uid]; if (u) units.push({ cell: c === CORE ? CORE : +c, kind: u.kind, star: u.star }); }));
+    const b = M.body || { form: 'drop', step: 0, prev: null };
+    return { v: CODE_V, level: M.level, raids: M.score ? M.score.raids : M.mode === 'attack' ? M.attack.raids : M.mode === 'story' ? 0 : Math.max(0, M.raid - 1), body: { form: b.form || 'drop', step: b.step || 0, prev: b.prev || null }, grid: M.grid.map(g => ({ dug: g.dug, use: g.use, room: g.room || null, trap: g.trap || null })), units };
+  }
+  function exportNest(M) {
+    const n = nestOf(M), bits = []; putBits(bits, CODE_V, 3); putBits(bits, clamp(n.level, 0, 15), 4); putBits(bits, clamp(n.raids, 0, 127), 7);
+    putBits(bits, BODY_IDS.indexOf(n.body.form), 3); putBits(bits, n.body.step, 2); putBits(bits, n.body.prev ? BODY_IDS.indexOf(n.body.prev) : 0, 3);
+    n.grid.forEach(g => putBits(bits, cellCode(g), 5)); const us = n.units.slice(0, 31); putBits(bits, us.length, 5);
+    us.forEach(u => { putBits(bits, u.cell === CORE ? 40 : u.cell, 6); putBits(bits, L.KIN_IDS.indexOf(u.kind), 5); putBits(bits, u.star, 2); });
+    const body = bits.join(''); putBits(bits, fnv16(body), 16);
+    let x = BigInt('0b1' + bits.join('')), out = ''; const b = BigInt(62); while (x > 0n) { out = B62[Number(x % b)] + out; x /= b; } return CODE_HEAD + out;
+  }
+  function importNest(code) {
+    const c = String(code || '').trim(); if (!c.startsWith(CODE_HEAD)) return fail('굴 코드가 아니다'); const body = c.slice(CODE_HEAD.length);
+    if (!body.length || /[^0-9A-Za-z]/.test(body)) return fail('코드에 쓸 수 없는 글자가 있다');
+    let x = 0n; const b = BigInt(62); for (const ch of body) x = x * b + BigInt(B62.indexOf(ch)); const all = x.toString(2); if (all[0] !== '1') return fail('깨진 코드다');
+    const bits = all.slice(1); let p = 0; const take = n => { if (p + n > bits.length) throw new Error('short'); const v = parseInt(bits.slice(p, p + n), 2); p += n; return v; };
+    try {
+      if (take(3) !== CODE_V) return fail('다른 판의 코드다');
+      const level = take(4), raids = take(7), form = BODY_IDS[take(3)], step = take(2), prevI = take(3), grid = [];
+      for (let i = 0; i < N; i++) { const v = take(5); if (v > 17) return fail('깨진 코드다'); grid.push(v === 0 ? { dug: false, use: null, room: null, trap: null } : v === 1 ? { dug: true, use: 'path', room: null, trap: null } : v <= 10 ? { dug: true, use: 'kin', room: v === 2 ? null : L.ROOM_IDS[v - 3], trap: null } : { dug: true, use: 'trap', room: null, trap: TRAP_IDS[v - 11] }); }
+      const nu = take(5), units = []; for (let k = 0; k < nu; k++) { const cell = take(6), kind = L.KIN_IDS[take(5)], star = take(2); units.push({ cell: cell === 40 ? CORE : cell, kind, star }); }
+      const sum = take(16); if (p !== bits.length || sum !== fnv16(bits.slice(0, bits.length - 16))) return fail('깨진 코드다');
+      // 말이 되는 굴인가
+      if (!form || (form === 'drop' && step) || step > 2 || (prevI && !BODY_IDS[prevI]) || level < 1 || level > 12) return fail('깨진 코드다');
+      if (!grid[ENT].dug || grid[ENT].use !== 'path' || !grid[EXIT].dug || grid[EXIT].use !== 'path') return fail('입구와 출구가 막혀 있다');
+      if (!connected({ grid }, i => grid[i].dug)) return fail('길이 끊긴 굴이다');
+      const per = {}; for (const u of units) { if (!u.kind || u.star < 1 || u.star > 3) return fail('깨진 코드다'); if (u.cell !== CORE && (!grid[u.cell] || grid[u.cell].use !== 'kin')) return fail('권속이 방 밖에 있다'); per[u.cell] = (per[u.cell] || 0) + 1; }
+      for (const k in per) if (per[k] > (k === CORE ? MK.coreMax + 2 : MK.roomMax)) return fail('방이 넘친다');
+      return ok({ nest: { v: CODE_V, level, raids, body: { form, step, prev: prevI ? BODY_IDS[prevI] : null }, grid, units } });
+    } catch (e) { return fail('깨진 코드다'); }
+  }
+  // 들이치는 이의 명단: 값 1~6
+  const ROSTER = [['militia', 1], ['torch', 1], ['hound', 1], ['archer', 2], ['rogue', 2], ['priest', 2], ['crossbow', 2], ['mage', 2], ['bard', 2], ['banner', 2], ['knight', 3], ['alchemist', 3],
+    ['templar', 3], ['exorcist', 3], ['inquis', 4], ['c_eda', 4], ['c_isel', 4], ['tracker', 5], ['paladin', 5], ['c_mirel', 5], ['c_rowen', 5], ['c_tov', 6]];
+  const costOf = kind => { const r = ROSTER.find(x => x[0] === kind); return r ? r[1] : 0; };
+  function newAttack(code, seed) {
+    const im = importNest(code); if (!im.ok) return null; const n = im.nest, A = MK.attack, M = baseRun(seed == null ? 1 : seed);
+    M.mode = 'attack'; M.grid = n.grid.map(g => Object.assign({}, g)); M.level = n.level; M.body = Object.assign({}, n.body); M.board = {}; M.unit = {}; M.bench = [null, null, null, null, null, null]; M.nextUid = 1;
+    n.units.forEach(u => { const uid = M.nextUid++; M.unit[uid] = { uid, kind: u.kind, star: u.star }; (M.board[u.cell] = M.board[u.cell] || []).push(uid); });
+    const budget = A.budget + Math.min(A.bonusMax, Math.floor(n.raids / A.perRaids)); M.raids = 1; M.egg = M.eggMax = MK.egg;
+    M.attack = { code: String(code).trim(), raids: n.raids, budget, gold: budget, party: [], tries: 0, max: A.tries, best: null, results: [] }; return M;
+  }
+  function hire(M, kind) {
+    if (M.mode !== 'attack') return fail('들이치기가 아니다'); const A = M.attack, c = costOf(kind); if (!c) return fail('없는 자다'); if (A.tries >= A.max) return fail('더 해 볼 수 없다');
+    if (A.party.length >= MK.attack.size) return fail('일행이 찼다'); if (A.gold < c) return fail('진액이 모자란다'); A.party.push(kind); A.gold -= c; return ok({ party: A.party.slice(), gold: A.gold });
+  }
+  function unhire(M, i) { if (M.mode !== 'attack') return fail('들이치기가 아니다'); const A = M.attack, k = A.party[i]; if (k == null) return fail('없는 자리다'); A.party.splice(i, 1); A.gold += costOf(k); return ok({ party: A.party.slice(), gold: A.gold }); }
+  // 들이치기 한 번: 알은 다시 찬 채로 시작 (시도끼리 독립). 같은 굴·같은 일행·같은 씨앗이면 같은 결과
+  function attack(M) {
+    if (M.mode !== 'attack') return fail('들이치기가 아니다'); const A = M.attack; if (A.tries >= A.max) return fail('더 해 볼 수 없다'); if (!A.party.length) return fail('일행이 없다');
+    M.egg = M.eggMax; M.raid = 1; M.phase = 'prep'; M.hist = []; M.last = null; M.awaken = null; M.reward = null;
+    const r = raid(M); if (!r.ok) return r; const party = r.party, eggDmg = M.eggMax - M.egg, walked = r.result.walked;
+    const result = { eggDmg, egg: M.egg, eggMax: M.eggMax, reachedEgg: party.filter(p => p.out).length, killed: party.filter(p => !p.alive).length, mads: party.filter(p => p.mad).length, lost: !!r.result.lost, walked, party: A.party.slice() };
+    result.score = eggDmg * 100 + Math.max(0, 99 - walked); A.tries++; A.results.push(result); if (!A.best || result.score > A.best.score) A.best = result; M.egg = M.eggMax;
+    return ok({ steps: r.steps, result, path: r.path, tries: A.tries, best: A.best });
+  }
+  function attackResultText(M) {
+    if (M.mode !== 'attack') return ''; const A = M.attack, b = A.best; if (!b) return '받은 굴 들이치기 · 아직 들이치지 않았다';
+    return '받은 굴 들이치기 · 알 ' + b.eggDmg + '/' + b.eggMax + ' 깎음 · 일행 ' + b.party.length + '\n' + A.tries + '번 가운데 가장 좋은 것 · 걸은 칸 ' + b.walked + ' · 쓰러진 자 ' + b.killed + (b.mads ? ' · 미친 자 ' + b.mads : '');
+  }
+  function rosterView() { return ROSTER.map(([kind, cost]) => { const d = L.INV[kind]; return { kind, cost, name: d.name, role: d.role, tag: d.tag || '', hp: d.hp, atk: d.atk, san: d.san, egg: eggDmg(kind), scout: SCOUTS.includes(kind), avoid: AVOIDERS.includes(kind), breaker: BREAKERS.includes(kind), noMad: !!d.noMad, elite: !!d.elite }; }); }
   // ───────── 저장 ─────────
   function save(M) { return JSON.stringify(M); }
   function load(json) { let M = null; try { M = typeof json === 'string' ? JSON.parse(json) : json; } catch (e) { return null; } if (!M || M.v !== V || !Array.isArray(M.grid) || M.grid.length !== N || !M.unit || !M.board || !Array.isArray(M.bench) || !M.rs) return null; if (!M.mode) M.mode = 'free'; if (M.mode === 'story' && (M.chapter == null || !M.eyes)) return null; return M; }
@@ -592,9 +670,10 @@ const MAZE = (() => {
       next: M.phase === 'over' || M.phase === 'chapterEnd' ? null : { raid: M.raid, id: R.id, name: R.name, boss: !!R.boss, party: partyView(M), path: P ? P.cells : [], back: P ? P.back : [], breaks: P ? P.breaks : [], avoided: P ? P.avoided : false, len: P ? P.len : 0, scout: P ? P.scout : false, scoutPath: P ? P.scoutPath : [], lostAt: P ? P.lostAt : [], warp: P ? P.warp : [], warps: P ? P.warps : [], lured: P ? P.lured : [], confused: P ? P.confused : [] },
       rooms: locksOf(M).rooms ? L.ROOM_IDS.map(id => L.roomInfo(id)) : [], traps: TRAP_IDS.filter(id => trapOpen(M, id)).map(trapInfo), last: M.last, hist: M.hist,
       awaken: M.awaken ? awakenView(M) : null, awakened: M.awakened || 0,
+      attack: M.mode === 'attack' ? Object.assign({}, M.attack, { party: M.attack.party.map((k, i) => ({ i, kind: k, name: L.INV[k].name, cost: costOf(k) })), size: MK.attack.size, text: attackResultText(M) }) : null, roster: M.mode === 'attack' ? rosterView() : null,
       mode: M.mode || 'free', locks: locksOf(M), story: M.mode === 'story' ? storyView(M) : null, night: M.mode === 'story' && M.night ? nightView(M) : null, chapterEnd: M.phase === 'chapterEnd' ? chapterEndView(M) : null, ending: M.over && M.over.ending || null,
       reward: M.reward ? { opts: M.reward.opts.map((o, i) => Object.assign({ i, type: o.type }, o.type === 'room' ? L.roomInfo(o.id) : trapInfo(o.id))) } : null, free: (M.free || []).map(id => Object.assign({ type: L.ROOM[id] ? 'room' : 'trap' }, L.ROOM[id] ? L.roomInfo(id) : trapInfo(id))) };
   }
-  return { V, COLS, ROWS, N, ENT, EXIT, CORE, EGG, MK, RAIDS, newDaily, dateSeed, FORMS, FORM_IDS, awaken, bodyOf, CHAPTERS, CARDS, LOCKS, newStory, nextChapter, retryChapter, nightPick, endingOf, raidOf, TRAP, TRAP_IDS, AVOIDERS, BREAKERS, rc, idx, newRun, view, dig, fill, setUse, canDig, canFill, digCost, fillGold, pathOf, buy, sell, sellValue, reroll, buyXp, move, merge, whereOf, raid, partyOf, roomSyn, save, load, takeReward, walker, scoutPath, SCOUTS, trapInfo, dugCount, dugCap, connected };
+  return { V, COLS, ROWS, N, ENT, EXIT, CORE, EGG, MK, RAIDS, newDaily, dateSeed, exportNest, importNest, newAttack, hire, unhire, attack, attackResultText, ROSTER, FORMS, FORM_IDS, awaken, bodyOf, CHAPTERS, CARDS, LOCKS, newStory, nextChapter, retryChapter, nightPick, endingOf, raidOf, TRAP, TRAP_IDS, AVOIDERS, BREAKERS, rc, idx, newRun, view, dig, fill, setUse, canDig, canFill, digCost, fillGold, pathOf, buy, sell, sellValue, reroll, buyXp, move, merge, whereOf, raid, partyOf, roomSyn, save, load, takeReward, walker, scoutPath, SCOUTS, trapInfo, dugCount, dugCap, connected };
 })();
 if (typeof module !== 'undefined') module.exports = MAZE;
