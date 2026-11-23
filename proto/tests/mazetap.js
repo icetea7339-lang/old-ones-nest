@@ -36,6 +36,14 @@ const html = fs.readFileSync(path.join(__dirname, '..', '..', 'PLAY-MAZE.html'),
     const sb = await (await p.$('#mz-bench .mz-slot.has')).boundingBox(), a = { x: sb.x + sb.width / 2, y: sb.y + sb.height / 2 }, t = await p.evaluate(() => __maze.pt(17)), uid = await p.evaluate(() => __maze.M.bench.find(Boolean));
     await T('touchStart', a.x, a.y); for (let i = 1; i <= 10; i++) { await T('touchMove', a.x + (t.x - a.x) * i / 10, a.y + (t.y - a.y) * i / 10); await p.waitForTimeout(16); } await T('touchEnd', t.x, t.y); await p.waitForTimeout(300);
     const w = await p.evaluate(u => MAZE.whereOf(__maze.M, u), uid); if (!w || w.cell !== 17) bad.push('진짜 터치로 끌어 놓지 못했다 ' + JSON.stringify(w)); }
+  // 바위 창의 「파기」를 손가락으로 누르면 확인 줄이 뜬다. 확인 단추는 손가락 바로 아래에 뜨지 않고, 같은 자리에 곧 따라오는 누름은 버린다. 확인해야 판다
+  { const rock = await p.evaluate(() => __maze.view().grid.find(g => g.canDig).cell), g0 = await p.evaluate(() => { __maze.M.gold = 30; __maze.redraw(); return __maze.M.gold; }), pt = await p.evaluate(c => __maze.pt(c), rock);
+    await p.touchscreen.tap(pt.x, pt.y); await p.waitForTimeout(700); const db = await (await p.$('#mz-sheet [data-m="dig"]')).boundingBox(), d = { x: db.x + db.width / 2, y: db.y + db.height / 2 };
+    await p.touchscreen.tap(d.x, d.y); await p.waitForTimeout(80);
+    const ob = await p.$('#mz-sheet [data-m="ok"]'); if (!ob) bad.push('「파기」를 눌렀는데 확인 줄이 없다'); else { const o = await ob.boundingBox(); if (d.x >= o.x - 4 && d.x <= o.x + o.width + 4 && d.y >= o.y - 4 && d.y <= o.y + o.height + 4) bad.push('확인 단추가 손가락 바로 아래에 떴다');
+      await p.touchscreen.tap(d.x, d.y); await p.waitForTimeout(80); const st = await p.evaluate(c => ({ pend: !!__maze.Z.pend, dug: __maze.M.grid[c].dug, gold: __maze.M.gold }), rock); if (!st.pend || st.dug || st.gold !== g0) bad.push('곧 따라온 누름이 버려지지 않았거나 확인 없이 팠다 ' + JSON.stringify(st));
+      await p.waitForTimeout(600); const o2 = await (await p.$('#mz-sheet [data-m="ok"]')).boundingBox(); await p.touchscreen.tap(o2.x + o2.width / 2, o2.y + o2.height / 2); await p.waitForTimeout(300);
+      const z = await p.evaluate(c => ({ dug: __maze.M.grid[c].dug, gold: __maze.M.gold, sheet: !document.getElementById('mz-sheet').hidden, fx: __maze.dbg().fx }), rock); if (!z.dug || z.gold >= g0 || z.sheet) bad.push('확인을 눌러도 파지 않았거나 창이 닫히지 않았다 ' + JSON.stringify(z)); } }
   console.log(JSON.stringify({ dev, errs, bad }, null, 1)); await b.close();
   if (errs.length || bad.length) process.exit(1); console.log('유령 클릭 시험 통과');
 })();

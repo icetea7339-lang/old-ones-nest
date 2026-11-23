@@ -9,17 +9,21 @@ const C = (r, c) => MZ.idx(r, c);
 function mk(seed) { const S = { s: seed | 0 }; return () => L.rnd(S); }
 // 지도의 꼴: dig 의 칸을 순서대로 파고, keep 밖의 판 칸은 메운다.
 //   DEAD1 (적당히): 가운데 굴을 4행에서 끊어 막다른 굴로 두고, 오른쪽으로 돌아 출구 위 칸(6행 가운데)으로 간다
-//   DEAD2 (미로): 2행에서 오른쪽으로 돌고, 가운데 막다른 굴 + 두 번째 침입부터 왼쪽 막다른 굴을 더한다
+//   DEAD2 (미로): 2행에서 오른쪽으로 돌고, 가운데 막다른 굴 + 두 번째 침입부터 왼쪽 막다른 굴, 위로 난 오른쪽 막다른 굴을 더한다
 const MID = [C(0, 2), C(1, 2), C(2, 2), C(3, 2), C(4, 2), C(6, 2)];
 const DEAD1 = [C(3, 3), C(3, 4), C(4, 4), C(5, 4), C(6, 4), C(6, 3)], DEAD1_KEEP = MID.concat(DEAD1);
-const DEAD2 = [C(2, 3), C(2, 4), C(3, 4), C(4, 4), C(5, 4), C(6, 4), C(6, 3), C(2, 1), C(2, 0), C(3, 0), C(4, 0)], DEAD2_KEEP = MID.concat(DEAD2);
+const DEAD2 = [C(2, 3), C(2, 4), C(3, 4), C(4, 4), C(5, 4), C(6, 4), C(6, 3), C(2, 1), C(2, 0), C(3, 0), C(4, 0), C(1, 4), C(0, 4)], DEAD2_KEEP = MID.concat(DEAD2);
+// 미로 봇의 미로 함정: 두 막다른 곳 끝에 미끼 불빛, 왼쪽 막다른 굴에 삼키는 구멍, 오른쪽 갈림길 앞에 헛갈림 벽 (위로 난 막다른 굴로 보낸다). 막다른 굴에는 보통 함정을 두지 않는다 (도적이 들어오게)
+const MAZE_TRAPS = [[C(4, 2), 'tr_lure'], [C(4, 0), 'tr_lure'], [C(3, 0), 'tr_maw'], [C(2, 3), 'tr_mirror']], DEAD_ENDS = [C(3, 2), C(4, 2), C(2, 1), C(2, 0), C(3, 0), C(4, 0), C(1, 4), C(0, 4)];
+// 추적자 먼저: 입구 바로 아래 외길 칸에 속삭이는 벽 (추적자도 피할 수 없다) + 미로 함정
+const SF_TRAPS = [[C(1, 2), 'tr_whisper']].concat(MAZE_TRAPS);
 const MIX = { dig: DEAD1, keep: DEAD1_KEEP, per: 1, core: 1, traps: 9, roomType: true };
 const STRAT = {
   straight: { per: 3, core: 2 },
   mixed: MIX,
-  maze: { dig: DEAD2, keep: DEAD2_KEEP, per: 1, core: 2, traps: 9, roomType: true, twice: true },
-  // 길잡이 먼저: 미로와 같은 굴, 다만 침입 2 (도적이 길잡이) 에는 코어의 권속 하나를 빼어 셋을 입구 쪽 방에 세워 길잡이를 먼저 잡는다
-  scoutfirst: { dig: DEAD2, keep: DEAD2_KEEP, per: 1, core: 2, traps: 9, roomType: true, twice: true, front: [2], frontCore: 1, frontN: 3 },
+  maze: { dig: DEAD2, keep: DEAD2_KEEP, per: 1, core: 2, traps: 9, roomType: true, twice: true, plan: MAZE_TRAPS, roomAt: [C(3, 2), C(2, 1), C(2, 0)], noTrap: DEAD_ENDS },
+  // 길잡이 먼저: 미로와 같은 굴. 입구 바로 아래 외길의 속삭이는 벽으로 추적자를 먼저 흔들고, 침입 3 에는 코어의 권속 하나를 빼어 셋을 입구 쪽 방에 세운다
+  scoutfirst: { dig: DEAD2, keep: DEAD2_KEEP, per: 1, core: 2, traps: 9, roomType: true, twice: true, plan: SF_TRAPS, roomAt: [C(3, 2), C(2, 1), C(2, 0)], noTrap: DEAD_ENDS, front: [3], frontCore: 1, frontN: 3 },
   random: { random: true },
   abyss: Object.assign({}, MIX, { focus: 'abyss' }), nebula: Object.assign({}, MIX, { focus: 'nebula' }), brood: Object.assign({}, MIX, { focus: 'brood' }), dusk: Object.assign({}, MIX, { focus: 'dusk' }), hunger: Object.assign({}, MIX, { focus: 'hunger' }),
 };
@@ -52,10 +56,12 @@ function arrange(M, st, rng) {
   const us = owned(M).sort((a, b) => val(b, st) - val(a, st) || a.uid - b.uid).slice(0, M.level), P = MZ.pathOf(M, M.raid);
   const per = st.per || 2, front = st.front && P.scout && (st.front === true || st.front.includes(M.raid)), fN = front ? st.frontN || per : per;
   const coreN = Math.min(front && st.frontCore != null ? st.frontCore : st.core || 0, us.length), coreUs = us.slice(0, coreN), rest = us.slice(coreN);
-  const nRooms = rest.length ? 1 + Math.ceil(Math.max(0, rest.length - fN) / per) : 0, okc = c => c !== MZ.ENT && c !== MZ.EXIT && M.grid[c].use !== 'trap', pass = {};
+  const nRooms = rest.length ? 1 + Math.ceil(Math.max(0, rest.length - fN) / per) : 0, okc = c => c !== MZ.ENT && c !== MZ.EXIT && M.grid[c].use !== 'trap' && !(st.plan || []).some(x => x[0] === c), pass = {};
   P.cells.forEach(c => { if (okc(c)) pass[c] = (pass[c] || 0) + 1; });
   const byPass = Object.keys(pass).map(Number).sort((a, b) => pass[b] - pass[a] || P.cells.indexOf(a) - P.cells.indexOf(b)), rooms = [];
   if (front && nRooms) { const f = P.scoutPath.find(c => okc(c)); if (f != null) rooms.push(f); }
+  // 먼저 쓸 방 자리 (roomAt: 막다른 굴의 통로 등). 길잡이가 오는 침입에는 쓰지 않는다 (지름길로 오므로)
+  if (!P.scout) for (const c of st.roomAt || []) { if (rooms.length >= nRooms) break; if (M.grid[c].dug && okc(c) && !rooms.includes(c)) rooms.push(c); }
   // 길 위에 고르게 (twice 면 여러 번 지나는 칸부터)
   const even = [...new Set(P.cells)].filter(okc); if (st.twice) for (const c of byPass) { if (rooms.length >= nRooms) break; if (pass[c] > 1 && !rooms.includes(c)) rooms.push(c); }
   for (let k = 0; rooms.length < nRooms && k < even.length; k++) { const c = st.tail ? even[even.length - 1 - k] : even[Math.min(even.length - 1, Math.floor((k + 0.5) * even.length / Math.max(1, nRooms)))]; if (!rooms.includes(c)) rooms.push(c); }
@@ -74,8 +80,11 @@ function arrange(M, st, rng) {
   while (M.bench.filter(x => x != null).length > 4) { const b = M.bench.filter(x => x != null).map(id => M.unit[id]).sort((a, b2) => count(M, a.kind, a.star) - count(M, b2.kind, b2.star) || val(a, st) - val(b2, st))[0]; MZ.sell(M, b.uid); }
 }
 function traps(M, st) {
-  if (!st.traps) return; const P = MZ.pathOf(M, M.raid), free = [...new Set(P.cells)].filter(c => c !== MZ.ENT && c !== MZ.EXIT && M.grid[c].use === 'path');
-  let have = M.grid.filter(g => g.use === 'trap').length; const ids = ['tr_whisper', 'tr_teeth', 'tr_spore', 'tr_slime'];
+  if (!st.traps) return;
+  // 정해 둔 미로 함정 자리 (plan: [[칸, 함정], ...]) 부터: 판 통로이고 권속이 없을 때
+  for (const [c, id] of st.plan || []) { const g = M.grid[c]; if (!g.dug || g.use !== 'path' || (M.board[c] || []).length || M.gold < (MZ.TRAP[id].cost || MZ.MK.trapCost) + 1) continue; MZ.setUse(M, c, 'trap', id); }
+  const P = MZ.pathOf(M, M.raid), free = [...new Set(P.cells)].filter(c => c !== MZ.ENT && c !== MZ.EXIT && M.grid[c].use === 'path' && !(st.noTrap || []).includes(c));
+  let have = M.grid.filter((g, i) => g.use === 'trap' && !(st.plan || []).some(x => x[0] === i)).length; const ids = ['tr_whisper', 'tr_teeth', 'tr_spore', 'tr_slime'];
   const lim = st.traps + (st.trapGrow || 0) * (M.raid - 1);
   for (const c of free) { if (have >= lim || M.gold < MZ.MK.trapCost) break; if (MZ.setUse(M, c, 'trap', ids[have % ids.length]).ok) have++; }
 }

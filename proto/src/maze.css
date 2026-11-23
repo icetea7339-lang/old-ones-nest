@@ -141,3 +141,54 @@
 #mz-sheet .mz-rew img { grid-row: 1 / 3; width: 44px; height: 44px; } #mz-sheet .mz-rew b { font-size: 15px; } #mz-sheet .mz-rew small { grid-column: 2; color: var(--mute); font-size: 13px; }
 #mz-sheet .mz-rew em { grid-column: 3; grid-row: 1 / 3; font-style: normal; font-weight: 700; color: var(--coin); font-size: 16px; }
 #mz #mz-sheet .mz-grid button.free { border-color: var(--coin); }
+
+/* 미로 함정: 끌림·헛갈림 글 */
+.mz-lab.lure { border-color: #ffc860; color: #fff3d0; } .mz-lab.conf { border-color: #c89cff; color: #f0e6ff; }
+#mz-log p.lure span { color: #ffd890; } #mz-log p.conf span { color: #d8c0ff; }
+/* 다음 일행: 입구 띠 왼쪽 */
+#mz-next { position: absolute; left: 4px; top: 4px; z-index: 2; display: flex; align-items: center; gap: 4px; min-height: 0; padding: 0 8px 0 5px; border-radius: 8px; font-size: 12px; font-weight: 700; white-space: nowrap; background: #0b0a14d9; border: 1px solid #5a5070; color: #e8e2f0; }
+#mz-next img { width: 20px; height: 20px; image-rendering: pixelated; flex: 0 0 auto; }
+#mz-next span { line-height: 1.2; }
+#mz-next.scout { border-color: #e8f0ff; } #mz-next.lost { border-color: #e0c890; color: #fff3d8; }
+
+/* 칸 창의 고르기 → 확인 줄 (창 아래에 붙는다) */
+#mz-sheet button.pick { outline: 2px solid #ffd040; outline-offset: 1px; }
+#mz-sheet .mz-confirm { margin: 14px -14px calc(-14px - var(--sab)); padding: 10px 14px calc(12px + var(--sab)); background: #221e34; border-top: 1px solid #4a4468; }
+#mz-sheet .mz-confirm > div { display: flex; gap: 8px; }
+#mz #mz-sheet .mz-confirm button { flex: 1 1 0; min-height: 48px; font-size: 15px; }
+#mz #mz-sheet .mz-confirm button.pri { flex: 1.6 1 0; }
+#mz-sheet .mz-confirm .mz-why { margin-top: 6px; }
+
+/* 길잡이 말풍선: 대상과 겹치지 않게, 꼬리로 가리킨다. 대상은 밝게 두른다 */
+#mz #mz-coach { max-width: calc(100vw - 16px); padding: 6px 9px; font-size: 13px; }
+#mz #mz-coach { display: flex; align-items: center; gap: 8px; } #mz-coach p { margin: 0; flex: 1 1 auto; min-width: 0; } #mz-coach span { flex: 0 0 auto; }
+#mz-coach.down::before, #mz-coach.up::after { content: ''; position: absolute; left: var(--ax, 50%); margin-left: -7px; border: 7px solid transparent; }
+#mz-coach.down::before { bottom: 100%; border-bottom-color: #f3ecd8; }
+#mz-coach.up::after { top: 100%; border-top-color: #f3ecd8; }
+#mz-coach.strip { display: flex; align-items: center; gap: 8px; } #mz-coach.strip p { margin: 0; flex: 1 1 auto; }
+#mz-ring { position: fixed; z-index: 45; pointer-events: none; border: 2px solid #ffd040; border-radius: 10px; box-shadow: 0 0 0 2px #0008, 0 0 14px #ffd04099; animation: mz-ring 1.2s ease-in-out infinite; }
+@keyframes mz-ring { 50% { box-shadow: 0 0 0 2px #0008, 0 0 4px #ffd04044; } }
+@media (prefers-reduced-motion: reduce) { #mz-ring { animation: none; } }
+/* 상점 설명 판 */
+#mz-shop .mz-spanel { padding: 6px 8px 8px; background: #1a1828; border: 1px solid #3a3658; border-radius: 10px; }
+#mz-shop .mz-sp1 { display: flex; align-items: center; gap: 8px; }
+#mz-shop .mz-sp1 > img { width: 36px; height: 36px; flex: 0 0 36px; background: #0f0d18; border-radius: 6px; }
+#mz-shop .mz-sp1 > div { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; line-height: 1.25; }
+#mz-shop .mz-sp1 b { font-size: 15px; } #mz-shop .mz-sp1 small { color: var(--mute); font-size: 12px; display: flex; align-items: center; gap: 3px; flex-wrap: wrap; }
+#mz-shop .mz-sp1 small img { width: 14px; height: 14px; }
+#mz #mz-shop .mz-spx { flex: 0 0 auto; width: 36px; min-height: 36px; padding: 0; background: none; border-color: transparent; color: var(--mute); }
+#mz-shop .mz-sp2, #mz-shop .mz-sp3, #mz-shop .mz-sp4 { margin: 5px 0 0; font-size: 13px; line-height: 1.35; }
+#mz-shop .mz-sp3 b { color: #8fe8d8; } #mz-shop .mz-sp4 { color: var(--mute); }
+#mz-shop .mz-sp5 { display: flex; gap: 6px; margin-top: 8px; }
+#mz #mz-shop .mz-sp5 button { flex: 1 1 0; min-height: 42px; } #mz #mz-shop .mz-sp5 button.pri { flex: 1.6 1 0; }
+#mz-shop .mz-spanel .mz-why { margin: 4px 0 0; color: #ff9a8a; font-size: 13px; }
+/* 고른 함정·방의 설명 (확인 줄 위) */
+#mz-sheet .mz-cinfo { display: flex; gap: 8px; margin-bottom: 8px; }
+#mz-sheet .mz-cinfo > img { width: 40px; height: 40px; flex: 0 0 40px; border-radius: 6px; }
+#mz-sheet .mz-cinfo b { font-size: 15px; } #mz-sheet .mz-cinfo p { margin: 2px 0 0; font-size: 13px; line-height: 1.35; } #mz-sheet .mz-cinfo small { display: block; margin-top: 2px; color: var(--mute); font-size: 12px; }
+/* 고른 권속 자세히: 입구 띠 오른쪽 */
+#mz-uinfo { position: absolute; right: 4px; top: 4px; z-index: 2; display: flex; align-items: center; gap: 4px; min-height: 0; padding: 0 8px 0 5px; border-radius: 8px; font-size: 12px; font-weight: 700; white-space: nowrap; background: #0b0a14d9; border: 1px solid #ffd040; color: #fff3c8; }
+#mz-uinfo img { width: 20px; height: 20px; image-rendering: pixelated; }
+#mz-uinfo span { line-height: 1.2; }
+#mz-sheet .mz-confirm.idle { background: none; border-top-color: #2a2740; }
+#mz #mz-sheet .mz-confirm.idle button { opacity: .45; }

@@ -189,7 +189,7 @@ function lrTop(v) {
 function lrSynChips(v, only) { const all = v.synergies.filter(s => !only || only[s.id]), max = only ? 6 : 4, show = all.length > max ? all.slice(0, max - 1) : all; return show.map(s => `<button class="lr-syn t${s.tier}" data-l="syn" data-id="${s.id}"><img src="${lrSym(s.id, 16)}" alt="${esc(s.name)}">${s.n}/${s.next || s.need[s.need.length - 1]}</button>`).join('') + (all.length > show.length ? `<button class="lr-syn" data-l="syns">+${all.length - show.length}</button>` : ''); }
 function lrFightPanel() {
   const F = LU.F; if (!F) return; const lr = $('lr'), roomy = lr.classList.contains('wide') || lr.classList.contains('tall');
-  $('lr-fight').innerHTML = `<div class="lr-speed">${LSPD.map(q => `<button data-l="speed" data-v="${q[0]}" class="${LU.speed === q[0] ? 'on' : ''}" aria-pressed="${LU.speed === q[0]}">${q[1]}</button>`).join('')}<button data-l="pause" class="${LU.paused ? 'on' : ''}">${LU.paused ? '이어서' : '멈춤'}</button></div>${F.chips && roomy ? `<div class="lr-syns">${F.chips}</div>` : ''}<div id="lr-meter">${lrMeterHtml()}</div><div id="lr-feed"></div>`;
+  $('lr-fight').innerHTML = `<div class="lr-speed">${(LU.replay && LU.replay.speeds || LSPD).map(q => `<button data-l="speed" data-v="${q[0]}" class="${LU.speed === q[0] ? 'on' : ''}" aria-pressed="${LU.speed === q[0]}">${q[1]}</button>`).join('')}<button data-l="pause" class="${LU.paused ? 'on' : ''}">${LU.paused ? '이어서' : '멈춤'}</button></div>${F.chips && roomy ? `<div class="lr-syns">${F.chips}</div>` : ''}<div id="lr-meter">${lrMeterHtml()}</div><div id="lr-feed"></div>`;
   const fd = $('lr-feed'), side = $('lr-side'), room = lr.classList.contains('wide') ? 150 : side.getBoundingClientRect().bottom - fd.getBoundingClientRect().top - 2; LU.feedN = Math.max(1, Math.min(5, Math.floor((room + 2) / 30))); fd.innerHTML = lrFeedHtml();
 }
 // 누가 얼마나: 싸우는 동안 살아 있는 막대. 위 넷 (피해는 주황, 정신 피해는 보라)
@@ -242,6 +242,7 @@ function lrClick(e) {
   if (a === 'tutoff') { LU.tut = -1; if (META) { META.lairTut = 1; try { saveMeta(); } catch (er) { /* 저장 없이 */ } } $('lr-coach').hidden = true; document.querySelectorAll('#lr .lr-glow').forEach(x => x.classList.remove('lr-glow')); return; }
   if (a === 'tutok') { LU.tut++; return lrCoach(); }
   if (a === 'close') return lrSheetClose();
+  if (a === 'speed' && LU.replay && LU.replay.onSpeed) { LU.speed = +b.dataset.v; LU.replay.onSpeed(LU.speed); lrFightPanel(); return; }
   if (a === 'speed') { lrSpeedSet(+b.dataset.v); if (LU.sheet && LU.sheet.kind === 'menu') lrSheet({ kind: 'menu' }); return; }
   if (a === 'pause') { LU.paused = !LU.paused; return lrFightPanel(); }
   if (a === 'rskip') { if (LU.replay && LU.replay.skip) LU.replay.skip(); return; }
@@ -399,7 +400,7 @@ function lrFight() {
 function lairReplay(f, o) {
   o = o || {}; lrMount(); const lr = $('lr'); lr.classList.add('replay'); lr.hidden = false;
   try { LU.wallH = LAIRART.wallTop(LS, 6, 0).height; } catch (e) { LU.wallH = 45; }
-  LU.replay = o; LU.sheet = null; LU.sel = null; LU.roomPick = null; LU.speed = lrSpeedLoad(); LU.paused = false; LU.phase = 'fight';
+  LU.replay = o; LU.sheet = null; LU.sel = null; LU.roomPick = null; LU.speed = o.speed || lrSpeedLoad(); LU.paused = false; LU.phase = 'fight';
   $('lr-sheet').hidden = true; $('lr-coach').hidden = true; $('lr-top').hidden = true; $('lr-top').innerHTML = ''; ['lr-bench', 'lr-shop', 'lr-info'].forEach(id => { $(id).hidden = true; }); $('lr-fight').hidden = false;
   const F = { tl: f.timeline, i: 0, T: 0, ents: {}, fx: [], zones: [], nums: [], lines: [], late: [], feed: [], meter: {}, meterDirty: false, meterAt: 0, plates: [], crowd: false, stop: 0, shake: 0, shakeMag: 0, intro: 900, slowUntil: 0, slowK: 1, slows: 0, slowSeen: {}, blocks: 0, shots: 0, taunts: 0, checks: 0, bigChecks: 0, boons: 0, boonAt: {}, real: 0, done: false, endAt: 0, res: { fight: f, win: f.result === 'win' }, name: o.name || '', round: 1, v0: null, step: o.step || 0, labs: [], rooms: f.rooms.map(r => ({ id: r.id, cells: r.cells, erased: false, pulse: 0 })), syn: f.syn, form: o.form || f.form, banner: null, consumed: 0, mads: 0, casts: 0, bigCasts: 0, smallCasts: 0, frozen: 0 };
   f.units.forEach(u => { const e = F.ents[u.id] = lrEnt(u); e.minor = !!LMINOR[u.kind]; if (e.hp < e.mhp) e.lag = e.hp / e.mhp; });
@@ -415,7 +416,7 @@ function lairReplay(f, o) {
 function lrCropOf(f) {
   let r0 = 9, r1 = -1, c0 = 9, c1 = -1; const add = c => { if (c == null || c < 0 || c > 35) return; const r = Math.floor(c / 6), q = c % 6; r0 = Math.min(r0, r); r1 = Math.max(r1, r); c0 = Math.min(c0, q); c1 = Math.max(c1, q); };
   f.units.forEach(u => { (u.cells && u.cells.length ? u.cells : [u.cell]).forEach(add); }); f.timeline.forEach(e => { if (e.type === 'move') add(e.to); if (e.type === 'spawn') add(e.cell); });
-  if (r1 < 0) return null; const y0 = Math.max(0, LU.wallH + r0 * LS - 40), y1 = LU.wallH + (r1 + 1) * LS + 6, x0 = Math.max(0, c0 * LS - 6), x1 = Math.min(LW, (c1 + 1) * LS + 6);
+  if (r1 < 0) return null; const y0 = Math.max(0, LU.wallH + r0 * LS - 72), y1 = LU.wallH + (r1 + 1) * LS + 6, x0 = Math.max(0, c0 * LS - 6), x1 = Math.min(LW, (c1 + 1) * LS + 6);
   return { x0, y0, w: x1 - x0, h: y1 - y0 };
 }
 // 재생 때 상자에 맞춰 판을 키운다. 화면의 가로세로에 맞게 상자를 넓히고(판 밖으로는 안 나간다), 넘치는 데는 잘라 낸다
@@ -431,7 +432,7 @@ function lrCropFit(availW, availH) {
 function lrCropReset() { const cv = $('lr-cv'), ov = $('lr-ov'); if (!cv) return; cv.style.transform = ''; Object.assign(ov.style, { width: '', height: '', right: '', bottom: '', transform: '' }); LU.crop = null; }
 // 다시 보기를 끝낸다 (끝까지 보았거나 넘겼을 때). done 은 한 번만
 function lrReplayEnd() {
-  const o = LU.replay; if (!o) return; LU.replay = null; lrCropReset(); LU.F = null; LU.phase = 'prep'; const lr = $('lr'); lr.hidden = true; lr.classList.remove('replay'); $('lr-ov').innerHTML = ''; $('lr-top').hidden = false;
+  const o = LU.replay; if (!o) return; LU.replay = null; LU.speed = lrSpeedLoad(); lrCropReset(); LU.F = null; LU.phase = 'prep'; const lr = $('lr'); lr.hidden = true; lr.classList.remove('replay'); $('lr-ov').innerHTML = ''; $('lr-top').hidden = false;
   ['lr-bench', 'lr-shop'].forEach(id => { $(id).hidden = false; }); $('lr-fight').hidden = true; $('lr-bar').innerHTML = '';
   if (o.done) o.done();
 }
