@@ -398,3 +398,5 @@ canvas.px, .sh-ic, .sh-cv { image-rendering: pixelated; }
 #lr-sheet .lr-track.end { margin: 0 0 4px; }
 #lr-sheet .lr-mem button { position: relative; } #lr-sheet .lr-mem small { position: absolute; right: 2px; bottom: 0; font-size: 12px; font-weight: 700; color: var(--coin); }
 /* ==== LAIR-UI 끝 ==== */
+/* 폰에서 끌기가 길게 누르기(글 고르기·메뉴)나 당겨 새로 고침으로 끊기지 않게 */
+#lr { overscroll-behavior: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }

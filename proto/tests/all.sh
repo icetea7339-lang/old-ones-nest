@@ -27,6 +27,8 @@ run intro_pc node tests/intro.js &
 run intro_iphone14 node tests/intro.js "iPhone 14" &
 wait
 # 빠르기 시험은 혼자 돌린다
+run lairdrag_iphone14 node tests/lairdrag.js "iPhone 14"
+run lairdrag_a360 node tests/lairdrag.js a360
 run lairperf node tests/lairperf.js
 N=$(wc -l < "$LOG/count"); B=$(wc -l < "$LOG/failed")
 if [ "$B" -eq 0 ]; then echo "모두 통과 ($N)"; else echo "실패 $B / $N"; exit 1; fi

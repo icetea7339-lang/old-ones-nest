@@ -65,7 +65,9 @@ function lrMount() {
 <div id="lr-sheet" hidden></div><div id="lr-coach" hidden></div><div id="lr-toast" hidden></div><img id="lr-drag" alt="" hidden>`;
   document.body.appendChild(el);
   el.addEventListener('click', lrClick);
-  el.addEventListener('pointerdown', lrDown); el.addEventListener('pointermove', lrMove); el.addEventListener('pointerup', lrUp); el.addEventListener('pointercancel', () => { LU.drag = null; $('lr-drag').hidden = true; });
+  el.addEventListener('pointerdown', lrDown); el.addEventListener('pointermove', lrMove); el.addEventListener('pointerup', lrUp); el.addEventListener('pointercancel', lrCancel);
+  // 폰에서는 앱이나 브라우저가 끄는 손가락을 스크롤로 가져가 끌기가 취소된다. 끄는 동안에는 움직임을 게임이 쥔다
+  el.addEventListener('touchmove', e => { if (LU.drag && LU.drag.uid && e.cancelable) e.preventDefault(); }, { passive: false });
   window.addEventListener('resize', () => { if (!el.hidden) { lrBarFit(); lrSize(); } });
   window.addEventListener('keydown', e => { if (el.hidden) return; if (e.key === 'Escape') { if (LU.sheet) lrSheetClose(); else if (LU.roomPick != null) { LU.roomPick = null; lrDraw(); } else if (LU.sel) { LU.sel = null; lrDraw(); } } if (LU.phase === 'fight' && (e.key === ' ' || e.key === 'p')) { LU.paused = !LU.paused; lrFightPanel(); e.preventDefault(); } if (LU.phase === 'fight' && e.key.length === 1 && '123'.includes(e.key)) lrSpeedSet(LSPD[+e.key - 1][0]); });
 }
@@ -279,10 +281,12 @@ function lrDown(e) {
   if (uid) e.preventDefault();
 }
 function lrMove(e) {
-  const d = LU.drag; if (!d || !d.uid) return; if (!d.moved && Math.hypot(e.clientX - d.x0, e.clientY - d.y0) < 10) return;
+  const d = LU.drag; if (!d || !d.uid) return; d.lx = e.clientX; d.ly = e.clientY; if (!d.moved && Math.hypot(e.clientX - d.x0, e.clientY - d.y0) < 10) return;
   if (!d.moved) { d.moved = true; LU.sel = { uid: d.uid }; const u = LU.R.unit[d.uid], g = $('lr-drag'); g.src = lrIcon(u.kind, u.star, 44); g.hidden = false; lrDraw(); }
   const g = $('lr-drag'); g.style.left = (e.clientX - 28) + 'px'; g.style.top = (e.clientY - 44) + 'px'; LU.hover = lrCellAt(e.clientX, e.clientY);
 }
+// 끌던 중에 취소되면 손가락이 마지막에 있던 자리에 놓는다
+function lrCancel() { const d = LU.drag; if (d && d.moved && d.lx != null) return lrUp({ clientX: d.lx, clientY: d.ly }); LU.drag = null; $('lr-drag').hidden = true; LU.hover = -1; }
 function lrUp(e) {
   const d = LU.drag; LU.drag = null; $('lr-drag').hidden = true; LU.hover = -1; if (!d || LU.phase !== 'prep') return; const R = LU.R;
   if (d.moved) {
