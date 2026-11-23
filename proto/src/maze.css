@@ -234,3 +234,23 @@
 #mzr .mzn-res { width: 100%; max-width: 520px; } #mzr .mzn-res p { margin: 0 0 10px; font-size: 16px; line-height: 1.7; } #mzr .mzn-hunt { color: #e8c890; } #mzr .mzn-gain { color: #8fe8d8; font-weight: 700; }
 #mz-coach.guide { background: #1c1830; color: #e8e2f0; border: 1px solid #5a5070; }
 #mz #mz-coach.guide button { background: #2a2640; color: #e8e2f0; border-color: #5a5070; }
+/* ===== 본체의 깨어남 ===== */
+#mzr.awaken { align-items: center; gap: 10px; overflow-y: auto; }
+#mzr .mza-top { width: 100%; max-width: 520px; display: flex; align-items: center; gap: 12px; }
+#mza-cv { width: 120px; height: 120px; flex: 0 0 120px; image-rendering: pixelated; background: radial-gradient(circle at 50% 60%, #1c1830, #07060c 70%); border-radius: 12px; }
+#mzr .mza-top > div { display: flex; flex-direction: column; gap: 2px; min-width: 0; } #mzr .mza-top small { color: #b8a8d8; font-size: 13px; letter-spacing: .1em; } #mzr .mza-top b { font-size: 20px; font-family: var(--display); } #mzr .mza-top span { color: var(--mute); font-size: 13px; }
+#mzr.awaken.morph { justify-content: center; } #mzr.awaken.morph .mza-top { flex-direction: column; text-align: center; } #mzr.awaken.morph #mza-cv { width: 200px; height: 200px; flex-basis: 200px; } #mzr.awaken.morph .mza-top > div { align-items: center; }
+#mzr .mza-cards { width: 100%; max-width: 520px; display: flex; flex-direction: column; gap: 8px; }
+#mzr .mza-card { display: flex; gap: 10px; align-items: center; text-align: left; padding: 8px 10px; min-height: 0; background: #16131f; border: 1px solid #3a3658; border-left: 4px solid var(--fc); border-radius: 10px; }
+#mzr .mza-card.on { border-color: #ffd040; border-left-color: var(--fc); box-shadow: 0 0 0 1px #ffd040; }
+#mzr .mza-card > img { width: 56px; height: 56px; flex: 0 0 56px; image-rendering: pixelated; }
+#mzr .mza-card > span { display: flex; flex-direction: column; gap: 1px; min-width: 0; } #mzr .mza-card b { font-size: 15px; } #mzr .mza-card small { font-size: 13px; color: #c8bce8; } #mzr .mza-card i { font-style: normal; font-size: 12px; color: var(--mute); line-height: 1.35; }
+#mzr .mza-card em { font-style: normal; font-size: 12px; font-weight: 700; } #mzr .mza-card em.keep { color: #8fe8d8; } #mzr .mza-card em.mix { color: #e8b0f0; }
+#mzr .mza-info { width: 100%; max-width: 520px; padding: 10px 12px; background: #1a1828; border: 1px solid #3a3658; border-radius: 10px; }
+#mzr .mza-info p { margin: 6px 0 0; font-size: 13px; line-height: 1.45; } #mzr .mza-info p b { color: #8fe8d8; margin-right: 4px; } #mzr .mza-info .mza-lose { color: #e8b0a0; }
+#mzr .mza-hd { display: flex; align-items: center; gap: 8px; } #mzr .mza-hd img { width: 40px; height: 40px; image-rendering: pixelated; } #mzr .mza-hd b { font-size: 16px; }
+#mzr .mza-ok { width: 100%; max-width: 520px; margin: auto 0 0; padding: 10px 0 0; border-top: 1px solid #2a2740; }
+#mzr .mza-ok > div { display: flex; gap: 8px; } #mzr .mza-ok button { flex: 1 1 0; min-height: 48px; font-size: 15px; } #mzr .mza-ok button.pri { flex: 1.6 1 0; } #mzr .mza-ok.idle button { opacity: .45; }
+#mz #mz-shop .mz-card.formk { border-color: var(--fk); box-shadow: inset 0 0 0 1px var(--fk), 0 0 6px var(--fk); }
+#mz-sheet .mz-mixed { display: block; color: #e8b0f0; font-size: 12px; }
+#mz #mz-shop .mz-card.formk::after { content: ''; position: absolute; right: 4px; bottom: 4px; width: 8px; height: 8px; border-radius: 50%; background: var(--fk); box-shadow: 0 0 5px var(--fk); }

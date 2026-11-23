@@ -26,13 +26,15 @@ const dev = process.argv[2] || '', tag = dev ? dev.replace(/\s+/g, '') : 'pc', o
   const tapCell = async c => { const pt = await p.evaluate(c => __maze.pt(c), c); await p.mouse.click(pt.x, pt.y); await p.waitForTimeout(150); };
   const ev = (f, a) => p.evaluate(f, a);
   // 상점 서랍에서 산다: 서랍을 열고, 카드를 한 번 누르면 고르고, 다시 누르면 산다. 사면 서랍이 닫힌다
+  // 본체의 깨어남 (자유: 침입 1 뒤 · 3 뒤): 첫 카드를 받아들이고 장면을 넘긴다
+  const awakenIf = async () => { const r = await ev(() => __maze.read()); if (!r || !r.awaken) return false; await tap('#mzr [data-r="acard"][data-i="0"]'); await p.waitForTimeout(300); await tap('#mzr [data-r="aok"]'); await p.waitForTimeout(1900); await p.waitForTimeout(1600); await tap('#mzr [data-r="skipall"]'); await p.waitForTimeout(200); return true; };
   const buy = async i => { if (await ev(() => document.getElementById('mz-shop').hidden)) await tap('#mz-bench [data-m="shopt"]'); await tap(`#mz-shop [data-m="shop"][data-i="${i}"]`); await tap('#mz-shop [data-m="buy"]'); if (!(await ev(() => document.getElementById('mz-shop').hidden))) bad.push('사고 나서 서랍이 닫히지 않았다'); };
   const close = async () => { if (await p.$('#mz-sheet:not([hidden]) [data-m="close"]')) await tap('#mz-sheet [data-m="close"]'); };
   // 첫 화면
   await shot('title');
   if (!(await p.$('#title #mz-tcv'))) bad.push('첫 화면에 굴 그림이 없다');
   { const d = await ev(() => Array.from(document.querySelectorAll('#menu button')).map(b => b.textContent)); if (!d.some(t => /^이야기/.test(t)) || !d.some(t => /^자유/.test(t)) || !d.some(t => /도움말/.test(t)) || !d.some(t => /소리/.test(t))) bad.push('첫 화면 단추가 맞지 않는다 ' + JSON.stringify(d)); }
-  await tap('[data-z="help"]'); await shot('help'); if ((await p.$$('#modal .sh-tab')).length !== 4) bad.push('도움말이 네 쪽(짓기·침입·진화·기록)이 아니다'); await tap('#modal .sh-tab[data-i="1"]'); await tap('#modal [data-z="mclose"]');
+  await tap('[data-z="help"]'); await shot('help'); if ((await p.$$('#modal .sh-tab')).length !== 5) bad.push('도움말이 다섯 쪽(짓기·침입·깨어남·진화·기록)이 아니다'); await tap('#modal .sh-tab[data-i="1"]'); await tap('#modal [data-z="mclose"]');
   { const s0 = await ev(() => __maze.meta.sound !== false); await tap('[data-z="sound"]'); if ((await ev(() => __maze.meta.sound !== false)) === s0) bad.push('소리 단추가 안 된다'); await tap('[data-z="sound"]'); }
   await tap('[data-z="free"]'); await p.waitForTimeout(400);
   { const d = await ev(() => ({ shown: !document.getElementById('mz').hidden, raid: __maze.M.raid, path: __maze.dbg().path, bar: document.getElementById('mz-bar').textContent, k: __maze.Z.k, vw: innerWidth, vh: innerHeight })); if (!d.shown || d.raid !== 1 || !d.path) bad.push('지도가 열리지 않았다 ' + JSON.stringify(d)); if (!/침입 1\/4/.test(d.bar) || !/20/.test(d.bar)) bad.push('위 띠가 맞지 않는다 ' + d.bar); if (dev && d.k * 64 < 52) bad.push('칸이 너무 작다 ' + Math.round(d.k * 64)); if (d.vw >= 390 && d.vh >= 780 && d.k * 64 < 64) bad.push('390x780 에서 칸이 64 보다 작다 ' + Math.round(d.k * 64)); }
@@ -143,7 +145,7 @@ const dev = process.argv[2] || '', tag = dev ? dev.replace(/\s+/g, '') : 'pc', o
   };
   const r1 = await raid('r1', true);
   if (!r1.seen.walk) bad.push('일행이 걷는 것을 못 봤다'); if (!r1.seen.fight) bad.push('방 싸움을 못 봤다'); if (!r1.seen.dark) bad.push('굴 속의 어둠이 정신을 깎는 것을 못 봤다'); if (r1.seen.secs > 120) bad.push('빠르게로 침입이 ' + r1.seen.secs + '초 걸렸다'); if (r1.seen.fight && !r1.seen.crop) bad.push('방 싸움이 쓰는 칸만 잘리지 않았다'); if (r1.seen.fight && dev && !(r1.seen.sc > 1.05)) bad.push('방 싸움이 커지지 않았다 ' + r1.seen.sc); if (!r1.seen.tags) bad.push('침입 뒤 방의 꼬리표가 없다');
-  await tap('#mz-sheet [data-m="next"]'); await p.waitForTimeout(300);
+  await tap('#mz-sheet [data-m="next"]'); await p.waitForTimeout(300); if (!(await awakenIf())) bad.push('침입 1 뒤에 깨어남이 없다');
   // 막았으면 무료 하나 (방 종류 또는 함정)
   if (r1.res && r1.res.win) { if (!(await p.$('#mz-sheet [data-m="reward"]'))) bad.push('막았는데 보상 창이 없다'); else { await shot('reward'); const o = await ev(() => __maze.view().reward.opts[0]); await tap('#mz-sheet [data-m="reward"][data-i="0"]');
       const d = await ev(id => ({ free: __maze.view().free.map(q => q.id), id }), o.id); if (!d.free.includes(o.id)) bad.push('보상을 골랐는데 무료가 없다 ' + JSON.stringify(d));
@@ -157,7 +159,7 @@ const dev = process.argv[2] || '', tag = dev ? dev.replace(/\s+/g, '') : 'pc', o
     if (await ev(() => !!localStorage.getItem('oldnest.lairrun'))) bad.push('굴 짓기가 둥지 전투의 저장을 건드렸다');
     { const d = await ev(() => { const a = __maze.speed(); __maze.meta.mazeSpeed = 0.6; __maze.Z.speed = null; const b = __maze.speed(); __maze.meta.mazeSpeed = a; __maze.Z.speed = null; return [a, b, __maze.speed()]; }); if (d[0] !== 5 || d[1] !== 1 || d[2] !== 5) bad.push('고른 빠르기가 남지 않거나 0.6 이 보통이 되지 않는다 ' + JSON.stringify(d)); } }
   // 넷째까지 (넘기기)
-  let last = null; for (let k = 0; k < 6; k++) { await ev(() => { const M = __maze.M; M.gold = Math.max(M.gold, 10); }); last = await raid('r' + (k + 2), false); if (last.over) break; await shot('r' + (k + 2) + '_result', true); await tap('#mz-sheet [data-m="next"]'); await p.waitForTimeout(200); await close(); }
+  let last = null; for (let k = 0; k < 6; k++) { await ev(() => { const M = __maze.M; M.gold = Math.max(M.gold, 10); }); last = await raid('r' + (k + 2), false); if (last.over) break; await shot('r' + (k + 2) + '_result', true); await tap('#mz-sheet [data-m="next"]'); await p.waitForTimeout(200); await awakenIf(); await close(); }
   await p.waitForTimeout(300); await shot('over');
   { const d = await ev(() => ({ over: __maze.M.over, again: !!document.querySelector('#mz-sheet [data-m="again"]'), home: !!document.querySelector('#mz-sheet [data-m="home"]'), saved: localStorage.getItem('nestmaze.maze') || localStorage.getItem('oldnest.maze') })); if (!d.over || !d.again || !d.home) bad.push('판 끝 화면이 맞지 않는다 ' + JSON.stringify(d)); if (d.saved) bad.push('끝난 판의 저장이 남았다'); }
   await tap('#mz-sheet [data-m="again"]'); await p.waitForTimeout(300); if ((await ev(() => __maze.M.raid)) !== 1) bad.push('다시 한 판이 처음이 아니다');

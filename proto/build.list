@@ -4,5 +4,5 @@ RULES="src/lair.js"
 UI="src/base.js src/audio.js src/lairart.js src/intro.js src/trace.js src/lairui.js src/lairflow.js src/shell.js"
 # 굴 짓기(미로 둥지) 맛보기: maze.html 과 ../PLAY-MAZE.html 로 따로 짓는다
 MAZE_RULES="src/lair.js src/maze.js"
-MAZE_UI="src/base.js src/audio.js src/lairart.js src/lairui.js src/mazestory.js src/mazeui.js"
+MAZE_UI="src/base.js src/audio.js src/lairart.js src/lairui.js src/mazestory.js src/mazeawaken.js src/mazeui.js"
 MAZE_CSS="src/style.css src/maze.css"

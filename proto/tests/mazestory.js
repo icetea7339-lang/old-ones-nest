@@ -42,6 +42,8 @@ const dev = process.argv[2] === 'pc' ? '' : process.argv[2] || 'iPhone 14', tag 
     const st = await ev(() => { const r = __maze.read(), M = __maze.M; return { r, title: !document.getElementById('title').hidden, ch: M ? M.chapter : null, raid: M ? M.raid : null, phase: M ? M.phase : null, sheet: __maze.Z.sheet && __maze.Z.sheet.kind, mapOn: !document.getElementById('mz').hidden }; });
     if (st.title) break;
     if (st.r && st.r.ending) { ending = st.r.ending; await shot('ending_card'); await tap('#mzr [data-r="home"]'); continue; }
+    // 본체의 깨어남 (2장·4장 끝): 첫 카드를 받아들이고 장면을 넘긴다
+    if (st.r && st.r.awaken) { seen.awaken = (seen.awaken || 0) + 1; await tap('#mzr [data-r="acard"][data-i="0"]'); await p.waitForTimeout(300); await tap('#mzr [data-r="aok"]'); await p.waitForTimeout(1800); continue; }
     if (st.r && st.r.night) { seen.nights++;
       if (seen.nights === 1) { await shot('night'); const c = await ev(() => document.querySelectorAll('#mzr .mzn-card').length); if (c !== 3) bad.push('밤의 카드가 셋이 아니다 ' + c);
         // 저장·이어하기: 밤의 한 수 중간
@@ -69,11 +71,12 @@ const dev = process.argv[2] === 'pc' ? '' : process.argv[2] || 'iPhone 14', tag 
     await p.waitForTimeout(150);
   }
   if (!ending) bad.push('결말에 닿지 못했다 ' + JSON.stringify(seen));
+  if (seen.awaken !== 2) bad.push('이야기에서 깨어남이 두 번이 아니다 ' + seen.awaken);
   if (!seen.retry) bad.push('알이 깨진 장을 다시 하지 않았다'); if (!seen.picked || !seen.skipped) bad.push('밤의 한 수를 고르거나 건너뛰지 않았다 ' + JSON.stringify(seen)); if (!seen.between) bad.push('침입 사이 장면이 없었다'); if (!seen.said) bad.push('대사 장면을 못 봤다');
   { const want = [0, 1, 1, 2, 3, 4, 5, 6]; if (want.some(c => !seen.chapters.includes(c))) bad.push('장 제목 카드를 다 보지 못했다 ' + JSON.stringify(seen.chapters)); }
   // 처음으로: 본 결말 n/5, 이야기 저장은 지워졌다, 기록 탭
   await p.waitForTimeout(300); { const t = await ev(() => (document.querySelector('#menu .mz-ends') || {}).textContent || ''), s = await ev(() => (document.querySelector('[data-z="story"] small') || {}).textContent || ''); if (!/본 결말 1\/5/.test(t)) bad.push('본 결말이 적히지 않았다 ' + t); if (s) bad.push('결말 뒤에도 이야기 이어하기가 남았다 ' + s); } await shot('title_after');
-  await tap('[data-z="help"]'); await tap('#modal .sh-tab[data-i="3"]'); { const d = await ev(() => document.querySelectorAll('#modal .mz-lognote').length); if (d < 6) bad.push('기록 탭의 조각이 모자란다 ' + d); } await shot('logs'); await tap('#modal [data-z="mclose"]');
+  await tap('[data-z="help"]'); await ev(() => Array.from(document.querySelectorAll('#modal .sh-tab')).find(b => b.textContent === '기록').click()); await p.waitForTimeout(150); { const d = await ev(() => document.querySelectorAll('#modal .mz-lognote').length); if (d < 6) bad.push('기록 탭의 조각이 모자란다 ' + d); } await shot('logs'); await tap('#modal [data-z="mclose"]');
   // 모드마다 저장이 따로: 이야기를 새로 열고 자유를 열어 둘 다 남는지, 「새로」는 그 모드만 지운다(묻고)
   await tap('[data-z="story"]'); await tap('#mzr'); await ev(() => __maze.redraw()); await p.reload(); await p.waitForTimeout(400); await tap('[data-z="free"]'); await p.waitForTimeout(300); { const m = await ev(() => __maze.M.mode); if (m !== 'free') bad.push('자유가 자유 판이 아니다 ' + m); }
   await ev(() => { const b = document.querySelector('#mz-bar [data-m="menu"]'); b.click(); }); await p.waitForTimeout(150); await tap('#mz-sheet [data-m="home"]');

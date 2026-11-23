@@ -97,9 +97,21 @@ function randomTurn(M, rng) {
     else { const us = owned(M); if (us.length) { const u = us[Math.floor(rng() * us.length)], ks = M.grid.map((g, i) => i).filter(i => M.grid[i].dug).concat([MZ.CORE]); if (ks.length) MZ.move(M, u.uid, { cell: ks[Math.floor(rng() * ks.length)] }); } }
   }
 }
+// 깨어남 고르기: match (둥지 권속의 성향이 가장 많은 모습, 2단계는 그것이 지금 모습이면 그대로), any (아무거나), keep (2단계는 늘 그대로), 또는 모습 이름 (있으면 그것)
+function awakenTurn(M, st, rng) {
+  const v = MZ.view(M).awaken, pol = process.env.AWK || st.awk || (st.focus ? st.focus : 'match'), cnt = {};
+  owned(M).forEach(u => { const a = L.KIN[u.kind].asp; cnt[a] = (cnt[a] || 0) + u.star * (1 + L.KIN[u.kind].cost); });
+  let i = 0;
+  if (pol === 'any') i = Math.floor(rng() * v.offer.length);
+  else if (pol === 'keep' && v.step === 2) i = 0;
+  else if (MZ.FORMS[pol]) { const j = v.offer.findIndex(o => o.form === pol); i = j >= 0 ? j : v.offer.reduce((b, o, k) => ((cnt[o.form] || 0) > (cnt[v.offer[b].form] || 0) ? k : b), 0); }
+  else i = v.offer.reduce((b, o, k) => ((cnt[o.form] || 0) > (cnt[v.offer[b].form] || 0) ? k : b), 0);
+  return MZ.awaken(M, i);
+}
 function playRun(seed, name) {
   const st = STRAT[name], rng = mk(seed * 31 + 7), M = MZ.newRun(seed), log = [];
   while (M.phase === 'prep') {
+    if (M.awaken) { awakenTurn(M, st, rng); continue; }
     if (st.random) randomTurn(M, rng);
     else { build(M, st, st.digKeep != null ? st.digKeep : M.raid === 1 ? 6 : 4); shop(M, st, rng, st.traps ? st.trapGold || 4 : 0); arrange(M, st, rng); traps(M, st); }
     const P = MZ.pathOf(M, M.raid), base = MZ.pathOf(M, ['militia']), r = MZ.raid(M), fs = r.steps.filter(s => s.type === 'fight');
@@ -109,14 +121,15 @@ function playRun(seed, name) {
 }
 const pc = (a, b) => (b ? Math.round(100 * a / b) : '-');
 function report(name, n) {
-  const o = { n, win: 0, perfect: 0, egg: 0, rw: [0, 0, 0, 0], rn: [0, 0, 0, 0], ft: [], sum: [], len: [0, 0, 0, 0], nf: [0, 0, 0, 0], lostScout: [0, 0, 0, 0], avoid: [0, 0, 0, 0], brk: [0, 0, 0, 0], chg: [0, 0, 0, 0], traps: 0, mads: 0 };
+  const o = { n, forms: {}, win: 0, perfect: 0, egg: 0, rw: [0, 0, 0, 0], rn: [0, 0, 0, 0], ft: [], sum: [], len: [0, 0, 0, 0], nf: [0, 0, 0, 0], lostScout: [0, 0, 0, 0], avoid: [0, 0, 0, 0], brk: [0, 0, 0, 0], chg: [0, 0, 0, 0], traps: 0, mads: 0 };
   for (let s = 1; s <= n; s++) {
-    const { M, log } = playRun(s * 7919 + 13, name); if (M.over && M.over.win) o.win++; if (log.length === 4 && log.every(f => f.win)) o.perfect++; o.egg += M.egg;
+    const { M, log } = playRun(s * 7919 + 13, name); if (M.over && M.over.win) o.win++; const fk = M.body ? M.body.form + (M.body.prev ? '*' : '') : 'drop'; o.forms[fk] = o.forms[fk] || [0, 0]; o.forms[fk][0]++; if (M.over && M.over.win) o.forms[fk][1]++; if (log.length === 4 && log.every(f => f.win)) o.perfect++; o.egg += M.egg;
     log.forEach((f, i) => { o.rn[i]++; if (f.win) o.rw[i]++; o.len[i] += f.len; o.nf[i] += f.fights; if (f.lostScout) o.lostScout[i]++; if (f.avoided) o.avoid[i]++; if (f.broke) o.brk[i]++; if (f.changed) o.chg[i]++; f.times.forEach(t => o.ft.push(t)); o.sum.push(f.times.reduce((a, b) => a + b, 0)); o.traps += f.traps; o.mads += f.mads; });
     if (process.env.V) console.log(s, M.over.win ? '승' : '패', 'egg' + M.egg, log.map(f => (f.win ? 'o' : 'x') + f.len + '/' + f.fights + '/' + Math.round(f.times.reduce((a, b) => a + b, 0))).join(' '));
   }
   const avg = a => (a.length ? (a.reduce((x, y) => x + y, 0) / a.length).toFixed(1) : '-'), q = (a, p) => { const b = a.slice().sort((x, y) => x - y); return b.length ? b[Math.floor(p * (b.length - 1))].toFixed(0) : '-'; };
   console.log(`${name.padEnd(8)} 알이 버팀 ${pc(o.win, n)}% | 넷 다 막음 ${pc(o.perfect, n)}% | 남은 알 ${(o.egg / n).toFixed(1)} | 침입마다 막음 ${o.rw.map((w, i) => pc(w, o.rn[i])).join('/')}% | 걸은 칸 ${o.len.map((x, i) => (o.rn[i] ? (x / o.rn[i]).toFixed(1) : '-')).join('/')} | 싸움 ${o.nf.map((x, i) => (o.rn[i] ? (x / o.rn[i]).toFixed(1) : '-')).join('/')} | 길잡이를 잃음 ${o.lostScout.map((x, i) => pc(x, o.rn[i])).join('/')}%`);
+  if (process.env.FORMS) console.log('         모습 ' + Object.keys(o.forms).sort().map(f => f + ' ' + o.forms[f][0] + '판 ' + pc(o.forms[f][1], o.forms[f][0]) + '%').join(' | '));
   console.log(`         한 방 싸움 ${avg(o.ft)}초 (10%~90% ${q(o.ft, 0.1)}~${q(o.ft, 0.9)}) | 한 침입의 싸움 합 ${avg(o.sum)}초 (${q(o.sum, 0.1)}~${q(o.sum, 0.9)}) | 함정 ${(o.traps / Math.max(1, o.rn.reduce((a, b) => a + b, 0))).toFixed(1)}/침입 | 미친 자 ${(o.mads / Math.max(1, o.rn.reduce((a, b) => a + b, 0))).toFixed(1)}/침입 | 길이 바뀜(돌아감/부숨) ${o.chg.map((x, i) => pc(x, o.rn[i])).join('/')}% (${o.avoid.map((x, i) => pc(x, o.rn[i])).join('/')} / ${o.brk.map((x, i) => pc(x, o.rn[i])).join('/')})`);
   return o;
 }
@@ -132,6 +145,7 @@ function playStory(seed, name, pol, retry) {
   const st = STRAT[name], rng = mk(seed * 37 + 11), M = MZ.newStory(seed), log = []; let tries = 0;
   for (let guard = 0; guard < 400; guard++) {
     if (M.phase === 'over') { if (M.over.retry && tries < (retry || 0)) { tries++; MZ.retryChapter(M); continue; } break; }
+    if (M.awaken) { awakenTurn(M, st, rng); continue; }
     if (M.phase === 'chapterEnd') { MZ.nextChapter(M); continue; }
     if (M.night) { nightTurn(M, pol, rng); continue; }
     if (st.random) randomTurn(M, rng); else { build(M, st, st.digKeep != null ? st.digKeep : M.raid === 1 ? 6 : 4); shop(M, st, rng, st.traps ? st.trapGold || 4 : 0); arrange(M, st, rng); traps(M, st); }
@@ -140,14 +154,15 @@ function playStory(seed, name, pol, retry) {
   return { M, log, tries, end: M.phase === 'over' && (M.over.win || M.over.chapter === 6), ending: M.phase === 'over' ? M.over.ending : null };
 }
 function reportStory(name, pol, n, retry) {
-  const o = { end: 0, reach: [0, 0, 0, 0, 0, 0, 0], ends: { A: 0, B: 0, C: 0, D: 0, E: 0 }, broke: { A: 0, B: 0, C: 0 }, eggs: 0, alert: 0, win: {}, rn: {}, len: [0, 0, 0, 0, 0, 0, 0], ln: [0, 0, 0, 0, 0, 0, 0], tries: 0 };
+  const o = { forms: {}, end: 0, reach: [0, 0, 0, 0, 0, 0, 0], ends: { A: 0, B: 0, C: 0, D: 0, E: 0 }, broke: { A: 0, B: 0, C: 0 }, eggs: 0, alert: 0, win: {}, rn: {}, len: [0, 0, 0, 0, 0, 0, 0], ln: [0, 0, 0, 0, 0, 0, 0], tries: 0 };
   for (let s = 1; s <= n; s++) {
-    const r = playStory(s * 7919 + 13, name, pol, retry); if (r.end) o.end++; if (r.ending) o.ends[r.ending]++; if (r.end) { const X = JSON.parse(JSON.stringify(r.M)); X.egg = 0; o.broke[MZ.endingOf(X)]++; } o.tries += r.tries; o.alert += r.M.alert;
+    const r = playStory(s * 7919 + 13, name, pol, retry); if (r.end) o.end++; const fk = r.M.body ? r.M.body.form + (r.M.body.prev ? '*' : '') : 'drop'; o.forms[fk] = o.forms[fk] || [0, 0]; o.forms[fk][0]++; if (r.end) o.forms[fk][1]++; if (r.ending) o.ends[r.ending]++; if (r.end) { const X = JSON.parse(JSON.stringify(r.M)); X.egg = 0; o.broke[MZ.endingOf(X)]++; } o.tries += r.tries; o.alert += r.M.alert;
     for (let c = 0; c <= 6; c++) if (r.M.chapter >= c || r.end) o.reach[c]++;
     r.log.forEach(f => { o.rn[f.ch] = (o.rn[f.ch] || 0) + 1; if (f.win) o.win[f.ch] = (o.win[f.ch] || 0) + 1; o.len[f.ch] += f.len; o.ln[f.ch]++; });
   }
   const ends = Object.keys(o.ends).map(k => k + pc(o.ends[k], n)).join(' ') + ' (알이 깨졌다면 ' + Object.keys(o.broke).map(k => k + pc(o.broke[k], o.end)).join(' ') + ')';
   console.log(`${(name + ':' + pol).padEnd(16)} 끝까지 ${pc(o.end, n)}% | 결말 ${ends} | 장마다 막음 ${[0, 1, 2, 3, 4, 5, 6].map(c => pc(o.win[c] || 0, o.rn[c] || 0)).join('/')}% | 걸은 칸 ${[1, 2, 3, 4, 5, 6].map(c => (o.ln[c] ? (o.len[c] / o.ln[c]).toFixed(0) : '-')).join('/')} | 다시 ${(o.tries / n).toFixed(1)} | 경계 ${(o.alert / n).toFixed(1)} | 장을 넘김 ${[0, 1, 2, 3, 4, 5].map(c => pc(o.reach[c + 1], n)).join('/')}/${pc(o.end, n)}%`);
+  if (process.env.FORMS) console.log('         모습 ' + Object.keys(o.forms).sort().map(f => f + ' ' + o.forms[f][0] + '판 ' + pc(o.forms[f][1], o.forms[f][0]) + '%').join(' | '));
   return o;
 }
 if (process.env.SSET) { const t = JSON.parse(process.env.SSET); for (const k in t) Object.assign(STRAT[k], t[k]); }

@@ -2,6 +2,8 @@
 const MZ = require('../src/maze.js'), L = require('../src/lair.js');
 let bad = 0; const ok = (c, m) => { if (!c) { bad++; console.log('실패: ' + m); } };
 const C = (r, c) => MZ.idx(r, c), clone = o => JSON.parse(JSON.stringify(o));
+// 침입 (깨어남이 열려 있으면 첫 갈래를 고르고)
+const rd = M => { if (M.awaken) MZ.awaken(M, 0); return MZ.raid(M); };
 const TYPES = ['move', 'attack', 'hit', 'cast', 'skillfx', 'status', 'mad', 'cleanse', 'die', 'spawn', 'roomfx', 'synergy', 'heal', 'sanity', 'frenzy', 'sudden', 'win', 'boon', 'check'];
 // 권속을 곧바로 사서 세운다 (검사용)
 function give(M, kind, star, cell) { const uid = M.nextUid++; M.unit[uid] = { uid, kind, star: star || 1 }; if (cell != null) M.board[cell] = (M.board[cell] || []).concat([uid]); else M.bench[M.bench.indexOf(null)] = uid; return uid; }
@@ -68,70 +70,70 @@ function checkFight(f, tag) {
   const M = MZ.newRun(13); M.gold = 99; [C(1, 3), C(2, 3), C(3, 3)].forEach(c => MZ.dig(M, c)); MZ.setUse(M, C(2, 2), 'trap', 'tr_teeth');
   const p1 = MZ.pathOf(M, 1), p2 = MZ.pathOf(M, 2); ok(p1.cells.includes(C(2, 2)) && !p1.avoided, '마을 사람들은 함정으로 간다'); ok(!p2.cells.includes(C(2, 2)) && p2.avoided && !p2.scout, '도적이 함정을 돌아간다 (길잡이는 아니다)');
   const far = MZ.newRun(14); far.gold = 99; MZ.setUse(far, C(2, 2), 'trap', 'tr_teeth'); ok(MZ.pathOf(far, 2).cells.includes(C(2, 2)) && !MZ.pathOf(far, 2).avoided, '돌아갈 길이 없으면 함정을 밟는다');
-  M.raid = 2; const pv = MZ.view(M).next.path, r = MZ.raid(M), walked = r.steps.filter(s => s.type === 'walk').reduce((a, s) => a.concat(s.cells), []);
+  M.raid = 2; const pv = MZ.view(M).next.path, r = rd(M), walked = r.steps.filter(s => s.type === 'walk').reduce((a, s) => a.concat(s.cells), []);
   ok(r.ok && pv.join() === r.path.cells.join() && pv.slice(0, walked.length).join() === walked.join() && !r.steps.some(s => s.type === 'trap'), '미리보기의 길 = 실제 길 (도적)');
   // 바위 부수기: 길게 둘러 가면 3막의 무거운 자가 지름길을 낸다
   const B = MZ.newRun(15); B.gold = 99; B.raid = 4; const SN = [C(0, 3), C(0, 4), C(1, 4), C(2, 4), C(2, 3), C(2, 2), C(2, 1), C(2, 0), C(3, 0), C(4, 0), C(4, 1), C(4, 2), C(4, 3), C(4, 4), C(5, 4), C(6, 4), C(6, 3), C(6, 2)];
   B.grid.forEach((g, i) => { if (g.use === 'path' && i !== MZ.ENT && i !== MZ.EXIT) Object.assign(g, { dug: false, use: null }); }); SN.forEach(c => Object.assign(B.grid[c], { dug: true, use: 'path' })); ok(MZ.connected(B, c => B.grid[c].dug), '뱀 굴');
   const pb = MZ.pathOf(B, 4), pm = MZ.pathOf(B, 1); ok(pm.len > MZ.MK.breakAt && !pm.breaks.length && pb.breaks.length === 1 && pb.len <= pm.len - MZ.MK.breakMin && !B.grid[pb.breaks[0]].dug, '무거운 자가 바위를 부순다 ' + pm.len + '→' + pb.len);
   const vb = MZ.view(B).next; ok(vb.breaks.join() === pb.breaks.join() && vb.path.join() === pb.cells.join(), '미리보기에 부술 바위가 보인다');
-  const rb = MZ.raid(B); ok(rb.steps.some(s => s.type === 'break' && s.cell === pb.breaks[0]) && B.grid[pb.breaks[0]].dug && MZ.pathOf(B, 3).len === pb.len, '부순 바위는 판 칸으로 남는다');
-  const S = MZ.newRun(16); const rs = MZ.raid(S), wk = rs.steps.filter(s => s.type === 'walk').reduce((a, s) => a.concat(s.cells), []); ok(wk.join() === rs.path.cells.join() && rs.steps.some(s => s.type === 'egg'), '아무도 없으면 알까지 곧장');
+  const rb = rd(B); ok(rb.steps.some(s => s.type === 'break' && s.cell === pb.breaks[0]) && B.grid[pb.breaks[0]].dug && MZ.pathOf(B, 3).len === pb.len, '부순 바위는 판 칸으로 남는다');
+  const S = MZ.newRun(16); const rs = rd(S), wk = rs.steps.filter(s => s.type === 'walk').reduce((a, s) => a.concat(s.cells), []); ok(wk.join() === rs.path.cells.join() && rs.steps.some(s => s.type === 'egg'), '아무도 없으면 알까지 곧장');
 }
 // 6. 싸움: 체력·정신이 방 사이로 이어지고, 쓰러진 권속은 침입 뒤 돌아온다
 {
   let carried = false, died = false, back = false, seenFight = 0;
   for (let s = 1; s <= 12; s++) {
     const M = MZ.newRun(100 + s); M.level = 6; [C(1, 2), C(3, 2)].forEach(c => MZ.setUse(M, c, 'kin')); give(M, 'gazer', 1, C(1, 2)); give(M, 'hood', 1, C(1, 2)); give(M, 'biter', 1, C(3, 2)); give(M, 'gnaw', 1, C(3, 2));
-    const r = MZ.raid(M), fs = r.steps.filter(x => x.type === 'fight'); fs.forEach((x, i) => { seenFight++; checkFight(x.fight, 'maze#' + s + '.' + i); ok(x.fight.time > 0 && x.fight.time <= MZ.MK.clock.end + 0.01, '싸움 길이'); });
+    const r = rd(M), fs = r.steps.filter(x => x.type === 'fight'); fs.forEach((x, i) => { seenFight++; checkFight(x.fight, 'maze#' + s + '.' + i); ok(x.fight.time > 0 && x.fight.time <= MZ.MK.clock.end + 0.01, '싸움 길이'); });
     if (fs.length >= 2) { const a = fs[0].after.inv, b = fs[1].before.inv; ok(a.every((p, i) => p.hp === b[i].hp && p.alive === b[i].alive && b[i].san <= p.san && (p.mad ? b[i].mad : true)), '앞 방의 결과가 다음 방의 시작 (걷는 동안 정신만 깎인다)'); const e = fs[1].fight.units.filter(u => /^e/.test(u.id)); if (a.some(p => p.alive && p.hp < p.mhp) && e.every(u => { const p = b.find(q => q.alive && q.kind === u.kind && q.hp === u.hp); return !!p; })) carried = true; }
     fs.forEach(x => { if (x.after.kin.some(k => !k.alive)) died = true; });
-    if (died && !back && M.phase === 'prep') { const v = MZ.view(M); if (v.grid[C(1, 2)].units.length === 2 && v.grid[C(3, 2)].units.length === 2) { const r2 = MZ.raid(M), f2 = r2.steps.find(x => x.type === 'fight'); if (f2 && f2.before.kin.every(k => k.alive && k.hp == null)) back = true; } }
+    if (died && !back && M.phase === 'prep') { const v = MZ.view(M); if (v.grid[C(1, 2)].units.length === 2 && v.grid[C(3, 2)].units.length === 2) { const r2 = rd(M), f2 = r2.steps.find(x => x.type === 'fight'); if (f2 && f2.before.kin.every(k => k.alive && k.hp == null)) back = true; } }
   }
   ok(seenFight >= 12, '싸움이 난다 ' + seenFight); ok(carried, '일행의 체력이 방 사이로 이어진다'); ok(died && back, '쓰러진 권속이 침입 뒤 돌아온다');
 }
 // 6-2. 굴 속의 어둠: 걸은 칸마다 정신이 깎인다
 {
-  const M = MZ.newRun(17), r = MZ.raid(M), w = r.steps.filter(s => s.type === 'walk'), cells = w.reduce((a, s) => a + s.cells.length, 0), eggStep = r.steps.find(s => s.type === 'egg');
+  const M = MZ.newRun(17), r = rd(M), w = r.steps.filter(s => s.type === 'walk'), cells = w.reduce((a, s) => a + s.cells.length, 0), eggStep = r.steps.find(s => s.type === 'egg');
   ok(w.every(s => typeof s.san === 'number' && Array.isArray(s.mad)) && Math.abs(w.reduce((a, s) => a + s.san, 0) - (cells * MZ.MK.darkSan + MZ.MK.darkGrow * cells * (cells - 1) / 2)) < 1e-6, '걷는 구간마다 깎인 정신이 실린다 (걸을수록 더 깎인다)');
   const Q = MZ.newRun(18); Q.gold = 99; Q.raid = 4; [C(0, 1), C(0, 0), C(1, 0), C(2, 0), C(3, 0), C(4, 0), C(5, 0), C(6, 0), C(6, 1)].forEach(c => MZ.dig(Q, c)); [C(1, 2), C(2, 2), C(3, 2), C(4, 2), C(5, 2)].forEach(c => MZ.fill(Q, c)); Q.grid.forEach(g => { if (g.use === 'path') g.use = 'path'; });
   const long = MZ.pathOf(Q, 1); ok(long.len > 8, '긴 굴 ' + long.len);
 }
 // 7. 함정: 체력 · 정신 (미침) · 느려짐 · 감염
 {
-  const T0 = MZ.newRun(19); T0.gold = 99; MZ.setUse(T0, C(1, 2), 'trap', 'tr_teeth'); const t0 = MZ.raid(T0).steps.find(s => s.type === 'trap');
+  const T0 = MZ.newRun(19); T0.gold = 99; MZ.setUse(T0, C(1, 2), 'trap', 'tr_teeth'); const t0 = rd(T0).steps.find(s => s.type === 'trap');
   ok(t0 && t0.id === 'tr_teeth' && t0.after.every((p, i) => p.hp === Math.max(1, Math.round(t0.before[i].hp - p.mhp * MZ.TRAP.tr_teeth.hp)) && p.hp < p.mhp), '이빨 구덩이: 체력');
   // 정신 배수를 낮춰 미치는 것을 본다 (검사용)
   const keepSan = MZ.MK.sanMul; MZ.MK.sanMul = 1.2;
   const M = MZ.newRun(20); M.gold = 99; M.raid = 2; MZ.setUse(M, C(1, 2), 'trap', 'tr_whisper'); MZ.setUse(M, C(2, 2), 'trap', 'tr_whisper'); MZ.setUse(M, C(3, 2), 'trap', 'tr_whisper'); MZ.setUse(M, C(4, 2), 'trap', 'tr_slime'); MZ.setUse(M, C(5, 2), 'trap', 'tr_spore');
   give(M, 'shell', 2, 'core');
-  const r = MZ.raid(M), tr = r.steps.filter(s => s.type === 'trap'); ok(tr.map(s => s.id).join() === 'tr_whisper,tr_whisper,tr_whisper,tr_slime,tr_spore' && tr.every(s => s.fx && s.before && s.after), '함정 다섯을 밟는다');
+  const r = rd(M), tr = r.steps.filter(s => s.type === 'trap'); ok(tr.map(s => s.id).join() === 'tr_whisper,tr_whisper,tr_whisper,tr_slime,tr_spore' && tr.every(s => s.fx && s.before && s.after), '함정 다섯을 밟는다');
   ok(tr[0].after.every((p, i) => p.san < tr[0].before[i].san) && tr[2].after.some(p => p.mad) && tr[2].after.some(p => !p.mad) && tr[2].after.every((p, i) => p.mad === (p.san <= 0)), '속삭이는 벽: 정신을 깎고, 바닥난 자는 미친다');
   const lost = (t, i) => t.before[i].san - t.after[i].san, live = tr[2].before.map((p, i) => i).filter(i => tr[2].before[i].san > 30 && tr[0].before[i].san > 45);
   ok(live.length && live.every(i => Math.abs(lost(tr[0], i) - 45) <= 1 && Math.abs(lost(tr[1], i) - 22.5) <= 1 && Math.abs(lost(tr[2], i) - 11.25) <= 1), '같은 침입의 정신 함정: 두 번째는 절반, 세 번째부터 4분의 1');
-  { const S4 = MZ.newRun(22); S4.raid = 4; S4.gold = 99; [1, 2, 3, 4, 5].forEach(r => MZ.setUse(S4, C(r, 2), 'trap', 'tr_whisper')); const t4 = MZ.raid(S4).steps.filter(s => s.type === 'trap'); ok(t4.length && !t4[t4.length - 1].after.find(p => p.kind === 'seeker').mad, '책을 쫓는 자는 미치지 않는다'); }
-  const W3 = MZ.newRun(21); W3.gold = 99; [1, 2, 3].forEach(r => MZ.setUse(W3, C(r, 2), 'trap', 'tr_whisper')); const r3 = MZ.raid(W3); ok(r3.result.mads === 4 && !r3.steps.some(s => s.type === 'egg') && r3.result.win, '모두 미치면 일행이 굴 속으로 흩어진다');
+  { const S4 = MZ.newRun(22); S4.raid = 4; S4.gold = 99; [1, 2, 3, 4, 5].forEach(r => MZ.setUse(S4, C(r, 2), 'trap', 'tr_whisper')); const t4 = rd(S4).steps.filter(s => s.type === 'trap'); ok(t4.length && !t4[t4.length - 1].after.find(p => p.kind === 'seeker').mad, '책을 쫓는 자는 미치지 않는다'); }
+  const W3 = MZ.newRun(21); W3.gold = 99; [1, 2, 3].forEach(r => MZ.setUse(W3, C(r, 2), 'trap', 'tr_whisper')); const r3 = rd(W3); ok(r3.result.mads === 4 && !r3.steps.some(s => s.type === 'egg') && r3.result.win, '모두 미치면 일행이 굴 속으로 흩어진다');
   const f = r.steps.find(s => s.type === 'fight'); ok(f && f.fight.timeline.some(e => e.type === 'mad' && e.t === 0) && f.fight.timeline.some(e => e.type === 'status' && e.st === 'slow' && e.t === 0) && f.fight.timeline.some(e => e.type === 'status' && e.st === 'infected' && e.t === 0), '미친 자는 다음 싸움에서 둥지 편, 늪은 둔하게, 포자는 감염');
   MZ.MK.sanMul = keepSan;
   ok(f.fight.units.filter(u => u.mad).length === f.before.inv.filter(p => p.mad && p.alive).length && f.before.inv.some(p => p.mad), '미친 채 시작하는 자가 보기에 실린다');
 }
 // 8. 알과 판의 끝
 {
-  const M = MZ.newRun(30), r = MZ.raid(M), egg = r.steps.find(s => s.type === 'egg'), dmg = MZ.RAIDS[0].units.reduce((a, k) => a + (L.INV[k].tier || 1) + (L.INV[k].boss ? 2 : 0), 0);
+  const M = MZ.newRun(30), r = rd(M), egg = r.steps.find(s => s.type === 'egg'), dmg = MZ.RAIDS[0].units.reduce((a, k) => a + (L.INV[k].tier || 1) + (L.INV[k].boss ? 2 : 0), 0);
   ok(egg && egg.dmg === dmg && M.egg === MZ.MK.egg - dmg && !r.result.win && r.result.eggLost === dmg && r.result.survivors === 4 && r.next === 'prep' && M.raid === 2, '알에 닿은 침입자마다 알이 깎인다 (' + dmg + ')');
   ok(M.gold === MZ.MK.gold + MZ.MK.income && M.xp === MZ.MK.xpRaid, '침입 뒤 진액과 경험');
-  M.egg = 1; const r2 = MZ.raid(M); ok(r2.next === 'over' && M.phase === 'over' && M.over && !M.over.win && !MZ.raid(M).ok, '알이 깨지면 진다');
+  M.egg = 1; const r2 = rd(M); ok(r2.next === 'over' && M.phase === 'over' && M.over && !M.over.win && !rd(M).ok, '알이 깨지면 진다');
   const W = MZ.newRun(31); W.level = 6; ['shell', 'maw', 'heap', 'famine', 'mother', 'tangle'].forEach((k, i) => { const c = [C(1, 2), C(3, 2)][i % 2]; MZ.setUse(W, c, 'kin'); give(W, k, 3, c); });
-  let last = null; for (let k = 0; k < 4 && W.phase === 'prep'; k++) last = MZ.raid(W); ok(W.phase === 'over' && W.over.win && W.over.raid === 4 && last.next === 'over' && last.result.win, '넷을 막으면 이긴다');
+  let last = null; for (let k = 0; k < 4 && W.phase === 'prep'; k++) last = rd(W); ok(W.phase === 'over' && W.over.win && W.over.raid === 4 && last.next === 'over' && last.result.win, '넷을 막으면 이긴다');
 }
 // 9. 저장 · 불러오기 · 같은 씨앗
 {
   const play = seed => { const M = MZ.newRun(seed); M.gold = 40; MZ.dig(M, C(1, 3)); MZ.setUse(M, C(2, 2), 'kin', 'pool'); MZ.buy(M, 0); MZ.buy(M, 1); Object.keys(M.unit).forEach(uid => MZ.move(M, +uid, { cell: C(2, 2) })); return M; };
   const A = play(41), B = play(41); ok(JSON.stringify(A) === JSON.stringify(B), '같은 씨앗의 준비');
   const js = MZ.save(A), A2 = MZ.load(js); ok(A2 && JSON.stringify(A2) === JSON.stringify(A) && JSON.stringify(MZ.view(A2)) === JSON.stringify(MZ.view(A)), '저장과 불러오기');
-  const ra = MZ.raid(A), ra2 = MZ.raid(A2), rb = MZ.raid(B); ok(JSON.stringify(ra) === JSON.stringify(rb) && JSON.stringify(ra) === JSON.stringify(ra2) && JSON.stringify(A) === JSON.stringify(A2), '같은 씨앗 같은 침입, 불러온 판도 같다');
+  const ra = rd(A), ra2 = rd(A2), rb = rd(B); ok(JSON.stringify(ra) === JSON.stringify(rb) && JSON.stringify(ra) === JSON.stringify(ra2) && JSON.stringify(A) === JSON.stringify(A2), '같은 씨앗 같은 침입, 불러온 판도 같다');
   ok(MZ.load('{') === null && MZ.load(JSON.stringify(Object.assign({}, A, { v: 0 }))) === null && MZ.load(JSON.stringify(Object.assign({}, A, { v: 1 }))) === null && MZ.V === A.v && MZ.V === 2, '못 읽는 저장 (옛 판 번호는 새 판)');
-  ok(JSON.stringify(MZ.raid(play(42))) !== JSON.stringify(ra), '씨앗이 다르면 다르다');
+  ok(JSON.stringify(rd(play(42))) !== JSON.stringify(ra), '씨앗이 다르면 다르다');
 }
 // 10. 실패의 글은 담백하게
 {
@@ -161,25 +163,25 @@ function checkFight(f, tag) {
   const keepMul = MZ.MK.raidMul.slice(), keepUnits = MZ.RAIDS[2].units; MZ.MK.raidMul[2] = 0.5; MZ.RAIDS[2].units = ['tracker', 'knight', 'knight'];
   for (let s = 1; s <= 40 && !(downLost && same); s++) {
     const Q = dead(70 + s); Q.raid = 3; Q.level = 6; MZ.setUse(Q, C(1, 2), 'kin'); give(Q, KS[s % 5], 2 + (s % 2), C(1, 2)); give(Q, 'shell', 2, 'core');
-    const pv = MZ.pathOf(Q, 3), r = MZ.raid(Q), fs = r.steps.filter(x => x.type === 'fight'), walked = r.steps.filter(x => x.type === 'walk').reduce((a, x) => a.concat(x.cells), []);
+    const pv = MZ.pathOf(Q, 3), r = rd(Q), fs = r.steps.filter(x => x.type === 'fight'), walked = r.steps.filter(x => x.type === 'walk').reduce((a, x) => a.concat(x.cells), []);
     r.steps.filter(x => x.type === 'walk').forEach(x => ok(Array.isArray(x.back) && x.back.length === x.cells.length && typeof x.lost === 'boolean', '걷기 단계의 되돌아감'));
     if (fs[0] && fs[0].scoutDown && fs[0].after.inv.some(p => p.alive && !p.mad)) { const i = r.steps.indexOf(fs[0]), w = r.steps[i + 1]; if (w && w.type === 'walk' && w.lost && r.result.lost) downLost = true; }
     if (fs[0] && !fs[0].after.inv.some(p => MZ.SCOUTS.includes(p.kind) && !p.alive) && r.result.survivors > 0 && walked.join() === pv.cells.join()) same = true;
   }
   MZ.MK.raidMul = keepMul; MZ.RAIDS[2].units = keepUnits; ok(downLost, '앞쪽 방에서 길잡이가 쓰러지면 그 자리부터 헤맨다'); ok(same, '길잡이가 살아 있으면 미리보기 = 실제 길');
   // 되돌아 지나는 방: 남은 권속과 다시 싸운다
-  let again = false; for (let s = 1; s <= 36 && !again; s++) { const Q = dead(100 + s); Q.level = 6; MZ.setUse(Q, C(3, 2), 'kin'); for (let j = 0; j < 1 + (s % 2); j++) give(Q, ['shell', 'heap', 'maw'][(s + j) % 3], 1 + (Math.floor(s / 2) % 3), C(3, 2)); const r = MZ.raid(Q), at = r.steps.filter(x => x.type === 'fight' && x.cell === C(3, 2)); if (at.length === 2 && at[1].back && at[1].before.kin.every(k => k.alive)) again = true; }
+  let again = false; for (let s = 1; s <= 36 && !again; s++) { const Q = dead(100 + s); Q.level = 6; MZ.setUse(Q, C(3, 2), 'kin'); for (let j = 0; j < 1 + (s % 2); j++) give(Q, ['shell', 'heap', 'maw'][(s + j) % 3], 1 + (Math.floor(s / 2) % 3), C(3, 2)); const r = rd(Q), at = r.steps.filter(x => x.type === 'fight' && x.cell === C(3, 2)); if (at.length === 2 && at[1].back && at[1].before.kin.every(k => k.alive)) again = true; }
   ok(again, '되돌아 지나는 방에서 남은 권속과 다시 싸운다');
   // 무거운 자: 오래 헤매면 바위를 부수고 알 쪽으로
   const B = MZ.newRun(15); B.raid = 4; [C(0, 3), C(0, 4), C(1, 4), C(2, 4), C(2, 3), C(2, 2), C(2, 1), C(2, 0), C(3, 0), C(4, 0), C(4, 1), C(4, 2), C(4, 3), C(4, 4), C(5, 4), C(6, 4), C(6, 3)].forEach(c => Object.assign(B.grid[c], { dug: true, use: 'path' })); [C(1, 2), C(3, 2), C(5, 2)].forEach(c => Object.assign(B.grid[c], { dug: false, use: null }));
   const h4 = MZ.pathOf(B, 4), h1 = MZ.pathOf(B, 1); ok(h4.breaks.length === 1 && h4.len <= h1.len - MZ.MK.breakMin && h1.breaks.length === 0 && h4.cells.indexOf(h4.breaks[0]) > MZ.MK.lostBreak, '헤매던 무거운 자가 바위를 부순다 ' + h1.len + '→' + h4.len);
   // 보상: 막으면 방 하나 / 함정 하나 무료
-  const R = MZ.newRun(31); R.level = 6; [C(1, 2), C(3, 2)].forEach((c, i) => { MZ.setUse(R, c, 'kin'); give(R, ['shell', 'maw', 'heap'][i], 3, c); give(R, 'famine', 3, c); }); const rr = MZ.raid(R), rv = MZ.view(R).reward;
+  const R = MZ.newRun(31); R.level = 6; [C(1, 2), C(3, 2)].forEach((c, i) => { MZ.setUse(R, c, 'kin'); give(R, ['shell', 'maw', 'heap'][i], 3, c); give(R, 'famine', 3, c); }); const rr = rd(R), rv = MZ.view(R).reward;
   ok(rr.result.win && rv && rv.opts.length === 2 && rv.opts[0].type === 'room' && rv.opts[1].type === 'trap' && rv.opts.every(o => o.name && o.short && o.id), '막으면 보상: 방 종류 / 함정');
   const g0 = R.gold, id = rv.opts[1].id; ok(MZ.takeReward(R, 1).ok && !MZ.view(R).reward && MZ.view(R).free.length === 1 && MZ.view(R).free[0].id === id && !MZ.takeReward(R, 0).ok, '보상을 받는다');
   ok(MZ.setUse(R, C(4, 2), 'trap', id).ok && R.gold === g0 && !R.free.length && MZ.setUse(R, C(5, 2), 'trap', id).ok && R.gold === g0 - MZ.MK.trapCost, '받은 함정은 한 번 무료');
-  const L2 = MZ.newRun(32); const r2 = MZ.raid(L2); ok(!r2.result.win && !MZ.view(L2).reward, '못 막으면 보상이 없다');
-  const R3 = clone(R); R3.reward = { opts: [{ type: 'room', id: 'pool' }, { type: 'trap', id: 'tr_teeth' }] }; MZ.raid(R3); ok(!R3.reward || R3.reward !== null && R3.hist.length === 2, '받지 않은 보상은 다음 침입이 오면 사라진다');
+  const L2 = MZ.newRun(32); const r2 = rd(L2); ok(!r2.result.win && !MZ.view(L2).reward, '못 막으면 보상이 없다');
+  const R3 = clone(R); R3.reward = { opts: [{ type: 'room', id: 'pool' }, { type: 'trap', id: 'tr_teeth' }] }; rd(R3); ok(!R3.reward || R3.reward !== null && R3.hist.length === 2, '받지 않은 보상은 다음 침입이 오면 사라진다');
 }
 // 12. 본체 방과 알의 방은 출구 뒤에 붙은 방이다
 {
@@ -187,11 +189,11 @@ function checkFight(f, tag) {
   const P = MZ.pathOf(M, 1); ok(P.cells[P.cells.length - 1] === MZ.EXIT && !P.cells.includes('core') && !P.cells.includes('egg'), '길은 출구에서 끝난다');
   const D = MZ.newRun(41); D.gold = 99; [C(2, 3), C(3, 3), C(4, 3), C(5, 3), C(6, 3), C(7, 3)].forEach(c => MZ.dig(D, c)); MZ.fill(D, C(6, 2)); MZ.fill(D, C(5, 2));
   const PD = MZ.pathOf(D, 1); ok(PD.cells[PD.cells.length - 1] === MZ.EXIT && PD.cells.includes(C(7, 3)), '돌아 들어와도 길은 출구에서 끝난다');
-  const r = MZ.raid(M), types = r.steps.map(x => x.type), cf = r.steps.find(x => x.type === 'fight' && x.core), eg = r.steps.find(x => x.type === 'egg'), walked = r.steps.filter(x => x.type === 'walk').reduce((q, x) => q.concat(x.cells), []);
+  const r = rd(M), types = r.steps.map(x => x.type), cf = r.steps.find(x => x.type === 'fight' && x.core), eg = r.steps.find(x => x.type === 'egg'), walked = r.steps.filter(x => x.type === 'walk').reduce((q, x) => q.concat(x.cells), []);
   ok(cf && cf.cell === 'core' && cf.core === true && cf.room === null && cf.before.kin.length === 1 && cf.before.kin[0].uid === a, '본체 방 싸움: cell = core');
   ok(walked[walked.length - 1] === MZ.EXIT && walked.every(c => Number.isInteger(c)) && types.indexOf('fight') > types.lastIndexOf('walk'), '출구에서 본체 방으로 가는 걸음은 walk 에 없다');
   ok(!eg || (eg.cell === 'egg' && types.indexOf('egg') > types.indexOf('fight')), '알 단계: cell = egg, 본체 방 다음');
-  const E = MZ.newRun(42), re = MZ.raid(E), ee = re.steps.find(x => x.type === 'egg'), ce = re.steps.find(x => x.type === 'fight');
+  const E = MZ.newRun(42), re = rd(E), ee = re.steps.find(x => x.type === 'egg'), ce = re.steps.find(x => x.type === 'fight');
   ok(ce && ce.cell === 'core' && ee && ee.cell === 'egg' && ee.egg === E.egg && re.steps[re.steps.length - 1] === ee, '권속이 없어도 본체가 싸우고, 남은 자는 알에 닿는다');
   const S = MZ.newRun(43); S.level = 6; MZ.move(S, give(S, 'heap'), { core: true }); MZ.move(S, give(S, 'maw'), { cell: C(3, 2) }); const S2 = MZ.load(MZ.save(S));
   ok(S2 && S2.board.core.length === 1 && S2.grid[C(3, 2)].use === 'kin' && JSON.stringify(MZ.view(S2)) === JSON.stringify(MZ.view(S)), '저장·불러오기: 본체 방과 통로에 세운 권속');
@@ -208,7 +210,7 @@ function checkFight(f, tag) {
     if (pb.cells[3] === C(3, 2) && pb.cells[4] === C(4, 2) && pb.lured.includes(C(2, 2))) pulled++; if (pb.lured.length !== 1) offOnce = false;
   }
   ok(pulled === 20 && plain > 0, '미끼에 끌린다 (불빛이 없으면 곧장 가는 판도 있다) ' + pulled + '/' + plain); ok(offOnce, '닿은 미끼는 꺼진다');
-  const L1 = dead(61); MZ.setUse(L1, C(4, 2), 'trap', 'tr_lure'); const lv = MZ.view(L1).next, lr = MZ.raid(L1);
+  const L1 = dead(61); MZ.setUse(L1, C(4, 2), 'trap', 'tr_lure'); const lv = MZ.view(L1).next, lr = rd(L1);
   ok(lv.lured.join() === lr.result.lured.join() && wk(lr).join() === lv.path.slice(0, wk(lr).length).join(), '미끼: 미리보기 = 실제');
   // 삼키는 구멍: 입구 바로 아래로 뱉고, 구멍마다 한 번
   const X1 = dead(62), xr = MZ.setUse(X1, C(3, 4), 'trap', 'tr_maw'); ok(!xr.ok && xr.msg === '외길에는 놓을 수 없다', '삼키는 구멍은 외길에 놓을 수 없다');
@@ -216,7 +218,7 @@ function checkFight(f, tag) {
   let W1 = null, g1 = 0; for (let s = 60; s < 100 && !W1; s++) { const D = dead(s); D.raid = 4; const g = D.gold; if (MZ.setUse(D, C(4, 2), 'trap', 'tr_maw').ok && MZ.pathOf(D, 4).warps.length) { W1 = D; g1 = g; } }
   ok(W1 && W1.gold === g1 - 3, '삼키는 구멍의 값 (막다른 곳)'); const pw = MZ.pathOf(W1, 4), wi = pw.cells.indexOf(C(4, 2));
   ok(pw.warps.length === 1 && pw.warps[0].from === C(4, 2) && pw.warps[0].to === MZ.ENT && pw.cells[wi + 1] === MZ.ENT && pw.warp[wi + 1] && pw.cells[pw.cells.length - 1] === MZ.EXIT && pw.cells.filter((c, i) => pw.warp[i]).length === 1, '삼키는 구멍: 입구로 순간 이동, 한 번만');
-  const rw = MZ.raid(W1), ws = rw.steps.find(x => x.type === 'warp'), ts = rw.steps.filter(x => x.type === 'trap' && x.id === 'tr_maw');
+  const rw = rd(W1), ws = rw.steps.find(x => x.type === 'warp'), ts = rw.steps.filter(x => x.type === 'trap' && x.id === 'tr_maw');
   ok(ws && ws.from === C(4, 2) && ws.to === MZ.ENT && rw.steps[rw.steps.indexOf(ws) - 1].type === 'trap' && ts.length === 1 && ts[0].after.every((p, i) => p.san === Math.max(0, Math.round(ts[0].before[i].san - 10))), '침입: 구멍 → warp 단계, 정신 −10');
   ok(wk(rw).join() === pw.cells.slice(0, wk(rw).length).join(), '삼키는 구멍: 미리보기 = 실제');
   // 길잡이는 돌아갈 길이 있으면 구멍을 피한다
@@ -225,7 +227,7 @@ function checkFight(f, tag) {
   // 헛갈림 벽: 다음 갈림길에서 가장 얕은 쪽
   let conf = 0; for (let s = 1; s <= 10; s++) { const H = MZ.newRun(s); H.gold = 99; MZ.dig(H, C(2, 1)); MZ.setUse(H, C(1, 2), 'trap', 'tr_mirror'); const ph = MZ.pathOf(H, 1); if (ph.confused[0] === C(2, 2) && ph.cells[ph.cells.indexOf(C(2, 2)) + 1] === C(2, 1)) conf++; }
   ok(conf === 10, '헛갈리면 다음 갈림길에서 출구에서 먼 쪽(막다른 곳)으로 ' + conf);
-  const H = MZ.newRun(3); H.gold = 99; MZ.dig(H, C(2, 1)); MZ.setUse(H, C(1, 2), 'trap', 'tr_mirror'); const ph3 = MZ.pathOf(H, 1), rh = MZ.raid(H), th = rh.steps.find(x => x.type === 'trap');
+  const H = MZ.newRun(3); H.gold = 99; MZ.dig(H, C(2, 1)); MZ.setUse(H, C(1, 2), 'trap', 'tr_mirror'); const ph3 = MZ.pathOf(H, 1), rh = rd(H), th = rh.steps.find(x => x.type === 'trap');
   ok(th && th.id === 'tr_mirror' && th.after.every((p, i) => p.san === Math.max(0, Math.round(th.before[i].san - 15))) && ph3.confused.length === 1 && rh.result.confused.join() === ph3.confused.join(), '헛갈림 벽: 정신 −15, 미리보기 = 실제');
   // 도적: 함정만 피하고 길은 모른다
   const R = dead(64); MZ.setUse(R, C(2, 3), 'trap', 'tr_teeth'); const pr = MZ.pathOf(R, 2);
@@ -240,9 +242,9 @@ function checkFight(f, tag) {
   ok(MZ.dig(M, C(1, 1)).msg === '아직 팔 수 없다' && MZ.canFill(M, C(1, 2)) === '아직 메울 수 없다', '잠긴 파기·메우기');
   const u = give(M, 'shell', 1); ok(MZ.move(M, u, { cell: C(3, 2) }).ok && M.grid[C(3, 2)].use === 'kin', '장 0: 통로에 세운다');
   ok(MZ.setUse(M, C(3, 2), 'kin', 'bone').msg === '아직 방 종류를 깔 수 없다' && MZ.setUse(M, C(4, 2), 'trap', 'tr_teeth').msg === '아직 쓸 수 없는 함정이다', '잠긴 방 종류·함정');
-  const r0 = MZ.raid(M); ok(r0.ok && r0.raidId === 'c0_beast' && (r0.next === 'chapterEnd' || r0.next === 'over'), '장 0 의 침입 ' + r0.next);
+  const r0 = rd(M); ok(r0.ok && r0.raidId === 'c0_beast' && (r0.next === 'chapterEnd' || r0.next === 'over'), '장 0 의 침입 ' + r0.next);
   if (M.phase === 'chapterEnd') {
-    ok(MZ.view(M).chapterEnd && MZ.view(M).chapterEnd.next === 1 && !MZ.view(M).next && !MZ.raid(M).ok, '장의 끝: 다음 장을 기다린다');
+    ok(MZ.view(M).chapterEnd && MZ.view(M).chapterEnd.next === 1 && !MZ.view(M).next && !rd(M).ok, '장의 끝: 다음 장을 기다린다');
     const g0 = M.gold, n = MZ.nextChapter(M), w = MZ.view(M);
     ok(n.ok && M.chapter === 1 && w.locks.dig && !w.locks.rooms && M.phase === 'prep' && M.raid === 1 && M.raids === 3 && n.raids.join() === 'c1_torch,c1_mob,c1_hounds', '다음 장: 침입 셋, 파기가 열린다');
     ok(M.grid.filter(g => g.dug).length === 8 && !Object.keys(M.board).length && M.bench.includes(u) && M.gold === Math.floor(g0 * MZ.MK.story.keepGold) + MZ.MK.story.chapterGold + n.refund, '새 굴, 권속은 대기석, 진액 일부 + 들인 값');
@@ -251,10 +253,10 @@ function checkFight(f, tag) {
     ok(p1.cells.join() === MZ.scoutPath(M, ['militia']).cells.join() && p1.back.every(b => !b), '장 1: 일행은 길을 안다');
   }
   // 장 3: 밤의 한 수
-  const S = MZ.newStory(11); S.chapter = 3; S.raids = 3; S.gold = 30; const r1 = MZ.raid(S);
+  const S = MZ.newStory(11); S.chapter = 3; S.raids = 3; S.gold = 30; const r1 = rd(S);
   ok(r1.ok && (r1.next === 'night' || r1.next === 'over') && (r1.next !== 'night' || (MZ.view(S).night.offer.length === 3 && new Set(S.night.offer).size === 3)), '장 3: 침입 사이에 카드 셋');
   if (S.night) {
-    ok(MZ.raid(S).msg === '밤의 한 수를 먼저 고른다', '밤의 한 수가 먼저');
+    ok(rd(S).msg === '밤의 한 수를 먼저 고른다', '밤의 한 수가 먼저');
     S.night.offer = ['c_bell', 'e_page', 'i_water']; const a0 = S.alert = 0, g1 = S.gold, nb = MZ.nightPick(S, 0);
     ok(nb.ok && nb.id === 'c_bell' && S.gold === g1 + 9 && S.alert === 3 - MZ.MK.story.alertDecay && S.eyes.church === 2 && S.flags.churchEarly && !S.night && S.picks.raid === 1, '종탑: 진액, 경계, 교회의 눈');
   }
@@ -273,14 +275,41 @@ function checkFight(f, tag) {
   const H1 = MZ.newStory(15), H2 = MZ.newStory(15); [H1, H2].forEach(X => { X.chapter = 4; X.night = { offer: ['v_lamp', 'p_hunt', 'x_scout'] }; }); const h1 = MZ.nightPick(H1, 1), h2 = MZ.nightPick(H2, 1);
   ok(h1.ok && typeof h1.success === 'boolean' && h1.success === h2.success && (h1.success ? H1.flags.towerDown : H1.eyes.prophet === 2), '탑의 주인: 성공이면 표시, 실패면 예언자의 눈 +2');
   // 마지막 장: 끝나면 결말
-  const Z = MZ.newStory(16); Z.chapter = 6; Z.raids = 3; Z.raid = 3; Z.egg = 1; Z.level = 6; const zr = MZ.raid(Z);
+  const Z = MZ.newStory(16); Z.chapter = 6; Z.raids = 3; Z.raid = 3; Z.egg = 1; Z.level = 6; const zr = rd(Z);
   ok(zr.ok && Z.phase === 'over' && Z.over.ending && 'ABCDE'.includes(Z.over.ending) && MZ.view(Z).ending === Z.over.ending && !Z.over.retry, '장 6 이 끝나면 결말 ' + Z.over.ending);
   // 알이 깨지면 그 장을 다시
-  const R = MZ.newStory(17); R.chapter = 2; R.raids = 3; R.egg = 1; R.snap = JSON.stringify(R); const rr = MZ.raid(R);
+  const R = MZ.newStory(17); R.chapter = 2; R.raids = 3; R.egg = 1; R.snap = JSON.stringify(R); const rr = rd(R);
   ok(rr.ok && R.phase === 'over' && R.over.retry && MZ.retryChapter(R).ok && R.phase === 'prep' && R.chapter === 2 && R.egg === 1 && R.retries === 1, '알이 깨지면 그 장을 처음부터');
   // 저장
   const Sv = MZ.newStory(18); Sv.alert = 4; Sv.eyes.isel = 2; const L1 = MZ.load(MZ.save(Sv)); ok(L1 && L1.mode === 'story' && L1.alert === 4 && L1.eyes.isel === 2 && JSON.stringify(MZ.view(L1)) === JSON.stringify(MZ.view(Sv)), '저장·불러오기: 이야기');
   const old = JSON.parse(MZ.save(MZ.newRun(3))); delete old.mode; const L2 = MZ.load(JSON.stringify(old)); ok(L2 && L2.mode === 'free', '모드 칸이 없는 저장은 자유');
   ok(MZ.CHAPTERS.length === 7 && MZ.CHAPTERS.every((c, i) => c.id === 'c' + i && c.raids.length >= (i ? 3 : 1) && c.raids.length <= 4 && c.raids.every(r => r.units.every(k => L.INV[k]))) && MZ.CARDS.length === 15, '장 일곱, 카드 열다섯');
+}
+// 15. 본체의 깨어남
+{
+  const M = MZ.newRun(21); ok(MZ.bodyOf(M).form === 'drop' && MZ.view(M).core.step === 0 && !MZ.view(M).awaken, '처음은 0단계 (옛 것)');
+  MZ.raid(M); const v = MZ.view(M), o = v.awaken;
+  ok(o && o.step === 1 && o.offer.length === 3 && new Set(o.offer.map(x => x.form)).size === 3 && o.offer.every(x => MZ.FORMS[x.form] && x.name && x.skill && x.gift && x.room.length === 1 && x.shop[0].share === MZ.MK.awaken.share[1]), '침입 1 뒤: 모습 셋');
+  ok(MZ.raid(M).msg === '깨어남을 먼저 고른다', '깨어남이 먼저');
+  const f1 = o.offer[1].form, e0 = M.egg, a1 = MZ.awaken(M, 1), w = MZ.view(M);
+  ok(a1.ok && a1.form === f1 && a1.step === 1 && M.body.form === f1 && w.awakened === 1 && w.core.form === f1 && w.core.step === 1 && w.core.max === MZ.MK.coreMax + 1 && M.egg === Math.min(M.eggMax, e0 + MZ.MK.awaken.egg), '1단계: 모습, 본체 방 자리, 알');
+  ok(Object.values(M.unit).some(u => u.kind === MZ.FORMS[f1].gift), '깨어날 때 그 성향 신도 하나');
+  M.gold = 50; const g0 = M.gold; ok(MZ.setUse(M, C(2, 2), 'kin', MZ.FORMS[f1].room).ok && M.gold === g0, '모습의 방 종류는 값이 없다');
+  // 상점: 그 성향 몫
+  let hit = 0, tot = 0; for (let k = 0; k < 200; k++) { M.gold = 99; MZ.reroll(M); M.shop.forEach(id => { tot++; if (L.KIN[id].asp === MZ.FORMS[f1].asp) hit++; }); }
+  ok(hit / tot > 0.4, '상점에 그 성향이 많이 나온다 ' + Math.round(100 * hit / tot) + '%');
+  M.egg = M.eggMax = 99; rd(M); const r2 = rd(M); ok((M.awaken && M.awaken.step === 2 && M.awaken.offer[0] === f1 && MZ.view(M).awaken.offer[0].keep && !MZ.view(M).awaken.offer[1].keep), '침입 3 뒤: 2단계, 첫째는 지금 모습');
+  if (M.awaken) {
+    const K = clone(M), X = clone(M); MZ.awaken(K, 0); MZ.awaken(X, 1); const bk = MZ.bodyOf(K), bx = MZ.bodyOf(X);
+    ok(bk.step === 2 && bk.t2 && bk.lv === 2 && !bk.mixed && bk.kin.length >= 1 && bx.mixed && bx.prev === f1 && !bx.t2 && bx.lv === 1 && bx.slots <= bk.slots && bx.share.length === 2, '그대로 키우면 강하게, 갈아타면 섞인 몸');
+    const rk = rd(K), cf = rk.steps.find(x => x.type === 'fight' && x.core); ok(!cf || cf.fight.units.find(u => u.kind === 'core').name === L.FORM[bk.form].name, '본체 방 싸움의 본체가 그 모습');
+  }
+  // 갈래의 몫: 둥지에 많은 성향이 나오기 쉽고, 하나는 늘 적은 성향
+  let seen = 0, low = 0; for (let s2 = 1; s2 <= 20; s2++) { const Q = MZ.newRun(100 + s2); for (let k = 0; k < 4; k++) give(Q, 'shell', 1); MZ.raid(Q); if (!Q.awaken) continue; if (Q.awaken.offer.includes('abyss')) seen++; if (Q.awaken.offer[2] !== 'abyss') low++; }
+  ok(seen >= 17 && low === 20, '심연 권속이 많으면 심연이 나온다 ' + seen + '/20, 셋째는 다른 것');
+  // 이야기: 장 2 끝과 장 4 끝
+  const S = MZ.newStory(22); S.chapter = 2; S.raids = 3; S.raid = 3; S.level = 6; for (let k = 0; k < 2; k++) { const u = give(S, 'heap', 3); MZ.move(S, u, { cell: C(1, 2) }); }
+  const sr = MZ.raid(S); if (S.phase === 'chapterEnd') { ok(S.awaken && S.awaken.step === 1 && MZ.nextChapter(S).msg === '깨어남을 먼저 고른다', '이야기 장 2 끝에 깨어남'); MZ.awaken(S, 0); ok(MZ.nextChapter(S).ok && S.chapter === 3 && S.body.step === 1, '깨어난 몸은 다음 장으로 이어진다'); }
+  const Z = MZ.newStory(23); Z.chapter = 6; Z.raids = 3; Z.raid = 3; ok(MZ.view(Z).core.step === 3 && MZ.view(Z).core.realStep === 0, '장 6 마지막 침입 앞: 그림은 3단계');
 }
 console.log(bad ? '실패 ' + bad : '굴 짓기 규칙: 모두 맞음'); process.exitCode = bad ? 1 : 0;
