@@ -148,7 +148,7 @@ function checkFight(f, tag) {
   const ways = new Set(); let deadBack = null;
   for (let s = 60; s < 100; s++) { const D = dead(s), q = MZ.pathOf(D, 1); ways.add(q.cells.join()); ok(q.cells[q.cells.length - 1] === MZ.EXIT && q.cells.every((c, i) => !i || q.warp[i] || MZ.rc(c)[0] === MZ.rc(q.cells[i - 1])[0] && Math.abs(c - q.cells[i - 1]) === 1 || Math.abs(c - q.cells[i - 1]) === MZ.COLS), '헤매는 길은 이웃 칸으로만 ' + s); if (!deadBack && q.cells.includes(C(4, 2)) && q.back.some(b => b)) deadBack = q; }
   ok(ways.size >= 2, '다른 씨앗이면 다른 길이 나온다 ' + ways.size); ok(deadBack && deadBack.back[deadBack.cells.indexOf(C(4, 2)) + 1] === true, '막다르면 되돌아간다');
-  ok(MZ.SCOUTS.join() === 'tracker' && MZ.AVOIDERS.includes('rogue') && !MZ.pathOf(M, 2).scout && !MZ.pathOf(M, 1).scout && !MZ.pathOf(M, 4).scout, '길잡이는 추적자뿐');
+  ok(MZ.SCOUTS.join() === 'tracker,c_tov' && MZ.AVOIDERS.includes('rogue') && !MZ.pathOf(M, 2).scout && !MZ.pathOf(M, 1).scout && !MZ.pathOf(M, 4).scout, '길잡이는 추적자뿐 (이야기의 토브 카인도)');
   const p2 = MZ.pathOf(M, 3); ok(p2.scout && p2.cells.join() === p2.scoutPath.join() && p2.scoutPath.join() === [2, 7, 12, 13, 14, 19, 24, 29, 34, 33, 32, 37].join() && p2.back.every(b => !b), '길잡이(추적자)가 있으면 가장 짧은 길로 온다');
   const v = MZ.view(M).next; ok(v.path.join() === p1.cells.join() && v.back.join() === p1.back.join() && v.scout === false && Array.isArray(v.scoutPath) && Array.isArray(v.lostAt), '미리보기에 되돌아감과 길잡이의 길');
   // 걷는 이: 길잡이를 잃으면 그 자리부터 헤맨다
@@ -230,5 +230,57 @@ function checkFight(f, tag) {
   // 도적: 함정만 피하고 길은 모른다
   const R = dead(64); MZ.setUse(R, C(2, 3), 'trap', 'tr_teeth'); const pr = MZ.pathOf(R, 2);
   ok(!pr.scout && !pr.cells.includes(C(2, 3)) || pr.cells.indexOf(C(2, 3)) > pr.cells.lastIndexOf(C(4, 2)), '도적은 함정을 피하고, 다른 길이 다 막혔을 때만 밟는다');
+}
+// 14. 이야기 모드
+{
+  const F = MZ.newRun(5), fv = MZ.view(F); ok(F.mode === 'free' && fv.mode === 'free' && MZ.LOCKS.every(k => fv.locks[k]) && !fv.story && !fv.night && !fv.chapterEnd && MZ.endingOf(F) === null, '자유 모드: 모두 열림, 이야기 칸 없음');
+  const M = MZ.newStory(7), v = MZ.view(M);
+  ok(M.mode === 'story' && M.chapter === 0 && M.raids === 1 && v.story.chapter === 0 && v.story.raidIds.join() === 'c0_beast' && v.next.id === 'c0_beast' && v.egg.hp === MZ.MK.story.egg, '이야기: 장 0, 침입 하나');
+  ok(v.locks.place && !v.locks.dig && !v.locks.rooms && !v.locks.traps && !v.locks.night && !v.rooms.length && !v.traps.length, '장 0 에서는 세우기만 열린다');
+  ok(MZ.dig(M, C(1, 1)).msg === '아직 팔 수 없다' && MZ.canFill(M, C(1, 2)) === '아직 메울 수 없다', '잠긴 파기·메우기');
+  const u = give(M, 'shell', 1); ok(MZ.move(M, u, { cell: C(3, 2) }).ok && M.grid[C(3, 2)].use === 'kin', '장 0: 통로에 세운다');
+  ok(MZ.setUse(M, C(3, 2), 'kin', 'bone').msg === '아직 방 종류를 깔 수 없다' && MZ.setUse(M, C(4, 2), 'trap', 'tr_teeth').msg === '아직 쓸 수 없는 함정이다', '잠긴 방 종류·함정');
+  const r0 = MZ.raid(M); ok(r0.ok && r0.raidId === 'c0_beast' && (r0.next === 'chapterEnd' || r0.next === 'over'), '장 0 의 침입 ' + r0.next);
+  if (M.phase === 'chapterEnd') {
+    ok(MZ.view(M).chapterEnd && MZ.view(M).chapterEnd.next === 1 && !MZ.view(M).next && !MZ.raid(M).ok, '장의 끝: 다음 장을 기다린다');
+    const g0 = M.gold, n = MZ.nextChapter(M), w = MZ.view(M);
+    ok(n.ok && M.chapter === 1 && w.locks.dig && !w.locks.rooms && M.phase === 'prep' && M.raid === 1 && M.raids === 3 && n.raids.join() === 'c1_torch,c1_mob,c1_hounds', '다음 장: 침입 셋, 파기가 열린다');
+    ok(M.grid.filter(g => g.dug).length === 8 && !Object.keys(M.board).length && M.bench.includes(u) && M.gold === Math.floor(g0 * MZ.MK.story.keepGold) + MZ.MK.story.chapterGold + n.refund, '새 굴, 권속은 대기석, 진액 일부 + 들인 값');
+    // 헤매기가 열리기 전에는 모두 길을 안다 (막다른 곳에 들어가지 않는다)
+    M.gold = 99; [C(2, 3), C(3, 3), C(4, 3), C(5, 3), C(6, 3)].forEach(c => MZ.dig(M, c)); MZ.fill(M, C(5, 2)); const p1 = MZ.pathOf(M, 1);
+    ok(p1.cells.join() === MZ.scoutPath(M, ['militia']).cells.join() && p1.back.every(b => !b), '장 1: 일행은 길을 안다');
+  }
+  // 장 3: 밤의 한 수
+  const S = MZ.newStory(11); S.chapter = 3; S.raids = 3; S.gold = 30; const r1 = MZ.raid(S);
+  ok(r1.ok && (r1.next === 'night' || r1.next === 'over') && (r1.next !== 'night' || (MZ.view(S).night.offer.length === 3 && new Set(S.night.offer).size === 3)), '장 3: 침입 사이에 카드 셋');
+  if (S.night) {
+    ok(MZ.raid(S).msg === '밤의 한 수를 먼저 고른다', '밤의 한 수가 먼저');
+    S.night.offer = ['c_bell', 'e_page', 'i_water']; const a0 = S.alert = 0, g1 = S.gold, nb = MZ.nightPick(S, 0);
+    ok(nb.ok && nb.id === 'c_bell' && S.gold === g1 + 9 && S.alert === 3 - MZ.MK.story.alertDecay && S.eyes.church === 2 && S.flags.churchEarly && !S.night && S.picks.raid === 1, '종탑: 진액, 경계, 교회의 눈');
+  }
+  const T = MZ.newStory(12); T.chapter = 4; T.raids = 4; T.night = { offer: ['x_scout', 'e_page', 'i_water'] };
+  ok(MZ.raidOf(T).units.includes('tracker') && MZ.nightPick(T, 0).ok && !MZ.raidOf(T).units.some(k => MZ.SCOUTS.includes(k)) && !MZ.pathOf(T).scout, '앞선 길잡이: 다음 일행의 길잡이가 없다');
+  T.night = { offer: ['e_page', 'x_scout', 'i_water'] }; T.gold = 0; const ew = T.edaWhispers; ok(MZ.nightPick(T, 2).msg === '진액이 모자란다' && MZ.nightPick(T, 0).ok && T.edaWhispers === ew + 1 && T.eyes.eda === 1 && MZ.raidOf(T).confused, '비어 있는 쪽: 에다의 눈, 다음 일행이 헛갈린다');
+  T.night = { offer: ['v_sheep', 'e_book', 'p_dream'] }; const g2 = T.gold; ok(MZ.nightPick(T, -1).ok && T.gold === g2 && T.nights[T.nights.length - 1].id === null, '고르지 않을 수도 있다');
+  // 경계 문턱
+  const A = MZ.newStory(13); A.chapter = 3; A.raids = 3; const n0 = MZ.raidOf(A).units.length; A.alert = 3; ok(MZ.raidOf(A).units.length === n0 + 1, '경계 3: 하나 더');
+  A.alert = 6; ok(!MZ.raidOf(A).units.includes('tracker'), '경계 6: 길잡이가 열리기 전에는 붙지 않는다'); A.chapter = 5; ok(MZ.raidOf(A).units.includes('tracker'), '경계 6: 길잡이가 붙는다');
+  A.chapter = 3; A.alert = 9; A.phase = 'chapterEnd'; MZ.nextChapter(A); ok(A.chapter === 4 && A.raids === 5 && MZ.view(A).story.extra, '경계 9: 다음 장의 침입이 하나 는다');
+  // 결말
+  const E = MZ.newStory(14); E.chapter = 6; E.egg = 3; ok(MZ.endingOf(E) === 'D', '알이 남으면 D'); E.edaWhispers = 2; ok(MZ.endingOf(E) === 'E', '에다에게 둘 + 바스코를 사냥하지 않음: E'); E.flags.vascoHunted = true; ok(MZ.endingOf(E) === 'D', '바스코를 노렸으면 E 는 없다');
+  E.egg = 0; ok(MZ.endingOf(E) === 'A', '눈이 같으면 예언자 A'); E.eyes.church = 2; ok(MZ.endingOf(E) === 'B', '교회 B'); E.eyes.isel = 3; ok(MZ.endingOf(E) === 'C', '이셀 C'); E.eyes = { village: 0, eda: 0, isel: 1, church: 1, prophet: 3 }; ok(MZ.endingOf(E) === 'A', '예언자 A'); E.flags.towerDown = true; ok(MZ.endingOf(E) === 'B', '탑의 주인을 쓰러뜨리면 A 는 없다');
+  // 사냥: 성공·실패가 정해져 있다 (같은 씨앗 같은 결과)
+  const H1 = MZ.newStory(15), H2 = MZ.newStory(15); [H1, H2].forEach(X => { X.chapter = 4; X.night = { offer: ['v_lamp', 'p_hunt', 'x_scout'] }; }); const h1 = MZ.nightPick(H1, 1), h2 = MZ.nightPick(H2, 1);
+  ok(h1.ok && typeof h1.success === 'boolean' && h1.success === h2.success && (h1.success ? H1.flags.towerDown : H1.eyes.prophet === 2), '탑의 주인: 성공이면 표시, 실패면 예언자의 눈 +2');
+  // 마지막 장: 끝나면 결말
+  const Z = MZ.newStory(16); Z.chapter = 6; Z.raids = 3; Z.raid = 3; Z.egg = 1; Z.level = 6; const zr = MZ.raid(Z);
+  ok(zr.ok && Z.phase === 'over' && Z.over.ending && 'ABCDE'.includes(Z.over.ending) && MZ.view(Z).ending === Z.over.ending && !Z.over.retry, '장 6 이 끝나면 결말 ' + Z.over.ending);
+  // 알이 깨지면 그 장을 다시
+  const R = MZ.newStory(17); R.chapter = 2; R.raids = 3; R.egg = 1; R.snap = JSON.stringify(R); const rr = MZ.raid(R);
+  ok(rr.ok && R.phase === 'over' && R.over.retry && MZ.retryChapter(R).ok && R.phase === 'prep' && R.chapter === 2 && R.egg === 1 && R.retries === 1, '알이 깨지면 그 장을 처음부터');
+  // 저장
+  const Sv = MZ.newStory(18); Sv.alert = 4; Sv.eyes.isel = 2; const L1 = MZ.load(MZ.save(Sv)); ok(L1 && L1.mode === 'story' && L1.alert === 4 && L1.eyes.isel === 2 && JSON.stringify(MZ.view(L1)) === JSON.stringify(MZ.view(Sv)), '저장·불러오기: 이야기');
+  const old = JSON.parse(MZ.save(MZ.newRun(3))); delete old.mode; const L2 = MZ.load(JSON.stringify(old)); ok(L2 && L2.mode === 'free', '모드 칸이 없는 저장은 자유');
+  ok(MZ.CHAPTERS.length === 7 && MZ.CHAPTERS.every((c, i) => c.id === 'c' + i && c.raids.length >= (i ? 3 : 1) && c.raids.length <= 4 && c.raids.every(r => r.units.every(k => L.INV[k]))) && MZ.CARDS.length === 15, '장 일곱, 카드 열다섯');
 }
 console.log(bad ? '실패 ' + bad : '굴 짓기 규칙: 모두 맞음'); process.exitCode = bad ? 1 : 0;

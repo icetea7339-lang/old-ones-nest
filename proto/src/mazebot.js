@@ -1,5 +1,6 @@
 // 굴 짓기 자동 플레이어: 균형을 재는 데 쓴다.
 //   node src/mazebot.js [판 수] [전략...]   전략: straight (파지 않고 권속만) maze (길게 판다) mixed (적당히) random, 그리고 mixed 에 성향을 더한 abyss nebula brood dusk hunger
+//   node src/mazebot.js story [판 수] [전략:밤의성향...]   이야기 모드 (성향: raid sly skip any), RETRY=2 면 알이 깨진 장을 두 번까지 다시
 //   환경: V=1 판마다 한 줄, MSET='{"hpMul":0.9}' 로 MAZE.MK 를 바꿔 보기
 const MZ = require('./maze.js'), L = require('./lair.js');
 if (process.env.MSET) Object.assign(MZ.MK, JSON.parse(process.env.MSET));
@@ -119,6 +120,37 @@ function report(name, n) {
   console.log(`         한 방 싸움 ${avg(o.ft)}초 (10%~90% ${q(o.ft, 0.1)}~${q(o.ft, 0.9)}) | 한 침입의 싸움 합 ${avg(o.sum)}초 (${q(o.sum, 0.1)}~${q(o.sum, 0.9)}) | 함정 ${(o.traps / Math.max(1, o.rn.reduce((a, b) => a + b, 0))).toFixed(1)}/침입 | 미친 자 ${(o.mads / Math.max(1, o.rn.reduce((a, b) => a + b, 0))).toFixed(1)}/침입 | 길이 바뀜(돌아감/부숨) ${o.chg.map((x, i) => pc(x, o.rn[i])).join('/')}% (${o.avoid.map((x, i) => pc(x, o.rn[i])).join('/')} / ${o.brk.map((x, i) => pc(x, o.rn[i])).join('/')})`);
   return o;
 }
+// ───── 이야기 모드 봇 ─────
+// 밤의 한 수 성향: raid (습격·사냥만), sly (속삭임·거래만), skip (고르지 않음), any (아무거나)
+const NIGHT = { raid: ['raid', 'hunt'], sly: ['whisper', 'trade'], skip: [], any: ['raid', 'hunt', 'whisper', 'trade'] };
+function nightTurn(M, pol, rng) {
+  const v = MZ.view(M).night, acts = NIGHT[pol] || [], ok = v.offer.filter(c => acts.includes(c.act) && c.can);
+  const pick = ok.length ? ok[Math.floor(rng() * ok.length)].i : -1; return MZ.nightPick(M, pick);
+}
+// retry: 알이 깨지면 그 장을 몇 번까지 다시 하나
+function playStory(seed, name, pol, retry) {
+  const st = STRAT[name], rng = mk(seed * 37 + 11), M = MZ.newStory(seed), log = []; let tries = 0;
+  for (let guard = 0; guard < 400; guard++) {
+    if (M.phase === 'over') { if (M.over.retry && tries < (retry || 0)) { tries++; MZ.retryChapter(M); continue; } break; }
+    if (M.phase === 'chapterEnd') { MZ.nextChapter(M); continue; }
+    if (M.night) { nightTurn(M, pol, rng); continue; }
+    if (st.random) randomTurn(M, rng); else { build(M, st, st.digKeep != null ? st.digKeep : M.raid === 1 ? 6 : 4); shop(M, st, rng, st.traps ? st.trapGold || 4 : 0); arrange(M, st, rng); traps(M, st); }
+    const ch = M.chapter, r = MZ.raid(M); if (!r.ok) break; log.push({ ch, id: r.raidId, win: r.result.win, egg: M.egg, len: r.result.walked });
+  }
+  return { M, log, tries, end: M.phase === 'over' && (M.over.win || M.over.chapter === 6), ending: M.phase === 'over' ? M.over.ending : null };
+}
+function reportStory(name, pol, n, retry) {
+  const o = { end: 0, reach: [0, 0, 0, 0, 0, 0, 0], ends: { A: 0, B: 0, C: 0, D: 0, E: 0 }, broke: { A: 0, B: 0, C: 0 }, eggs: 0, alert: 0, win: {}, rn: {}, len: [0, 0, 0, 0, 0, 0, 0], ln: [0, 0, 0, 0, 0, 0, 0], tries: 0 };
+  for (let s = 1; s <= n; s++) {
+    const r = playStory(s * 7919 + 13, name, pol, retry); if (r.end) o.end++; if (r.ending) o.ends[r.ending]++; if (r.end) { const X = JSON.parse(JSON.stringify(r.M)); X.egg = 0; o.broke[MZ.endingOf(X)]++; } o.tries += r.tries; o.alert += r.M.alert;
+    for (let c = 0; c <= 6; c++) if (r.M.chapter >= c || r.end) o.reach[c]++;
+    r.log.forEach(f => { o.rn[f.ch] = (o.rn[f.ch] || 0) + 1; if (f.win) o.win[f.ch] = (o.win[f.ch] || 0) + 1; o.len[f.ch] += f.len; o.ln[f.ch]++; });
+  }
+  const ends = Object.keys(o.ends).map(k => k + pc(o.ends[k], n)).join(' ') + ' (알이 깨졌다면 ' + Object.keys(o.broke).map(k => k + pc(o.broke[k], o.end)).join(' ') + ')';
+  console.log(`${(name + ':' + pol).padEnd(16)} 끝까지 ${pc(o.end, n)}% | 결말 ${ends} | 장마다 막음 ${[0, 1, 2, 3, 4, 5, 6].map(c => pc(o.win[c] || 0, o.rn[c] || 0)).join('/')}% | 걸은 칸 ${[1, 2, 3, 4, 5, 6].map(c => (o.ln[c] ? (o.len[c] / o.ln[c]).toFixed(0) : '-')).join('/')} | 다시 ${(o.tries / n).toFixed(1)} | 경계 ${(o.alert / n).toFixed(1)} | 장을 넘김 ${[0, 1, 2, 3, 4, 5].map(c => pc(o.reach[c + 1], n)).join('/')}/${pc(o.end, n)}%`);
+  return o;
+}
 if (process.env.SSET) { const t = JSON.parse(process.env.SSET); for (const k in t) Object.assign(STRAT[k], t[k]); }
-if (require.main === module) { const n = +(process.argv[2] || 100), names = process.argv.slice(3).length ? process.argv.slice(3) : Object.keys(STRAT); names.forEach(nm => report(nm, n)); }
-module.exports = { playRun, report, STRAT, build, shop, arrange, traps };
+if (require.main === module && process.argv[2] === 'story') { const n = +(process.argv[3] || 100), retry = +(process.env.RETRY || 0); (process.argv.slice(4).length ? process.argv.slice(4) : ['mixed:any']).forEach(x => { const [a, b] = x.split(':'); reportStory(a, b || 'any', n, retry); }); }
+else if (require.main === module) { const n = +(process.argv[2] || 100), names = process.argv.slice(3).length ? process.argv.slice(3) : Object.keys(STRAT); names.forEach(nm => report(nm, n)); }
+module.exports = { playRun, report, playStory, reportStory, STRAT, build, shop, arrange, traps };

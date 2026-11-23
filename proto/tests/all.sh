@@ -38,6 +38,9 @@ run mazeui_a360_fz13 env FZ=1.3 node tests/mazeui.js a360 &
 wait
 run mazetap_iphone14 node tests/mazetap.js "iPhone 14"
 run mazetap_a360 node tests/mazetap.js a360
+run mazestory_iphone14 node tests/mazestory.js "iPhone 14" &
+run mazestory_a360 node tests/mazestory.js a360 &
+wait
 run lairperf node tests/lairperf.js
 N=$(wc -l < "$LOG/count"); B=$(wc -l < "$LOG/failed")
 if [ "$B" -eq 0 ]; then echo "모두 통과 ($N)"; else echo "실패 $B / $N"; exit 1; fi

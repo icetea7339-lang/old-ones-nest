@@ -26,6 +26,9 @@ const MAZE = (() => {
     wander: { down: 3, side: 2, up: 1 }, lureRange: 6, wanderMax: 30,
     // 정신을 깎는 함정을 한 침입에 여러 번 밟으면: 첫 번째 그대로, 두 번째 절반, 세 번째부터 4분의 1
     trapSanFade: [1, 0.5, 0.25],
+    // 이야기 모드: 알·진액·장 사이에 이어지는 것, 장마다 파는 칸 상한, 침입자 배수(장의 배수에 곱함), 밤의 한 수
+    story: { egg: 14, gold: 16, heal: 2, keepGold: 0.5, chapterGold: 8, refund: 1, dugCap: [8, 15, 17, 19, 21, 23, 24], hpMul: 3.2, atkMul: 3.2, sanMul: 0.4,
+      alertMax: 10, alertDecay: 2, alert1: 3, alert2: 6, alert3: 9, nightGold: 6, huntLamp: 0.8, huntTower: 0.6, huntStep: 0.05, towerWeak: 0.6, waterCost: 3 },
   };
   // 침입 넷 (설계서 5장). scale = 침입자 배수
   const RAIDS = [
@@ -35,7 +38,7 @@ const MAZE = (() => {
     { name: '책을 쫓는 자', units: ['seeker', 'paladin', 'inquis'], scale: { hp: 1.3, atk: 1.5, san: 1.1 } },
   ];
   // 길잡이(추적자): 살아 있으면 일행은 가장 짧은 길로 오고 함정을 피한다. 없거나 쓰러지면 일행은 굴을 모른 채 헤맨다. 도적은 함정을 알아보고 피하지만 길은 모른다
-  const AVOIDERS = ['rogue', 'tracker'], SCOUTS = ['tracker'], BREAKERS = ['seeker', 'seekerm', 'paladin'];
+  const AVOIDERS = ['rogue', 'tracker', 'c_tov'], SCOUTS = ['tracker', 'c_tov'], BREAKERS = ['seeker', 'seekerm', 'paladin'];
   // 함정 넷
   const TRAP = {
     tr_teeth: { name: '이빨 구덩이', hp: 0.15, fx: 'teeth', short: '체력 −15%', more: '바닥이 입을 벌린다. 지나가는 자는 체력의 15%를 잃는다.' },
@@ -53,7 +56,8 @@ const MAZE = (() => {
   const SHOP_KIN = L.KIN_IDS.filter(k => !L.KIN[k].gen);
 
   // ───────── 새 판 ─────────
-  function newRun(seed) {
+  function newRun(seed) { const M = baseRun(seed); M.mode = 'free'; return M; }
+  function baseRun(seed) {
     const M = { v: V, seed: seed >>> 0, rs: { s: (seed | 0) ^ 0x3a7e }, raid: 1, raids: RAIDS.length, phase: 'prep', over: null, gold: MK.gold, level: MK.level, xp: 0, egg: MK.egg, eggMax: MK.egg,
       grid: [], unit: {}, board: {}, bench: [null, null, null, null, null, null], nextUid: 1, shop: [], merges: [], hist: [], last: null, reward: null, free: [] };
     for (let i = 0; i < N; i++) M.grid.push({ dug: false, use: null, room: null, trap: null });
@@ -64,7 +68,7 @@ const MAZE = (() => {
 
   // ───────── 칸 ─────────
   const dugCount = M => M.grid.filter(g => g.dug).length;
-  const dugCap = M => MK.dugCap[clamp(M.raid, 1, MK.dugCap.length) - 1];
+  const dugCap = M => (M.mode === 'story' ? MK.story.dugCap[clamp(M.chapter, 0, MK.story.dugCap.length - 1)] : MK.dugCap[clamp(M.raid, 1, MK.dugCap.length) - 1]);
   const digCost = cell => MK.digBase + Math.floor(rc(cell)[0] * MK.digRow);
   const fillGold = cell => Math.floor(digCost(cell) * MK.fillBack);
   const near = cell => { const p = rc(cell), out = []; [[1, 0], [0, -1], [0, 1], [-1, 0]].forEach(([dr, dc]) => { if (inb(p[0] + dr, p[1] + dc)) out.push(idx(p[0] + dr, p[1] + dc)); }); return out; };
@@ -80,14 +84,14 @@ const MAZE = (() => {
   // 판 칸이 모두 입구에서 닿고, 출구에도 닿는가
   function connected(M, dugAt) { const seen = new Set([ENT]), q = [ENT]; for (let h = 0; h < q.length; h++) for (const n of near(q[h])) if (!seen.has(n) && dugAt(n)) { seen.add(n); q.push(n); } for (let i = 0; i < N; i++) if (dugAt(i) && !seen.has(i)) return false; return seen.has(EXIT); }
   function canDig(M, cell) {
-    if (M.phase !== 'prep') return '지금은 팔 수 없다'; if (!diggable(cell)) return '팔 수 없는 칸이다'; if (M.grid[cell].dug) return '이미 판 칸이다';
+    if (M.phase !== 'prep') return '지금은 팔 수 없다'; if (!locksOf(M).dig) return '아직 팔 수 없다'; if (!diggable(cell)) return '팔 수 없는 칸이다'; if (M.grid[cell].dug) return '이미 판 칸이다';
     if (!near(cell).some(n => M.grid[n].dug)) return '판 칸에 붙어 있어야 한다'; if (dugCount(M) >= dugCap(M)) return '더 팔 수 없다 (' + dugCap(M) + ')'; if (M.gold < digCost(cell)) return '진액이 모자란다';
     return null;
   }
   // 외길 칸: 이 칸을 막으면 입구에서 출구로 못 간다 (삼키는 구멍은 외길에 놓을 수 없다)
   const sole = (M, cell, gone) => !bfs(x => M.grid[x].dug && x !== cell && x !== gone, ENT, EXIT);
   function canFill(M, cell) {
-    if (M.phase !== 'prep') return '지금은 메울 수 없다'; const g = M.grid[cell]; if (!g || !g.dug) return '판 칸이 아니다'; if (fixedCell(cell)) return '메울 수 없는 칸이다'; if ((M.board[cell] || []).length) return '권속을 먼저 옮긴다';
+    if (M.phase !== 'prep') return '지금은 메울 수 없다'; if (!locksOf(M).dig) return '아직 메울 수 없다'; const g = M.grid[cell]; if (!g || !g.dug) return '판 칸이 아니다'; if (fixedCell(cell)) return '메울 수 없는 칸이다'; if ((M.board[cell] || []).length) return '권속을 먼저 옮긴다';
     if (!connected(M, c => c !== cell && M.grid[c].dug)) return '길이 끊긴다'; if (M.grid.some((g, i) => i !== cell && g.use === 'trap' && g.trap === 'tr_maw' && sole(M, i, cell))) return '삼키는 구멍이 외길이 된다'; return null;
   }
   function dig(M, cell) { const e = canDig(M, cell); if (e) return fail(e); const cost = digCost(cell); M.gold -= cost; Object.assign(M.grid[cell], { dug: true, use: 'path', room: null, trap: null }); return ok({ cell, cost }); }
@@ -100,11 +104,11 @@ const MAZE = (() => {
     if (M.phase !== 'prep') return fail('지금은 바꿀 수 없다'); const g = M.grid[cell]; if (!g || !g.dug) return fail('판 칸이 아니다'); if (fixedCell(cell)) return fail('바꿀 수 없는 칸이다');
     if (!USES.includes(use)) return fail('없는 쓰임이다'); const here = M.board[cell] || [];
     if (use === 'kin') {
-      if (id != null && !L.ROOM[id]) return fail('없는 방이다'); const free = id != null && id !== g.room && freeTake(M, id), cost = id != null && id !== g.room && !free ? MK.roomCost : 0; if (M.gold < cost) return fail('진액이 모자란다');
+      if (id != null && !L.ROOM[id]) return fail('없는 방이다'); if (id != null && id !== g.room && !locksOf(M).rooms) return fail('아직 방 종류를 깔 수 없다'); const free = id != null && id !== g.room && freeTake(M, id), cost = id != null && id !== g.room && !free ? MK.roomCost : 0; if (M.gold < cost) return fail('진액이 모자란다');
       if (free) freeUse(M, id); M.gold -= cost; g.use = 'kin'; g.trap = null; if (id != null) g.room = id; return ok({ cell, use, id: g.room, cost });
     }
     if (here.length) { if (M.bench.filter(x => x == null).length < here.length) return fail('대기석이 모자란다'); here.forEach(uid => { M.bench[M.bench.indexOf(null)] = uid; }); delete M.board[cell]; }
-    if (use === 'trap') { if (!TRAP[id]) return fail('없는 함정이다'); if (TRAP[id].maw && sole(M, cell)) return fail('외길에는 놓을 수 없다'); const free = id !== g.trap && freeTake(M, id), cost = id !== g.trap && !free ? trapCost(id) : 0; if (M.gold < cost) return fail('진액이 모자란다'); if (free) freeUse(M, id); M.gold -= cost; Object.assign(g, { use: 'trap', trap: id, room: null }); return ok({ cell, use, id, cost }); }
+    if (use === 'trap') { if (!TRAP[id]) return fail('없는 함정이다'); if (!trapOpen(M, id)) return fail('아직 쓸 수 없는 함정이다'); if (TRAP[id].maw && sole(M, cell)) return fail('외길에는 놓을 수 없다'); const free = id !== g.trap && freeTake(M, id), cost = id !== g.trap && !free ? trapCost(id) : 0; if (M.gold < cost) return fail('진액이 모자란다'); if (free) freeUse(M, id); M.gold -= cost; Object.assign(g, { use: 'trap', trap: id, room: null }); return ok({ cell, use, id, cost }); }
     Object.assign(g, { use: 'path', trap: null, room: null }); return ok({ cell, use });
   }
 
@@ -135,11 +139,12 @@ const MAZE = (() => {
   //   direct: 아는 길로 출구에 (오래 헤맨 뒤, 무거운 자가 벽을 부순 뒤).
   //   삼키는 구멍을 밟으면 다음 걸음이 입구 바로 아래 칸으로 순간 이동이다 (warp). 들른 칸 기억을 지운다.
   const WANDER = [COLS, -1, 1, -COLS];
-  function walker(M, kinds, raidN) {
-    raidN = raidN || M.raid;
+  //   opt: { guided (모두 길을 안다: 이야기 모드에서 헤매기가 열리기 전), lost (길잡이가 있어도 헤맨다), confused (처음부터 헛갈림) }
+  function walker(M, kinds, raidN, opt) {
+    raidN = raidN || M.raid; opt = opt || {};
     const sp = scoutPath(M, kinds), heavy = kinds.some(k => BREAKERS.includes(k)), avoid = kinds.some(k => AVOIDERS.includes(k)), dug = c => M.grid[c].dug || W.broken.includes(c);
-    const W = { mode: kinds.some(k => SCOUTS.includes(k)) ? 'scout' : 'lost', cur: -1, visited: new Set(), stack: [], plan: sp ? sp.cells.slice() : [], broken: [], lostWalk: 0, lostFrom: null, sp,
-      used: {}, lureOff: {}, confused: false, warpFrom: null, lured: [], confusedAt: [], warps: [], skipped: 0, tries: {} };
+    const W = { mode: !opt.lost && (opt.guided || kinds.some(k => SCOUTS.includes(k))) ? 'scout' : 'lost', guided: !!opt.guided, cur: -1, visited: new Set(), stack: [], plan: sp ? sp.cells.slice() : [], broken: [], lostWalk: 0, lostFrom: null, sp,
+      used: {}, lureOff: {}, confused: !!opt.confused, warpFrom: null, lured: [], confusedAt: [], warps: [], skipped: 0, tries: {} };
     W.lose = () => { if (W.mode !== 'scout' || W.cur < 0) return; W.mode = 'lost'; W.lostFrom = W.cur; };
     const known = from => { const ok2 = x => dug(x) && !(avoid && trapOf(M, x) && !W.used[x]); return bfs(ok2, from, EXIT) || bfs(dug, from, EXIT) || [from]; };
     // 칸에 닿음: 함정이 처음이면 그 함정의 길 효과
@@ -202,10 +207,10 @@ const MAZE = (() => {
   //   { cells (입구~출구, 되돌아가는 칸·순간 이동한 칸도 나온다), back [칸마다 되돌아감인가], warp [칸마다 순간 이동으로 닿았나], warps [{ from, to }], lured [미끼에 끌린 갈림길], confused [헛갈려 틀린 갈림길],
   //     breaks [칸], avoided, len, scout (길잡이가 있나), scoutPath, lostAt [길잡이가 쓰러질 수 있는 칸: 길잡이의 길 위의 싸움 칸] }
   function pathOf(M, party) {
-    const raidN = Array.isArray(party) ? M.raid : clamp(party || M.raid, 1, RAIDS.length), kinds = Array.isArray(party) ? party : RAIDS[raidN - 1].units, W = walker(M, kinds, raidN), cells = [], back = [], warp = [], breaks = [];
+    const raidN = Array.isArray(party) ? M.raid : clamp(party || M.raid, 1, M.raids), D = Array.isArray(party) ? null : raidOf(M, raidN), kinds = D ? D.units : party, W = walker(M, kinds, raidN, walkOpt(M, D)), cells = [], back = [], warp = [], breaks = [];
     if (!W.sp) return null;
     for (let g = 0; g < 6 * N; g++) { const s = W.next(); if (!s) break; cells.push(s.cell); back.push(s.back); warp.push(!!s.warp); if (s.broke) breaks.push(s.cell); }
-    const scout = kinds.some(k => SCOUTS.includes(k));
+    const scout = !walkOpt(M, D).lost && kinds.some(k => SCOUTS.includes(k));
     return { cells, back, warp, warps: W.warps, lured: W.lured, confused: W.confusedAt, breaks, avoided: scout ? W.sp.avoided : W.skipped > 0 && !cells.some(c => trapOf(M, c)), len: cells.length, scout, scoutPath: W.sp.cells, lostAt: scout ? W.sp.cells.filter(c => M.grid[c].use === 'kin') : [] };
   }
 
@@ -266,8 +271,8 @@ const MAZE = (() => {
   const front = role => role === 'tank' || role === 'melee' || role === 'dive';
   // 일행의 한 사람: 체력·정신은 침입 동안 이어진다
   function partyOf(M, raid) {
-    const R = RAIDS[clamp(raid || M.raid, 1, RAIDS.length) - 1], sc = scaleOf(raid || M.raid);
-    return R.units.map((kind, i) => { const d = L.INV[kind], mhp = Math.round(d.hp * sc.hp * MK.hpMul), msan = d.san ? Math.round(d.san * sc.san * MK.sanMul) : 0; return { i, kind, name: d.name, mhp, msan, hp: mhp, san: msan, alive: true, mad: false, slow: false, rot: false, out: false }; });
+    const D = raidOf(M, raid || M.raid), sc = D.scale;
+    return D.units.map((kind, i) => { const d = L.INV[kind], mhp = Math.round(d.hp * sc.hp * MK.hpMul), msan = d.san ? Math.round(d.san * sc.san * MK.sanMul) : 0; return { i, kind, name: d.name, mhp, msan, hp: mhp, san: msan, alive: true, mad: D.mad.includes(i), slow: false, rot: false, out: false }; });
   }
   const seedOf = (M, k) => (M.seed ^ Math.imul(M.raid * 97 + k * 13 + 1, 0x9E3779B1)) | 0;
   // 한 방의 싸움: 일행은 위쪽 두 줄, 권속은 아래쪽 두 줄 (본체 방이면 본체가 맨 아래). 길잡이는 뒷줄에 서고 뛰어들지 않는다. 사냥꾼 권속은 적의 뒷줄로 뛰어든다
@@ -278,7 +283,7 @@ const MAZE = (() => {
     live.forEach(p => { const d = L.INV[p.kind], st = []; if (p.slow) st.push({ n: 'slow', dur: TRAP.tr_slime.dur, v: TRAP.tr_slime.slow }); if (p.rot) st.push({ n: 'infected', dur: 8, v: 12 }); inv.push({ kind: p.kind, cell: place(front(d.role) && !SCOUTS.includes(p.kind) ? 1 : 0, FRONT_COLS, used), hp: p.hp, san: p.san, mad: p.mad, st, src: p.i, noLeap: SCOUTS.includes(p.kind) }); });
     const nest = kin.map(u => ({ uid: u.uid, kind: u.kind, star: u.star, hp: u.hp, leap: L.KIN[u.kind].cls === 'hunter', cell: place(front(L.KIN[u.kind].role) ? 3 : 4, KIN_COLS, used) }));
     const rooms = g.room ? [{ id: g.room, cells: [18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29] }] : [];
-    const S = { seed: seedOf(M, k), nest, inv, rooms, level: M.level, round: 1, form: isCore ? L.formOf(boardUids(M).map(id => M.unit[id].kind)) : 'drop', syn: roomSyn(kin.map(u => u.kind)), scale: scaleOf(M.raid), hpMul: MK.hpMul, sanMul: MK.sanMul, clock: MK.clock, keep: true };
+    const S = { seed: seedOf(M, k), nest, inv, rooms, level: M.level, round: 1, form: isCore ? L.formOf(boardUids(M).map(id => M.unit[id].kind)) : 'drop', syn: roomSyn(kin.map(u => u.kind)), scale: raidOf(M).scale, hpMul: MK.hpMul, sanMul: MK.sanMul, clock: MK.clock, keep: true };
     if (isCore) S.core = { lv: 1, hp: MK.core.hp, atk: MK.core.atk, manaCut: 0, range: 0, t2: false }; else S.noCore = true;
     return { f: L.simulate(S), inv };
   }
@@ -287,8 +292,9 @@ const MAZE = (() => {
   const eggDmg = kind => { const d = L.INV[kind]; return (d.tier || 1) + (d.boss ? 2 : 0); };
   function raid(M) {
     if (M.phase !== 'prep') return fail(M.phase === 'over' ? '이미 끝난 판이다' : '지금은 안 된다');
+    if (M.mode === 'story' && M.night) return fail('밤의 한 수를 먼저 고른다');
     M.reward = null;
-    const P = pathOf(M), party = partyOf(M), steps = [], kinHp = {}, W = walker(M, party.map(p => p.kind)), trapped = {}, walked = []; let gold = 0, k = 0, walk = [], wback = [], lostNow = false;
+    const D = raidOf(M), P = pathOf(M), party = partyOf(M), steps = [], kinHp = {}, W = walker(M, party.map(p => p.kind), M.raid, walkOpt(M, D)), trapped = {}, walked = []; let gold = 0, k = 0, walk = [], wback = [], lostNow = false;
     // 권속의 체력은 이 침입 동안 이어진다 (null = 아직 다치지 않음)
     const kinOf = cell => (M.board[cell] || []).map(uid => { const u = M.unit[uid], st = kinHp[uid]; return { uid, kind: u.kind, star: u.star, hp: st ? st.hp : null, mhp: st ? st.mhp : null, alive: !st || st.alive }; });
     let drained = 0, turned = [], dark = 0, sanHits = 0;
@@ -307,7 +313,7 @@ const MAZE = (() => {
     }
     for (let guard = 0; guard < 4 * N; guard++) {
       if (!sane().length) break;
-      if (W.mode === 'scout' && !scouts()) { W.lose(); lostNow = true; }
+      if (W.mode === 'scout' && !W.guided && !scouts()) { W.lose(); lostNow = true; }
       const st = W.next(); if (!st) break; const cell = st.cell, back = st.back; walked.push(cell);
       if (st.warp) { flush(); steps.push({ type: 'warp', from: st.from, to: cell }); }
       walk.push(cell); wback.push(back); const g = M.grid[cell];
@@ -331,6 +337,7 @@ const MAZE = (() => {
     M.hist.push({ raid: M.raid, win, eggLost, path: walked.length, fights: steps.filter(s => s.type === 'fight').length, traps: steps.filter(s => s.type === 'trap').length, mads });
     M.last = { raid: M.raid, result, path: walked };
     let next = 'prep';
+    if (M.mode === 'story') { M.next = {}; next = storyAfter(M, win, income); return ok({ steps, result, path: P, next, raidId: D.id }); }
     if (M.egg <= 0) { M.phase = 'over'; M.over = { win: false, raid: M.raid, why: '알이 깨졌다' }; next = 'over'; }
     else if (M.raid >= M.raids) { M.phase = 'over'; M.over = { win: true, raid: M.raid, why: '네 번을 막았다' }; next = 'over'; }
     else { M.raid++; M.gold += income; M.xp += MK.xpRaid; levelUp(M); M.merges = []; rollShop(M); M.reward = win ? rewardOf(M) : null; }
@@ -338,29 +345,167 @@ const MAZE = (() => {
   }
 
   // 막은 침입의 보상: 방 종류 하나 무료 / 함정 하나 무료 가운데 하나 (무엇인지는 그때그때)
-  function rewardOf(M) { const room = L.ROOM_IDS[Math.floor(L.rnd(M.rs) * L.ROOM_IDS.length)], trap = TRAP_IDS[Math.floor(L.rnd(M.rs) * TRAP_IDS.length)]; return { opts: [{ type: 'room', id: room }, { type: 'trap', id: trap }] }; }
+  function rewardOf(M) {
+    if (M.mode === 'story') { const lk = locksOf(M), ts = TRAP_IDS.filter(id => trapOpen(M, id)), opts = []; if (lk.rooms) opts.push({ type: 'room', id: L.ROOM_IDS[Math.floor(L.rnd(M.rs) * L.ROOM_IDS.length)] }); if (ts.length) opts.push({ type: 'trap', id: ts[Math.floor(L.rnd(M.rs) * ts.length)] }); return opts.length ? { opts } : null; }
+    const room = L.ROOM_IDS[Math.floor(L.rnd(M.rs) * L.ROOM_IDS.length)], trap = TRAP_IDS[Math.floor(L.rnd(M.rs) * TRAP_IDS.length)]; return { opts: [{ type: 'room', id: room }, { type: 'trap', id: trap }] }; }
   function takeReward(M, i) { if (M.phase !== 'prep' || !M.reward) return fail('받을 것이 없다'); const o = M.reward.opts[i]; if (!o) return fail('없는 것이다'); M.free = (M.free || []).concat([o.id]); M.reward = null; return ok({ picked: o }); }
+  // ───────── 이야기 모드 ─────────
+  // 장마다 열리는 것 (앞 장에서 연 것은 그대로 열려 있다). 자유 모드는 모두 열려 있다
+  const LOCKS = ['place', 'dig', 'rooms', 'wander', 'traps', 'night', 'scout', 'mazeTraps', 'madness'];
+  const ALL_OPEN = LOCKS.reduce((o, k) => Object.assign(o, { [k]: true }), {});
+  // 침입 정의: id, name, units, hp·atk = 침입자 배수 (MK.story 배수를 곱함), san (정신 배수, 없으면 1), add (경계 3 이상일 때 붙는 자), alt (세력의 눈에 따라 바뀌는 무리)
+  const RD = (id, name, units, hp, atk, extra) => Object.assign({ id, name, units, hp, atk }, extra || {});
+  const CHAPTERS = [
+    { id: 'c0', opens: ['place'], raids: [RD('c0_beast', '굴의 짐승', ['hound'], 0.5, 0.4)] },
+    { id: 'c1', opens: ['dig'], raids: [RD('c1_torch', '횃불 든 자들', ['militia', 'torch'], 0.81, 0.63), RD('c1_mob', '마을 사람들', ['militia', 'militia', 'torch'], 0.9, 0.72), RD('c1_hounds', '개를 앞세운 마을', ['hound', 'militia', 'torch', 'hound'], 0.9, 0.77)] },
+    { id: 'c2', opens: ['rooms', 'wander'], raids: [RD('c2_party', '모험가 일행', ['knight', 'archer', 'priest'], 0.75, 0.56, { san: 0.9 }), RD('c2_rogue', '도적이 낀 일행', ['knight', 'archer', 'rogue'], 0.79, 0.6, { san: 0.9 }), RD('c2_eda', '기록관과 기사', ['c_rowen', 'archer', 'priest', 'c_eda'], 0.75, 0.6, { san: 0.9, add: 'archer' })] },
+    { id: 'c3', opens: ['traps', 'night'], raids: [RD('c3_hired', '고용된 석궁병', ['crossbow', 'crossbow', 'alchemist'], 1.6, 1.3, { san: 1.15 }), RD('c3_tappers', '깔때기를 든 자들', ['knight', 'alchemist', 'crossbow'], 1.7, 1.35, { san: 1.15 }), RD('c3_isel', '연금술사의 행렬', ['c_isel', 'alchemist', 'crossbow', 'crossbow'], 1.8, 1.4, { san: 1.15, add: 'crossbow' })] },
+    { id: 'c4', opens: ['scout'], raids: [RD('c4_tracker', '추적자', ['tracker', 'hound', 'crossbow'], 2, 1.5, { san: 1.2 }), RD('c4_pack', '사냥개 무리', ['tracker', 'hound', 'hound', 'archer'], 2, 1.5, { san: 1.2 }), RD('c4_trap', '덫 사냥꾼의 무리', ['tracker', 'crossbow', 'crossbow', 'knight'], 2.1, 1.55, { san: 1.2 }), RD('c4_tov', '토브 카인', ['c_tov', 'tracker', 'hound', 'crossbow'], 2.1, 1.55, { san: 1.2, add: 'hound' })] },
+    { id: 'c5', opens: ['mazeTraps', 'madness'], raids: [RD('c5_priests', '사제들', ['templar', 'priest', 'exorcist'], 1.5, 1.3, { san: 0.9 }), RD('c5_paladin', '성기사', ['paladin', 'templar', 'priest'], 1.5, 1.3, { san: 0.9 }), RD('c5_inquis', '심문관', ['inquis', 'templar', 'exorcist', 'priest'], 1.55, 1.35, { san: 0.9 }), RD('c5_mirel', '미렐 수녀와 성기사단', ['paladin', 'c_mirel', 'templar', 'exorcist'], 1.6, 1.4, { san: 0.9, add: 'templar' })] },
+    { id: 'c6', opens: [], raids: [RD('c6_thralls', '홀린 자들', ['c_rowen', 'inquis', 'templar', 'banner'], 1.5, 1.4, { alt: { eye: 'isel', at: 2, units: ['c_isel', 'alchemist', 'alchemist', 'crossbow'] } }), RD('c6_eda', '기록관이 섞인 행렬', ['paladin', 'c_eda', 'tracker', 'templar'], 1.55, 1.4), RD('c6_enoch', '책을 쫓는 자', ['seeker', 'paladin', 'inquis'], 1.4, 1.3)] },
+  ];
+  // 밤의 한 수 카드 15장: place (village 마을 · chapel 예배당 · archive 기록관의 집 · workshop 연금술 공방 · tower 예언자의 탑 · any 아무 곳), act, from (이 장부터), cost (진액), fx (고르면), ok / bad (사냥의 성공 / 실패)
+  //   fx: gold 진액, kin 신도 (1성 권속), egg 알의 체력, trap 무료 함정, lure 무료 미끼 불빛, clue 단서, alert 경계, eyes 세력의 눈, next 다음 일행에게, flag 이어지는 표시
+  const CARDS = [
+    { id: 'v_sheep', place: 'village', act: 'raid', fx: { gold: 9, alert: 2, eyes: { village: 1 } } },
+    { id: 'v_late', place: 'village', act: 'raid', fx: { kin: 1, alert: 3, eyes: { village: 1 } } },
+    { id: 'v_dream', place: 'village', act: 'whisper', fx: { alert: -1, next: { madOne: true } } },
+    { id: 'v_lamp', place: 'village', act: 'hunt', hunt: 'lamp', fx: { flag: 'vascoHunted' }, ok: { lure: 1, eyes: { village: 1 }, flag: 'vascoDown' }, bad: { alert: 3 } },
+    { id: 'c_bell', place: 'chapel', act: 'raid', fx: { gold: 9, alert: 3, eyes: { church: 2 }, flag: 'churchEarly' } },
+    { id: 'c_confess', place: 'chapel', act: 'whisper', fx: { eyes: { church: 1 }, flag: 'priestTurn' } },
+    { id: 'e_page', place: 'archive', act: 'whisper', fx: { eyes: { eda: 1 }, next: { confused: true }, edaWhisper: 1 } },
+    { id: 'e_sample', place: 'archive', act: 'trade', fx: { egg: -1, gold: 6, eyes: { eda: 1 }, alert: -1, flag: 'edaTraded' } },
+    { id: 'e_book', place: 'archive', act: 'raid', fx: { clue: 1, alert: 2, eyes: { eda: -1 } } },
+    { id: 'i_water', place: 'workshop', act: 'trade', cost: 3, fx: { trap: 1, eyes: { isel: 1 } } },
+    { id: 'i_boil', place: 'workshop', act: 'trade', fx: { gold: 12, egg: -2, eyes: { isel: 2 } } },
+    { id: 'i_forge', place: 'workshop', act: 'raid', fx: { alert: 2, eyes: { isel: -1 }, flag: 'forge' } },
+    { id: 'p_dream', place: 'tower', act: 'whisper', fx: { clue: 1, eyes: { prophet: 1 } } },
+    { id: 'p_hunt', place: 'tower', act: 'hunt', hunt: 'tower', from: 4, fx: {}, ok: { flag: 'towerDown' }, bad: { eyes: { prophet: 2 }, alert: 4 } },
+    { id: 'x_scout', place: 'any', act: 'hunt', fx: { alert: 3, next: { noScout: true } } },
+  ];
+  const CARD = CARDS.reduce((o, c) => Object.assign(o, { [c.id]: c }), {});
+  const EYES = ['village', 'eda', 'isel', 'church', 'prophet'];
+  function locksOf(M) {
+    if (M.mode !== 'story') return ALL_OPEN; const o = {}; LOCKS.forEach(k => { o[k] = false; });
+    for (let c = 0; c <= clamp(M.chapter, 0, CHAPTERS.length - 1); c++) CHAPTERS[c].opens.forEach(k => { o[k] = true; }); return o;
+  }
+  function trapOpen(M, id) { if (M.mode !== 'story') return true; const lk = locksOf(M), T = TRAP[id]; if (!T) return false; if (T.lure || T.maw || T.confuse) return lk.mazeTraps; if (id === 'tr_whisper') return lk.madness; return lk.traps; }
+  // 이 장의 침입 목록 (경계 9 이상으로 장에 들어오면 첫 침입이 한 번 더)
+  const chapterRaids = M => { const R = CHAPTERS[clamp(M.chapter, 0, CHAPTERS.length - 1)].raids; return M.extra ? [R[0]].concat(R) : R; };
+  // 침입 n 의 정의 (자유: RAIDS + MK.raidMul / 이야기: 장의 무리 + 경계 + 밤의 한 수)
+  function raidOf(M, n) {
+    n = n || M.raid;
+    if (M.mode !== 'story') { const i = clamp(n, 1, RAIDS.length) - 1; return { id: 'r' + (i + 1), name: RAIDS[i].name, units: RAIDS[i].units, scale: scaleOf(n), mad: [] }; }
+    const S = MK.story, list = chapterRaids(M), d = list[clamp(n, 1, list.length) - 1], cur = n === M.raid, nx = cur ? M.next || {} : {}, lk = locksOf(M), used = [];
+    let units = (d.alt && M.eyes[d.alt.eye] >= d.alt.at ? d.alt.units : d.units).slice(), hp = d.hp * S.hpMul, atk = d.atk * S.atkMul; const mad = [];
+    if (M.alert >= S.alert1) units.push(d.add || units[units.length - 1]);
+    if (M.alert >= S.alert2 && lk.scout && !units.some(k => SCOUTS.includes(k))) units.push('tracker');
+    if (d.id === 'c4_tov' && M.flags.churchEarly) units.push('templar');
+    if (nx.noScout) units = units.filter(k => !SCOUTS.includes(k));
+    if (cur && M.flags.forge && units.includes('alchemist')) { units.splice(units.indexOf('alchemist'), 1); used.push('forge'); }
+    if (!units.length) units = ['hound'];
+    if (d.id === 'c6_enoch' && M.flags.towerDown) hp *= S.towerWeak;
+    if (nx.madOne) { const i = units.findIndex(k => !L.INV[k].boss && !L.INV[k].noMad); if (i >= 0) mad.push(i); }
+    if (cur && M.flags.priestTurn) { const i = units.findIndex(k => ['priest', 'exorcist', 'c_mirel'].includes(k)); if (i >= 0) { mad.push(i); used.push('priestTurn'); } }
+    const ei = units.indexOf('c_eda'), lateEda = ei >= 0 && M.chapter >= 6; if (lateEda && M.flags.edaTraded) mad.push(ei);
+    return { id: d.id, name: d.name, units, scale: { hp, atk, san: (d.san || 1) * S.sanMul }, mad: [...new Set(mad)], lost: lateEda && M.eyes.eda >= 3, confused: !!nx.confused, used };
+  }
+  const walkOpt = (M, D) => (M.mode !== 'story' ? {} : { guided: !locksOf(M).wander, lost: !!(D && D.lost), confused: !!(D && D.confused) });
+  function newStory(seed) {
+    const M = baseRun(seed), S = MK.story;
+    Object.assign(M, { mode: 'story', chapter: 0, alert: 0, eyes: EYES.reduce((o, k) => Object.assign(o, { [k]: 0 }), {}), flags: {}, next: {}, night: null, clues: 0, edaWhispers: 0, picks: { raid: 0, whisper: 0, trade: 0, hunt: 0 }, nights: [], extra: false, retries: 0, snap: null,
+      egg: S.egg, eggMax: S.egg, gold: S.gold });
+    M.raids = chapterRaids(M).length; M.snap = JSON.stringify(M); return M;
+  }
+  // 침입 하나가 끝난 뒤 (이야기): 알이 깨졌나 → 장의 끝 → 다음 침입 (장 3부터 그 사이에 밤의 한 수)
+  function storyAfter(M, win, income) {
+    const D = raidOf(M); (D.used || []).forEach(f => { M.flags[f] = false; }); M.next = {};
+    if (M.egg <= 0) { M.phase = 'over'; M.over = { win: false, raid: M.raid, chapter: M.chapter, why: '알이 깨졌다', retry: M.chapter < CHAPTERS.length - 1, ending: M.chapter >= CHAPTERS.length - 1 ? endingOf(M) : null }; return 'over'; }
+    M.gold += income; M.xp += MK.xpRaid; levelUp(M); M.merges = [];
+    if (M.raid >= M.raids) {
+      if (M.chapter >= CHAPTERS.length - 1) { M.phase = 'over'; M.over = { win: true, raid: M.raid, chapter: M.chapter, why: '예언의 밤이 지났다', ending: endingOf(M) }; return 'over'; }
+      M.phase = 'chapterEnd'; return 'chapterEnd';
+    }
+    M.raid++; rollShop(M); M.reward = win ? rewardOf(M) : null;
+    if (locksOf(M).night) { M.night = { offer: offerOf(M) }; return 'night'; }
+    return 'prep';
+  }
+  function offerOf(M) {
+    const pool = CARDS.filter(c => (c.from || 3) <= M.chapter && !(c.hunt === 'lamp' && M.flags.vascoDown) && !(c.hunt === 'tower' && M.flags.towerDown)).map(c => c.id), out = [];
+    while (out.length < 3 && pool.length) out.push(pool.splice(Math.floor(L.rnd(M.rs) * pool.length), 1)[0]); return out;
+  }
+  // 밤의 한 수: i = 고른 카드 (null 이나 -1 이면 고르지 않음). 밤마다 경계 −alertDecay
+  function nightPick(M, i) {
+    if (M.mode !== 'story' || !M.night) return fail('고를 밤이 아니다'); const S = MK.story, id = i == null || i < 0 ? null : M.night.offer[i];
+    if (i != null && i >= 0 && !id) return fail('없는 카드다'); const c = id ? CARD[id] : null; if (c && M.gold < (c.cost || 0)) return fail('진액이 모자란다');
+    const gains = { gold: 0, kin: [], egg: 0, trap: null, lure: 0, clue: 0 }; let success = null;
+    const apply = fx => {
+      if (!fx) return; if (fx.gold) { M.gold += fx.gold; gains.gold += fx.gold; } if (fx.egg) { M.egg = Math.max(1, M.egg + fx.egg); gains.egg += fx.egg; }
+      if (fx.alert) M.alert = clamp(M.alert + fx.alert, 0, S.alertMax); if (fx.eyes) for (const k in fx.eyes) M.eyes[k] = clamp(M.eyes[k] + fx.eyes[k], 0, 3);
+      if (fx.flag) M.flags[fx.flag] = true; if (fx.next) Object.assign(M.next, fx.next); if (fx.clue) { M.clues += fx.clue; gains.clue += fx.clue; } if (fx.edaWhisper) M.edaWhispers += fx.edaWhisper;
+      if (fx.lure) { M.free.push('tr_lure'); gains.lure += fx.lure; }
+      if (fx.trap) { const ts = TRAP_IDS.filter(t => trapOpen(M, t)); if (ts.length) { const t = ts[Math.floor(L.rnd(M.rs) * ts.length)]; M.free.push(t); gains.trap = t; } }
+      if (fx.kin) { const pool = SHOP_KIN.filter(k => L.KIN[k].cost === 1), kind = pool[Math.floor(L.rnd(M.rs) * pool.length)], slot = M.bench.indexOf(null); if (slot >= 0) { const uid = M.nextUid++; M.unit[uid] = { uid, kind, star: 1 }; M.bench[slot] = uid; gains.kin.push(kind); merge(M); } else { M.gold += 1; gains.gold += 1; } }
+    };
+    if (c) {
+      M.gold -= c.cost || 0; apply(c.fx); M.picks[c.act]++;
+      if (c.hunt) { const base = c.hunt === 'lamp' ? S.huntLamp : S.huntTower; success = L.rnd(M.rs) < base - S.huntStep * M.alert; apply(success ? c.ok : c.bad); }
+    }
+    M.alert = clamp(M.alert - S.alertDecay, 0, S.alertMax); M.nights.push({ chapter: M.chapter, raid: M.raid, id, success }); M.night = null;
+    return ok({ id, skip: !c, success, gains, alert: M.alert, eyes: Object.assign({}, M.eyes) });
+  }
+  // 다음 장: 새 굴 (곧은 굴), 권속은 대기석으로 (여섯이 넘으면 값싼 것을 판다), 진액 일부 + 옛 굴에 들인 값, 알 조금 회복. 경계·세력의 눈·표시는 이어진다
+  function nextChapter(M) {
+    if (M.mode !== 'story' || M.phase !== 'chapterEnd') return fail('장이 끝나지 않았다'); const S = MK.story;
+    const all = owned(M).sort((a, b) => sellValue(b) - sellValue(a) || a.uid - b.uid); M.board = {}; M.bench = [null, null, null, null, null, null];
+    all.forEach((u, i) => { if (i < 6) M.bench[i] = u.uid; else { M.gold += sellValue(u); delete M.unit[u.uid]; } });
+    // 옛 굴에 들인 것 (판 칸·함정·방 종류)은 refund 만큼 진액으로 돌아온다
+    let back = 0; M.grid.forEach((g, i) => { if (!g.dug) return; if (rc(i)[1] !== 2) back += digCost(i); if (g.use === 'trap') back += trapCost(g.trap); if (g.room) back += MK.roomCost; }); back = Math.floor(back * S.refund);
+    M.grid = []; for (let i = 0; i < N; i++) M.grid.push({ dug: false, use: null, room: null, trap: null }); for (let r = 0; r < ROWS; r++) Object.assign(M.grid[idx(r, 2)], { dug: true, use: 'path' });
+    M.chapter++; M.gold = Math.floor(M.gold * S.keepGold) + S.chapterGold + back; M.egg = Math.min(M.eggMax, M.egg + S.heal); M.extra = M.alert >= S.alert3;
+    M.raid = 1; M.raids = chapterRaids(M).length; M.phase = 'prep'; M.reward = null; M.night = null; M.next = {}; M.last = null; M.merges = []; rollShop(M);
+    M.snap = null; M.snap = JSON.stringify(M); return ok({ chapter: M.chapter, opens: CHAPTERS[M.chapter].opens, raids: chapterRaids(M).map(d => d.id), refund: back });
+  }
+  // 이 장을 처음부터 다시 (알이 깨졌을 때, 마지막 장 전까지)
+  function retryChapter(M) {
+    if (M.mode !== 'story' || M.phase !== 'over' || !M.over || !M.over.retry || !M.snap) return fail('다시 할 수 없다');
+    const snap = M.snap, S = JSON.parse(snap), n = (M.retries || 0) + 1; Object.keys(M).forEach(k => delete M[k]); Object.assign(M, S); M.snap = snap; M.retries = n; return ok({ chapter: M.chapter });
+  }
+  // 결말: 알이 남았으면 D (에다에게 둘 넘게 속삭이고 바스코를 사냥하지 않았으면 E). 깨졌으면 세력의 눈이 가장 높은 곳: 예언자 A · 교회 (마을과 함께) B · 이셀 C (같으면 A, 탑의 주인을 쓰러뜨렸으면 A 는 없다)
+  function endingOf(M) {
+    if (M.mode !== 'story') return null; if (M.egg > 0) return M.edaWhispers >= 2 && !M.flags.vascoHunted ? 'E' : 'D';
+    const e = M.eyes, cand = [['A', e.prophet], ['B', Math.max(e.church, e.village)], ['C', e.isel]].filter(x => !(x[0] === 'A' && M.flags.towerDown)); let best = cand[0];
+    cand.forEach(x => { if (x[1] > best[1]) best = x; }); return best[0];
+  }
+  const cardView = (id, i) => { const c = CARD[id]; return { i, id, place: c.place, act: c.act, cost: c.cost || 0, from: c.from || 3, fx: c.fx, ok: c.ok || null, bad: c.bad || null, can: true }; };
+  function nightView(M) { return { offer: M.night.offer.map((id, i) => Object.assign(cardView(id, i), { can: M.gold >= (CARD[id].cost || 0) })) }; }
+  function storyView(M) {
+    const S = MK.story; return { chapter: M.chapter, id: CHAPTERS[M.chapter].id, chapters: CHAPTERS.length, opens: CHAPTERS[M.chapter].opens, raidIds: chapterRaids(M).map(d => d.id), extra: !!M.extra,
+      alert: M.alert, alertMax: S.alertMax, alertSteps: [S.alert1, S.alert2, S.alert3], eyes: Object.assign({}, M.eyes), clues: M.clues, edaWhispers: M.edaWhispers, flags: Object.assign({}, M.flags), picks: Object.assign({}, M.picks), next: Object.assign({}, M.next), retries: M.retries || 0 };
+  }
+  function chapterEndView(M) { return { chapter: M.chapter, next: M.chapter + 1, egg: M.egg, alert: M.alert, eyes: Object.assign({}, M.eyes) }; }
   // ───────── 저장 ─────────
   function save(M) { return JSON.stringify(M); }
-  function load(json) { let M = null; try { M = typeof json === 'string' ? JSON.parse(json) : json; } catch (e) { return null; } if (!M || M.v !== V || !Array.isArray(M.grid) || M.grid.length !== N || !M.unit || !M.board || !Array.isArray(M.bench) || !M.rs) return null; return M; }
+  function load(json) { let M = null; try { M = typeof json === 'string' ? JSON.parse(json) : json; } catch (e) { return null; } if (!M || M.v !== V || !Array.isArray(M.grid) || M.grid.length !== N || !M.unit || !M.board || !Array.isArray(M.bench) || !M.rs) return null; if (!M.mode) M.mode = 'free'; if (M.mode === 'story' && (M.chapter == null || !M.eyes)) return null; return M; }
 
   // ───────── 화면이 읽는 것 ─────────
   const trapInfo = id => (TRAP[id] ? { id, name: TRAP[id].name, short: TRAP[id].short, more: TRAP[id].more, fx: TRAP[id].fx, cost: trapCost(id), maze: !!(TRAP[id].lure || TRAP[id].maw || TRAP[id].confuse) } : null);
   const unitView = (M, uid) => { const u = M.unit[uid]; if (!u) return null; const w = whereOf(M, uid); return Object.assign({ uid, sell: sellValue(u), at: w }, L.unitInfo(u.kind, u.star)); };
-  function partyView(M, raid) { const R = RAIDS[clamp(raid || M.raid, 1, RAIDS.length) - 1], sc = scaleOf(raid || M.raid); return R.units.map(kind => Object.assign(L.invInfo(kind, 1, { hp: sc.hp * MK.hpMul / L.K.hpMul, atk: sc.atk, san: sc.san * MK.sanMul / L.K.sanMul }), { avoid: AVOIDERS.includes(kind), scout: SCOUTS.includes(kind), breaker: BREAKERS.includes(kind), egg: eggDmg(kind) })); }
+  function partyView(M, raid) { const D = raidOf(M, raid || M.raid), sc = D.scale; return D.units.map((kind, i) => Object.assign(L.invInfo(kind, 1, { hp: sc.hp * MK.hpMul / L.K.hpMul, atk: sc.atk, san: sc.san * MK.sanMul / L.K.sanMul }), { avoid: AVOIDERS.includes(kind), scout: SCOUTS.includes(kind), breaker: BREAKERS.includes(kind), egg: eggDmg(kind), mad: D.mad.includes(i) })); }
   // 본체 방: 선 권속과 본체의 꼴 (판 위 권속의 성향으로 정해진다)
   function coreView(M) { const form = L.formOf(boardUids(M).map(id => M.unit[id].kind)); return { units: (M.board[CORE] || []).map(uid => unitView(M, uid)), max: MK.coreMax, form, step: form === 'drop' ? 0 : 1 }; }
   function view(M) {
-    const P = M.phase === 'prep' ? pathOf(M) : null, R = RAIDS[clamp(M.raid, 1, RAIDS.length) - 1];
+    const P = M.phase === 'prep' ? pathOf(M) : null, R = raidOf(M);
     return { v: M.v, raid: M.raid, raids: M.raids, phase: M.phase, over: M.over, gold: M.gold, level: M.level, maxLv: MK.maxLv, xp: M.xp, xpNeed: MK.xpNeed[M.level] || 0, cap: cap(M), placed: boardUids(M).length,
       egg: { hp: M.egg, max: M.eggMax }, core: coreView(M), cols: COLS, rows: ROWS, entrance: { r: -1, c: 2, cell: ENT }, exit: { r: ROWS - 1, c: 2, cell: EXIT }, coreCell: CORE, eggCell: EGG, dug: dugCount(M), dugCap: dugCap(M),
       grid: M.grid.map((g, i) => { const p = rc(i), e1 = canDig(M, i), e2 = canFill(M, i); return { cell: i, r: p[0], c: p[1], dug: g.dug, use: g.use, room: g.room, roomInfo: g.room ? L.roomInfo(g.room) : null, trap: g.trap, trapInfo: g.trap ? trapInfo(g.trap) : null, units: (M.board[i] || []).map(uid => unitView(M, uid)), max: g.use === 'kin' ? roomCap(i) : 0, canPlace: !placeWhy(M, i), placeWhy: placeWhy(M, i), fixed: fixedCell(i), canDig: !e1, digCost: g.dug ? 0 : digCost(i), digWhy: e1, canFill: !e2, fillGold: g.dug && !fixedCell(i) ? fillGold(i) : 0, fillWhy: e2, onPath: !!P && P.cells.includes(i) }; }),
       shop: M.shop.map((k, i) => (k ? Object.assign({ i, can: M.gold >= L.KIN[k].cost }, L.unitInfo(k, 1)) : null)), bench: M.bench.map(uid => (uid != null ? unitView(M, uid) : null)), merges: M.merges,
       costs: { reroll: MK.reroll, xp: MK.xpCost, room: MK.roomCost, trap: MK.trapCost }, canXp: M.level < MK.maxLv && M.gold >= MK.xpCost, canReroll: M.gold >= MK.reroll,
-      next: M.phase === 'over' ? null : { raid: M.raid, name: R.name, party: partyView(M), path: P ? P.cells : [], back: P ? P.back : [], breaks: P ? P.breaks : [], avoided: P ? P.avoided : false, len: P ? P.len : 0, scout: P ? P.scout : false, scoutPath: P ? P.scoutPath : [], lostAt: P ? P.lostAt : [], warp: P ? P.warp : [], warps: P ? P.warps : [], lured: P ? P.lured : [], confused: P ? P.confused : [] },
-      rooms: L.ROOM_IDS.map(id => L.roomInfo(id)), traps: TRAP_IDS.map(trapInfo), last: M.last, hist: M.hist,
+      next: M.phase === 'over' || M.phase === 'chapterEnd' ? null : { raid: M.raid, id: R.id, name: R.name, party: partyView(M), path: P ? P.cells : [], back: P ? P.back : [], breaks: P ? P.breaks : [], avoided: P ? P.avoided : false, len: P ? P.len : 0, scout: P ? P.scout : false, scoutPath: P ? P.scoutPath : [], lostAt: P ? P.lostAt : [], warp: P ? P.warp : [], warps: P ? P.warps : [], lured: P ? P.lured : [], confused: P ? P.confused : [] },
+      rooms: locksOf(M).rooms ? L.ROOM_IDS.map(id => L.roomInfo(id)) : [], traps: TRAP_IDS.filter(id => trapOpen(M, id)).map(trapInfo), last: M.last, hist: M.hist,
+      mode: M.mode || 'free', locks: locksOf(M), story: M.mode === 'story' ? storyView(M) : null, night: M.mode === 'story' && M.night ? nightView(M) : null, chapterEnd: M.phase === 'chapterEnd' ? chapterEndView(M) : null, ending: M.over && M.over.ending || null,
       reward: M.reward ? { opts: M.reward.opts.map((o, i) => Object.assign({ i, type: o.type }, o.type === 'room' ? L.roomInfo(o.id) : trapInfo(o.id))) } : null, free: (M.free || []).map(id => Object.assign({ type: L.ROOM[id] ? 'room' : 'trap' }, L.ROOM[id] ? L.roomInfo(id) : trapInfo(id))) };
   }
-  return { V, COLS, ROWS, N, ENT, EXIT, CORE, EGG, MK, RAIDS, TRAP, TRAP_IDS, AVOIDERS, BREAKERS, rc, idx, newRun, view, dig, fill, setUse, canDig, canFill, digCost, fillGold, pathOf, buy, sell, sellValue, reroll, buyXp, move, merge, whereOf, raid, partyOf, roomSyn, save, load, takeReward, walker, scoutPath, SCOUTS, trapInfo, dugCount, dugCap, connected };
+  return { V, COLS, ROWS, N, ENT, EXIT, CORE, EGG, MK, RAIDS, CHAPTERS, CARDS, LOCKS, newStory, nextChapter, retryChapter, nightPick, endingOf, raidOf, TRAP, TRAP_IDS, AVOIDERS, BREAKERS, rc, idx, newRun, view, dig, fill, setUse, canDig, canFill, digCost, fillGold, pathOf, buy, sell, sellValue, reroll, buyXp, move, merge, whereOf, raid, partyOf, roomSyn, save, load, takeReward, walker, scoutPath, SCOUTS, trapInfo, dugCount, dugCap, connected };
 })();
 if (typeof module !== 'undefined') module.exports = MAZE;

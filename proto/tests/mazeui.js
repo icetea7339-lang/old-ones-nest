@@ -31,10 +31,10 @@ const dev = process.argv[2] || '', tag = dev ? dev.replace(/\s+/g, '') : 'pc', o
   // 첫 화면
   await shot('title');
   if (!(await p.$('#title #mz-tcv'))) bad.push('첫 화면에 굴 그림이 없다');
-  { const d = await ev(() => Array.from(document.querySelectorAll('#menu button')).map(b => b.textContent)); if (!d.some(t => /시작/.test(t)) || !d.some(t => /도움말/.test(t)) || !d.some(t => /소리/.test(t))) bad.push('첫 화면 단추가 맞지 않는다 ' + JSON.stringify(d)); }
-  await tap('[data-z="help"]'); await shot('help'); if ((await p.$$('#modal .sh-tab')).length !== 3) bad.push('도움말이 세 쪽이 아니다'); await tap('#modal .sh-tab[data-i="1"]'); await tap('#modal [data-z="mclose"]');
+  { const d = await ev(() => Array.from(document.querySelectorAll('#menu button')).map(b => b.textContent)); if (!d.some(t => /^이야기/.test(t)) || !d.some(t => /^자유/.test(t)) || !d.some(t => /도움말/.test(t)) || !d.some(t => /소리/.test(t))) bad.push('첫 화면 단추가 맞지 않는다 ' + JSON.stringify(d)); }
+  await tap('[data-z="help"]'); await shot('help'); if ((await p.$$('#modal .sh-tab')).length !== 4) bad.push('도움말이 네 쪽(짓기·침입·진화·기록)이 아니다'); await tap('#modal .sh-tab[data-i="1"]'); await tap('#modal [data-z="mclose"]');
   { const s0 = await ev(() => __maze.meta.sound !== false); await tap('[data-z="sound"]'); if ((await ev(() => __maze.meta.sound !== false)) === s0) bad.push('소리 단추가 안 된다'); await tap('[data-z="sound"]'); }
-  await tap('[data-z="start"]'); await p.waitForTimeout(400);
+  await tap('[data-z="free"]'); await p.waitForTimeout(400);
   { const d = await ev(() => ({ shown: !document.getElementById('mz').hidden, raid: __maze.M.raid, path: __maze.dbg().path, bar: document.getElementById('mz-bar').textContent, k: __maze.Z.k, vw: innerWidth, vh: innerHeight })); if (!d.shown || d.raid !== 1 || !d.path) bad.push('지도가 열리지 않았다 ' + JSON.stringify(d)); if (!/침입 1\/4/.test(d.bar) || !/20/.test(d.bar)) bad.push('위 띠가 맞지 않는다 ' + d.bar); if (dev && d.k * 64 < 52) bad.push('칸이 너무 작다 ' + Math.round(d.k * 64)); if (d.vw >= 390 && d.vh >= 780 && d.k * 64 < 64) bad.push('390x780 에서 칸이 64 보다 작다 ' + Math.round(d.k * 64)); }
   await shot('map');
   // 파기: 길에 붙은 바위
@@ -152,7 +152,7 @@ const dev = process.argv[2] || '', tag = dev ? dev.replace(/\s+/g, '') : 'pc', o
   await shot('prep2');
   // 저장 · 새로 고침 · 이어하기
   { const a = await ev(() => JSON.stringify([__maze.M.raid, __maze.M.gold, __maze.M.egg, __maze.M.grid.map(g => (g.dug ? 1 : 0) + (g.use || '') + (g.room || '') + (g.trap || '')).join(), __maze.M.board]));
-    await p.reload(); await p.waitForTimeout(500); if (!(await p.$('[data-z="cont"]'))) bad.push('새로 고침 뒤에 이어하기가 없다'); else { await shot('title_cont', true); await tap('[data-z="cont"]'); await p.waitForTimeout(400);
+    await p.reload(); await p.waitForTimeout(500); if (!(await p.$('[data-z="freeNew"]')) || !/이어하기/.test(await ev(() => document.querySelector('[data-z="free"]').textContent))) bad.push('새로 고침 뒤에 이어하기가 없다'); else { await shot('title_cont', true); await tap('[data-z="free"]'); await p.waitForTimeout(400);
       const z = await ev(() => JSON.stringify([__maze.M.raid, __maze.M.gold, __maze.M.egg, __maze.M.grid.map(g => (g.dug ? 1 : 0) + (g.use || '') + (g.room || '') + (g.trap || '')).join(), __maze.M.board])); if (a !== z) bad.push('이어한 판이 다르다'); }
     if (await ev(() => !!localStorage.getItem('oldnest.lairrun'))) bad.push('굴 짓기가 둥지 전투의 저장을 건드렸다');
     { const d = await ev(() => { const a = __maze.speed(); __maze.meta.mazeSpeed = 0.6; __maze.Z.speed = null; const b = __maze.speed(); __maze.meta.mazeSpeed = a; __maze.Z.speed = null; return [a, b, __maze.speed()]; }); if (d[0] !== 5 || d[1] !== 1 || d[2] !== 5) bad.push('고른 빠르기가 남지 않거나 0.6 이 보통이 되지 않는다 ' + JSON.stringify(d)); } }
@@ -167,7 +167,7 @@ const dev = process.argv[2] || '', tag = dev ? dev.replace(/\s+/g, '') : 'pc', o
   let r8 = null;
   { const c3 = await FZM.context(b, dev), q = await c3.newPage(); q.setDefaultTimeout(9000); q.on('pageerror', e => errs.push('3: ' + e.message));
     await q.route('http://nest.test/', r => r.fulfill({ contentType: 'text/html', body: html })); await q.route(/fonts\./, r => r.abort()); if (FZM.FZ) await q.addInitScript(FZM.initScript(FZM.FZ));
-    await q.goto('http://nest.test/'); await q.waitForTimeout(400); await q.click('[data-z="start"]'); await q.waitForTimeout(400); const e3 = (f, a) => q.evaluate(f, a);
+    await q.goto('http://nest.test/'); await q.waitForTimeout(400); await q.click('[data-z="free"]'); await q.waitForTimeout(400); const e3 = (f, a) => q.evaluate(f, a);
     await e3(() => { const M = __maze.M; [6, 11, 16, 21, 26, 8, 13, 18, 23, 28].forEach(c => Object.assign(M.grid[c], { dug: true, use: 'path' })); MAZE.setUse(M, 26, 'trap', 'tr_maw'); MAZE.setUse(M, 21, 'trap', 'tr_lure'); MAZE.setUse(M, 22, 'trap', 'tr_mirror'); __maze.redraw(); });
     await q.waitForTimeout(250); await q.screenshot({ path: path.join(out, '80_maze_traps.png') });
     const pv = await e3(() => { const n = __maze.view().next, d = __maze.dbg(); return { warps: n.warps.length, lured: n.lured.length, conf: n.confused.length, arrow: d.warpArrow || 0, marks: d.marks || 0, btn: document.getElementById('mz-next').textContent, clip: null }; });
@@ -188,7 +188,7 @@ const dev = process.argv[2] || '', tag = dev ? dev.replace(/\s+/g, '') : 'pc', o
   let r9 = null;
   { const c2 = await FZM.context(b, dev), q = await c2.newPage(); q.setDefaultTimeout(9000); q.on('pageerror', e => errs.push('2: ' + e.message));
     await q.route('http://nest.test/', r => r.fulfill({ contentType: 'text/html', body: html })); await q.route(/fonts\./, r => r.abort()); await q.addInitScript(() => { window.__mazeCoach = 1; }); if (FZM.FZ) await q.addInitScript(FZM.initScript(FZM.FZ));
-    await q.goto('http://nest.test/'); await q.waitForTimeout(400); await q.click('[data-z="start"]'); await q.waitForTimeout(400);
+    await q.goto('http://nest.test/'); await q.waitForTimeout(400); await q.click('[data-z="free"]'); await q.waitForTimeout(400);
     const e2 = (f, a) => q.evaluate(f, a), coach = () => e2(() => { const c = document.getElementById('mz-coach'); return c && !c.hidden ? c.textContent : ''; }), qt = async c => { const pt = await e2(c => __maze.pt(c), c); if (touch) await q.touchscreen.tap(pt.x, pt.y); else await q.mouse.click(pt.x, pt.y); await q.waitForTimeout(200); };
     // 말풍선은 가리키는 대상과 겹치지 않고, 대상의 가운데는 늘 눌린다
     const cover = async label => { await q.waitForTimeout(300); const d = await e2(() => { const c = document.getElementById('mz-coach'), a = __maze.Z.coachAt; if (!c || c.hidden || !a) return null; const r = c.getBoundingClientRect(), ov = !(r.right <= a.left || r.left >= a.right || r.bottom <= a.top || r.top >= a.bottom), el = document.elementFromPoint((a.left + a.right) / 2, (a.top + a.bottom) / 2); return { ov, hit: !!(el && el.closest('#mz-coach')), r: [r.left, r.top, r.right, r.bottom].map(Math.round), a: [a.left, a.top, a.right, a.bottom].map(Math.round) }; }); if (d && (d.ov || d.hit)) bad.push(label + ': 말풍선이 가리키는 대상을 덮는다 ' + JSON.stringify(d)); return d; };

@@ -419,9 +419,9 @@ canvas.px, .sh-ic, .sh-cv { image-rendering: pixelated; }
 .mz-help .sh-body p { margin: 0; font-size: 15px; line-height: 1.55; }
 #mz { position: fixed; inset: 0; z-index: 40; display: flex; flex-direction: column; background: #050407; color: var(--text); font-family: var(--body); font-size: 14px; line-height: 1.35; padding-top: env(safe-area-inset-top, 0px); padding-bottom: var(--sab); -webkit-user-select: none; user-select: none; touch-action: manipulation; -webkit-tap-highlight-color: transparent; overflow: hidden; }
 #mz[hidden], #mz [hidden] { display: none !important; }
-#mz button { font: inherit; color: var(--text); background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; padding: 0 10px; min-height: 36px; cursor: pointer; }
-#mz button:disabled { opacity: .45; cursor: default; }
-#mz button.pri { background: #1f6f6a; border-color: #49c9bd; color: #fff; font-weight: 700; }
+#mz button, #mzr button { font: inherit; color: var(--text); background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; padding: 0 10px; min-height: 36px; cursor: pointer; }
+#mz button:disabled, #mzr button:disabled { opacity: .45; cursor: default; }
+#mz button.pri, #mzr button.pri { background: #1f6f6a; border-color: #49c9bd; color: #fff; font-weight: 700; }
 #mz button.on { border-color: var(--coin); color: var(--coin); }
 #mz img { image-rendering: pixelated; pointer-events: none; -webkit-user-drag: none; }
 #mz-bar { flex: 0 0 auto; display: flex; align-items: center; gap: 4px; padding: 4px 4px 4px 6px; background: #14121f; border-bottom: 1px solid #2a2740; white-space: nowrap; }
@@ -608,6 +608,48 @@ canvas.px, .sh-ic, .sh-cv { image-rendering: pixelated; }
 #mz-uinfo span { line-height: 1.2; }
 #mz-sheet .mz-confirm.idle { background: none; border-top-color: #2a2740; }
 #mz #mz-sheet .mz-confirm.idle button { opacity: .45; }
+/* ===== 이야기 모드 ===== */
+#menu .mz-mode { display: flex; gap: 8px; } #menu .mz-mode .btn:first-child { flex: 1 1 auto; flex-direction: column; gap: 0; } #menu .mz-mode .btn.sm { flex: 0 0 auto; }
+#menu .mz-ends { margin: -2px 0 2px; text-align: center; font-size: 13px; color: var(--mute); }
+.mz-ask .mz-row2 { margin-top: 12px; }
+.mz-log1 { margin: 0 0 14px; } .mz-loghd { display: flex; align-items: center; gap: 8px; } .mz-loghd img { width: 28px; height: 28px; image-rendering: pixelated; } .mz-loghd small { margin-left: auto; color: var(--mute); }
+.mz-lognote { margin: 6px 0 0; padding: 8px 10px; background: #e9e0c8; color: #2a2218; border-radius: 4px; font-size: 14px; line-height: 1.5; }
+#mzr { position: fixed; inset: 0; z-index: 70; display: flex; flex-direction: column; background: #07060c; color: var(--text); padding: calc(env(safe-area-inset-top, 0px) + 8px) 14px calc(env(safe-area-inset-bottom, 0px) + 10px); box-sizing: border-box; -webkit-user-select: none; user-select: none; }
+#mzr *, #mzr *::before { box-sizing: border-box; }
+#mzr.card { align-items: center; justify-content: center; text-align: center; cursor: pointer; }
+#mzr .mzr-card { max-width: 420px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+#mzr .mzr-card small { font-size: 15px; letter-spacing: .2em; color: #b8a8d8; }
+#mzr .mzr-card h2 { margin: 0; font-family: var(--display); font-size: clamp(28px, 8vw, 40px); }
+#mzr .mzr-card p { margin: 0; color: var(--mute); font-size: 15px; }
+#mzr .mzr-card .btn { margin-top: 18px; min-width: 200px; }
+#mzr .mzr-tap { font-size: 12px; color: #5a5470; }
+#mzr.read .mzr-head { display: flex; align-items: center; gap: 8px; padding-bottom: 8px; border-bottom: 1px solid #221e34; }
+#mzr .mzr-head > span { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; line-height: 1.25; } #mzr .mzr-head b { font-size: 14px; color: #c8bce8; } #mzr .mzr-head small { font-size: 12px; color: var(--mute); }
+#mzr .mzr-head button { flex: 0 0 auto; min-height: 38px; padding: 0 12px; font-size: 14px; }
+#mzr .mzr-lines { flex: 1 1 auto; overflow-y: auto; padding: 14px 2px; display: flex; flex-direction: column; gap: 14px; cursor: pointer; max-width: 640px; width: 100%; margin: 0 auto; }
+#mzr .mzr-foot { display: flex; justify-content: space-between; font-size: 12px; color: #5a5470; max-width: 640px; width: 100%; margin: 0 auto; }
+.mzr-l { font-size: 16px; line-height: 1.7; } .mzr-l.in { animation: mzr-in .45s ease-out both; } @keyframes mzr-in { from { opacity: 0; transform: translateY(4px); } }
+.mzr-l.k-n { color: #e4def0; }
+.mzr-l.k-echo { align-self: center; text-align: center; max-width: 92%; font-weight: 700; color: #9fe0d0; letter-spacing: .02em; text-shadow: 0 0 10px #2a8a7a88; padding: 2px 8px; }
+.mzr-l.k-dream { font-style: italic; color: #b0a4cc; opacity: .85; text-shadow: 0 0 6px #6a5a9a; padding-left: 14px; border-left: 2px solid #3a3058; }
+.mzr-l.k-say { display: flex; gap: 10px; align-items: flex-start; }
+.mzr-face { flex: 0 0 36px; width: 36px; height: 36px; border-radius: 50%; background: #1a1628; border: 1px solid #4a4068; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.mzr-face img { width: 32px; height: 32px; image-rendering: pixelated; } .mzr-face i { font-style: normal; font-weight: 700; font-size: 15px; color: #e8dcc0; }
+.mzr-say { display: flex; flex-direction: column; min-width: 0; } .mzr-say b { font-size: 13px; color: #e8c890; } .mzr-say span { color: #f0ece4; }
+.mzr-l.k-note { background: #e9e0c8; color: #2a2218; padding: 10px 12px; border-radius: 3px; box-shadow: 0 2px 8px #0008; font-size: 15px; } .mzr-l.k-note b { display: block; font-size: 12px; color: #6a5a40; margin-bottom: 2px; }
+@media (prefers-reduced-motion: reduce) { .mzr-l.in { animation: none; } }
+#mzr.night { gap: 10px; align-items: center; overflow-y: auto; }
+#mzr .mzn-top { width: 100%; max-width: 520px; display: flex; align-items: center; gap: 8px; } #mzr .mzn-top > b { font-size: 16px; }
+#mzr .mzn-alert { margin-left: auto; display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--mute); }
+#mzr .mzn-alert i { display: flex; gap: 2px; } #mzr .mzn-alert em { width: 7px; height: 12px; background: #221e34; border-radius: 1px; } #mzr .mzn-alert em.on { background: #e85040; } #mzr .mzn-alert em.step { box-shadow: 0 -2px 0 #e8c890; }
+#mzn-sky { width: 100%; max-width: 520px; image-rendering: pixelated; border-radius: 8px; }
+#mzr .mzn-cards { width: 100%; max-width: 520px; display: flex; flex-direction: column; gap: 8px; }
+#mzr .mzn-card { display: flex; flex-direction: column; align-items: flex-start; text-align: left; gap: 2px; padding: 10px 12px; min-height: 0; background: #16131f; border: 1px solid #3a3658; border-radius: 10px; }
+#mzr .mzn-card.on { border-color: #ffd040; box-shadow: 0 0 0 1px #ffd040; } #mzr .mzn-card small { font-size: 12px; color: #b8a8d8; } #mzr .mzn-card b { font-size: 16px; } #mzr .mzn-card span { font-size: 13px; color: var(--mute); line-height: 1.4; }
+#mzr .mzn-acts { width: 100%; max-width: 520px; display: flex; gap: 8px; margin-top: auto; } #mzr .mzn-acts button { flex: 1 1 0; min-height: 48px; font-size: 15px; } #mzr .mzn-acts button.pri { flex: 1.6 1 0; }
+#mzr .mzn-res { width: 100%; max-width: 520px; } #mzr .mzn-res p { margin: 0 0 10px; font-size: 16px; line-height: 1.7; } #mzr .mzn-hunt { color: #e8c890; } #mzr .mzn-gain { color: #8fe8d8; font-weight: 700; }
+#mz-coach.guide { background: #1c1830; color: #e8e2f0; border: 1px solid #5a5070; }
+#mz #mz-coach.guide button { background: #2a2640; color: #e8e2f0; border-color: #5a5070; }
 </style>
 </head><body style="margin:0">
 <div id="title" class="screen">
@@ -1759,6 +1801,9 @@ const MAZE = (() => {
     wander: { down: 3, side: 2, up: 1 }, lureRange: 6, wanderMax: 30,
     // 정신을 깎는 함정을 한 침입에 여러 번 밟으면: 첫 번째 그대로, 두 번째 절반, 세 번째부터 4분의 1
     trapSanFade: [1, 0.5, 0.25],
+    // 이야기 모드: 알·진액·장 사이에 이어지는 것, 장마다 파는 칸 상한, 침입자 배수(장의 배수에 곱함), 밤의 한 수
+    story: { egg: 14, gold: 16, heal: 2, keepGold: 0.5, chapterGold: 8, refund: 1, dugCap: [8, 15, 17, 19, 21, 23, 24], hpMul: 3.2, atkMul: 3.2, sanMul: 0.4,
+      alertMax: 10, alertDecay: 2, alert1: 3, alert2: 6, alert3: 9, nightGold: 6, huntLamp: 0.8, huntTower: 0.6, huntStep: 0.05, towerWeak: 0.6, waterCost: 3 },
   };
   // 침입 넷 (설계서 5장). scale = 침입자 배수
   const RAIDS = [
@@ -1768,7 +1813,7 @@ const MAZE = (() => {
     { name: '책을 쫓는 자', units: ['seeker', 'paladin', 'inquis'], scale: { hp: 1.3, atk: 1.5, san: 1.1 } },
   ];
   // 길잡이(추적자): 살아 있으면 일행은 가장 짧은 길로 오고 함정을 피한다. 없거나 쓰러지면 일행은 굴을 모른 채 헤맨다. 도적은 함정을 알아보고 피하지만 길은 모른다
-  const AVOIDERS = ['rogue', 'tracker'], SCOUTS = ['tracker'], BREAKERS = ['seeker', 'seekerm', 'paladin'];
+  const AVOIDERS = ['rogue', 'tracker', 'c_tov'], SCOUTS = ['tracker', 'c_tov'], BREAKERS = ['seeker', 'seekerm', 'paladin'];
   // 함정 넷
   const TRAP = {
     tr_teeth: { name: '이빨 구덩이', hp: 0.15, fx: 'teeth', short: '체력 −15%', more: '바닥이 입을 벌린다. 지나가는 자는 체력의 15%를 잃는다.' },
@@ -1786,7 +1831,8 @@ const MAZE = (() => {
   const SHOP_KIN = L.KIN_IDS.filter(k => !L.KIN[k].gen);
 
   // ───────── 새 판 ─────────
-  function newRun(seed) {
+  function newRun(seed) { const M = baseRun(seed); M.mode = 'free'; return M; }
+  function baseRun(seed) {
     const M = { v: V, seed: seed >>> 0, rs: { s: (seed | 0) ^ 0x3a7e }, raid: 1, raids: RAIDS.length, phase: 'prep', over: null, gold: MK.gold, level: MK.level, xp: 0, egg: MK.egg, eggMax: MK.egg,
       grid: [], unit: {}, board: {}, bench: [null, null, null, null, null, null], nextUid: 1, shop: [], merges: [], hist: [], last: null, reward: null, free: [] };
     for (let i = 0; i < N; i++) M.grid.push({ dug: false, use: null, room: null, trap: null });
@@ -1797,7 +1843,7 @@ const MAZE = (() => {
 
   // ───────── 칸 ─────────
   const dugCount = M => M.grid.filter(g => g.dug).length;
-  const dugCap = M => MK.dugCap[clamp(M.raid, 1, MK.dugCap.length) - 1];
+  const dugCap = M => (M.mode === 'story' ? MK.story.dugCap[clamp(M.chapter, 0, MK.story.dugCap.length - 1)] : MK.dugCap[clamp(M.raid, 1, MK.dugCap.length) - 1]);
   const digCost = cell => MK.digBase + Math.floor(rc(cell)[0] * MK.digRow);
   const fillGold = cell => Math.floor(digCost(cell) * MK.fillBack);
   const near = cell => { const p = rc(cell), out = []; [[1, 0], [0, -1], [0, 1], [-1, 0]].forEach(([dr, dc]) => { if (inb(p[0] + dr, p[1] + dc)) out.push(idx(p[0] + dr, p[1] + dc)); }); return out; };
@@ -1813,14 +1859,14 @@ const MAZE = (() => {
   // 판 칸이 모두 입구에서 닿고, 출구에도 닿는가
   function connected(M, dugAt) { const seen = new Set([ENT]), q = [ENT]; for (let h = 0; h < q.length; h++) for (const n of near(q[h])) if (!seen.has(n) && dugAt(n)) { seen.add(n); q.push(n); } for (let i = 0; i < N; i++) if (dugAt(i) && !seen.has(i)) return false; return seen.has(EXIT); }
   function canDig(M, cell) {
-    if (M.phase !== 'prep') return '지금은 팔 수 없다'; if (!diggable(cell)) return '팔 수 없는 칸이다'; if (M.grid[cell].dug) return '이미 판 칸이다';
+    if (M.phase !== 'prep') return '지금은 팔 수 없다'; if (!locksOf(M).dig) return '아직 팔 수 없다'; if (!diggable(cell)) return '팔 수 없는 칸이다'; if (M.grid[cell].dug) return '이미 판 칸이다';
     if (!near(cell).some(n => M.grid[n].dug)) return '판 칸에 붙어 있어야 한다'; if (dugCount(M) >= dugCap(M)) return '더 팔 수 없다 (' + dugCap(M) + ')'; if (M.gold < digCost(cell)) return '진액이 모자란다';
     return null;
   }
   // 외길 칸: 이 칸을 막으면 입구에서 출구로 못 간다 (삼키는 구멍은 외길에 놓을 수 없다)
   const sole = (M, cell, gone) => !bfs(x => M.grid[x].dug && x !== cell && x !== gone, ENT, EXIT);
   function canFill(M, cell) {
-    if (M.phase !== 'prep') return '지금은 메울 수 없다'; const g = M.grid[cell]; if (!g || !g.dug) return '판 칸이 아니다'; if (fixedCell(cell)) return '메울 수 없는 칸이다'; if ((M.board[cell] || []).length) return '권속을 먼저 옮긴다';
+    if (M.phase !== 'prep') return '지금은 메울 수 없다'; if (!locksOf(M).dig) return '아직 메울 수 없다'; const g = M.grid[cell]; if (!g || !g.dug) return '판 칸이 아니다'; if (fixedCell(cell)) return '메울 수 없는 칸이다'; if ((M.board[cell] || []).length) return '권속을 먼저 옮긴다';
     if (!connected(M, c => c !== cell && M.grid[c].dug)) return '길이 끊긴다'; if (M.grid.some((g, i) => i !== cell && g.use === 'trap' && g.trap === 'tr_maw' && sole(M, i, cell))) return '삼키는 구멍이 외길이 된다'; return null;
   }
   function dig(M, cell) { const e = canDig(M, cell); if (e) return fail(e); const cost = digCost(cell); M.gold -= cost; Object.assign(M.grid[cell], { dug: true, use: 'path', room: null, trap: null }); return ok({ cell, cost }); }
@@ -1833,11 +1879,11 @@ const MAZE = (() => {
     if (M.phase !== 'prep') return fail('지금은 바꿀 수 없다'); const g = M.grid[cell]; if (!g || !g.dug) return fail('판 칸이 아니다'); if (fixedCell(cell)) return fail('바꿀 수 없는 칸이다');
     if (!USES.includes(use)) return fail('없는 쓰임이다'); const here = M.board[cell] || [];
     if (use === 'kin') {
-      if (id != null && !L.ROOM[id]) return fail('없는 방이다'); const free = id != null && id !== g.room && freeTake(M, id), cost = id != null && id !== g.room && !free ? MK.roomCost : 0; if (M.gold < cost) return fail('진액이 모자란다');
+      if (id != null && !L.ROOM[id]) return fail('없는 방이다'); if (id != null && id !== g.room && !locksOf(M).rooms) return fail('아직 방 종류를 깔 수 없다'); const free = id != null && id !== g.room && freeTake(M, id), cost = id != null && id !== g.room && !free ? MK.roomCost : 0; if (M.gold < cost) return fail('진액이 모자란다');
       if (free) freeUse(M, id); M.gold -= cost; g.use = 'kin'; g.trap = null; if (id != null) g.room = id; return ok({ cell, use, id: g.room, cost });
     }
     if (here.length) { if (M.bench.filter(x => x == null).length < here.length) return fail('대기석이 모자란다'); here.forEach(uid => { M.bench[M.bench.indexOf(null)] = uid; }); delete M.board[cell]; }
-    if (use === 'trap') { if (!TRAP[id]) return fail('없는 함정이다'); if (TRAP[id].maw && sole(M, cell)) return fail('외길에는 놓을 수 없다'); const free = id !== g.trap && freeTake(M, id), cost = id !== g.trap && !free ? trapCost(id) : 0; if (M.gold < cost) return fail('진액이 모자란다'); if (free) freeUse(M, id); M.gold -= cost; Object.assign(g, { use: 'trap', trap: id, room: null }); return ok({ cell, use, id, cost }); }
+    if (use === 'trap') { if (!TRAP[id]) return fail('없는 함정이다'); if (!trapOpen(M, id)) return fail('아직 쓸 수 없는 함정이다'); if (TRAP[id].maw && sole(M, cell)) return fail('외길에는 놓을 수 없다'); const free = id !== g.trap && freeTake(M, id), cost = id !== g.trap && !free ? trapCost(id) : 0; if (M.gold < cost) return fail('진액이 모자란다'); if (free) freeUse(M, id); M.gold -= cost; Object.assign(g, { use: 'trap', trap: id, room: null }); return ok({ cell, use, id, cost }); }
     Object.assign(g, { use: 'path', trap: null, room: null }); return ok({ cell, use });
   }
 
@@ -1868,11 +1914,12 @@ const MAZE = (() => {
   //   direct: 아는 길로 출구에 (오래 헤맨 뒤, 무거운 자가 벽을 부순 뒤).
   //   삼키는 구멍을 밟으면 다음 걸음이 입구 바로 아래 칸으로 순간 이동이다 (warp). 들른 칸 기억을 지운다.
   const WANDER = [COLS, -1, 1, -COLS];
-  function walker(M, kinds, raidN) {
-    raidN = raidN || M.raid;
+  //   opt: { guided (모두 길을 안다: 이야기 모드에서 헤매기가 열리기 전), lost (길잡이가 있어도 헤맨다), confused (처음부터 헛갈림) }
+  function walker(M, kinds, raidN, opt) {
+    raidN = raidN || M.raid; opt = opt || {};
     const sp = scoutPath(M, kinds), heavy = kinds.some(k => BREAKERS.includes(k)), avoid = kinds.some(k => AVOIDERS.includes(k)), dug = c => M.grid[c].dug || W.broken.includes(c);
-    const W = { mode: kinds.some(k => SCOUTS.includes(k)) ? 'scout' : 'lost', cur: -1, visited: new Set(), stack: [], plan: sp ? sp.cells.slice() : [], broken: [], lostWalk: 0, lostFrom: null, sp,
-      used: {}, lureOff: {}, confused: false, warpFrom: null, lured: [], confusedAt: [], warps: [], skipped: 0, tries: {} };
+    const W = { mode: !opt.lost && (opt.guided || kinds.some(k => SCOUTS.includes(k))) ? 'scout' : 'lost', guided: !!opt.guided, cur: -1, visited: new Set(), stack: [], plan: sp ? sp.cells.slice() : [], broken: [], lostWalk: 0, lostFrom: null, sp,
+      used: {}, lureOff: {}, confused: !!opt.confused, warpFrom: null, lured: [], confusedAt: [], warps: [], skipped: 0, tries: {} };
     W.lose = () => { if (W.mode !== 'scout' || W.cur < 0) return; W.mode = 'lost'; W.lostFrom = W.cur; };
     const known = from => { const ok2 = x => dug(x) && !(avoid && trapOf(M, x) && !W.used[x]); return bfs(ok2, from, EXIT) || bfs(dug, from, EXIT) || [from]; };
     // 칸에 닿음: 함정이 처음이면 그 함정의 길 효과
@@ -1935,10 +1982,10 @@ const MAZE = (() => {
   //   { cells (입구~출구, 되돌아가는 칸·순간 이동한 칸도 나온다), back [칸마다 되돌아감인가], warp [칸마다 순간 이동으로 닿았나], warps [{ from, to }], lured [미끼에 끌린 갈림길], confused [헛갈려 틀린 갈림길],
   //     breaks [칸], avoided, len, scout (길잡이가 있나), scoutPath, lostAt [길잡이가 쓰러질 수 있는 칸: 길잡이의 길 위의 싸움 칸] }
   function pathOf(M, party) {
-    const raidN = Array.isArray(party) ? M.raid : clamp(party || M.raid, 1, RAIDS.length), kinds = Array.isArray(party) ? party : RAIDS[raidN - 1].units, W = walker(M, kinds, raidN), cells = [], back = [], warp = [], breaks = [];
+    const raidN = Array.isArray(party) ? M.raid : clamp(party || M.raid, 1, M.raids), D = Array.isArray(party) ? null : raidOf(M, raidN), kinds = D ? D.units : party, W = walker(M, kinds, raidN, walkOpt(M, D)), cells = [], back = [], warp = [], breaks = [];
     if (!W.sp) return null;
     for (let g = 0; g < 6 * N; g++) { const s = W.next(); if (!s) break; cells.push(s.cell); back.push(s.back); warp.push(!!s.warp); if (s.broke) breaks.push(s.cell); }
-    const scout = kinds.some(k => SCOUTS.includes(k));
+    const scout = !walkOpt(M, D).lost && kinds.some(k => SCOUTS.includes(k));
     return { cells, back, warp, warps: W.warps, lured: W.lured, confused: W.confusedAt, breaks, avoided: scout ? W.sp.avoided : W.skipped > 0 && !cells.some(c => trapOf(M, c)), len: cells.length, scout, scoutPath: W.sp.cells, lostAt: scout ? W.sp.cells.filter(c => M.grid[c].use === 'kin') : [] };
   }
 
@@ -1999,8 +2046,8 @@ const MAZE = (() => {
   const front = role => role === 'tank' || role === 'melee' || role === 'dive';
   // 일행의 한 사람: 체력·정신은 침입 동안 이어진다
   function partyOf(M, raid) {
-    const R = RAIDS[clamp(raid || M.raid, 1, RAIDS.length) - 1], sc = scaleOf(raid || M.raid);
-    return R.units.map((kind, i) => { const d = L.INV[kind], mhp = Math.round(d.hp * sc.hp * MK.hpMul), msan = d.san ? Math.round(d.san * sc.san * MK.sanMul) : 0; return { i, kind, name: d.name, mhp, msan, hp: mhp, san: msan, alive: true, mad: false, slow: false, rot: false, out: false }; });
+    const D = raidOf(M, raid || M.raid), sc = D.scale;
+    return D.units.map((kind, i) => { const d = L.INV[kind], mhp = Math.round(d.hp * sc.hp * MK.hpMul), msan = d.san ? Math.round(d.san * sc.san * MK.sanMul) : 0; return { i, kind, name: d.name, mhp, msan, hp: mhp, san: msan, alive: true, mad: D.mad.includes(i), slow: false, rot: false, out: false }; });
   }
   const seedOf = (M, k) => (M.seed ^ Math.imul(M.raid * 97 + k * 13 + 1, 0x9E3779B1)) | 0;
   // 한 방의 싸움: 일행은 위쪽 두 줄, 권속은 아래쪽 두 줄 (본체 방이면 본체가 맨 아래). 길잡이는 뒷줄에 서고 뛰어들지 않는다. 사냥꾼 권속은 적의 뒷줄로 뛰어든다
@@ -2011,7 +2058,7 @@ const MAZE = (() => {
     live.forEach(p => { const d = L.INV[p.kind], st = []; if (p.slow) st.push({ n: 'slow', dur: TRAP.tr_slime.dur, v: TRAP.tr_slime.slow }); if (p.rot) st.push({ n: 'infected', dur: 8, v: 12 }); inv.push({ kind: p.kind, cell: place(front(d.role) && !SCOUTS.includes(p.kind) ? 1 : 0, FRONT_COLS, used), hp: p.hp, san: p.san, mad: p.mad, st, src: p.i, noLeap: SCOUTS.includes(p.kind) }); });
     const nest = kin.map(u => ({ uid: u.uid, kind: u.kind, star: u.star, hp: u.hp, leap: L.KIN[u.kind].cls === 'hunter', cell: place(front(L.KIN[u.kind].role) ? 3 : 4, KIN_COLS, used) }));
     const rooms = g.room ? [{ id: g.room, cells: [18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29] }] : [];
-    const S = { seed: seedOf(M, k), nest, inv, rooms, level: M.level, round: 1, form: isCore ? L.formOf(boardUids(M).map(id => M.unit[id].kind)) : 'drop', syn: roomSyn(kin.map(u => u.kind)), scale: scaleOf(M.raid), hpMul: MK.hpMul, sanMul: MK.sanMul, clock: MK.clock, keep: true };
+    const S = { seed: seedOf(M, k), nest, inv, rooms, level: M.level, round: 1, form: isCore ? L.formOf(boardUids(M).map(id => M.unit[id].kind)) : 'drop', syn: roomSyn(kin.map(u => u.kind)), scale: raidOf(M).scale, hpMul: MK.hpMul, sanMul: MK.sanMul, clock: MK.clock, keep: true };
     if (isCore) S.core = { lv: 1, hp: MK.core.hp, atk: MK.core.atk, manaCut: 0, range: 0, t2: false }; else S.noCore = true;
     return { f: L.simulate(S), inv };
   }
@@ -2020,8 +2067,9 @@ const MAZE = (() => {
   const eggDmg = kind => { const d = L.INV[kind]; return (d.tier || 1) + (d.boss ? 2 : 0); };
   function raid(M) {
     if (M.phase !== 'prep') return fail(M.phase === 'over' ? '이미 끝난 판이다' : '지금은 안 된다');
+    if (M.mode === 'story' && M.night) return fail('밤의 한 수를 먼저 고른다');
     M.reward = null;
-    const P = pathOf(M), party = partyOf(M), steps = [], kinHp = {}, W = walker(M, party.map(p => p.kind)), trapped = {}, walked = []; let gold = 0, k = 0, walk = [], wback = [], lostNow = false;
+    const D = raidOf(M), P = pathOf(M), party = partyOf(M), steps = [], kinHp = {}, W = walker(M, party.map(p => p.kind), M.raid, walkOpt(M, D)), trapped = {}, walked = []; let gold = 0, k = 0, walk = [], wback = [], lostNow = false;
     // 권속의 체력은 이 침입 동안 이어진다 (null = 아직 다치지 않음)
     const kinOf = cell => (M.board[cell] || []).map(uid => { const u = M.unit[uid], st = kinHp[uid]; return { uid, kind: u.kind, star: u.star, hp: st ? st.hp : null, mhp: st ? st.mhp : null, alive: !st || st.alive }; });
     let drained = 0, turned = [], dark = 0, sanHits = 0;
@@ -2040,7 +2088,7 @@ const MAZE = (() => {
     }
     for (let guard = 0; guard < 4 * N; guard++) {
       if (!sane().length) break;
-      if (W.mode === 'scout' && !scouts()) { W.lose(); lostNow = true; }
+      if (W.mode === 'scout' && !W.guided && !scouts()) { W.lose(); lostNow = true; }
       const st = W.next(); if (!st) break; const cell = st.cell, back = st.back; walked.push(cell);
       if (st.warp) { flush(); steps.push({ type: 'warp', from: st.from, to: cell }); }
       walk.push(cell); wback.push(back); const g = M.grid[cell];
@@ -2064,6 +2112,7 @@ const MAZE = (() => {
     M.hist.push({ raid: M.raid, win, eggLost, path: walked.length, fights: steps.filter(s => s.type === 'fight').length, traps: steps.filter(s => s.type === 'trap').length, mads });
     M.last = { raid: M.raid, result, path: walked };
     let next = 'prep';
+    if (M.mode === 'story') { M.next = {}; next = storyAfter(M, win, income); return ok({ steps, result, path: P, next, raidId: D.id }); }
     if (M.egg <= 0) { M.phase = 'over'; M.over = { win: false, raid: M.raid, why: '알이 깨졌다' }; next = 'over'; }
     else if (M.raid >= M.raids) { M.phase = 'over'; M.over = { win: true, raid: M.raid, why: '네 번을 막았다' }; next = 'over'; }
     else { M.raid++; M.gold += income; M.xp += MK.xpRaid; levelUp(M); M.merges = []; rollShop(M); M.reward = win ? rewardOf(M) : null; }
@@ -2071,30 +2120,168 @@ const MAZE = (() => {
   }
 
   // 막은 침입의 보상: 방 종류 하나 무료 / 함정 하나 무료 가운데 하나 (무엇인지는 그때그때)
-  function rewardOf(M) { const room = L.ROOM_IDS[Math.floor(L.rnd(M.rs) * L.ROOM_IDS.length)], trap = TRAP_IDS[Math.floor(L.rnd(M.rs) * TRAP_IDS.length)]; return { opts: [{ type: 'room', id: room }, { type: 'trap', id: trap }] }; }
+  function rewardOf(M) {
+    if (M.mode === 'story') { const lk = locksOf(M), ts = TRAP_IDS.filter(id => trapOpen(M, id)), opts = []; if (lk.rooms) opts.push({ type: 'room', id: L.ROOM_IDS[Math.floor(L.rnd(M.rs) * L.ROOM_IDS.length)] }); if (ts.length) opts.push({ type: 'trap', id: ts[Math.floor(L.rnd(M.rs) * ts.length)] }); return opts.length ? { opts } : null; }
+    const room = L.ROOM_IDS[Math.floor(L.rnd(M.rs) * L.ROOM_IDS.length)], trap = TRAP_IDS[Math.floor(L.rnd(M.rs) * TRAP_IDS.length)]; return { opts: [{ type: 'room', id: room }, { type: 'trap', id: trap }] }; }
   function takeReward(M, i) { if (M.phase !== 'prep' || !M.reward) return fail('받을 것이 없다'); const o = M.reward.opts[i]; if (!o) return fail('없는 것이다'); M.free = (M.free || []).concat([o.id]); M.reward = null; return ok({ picked: o }); }
+  // ───────── 이야기 모드 ─────────
+  // 장마다 열리는 것 (앞 장에서 연 것은 그대로 열려 있다). 자유 모드는 모두 열려 있다
+  const LOCKS = ['place', 'dig', 'rooms', 'wander', 'traps', 'night', 'scout', 'mazeTraps', 'madness'];
+  const ALL_OPEN = LOCKS.reduce((o, k) => Object.assign(o, { [k]: true }), {});
+  // 침입 정의: id, name, units, hp·atk = 침입자 배수 (MK.story 배수를 곱함), san (정신 배수, 없으면 1), add (경계 3 이상일 때 붙는 자), alt (세력의 눈에 따라 바뀌는 무리)
+  const RD = (id, name, units, hp, atk, extra) => Object.assign({ id, name, units, hp, atk }, extra || {});
+  const CHAPTERS = [
+    { id: 'c0', opens: ['place'], raids: [RD('c0_beast', '굴의 짐승', ['hound'], 0.5, 0.4)] },
+    { id: 'c1', opens: ['dig'], raids: [RD('c1_torch', '횃불 든 자들', ['militia', 'torch'], 0.81, 0.63), RD('c1_mob', '마을 사람들', ['militia', 'militia', 'torch'], 0.9, 0.72), RD('c1_hounds', '개를 앞세운 마을', ['hound', 'militia', 'torch', 'hound'], 0.9, 0.77)] },
+    { id: 'c2', opens: ['rooms', 'wander'], raids: [RD('c2_party', '모험가 일행', ['knight', 'archer', 'priest'], 0.75, 0.56, { san: 0.9 }), RD('c2_rogue', '도적이 낀 일행', ['knight', 'archer', 'rogue'], 0.79, 0.6, { san: 0.9 }), RD('c2_eda', '기록관과 기사', ['c_rowen', 'archer', 'priest', 'c_eda'], 0.75, 0.6, { san: 0.9, add: 'archer' })] },
+    { id: 'c3', opens: ['traps', 'night'], raids: [RD('c3_hired', '고용된 석궁병', ['crossbow', 'crossbow', 'alchemist'], 1.6, 1.3, { san: 1.15 }), RD('c3_tappers', '깔때기를 든 자들', ['knight', 'alchemist', 'crossbow'], 1.7, 1.35, { san: 1.15 }), RD('c3_isel', '연금술사의 행렬', ['c_isel', 'alchemist', 'crossbow', 'crossbow'], 1.8, 1.4, { san: 1.15, add: 'crossbow' })] },
+    { id: 'c4', opens: ['scout'], raids: [RD('c4_tracker', '추적자', ['tracker', 'hound', 'crossbow'], 2, 1.5, { san: 1.2 }), RD('c4_pack', '사냥개 무리', ['tracker', 'hound', 'hound', 'archer'], 2, 1.5, { san: 1.2 }), RD('c4_trap', '덫 사냥꾼의 무리', ['tracker', 'crossbow', 'crossbow', 'knight'], 2.1, 1.55, { san: 1.2 }), RD('c4_tov', '토브 카인', ['c_tov', 'tracker', 'hound', 'crossbow'], 2.1, 1.55, { san: 1.2, add: 'hound' })] },
+    { id: 'c5', opens: ['mazeTraps', 'madness'], raids: [RD('c5_priests', '사제들', ['templar', 'priest', 'exorcist'], 1.5, 1.3, { san: 0.9 }), RD('c5_paladin', '성기사', ['paladin', 'templar', 'priest'], 1.5, 1.3, { san: 0.9 }), RD('c5_inquis', '심문관', ['inquis', 'templar', 'exorcist', 'priest'], 1.55, 1.35, { san: 0.9 }), RD('c5_mirel', '미렐 수녀와 성기사단', ['paladin', 'c_mirel', 'templar', 'exorcist'], 1.6, 1.4, { san: 0.9, add: 'templar' })] },
+    { id: 'c6', opens: [], raids: [RD('c6_thralls', '홀린 자들', ['c_rowen', 'inquis', 'templar', 'banner'], 1.5, 1.4, { alt: { eye: 'isel', at: 2, units: ['c_isel', 'alchemist', 'alchemist', 'crossbow'] } }), RD('c6_eda', '기록관이 섞인 행렬', ['paladin', 'c_eda', 'tracker', 'templar'], 1.55, 1.4), RD('c6_enoch', '책을 쫓는 자', ['seeker', 'paladin', 'inquis'], 1.4, 1.3)] },
+  ];
+  // 밤의 한 수 카드 15장: place (village 마을 · chapel 예배당 · archive 기록관의 집 · workshop 연금술 공방 · tower 예언자의 탑 · any 아무 곳), act, from (이 장부터), cost (진액), fx (고르면), ok / bad (사냥의 성공 / 실패)
+  //   fx: gold 진액, kin 신도 (1성 권속), egg 알의 체력, trap 무료 함정, lure 무료 미끼 불빛, clue 단서, alert 경계, eyes 세력의 눈, next 다음 일행에게, flag 이어지는 표시
+  const CARDS = [
+    { id: 'v_sheep', place: 'village', act: 'raid', fx: { gold: 9, alert: 2, eyes: { village: 1 } } },
+    { id: 'v_late', place: 'village', act: 'raid', fx: { kin: 1, alert: 3, eyes: { village: 1 } } },
+    { id: 'v_dream', place: 'village', act: 'whisper', fx: { alert: -1, next: { madOne: true } } },
+    { id: 'v_lamp', place: 'village', act: 'hunt', hunt: 'lamp', fx: { flag: 'vascoHunted' }, ok: { lure: 1, eyes: { village: 1 }, flag: 'vascoDown' }, bad: { alert: 3 } },
+    { id: 'c_bell', place: 'chapel', act: 'raid', fx: { gold: 9, alert: 3, eyes: { church: 2 }, flag: 'churchEarly' } },
+    { id: 'c_confess', place: 'chapel', act: 'whisper', fx: { eyes: { church: 1 }, flag: 'priestTurn' } },
+    { id: 'e_page', place: 'archive', act: 'whisper', fx: { eyes: { eda: 1 }, next: { confused: true }, edaWhisper: 1 } },
+    { id: 'e_sample', place: 'archive', act: 'trade', fx: { egg: -1, gold: 6, eyes: { eda: 1 }, alert: -1, flag: 'edaTraded' } },
+    { id: 'e_book', place: 'archive', act: 'raid', fx: { clue: 1, alert: 2, eyes: { eda: -1 } } },
+    { id: 'i_water', place: 'workshop', act: 'trade', cost: 3, fx: { trap: 1, eyes: { isel: 1 } } },
+    { id: 'i_boil', place: 'workshop', act: 'trade', fx: { gold: 12, egg: -2, eyes: { isel: 2 } } },
+    { id: 'i_forge', place: 'workshop', act: 'raid', fx: { alert: 2, eyes: { isel: -1 }, flag: 'forge' } },
+    { id: 'p_dream', place: 'tower', act: 'whisper', fx: { clue: 1, eyes: { prophet: 1 } } },
+    { id: 'p_hunt', place: 'tower', act: 'hunt', hunt: 'tower', from: 4, fx: {}, ok: { flag: 'towerDown' }, bad: { eyes: { prophet: 2 }, alert: 4 } },
+    { id: 'x_scout', place: 'any', act: 'hunt', fx: { alert: 3, next: { noScout: true } } },
+  ];
+  const CARD = CARDS.reduce((o, c) => Object.assign(o, { [c.id]: c }), {});
+  const EYES = ['village', 'eda', 'isel', 'church', 'prophet'];
+  function locksOf(M) {
+    if (M.mode !== 'story') return ALL_OPEN; const o = {}; LOCKS.forEach(k => { o[k] = false; });
+    for (let c = 0; c <= clamp(M.chapter, 0, CHAPTERS.length - 1); c++) CHAPTERS[c].opens.forEach(k => { o[k] = true; }); return o;
+  }
+  function trapOpen(M, id) { if (M.mode !== 'story') return true; const lk = locksOf(M), T = TRAP[id]; if (!T) return false; if (T.lure || T.maw || T.confuse) return lk.mazeTraps; if (id === 'tr_whisper') return lk.madness; return lk.traps; }
+  // 이 장의 침입 목록 (경계 9 이상으로 장에 들어오면 첫 침입이 한 번 더)
+  const chapterRaids = M => { const R = CHAPTERS[clamp(M.chapter, 0, CHAPTERS.length - 1)].raids; return M.extra ? [R[0]].concat(R) : R; };
+  // 침입 n 의 정의 (자유: RAIDS + MK.raidMul / 이야기: 장의 무리 + 경계 + 밤의 한 수)
+  function raidOf(M, n) {
+    n = n || M.raid;
+    if (M.mode !== 'story') { const i = clamp(n, 1, RAIDS.length) - 1; return { id: 'r' + (i + 1), name: RAIDS[i].name, units: RAIDS[i].units, scale: scaleOf(n), mad: [] }; }
+    const S = MK.story, list = chapterRaids(M), d = list[clamp(n, 1, list.length) - 1], cur = n === M.raid, nx = cur ? M.next || {} : {}, lk = locksOf(M), used = [];
+    let units = (d.alt && M.eyes[d.alt.eye] >= d.alt.at ? d.alt.units : d.units).slice(), hp = d.hp * S.hpMul, atk = d.atk * S.atkMul; const mad = [];
+    if (M.alert >= S.alert1) units.push(d.add || units[units.length - 1]);
+    if (M.alert >= S.alert2 && lk.scout && !units.some(k => SCOUTS.includes(k))) units.push('tracker');
+    if (d.id === 'c4_tov' && M.flags.churchEarly) units.push('templar');
+    if (nx.noScout) units = units.filter(k => !SCOUTS.includes(k));
+    if (cur && M.flags.forge && units.includes('alchemist')) { units.splice(units.indexOf('alchemist'), 1); used.push('forge'); }
+    if (!units.length) units = ['hound'];
+    if (d.id === 'c6_enoch' && M.flags.towerDown) hp *= S.towerWeak;
+    if (nx.madOne) { const i = units.findIndex(k => !L.INV[k].boss && !L.INV[k].noMad); if (i >= 0) mad.push(i); }
+    if (cur && M.flags.priestTurn) { const i = units.findIndex(k => ['priest', 'exorcist', 'c_mirel'].includes(k)); if (i >= 0) { mad.push(i); used.push('priestTurn'); } }
+    const ei = units.indexOf('c_eda'), lateEda = ei >= 0 && M.chapter >= 6; if (lateEda && M.flags.edaTraded) mad.push(ei);
+    return { id: d.id, name: d.name, units, scale: { hp, atk, san: (d.san || 1) * S.sanMul }, mad: [...new Set(mad)], lost: lateEda && M.eyes.eda >= 3, confused: !!nx.confused, used };
+  }
+  const walkOpt = (M, D) => (M.mode !== 'story' ? {} : { guided: !locksOf(M).wander, lost: !!(D && D.lost), confused: !!(D && D.confused) });
+  function newStory(seed) {
+    const M = baseRun(seed), S = MK.story;
+    Object.assign(M, { mode: 'story', chapter: 0, alert: 0, eyes: EYES.reduce((o, k) => Object.assign(o, { [k]: 0 }), {}), flags: {}, next: {}, night: null, clues: 0, edaWhispers: 0, picks: { raid: 0, whisper: 0, trade: 0, hunt: 0 }, nights: [], extra: false, retries: 0, snap: null,
+      egg: S.egg, eggMax: S.egg, gold: S.gold });
+    M.raids = chapterRaids(M).length; M.snap = JSON.stringify(M); return M;
+  }
+  // 침입 하나가 끝난 뒤 (이야기): 알이 깨졌나 → 장의 끝 → 다음 침입 (장 3부터 그 사이에 밤의 한 수)
+  function storyAfter(M, win, income) {
+    const D = raidOf(M); (D.used || []).forEach(f => { M.flags[f] = false; }); M.next = {};
+    if (M.egg <= 0) { M.phase = 'over'; M.over = { win: false, raid: M.raid, chapter: M.chapter, why: '알이 깨졌다', retry: M.chapter < CHAPTERS.length - 1, ending: M.chapter >= CHAPTERS.length - 1 ? endingOf(M) : null }; return 'over'; }
+    M.gold += income; M.xp += MK.xpRaid; levelUp(M); M.merges = [];
+    if (M.raid >= M.raids) {
+      if (M.chapter >= CHAPTERS.length - 1) { M.phase = 'over'; M.over = { win: true, raid: M.raid, chapter: M.chapter, why: '예언의 밤이 지났다', ending: endingOf(M) }; return 'over'; }
+      M.phase = 'chapterEnd'; return 'chapterEnd';
+    }
+    M.raid++; rollShop(M); M.reward = win ? rewardOf(M) : null;
+    if (locksOf(M).night) { M.night = { offer: offerOf(M) }; return 'night'; }
+    return 'prep';
+  }
+  function offerOf(M) {
+    const pool = CARDS.filter(c => (c.from || 3) <= M.chapter && !(c.hunt === 'lamp' && M.flags.vascoDown) && !(c.hunt === 'tower' && M.flags.towerDown)).map(c => c.id), out = [];
+    while (out.length < 3 && pool.length) out.push(pool.splice(Math.floor(L.rnd(M.rs) * pool.length), 1)[0]); return out;
+  }
+  // 밤의 한 수: i = 고른 카드 (null 이나 -1 이면 고르지 않음). 밤마다 경계 −alertDecay
+  function nightPick(M, i) {
+    if (M.mode !== 'story' || !M.night) return fail('고를 밤이 아니다'); const S = MK.story, id = i == null || i < 0 ? null : M.night.offer[i];
+    if (i != null && i >= 0 && !id) return fail('없는 카드다'); const c = id ? CARD[id] : null; if (c && M.gold < (c.cost || 0)) return fail('진액이 모자란다');
+    const gains = { gold: 0, kin: [], egg: 0, trap: null, lure: 0, clue: 0 }; let success = null;
+    const apply = fx => {
+      if (!fx) return; if (fx.gold) { M.gold += fx.gold; gains.gold += fx.gold; } if (fx.egg) { M.egg = Math.max(1, M.egg + fx.egg); gains.egg += fx.egg; }
+      if (fx.alert) M.alert = clamp(M.alert + fx.alert, 0, S.alertMax); if (fx.eyes) for (const k in fx.eyes) M.eyes[k] = clamp(M.eyes[k] + fx.eyes[k], 0, 3);
+      if (fx.flag) M.flags[fx.flag] = true; if (fx.next) Object.assign(M.next, fx.next); if (fx.clue) { M.clues += fx.clue; gains.clue += fx.clue; } if (fx.edaWhisper) M.edaWhispers += fx.edaWhisper;
+      if (fx.lure) { M.free.push('tr_lure'); gains.lure += fx.lure; }
+      if (fx.trap) { const ts = TRAP_IDS.filter(t => trapOpen(M, t)); if (ts.length) { const t = ts[Math.floor(L.rnd(M.rs) * ts.length)]; M.free.push(t); gains.trap = t; } }
+      if (fx.kin) { const pool = SHOP_KIN.filter(k => L.KIN[k].cost === 1), kind = pool[Math.floor(L.rnd(M.rs) * pool.length)], slot = M.bench.indexOf(null); if (slot >= 0) { const uid = M.nextUid++; M.unit[uid] = { uid, kind, star: 1 }; M.bench[slot] = uid; gains.kin.push(kind); merge(M); } else { M.gold += 1; gains.gold += 1; } }
+    };
+    if (c) {
+      M.gold -= c.cost || 0; apply(c.fx); M.picks[c.act]++;
+      if (c.hunt) { const base = c.hunt === 'lamp' ? S.huntLamp : S.huntTower; success = L.rnd(M.rs) < base - S.huntStep * M.alert; apply(success ? c.ok : c.bad); }
+    }
+    M.alert = clamp(M.alert - S.alertDecay, 0, S.alertMax); M.nights.push({ chapter: M.chapter, raid: M.raid, id, success }); M.night = null;
+    return ok({ id, skip: !c, success, gains, alert: M.alert, eyes: Object.assign({}, M.eyes) });
+  }
+  // 다음 장: 새 굴 (곧은 굴), 권속은 대기석으로 (여섯이 넘으면 값싼 것을 판다), 진액 일부 + 옛 굴에 들인 값, 알 조금 회복. 경계·세력의 눈·표시는 이어진다
+  function nextChapter(M) {
+    if (M.mode !== 'story' || M.phase !== 'chapterEnd') return fail('장이 끝나지 않았다'); const S = MK.story;
+    const all = owned(M).sort((a, b) => sellValue(b) - sellValue(a) || a.uid - b.uid); M.board = {}; M.bench = [null, null, null, null, null, null];
+    all.forEach((u, i) => { if (i < 6) M.bench[i] = u.uid; else { M.gold += sellValue(u); delete M.unit[u.uid]; } });
+    // 옛 굴에 들인 것 (판 칸·함정·방 종류)은 refund 만큼 진액으로 돌아온다
+    let back = 0; M.grid.forEach((g, i) => { if (!g.dug) return; if (rc(i)[1] !== 2) back += digCost(i); if (g.use === 'trap') back += trapCost(g.trap); if (g.room) back += MK.roomCost; }); back = Math.floor(back * S.refund);
+    M.grid = []; for (let i = 0; i < N; i++) M.grid.push({ dug: false, use: null, room: null, trap: null }); for (let r = 0; r < ROWS; r++) Object.assign(M.grid[idx(r, 2)], { dug: true, use: 'path' });
+    M.chapter++; M.gold = Math.floor(M.gold * S.keepGold) + S.chapterGold + back; M.egg = Math.min(M.eggMax, M.egg + S.heal); M.extra = M.alert >= S.alert3;
+    M.raid = 1; M.raids = chapterRaids(M).length; M.phase = 'prep'; M.reward = null; M.night = null; M.next = {}; M.last = null; M.merges = []; rollShop(M);
+    M.snap = null; M.snap = JSON.stringify(M); return ok({ chapter: M.chapter, opens: CHAPTERS[M.chapter].opens, raids: chapterRaids(M).map(d => d.id), refund: back });
+  }
+  // 이 장을 처음부터 다시 (알이 깨졌을 때, 마지막 장 전까지)
+  function retryChapter(M) {
+    if (M.mode !== 'story' || M.phase !== 'over' || !M.over || !M.over.retry || !M.snap) return fail('다시 할 수 없다');
+    const snap = M.snap, S = JSON.parse(snap), n = (M.retries || 0) + 1; Object.keys(M).forEach(k => delete M[k]); Object.assign(M, S); M.snap = snap; M.retries = n; return ok({ chapter: M.chapter });
+  }
+  // 결말: 알이 남았으면 D (에다에게 둘 넘게 속삭이고 바스코를 사냥하지 않았으면 E). 깨졌으면 세력의 눈이 가장 높은 곳: 예언자 A · 교회 (마을과 함께) B · 이셀 C (같으면 A, 탑의 주인을 쓰러뜨렸으면 A 는 없다)
+  function endingOf(M) {
+    if (M.mode !== 'story') return null; if (M.egg > 0) return M.edaWhispers >= 2 && !M.flags.vascoHunted ? 'E' : 'D';
+    const e = M.eyes, cand = [['A', e.prophet], ['B', Math.max(e.church, e.village)], ['C', e.isel]].filter(x => !(x[0] === 'A' && M.flags.towerDown)); let best = cand[0];
+    cand.forEach(x => { if (x[1] > best[1]) best = x; }); return best[0];
+  }
+  const cardView = (id, i) => { const c = CARD[id]; return { i, id, place: c.place, act: c.act, cost: c.cost || 0, from: c.from || 3, fx: c.fx, ok: c.ok || null, bad: c.bad || null, can: true }; };
+  function nightView(M) { return { offer: M.night.offer.map((id, i) => Object.assign(cardView(id, i), { can: M.gold >= (CARD[id].cost || 0) })) }; }
+  function storyView(M) {
+    const S = MK.story; return { chapter: M.chapter, id: CHAPTERS[M.chapter].id, chapters: CHAPTERS.length, opens: CHAPTERS[M.chapter].opens, raidIds: chapterRaids(M).map(d => d.id), extra: !!M.extra,
+      alert: M.alert, alertMax: S.alertMax, alertSteps: [S.alert1, S.alert2, S.alert3], eyes: Object.assign({}, M.eyes), clues: M.clues, edaWhispers: M.edaWhispers, flags: Object.assign({}, M.flags), picks: Object.assign({}, M.picks), next: Object.assign({}, M.next), retries: M.retries || 0 };
+  }
+  function chapterEndView(M) { return { chapter: M.chapter, next: M.chapter + 1, egg: M.egg, alert: M.alert, eyes: Object.assign({}, M.eyes) }; }
   // ───────── 저장 ─────────
   function save(M) { return JSON.stringify(M); }
-  function load(json) { let M = null; try { M = typeof json === 'string' ? JSON.parse(json) : json; } catch (e) { return null; } if (!M || M.v !== V || !Array.isArray(M.grid) || M.grid.length !== N || !M.unit || !M.board || !Array.isArray(M.bench) || !M.rs) return null; return M; }
+  function load(json) { let M = null; try { M = typeof json === 'string' ? JSON.parse(json) : json; } catch (e) { return null; } if (!M || M.v !== V || !Array.isArray(M.grid) || M.grid.length !== N || !M.unit || !M.board || !Array.isArray(M.bench) || !M.rs) return null; if (!M.mode) M.mode = 'free'; if (M.mode === 'story' && (M.chapter == null || !M.eyes)) return null; return M; }
 
   // ───────── 화면이 읽는 것 ─────────
   const trapInfo = id => (TRAP[id] ? { id, name: TRAP[id].name, short: TRAP[id].short, more: TRAP[id].more, fx: TRAP[id].fx, cost: trapCost(id), maze: !!(TRAP[id].lure || TRAP[id].maw || TRAP[id].confuse) } : null);
   const unitView = (M, uid) => { const u = M.unit[uid]; if (!u) return null; const w = whereOf(M, uid); return Object.assign({ uid, sell: sellValue(u), at: w }, L.unitInfo(u.kind, u.star)); };
-  function partyView(M, raid) { const R = RAIDS[clamp(raid || M.raid, 1, RAIDS.length) - 1], sc = scaleOf(raid || M.raid); return R.units.map(kind => Object.assign(L.invInfo(kind, 1, { hp: sc.hp * MK.hpMul / L.K.hpMul, atk: sc.atk, san: sc.san * MK.sanMul / L.K.sanMul }), { avoid: AVOIDERS.includes(kind), scout: SCOUTS.includes(kind), breaker: BREAKERS.includes(kind), egg: eggDmg(kind) })); }
+  function partyView(M, raid) { const D = raidOf(M, raid || M.raid), sc = D.scale; return D.units.map((kind, i) => Object.assign(L.invInfo(kind, 1, { hp: sc.hp * MK.hpMul / L.K.hpMul, atk: sc.atk, san: sc.san * MK.sanMul / L.K.sanMul }), { avoid: AVOIDERS.includes(kind), scout: SCOUTS.includes(kind), breaker: BREAKERS.includes(kind), egg: eggDmg(kind), mad: D.mad.includes(i) })); }
   // 본체 방: 선 권속과 본체의 꼴 (판 위 권속의 성향으로 정해진다)
   function coreView(M) { const form = L.formOf(boardUids(M).map(id => M.unit[id].kind)); return { units: (M.board[CORE] || []).map(uid => unitView(M, uid)), max: MK.coreMax, form, step: form === 'drop' ? 0 : 1 }; }
   function view(M) {
-    const P = M.phase === 'prep' ? pathOf(M) : null, R = RAIDS[clamp(M.raid, 1, RAIDS.length) - 1];
+    const P = M.phase === 'prep' ? pathOf(M) : null, R = raidOf(M);
     return { v: M.v, raid: M.raid, raids: M.raids, phase: M.phase, over: M.over, gold: M.gold, level: M.level, maxLv: MK.maxLv, xp: M.xp, xpNeed: MK.xpNeed[M.level] || 0, cap: cap(M), placed: boardUids(M).length,
       egg: { hp: M.egg, max: M.eggMax }, core: coreView(M), cols: COLS, rows: ROWS, entrance: { r: -1, c: 2, cell: ENT }, exit: { r: ROWS - 1, c: 2, cell: EXIT }, coreCell: CORE, eggCell: EGG, dug: dugCount(M), dugCap: dugCap(M),
       grid: M.grid.map((g, i) => { const p = rc(i), e1 = canDig(M, i), e2 = canFill(M, i); return { cell: i, r: p[0], c: p[1], dug: g.dug, use: g.use, room: g.room, roomInfo: g.room ? L.roomInfo(g.room) : null, trap: g.trap, trapInfo: g.trap ? trapInfo(g.trap) : null, units: (M.board[i] || []).map(uid => unitView(M, uid)), max: g.use === 'kin' ? roomCap(i) : 0, canPlace: !placeWhy(M, i), placeWhy: placeWhy(M, i), fixed: fixedCell(i), canDig: !e1, digCost: g.dug ? 0 : digCost(i), digWhy: e1, canFill: !e2, fillGold: g.dug && !fixedCell(i) ? fillGold(i) : 0, fillWhy: e2, onPath: !!P && P.cells.includes(i) }; }),
       shop: M.shop.map((k, i) => (k ? Object.assign({ i, can: M.gold >= L.KIN[k].cost }, L.unitInfo(k, 1)) : null)), bench: M.bench.map(uid => (uid != null ? unitView(M, uid) : null)), merges: M.merges,
       costs: { reroll: MK.reroll, xp: MK.xpCost, room: MK.roomCost, trap: MK.trapCost }, canXp: M.level < MK.maxLv && M.gold >= MK.xpCost, canReroll: M.gold >= MK.reroll,
-      next: M.phase === 'over' ? null : { raid: M.raid, name: R.name, party: partyView(M), path: P ? P.cells : [], back: P ? P.back : [], breaks: P ? P.breaks : [], avoided: P ? P.avoided : false, len: P ? P.len : 0, scout: P ? P.scout : false, scoutPath: P ? P.scoutPath : [], lostAt: P ? P.lostAt : [], warp: P ? P.warp : [], warps: P ? P.warps : [], lured: P ? P.lured : [], confused: P ? P.confused : [] },
-      rooms: L.ROOM_IDS.map(id => L.roomInfo(id)), traps: TRAP_IDS.map(trapInfo), last: M.last, hist: M.hist,
+      next: M.phase === 'over' || M.phase === 'chapterEnd' ? null : { raid: M.raid, id: R.id, name: R.name, party: partyView(M), path: P ? P.cells : [], back: P ? P.back : [], breaks: P ? P.breaks : [], avoided: P ? P.avoided : false, len: P ? P.len : 0, scout: P ? P.scout : false, scoutPath: P ? P.scoutPath : [], lostAt: P ? P.lostAt : [], warp: P ? P.warp : [], warps: P ? P.warps : [], lured: P ? P.lured : [], confused: P ? P.confused : [] },
+      rooms: locksOf(M).rooms ? L.ROOM_IDS.map(id => L.roomInfo(id)) : [], traps: TRAP_IDS.filter(id => trapOpen(M, id)).map(trapInfo), last: M.last, hist: M.hist,
+      mode: M.mode || 'free', locks: locksOf(M), story: M.mode === 'story' ? storyView(M) : null, night: M.mode === 'story' && M.night ? nightView(M) : null, chapterEnd: M.phase === 'chapterEnd' ? chapterEndView(M) : null, ending: M.over && M.over.ending || null,
       reward: M.reward ? { opts: M.reward.opts.map((o, i) => Object.assign({ i, type: o.type }, o.type === 'room' ? L.roomInfo(o.id) : trapInfo(o.id))) } : null, free: (M.free || []).map(id => Object.assign({ type: L.ROOM[id] ? 'room' : 'trap' }, L.ROOM[id] ? L.roomInfo(id) : trapInfo(id))) };
   }
-  return { V, COLS, ROWS, N, ENT, EXIT, CORE, EGG, MK, RAIDS, TRAP, TRAP_IDS, AVOIDERS, BREAKERS, rc, idx, newRun, view, dig, fill, setUse, canDig, canFill, digCost, fillGold, pathOf, buy, sell, sellValue, reroll, buyXp, move, merge, whereOf, raid, partyOf, roomSyn, save, load, takeReward, walker, scoutPath, SCOUTS, trapInfo, dugCount, dugCap, connected };
+  return { V, COLS, ROWS, N, ENT, EXIT, CORE, EGG, MK, RAIDS, CHAPTERS, CARDS, LOCKS, newStory, nextChapter, retryChapter, nightPick, endingOf, raidOf, TRAP, TRAP_IDS, AVOIDERS, BREAKERS, rc, idx, newRun, view, dig, fill, setUse, canDig, canFill, digCost, fillGold, pathOf, buy, sell, sellValue, reroll, buyXp, move, merge, whereOf, raid, partyOf, roomSyn, save, load, takeReward, walker, scoutPath, SCOUTS, trapInfo, dugCount, dugCap, connected };
 })();
 if (typeof module !== 'undefined') module.exports = MAZE;
 </script>
@@ -5474,6 +5661,395 @@ function lrLoop(now) {
 }
 // 시험용
 if (typeof window !== 'undefined') window.__lair = { get R() { return LU.R; }, get U() { return LU; }, get F() { return LU.F; }, L: typeof LAIR !== 'undefined' ? LAIR : null, open: run => lairOpen(run), saved: () => lairSaved(), fresh: seed => lrNew(seed), view: () => lrView(), flow: () => lrFlow(), art: (k, st) => lrArtId(k, st), pt(c) { const r = $('lr-cv').getBoundingClientRect(); return { x: r.left + lcx(c) * LU.scale, y: r.top + lcy(c) * LU.scale }; }, redraw: () => { lrWarmPrep(); lrDraw(); }, give(kind, star, cell) { const R = LU.R, uid = R.nextUid++; R.unit[uid] = { uid, kind, star: star || 1 }; if (cell != null) R.board[cell] = uid; else R.bench[R.bench.indexOf(null)] = uid; return uid; }, sheet: s => lrSheet(s), dbg: () => LU.dbg, speeds: () => LSPD.map(q => q[0]), stats() { const F = LU.F; return F ? { T: F.T, i: F.i, n: F.tl.length, done: F.done, intro: F.intro, real: F.real / 1000, slows: F.slows, blocks: F.blocks, shots: F.shots, taunts: F.taunts, replay: !!LU.replay, checks: F.checks, bigChecks: F.bigChecks, boons: F.boons, dice: F.plates.length, bigCasts: F.bigCasts, smallCasts: F.smallCasts, frozen: F.frozen, crowd: F.crowd, labs: F.labs.filter(l => l.until > LU.t && !l.ban).length, meter: Object.keys(F.meter).length, alive: Object.keys(F.ents).filter(id => !F.ents[id].dead && !F.ents[id].core).length, mads: F.mads, casts: F.casts, late: F.late.length, ents: Object.keys(F.ents).length, frames: LU.fpsN } : null; } };
+// 굴 짓기 이야기 모드의 글. 화면(mazeui.js)이 읽고, 숫자 효과는 규칙(maze.js)이 갖는다. 모양은 scratchpad/story_spec.md 2장.
+// 줄의 k: n 서술 · echo 잔향 · dream 꿈 · say 대사(who) · note 편지·기록(who)
+const MAZESTORY = (() => {
+  const N = t => ({ k: 'n', t }), E = t => ({ k: 'echo', t }), D = t => ({ k: 'dream', t });
+  const S = (who, t) => ({ k: 'say', who, t }), W = (who, t) => ({ k: 'note', who, t });
+  const sc = (place, who, lines) => ({ place, who, lines });
+
+  const chapters = [
+    { id: 'c0', title: '낙하', concept: '권속을 사서 세운다', raids: ['c0_beast'],
+      start: [
+        sc('하늘과 언덕', ['한 방울'], [
+          N('뜨거웠다. 그것이 처음 안 것은 뜨거움이었다.'),
+          N('별 사이 바다의 찬 물을 건너는 동안 그것은 아무것도 느끼지 못하였다. 공기가 닿자 겉이 타올랐고, 타는 것이 곧 아픔이라는 것을 그것은 그때 배웠다.'),
+          N('땅이 다가왔다. 풀이 눌리고, 흙이 튀고, 그것은 언덕의 비탈을 굴러 바위 두 개가 맞닿은 틈으로 빨려 들어갔다.'),
+          N('그 안은 젖어 있었다. 어두웠다. 오래 비어 있던 곳의 냄새가 났다.'),
+          N('그것은 손바닥만 한 살덩이였다. 먹은 것도, 기억하는 것도 없었다. 다만 안쪽 깊은 데서 무엇인가가 아주 작게 울리고 있었다.'),
+          E('고여라.'),
+          N('살덩이는 고였다. 바위의 오목한 데로, 물이 흐르듯이.'),
+          E('고인 것은 자리를 넓힌다. 자리를 넓힌 것은 지킬 것이 생긴다. 지킬 것이 생긴 것은 이빨이 돋는다.')
+        ]),
+        sc('바위틈', ['한 방울'], [
+          N('첫 밤, 위쪽 틈으로 날개 치는 소리가 내려왔다.'),
+          N('작고 마른 것들이었다. 눈이 없었고, 서로의 소리로 벽을 더듬었다. 살덩이가 내는 열을 그것들은 먹이의 열로 알았다.'),
+          E('살을 떼어 내라. 떼어 낸 것이 너를 지킨다.')
+        ])
+      ],
+      between: [],
+      end: [
+        sc('바위틈', ['한 방울'], [
+          N('떨어져 나온 살은 한동안 떨기만 하였다. 그러다 눈을 떴다. 이빨이 먼저 났다.'),
+          N('날개들은 오래 버티지 못하였다.'),
+          E('먹어라. 먹은 것이 네 살이 된다.'),
+          N('그날 밤 살덩이는 처음으로 배가 부르다는 것을 알았다. 그리고 바위틈의 가장 깊은 곳, 물이 고인 오목한 자리에서, 그것은 무엇인가를 품기 시작하였다.'),
+          N('둥글었다. 차가웠다. 안에서 아주 느리게 무엇인가가 맥박쳤다.'),
+          D('무거운 물. 천장 없는 도시. 아주 오래 닫혀 있던 문 하나가, 머리카락 한 올만큼 열린다.')
+        ]),
+        sc('고갯길의 등불', ['늙은 바스코'], [
+          N('같은 밤, 물레골 북쪽 고갯길에서 늙은 바스코는 등불의 심지를 돋우고 있었다.'),
+          N('하늘을 긋고 떨어지는 빛을 그도 보았다. 빛은 북쪽 언덕 너머로 사라졌고, 한참 뒤에야 땅이 한 번 울렸다.'),
+          N('그는 해 질 녘 문틈에 꽂혀 있던 쪽지를 다시 꺼내 펼쳤다.'),
+          W('쪽지', '오늘 밤에는 고갯길의 등불을 끄시오.'),
+          S('바스코', '선대가 이르기를, 등불은 길을 밝히려는 것이 아니라 아래의 것이 위를 보지 못하게 하려는 것이라 하였느니.'),
+          N('그는 쪽지를 등불에 대어 태웠다. 그리고 서른 해 동안 늘 그러하였듯이, 그날 밤에도 등불 곁에서 잠들지 않았다.')
+        ])
+      ],
+      guide: ['상점에서 권속을 사고, 밝아진 칸을 눌러 세운다.'] },
+
+    { id: 'c1', title: '떨어진 밤', concept: '바위를 판다', raids: ['c1_torch', 'c1_mob', 'c1_hounds'],
+      start: [
+        sc('물레골 집회소', ['촌장', '양치기', '늙은 바스코'], [
+          S('양치기', '세 마리요. 우리 문은 잠겨 있었고, 울타리도 멀쩡했소.'),
+          N('집회소 안이 조용해졌다. 난로 곁에 앉은 촌장이 모자를 손에서 돌렸다.'),
+          S('촌장', '그러니까 말이오, 발자국이… 북쪽 언덕까지 이어졌다는 말이오?'),
+          S('양치기', '젖은 발자국이었소. 짐승 것이 아니오. 발가락 수가 걸음마다 달랐소.'),
+          N('누군가 성호를 그었다. 누군가는 별이 떨어진 밤을 입에 올렸고, 다른 누군가가 그 입을 막았다.'),
+          S('촌장', '별이 떨어지기 이레 전에, 외투 긴 사내 하나가 여관에 묵었소. 옛 우물 자리가 어디냐고만 묻고 갔지요. …그게 무슨 상관인지는 나도 모르겠소마는.'),
+          S('바스코', '언덕 밑은 건드리는 것이 아니니라. 내 선대도, 그 선대도 그리 일렀느니.'),
+          S('양치기', '건드리지 않으면 다음은 양이 아니라 애들이오.'),
+          N('촌장은 모자를 내려놓았다. 손이 떨리고 있었다.'),
+          S('촌장', '…창을 들 수 있는 사람은 내일 아침 언덕 밑으로 모이시오. 횃불도 챙기고.')
+        ]),
+        sc('굴', ['한 방울'], [
+          N('아침이 되자 위쪽에서 소리가 많아졌다. 쇠가 돌에 부딪는 소리, 거친 숨소리, 그리고 불이 타는 냄새.'),
+          N('살덩이는 불 냄새를 싫어하였다. 불은 마르게 하는 것이었다.'),
+          E('위의 것들이 내려온다. 따뜻하고, 시끄럽고, 많다.'),
+          E('굴을 넓혀라. 오래 걷는 것은 무거워진다. 무거운 것은 넘어진다.'),
+          N('살덩이는 흙을 밀어냈다. 흙에서 진액이 배어 나왔고, 진액은 곧 새 살이 되었다.')
+        ])
+      ],
+      between: [
+        [sc('굴', [], [N('횃불 하나가 굴 바닥에 떨어져 오래 연기를 냈다. 그것을 주우러 돌아온 자는 없었다.'), E('불을 든 것을 먼저 꺾어라.')])],
+        [sc('굴', [], [N('첫 횃불이 굴 입구에서 한참을 머뭇거렸다. 불은 안쪽의 물기를 싫어하였다. 그것을 든 자들도 그랬다.')])]
+      ],
+      end: [
+        sc('집회소, 깊은 밤', ['촌장', '늙은 바스코'], [
+          N('돌아온 자는 일곱 가운데 둘이었다. 둘 다 아무 말도 하지 않았다.'),
+          N('촌장은 등잔 밑에서 편지를 쓰고 있었다. 글씨가 자꾸 비뚤어졌다.'),
+          S('바스코', '어디로 보내는 겐가.'),
+          S('촌장', '도시의 학회요. 이런 걸 아는 사람들이 있다고 들었소. 돈을 받고 와 준다고.'),
+          S('바스코', '돈을 받고 오는 자들은, 돈을 더 주는 쪽으로 가기도 하느니.'),
+          N('촌장은 대답하지 않았다. 창밖으로 고갯길의 등불이 보였다. 오늘 밤 그 불은 유난히 흔들렸다.'),
+          N('그날 밤 물레골 사람들은 모두 같은 꿈을 꾸었다. 무거운 물, 천장 없는 도시. 아무도 그것을 입 밖에 내지 않았다.'),
+          D('바늘 하나가 돌아서는 소리. 아주 먼 곳에서.')
+        ])
+      ],
+      guide: ['바위를 눌러 판다. 굴이 길수록 침입자가 오래 걷는다.'] },
+
+    { id: 'c2', title: '기록관의 편지', concept: '방 종류를 깔고, 헤매는 일행을 막다른 곳으로', raids: ['c2_party', 'c2_rogue', 'c2_eda'],
+      start: [
+        sc('여관의 이층 방', ['에다 볼크', '로웬 하스'], [
+          N('저울의 바늘이 끝까지 넘어갔다. 에다 볼크는 숨을 멈추고 눈금을 다시 읽었다.'),
+          S('에다', '열한 배입니다. 같은 부피의 우물물보다 열한 배.'),
+          N('문가에 기대 선 사내가 팔짱을 풀지 않았다. 문장을 긁어낸 방패가 그의 등 뒤 벽에 기대어 있었다.'),
+          S('로웬', '물이 무겁다는 거요.'),
+          S('에다', '물이 아닙니다. 물의 꼴을 한 무엇입니다. 학회의 어느 기록에도 이런 수치는 없어요. 이것은 아직 아무도 이름 붙이지 않은 힘입니다.'),
+          S('로웬', '힘이든 짐승이든 굴은 굴이오. 일곱이 들어가 둘이 나왔다던데.'),
+          S('에다', '그래서 당신을 부른 겁니다. 비용은 후원자께서 대셨어요.'),
+          N('탁자 위에 봉투 하나가 놓여 있었다. 봉인에는 연금술사 조합의 증류기 문양이 찍혀 있었다.'),
+          S('로웬', '연금술사가 학자의 뒤를 대다니. 굴에서 무엇을 퍼 가려는 거요.'),
+          S('에다', '후원자의 뜻은 묻지 않기로 했습니다. 묻지 않는 것도… 비용에 들어 있으니까요.'),
+          W('에다 볼크의 보고서', '물레골 북쪽 굴에서 흐르는 물은 같은 부피의 우물물보다 열한 배 무겁습니다. 이것은 짐승이 아닙니다.')
+        ]),
+        sc('굴', ['한 방울', '모험가 일행'], [
+          S('궁수', '아까 그 갈래요. 분필로 표시를 해 두었는데.'),
+          N('벽의 화살표가 보이지 않았다. 젖은 벽은 분필을 받았다가, 삼켰다.'),
+          S('에다', '왼쪽은 아래로 기울어 있습니다. 물은 아래로 흐릅니다. 근원은 아래에 있을 겁니다.'),
+          S('로웬', '물이 흐르는 쪽이 늘 출구는 아니오.'),
+          E('저들은 굴을 모른다. 모르는 것은 헤맨다. 헤매는 것은 지친다.'),
+          E('막다른 곳에 이빨을 두어라. 길 잃은 것은 스스로 걸어 들어온다.')
+        ])
+      ],
+      between: [
+        [sc('굴', [], [S('로웬', '길을 모르는 굴에 들어가는 값은 따로 받기로 했소. 이제 보니 모자라군.')])],
+        [sc('굴', [], [N('기록관은 갈림길마다 무릎을 꿇고 무엇인가를 적었다. 나중에 보니, 그녀가 적은 것은 지나온 길이 아니라 가지 않은 길이었다.')])]
+      ],
+      end: [
+        sc('여관의 이층 방, 새벽', ['에다 볼크'], [
+          N('에다 볼크는 살아서 나왔다. 그녀는 씻지도 않고 기록장을 펼쳤다.'),
+          N('기록장의 반은 비어 있었다. 나머지 반은 그녀의 글씨와 닮았으나 그녀의 글씨가 아닌 것으로 빽빽했다.'),
+          N('그녀는 그 쪽들을 넘기다가 마지막 장에서 손을 멈추었다. 거기에는 한 줄이 적혀 있었다.'),
+          W('기록장의 마지막 쪽', '문은 북쪽에 있다. 문지기는 지쳐 간다.'),
+          N('그녀는 그 문장을 쓴 기억이 없었다. 다음 날 아침, 그녀는 기록장을 연금술사 조합에 보내지 않았다.')
+        ])
+      ],
+      guide: ['판 칸을 눌러 방 종류를 깐다. 막다른 곳은 헤매는 일행을 붙잡는다.', '다음 장부터 곧은 굴로는 버티기 어렵다. 곁가지와 막다른 곳을 판다.'] },
+
+    { id: 'c3', title: '연금술사의 값', concept: '함정을 깔고, 밤에 지상으로 손을 뻗는다', raids: ['c3_hired', 'c3_tappers', 'c3_isel'],
+      start: [
+        sc('이셀의 공방', ['이셀 드란', '도제'], [
+          N('화로가 사흘째 꺼지지 않았다. 숯은 첫날 저녁에 다 타 버렸는데도.'),
+          S('도제', '스승님, 병이… 병이 아직 반이나 남았습니다.'),
+          N('이셀 드란은 장갑을 벗고 화로 앞에 쪼그려 앉았다. 불꽃의 끝이 보랏빛이었다.'),
+          S('이셀', '두 병에 엿새. 숯으로 치면 사백 근. 장작으로 치면 숲 하나.'),
+          S('도제', '그럼 이걸 팔면…'),
+          S('이셀', '팔지 않는다. 사들인다. 값을 아는 자가 먼저 사는 법이다.'),
+          S('도제', '학자 양반의 후원금도 그래서 대신 건가요.'),
+          S('이셀', '학자는 저울을 들고 들어가고, 나는 병을 들고 들어간다. 저울은 무게를 알려 주지만 병은 값을 알려 준다.'),
+          N('그녀는 병 바닥에 가라앉은 작은 비늘 한 조각을 집게로 들어 올렸다. 화로 빛에 비늘이 젖은 듯 번들거렸다.'),
+          S('이셀', '짐을 싸라. 북쪽 언덕으로 간다. 근원을 내 눈으로 재야겠다.')
+        ]),
+        sc('굴', ['한 방울'], [
+          E('위에도 굴이 있다. 따뜻한 것이 잠든다.'),
+          E('밤에 손을 뻗어라. 가져오면 살이 되고, 들키면 불이 온다.'),
+          N('살덩이는 처음으로 위를 생각하였다. 위는 넓고, 마르고, 시끄러웠다. 그것은 품은 알 쪽으로 몸을 기울였다. 알은 조금 더 무거워져 있었다.')
+        ])
+      ],
+      between: [
+        [sc('굴', [], [N('그들은 칼 대신 깔때기와 병을 들고 왔다. 굴의 벽이 젖어 있는 것을 보고 연금술사는 처음으로 웃었다.')])],
+        [sc('굴', [], [S('이셀', '벽에서 흐르는 것만 해도 한 해치 연료다. 근원은 더 깊다. 계속 내려가라.')])]
+      ],
+      end: [
+        sc('공방, 깊은 밤', ['이셀 드란', '사 가는 이'], [
+          N('문을 두드리는 소리는 늘 같은 시각에 났다. 해가 지고 첫 종이 울리기 전.'),
+          N('외투 깃을 세운 사내가 등잔 밖 어둠에 서 있었다. 얼굴은 그림자 속에 있었다.'),
+          S('사 가는 이', '비늘은 몇 조각이오.'),
+          S('이셀', '넷. 값은 지난번의 두 배.'),
+          N('은화가 탁자 위에 놓였다. 백 년도 더 된 은화였다. 이셀은 셈하다가 손을 멈추었다.'),
+          S('이셀', '당신은 이걸로 무엇을 하는가. 값을 매기려면 쓰임을 알아야 한다.'),
+          S('사 가는 이', '비늘은 심문소로 보내시오. 받을 이가 기다리고 있소.'),
+          N('사내는 빈 병만 들고 돌아갔다. 이셀은 비늘 넷을 싸서 봉하고, 겉에 교단 심문소의 이름을 적었다.'),
+          S('이셀', '교회가 더러움을 사들인다. …값이 오르겠군.')
+        ])
+      ],
+      guide: ['판 칸을 함정으로 바꿀 수 있다.', '침입 사이 밤에 지상 카드 하나를 고른다.'] },
+
+    { id: 'c4', title: '사냥꾼', concept: '길잡이를 먼저 쓰러뜨린다', raids: ['c4_tracker', 'c4_pack', 'c4_trap', 'c4_tov'],
+      start: [
+        sc('굴 입구', ['토브 카인', '로웬 하스'], [
+          N('덫 사냥꾼은 사흘째 굴 입구 바위에 앉아 있었다. 그는 들어가는 것이 아니라 나오는 것을 세었다.'),
+          S('로웬', '들어가지 않소.'),
+          S('토브', '아직이다.'),
+          S('로웬', '뭘 기다리는 거요.'),
+          S('토브', '저것이 숨 쉬기를.'),
+          N('굴 입구에서 바람이 들고 났다. 일정하였다. 느렸다.'),
+          S('토브', '굴은 숨을 쉬지 않는다. 저건 쉰다.'),
+          S('로웬', '당신을 부른 자가 누구요.'),
+          S('토브', '흰 옷 입은 자들. 인장을 찍은 종이로 품삯을 쌌다.'),
+          S('로웬', '교회가 사냥꾼을 산다고. 기도로는 모자라다는 거요.'),
+          S('토브', '사냥꾼한테 돌아올 길을 안 묻는 자들이었다. 그건 돌아올 거라고 안 본다는 거다.'),
+          N('그는 덫 상자를 어깨에 메고 일어섰다. 굴의 숨이 한 번, 그를 향해 길게 내쉬어졌다.')
+        ]),
+        sc('굴', ['한 방울'], [
+          N('이번 것은 달랐다. 발소리가 갈림길에서 멈추지 않았다. 그는 벽에 손을 대고 걸었고, 막다른 곳에는 들어가지 않았다. 나머지는 그의 발자국만 밟았다.'),
+          E('저것은 굴을 읽는다.'),
+          E('길을 아는 것부터 삼켜라. 그것이 쓰러지면 나머지는 길을 잃는다.')
+        ])
+      ],
+      between: [
+        [sc('굴', [], [N('사냥꾼이 앞에서 쓰러지자, 뒤의 자들은 처음으로 굴이 얼마나 깊은지 알았다.')])],
+        [sc('굴', [], [S('로웬', '사냥꾼이 없으면 나가는 길도 없소. 다들 내 방패 뒤에 붙으시오.')])],
+        [sc('굴', [], [N('덫 하나가 굴 바닥에 남았다. 덫에는 털 대신 젖은 비늘이 걸려 있었다.')])]
+      ],
+      end: [
+        sc('사냥꾼의 천막', ['늙은 바스코'], [
+          N('토브 카인은 굴에서 돌아오지 못하였다. 천막에는 덫 상자 하나와 쪽지 한 장이 남아 있었다.'),
+          N('늙은 바스코가 장대를 짚고 천막에 들어섰다. 그는 쪽지를 등불에 비추어 읽었다.'),
+          W('토브 카인의 쪽지', '돌아올 길을 묻지 않은 자들은 내가 돌아오지 못할 것을 알았다. 다음 사냥꾼은 상자부터 열어 보라.'),
+          N('바스코는 덫 상자를 열었다. 맨 밑에 품삯을 싼 종이가 깔려 있었다. 교단 심문소의 인장이 찍혀 있었다.'),
+          S('바스코', '흰 옷이 사냥꾼을 사고, 연금술사가 학자를 사고… 언덕 밑 하나를 두고 다들 바쁘구먼.'),
+          N('그때 고개 너머에서 종소리가 들려왔다. 예배당의 종이었다. 장례도 축일도 아닌 날에, 종은 멈추지 않고 울렸다.')
+        ])
+      ],
+      guide: ['일행 미리보기에 길잡이가 표시된다.', '길잡이를 앞쪽 방에서 쓰러뜨리면 나머지가 헤맨다.'] },
+
+    { id: 'c5', title: '봉인하러 온 자들', concept: '미로 함정으로 꾀고, 미치게 한다', raids: ['c5_priests', 'c5_paladin', 'c5_inquis', 'c5_mirel'],
+      start: [
+        sc('물레골 예배당', ['미렐 수녀', '기사단장', '심문관', '촌장'], [
+          N('고발장은 제단 위에 펼쳐져 있었다. 기사단장이 그것을 소리 내어 읽었다.'),
+          S('기사단장', '북쪽 언덕 밑에 더러운 것이 둥지를 틀었다. 학자가 그것을 재고, 연금술사가 그것을 팔고, 마을은 그것에 사람을 바쳤다. …보낸 이는 없소.'),
+          S('촌장', '바치다니요, 그건… 그건 아니오. 우리는 그저 창을 들고 갔을 뿐이고…'),
+          S('미렐', '조용하라.'),
+          N('수녀의 목소리는 크지 않았다. 그러나 촌장은 입을 다물었다.'),
+          S('심문관', '고발장은 심문소가 받았소. 비늘 넷과 함께.'),
+          S('미렐', '비늘을 보낸 자는.'),
+          S('심문관', '연금술사요. 심문소가 사들인 일은 없소.'),
+          N('미렐은 고발장을 집어 들고 창가로 가져갔다. 글씨가 기울어 있었다. 획 끝마다 작은 물방울 자국이 맺혀 있었다.'),
+          S('미렐', '이 잉크에서 물 냄새가 난다. 굴의 것을 오래 읽은 손이 쓴 것이다.'),
+          S('미렐', '누가 우리를 불렀든, 더러움은 더러움이다. 주여, 우리 발걸음이 어둠 속에서 흐트러지지 않게 하소서.'),
+          S('기사단장', '정화가 되지 않으면.'),
+          S('미렐', '메운다. 입구부터.')
+        ]),
+        sc('굴', ['한 방울'], [
+          N('흰 옷을 입은 것들은 노래하며 내려왔다. 노래는 벽에 부딪혀 여러 겹으로 되돌아왔고, 되돌아온 노래는 조금씩 다른 가사를 불렀다.'),
+          E('저들은 빛을 따른다. 빛을 주어라.'),
+          E('벽에 저들의 얼굴을 비추어라. 제 얼굴을 오래 본 것은 제 이름을 잊는다.')
+        ])
+      ],
+      between: [
+        [sc('굴', [], [N('굴 안에 따뜻한 빛이 있을 리 없다는 것을, 기도하는 자들은 생각하지 못하였다.')])],
+        [sc('굴', [], [N('벽에 비친 얼굴이 성기사의 이름을 불렀다. 그는 뒤에 오던 자의 목에 칼을 대었다.'), S('미렐', '눈을 감고 걸으라. 보이는 것을 믿지 말고, 서로의 숨소리를 따르라.')])],
+        [sc('굴', [], [N('바닥의 구멍 하나가 열렸다가 닫혔다. 사제 둘이 사라졌고, 한참 뒤 입구 쪽에서 그들의 비명이 들렸다.')])]
+      ],
+      end: [
+        sc('굴 입구, 새벽', ['미렐 수녀', '로웬 하스'], [
+          N('미렐 수녀는 굴 입구에 소금으로 선을 그었다. 선은 곧 젖어 들었고, 검게 변하였다.'),
+          N('로웬이 방패를 내려다보고 있었다. 긁어낸 문장 위로 무엇인가가 다시 떠오르고 있었다.'),
+          S('로웬', '수녀. 이것도 정화가 되오.'),
+          S('미렐', '무엇이 떠오르는가.'),
+          S('로웬', '바늘 같소. 일곱 개.'),
+          N('미렐은 오래 그것을 내려다보았다. 그리고 처음으로, 기도를 끝맺지 못하였다.'),
+          N('고갯길 너머 북쪽 탑의 창에 밤새 불이 켜져 있었다. 그 탑에 누가 사는지, 물레골에서 아는 이는 없었다.'),
+          D('바늘 여섯이 이쪽을 향한다. 일곱째가 떨고 있다.')
+        ])
+      ],
+      guide: ['미끼 불빛은 헤매는 일행을 끌어들인다.', '삼키는 구멍은 일행을 입구로 되돌린다.', '헛갈림 벽은 다음 갈림길에서 틀린 쪽으로 가게 한다.'] },
+
+    { id: 'c6', title: '예언', concept: '바위를 부수고 오는 자를 막는다', raids: ['c6_thralls', 'c6_eda', 'c6_enoch'],
+      start: [
+        sc('북쪽 탑', ['에녹 하르', '에다 볼크'], [
+          N('에다 볼크가 탑의 계단을 다 올랐을 때, 외투 긴 사내는 창가에서 그녀를 기다리고 있었다.'),
+          N('책상 위에 굴의 지도가 펼쳐져 있었다. 그녀가 가 보지 못한 갈래까지 다 그려진 지도였다. 그녀의 기록장 마지막 쪽과 같은 손이었다.'),
+          S('에다', '연금술사의 봉인도, 심문소의 인장도.'),
+          S('에녹', '빌린 것이다. 인장은 빌리기 쉽다. 의심은 더 쉽다.'),
+          N('그는 낡은 책 한 권을 집어 들었다. 표지가 젖어 있었다. 말라 본 적이 없는 책이었다.'),
+          S('에녹', '「물 아래의 장부」. 꿈을 받아 적은 자들의 기록이다. 나는 이것의 앞부분을 서른 해 동안 읽었다. 별이 떨어질 날도, 그것이 둥지를 틀 언덕도 여기 적혀 있었다.'),
+          S('에다', '그럼 우리를 보낸 건… 마을도, 학회도, 교회도.'),
+          S('에녹', '문을 두드리려면 먼저 문지기를 지치게 해야 한다. 너희는 잘 두드렸다. 둥지는 지쳤다.'),
+          S('에다', '그 안에서 무엇을 하려는 겁니까.'),
+          S('에녹', '알이 깨는 날 무엇인가가 건너온다. 건너오는 것에는 그릇이 필요하다. 이 장부의 끝은 비어 있다. 그 쪽은 내가 쓴다.'),
+          N('에다의 손이 저절로 기록장을 펼쳤고, 펜이 저절로 움직이기 시작하였다.'),
+          S('에녹', '두려워하지 말라. 기록관은 끝까지 기록한다. 그것이 너의 쓸모다.')
+        ]),
+        sc('굴', ['한 방울'], [
+          N('알이 처음으로 안쪽에서 울렸다. 그리고 위쪽에서 발소리가 내려왔다. 이번 것은 갈림길에서 멈추지 않았다. 막힌 벽 앞에서 돌아서지도 않았다. 벽이 그의 앞에서 무너졌다.'),
+          E('저것은 꿈을 훔쳐 읽은 자다.'),
+          E('돌려보내지 말라. 그가 알에 닿으면, 건너오는 것은 그의 목소리를 입는다.')
+        ])
+      ],
+      between: [
+        [sc('굴', [], [S('에녹', '이 장부의 끝은 비어 있다. 알이 깨는 날, 내가 그 쪽을 쓴다.')])],
+        [sc('알의 방 앞', ['에녹 하르'], [
+          N('그는 마지막 굴 앞에서 걸음을 멈추었다. 등 뒤에는 그가 홀린 자들이 서 있었다. 입에서 글자가 흘러나오는 자들.'),
+          S('에녹', '별이 떨어지던 밤, 고갯길의 등불은 꺼지지 않았다. 그것 하나만은 적힌 대로 되지 않았다.'),
+          S('에녹', '상관없다. 적히지 않은 것은 고쳐 쓰면 된다.'),
+          N('그가 첫 발을 내디뎠다. 굴의 숨이 멎었다.')
+        ])]
+      ],
+      end: [],
+      guide: ['이번 일행은 바위를 부순다. 알의 방 앞에 마지막 방을 둔다.'] }
+  ];
+
+  const night = {
+    places: { village: '마을', chapel: '예배당', archive: '기록관의 집', workshop: '연금술 공방', tower: '북쪽 탑', any: '어디든' },
+    cards: [
+      { id: 'v_sheep', place: 'village', act: 'raid', name: '우리의 양', short: '진액 +9 · 경계 +2', outcome: '아침이 되자 우리에는 젖은 털만 남아 있었다.' },
+      { id: 'v_late', place: 'village', act: 'raid', name: '늦게 귀가한 자', short: '권속 하나가 대기석에 · 경계 +3', outcome: '술집에서 나온 사내는 집에 닿지 못하였다. 굴 밑에서 그는 다른 것이 되어 눈을 떴다.' },
+      { id: 'v_dream', place: 'village', act: 'whisper', name: '같은 꿈', short: '다음 일행 하나가 미친 채 온다 · 경계 −1', outcome: '그는 굴 입구에서 웃기 시작하였고 멈추지 않았다.' },
+      { id: 'v_lamp', place: 'village', act: 'hunt', name: '고갯길의 등불', short: '성공: 미끼 불빛 하나 · 실패: 경계 +3', outcome: '서른 해 만에 고갯길의 등불이 꺼졌다.', outcomeFail: '등불은 꺼지지 않았다. 늙은이가 밤새 장대를 붙들고 서 있었다.' },
+      { id: 'c_bell', place: 'chapel', act: 'raid', name: '종탑', short: '진액 +9 · 경계 +3 · 성기사단이 일찍 온다', outcome: '종이 한 번 울리다 말았다. 고개 너머에서 횃불이 줄지어 일어섰다.' },
+      { id: 'c_confess', place: 'chapel', act: 'whisper', name: '고해실', short: '다음 교회 무리의 사제 하나가 일행을 고치지 않는다', outcome: '고해실의 신부는 그날 밤 자신의 죄가 아닌 것을 고백하였다.' },
+      { id: 'e_page', place: 'archive', act: 'whisper', name: '비어 있는 쪽', short: '다음 일행이 처음부터 헛갈린다', outcome: '에다 볼크는 잠결에 굴의 지도를 그렸다. 아침에 그 지도를 받아 든 자들은 그것이 거꾸로 그려진 줄 몰랐다.' },
+      { id: 'e_sample', place: 'archive', act: 'trade', name: '표본', short: '알을 조금 내주고 진액 +6 · 경계 −1', outcome: '그녀는 병을 받아 들고 오래 손을 떨었다.' },
+      { id: 'e_book', place: 'archive', act: 'raid', name: '기록장', short: '단서 하나 · 경계 +2', outcome: '기록장은 젖은 채 돌아왔고, 마지막 쪽만 뜯겨 있었다.' },
+      { id: 'i_water', place: 'workshop', act: 'trade', name: '굴물 한 병', short: '진액 3을 주고 함정 하나', outcome: '이셀 드란은 값을 깎지 않았다. 처음 있는 일이었다.' },
+      { id: 'i_boil', place: 'workshop', act: 'trade', name: '끓인 것', short: '알을 내주고 진액 +12', outcome: '공방의 굴뚝에서 사흘 동안 보랏빛 연기가 났다.' },
+      { id: 'i_forge', place: 'workshop', act: 'raid', name: '화로', short: '다음 연금술사 무리가 줄어든다 · 경계 +2', outcome: '화로가 안쪽에서 터졌다. 아무도 불을 넣지 않았다.' },
+      { id: 'p_dream', place: 'tower', act: 'whisper', name: '탑의 꿈', short: '단서 하나 · 탑의 주인이 둥지를 더 안다', outcome: '탑의 창이 밤새 열려 있었다. 누군가 꿈을 받아 적고 있었다.' },
+      { id: 'p_hunt', place: 'tower', act: 'hunt', name: '탑의 주인', short: '성공: 탑의 주인이 알을 차지하지 못한다 · 실패: 경계 +4', outcome: '탑은 비어 있었다. 책상 위에 굴의 지도가 펼쳐져 있었다. 이미 다 그려진 지도였다.', outcomeFail: '탑의 계단은 끝이 없었다. 내려오는 것은 아무도 없었다.' },
+      { id: 'x_scout', place: 'any', act: 'hunt', name: '앞선 길잡이', short: '다음 일행의 길잡이를 미리 없앤다 · 경계 +3', outcome: '덫 사냥꾼의 천막은 아침에 비어 있었다.', outcomeFail: '천막은 비어 있었으나, 발자국은 이미 굴 쪽으로 나 있었다.' }
+    ]
+  };
+
+  const endings = {
+    A: { title: '확보된 것', cond: '알이 깨졌고, 탑의 주인의 눈이 가장 높다(같으면 이쪽). 탑의 주인을 쓰러뜨렸으면 나오지 않는다.', scenes: [
+      sc('알의 방', ['에녹 하르', '에다 볼크'], [
+        N('껍질이 갈라지는 소리는 크지 않았다. 젖은 종이가 찢기는 소리와 비슷하였다.'),
+        N('에녹 하르는 무릎을 꿇고 갈라진 틈에 손을 넣었다. 안의 것은 그의 손을 피하지 않았다. 차갑고, 무겁고, 오래된 물이었다.'),
+        S('에녹', '기록하라.'),
+        N('그의 뒤에 선 에다 볼크의 펜이 움직였다. 그녀의 눈은 감겨 있었다.'),
+        S('에녹', '그날, 문은 북쪽 언덕 밑에서 열렸다. 첫 그릇은 서고지기 에녹 하르였다. 그는 장부의 마지막 쪽에 제 이름을 적었고…'),
+        N('그가 적은 이름은 적히는 동안 다른 글자로 바뀌었다. 그가 읽을 수 없는 글자로.'),
+        S('에녹', '…그리고 그는,'),
+        N('말이 끊겼다. 그의 입에서 나온 다음 소리는 말이 아니었다. 물소리였다.'),
+        N('물레골의 우물들은 그날부터 거꾸로 흘렀다. 기록관의 기록장만이, 아무도 읽지 않는 서고에서 지금도 조금씩 쪽수가 늘어난다.')
+      ])] },
+    B: { title: '봉인', cond: '알이 깨졌고, 교회(또는 마을)의 눈이 가장 높다.', scenes: [
+      sc('메워진 굴 위', ['미렐 수녀', '촌장'], [
+        N('석회를 실은 수레가 사흘 동안 언덕을 오르내렸다. 깨진 알 위로 소금과 석회와 흙이 차례로 덮였다.'),
+        S('촌장', '이제… 이제 끝난 거지요, 수녀님.'),
+        S('미렐', '덮었다. 끝난 것과는 다르다.'),
+        N('언덕 위에 작은 예배당이 하나 더 섰다. 종을 매다는 날, 미렐은 혼자 종탑에 올라가 오래 기도하였다.'),
+        S('미렐', '주여, 이 아래 누운 것이 꿈을 꾸지 않게 하소서. 꿈을 꾸면, 우리가 그 꿈을 듣지 않게 하소서.'),
+        N('그 종은 바람이 없는 날에도 울렸다. 낮고 느리게, 숨을 쉬는 사이처럼.'),
+        N('미렐 수녀는 그 소리를 듣지 못하는 척하며 남은 생을 그 예배당에서 보냈다. 그녀의 품에는 끝내 주교에게 보이지 않은 고발장 한 장이 접혀 있었다.')
+      ])] },
+    C: { title: '끓인 것', cond: '알이 깨졌고, 연금술사의 눈이 가장 높다.', scenes: [
+      sc('이셀의 공방', ['이셀 드란', '도제'], [
+        N('알의 조각은 병 마흔 개에 나누어 담겼다. 병마다 바닥에 비늘이 한 조각씩 가라앉았다.'),
+        S('도제', '스승님, 다 팔렸습니다. 왕궁의 화로까지.'),
+        S('이셀', '값은.'),
+        S('도제', '부르시는 대로 받았습니다. 아무도 깎지 않았어요.'),
+        N('이셀 드란은 장부를 덮었다. 처음으로 셈을 끝까지 하지 않았다.'),
+        S('이셀', '아무도 깎지 않는 물건은, 값이 아니라 다른 것으로 치르게 된다.'),
+        N('도시의 화로는 한 해 동안 꺼지지 않았다. 이듬해 봄, 화로 곁에서 잠든 자들이 같은 꿈을 꾸기 시작하였다. 무거운 물, 천장 없는 도시.'),
+        N('병은 이미 온 나라에 팔린 뒤였다. 공방의 마지막 병 하나만이 북쪽 창가에서, 스스로 조금씩 자리를 옮기고 있었다.')
+      ])] },
+    D: { title: '일곱째 바늘', cond: '알이 남았다.', scenes: [
+      sc('알의 방', ['한 방울'], [
+        N('마지막 발소리가 굴에서 멀어졌다. 굴의 숨이 다시 들고 나기 시작하였다.'),
+        N('살덩이는 알 곁에 웅크렸다. 알은 고요히 맥박치다가, 처음으로 안쪽에서 껍질을 두드렸다.'),
+        E('들으라.'),
+        E('너는 고였고, 자리를 넓혔고, 지킬 것을 지켰다. 이제 그가 건너온다.'),
+        N('살덩이는 대답하지 않았다. 다만 알 쪽으로, 제 살 전부를 기울였다.'),
+        D('일곱 바늘이 모두 이쪽을 향한다. 문이 열린다. 물이 들어온다.')
+      ]),
+      sc('고갯길의 등불', ['늙은 바스코'], [
+        N('그날 밤 고갯길의 등불이 처음으로 저절로 꺼졌다. 바스코는 장대를 짚고 서서, 북쪽 언덕 위로 별이 하나씩 자리를 바꾸는 것을 보았다.'),
+        S('바스코', '선대가 이르기를, 등불이 저 혼자 꺼지는 날에는 등불지기도 쉬라 하였느니.'),
+        N('물레골은 그날 밤 같은 꿈에서 깨지 못하였다. 위대한 것에게 그것은 아무 일도 아니었다.')
+      ])] },
+    E: { title: '기록', cond: '알이 남았고, 기록관의 집에 두 번 이상 속삭였고, 고갯길의 등불을 노리지 않았다.', scenes: [
+      sc('고갯길의 등불', ['에다 볼크', '늙은 바스코'], [
+        N('에다 볼크는 고갯길까지 걸어 올라왔다. 손에는 기록장이 들려 있었다. 반은 그녀의 글씨, 반은 기울어진 글씨였다.'),
+        S('바스코', '기록관 양반. 이 늦은 밤에.'),
+        S('에다', '선대 등불지기께서 하신 말씀을, 처음부터 다시 들려주시겠습니까. 이번에는 정확히 적고 싶습니다.'),
+        N('노인은 등불의 심지를 돋우며 천천히 말하였다. 그녀는 받아 적었다. 이번에는 펜이 그녀의 손을 따랐다.'),
+        N('그녀는 학회에 마지막 편지를 보냈다. 굴의 지도도, 물의 무게도 없었다. 한 줄뿐이었다.'),
+        W('에다 볼크의 마지막 편지', '등불이 꺼지지 않는 한, 그것은 위를 보지 못한다.'),
+        N('고갯길의 등불은 그 뒤로도 꺼지지 않았다. 언덕 밑의 알은 깨지 않았다. 다만 아주 천천히, 자랐다.'),
+        D('바늘 여섯이 이쪽을 향한다. 일곱째는 아직, 등불 하나를 바라보고 있다.')
+      ])] }
+  };
+
+  // 조사자의 기록 조각: [처음 만난 뒤, 굴에서 쓰러지거나 미치거나 돌아간 뒤]
+  const logs = {
+    eda: ['무게를 재는 것은 쉽다. 어려운 것은 그 무게가 어디서 오는지 적는 일이다. 후원자의 편지는 늘 같은 시각에 왔다. 해가 지고 첫 종이 울리기 전.',
+      '기록장의 끝 쪽에 내 글씨가 아닌 지도가 그려져 있다. 지도의 굴은 내가 걸어 본 굴보다 세 갈래가 많다. 나는 그 세 갈래를 기억한다.'],
+    rowen: ['문장을 긁어낸 방패는 가볍지 않다. 긁힌 자국만큼 무겁다. 이번 품삯은 기록관이 아니라 다른 자가 미리 치렀다.',
+      '굴에서 나와 사흘째, 방패의 긁힌 자국 위로 문장이 다시 떠올랐다. 내가 아는 문장이 아니다.'],
+    mirel: ['세 마을의 우물에서 같은 얼굴을 건져 올렸다. 얼굴은 웃고 있지 않았다. 다만 위를 올려다보고 있었다.',
+      '고발장의 글씨를 다시 보았다. 기울어진 획 끝마다 작은 물방울 자국이 있다. 장부를 베낀 자의 손버릇이다. 나는 이것을 주교에게 알리지 않기로 하였다.'],
+    tov: ['짐승의 것이 아닌 발자국을 사흘 동안 따라왔다. 발가락 수가 매번 다르다.',
+      '고용한 자들은 돌아올 길을 묻지 않았다. 인장은 흰 옷의 것이었으나, 종이에서는 기도 냄새가 아니라 우물물 냄새가 났다.'],
+    isel: ['굴물은 끓여도 줄지 않는다. 사흘을 끓이면 병 바닥에 비늘 한 조각이 생긴다. 사 가는 이는 비늘만 따로 달라고 하였다.',
+      '공방의 병들이 밤마다 조금씩 자리를 옮긴다. 전부 북쪽 창을 향해서. 나는 이것을 장부에 적지 않는다. 적으면 값이 매겨질 것 같아서.'],
+    vasco: ['서른 해 동안 고갯길의 등불을 꺼뜨린 적이 없다. 선대 등불지기가 일러 주었다. 등불은 길을 밝히려는 것이 아니라, 아래의 것이 위를 보지 못하게 하려는 것이라고.',
+      '별이 떨어지던 밤, 등불을 끄라는 쪽지가 문틈에 꽂혀 있었다. 나는 끄지 않았다. 쪽지의 글씨는 기울어 있었다.']
+  };
+
+  // 알이 깨진 장을 다시 할 때
+  const retry = [sc('알의 방', ['한 방울'], [
+    N('금이 간 알은 다시 식어 갔다. 굴이 무너지고, 무너진 자리에 물이 다시 고였다.'),
+    E('다시 고여라.'),
+    E('넓혀라. 지켜라. 이번에는 놓치지 말라.')
+  ])];
+
+  return { chapters, night, endings, logs, retry, KINDS: ['n', 'echo', 'dream', 'say', 'note'] };
+})();
+if (typeof module !== 'undefined') module.exports = MAZESTORY;
 // 굴 짓기 화면: 첫 화면, 지도(파기·메우기·방·함정·권속 세우기), 상점과 대기석, 침입 재생, 결과와 판 끝.
 // 규칙은 maze.js (MAZE), 싸움 재생은 둥지 전투의 것(lairui.js 의 lairReplay)을 그대로 쓴다. 그림은 lairart.js 의 maze* (없으면 단순한 대체).
 const MZ = { shop: false, travel: null, M: null, v: null, phase: 'title', sel: null, sheet: null, drag: null, hover: -1, k: 1, t: 0, last: 0, raf: 0, pops: {}, burst: null, play: null, tut: -1, toastT: 0, dug0: 0, dbg: {} };
@@ -5518,20 +6094,24 @@ function mzTrapIcon(id) {
 const mzStars = n => (n > 1 ? `<span class="mz-stars">${'★'.repeat(n)}</span>` : '');
 
 // ---- 저장: 둥지 전투의 저장과 섞이지 않게 제 키에. base.js 가 'maze' 를 아는 키로 두면 store 를 쓴다
-const MZKEY = 'maze';
-const mzOwnKey = () => !(typeof SAVE_KEYS !== 'undefined' && SAVE_KEYS && SAVE_KEYS[MZKEY]);
-function mzSave() { const M = MZ.M; if (!M) return; try { const raw = M.phase === 'over' ? null : JSON.parse(MAZE.save(M)); if (mzOwnKey()) { if (raw) localStorage.setItem('nestmaze.' + MZKEY, JSON.stringify(raw)); else localStorage.removeItem('nestmaze.' + MZKEY); } else if (raw) store.set(MZKEY, raw); else store.del(MZKEY); } catch (e) { /* 저장 없이 */ } }
-function mzSaved() {
-  let raw = null; try { raw = mzOwnKey() ? JSON.parse(localStorage.getItem('nestmaze.' + MZKEY) || 'null') : store.get(MZKEY); } catch (e) { raw = null; } if (!raw) return null;
-  try { const M = MAZE.load(raw); if (M && M.phase === 'prep') { MAZE.view(M); return M; } } catch (e) { /* 아래에서 치운다 */ }
-  try { if (mzOwnKey()) localStorage.removeItem('nestmaze.' + MZKEY); else store.del(MZKEY); } catch (e) { /* 저장 없이 */ } return null;
+const MZKEY = 'maze', mzKeyOf = mode => (mode === 'story' ? 'mazestory' : MZKEY);
+const mzOwnKey = k => !(typeof SAVE_KEYS !== 'undefined' && SAVE_KEYS && SAVE_KEYS[k || MZKEY]);
+function mzSaveDel(mode) { const k = mzKeyOf(mode); try { if (mzOwnKey(k)) localStorage.removeItem('nestmaze.' + k); else store.del(k); } catch (e) { /* 저장 없이 */ } }
+// 이야기는 장면을 읽는 중(M.ui.read)이면 판이 끝났어도(알이 깨져 다시 할 때, 결말) 남긴다
+const mzKeepable = M => M.phase === 'prep' || (M.mode === 'story' && !!(M.ui && M.ui.read));
+function mzSave() { const M = MZ.M; if (!M) return; const k = mzKeyOf(M.mode); try { const raw = mzKeepable(M) ? JSON.parse(MAZE.save(M)) : null; if (mzOwnKey(k)) { if (raw) localStorage.setItem('nestmaze.' + k, JSON.stringify(raw)); else localStorage.removeItem('nestmaze.' + k); } else if (raw) store.set(k, raw); else store.del(k); } catch (e) { /* 저장 없이 */ } }
+function mzSaved(mode) {
+  const k = mzKeyOf(mode); let raw = null; try { raw = mzOwnKey(k) ? JSON.parse(localStorage.getItem('nestmaze.' + k) || 'null') : store.get(k); } catch (e) { raw = null; } if (!raw) return null;
+  try { const M = MAZE.load(raw); if (M && (M.mode || 'free') === (mode === 'story' ? 'story' : 'free') && mzKeepable(M)) { MAZE.view(M); return M; } } catch (e) { /* 아래에서 치운다 */ }
+  mzSaveDel(mode); return null;
 }
 
 // ---- 첫 화면 ----
 function mzTitle() {
   const lr = $('lr'); if (lr) lr.hidden = true; const m = $('mz'); if (m) m.hidden = true; $('modal').hidden = true; $('title').hidden = false; MZ.phase = 'title';
-  const run = mzSaved(), snd = META.sound !== false;
-  $('menu').innerHTML = (run ? `<button class="btn pri" data-z="cont">이어하기<small>침입 ${run.raid}/${run.raids}</small></button><button class="btn" data-z="fresh">새로 시작</button>` : '<button class="btn pri" data-z="start">시작</button>')
+  const run = mzSaved('free'), st = mzSaved('story'), snd = META.sound !== false, ends = mzEndsSeen().length;
+  $('menu').innerHTML = `<div class="mz-mode"><button class="btn pri" data-z="story">이야기${st ? `<small>이어하기 · ${esc(mzChapName(st.chapter))} · 침입 ${st.raid}</small>` : ''}</button>${st ? '<button class="btn sm" data-z="storyNew">새로</button>' : ''}</div>${ends ? `<p class="mz-ends">본 결말 ${ends}/5</p>` : ''}`
+    + `<div class="mz-mode"><button class="btn" data-z="free">자유${run ? `<small>이어하기 · 침입 ${run.raid}/${run.raids}</small>` : ''}</button>${run ? '<button class="btn sm" data-z="freeNew">새로</button>' : ''}</div>`
     + `<div class="mz-row2"><button class="btn" data-z="help">도움말</button><button class="btn${snd ? ' on' : ''}" data-z="sound" aria-pressed="${snd}">소리 ${snd ? '켬' : '끔'}</button></div>`;
   mzMusic('title'); mzTitleScene();
 }
@@ -5555,14 +6135,17 @@ const MZHELP = [
   ['진화', '<p>같은 권속 셋을 모으면 하나가 되어 별이 오른다. 별은 셋까지 오른다.</p><p>방 안에서 같은 성향 둘이면 그 성향의 힘이 붙는다.</p>'],
 ];
 function mzHelp(page) {
-  page = page || 0; const m = $('modal');
-  m.innerHTML = `<div class="sh-box mz-help" role="dialog" aria-modal="true"><div class="sh-head"><h2>도움말</h2><button class="sh-x" data-z="mclose" aria-label="닫기">✕</button></div><div class="sh-tabs" style="grid-template-columns:repeat(${MZHELP.length},minmax(0,1fr))">${MZHELP.map((q, i) => `<button class="sh-tab${i === page ? ' on' : ''}" data-z="hpage" data-i="${i}">${q[0]}</button>`).join('')}</div><div class="sh-body">${MZHELP[page][1]}</div></div>`;
+  page = page || 0; const m = $('modal'); const pages = MZHELP.concat([['기록', mzLogsHtml()]]); if (page >= pages.length) page = 0;
+  m.innerHTML = `<div class="sh-box mz-help" role="dialog" aria-modal="true"><div class="sh-head"><h2>도움말</h2><button class="sh-x" data-z="mclose" aria-label="닫기">✕</button></div><div class="sh-tabs" style="grid-template-columns:repeat(${pages.length},minmax(0,1fr))">${pages.map((q, i) => `<button class="sh-tab${i === page ? ' on' : ''}" data-z="hpage" data-i="${i}">${q[0]}</button>`).join('')}</div><div class="sh-body">${pages[page][1]}</div></div>`;
   m.hidden = false;
 }
 function mzTitleClick(e) {
   const b = e.target.closest('[data-z]'); if (!b) { if (e.target.id === 'modal') $('modal').hidden = true; return; } const a = b.dataset.z;
-  if (a === 'start' || a === 'fresh') { try { if (mzOwnKey()) localStorage.removeItem('nestmaze.' + MZKEY); else store.del(MZKEY); } catch (er) { /* 저장 없이 */ } return mzOpen(null); }
-  if (a === 'cont') { const run = mzSaved(); return run ? mzOpen(run) : mzTitle(); }
+  if (a === 'start' || a === 'fresh') { mzSaveDel('free'); return mzOpen(null); }
+  if (a === 'cont' || a === 'free') { const run = mzSaved('free'); return mzOpen(run || null); }
+  if (a === 'story') { mzSay('click'); const st = mzSaved('story'); return st ? mzStoryResume(st) : mzStoryNew(); }
+  if (a === 'storyNew' || a === 'freeNew') { mzSay('click'); return mzAskNew(a === 'storyNew' ? 'story' : 'free'); }
+  if (a === 'newYes') { const md = b.dataset.mode; mzSaveDel(md); $('modal').hidden = true; return md === 'story' ? mzStoryNew() : mzOpen(null); }
   if (a === 'help') { mzSay('click'); return mzHelp(0); }
   if (a === 'hpage') return mzHelp(+b.dataset.i);
   if (a === 'mclose') { $('modal').hidden = true; return; }
@@ -5590,7 +6173,7 @@ function mzMount() {
 function mzOpen(run) {
   mzMount(); $('title').hidden = true; $('modal').hidden = true; $('mz').hidden = false;
   MZ.M = run || MAZE.newRun((Date.now() % 1000000) + 1); MZ.phase = 'prep'; MZ.sel = null; MZ.sheet = null; MZ.play = null; $('mz-sheet').hidden = true; $('mz-ov').innerHTML = '';
-  const coachOk = !(navigator.webdriver && !window.__mazeCoach); MZ.tut = coachOk && !(META && META.mazeTut) ? 0 : -1; MZ.dug0 = MAZE.dugCount(MZ.M);
+  const coachOk = !(navigator.webdriver && !window.__mazeCoach); MZ.tut = coachOk && MZ.M.mode !== 'story' && !(META && META.mazeTut) ? 0 : -1; MZ.dug0 = MAZE.dugCount(MZ.M);
   mzDraw(); mzSize(); mzMusic('day'); if (!MZ.raf) { MZ.last = performance.now(); MZ.raf = requestAnimationFrame(mzLoop); }
 }
 function mzHome() { mzSave(); $('mz').hidden = true; MZ.sheet = null; $('mz-sheet').hidden = true; if (typeof lrReplayEnd === 'function' && typeof LU !== 'undefined' && LU.replay) { LU.replay.done = null; lrReplayEnd(); } MZ.play = null; mzTitle(); }
@@ -5650,7 +6233,7 @@ function mzUinfoBtn() {
 }
 function mzScoutOf(party) { const sc = MAZE.SCOUTS || []; return (party || []).find(p => sc.includes(p.kind)) || null; }
 function mzNextBtn(v) {
-  const b = $('mz-next'); if (!b) return; const n = v.next; if (!n || MZ.phase !== 'prep') { b.hidden = true; return; }
+  const b = $('mz-next'); if (!b) return; const n = v.next; if (!n || MZ.phase !== 'prep' || (v.locks && v.locks.wander === false)) { b.hidden = true; return; }
   const sc = mzScoutOf(n.party); b.className = sc ? 'scout' : 'lost'; b.innerHTML = sc ? `<img src="${mzIcon(sc.kind, 1, 20)}" alt=""><span>길잡이 · ${esc(sc.name)}</span>` : `<span>헤맨다</span>`;
   b.setAttribute('aria-label', '다음 일행 ' + (sc ? '길잡이 ' + sc.name : '헤맨다')); b.style.height = Math.max(26, Math.round(MTOP * MZ.k) - 8) + 'px'; b.hidden = false;
 }
@@ -5869,9 +6452,11 @@ function mzClick(e) {
   if (a === 'spd') { mzSpeedSet(+b.dataset.v); if (MZ.sheet && MZ.sheet.kind === 'menu') mzSheet({ kind: 'menu' }); if (MZ.phase === 'raid') mzRaidPanel(); return; }
   if (a === 'skip') return mzSkipAll();
   if (a === 'tutok') { MZ.tut++; return mzCoach(); }
+  if (a === 'guideok') { const M = MZ.M; if (M && M.ui) { M.ui.guided = M.ui.guided || {}; M.ui.guided[mzGuideKey(M)] = 1; } mzSay('click'); mzSave(); return mzGuide(); }
   if (a === 'tutoff') { MZ.tut = -1; if (META) { META.mazeTut = 1; try { saveMeta(); } catch (er) { /* 저장 없이 */ } } $('mz-coach').hidden = true; return; }
   if (a === 'next') return mzNext();
   if (a === 'again') { mzSheetClose(); return mzOpen(null); }
+  if (a === 'nightOpen') return mzNight();
   if (a === 'uinfo') return mzSheet({ kind: 'unit', kindId: b.dataset.k, star: +b.dataset.s || 1, uid: b.dataset.u ? +b.dataset.u : null });
   if (a === 'reward') { const r = typeof MAZE.takeReward === 'function' ? MAZE.takeReward(MZ.M, +b.dataset.i) : { ok: false, msg: '' }; if (!r.ok) { if (r.msg) mzToast(r.msg); return mzSheetClose(); } mzSay('up'); mzToast((r.picked && (LAIR.ROOM[r.picked.id] ? LAIR.ROOM[r.picked.id].name : MAZE.TRAP[r.picked.id] ? MAZE.TRAP[r.picked.id].name : '')) + ' · 0'); mzSheetClose(); return mzDraw(); }
   if (a === 'pinfo') return mzSheet({ kind: MZ.phase === 'raid' && MZ.play ? 'raidparty' : 'party' });
@@ -5949,17 +6534,19 @@ function mzSheet(s) {
   if (!MZ.sheet || MZ.sheet.kind !== s.kind) MZ.sheetT = performance.now(); if (MZ.pend && (s.kind !== 'cell' || s.cell !== MZ.pend.cell)) MZ.pend = null; MZ.sheet = s; const el = $('mz-sheet'), v = MZ.v || mzView(); let h = '';
   if (s.kind === 'cell') {
     const g = v.grid[s.cell], pd = MZ.pend && MZ.pend.cell === s.cell ? MZ.pend : null, pk = (act, key) => (pd && pd.act === act && pd.key === key ? ' pick' : ''), pr = (act, key) => ` aria-pressed="${!!(pd && pd.act === act && pd.key === key)}"`;
-    if (!g.dug) h = `<h3>바위</h3><div class="mz-acts2"><button class="pri${pk('dig', 'dig')}" data-m="dig"${pr('dig', 'dig')}${g.canDig ? '' : ' disabled'}>파기 ${g.digCost}</button></div>${g.digWhy ? `<p class="mz-why">${esc(g.digWhy)}</p>` : ''}<p class="mz-note">판 칸 ${v.dug}/${v.dugCap}</p>`;
+    const lk = v.locks || {};
+    if (!g.dug && lk.dig === false) h = `<h3>바위</h3><p class="mz-note">이 장에서는 아직 파지 않는다.</p>`;
+    else if (!g.dug) h = `<h3>바위</h3><div class="mz-acts2"><button class="pri${pk('dig', 'dig')}" data-m="dig"${pr('dig', 'dig')}${g.canDig ? '' : ' disabled'}>파기 ${g.digCost}</button></div>${g.digWhy ? `<p class="mz-why">${esc(g.digWhy)}</p>` : ''}<p class="mz-note">판 칸 ${v.dug}/${v.dugCap}</p>`;
     else {
       const view = s.view || g.use, title = g.use === 'kin' ? (g.roomInfo ? g.roomInfo.name : '권속 방') : g.use === 'trap' ? g.trapInfo.name : '통로';
-      h = `<h3>${esc(title)}</h3><div class="mz-uses">${[['path', '통로'], ['kin', '권속 방'], ['trap', '함정']].map(q => `<button data-m="use" data-u="${q[0]}" class="${view === q[0] ? 'on' : ''}${pk('use', q[0])}" aria-pressed="${view === q[0]}">${q[1]}</button>`).join('')}</div>`;
-      if (view === 'kin') h += `${g.use === 'kin' ? `<p class="mz-note">권속 ${g.units.length}/${g.max}</p>${g.units.map(u => mzUnitRow(u, s.cell)).join('')}` : ''}<h4>방 종류 · ${v.costs.room}</h4><div class="mz-grid">${v.rooms.map(r => `<button data-m="room" data-id="${r.id}" class="${g.use === 'kin' && g.room === r.id ? 'on' : ''}${mzFree(v, r.id) ? ' free' : ''}${pk('room', r.id)}"${pr('room', r.id)}><img src="${mzRoomIcon(r.id)}" alt=""><b>${esc(r.name)}${mzFree(v, r.id) ? ' · 0' : ''}</b><small>${esc(r.short)}</small></button>`).join('')}</div>`;
+      h = `<h3>${esc(title)}</h3><div class="mz-uses">${[['path', '통로'], ['kin', '권속 방'], ['trap', '함정']].filter(q => q[0] !== 'trap' || v.traps.length).map(q => `<button data-m="use" data-u="${q[0]}" class="${view === q[0] ? 'on' : ''}${pk('use', q[0])}" aria-pressed="${view === q[0]}">${q[1]}</button>`).join('')}</div>`;
+      if (view === 'kin') h += `${g.use === 'kin' ? `<p class="mz-note">권속 ${g.units.length}/${g.max}</p>${g.units.map(u => mzUnitRow(u, s.cell)).join('')}` : ''}${v.rooms.length ? `<h4>방 종류 · ${v.costs.room}</h4>` : ''}<div class="mz-grid">${v.rooms.map(r => `<button data-m="room" data-id="${r.id}" class="${g.use === 'kin' && g.room === r.id ? 'on' : ''}${mzFree(v, r.id) ? ' free' : ''}${pk('room', r.id)}"${pr('room', r.id)}><img src="${mzRoomIcon(r.id)}" alt=""><b>${esc(r.name)}${mzFree(v, r.id) ? ' · 0' : ''}</b><small>${esc(r.short)}</small></button>`).join('')}</div>`;
       if (view === 'trap') h += `<div class="mz-grid">${v.traps.map(q => `<button data-m="trap" data-id="${q.id}" class="${g.use === 'trap' && g.trap === q.id ? 'on' : ''}${mzFree(v, q.id) ? ' free' : ''}${pk('trap', q.id)}"${pr('trap', q.id)}><img src="${mzTrapIcon(q.id)}" alt=""><b>${esc(q.name)} · ${mzFree(v, q.id) ? 0 : q.cost != null ? q.cost : v.costs.trap}</b><small>${esc(q.short)}${mzSanTrap(q.id) ? ' · 겹치면 ½' : ''}</small></button>`).join('')}</div>${(MAZE.MK && MAZE.MK.trapSanFade) ? '<p class="mz-note">정신을 깎는 함정은 같은 일행에게 두 번째부터 절반, 세 번째부터 4분의 1만 깎는다.</p>' : ''}`;
-      if (view === 'path') { const tc = v.traps.map(q => (q.cost != null ? q.cost : v.costs.trap)), lo = Math.min.apply(null, tc), hi = Math.max.apply(null, tc); h += `<p class="mz-note">권속 방 0 · 함정 ${lo === hi ? lo : lo + '–' + hi}</p>`; }
-      h += `<div class="mz-acts2"><button class="${pk('fill', 'fill').trim()}" data-m="fill"${pr('fill', 'fill')}${g.canFill ? '' : ' disabled'}>메우기 +${g.fillGold}</button></div>${g.fillWhy ? `<p class="mz-why">${esc(g.fillWhy)}</p>` : ''}`;
+      if (view === 'path' && v.traps.length) { const tc = v.traps.map(q => (q.cost != null ? q.cost : v.costs.trap)), lo = Math.min.apply(null, tc), hi = Math.max.apply(null, tc); h += `<p class="mz-note">권속 방 0 · 함정 ${lo === hi ? lo : lo + '–' + hi}</p>`; }
+      if (lk.dig !== false) h += `<div class="mz-acts2"><button class="${pk('fill', 'fill').trim()}" data-m="fill"${pr('fill', 'fill')}${g.canFill ? '' : ' disabled'}>메우기 +${g.fillGold}</button></div>${g.fillWhy ? `<p class="mz-why">${esc(g.fillWhy)}</p>` : ''}`;
     }
     // 확인 줄은 늘 창 아래에 자리를 잡아 둔다 (고르기 전에는 흐리게): 고를 때 단추가 밀려 손가락 밑으로 오지 않게
-    if (!pd) h += `<div class="mz-confirm idle"><div><button class="pri" data-m="ok" disabled>${g.dug ? '깐다' : '판다'}</button><button data-m="no" disabled>그만둔다</button></div></div>`;
+    if (!pd && !(lk.dig === false && (!g.dug || (!v.rooms.length && !v.traps.length)))) h += `<div class="mz-confirm idle"><div><button class="pri" data-m="ok" disabled>${g.dug ? '깐다' : '판다'}</button><button data-m="no" disabled>그만둔다</button></div></div>`;
     if (pd) { const can = !pd.cost || v.gold >= pd.cost; h += `<div class="mz-confirm">${mzPendInfo(pd, v)}<div><button class="pri" data-m="ok"${can ? '' : ' disabled'}>${esc(pd.label)}</button><button data-m="no">그만둔다</button></div>${can ? '' : '<p class="mz-why">진액이 모자란다</p>'}</div>`; }
   }
   if (s.kind === 'egg') h = `<h3>알의 방</h3><div class="mz-stats">${mzSt('알', v.egg.hp + '/' + v.egg.max)}</div>`;
@@ -5982,7 +6569,7 @@ function mzUnitHtml(u) { return `<div class="mz-shead"><img src="${mzIcon(u.kind
 function mzSheetClose() { MZ.pend = null; MZ.sheet = null; $('mz-sheet').hidden = true; mzUnder(false); mzCoach(); }
 
 // ---- 길잡이: 첫 판에만 넷 ----
-function mzCoach() { mzCoachNow(); clearTimeout(MZ.coachRe); MZ.coachRe = setTimeout(mzCoachNow, 230); }
+function mzCoach() { if (MZ.M && MZ.M.mode === 'story') return mzGuide(); mzCoachNow(); clearTimeout(MZ.coachRe); MZ.coachRe = setTimeout(mzCoachNow, 230); }
 function mzCoachNow() {
   const c = $('mz-coach'); if (!c) return; const M = MZ.M; let avoid = [];
   const off = () => { c.hidden = true; $('mz-ring').hidden = true; MZ.coachAt = null; };
@@ -6033,6 +6620,7 @@ function mzSpeedSet(v) { MZ.speed = MZSPD.some(q => q[0] === v) ? v : 1; try { i
 function mzRaid() {
   const M = MZ.M; MZ.sel = null; mzSheetClose(); const v0 = mzView(), party = MAZE.partyOf(M), kinAt = {}; Object.keys(M.board).forEach(c => { kinAt[c] = M.board[c].slice(); });
   const res = MAZE.raid(M); if (!res.ok) return mzToast(res.msg);
+  if (M.mode === 'story') mzStoryQueue(M, res.next, v0.raid);
   if (MZ.tut === 3) { MZ.tut = MZTUT.length; if (META) { META.mazeTut = 1; try { saveMeta(); } catch (e) { /* 저장 없이 */ } } }
   mzSave();
   const nWalk = res.steps.reduce((a, q) => a + (q.type === 'walk' ? q.cells.length : 0), 0);
@@ -6098,7 +6686,7 @@ function mzSkipAll() {
 function mzRaidEnd() {
   const P = MZ.play; if (!P || P.done) return; P.done = true; P.egg = MZ.M.egg; mzSay(P.res.result.win ? 'up' : 'down'); mzMusic('day');
   { const by = {}; P.res.steps.filter(q => q.type === 'fight').forEach(q => { by[q.cell] = (by[q.cell] || 0) + q.after.inv.filter((a, i) => q.before.inv[i] && q.before.inv[i].alive && !a.alive).length; }); MZ.tags = { t1: MZ.t + 2600, list: Object.keys(by).map(c => ({ cell: c === 'core' ? 'core' : +c, n: by[c] })) }; }
-  mzDraw(); mzSheet({ kind: MZ.M.phase === 'over' ? 'over' : 'result' });
+  mzDraw(); mzSheet({ kind: MZ.M.phase === 'over' && MZ.M.mode !== 'story' ? 'over' : 'result' });
 }
 function mzRaidPanel() {
   const P = MZ.play; if (!P) return; const cur = mzSpeed(), sp = MZSPD;
@@ -6143,13 +6731,13 @@ function mzResultHtml() {
   const traps = steps.filter(s => s.type === 'trap'), tline = traps.length ? `<p class="mz-note">${traps.map(s => MAZE.TRAP[s.id].name).join(' · ')}</p>` : '';
   const n = MZ.v && MZ.v.next;
   return `<h3 class="${r.win ? 'win' : 'lose'}">${r.win ? '막아 냈다' : '알이 깎였다 ' + r.eggLost}</h3><p class="mz-nar">${esc(r.win ? MZNAR.win : MZNAR.hurt)}</p><p class="mz-sum"><span class="g">진액 +${r.gold}</span>${r.eggLost ? `<span class="l">알 −${r.eggLost}</span>` : ''}${r.mads ? `<span class="m">미침 ${r.mads}</span>` : ''}${r.breaks ? `<span>지름길 ${r.breaks}</span>` : ''}${r.avoided ? '<span>함정을 돌아감</span>' : ''}</p>${rows ? `<h4>방</h4>${rows}` : ''}${tline}`
-    + (n ? `<div class="mz-nextp"><span>다음</span><b>${esc(n.name)}</b>${n.party.map(p => `<img src="${mzIcon(p.kind, 1, 28)}" alt="${esc(p.name)}">`).join('')}</div>` : '') + '<div class="mz-acts2"><button class="pri" data-m="next">준비</button></div>';
+    + (n && MZ.M.mode !== 'story' ? `<div class="mz-nextp"><span>다음</span><b>${esc(n.name)}</b>${n.party.map(p => `<img src="${mzIcon(p.kind, 1, 28)}" alt="${esc(p.name)}">`).join('')}</div>` : '') + `<div class="mz-acts2"><button class="pri" data-m="next">${MZ.M.mode === 'story' ? '이어서' : '준비'}</button></div>`;
 }
 function mzOverHtml() {
   const M = MZ.M, win = !!(M.over && M.over.win), hist = M.hist.map(h => `<span class="${h.win ? 'w' : 'l'}">${h.raid} ${h.win ? '막음' : '알 −' + h.eggLost}</span>`).join('');
   return `<h3 class="${win ? 'win' : 'lose'}">${win ? '둥지는 남았다' : '알이 깨졌다'}</h3><p class="mz-nar">${esc(win ? MZNAR.end : MZNAR.fall)}</p><p class="mz-sum">${hist}</p><p class="mz-sum"><span>알 ${M.egg}/${M.eggMax}</span><span>Lv ${M.level}</span></p><div class="mz-acts2"><button class="pri" data-m="again">다시 한 판</button><button data-m="home">처음으로</button></div>`;
 }
-function mzNext() { mzSheetClose(); MZ.play = null; MZ.phase = 'prep'; $('mz-ov').innerHTML = ''; mzDraw(); mzSize(); const v = MZ.v; if (v && v.reward && v.reward.opts && v.reward.opts.length) mzSheet({ kind: 'reward' }); }
+function mzNext() { if (MZ.M && MZ.M.mode === 'story') { mzSheetClose(); MZ.play = null; MZ.phase = 'prep'; $('mz-ov').innerHTML = ''; return mzStoryGo(); } mzSheetClose(); MZ.play = null; MZ.phase = 'prep'; $('mz-ov').innerHTML = ''; mzDraw(); mzSize(); const v = MZ.v; if (v && v.reward && v.reward.opts && v.reward.opts.length) mzSheet({ kind: 'reward' }); }
 function mzLoop(now) {
   MZ.raf = requestAnimationFrame(mzLoop); const dt = Math.min(100, now - MZ.last); MZ.last = now; MZ.t = now;
   if (!$('mz') || $('mz').hidden) return; if (MZ.phase === 'raid') mzStep(dt);
@@ -6160,7 +6748,141 @@ function mzBoot() {
   t.addEventListener('click', mzTitleClick); $('modal').addEventListener('click', mzTitleClick); mzTitle();
 }
 // 시험용
-if (typeof window !== 'undefined') window.__maze = { get M() { return MZ.M; }, get meta() { return META; }, get Z() { return MZ; }, get P() { return MZ.play; }, view: () => mzView(), open: run => mzOpen(run), saved: () => mzSaved(), title: () => mzTitle(), redraw: () => mzDraw(), pt(c) { const r = $('mz-cv').getBoundingClientRect(), q = mzPt(c); return { x: r.left + q.x * MZ.k, y: r.top + q.y * MZ.k }; }, spot(c, i) { const r = $('mz-cv').getBoundingClientRect(); if (c === 'core') { const q = MZCORE_SPOTS[i]; return { x: r.left + q[0] * MZ.k, y: r.top + (q[1] - 14) * MZ.k }; } const q = MZUSPOT[i]; return { x: r.left + ((c % 5) * MS + q[0] * MS) * MZ.k, y: r.top + (MTOP + Math.floor(c / 5) * MS + q[1] * MS - 6) * MZ.k }; }, dbg: () => MZ.dbg, speed: () => mzSpeed(), skip: () => mzSkipAll(), give(kind, star, cell) { const M = MZ.M, uid = M.nextUid++; M.unit[uid] = { uid, kind, star: star || 1 }; if (cell != null) M.board[cell] = (M.board[cell] || []).concat([uid]); else M.bench[M.bench.indexOf(null)] = uid; mzDraw(); return uid; } };
+// ======== 이야기 모드 ========
+const MZST = typeof MAZESTORY !== 'undefined' ? MAZESTORY : null;
+const mzChapName = n => (n === 0 ? '서장' : n + '장');
+const MZACT = { raid: '습격', whisper: '속삭임', trade: '거래', hunt: '사냥' };
+// 말한 이의 얼굴: 조사자 여섯은 그림, 다른 이는 이니셜 원
+const MZFACE = { 에다: 'c_eda', '에다 볼크': 'c_eda', 로웬: 'c_rowen', '로웬 하스': 'c_rowen', 미렐: 'c_mirel', '미렐 수녀': 'c_mirel', 토브: 'c_tov', '토브 카인': 'c_tov', 이셀: 'c_isel', '이셀 드란': 'c_isel', 바스코: 'c_vasco', '늙은 바스코': 'c_vasco' };
+const MZLOGWHO = { eda: ['에다', '에다 볼크'], rowen: ['로웬', '로웬 하스'], mirel: ['미렐', '미렐 수녀'], tov: ['토브', '토브 카인'], isel: ['이셀', '이셀 드란'], vasco: ['바스코', '늙은 바스코'] };
+function mzEndsSeen() { return (META && Array.isArray(META.mazeEnds)) ? META.mazeEnds : []; }
+function mzMetaSet(f) { try { if (META) { f(META); saveMeta(); } } catch (e) { /* 저장 없이 */ } }
+function mzAskNew(mode) {
+  const m = $('modal'); m.innerHTML = `<div class="sh-box mz-ask" role="dialog" aria-modal="true"><div class="sh-head"><h2>${mode === 'story' ? '이야기' : '자유'} 새로 시작</h2><button class="sh-x" data-z="mclose" aria-label="닫기">✕</button></div><div class="sh-body"><p>${mode === 'story' ? '이야기의' : '자유 판의'} 저장을 지운다. 다른 모드의 저장은 남는다.</p><div class="mz-row2"><button class="btn pri" data-z="newYes" data-mode="${mode}">지우고 시작</button><button class="btn" data-z="mclose">그만둔다</button></div></div></div>`; m.hidden = false;
+}
+// 기록: 조사자의 기록 조각. 그 조사자가 나오는 장에 닿으면 첫 조각, 그 장을 넘기면 둘째 조각
+function mzLogFirst(key) { if (!MZST) return 99; const names = MZLOGWHO[key] || []; for (let c = 0; c < MZST.chapters.length; c++) { const C = MZST.chapters[c], groups = [C.start, C.end].concat(C.between || []); if (groups.some(g => (g || []).some(sc => (sc.who || []).some(w => names.includes(w)) || sc.lines.some(l => l.who && names.includes(l.who))))) return c; } return 99; }
+function mzLogsHtml() {
+  if (!MZST || !MZST.logs) return '<p>없다.</p>'; const reach = META && META.mazeReach != null ? META.mazeReach : -1;
+  return Object.keys(MZST.logs).map(k => { const at = mzLogFirst(k), parts = MZST.logs[k], kind = MZFACE[(MZLOGWHO[k] || [])[0]], nm = kind && LAIR.INV && LAIR.INV[kind] ? LAIR.INV[kind].name : k;
+    const open = parts.filter((t, i) => reach >= at + i); return `<div class="mz-log1"><div class="mz-loghd">${kind ? `<img src="${mzIcon(kind, 1, 28)}" alt="">` : ''}<b>${open.length ? esc(nm) : '아직 모른다'}</b><small>${open.length}/${parts.length}</small></div>${open.map(t => `<p class="mz-lognote">${esc(t)}</p>`).join('')}</div>`; }).join('');
+}
+function mzStoryNew() { const M = MAZE.newStory((Date.now() % 1000000) + 1); M.ui = { guided: {}, read: { q: 'start', ch: 0, i: 0, s: 0, l: 0, card: 1 } }; mzMetaSet(m => { m.mazeReach = Math.max(m.mazeReach != null ? m.mazeReach : -1, 0); }); mzOpen(M); mzStoryGo(); }
+function mzStoryResume(M) { M.ui = M.ui || { guided: {} }; mzOpen(M); mzStoryGo(); }
+// 침입 하나가 끝나면 그 뒤에 읽을 묶음: 침입 사이 장면(없으면 곧바로 밤 / 준비), 장 끝, 알이 깨진 장의 다시, 결말
+function mzStoryQueue(M, next, raidNo) {
+  const ch = M.chapter; M.ui = M.ui || { guided: {} };
+  if (next === 'over') { M.ui.read = M.over && M.over.ending ? { q: 'ending', ch, key: M.over.ending, s: 0, l: 0 } : { q: 'retry', ch, s: 0, l: 0 }; return; }
+  if (next === 'chapterEnd') { M.ui.read = { q: 'end', ch, s: 0, l: 0 }; return; }
+  const B = MZST && MZST.chapters[ch] && MZST.chapters[ch].between ? MZST.chapters[ch].between[raidNo - 1] : null; M.ui.read = B && B.length ? { q: 'between', ch, i: raidNo - 1, s: 0, l: 0 } : null;
+}
+function mzScenes(r) { if (!MZST || !r) return []; const C = MZST.chapters[r.ch] || {}; if (r.q === 'start') return C.start || []; if (r.q === 'end') return C.end || []; if (r.q === 'between') return (C.between || [])[r.i] || []; if (r.q === 'retry') return MZST.retry || []; if (r.q === 'ending') return (MZST.endings[r.key] || {}).scenes || []; return []; }
+const mzReadKey = r => r.q + ':' + r.ch + ':' + (r.q === 'between' ? r.i : r.q === 'ending' ? r.key : '');
+// 다음에 할 것: 읽을 것이 있으면 읽기, 밤이면 밤의 한 수, 아니면 지도
+function mzStoryGo() {
+  const M = MZ.M; if (!M || M.mode !== 'story') return; M.ui = M.ui || { guided: {} }; mzSave();
+  if (M.ui.read) return mzRead();
+  mzReadClose(); if (M.night) return mzNight();
+  if (M.phase === 'over' || M.phase === 'chapterEnd') { mzStoryQueue(M, M.phase === 'over' ? 'over' : 'chapterEnd', M.raid); return mzRead(); }
+  MZ.phase = 'prep'; mzDraw(); mzSize(); const v = MZ.v; if (v && v.reward && v.reward.opts && v.reward.opts.length) mzSheet({ kind: 'reward' });
+}
+// 읽기를 다 마치면
+function mzReadDone() {
+  const M = MZ.M, r = M.ui.read; if (!r) return mzStoryGo(); mzMetaSet(m => { m.mazeSeen = m.mazeSeen || {}; m.mazeSeen[mzReadKey(r)] = 1; }); M.ui.read = null;
+  if (r.q === 'end') { const x = MAZE.nextChapter(M); if (x.ok) { mzMetaSet(m => { m.mazeReach = Math.max(m.mazeReach != null ? m.mazeReach : -1, M.chapter); }); M.ui.read = { q: 'start', ch: M.chapter, s: 0, l: 0, card: 1 }; MZ.dug0 = MAZE.dugCount(M); } return mzStoryGo(); }
+  if (r.q === 'retry') { const x = MAZE.retryChapter(M); M.ui = { guided: {}, read: x.ok ? { q: 'start', ch: M.chapter, s: 0, l: 0, card: 1 } : null }; MZ.dug0 = MAZE.dugCount(M); return mzStoryGo(); }
+  if (r.q === 'ending') { const k = r.key; mzMetaSet(m => { m.mazeEnds = Array.from(new Set(mzEndsSeen().concat([k]))); m.mazeReach = Math.max(m.mazeReach != null ? m.mazeReach : -1, MZST.chapters.length); }); mzSaveDel('story'); return mzEndingCard(k); }
+  return mzStoryGo();
+}
+// ---- 장면 읽기 ----
+function mzReadMount() {
+  let el = $('mzr'); if (el) return el; el = document.createElement('div'); el.id = 'mzr'; el.hidden = true; document.body.appendChild(el);
+  el.addEventListener('click', e => { const b = e.target.closest('[data-r]'); return mzReadClick(b ? b.dataset.r : 'tap', b); });
+  window.addEventListener('keydown', e => { if (el.hidden) return; if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); mzReadClick('tap'); } if (e.key === 'Escape') mzReadClick('skipscene'); });
+  return el;
+}
+function mzReadClose() { const el = $('mzr'); if (el) { el.hidden = true; el.innerHTML = ''; } MZ.reading = false; const m = $('mz'); if (m) m.removeAttribute('aria-hidden'); }
+// 읽는 동안 뒤의 지도는 가려 둔다 (읽기 화면 밖으로 눌리지도, 읽히지도 않게)
+function mzReadShow(el) { el.hidden = false; MZ.reading = true; const m = $('mz'); if (m) m.setAttribute('aria-hidden', 'true'); }
+function mzRead() {
+  const M = MZ.M, r = M.ui.read, el = mzReadMount(); el.onclick = null; mzReadShow(el); MZ.readT0 = performance.now(); mzMusic('title');
+  if (r.card) { const C = MZST.chapters[r.ch] || {}; el.className = 'card'; el.innerHTML = `<div class="mzr-card"><small>${esc(mzChapName(r.ch))}</small><h2>${esc(C.title || '')}</h2><p>${esc(C.concept || '')}</p><span class="mzr-tap">누르면 넘어간다</span></div>`; MZ.dbgRead = { card: r.ch }; return; }
+  const scs = mzScenes(r); if (!scs.length || r.s >= scs.length) return mzReadDone();
+  const sc = scs[r.s], seen = !!(META && META.mazeSeen && META.mazeSeen[mzReadKey(r)]); el.className = 'read';
+  el.innerHTML = `<div class="mzr-head"><span><b>${esc(sc.place || '')}</b><small>${esc((sc.who || []).join(' · '))}</small></span><button data-r="skipscene">넘기기</button><button data-r="skipall" class="mzr-all"${seen ? '' : ' hidden'}>건너뛰기</button></div><div class="mzr-lines" aria-live="polite"></div><div class="mzr-foot"><span>${r.s + 1}/${scs.length}</span><span class="mzr-tap">누르면 다음 줄</span></div>`;
+  if (!seen) setTimeout(() => { const b = el.querySelector('.mzr-all'); if (b && MZ.M && MZ.M.ui && MZ.M.ui.read === r) b.hidden = false; }, 1500);
+  const box = el.querySelector('.mzr-lines'); for (let i = 0; i < Math.max(1, r.l); i++) mzLineAdd(box, sc.lines[i], i === r.l - 1 || (r.l === 0 && i === 0));
+  if (r.l === 0) r.l = 1; MZ.dbgRead = { q: r.q, ch: r.ch, s: r.s, l: r.l, n: sc.lines.length, scenes: scs.length };
+}
+function mzLineAdd(box, L, fresh) {
+  if (!L) return; const d = document.createElement('div'), anim = fresh && (typeof motionOk !== 'function' || motionOk()); d.className = 'mzr-l k-' + L.k + (anim ? ' in' : '');
+  if (L.k === 'say') { const kind = MZFACE[L.who]; d.innerHTML = `<span class="mzr-face">${kind ? `<img src="${mzIcon(kind, 1, 32)}" alt="">` : `<i>${esc((L.who || '?').slice(0, 1))}</i>`}</span><span class="mzr-say"><b>${esc(L.who || '')}</b><span>${esc(L.t)}</span></span>`; }
+  else if (L.k === 'note') d.innerHTML = `${L.who ? `<b>${esc(L.who)}</b>` : ''}<span>${esc(L.t)}</span>`;
+  else d.textContent = L.t;
+  box.appendChild(d); if (box.scrollHeight > box.clientHeight) box.scrollTop = box.scrollHeight;
+}
+function mzReadClick(a) {
+  const M = MZ.M; if (!M || !M.ui || !M.ui.read) return; const r = M.ui.read;
+  if (performance.now() - (MZ.readT0 || 0) < 120) return; mzSay('click');
+  if (r.card) { r.card = 0; mzSave(); return mzRead(); }
+  const scs = mzScenes(r), sc = scs[r.s]; if (!sc) return mzReadDone();
+  if (a === 'skipall') { r.s = scs.length; return mzReadDone(); }
+  if (a === 'skipscene' && r.l < sc.lines.length) { const box = $('mzr').querySelector('.mzr-lines'); for (let i = r.l; i < sc.lines.length; i++) mzLineAdd(box, sc.lines[i], false); r.l = sc.lines.length; mzSave(); MZ.dbgRead.l = r.l; return; }
+  if (r.l < sc.lines.length) { mzLineAdd($('mzr').querySelector('.mzr-lines'), sc.lines[r.l], true); r.l++; mzSave(); MZ.dbgRead.l = r.l; return; }
+  r.s++; r.l = 0; mzSave(); if (r.s >= scs.length) return mzReadDone(); return mzRead();
+}
+// ---- 결말 ----
+function mzEndingCard(k) {
+  const E = MZST.endings[k] || {}, el = mzReadMount(); mzReadShow(el); el.className = 'card ending'; MZ.readT0 = performance.now();
+  el.innerHTML = `<div class="mzr-card"><small>결말 ${esc(k)}</small><h2>${esc(E.title || '')}</h2><p>본 결말 ${mzEndsSeen().length}/5</p><button class="btn pri" data-r="home">처음으로</button></div>`; MZ.dbgRead = { ending: k };
+  el.onclick = e => { if (e.target.closest('[data-r="home"]')) { el.onclick = null; mzReadClose(); MZ.M = null; $('mz').hidden = true; mzTitle(); } };
+}
+// ---- 밤의 한 수 ----
+function mzNight() {
+  const M = MZ.M; MZ.phase = 'night'; const v = mzView(), N = v.night, el = mzReadMount(); if (!N) { MZ.phase = 'prep'; return mzStoryGo(); }
+  mzReadShow(el); el.className = 'night'; MZ.nightSel = MZ.nightSel != null && MZ.nightSel < N.offer.length ? MZ.nightSel : null; mzMusic('night');
+  const st = v.story, lights = N.offer.map(c => c.place), sel = MZ.nightSel != null ? N.offer[MZ.nightSel] : null;
+  el.innerHTML = `<div class="mzn-top"><b>${esc(mzChapName(st.chapter))} · 밤</b><div class="mzn-alert" aria-label="경계 ${st.alert}/${st.alertMax}"><span>경계</span><i>${Array.from({ length: st.alertMax }, (x, i) => `<em class="${i < st.alert ? 'on' : ''}${st.alertSteps.includes(i + 1) ? ' step' : ''}"></em>`).join('')}</i><b>${st.alert}</b></div></div>`
+    + `<canvas id="mzn-sky" width="320" height="96" role="img" aria-label="밤의 지상"></canvas>`
+    + `<div class="mzn-cards">${N.offer.map((c, i) => { const T = mzCardText(c.id); return `<button class="mzn-card${MZ.nightSel === i ? ' on' : ''}" data-r="ncard" data-i="${i}"${c.can ? '' : ' disabled'} aria-pressed="${MZ.nightSel === i}"><small>${esc(MZST.night.places[c.place] || '')} · ${esc(MZACT[c.act] || '')}${c.cost ? ' · 진액 ' + c.cost : ''}</small><b>${esc(T.name)}</b><span>${esc(T.short)}</span></button>`; }).join('')}</div>`
+    + `<div class="mzn-acts"><button class="pri" data-r="npick"${sel ? '' : ' disabled'}>${sel ? '고른다 · ' + esc(mzCardText(sel.id).name) : '카드를 고른다'}</button><button data-r="nskip">고르지 않는다</button></div>`;
+  mzSkyDraw(lights, sel ? sel.place : null); MZ.dbgRead = { night: N.offer.map(c => c.id) };
+  el.onclick = e => { const b = e.target.closest('[data-r]'); if (!b) return; const a = b.dataset.r; if (a === 'ncard') { mzSay('click'); MZ.nightSel = +b.dataset.i; return mzNight(); } if (a === 'npick' || a === 'nskip') return mzNightPick(a === 'nskip' ? -1 : MZ.nightSel); if (a === 'nnext') { el.onclick = null; MZ.nightSel = null; mzReadClose(); MZ.phase = 'prep'; return mzStoryGo(); } };
+}
+const mzCardText = id => ((MZST && MZST.night.cards.find(c => c.id === id)) || { name: id, short: '', outcome: '' });
+function mzNightPick(i) {
+  const M = MZ.M, before = M.alert, r = MAZE.nightPick(M, i == null ? -1 : i); if (!r.ok) return mzToast(r.msg); mzSay(r.skip ? 'click' : 'thud'); mzSave();
+  const el = $('mzr'), T = r.id ? mzCardText(r.id) : null, g = r.gains || {}, list = [g.gold ? '진액 +' + g.gold : '', (g.kin || []).map(k => (LAIR.KIN[k] ? LAIR.KIN[k].name : k) + ' 하나').join(' · '), g.egg ? '알 ' + (g.egg > 0 ? '+' : '−') + Math.abs(g.egg) : '', g.trap ? '함정 · ' + (MAZE.trapInfo(g.trap) || {}).name : '', g.lure ? '미끼 불빛 ' + g.lure : '', g.clue ? '단서 ' + g.clue : ''].filter(Boolean);
+  const text = !T ? '그 밤에는 아무 데도 가지 않았다.' : r.success === false && T.outcomeFail ? T.outcomeFail : T.outcome;
+  el.innerHTML = `<div class="mzn-top"><b>${esc(T ? T.name : '고르지 않았다')}</b><div class="mzn-alert"><span>경계</span><b>${before} → ${r.alert}</b></div></div><canvas id="mzn-sky" width="320" height="96" role="img" aria-label="밤의 지상"></canvas><div class="mzn-res"><p>${esc(text)}</p>${r.success != null ? `<p class="mzn-hunt">${r.success ? '사냥이 되었다' : '사냥이 어긋났다'}</p>` : ''}${list.length ? `<p class="mzn-gain">${list.map(esc).join(' · ')}</p>` : ''}</div><div class="mzn-acts"><button class="pri" data-r="nnext">준비</button></div>`;
+  mzSkyDraw([], T ? (MAZE.CARDS.find(c => c.id === r.id) || {}).place : null); MZ.dbgRead = { nightDone: r.id || 'skip', success: r.success };
+}
+// 지상 띠: 밤 하늘, 마을 · 예배당 · 기록관의 집 · 연금술 공방 · 북쪽 탑. 고를 수 있는 곳만 창에 불빛
+function mzSkyDraw(lights, pick) {
+  const cv = $('mzn-sky'); if (!cv) return; const x = cv.getContext('2d'), W = cv.width, H = cv.height, g = x.createLinearGradient(0, 0, 0, H); x.imageSmoothingEnabled = false;
+  g.addColorStop(0, '#05040c'); g.addColorStop(1, '#141028'); x.fillStyle = g; x.fillRect(0, 0, W, H);
+  x.fillStyle = '#cfc8e8'; for (let i = 0; i < 40; i++) { const sx = (i * 73) % W, sy = (i * 37) % (H - 40); x.globalAlpha = 0.3 + (i % 5) / 8; x.fillRect(sx, sy, 1, 1); } x.globalAlpha = 1;
+  x.fillStyle = '#0a0812'; x.beginPath(); x.moveTo(0, H - 16); for (let i = 0; i <= W; i += 16) x.lineTo(i, H - 16 - Math.round(4 * Math.sin(i / 27))); x.lineTo(W, H); x.lineTo(0, H); x.fill();
+  const any = lights.includes('any'), lit = p => any || lights.includes(p), win = (wx, wy, p) => { x.fillStyle = lit(p) ? (pick === p || (pick === 'any' && lit(p)) ? '#fff0a0' : '#e8b048') : '#1c1830'; x.fillRect(wx, wy, 3, 3); };
+  const B = (p, f) => { x.fillStyle = '#0a0812'; f(); }, dark = () => { x.fillStyle = '#0a0812'; };
+  B('village', () => { [[10, 62, 18, 14], [30, 58, 16, 18], [48, 64, 14, 12]].forEach(([bx, by, bw, bh]) => { dark(); x.fillRect(bx, by, bw, bh); x.beginPath(); x.moveTo(bx - 2, by); x.lineTo(bx + bw / 2, by - 8); x.lineTo(bx + bw + 2, by); x.fill(); win(bx + bw / 2 - 1, by + 5, 'village'); }); });
+  B('chapel', () => { x.fillRect(78, 54, 22, 26); x.fillRect(86, 34, 6, 20); x.beginPath(); x.moveTo(84, 34); x.lineTo(89, 22); x.lineTo(94, 34); x.fill(); x.fillRect(88, 16, 2, 6); x.fillRect(86, 18, 6, 2); win(88, 60, 'chapel'); win(88, 40, 'chapel'); });
+  B('archive', () => { x.fillRect(120, 52, 30, 28); x.beginPath(); x.moveTo(116, 52); x.lineTo(135, 38); x.lineTo(154, 52); x.fill(); win(126, 60, 'archive'); win(140, 60, 'archive'); });
+  B('workshop', () => { x.fillRect(176, 58, 34, 22); x.fillRect(200, 36, 6, 22); win(184, 64, 'workshop'); if (lit('workshop')) { x.fillStyle = '#6a5a8a'; x.globalAlpha = 0.5; x.fillRect(201, 28, 4, 6); x.fillRect(203, 22, 4, 5); x.globalAlpha = 1; } });
+  B('tower', () => { x.fillStyle = '#0a0812'; x.fillRect(262, 18, 14, 62); x.fillRect(258, 14, 22, 6); win(268, 30, 'tower'); win(268, 50, 'tower'); });
+  const L = { village: [10, '마을'], chapel: [72, '예배당'], archive: [118, '기록관의 집'], workshop: [172, '연금술 공방'], tower: [246, '북쪽 탑'] }; x.font = '9px "Nest Sans", sans-serif'; x.textBaseline = 'top';
+  Object.keys(L).forEach(k => { x.fillStyle = lit(k) ? '#e8dcc0' : '#4a4460'; x.fillText(L[k][1], L[k][0], H - 12); });
+}
+// ---- 장의 안내 한 줄 (지도 위 띠) ----
+const mzGuideKey = M => M.chapter + ':' + M.raid;
+function mzGuide() {
+  const c = $('mz-coach'), M = MZ.M; if (!c || !M) return; const C = MZST && MZST.chapters[M.chapter], G = C && C.guide ? C.guide : [], line = G[Math.min(M.raid - 1, G.length - 1)];
+  if (!line || MZ.phase !== 'prep' || MZ.sheet || MZ.reading || (M.ui && M.ui.guided && M.ui.guided[mzGuideKey(M)]) || (M.raid > G.length && M.ui && M.ui.guided && M.ui.guided[M.chapter + ':' + G.length])) { c.hidden = true; $('mz-ring').hidden = true; return; }
+  const cv = $('mz-cv'); if (!cv) return; const r = cv.getBoundingClientRect(), at = { left: r.left + r.width / 2 - 1, top: r.top + 4, width: 2, height: 2 };
+  if (c.dataset.h !== line) { c.innerHTML = `<p>${esc(line)}</p><span><button data-m="guideok">알았다</button></span>`; c.dataset.h = line; } c.hidden = false; c.className = 'strip guide'; const vw = window.innerWidth;
+  c.style.width = Math.min(vw - 16, r.width + 40) + 'px'; c.style.left = Math.max(8, Math.round(r.left + r.width / 2 - Math.min(vw - 16, r.width + 40) / 2)) + 'px'; c.style.top = Math.round(r.top + MTOP * MZ.k + 6) + 'px'; $('mz-ring').hidden = true; MZ.coachAt = null; MZ.dbgGuide = line; void at;
+}
+if (typeof window !== 'undefined') window.__maze = { get M() { return MZ.M; }, get meta() { return META; }, get Z() { return MZ; }, get P() { return MZ.play; }, view: () => mzView(), open: run => mzOpen(run), saved: () => mzSaved(), title: () => mzTitle(), redraw: () => mzDraw(), pt(c) { const r = $('mz-cv').getBoundingClientRect(), q = mzPt(c); return { x: r.left + q.x * MZ.k, y: r.top + q.y * MZ.k }; }, spot(c, i) { const r = $('mz-cv').getBoundingClientRect(); if (c === 'core') { const q = MZCORE_SPOTS[i]; return { x: r.left + q[0] * MZ.k, y: r.top + (q[1] - 14) * MZ.k }; } const q = MZUSPOT[i]; return { x: r.left + ((c % 5) * MS + q[0] * MS) * MZ.k, y: r.top + (MTOP + Math.floor(c / 5) * MS + q[1] * MS - 6) * MZ.k }; }, dbg: () => MZ.dbg, speed: () => mzSpeed(), read: () => (MZ.reading ? MZ.dbgRead : null), guide: () => MZ.dbgGuide || null, story: () => ({ go: mzStoryGo, done: mzReadDone, night: mzNight }), skip: () => mzSkipAll(), give(kind, star, cell) { const M = MZ.M, uid = M.nextUid++; M.unit[uid] = { uid, kind, star: star || 1 }; if (cell != null) M.board[cell] = (M.board[cell] || []).concat([uid]); else M.bench[M.bench.indexOf(null)] = uid; mzDraw(); return uid; } };
 mzBoot();
 })();</script>
 </body></html>

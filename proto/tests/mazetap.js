@@ -8,7 +8,7 @@ const html = fs.readFileSync(path.join(__dirname, '..', '..', 'PLAY-MAZE.html'),
   p.on('pageerror', e => errs.push(e.message)); p.setDefaultTimeout(9000);
   await p.route('http://nest.test/', r => r.fulfill({ contentType: 'text/html', body: html })); await p.route(/fonts\./, r => r.abort());
   await p.goto('http://nest.test/'); await p.waitForTimeout(400);
-  await p.tap('[data-z="start"]'); await p.waitForTimeout(500);
+  await p.tap('[data-z="free"]'); await p.waitForTimeout(500);
   for (let k = 0; k < 6; k++) { const c = await p.$('#mz-coach [data-m="tutoff"]'); if (c) { await c.tap(); await p.waitForTimeout(120); } }
   for (const cell of [7, 12, 17, 22, 27, 32]) {
     await p.evaluate(c => { const M = __maze.M; M.gold = 50; Object.keys(M.board).forEach(k => delete M.board[k]); M.unit = {}; M.bench = [null, null, null, null, null, null];
