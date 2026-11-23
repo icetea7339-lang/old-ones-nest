@@ -20,7 +20,7 @@ function checkFight(f, tag) {
   ok(v.cols === 5 && v.rows === 8 && v.grid.length === 40 && v.coreCell === 'core' && v.eggCell === 'egg' && MZ.CORE === 'core' && MZ.EGG === 'egg' && MZ.EXIT === C(7, 2) && v.entrance.cell === C(0, 2) && v.entrance.r === -1 && v.exit.cell === C(7, 2), '지도: 본체 방과 알의 방은 격자 밖');
   ok([0, 1, 2, 3, 4, 5, 6, 7].every(r => v.grid[C(r, 2)].dug && v.grid[C(r, 2)].use === 'path') && v.grid.filter(g => g.dug).length === 8 && v.grid.every(g => g.use !== 'core' && g.use !== 'egg') && v.grid[C(0, 2)].fixed && v.grid[C(7, 2)].fixed && v.grid.filter(g => g.fixed).length === 2, '처음에는 입구에서 출구까지 곧은 굴');
   ok(v.core && Array.isArray(v.core.units) && !v.core.units.length && v.core.max === 2 && v.core.form === 'drop' && v.core.step === 0, '본체 방의 보기');
-  ok(v.raid === 1 && v.raids === 4 && v.egg.hp === MZ.MK.egg && v.gold === MZ.MK.gold && v.cap === MZ.MK.level && v.shop.length === 5 && v.bench.length === 6 && v.next.name === MZ.RAIDS[0].name && v.next.party.length === 4 && v.next.path.join() === [2, 7, 12, 17, 22, 27, 32, 37].join(), '새 판의 보기');
+  ok(v.raid === 1 && v.raids === null && v.endless && v.score.raids === 0 && v.daily === null && v.egg.hp === MZ.MK.egg && v.gold === MZ.MK.gold && v.cap === MZ.MK.level && v.shop.length === 5 && v.bench.length === 6 && v.next.name === MZ.RAIDS[0].name && v.next.party.length === 4 && v.next.path.join() === [2, 7, 12, 17, 22, 27, 32, 37].join(), '새 판의 보기');
   ok(v.grid.every(g => 'r' in g && 'c' in g && 'dug' in g && 'use' in g && 'room' in g && 'trap' in g && Array.isArray(g.units) && 'canDig' in g && 'digCost' in g && 'canFill' in g && 'fillGold' in g), '칸마다의 보기');
   ok(v.rooms.length === 8 && v.traps.length === 7 && v.traps.filter(t => t.maze).length === 3 && v.traps.every(t => t.cost >= 2 && t.cost <= 3) && v.traps.every(t => t.name && t.short && t.short.length <= 16 && t.more), '방과 함정 보기');
 }
@@ -124,7 +124,7 @@ function checkFight(f, tag) {
   ok(M.gold === MZ.MK.gold + MZ.MK.income && M.xp === MZ.MK.xpRaid, '침입 뒤 진액과 경험');
   M.egg = 1; const r2 = rd(M); ok(r2.next === 'over' && M.phase === 'over' && M.over && !M.over.win && !rd(M).ok, '알이 깨지면 진다');
   const W = MZ.newRun(31); W.level = 6; ['shell', 'maw', 'heap', 'famine', 'mother', 'tangle'].forEach((k, i) => { const c = [C(1, 2), C(3, 2)][i % 2]; MZ.setUse(W, c, 'kin'); give(W, k, 3, c); });
-  let last = null; for (let k = 0; k < 4 && W.phase === 'prep'; k++) last = rd(W); ok(W.phase === 'over' && W.over.win && W.over.raid === 4 && last.next === 'over' && last.result.win, '넷을 막으면 이긴다');
+  let last = null; for (let k = 0; k < 4 && W.phase === 'prep'; k++) last = rd(W); ok(W.phase === 'prep' && W.raid === 5 && last.next === 'prep' && last.result.win && W.score.raids === 4, '넷을 막아도 끝나지 않는다 (끝없는 자유)');
 }
 // 9. 저장 · 불러오기 · 같은 씨앗
 {
@@ -311,5 +311,27 @@ function checkFight(f, tag) {
   const S = MZ.newStory(22); S.chapter = 2; S.raids = 3; S.raid = 3; S.level = 6; for (let k = 0; k < 2; k++) { const u = give(S, 'heap', 3); MZ.move(S, u, { cell: C(1, 2) }); }
   const sr = MZ.raid(S); if (S.phase === 'chapterEnd') { ok(S.awaken && S.awaken.step === 1 && MZ.nextChapter(S).msg === '깨어남을 먼저 고른다', '이야기 장 2 끝에 깨어남'); MZ.awaken(S, 0); ok(MZ.nextChapter(S).ok && S.chapter === 3 && S.body.step === 1, '깨어난 몸은 다음 장으로 이어진다'); }
   const Z = MZ.newStory(23); Z.chapter = 6; Z.raids = 3; Z.raid = 3; ok(MZ.view(Z).core.step === 3 && MZ.view(Z).core.realStep === 0, '장 6 마지막 침입 앞: 그림은 3단계');
+}
+// 16. 끝없는 자유 · 오늘의 판
+{
+  const M = MZ.newRun(41), d5 = MZ.raidOf(M, 5), d6 = MZ.raidOf(M, 6), d10 = MZ.raidOf(M, 10), d2 = MZ.raidOf(M, 2), d20 = MZ.raidOf(M, 20);
+  const tot = D => D.units.reduce((a, k) => a + L.INV[k].hp, 0) * D.scale.hp;
+  ok(d5.boss && d10.boss && !d5.units.includes('seeker') && d5.units.includes('paladin') && d10.units.includes('seeker') && MZ.raidOf(M, 20).units.includes('seekerm') && !d6.boss && d20.units.length > d6.units.length && tot(d20) > tot(d10), '침입 n: 5마다 우두머리 (10마다 책을 쫓는 자), 갈수록 세지고 머릿수가 는다');
+  let smooth = true; for (let k = 6; k <= 24; k++) { const a = MZ.raidOf(M, k - 1), b = MZ.raidOf(M, k); if (!a.boss && !b.boss && Math.abs(tot(b) - tot(a)) > MZ.MK.endless.hpStep * 1.01) smooth = false; } ok(smooth, '무리 전체의 체력은 곡선을 따른다 (튀지 않는다)');
+  ok(MZ.raidOf(M, 8).name === '교회의 무리' && MZ.raidOf(M, 12).name === '조사자들' && JSON.stringify(MZ.raidOf(M, 9)) === JSON.stringify(MZ.raidOf(clone(M), 9)), '고비에 새 무리, 같은 판이면 같은 무리');
+  const H = clone(M); H.raid = 13; ok(MZ.dugCap(H) > MZ.MK.dugCap[3] && MZ.view(H).maxLv > MZ.MK.maxLv, '판 칸·레벨 상한이 오른다');
+  // 알이 깨질 때까지 간다, 점수
+  const P = MZ.newRun(42); P.level = 6; [C(1, 2), C(3, 2)].forEach((c, i) => { MZ.setUse(P, c, 'kin'); give(P, ['shell', 'maw'][i], 3, c); give(P, 'famine', 3, c); });
+  let n = 0; while (P.phase === 'prep' && n < 60) { rd(P); n++; }
+  ok(P.phase === 'over' && P.egg <= 0 && P.over.score && P.over.score.raids === P.raid - 1 && P.over.score.raids >= 1 && P.over.score.total === P.over.score.raids * 10000 + P.over.score.egg * 100 + P.over.score.kills && P.score.kills > 0, '알이 깨지면 끝, 점수 ' + P.over.score.raids);
+  const V = MZ.view(P); ok(V.score.raids === P.over.score.raids && V.over.score.total === V.score.total, '점수 보기');
+  // 저장·불러오기
+  const S = MZ.newRun(43); rd(S); const L1 = MZ.load(MZ.save(S)); ok(L1 && L1.endless && L1.score.raids === S.score.raids && JSON.stringify(MZ.view(L1)) === JSON.stringify(MZ.view(S)), '저장·불러오기: 끝없는 판');
+  // 오늘의 판
+  const A = MZ.newDaily('2026-11-23'), B = MZ.newDaily('2026-11-23'), D = MZ.newDaily('2026-11-24');
+  ok(A.daily === '2026-11-23' && MZ.view(A).daily === '2026-11-23' && A.seed === B.seed && A.seed !== D.seed && A.shop.join() === B.shop.join() && A.endless, '오늘의 판: 같은 날 같은 씨앗·상점');
+  const play = X => { const out = []; for (let k = 0; k < 4 && X.phase === 'prep'; k++) { if (X.awaken) MZ.awaken(X, 1); X.gold += 0; const r = MZ.raid(X); out.push(JSON.stringify([r.result, X.shop, X.awaken && X.awaken.offer])); } return out.join('|'); };
+  ok(play(A) === play(B), '오늘의 판: 같은 선택이면 같은 결과'); ok(MZ.newDaily('nope').daily === new Date().toISOString().slice(0, 10), '날짜가 틀리면 오늘');
+  ok(JSON.stringify(MZ.newDaily('2026-11-23').shop) !== JSON.stringify(MZ.newDaily('2026-11-25').shop) || MZ.newDaily('2026-11-23').seed !== MZ.newDaily('2026-11-25').seed, '다른 날은 다른 판');
 }
 console.log(bad ? '실패 ' + bad : '굴 짓기 규칙: 모두 맞음'); process.exitCode = bad ? 1 : 0;

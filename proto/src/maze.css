@@ -254,3 +254,12 @@
 #mz #mz-shop .mz-card.formk { border-color: var(--fk); box-shadow: inset 0 0 0 1px var(--fk), 0 0 6px var(--fk); }
 #mz-sheet .mz-mixed { display: block; color: #e8b0f0; font-size: 12px; }
 #mz #mz-shop .mz-card.formk::after { content: ''; position: absolute; right: 4px; bottom: 4px; width: 8px; height: 8px; border-radius: 50%; background: var(--fk); box-shadow: 0 0 5px var(--fk); }
+/* ===== 끝없는 자유 · 오늘의 판 ===== */
+#mz-bar .mz-rd.boss { border-color: #e05a5a; color: #ffb0a0; } #mz-bar .mz-rd small { display: block; font-size: 10px; line-height: 1; color: #ff8a70; }
+#mz-sheet .mz-nextp.boss span { color: #ff8a70; font-weight: 700; } .mz-bossb { font-size: 12px; color: #ff8a70; border: 1px solid #e05a5a; border-radius: 4px; padding: 0 4px; vertical-align: middle; }
+#mz-sheet .mz-sub { margin: -2px 0 8px; color: var(--mute); font-size: 13px; }
+#mz-sheet .mz-score { display: flex; gap: 6px; } #mz-sheet .mz-score > div { flex: 1 1 0; display: flex; flex-direction: column; align-items: center; padding: 8px 4px; background: #14121f; border: 1px solid #2a2740; border-radius: 10px; }
+#mz-sheet .mz-score b { font-size: 26px; font-family: var(--display); color: #f0e6ff; } #mz-sheet .mz-score small { font-size: 12px; color: var(--mute); }
+#mz-sheet .mz-best { margin: 8px 0 0; font-size: 14px; color: var(--mute); text-align: center; } #mz-sheet .mz-best.new { color: #ffd040; font-weight: 700; }
+#mz-sheet .mz-marks { margin: 6px 0 8px; text-align: center; font-size: 16px; letter-spacing: 2px; color: #c8bce8; word-break: break-all; }
+#mz-copybox textarea { width: 100%; box-sizing: border-box; margin-top: 8px; padding: 8px; font: inherit; font-size: 14px; color: var(--text); background: #0f0d18; border: 1px solid #3a3658; border-radius: 8px; resize: none; -webkit-user-select: text; user-select: text; }

@@ -110,7 +110,7 @@ function awakenTurn(M, st, rng) {
 }
 function playRun(seed, name) {
   const st = STRAT[name], rng = mk(seed * 31 + 7), M = MZ.newRun(seed), log = [];
-  while (M.phase === 'prep') {
+  while (M.phase === 'prep' && log.length < 80) {
     if (M.awaken) { awakenTurn(M, st, rng); continue; }
     if (st.random) randomTurn(M, rng);
     else { build(M, st, st.digKeep != null ? st.digKeep : M.raid === 1 ? 6 : 4); shop(M, st, rng, st.traps ? st.trapGold || 4 : 0); arrange(M, st, rng); traps(M, st); }
@@ -121,14 +121,16 @@ function playRun(seed, name) {
 }
 const pc = (a, b) => (b ? Math.round(100 * a / b) : '-');
 function report(name, n) {
-  const o = { n, forms: {}, win: 0, perfect: 0, egg: 0, rw: [0, 0, 0, 0], rn: [0, 0, 0, 0], ft: [], sum: [], len: [0, 0, 0, 0], nf: [0, 0, 0, 0], lostScout: [0, 0, 0, 0], avoid: [0, 0, 0, 0], brk: [0, 0, 0, 0], chg: [0, 0, 0, 0], traps: 0, mads: 0 };
+  const o = { n, surv: [], kills: 0, forms: {}, win: 0, perfect: 0, egg: 0, rw: [0, 0, 0, 0], rn: [0, 0, 0, 0], ft: [], sum: [], len: [0, 0, 0, 0], nf: [0, 0, 0, 0], lostScout: [0, 0, 0, 0], avoid: [0, 0, 0, 0], brk: [0, 0, 0, 0], chg: [0, 0, 0, 0], traps: 0, mads: 0 };
   for (let s = 1; s <= n; s++) {
     const { M, log } = playRun(s * 7919 + 13, name); if (M.over && M.over.win) o.win++; const fk = M.body ? M.body.form + (M.body.prev ? '*' : '') : 'drop'; o.forms[fk] = o.forms[fk] || [0, 0]; o.forms[fk][0]++; if (M.over && M.over.win) o.forms[fk][1]++; if (log.length === 4 && log.every(f => f.win)) o.perfect++; o.egg += M.egg;
-    log.forEach((f, i) => { o.rn[i]++; if (f.win) o.rw[i]++; o.len[i] += f.len; o.nf[i] += f.fights; if (f.lostScout) o.lostScout[i]++; if (f.avoided) o.avoid[i]++; if (f.broke) o.brk[i]++; if (f.changed) o.chg[i]++; f.times.forEach(t => o.ft.push(t)); o.sum.push(f.times.reduce((a, b) => a + b, 0)); o.traps += f.traps; o.mads += f.mads; });
+    o.surv.push(M.score ? M.score.raids : log.length); o.kills += M.score ? M.score.kills : 0;
+    log.forEach((f, i) => { if (i > 3) return; o.rn[i]++; if (f.win) o.rw[i]++; o.len[i] += f.len; o.nf[i] += f.fights; if (f.lostScout) o.lostScout[i]++; if (f.avoided) o.avoid[i]++; if (f.broke) o.brk[i]++; if (f.changed) o.chg[i]++; f.times.forEach(t => o.ft.push(t)); o.sum.push(f.times.reduce((a, b) => a + b, 0)); o.traps += f.traps; o.mads += f.mads; });
     if (process.env.V) console.log(s, M.over.win ? '승' : '패', 'egg' + M.egg, log.map(f => (f.win ? 'o' : 'x') + f.len + '/' + f.fights + '/' + Math.round(f.times.reduce((a, b) => a + b, 0))).join(' '));
   }
   const avg = a => (a.length ? (a.reduce((x, y) => x + y, 0) / a.length).toFixed(1) : '-'), q = (a, p) => { const b = a.slice().sort((x, y) => x - y); return b.length ? b[Math.floor(p * (b.length - 1))].toFixed(0) : '-'; };
   console.log(`${name.padEnd(8)} 알이 버팀 ${pc(o.win, n)}% | 넷 다 막음 ${pc(o.perfect, n)}% | 남은 알 ${(o.egg / n).toFixed(1)} | 침입마다 막음 ${o.rw.map((w, i) => pc(w, o.rn[i])).join('/')}% | 걸은 칸 ${o.len.map((x, i) => (o.rn[i] ? (x / o.rn[i]).toFixed(1) : '-')).join('/')} | 싸움 ${o.nf.map((x, i) => (o.rn[i] ? (x / o.rn[i]).toFixed(1) : '-')).join('/')} | 길잡이를 잃음 ${o.lostScout.map((x, i) => pc(x, o.rn[i])).join('/')}%`);
+  { const a = o.surv.slice().sort((x, y) => x - y); console.log(`         버틴 침입 평균 ${(a.reduce((x, y) => x + y, 0) / n).toFixed(1)} | 중앙값 ${a[Math.floor(n / 2)]} | 최대 ${a[n - 1]} | 10%~90% ${a[Math.floor(n * 0.1)]}~${a[Math.floor(n * 0.9)]} | 쓰러뜨림 ${(o.kills / n).toFixed(1)}`); }
   if (process.env.FORMS) console.log('         모습 ' + Object.keys(o.forms).sort().map(f => f + ' ' + o.forms[f][0] + '판 ' + pc(o.forms[f][1], o.forms[f][0]) + '%').join(' | '));
   console.log(`         한 방 싸움 ${avg(o.ft)}초 (10%~90% ${q(o.ft, 0.1)}~${q(o.ft, 0.9)}) | 한 침입의 싸움 합 ${avg(o.sum)}초 (${q(o.sum, 0.1)}~${q(o.sum, 0.9)}) | 함정 ${(o.traps / Math.max(1, o.rn.reduce((a, b) => a + b, 0))).toFixed(1)}/침입 | 미친 자 ${(o.mads / Math.max(1, o.rn.reduce((a, b) => a + b, 0))).toFixed(1)}/침입 | 길이 바뀜(돌아감/부숨) ${o.chg.map((x, i) => pc(x, o.rn[i])).join('/')}% (${o.avoid.map((x, i) => pc(x, o.rn[i])).join('/')} / ${o.brk.map((x, i) => pc(x, o.rn[i])).join('/')})`);
   return o;
