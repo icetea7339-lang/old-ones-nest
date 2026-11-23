@@ -1,18 +1,19 @@
 // 굴 짓기(미로 둥지) 규칙. DOM 없음. scratchpad/maze_spec.md 참고. LAIR 의 표와 simulate 를 쓴다.
-// 지도: 5열 x 8행, 칸 번호 = 행*5+열. 입구는 0행 가운데 위쪽 바깥, 6행 가운데가 본체 방, 7행 가운데가 알의 방.
-// 일행은 입구에서 알까지 판 칸을 따라 걷는다. 함정을 밟으면 발동하고, 권속이 선 방에 닿으면 그 방에서만 짧게 싸운다.
+// 지도: 5열 x 8행, 칸 번호 = 행*5+열. 마흔 칸 모두 파는 자리다. 칸 2 (입구 바로 아래)와 칸 37 (맨 아래 가운데 = 출구)은 처음부터 판 통로이고 메울 수 없다.
+// 본체 방과 알의 방은 격자 칸이 아니다 (CORE = 'core', EGG = 'egg'). 일행은 입구에서 출구까지 판 칸을 따라 걷고, 출구를 지나 본체 방 → 알의 방으로 간다.
+// 함정을 밟으면 발동하고, 권속이 선 방에 닿으면 그 방에서만 짧게 싸운다.
 const MAZE = (() => {
   'use strict';
   const L = typeof LAIR !== 'undefined' ? LAIR : require('./lair.js');
-  const V = 1, COLS = 5, ROWS = 8, N = COLS * ROWS, ENT = 2, CORE = 6 * COLS + 2, EGG = 7 * COLS + 2;
+  const V = 2, COLS = 5, ROWS = 8, N = COLS * ROWS, ENT = 2, EXIT = 7 * COLS + 2, CORE = 'core', EGG = 'egg';
   const rc = i => [Math.floor(i / COLS), i % COLS], idx = (r, c) => r * COLS + c, inb = (r, c) => r >= 0 && r < ROWS && c >= 0 && c < COLS;
   const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
   // 수치
   const MK = {
     gold: 20, level: 3, maxLv: 6, xpNeed: { 3: 6, 4: 10, 5: 16 }, xpBuy: 4, xpCost: 4, xpRaid: 2, reroll: 2,
-    income: 9, winGold: 3, egg: 15, digBase: 1, digRow: 0.25, fillBack: 0.5, dugCap: [13, 16, 19, 22], roomCost: 3, trapCost: 2, roomMax: 3, coreMax: 2,
+    income: 9, winGold: 3, egg: 15, digBase: 1, digRow: 0.25, fillBack: 0.5, dugCap: [15, 18, 21, 24], roomCost: 3, trapCost: 2, roomMax: 3, coreMax: 2,
     // 싸움을 작게: 전체 체력·정신 배수, 시간 (engage = 둥지 쪽이 기다리지 않고 나선다)
-    hpMul: 1, sanMul: 1.4, clock: { engage: 0, frenzy: 10, sudden: 13, end: 16 }, raidMul: [1.3, 1.05, 3.36, 1.21], raidAtk: [1.0, 0.79, 2.48, 0.95], core: { hp: 0.5, atk: 1 },
+    hpMul: 1, sanMul: 1.4, clock: { engage: 0, frenzy: 10, sudden: 13, end: 16 }, raidMul: [1.3, 1.05, 3.36, 1.27], raidAtk: [1.0, 0.79, 2.48, 1.0], core: { hp: 0.5, atk: 1 },
     // 길: breakAt 보다 길면 무거운 자가 바위 하나를 부순다 (줄어드는 길이 breakMin 이상일 때). avoid = 함정을 돌아가는 데 쓰는 칸 수의 상한
     breakAt: 13, breakMin: 3, avoid: 2,
     // 헤매는 일행: 헤매며 걸은 칸이 lostBreak 를 넘으면 무거운 자가 곁의 바위를 부수고 알 쪽으로 간다 (breakMin 칸 이상 줄어들 때)
@@ -20,7 +21,7 @@ const MAZE = (() => {
     // 굴 속의 어둠: 일행이 한 칸 걸을 때마다 잃는 정신 (굴이 길수록 미치기 쉽다)
     darkSan: 3,
     // 어둠이 깊어진다: k 번째로 걷는 칸은 darkSan + darkGrow x (k-1) 을 깎는다 (긴 미로일수록 더 빨리 미친다)
-    darkGrow: 0.47,
+    darkGrow: 0.42,
   };
   // 침입 넷 (설계서 5장). scale = 침입자 배수
   const RAIDS = [
@@ -48,33 +49,31 @@ const MAZE = (() => {
     const M = { v: V, seed: seed >>> 0, rs: { s: (seed | 0) ^ 0x3a7e }, raid: 1, raids: RAIDS.length, phase: 'prep', over: null, gold: MK.gold, level: MK.level, xp: 0, egg: MK.egg, eggMax: MK.egg,
       grid: [], unit: {}, board: {}, bench: [null, null, null, null, null, null], nextUid: 1, shop: [], merges: [], hist: [], last: null, reward: null, free: [] };
     for (let i = 0; i < N; i++) M.grid.push({ dug: false, use: null, room: null, trap: null });
-    for (let r = 0; r <= 5; r++) Object.assign(M.grid[idx(r, 2)], { dug: true, use: 'path' });
-    Object.assign(M.grid[CORE], { dug: true, use: 'core' }); Object.assign(M.grid[EGG], { dug: true, use: 'egg' });
+    for (let r = 0; r < ROWS; r++) Object.assign(M.grid[idx(r, 2)], { dug: true, use: 'path' });
     rollShop(M); return M;
   }
   function rollShop(M) { const o = L.K.odds[M.level] || L.K.odds[L.K.maxLv]; M.shop = []; for (let i = 0; i < 5; i++) { const x = L.rnd(M.rs) * 100, c = x < o[0] ? 1 : x < o[0] + o[1] ? 2 : 3, pool = SHOP_KIN.filter(k => L.KIN[k].cost === c); M.shop.push(pool[Math.floor(L.rnd(M.rs) * pool.length)]); } }
 
   // ───────── 칸 ─────────
-  const dugCount = M => M.grid.filter((g, i) => g.dug && i !== CORE && i !== EGG).length;
+  const dugCount = M => M.grid.filter(g => g.dug).length;
   const dugCap = M => MK.dugCap[clamp(M.raid, 1, MK.dugCap.length) - 1];
   const digCost = cell => MK.digBase + Math.floor(rc(cell)[0] * MK.digRow);
   const fillGold = cell => Math.floor(digCost(cell) * MK.fillBack);
   const near = cell => { const p = rc(cell), out = []; [[1, 0], [0, -1], [0, 1], [-1, 0]].forEach(([dr, dc]) => { if (inb(p[0] + dr, p[1] + dc)) out.push(idx(p[0] + dr, p[1] + dc)); }); return out; };
-  const fixedCell = cell => cell === ENT || cell === CORE || cell === EGG;
-  // 알은 본체 방을 거쳐서만 닿는다: 7행은 알 말고 팔 수 없다
-  const diggable = cell => cell >= 0 && cell < N && rc(cell)[0] <= 6;
-  // 가장 짧은 길 (입구 → 알). dugAt(c) 가 참인 칸만 지난다. 이웃을 보는 순서가 늘 같아 같은 지도면 같은 길이다
+  const fixedCell = cell => cell === ENT || cell === EXIT;
+  const diggable = cell => Number.isInteger(cell) && cell >= 0 && cell < N;
+  // 가장 짧은 길 (입구 → 출구). dugAt(c) 가 참인 칸만 지난다. 이웃을 보는 순서가 늘 같아 같은 지도면 같은 길이다
   function bfs(dugAt, from, to) {
     const prev = new Array(N).fill(-2), q = [from]; prev[from] = -1;
     for (let h = 0; h < q.length; h++) { const c = q[h]; if (c === to) break; for (const n of near(c)) { if (prev[n] !== -2 || !dugAt(n)) continue; prev[n] = c; q.push(n); } }
     if (prev[to] === -2) return null; const path = []; for (let c = to; c !== -1; c = prev[c]) path.push(c); return path.reverse();
   }
   const isDug = M => c => M.grid[c].dug;
-  // 판 칸이 모두 입구에서 닿고, 알에도 닿는가
-  function connected(M, dugAt) { const seen = new Set([ENT]), q = [ENT]; for (let h = 0; h < q.length; h++) for (const n of near(q[h])) if (!seen.has(n) && dugAt(n)) { seen.add(n); q.push(n); } for (let i = 0; i < N; i++) if (dugAt(i) && !seen.has(i)) return false; return seen.has(EGG); }
+  // 판 칸이 모두 입구에서 닿고, 출구에도 닿는가
+  function connected(M, dugAt) { const seen = new Set([ENT]), q = [ENT]; for (let h = 0; h < q.length; h++) for (const n of near(q[h])) if (!seen.has(n) && dugAt(n)) { seen.add(n); q.push(n); } for (let i = 0; i < N; i++) if (dugAt(i) && !seen.has(i)) return false; return seen.has(EXIT); }
   function canDig(M, cell) {
-    if (M.phase !== 'prep') return '지금은 팔 수 없다'; if (!diggable(cell) || cell === EGG) return '팔 수 없는 칸이다'; if (M.grid[cell].dug) return '이미 판 칸이다';
-    if (!near(cell).some(n => M.grid[n].dug && n !== EGG)) return '판 칸에 붙어 있어야 한다'; if (dugCount(M) >= dugCap(M)) return '더 팔 수 없다 (' + dugCap(M) + ')'; if (M.gold < digCost(cell)) return '진액이 모자란다';
+    if (M.phase !== 'prep') return '지금은 팔 수 없다'; if (!diggable(cell)) return '팔 수 없는 칸이다'; if (M.grid[cell].dug) return '이미 판 칸이다';
+    if (!near(cell).some(n => M.grid[n].dug)) return '판 칸에 붙어 있어야 한다'; if (dugCount(M) >= dugCap(M)) return '더 팔 수 없다 (' + dugCap(M) + ')'; if (M.gold < digCost(cell)) return '진액이 모자란다';
     return null;
   }
   function canFill(M, cell) {
@@ -101,14 +100,14 @@ const MAZE = (() => {
   // ───────── 길 ─────────
   // 길잡이의 길: 가장 짧은 길 + 무거운 자의 지름길 + 함정 피하기 (길잡이가 있을 때만)
   function scoutPath(M, kinds) {
-    let path = bfs(isDug(M), ENT, EGG), breaks = [], avoided = false; if (!path) return null;
+    let path = bfs(isDug(M), ENT, EXIT), breaks = [], avoided = false; if (!path) return null;
     if (kinds.some(k => BREAKERS.includes(k)) && path.length > MK.breakAt) {
       let best = -1, bp = null;
-      for (let c = 0; c < N; c++) { if (M.grid[c].dug || !diggable(c) || c === EGG) continue; const p = bfs(x => x === c || M.grid[x].dug, ENT, EGG); if (p && path.length - p.length >= MK.breakMin && (!bp || p.length < bp.length)) { best = c; bp = p; } }
+      for (let c = 0; c < N; c++) { if (M.grid[c].dug) continue; const p = bfs(x => x === c || M.grid[x].dug, ENT, EXIT); if (p && path.length - p.length >= MK.breakMin && (!bp || p.length < bp.length)) { best = c; bp = p; } }
       if (bp) { path = bp; breaks = [best]; }
     }
     if (kinds.some(k => AVOIDERS.includes(k)) && path.some(c => M.grid[c].use === 'trap')) {
-      const p = bfs(x => (M.grid[x].dug || breaks.includes(x)) && M.grid[x].use !== 'trap', ENT, EGG);
+      const p = bfs(x => (M.grid[x].dug || breaks.includes(x)) && M.grid[x].use !== 'trap', ENT, EXIT);
       if (p && p.length <= path.length + MK.avoid) { path = p; avoided = true; }
     }
     return { cells: path, breaks: breaks.filter(c => path.includes(c)), avoided };
@@ -118,10 +117,10 @@ const MAZE = (() => {
   const WANDER = [COLS, -1, 1, -COLS];
   function walker(M, kinds) {
     const sp = scoutPath(M, kinds), heavy = kinds.some(k => BREAKERS.includes(k)), dug = c => M.grid[c].dug || W.broken.includes(c);
-    const W = { mode: kinds.some(k => SCOUTS.includes(k)) ? 'scout' : 'lost', cur: -1, visited: new Set(), stack: [], plan: sp.cells.slice(), broken: [], lostWalk: 0, lostFrom: null, sp };
+    const W = { mode: kinds.some(k => SCOUTS.includes(k)) ? 'scout' : 'lost', cur: -1, visited: new Set(), stack: [], plan: sp ? sp.cells.slice() : [], broken: [], lostWalk: 0, lostFrom: null, sp };
     W.lose = () => { if (W.mode !== 'scout' || W.cur < 0) return; W.mode = 'lost'; W.lostFrom = W.cur; };
     W.next = () => {
-      if (W.cur === EGG) return null;
+      if (W.cur === EXIT) return null;
       if (W.cur < 0) { W.cur = ENT; W.visited.add(ENT); if (W.mode === 'scout') W.plan.shift(); return { cell: ENT, back: false }; }
       if (W.mode === 'scout' || W.mode === 'direct') {
         const c = W.plan.shift(); if (c == null) return null; if (sp.breaks.includes(c) && W.mode === 'scout') W.broken.push(c);
@@ -129,8 +128,8 @@ const MAZE = (() => {
       }
       // 헤맨다
       if (heavy && !W.broken.length && W.lostWalk >= MK.lostBreak) {
-        const d0 = bfs(dug, W.cur, EGG); let best = -1, bp = null;
-        for (const r of near(W.cur)) { if (dug(r) || !diggable(r) || r === EGG) continue; const p = bfs(x => x === r || dug(x), W.cur, EGG); if (p && p.includes(r) && d0 && d0.length - p.length >= MK.breakMin && (!bp || p.length < bp.length)) { best = r; bp = p; } }
+        const d0 = bfs(dug, W.cur, EXIT); let best = -1, bp = null;
+        for (const r of near(W.cur)) { if (dug(r)) continue; const p = bfs(x => x === r || dug(x), W.cur, EXIT); if (p && p.includes(r) && d0 && d0.length - p.length >= MK.breakMin && (!bp || p.length < bp.length)) { best = r; bp = p; } }
         if (bp) { W.broken.push(best); W.mode = 'direct'; W.plan = bp.slice(1); const c = W.plan.shift(); W.stack.push(W.cur); W.cur = c; W.visited.add(c); return { cell: c, back: false, broke: true }; }
       }
       const opts = near(W.cur).filter(n => dug(n) && !W.visited.has(n)).sort((a, b) => rc(b)[0] - rc(a)[0] || Math.abs(rc(a)[1] - 2) - Math.abs(rc(b)[1] - 2) || WANDER.indexOf(a - W.cur) - WANDER.indexOf(b - W.cur));
@@ -141,20 +140,20 @@ const MAZE = (() => {
     return W;
   }
   // party: 침입 번호 (1~4) 또는 침입자 종류 배열. 일행이 다 살아 있다고 보고 걸을 길 전체.
-  //   { cells (입구~알, 되돌아가는 칸도 다시 나온다), back [칸마다 되돌아감인가], breaks [칸], avoided, len, scout (길잡이가 있나), scoutPath, lostAt [길잡이가 쓰러질 수 있는 칸: 길잡이의 길 위의 싸움 칸] }
+  //   { cells (입구~출구, 되돌아가는 칸도 다시 나온다), back [칸마다 되돌아감인가], breaks [칸], avoided, len, scout (길잡이가 있나), scoutPath, lostAt [길잡이가 쓰러질 수 있는 칸: 길잡이의 길 위의 싸움 칸] }
   function pathOf(M, party) {
     const kinds = Array.isArray(party) ? party : RAIDS[clamp(party || M.raid, 1, RAIDS.length) - 1].units, W = walker(M, kinds), cells = [], back = [], breaks = [];
     if (!W.sp) return null;
     for (let g = 0; g < 4 * N; g++) { const s = W.next(); if (!s) break; cells.push(s.cell); back.push(s.back); if (s.broke) breaks.push(s.cell); }
     const scout = kinds.some(k => SCOUTS.includes(k));
-    return { cells, back, breaks, avoided: scout && W.sp.avoided, len: cells.length, scout, scoutPath: W.sp.cells, lostAt: scout ? W.sp.cells.filter(c => M.grid[c].use === 'kin' || M.grid[c].use === 'core') : [] };
+    return { cells, back, breaks, avoided: scout && W.sp.avoided, len: cells.length, scout, scoutPath: W.sp.cells, lostAt: scout ? W.sp.cells.filter(c => M.grid[c].use === 'kin') : [] };
   }
 
   // ───────── 권속 ─────────
   const owned = M => Object.keys(M.unit).map(id => M.unit[id]);
   const boardUids = M => Object.keys(M.board).reduce((a, c) => a.concat(M.board[c]), []);
   const cap = M => M.level;
-  const whereOf = (M, uid) => { const b = M.bench.indexOf(uid); if (b >= 0) return { bench: b }; for (const c in M.board) if (M.board[c].includes(uid)) return { cell: +c }; return null; };
+  const whereOf = (M, uid) => { const b = M.bench.indexOf(uid); if (b >= 0) return { bench: b }; for (const c in M.board) if (M.board[c].includes(uid)) return c === CORE ? { cell: CORE, core: true } : { cell: +c }; return null; };
   function removeUnit(M, uid) { const w = whereOf(M, uid); if (w && w.bench != null) M.bench[w.bench] = null; else if (w) { M.board[w.cell] = M.board[w.cell].filter(x => x !== uid); if (!M.board[w.cell].length) delete M.board[w.cell]; } delete M.unit[uid]; }
   // 같은 권속 같은 별 셋이면 하나로 합쳐 별이 오른다 (둥지 전투의 규칙): 판 위의 것이 남는다
   function merge(M) {
@@ -178,14 +177,18 @@ const MAZE = (() => {
   function levelUp(M) { let up = 0; while (M.level < MK.maxLv && M.xp >= MK.xpNeed[M.level]) { M.xp -= MK.xpNeed[M.level]; M.level++; up++; } if (M.level >= MK.maxLv) M.xp = 0; return up; }
   function buyXp(M) { if (M.phase !== 'prep') return fail('지금은 안 된다'); if (M.level >= MK.maxLv) return fail('더 넓힐 수 없다'); if (M.gold < MK.xpCost) return fail('진액이 모자란다'); M.gold -= MK.xpCost; M.xp += MK.xpBuy; return ok({ up: levelUp(M) }); }
   const roomCap = cell => (cell === CORE ? MK.coreMax : MK.roomMax);
-  // 옮기기: to = { cell } (권속 방이나 본체 방) 또는 { bench } (빈 자리, 없으면 아무 빈 자리)
+  // 옮기기: to = { core: true } (본체 방) / { cell } (판 통로 칸이면 값 없이 권속 방이 된다, 권속 방이면 그대로) / { bench } (빈 자리, 없으면 아무 빈 자리)
+  function placeWhy(M, cell) {
+    if (cell === CORE) return null; const g = M.grid[cell]; if (!g) return '없는 칸이다'; if (!g.dug) return '바위다. 먼저 판다'; if (g.use === 'trap') return '함정 칸이다'; if (fixedCell(cell)) return '입구와 출구에는 세울 수 없다'; return null;
+  }
   function move(M, uid, to) {
     if (M.phase !== 'prep') return fail('지금은 옮길 수 없다'); if (!M.unit[uid]) return fail('없는 권속이다'); const from = whereOf(M, uid);
-    if (to && to.cell != null) {
-      const g = M.grid[to.cell]; if (!g || !(g.use === 'kin' || g.use === 'core')) return fail('권속 방이 아니다'); if (from.cell === to.cell) return ok();
-      const here = M.board[to.cell] || []; if (here.length >= roomCap(to.cell)) return fail('방이 찼다 (' + roomCap(to.cell) + ')'); if (from.cell == null && boardUids(M).length >= cap(M)) return fail('더 세울 수 없다 (' + cap(M) + ')');
+    if (to && (to.core || to.cell != null)) {
+      const cell = to.core ? CORE : to.cell, e = placeWhy(M, cell); if (e) return fail(e); if (from.cell === cell) return ok({ cell });
+      const here = M.board[cell] || []; if (here.length >= roomCap(cell)) return fail('방이 찼다'); if (from.cell == null && boardUids(M).length >= cap(M)) return fail('더 세울 수 없다 (' + cap(M) + ')');
+      if (cell !== CORE && M.grid[cell].use !== 'kin') Object.assign(M.grid[cell], { use: 'kin', trap: null });
       if (from.cell != null) { M.board[from.cell] = M.board[from.cell].filter(x => x !== uid); if (!M.board[from.cell].length) delete M.board[from.cell]; } else M.bench[from.bench] = null;
-      M.board[to.cell] = here.concat([uid]); return ok({ cell: to.cell });
+      M.board[cell] = here.concat([uid]); return ok({ cell });
     }
     if (!to) return fail('없는 자리다'); let b = to.bench == null ? M.bench.indexOf(null) : to.bench; if (b < 0 || b > 5) return fail('대기석이 찼다');
     const other = M.bench[b]; if (from.bench === b) return ok(); if (other != null && from.cell != null) return fail('그 자리가 찼다');
@@ -209,7 +212,7 @@ const MAZE = (() => {
   const seedOf = (M, k) => (M.seed ^ Math.imul(M.raid * 97 + k * 13 + 1, 0x9E3779B1)) | 0;
   // 한 방의 싸움: 일행은 위쪽 두 줄, 권속은 아래쪽 두 줄 (본체 방이면 본체가 맨 아래). 길잡이는 뒷줄에 서고 뛰어들지 않는다. 사냥꾼 권속은 적의 뒷줄로 뛰어든다
   function fightAt(M, cell, party, kin, k) {
-    const R = RAIDS[M.raid - 1], g = M.grid[cell], isCore = cell === CORE, inv = [], used = {};
+    const isCore = cell === CORE, g = isCore ? { room: null } : M.grid[cell], inv = [], used = {};
     const place = (row, cols, taken) => { for (const c of cols) { const x = L.idx(row, c); if (!taken[x]) { taken[x] = 1; return x; } } for (let c = 0; c < 6; c++) { const x = L.idx(row, c); if (!taken[x]) { taken[x] = 1; return x; } } return -1; };
     const live = party.filter(p => p.alive && !p.out);
     live.forEach(p => { const d = L.INV[p.kind], st = []; if (p.slow) st.push({ n: 'slow', dur: TRAP.tr_slime.dur, v: TRAP.tr_slime.slow }); if (p.rot) st.push({ n: 'infected', dur: 8, v: 12 }); inv.push({ kind: p.kind, cell: place(front(d.role) && !SCOUTS.includes(p.kind) ? 1 : 0, FRONT_COLS, used), hp: p.hp, san: p.san, mad: p.mad, st, src: p.i, noLeap: SCOUTS.includes(p.kind) }); });
@@ -232,31 +235,36 @@ const MAZE = (() => {
     const flush = () => { if (walk.length) steps.push({ type: 'walk', cells: walk, back: wback, lost: lostNow, san: drained, mad: turned }); walk = []; wback = []; drained = 0; turned = []; lostNow = false; };
     const sane = () => party.filter(p => p.alive && !p.mad && !p.out);
     const scouts = () => party.some(p => p.alive && !p.mad && !p.out && SCOUTS.includes(p.kind));
+    function fight(cell, back) {
+      flush(); party.forEach(p => { if (p.alive && !p.out && p.rot) p.hp = Math.max(1, Math.round(p.hp - p.mhp * TRAP.tr_spore.rot)); });
+      const kin = kinOf(cell).filter(u => u.alive), before = { inv: snapInv(party), kin: snapKin(kin) }, fr = fightAt(M, cell, party, kin, k++), f = fr.f;
+      f.final.forEach(x => {
+        if (x.home === 'inv' && x.src != null) { const p = party[fr.inv[x.src].src]; if (!p) return; p.hp = x.hp; p.mhp = x.mhp; p.san = x.san; p.msan = x.msan; p.alive = x.alive; p.mad = x.alive && x.mad; p.slow = false; }
+        if (x.home === 'nest' && x.uid != null) kinHp[x.uid] = { hp: x.hp, mhp: x.mhp, alive: x.alive };
+      });
+      gold += f.gold || 0; const kinAfter = kinOf(cell).filter(u => kin.some(v => v.uid === u.uid));
+      steps.push({ type: 'fight', cell, room: cell === CORE ? null : M.grid[cell].room || null, core: cell === CORE, back, scoutDown: W.mode === 'scout' && !scouts(), fight: f, before, after: { inv: snapInv(party), kin: snapKin(kinAfter) } });
+    }
     for (let guard = 0; guard < 4 * N; guard++) {
       if (!sane().length) break;
       if (W.mode === 'scout' && !scouts()) { W.lose(); lostNow = true; }
       const st = W.next(); if (!st) break; const cell = st.cell, back = st.back; walked.push(cell);
       walk.push(cell); wback.push(back); const g = M.grid[cell];
-      if ((MK.darkSan || MK.darkGrow) && cell !== EGG) { const ds = MK.darkSan + (MK.darkGrow || 0) * dark++; drained += ds; sane().forEach(p => { if (!p.msan) return; p.san = Math.max(0, p.san - ds); if (p.san <= 0 && !L.INV[p.kind].noMad) { p.mad = true; turned.push(p.i); } }); }
+      if (MK.darkSan || MK.darkGrow) { const ds = MK.darkSan + (MK.darkGrow || 0) * dark++; drained += ds; sane().forEach(p => { if (!p.msan) return; p.san = Math.max(0, p.san - ds); if (p.san <= 0 && !L.INV[p.kind].noMad) { p.mad = true; turned.push(p.i); } }); }
       if (st.broke) { flush(); Object.assign(g, { dug: true, use: 'path', room: null, trap: null }); steps.push({ type: 'break', cell }); }
       if (g.use === 'trap' && TRAP[g.trap] && !trapped[cell]) {
         flush(); trapped[cell] = 1; const T = TRAP[g.trap], before = snapInv(party);
         sane().forEach(p => { if (T.hp) p.hp = Math.max(1, Math.round(p.hp - p.mhp * T.hp)); if ((T.san || T.sanFlat) && p.msan) { p.san = Math.max(0, Math.round(p.san - (T.sanFlat || p.msan * T.san))); if (p.san <= 0 && !L.INV[p.kind].noMad) p.mad = true; } if (T.slow) p.slow = true; if (T.rot) p.rot = true; });
         steps.push({ type: 'trap', cell, id: g.trap, fx: T.fx, before, after: snapInv(party) });
       }
-      if ((g.use === 'kin' && kinOf(cell).some(u => u.alive)) || g.use === 'core') {
-        flush(); party.forEach(p => { if (p.alive && !p.out && p.rot) p.hp = Math.max(1, Math.round(p.hp - p.mhp * TRAP.tr_spore.rot)); });
-        const kin = kinOf(cell).filter(u => u.alive), before = { inv: snapInv(party), kin: snapKin(kin) }, fr = fightAt(M, cell, party, kin, k++), f = fr.f;
-        f.final.forEach(x => {
-          if (x.home === 'inv' && x.src != null) { const p = party[fr.inv[x.src].src]; if (!p) return; p.hp = x.hp; p.mhp = x.mhp; p.san = x.san; p.msan = x.msan; p.alive = x.alive; p.mad = x.alive && x.mad; p.slow = false; }
-          if (x.home === 'nest' && x.uid != null) kinHp[x.uid] = { hp: x.hp, mhp: x.mhp, alive: x.alive };
-        });
-        gold += f.gold || 0; const kinAfter = kinOf(cell).filter(u => kin.some(v => v.uid === u.uid));
-        steps.push({ type: 'fight', cell, room: g.room || null, core: cell === CORE, back, scoutDown: W.mode === 'scout' && !scouts(), fight: f, before, after: { inv: snapInv(party), kin: snapKin(kinAfter) } });
-      }
-      if (cell === EGG) { flush(); const at = sane(); let dmg = 0; at.forEach(p => { dmg += eggDmg(p.kind); p.out = true; }); M.egg = Math.max(0, M.egg - dmg); steps.push({ type: 'egg', cell, dmg, who: at.map(p => p.kind), egg: M.egg }); }
+      if (g.use === 'kin' && kinOf(cell).some(u => u.alive)) fight(cell, back);
     }
     flush();
+    // 출구를 지나면 본체 방 (권속이 없어도 본체가 싸운다), 그리고 알의 방
+    if (W.cur === EXIT && sane().length) {
+      fight(CORE, false);
+      if (sane().length) { const at = sane(); let dmg = 0; at.forEach(p => { dmg += eggDmg(p.kind); p.out = true; }); M.egg = Math.max(0, M.egg - dmg); steps.push({ type: 'egg', cell: EGG, dmg, who: at.map(p => p.kind), egg: M.egg }); }
+    }
     const reached = party.filter(p => p.out), eggLost = reached.reduce((a, p) => a + eggDmg(p.kind), 0), win = !reached.length, mads = party.filter(p => p.mad).length;
     const income = MK.income + (win ? MK.winGold : 0) + gold, result = { win, eggLost, gold: income, survivors: reached.length, mads, breaks: W.broken.length, avoided: P.avoided && W.mode === 'scout', walked: walked.length, lost: W.mode !== 'scout' && P.scout };
     M.hist.push({ raid: M.raid, win, eggLost, path: walked.length, fights: steps.filter(s => s.type === 'fight').length, traps: steps.filter(s => s.type === 'trap').length, mads });
@@ -279,17 +287,19 @@ const MAZE = (() => {
   const trapInfo = id => (TRAP[id] ? { id, name: TRAP[id].name, short: TRAP[id].short, more: TRAP[id].more, fx: TRAP[id].fx } : null);
   const unitView = (M, uid) => { const u = M.unit[uid]; if (!u) return null; const w = whereOf(M, uid); return Object.assign({ uid, sell: sellValue(u), at: w }, L.unitInfo(u.kind, u.star)); };
   function partyView(M, raid) { const R = RAIDS[clamp(raid || M.raid, 1, RAIDS.length) - 1], sc = scaleOf(raid || M.raid); return R.units.map(kind => Object.assign(L.invInfo(kind, 1, { hp: sc.hp * MK.hpMul / L.K.hpMul, atk: sc.atk, san: sc.san * MK.sanMul / L.K.sanMul }), { avoid: AVOIDERS.includes(kind), scout: SCOUTS.includes(kind), breaker: BREAKERS.includes(kind), egg: eggDmg(kind) })); }
+  // 본체 방: 선 권속과 본체의 꼴 (판 위 권속의 성향으로 정해진다)
+  function coreView(M) { const form = L.formOf(boardUids(M).map(id => M.unit[id].kind)); return { units: (M.board[CORE] || []).map(uid => unitView(M, uid)), max: MK.coreMax, form, step: form === 'drop' ? 0 : 1 }; }
   function view(M) {
     const P = M.phase === 'prep' ? pathOf(M) : null, R = RAIDS[clamp(M.raid, 1, RAIDS.length) - 1];
     return { v: M.v, raid: M.raid, raids: M.raids, phase: M.phase, over: M.over, gold: M.gold, level: M.level, maxLv: MK.maxLv, xp: M.xp, xpNeed: MK.xpNeed[M.level] || 0, cap: cap(M), placed: boardUids(M).length,
-      egg: { hp: M.egg, max: M.eggMax }, cols: COLS, rows: ROWS, entrance: { r: -1, c: 2, cell: ENT }, coreCell: CORE, eggCell: EGG, dug: dugCount(M), dugCap: dugCap(M),
-      grid: M.grid.map((g, i) => { const p = rc(i), e1 = canDig(M, i), e2 = canFill(M, i); return { cell: i, r: p[0], c: p[1], dug: g.dug, use: g.use, room: g.room, roomInfo: g.room ? L.roomInfo(g.room) : null, trap: g.trap, trapInfo: g.trap ? trapInfo(g.trap) : null, units: (M.board[i] || []).map(uid => unitView(M, uid)), max: g.use === 'kin' || g.use === 'core' ? roomCap(i) : 0, fixed: fixedCell(i), canDig: !e1, digCost: g.dug ? 0 : digCost(i), digWhy: e1, canFill: !e2, fillGold: g.dug && !fixedCell(i) ? fillGold(i) : 0, fillWhy: e2, onPath: !!P && P.cells.includes(i) }; }),
+      egg: { hp: M.egg, max: M.eggMax }, core: coreView(M), cols: COLS, rows: ROWS, entrance: { r: -1, c: 2, cell: ENT }, exit: { r: ROWS - 1, c: 2, cell: EXIT }, coreCell: CORE, eggCell: EGG, dug: dugCount(M), dugCap: dugCap(M),
+      grid: M.grid.map((g, i) => { const p = rc(i), e1 = canDig(M, i), e2 = canFill(M, i); return { cell: i, r: p[0], c: p[1], dug: g.dug, use: g.use, room: g.room, roomInfo: g.room ? L.roomInfo(g.room) : null, trap: g.trap, trapInfo: g.trap ? trapInfo(g.trap) : null, units: (M.board[i] || []).map(uid => unitView(M, uid)), max: g.use === 'kin' ? roomCap(i) : 0, canPlace: !placeWhy(M, i), placeWhy: placeWhy(M, i), fixed: fixedCell(i), canDig: !e1, digCost: g.dug ? 0 : digCost(i), digWhy: e1, canFill: !e2, fillGold: g.dug && !fixedCell(i) ? fillGold(i) : 0, fillWhy: e2, onPath: !!P && P.cells.includes(i) }; }),
       shop: M.shop.map((k, i) => (k ? Object.assign({ i, can: M.gold >= L.KIN[k].cost }, L.unitInfo(k, 1)) : null)), bench: M.bench.map(uid => (uid != null ? unitView(M, uid) : null)), merges: M.merges,
       costs: { reroll: MK.reroll, xp: MK.xpCost, room: MK.roomCost, trap: MK.trapCost }, canXp: M.level < MK.maxLv && M.gold >= MK.xpCost, canReroll: M.gold >= MK.reroll,
       next: M.phase === 'over' ? null : { raid: M.raid, name: R.name, party: partyView(M), path: P ? P.cells : [], back: P ? P.back : [], breaks: P ? P.breaks : [], avoided: P ? P.avoided : false, len: P ? P.len : 0, scout: P ? P.scout : false, scoutPath: P ? P.scoutPath : [], lostAt: P ? P.lostAt : [] },
       rooms: L.ROOM_IDS.map(id => L.roomInfo(id)), traps: TRAP_IDS.map(trapInfo), last: M.last, hist: M.hist,
       reward: M.reward ? { opts: M.reward.opts.map((o, i) => Object.assign({ i, type: o.type }, o.type === 'room' ? L.roomInfo(o.id) : trapInfo(o.id))) } : null, free: (M.free || []).map(id => Object.assign({ type: L.ROOM[id] ? 'room' : 'trap' }, L.ROOM[id] ? L.roomInfo(id) : trapInfo(id))) };
   }
-  return { V, COLS, ROWS, N, ENT, CORE, EGG, MK, RAIDS, TRAP, TRAP_IDS, AVOIDERS, BREAKERS, rc, idx, newRun, view, dig, fill, setUse, canDig, canFill, digCost, fillGold, pathOf, buy, sell, sellValue, reroll, buyXp, move, merge, whereOf, raid, partyOf, roomSyn, save, load, takeReward, walker, scoutPath, SCOUTS, trapInfo, dugCount, dugCap, connected };
+  return { V, COLS, ROWS, N, ENT, EXIT, CORE, EGG, MK, RAIDS, TRAP, TRAP_IDS, AVOIDERS, BREAKERS, rc, idx, newRun, view, dig, fill, setUse, canDig, canFill, digCost, fillGold, pathOf, buy, sell, sellValue, reroll, buyXp, move, merge, whereOf, raid, partyOf, roomSyn, save, load, takeReward, walker, scoutPath, SCOUTS, trapInfo, dugCount, dugCap, connected };
 })();
 if (typeof module !== 'undefined') module.exports = MAZE;

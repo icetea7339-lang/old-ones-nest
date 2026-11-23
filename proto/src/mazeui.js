@@ -1,7 +1,13 @@
 // 굴 짓기 화면: 첫 화면, 지도(파기·메우기·방·함정·권속 세우기), 상점과 대기석, 침입 재생, 결과와 판 끝.
 // 규칙은 maze.js (MAZE), 싸움 재생은 둥지 전투의 것(lairui.js 의 lairReplay)을 그대로 쓴다. 그림은 lairart.js 의 maze* (없으면 단순한 대체).
-const MZ = { shop: false, M: null, v: null, phase: 'title', sel: null, sheet: null, drag: null, hover: -1, k: 1, t: 0, last: 0, raf: 0, pops: {}, burst: null, play: null, tut: -1, toastT: 0, dug0: 0, dbg: {} };
-const MS = 64, MTOP = Math.round(MS * 0.9), MW = MS * 5, MH = MTOP + MS * 8 + 14;
+const MZ = { shop: false, travel: null, M: null, v: null, phase: 'title', sel: null, sheet: null, drag: null, hover: -1, k: 1, t: 0, last: 0, raf: 0, pops: {}, burst: null, play: null, tut: -1, toastT: 0, dug0: 0, dbg: {} };
+const MS = 64, MTOP = 40, MW = MS * 5, MGY = MTOP + MS * 8, MBAND = 104, MH = MGY + MBAND;
+// 지도 밖의 두 방 (캔버스 좌표): 출구(37) 밑으로 굴이 빠져나가 본체 방, 거기서 짧은 굴로 알의 방
+const MZCR = { x: 10, y: MGY + 16, w: 200, h: 82 }, MZER = { x: 232, y: MGY + 8, w: 80, h: 92 };
+const MZCORE_SPOTS = [[MZCR.x + 140, MZCR.y + MZCR.h - 12], [MZCR.x + 178, MZCR.y + MZCR.h - 12]];
+// 칸 번호면 칸 가운데, 'core' 면 본체 방의 가운데(본체 자리), 'egg' 면 알
+function mzPt(c) { if (c === 'core') return { x: MZCR.x + 68, y: MZCR.y + MZCR.h * 0.55 }; if (c === 'egg') return { x: MZER.x + MZER.w / 2, y: MZER.y + MZER.h / 2 }; return { x: mzCx(c), y: mzCy(c) }; }
+const MZEXIT = 37;
 // 규칙의 함정 id → 그림의 함정 id
 const MZTRAP = { tr_teeth: 'pit', tr_whisper: 'whisper', tr_slime: 'slime', tr_spore: 'spore' };
 const MZTRAPC = { tr_teeth: '#e8e0d0', tr_whisper: '#b48cff', tr_slime: '#6ad08a', tr_spore: '#d8e870' };
@@ -12,9 +18,9 @@ const MZNAR = {
   fall: '껍질이 갈라지고, 그 안의 어둠이 흙으로 스며들었다. 둥지는 지킬 것을 잃었다.',
 };
 const MZTUT = [
-  { key: 'dig', text: '바위를 눌러 판다.' },
-  { key: 'room', text: '판 칸을 눌러 권속 방으로 바꾼다.' },
-  { key: 'place', text: '권속을 사서 방에 세운다.' },
+  { key: 'shop', text: '「상점」에서 권속을 산다.' },
+  { key: 'place', text: '권속을 누르고 빛나는 통로를 누른다.' },
+  { key: 'dig', text: '바위를 눌러 굴을 넓힌다.' },
   { key: 'raid', text: '「침입」을 누르면 일행이 들어온다.', ok: 1 },
 ];
 const mq = s => document.querySelector(s);
@@ -54,8 +60,8 @@ function mzTitle() {
   mzMusic('title'); mzTitleScene();
 }
 const MZTG = (() => { const g = []; for (let i = 0; i < 40; i++) g.push({ dug: false, use: null, room: null, trap: null }); const set = (c, use, o) => Object.assign(g[c], { dug: true, use }, o || {});
-  [2, 7, 6, 11, 16, 17, 18, 23, 28, 27].forEach(c => set(c, 'path')); set(16, 'kin', { room: 'eye' }); set(18, 'trap', { trap: 'tr_teeth' }); set(32, 'core'); set(37, 'egg'); set(13, 'kin', { room: 'nursery' }); set(8, 'path'); set(12, 'path'); return g; })();
-const MZTU = { 16: [{ kind: 'gazer', star: 2 }, { kind: 'hood', star: 1 }], 13: [{ kind: 'brood', star: 1 }], 32: [{ kind: 'shell', star: 1 }] };
+  [2, 7, 6, 11, 16, 17, 18, 23, 28, 27].forEach(c => set(c, 'path')); set(16, 'kin', { room: 'eye' }); set(18, 'trap', { trap: 'tr_teeth' }); set(32, 'path'); set(37, 'path'); set(13, 'kin', { room: 'nursery' }); set(8, 'path'); set(12, 'path'); return g; })();
+const MZTU = { 16: [{ kind: 'gazer', star: 2 }, { kind: 'hood', star: 1 }], 13: [{ kind: 'brood', star: 1 }] };
 function mzTitleScene() {
   const t = $('title'); let cv = $('mz-tcv'); if (!cv) { cv = document.createElement('canvas'); cv.id = 'mz-tcv'; cv.className = 'px'; cv.width = MW; cv.height = mzFn('mazeTitle') ? 400 : MH; cv.setAttribute('role', 'img'); cv.setAttribute('aria-label', '입구에서 알까지 내려가는 굴'); t.insertBefore(cv, t.firstChild); }
   if (!MZ.traf) { const loop = now => { MZ.traf = requestAnimationFrame(loop); if ($('title').hidden) return; mzTitleDraw(cv.getContext('2d'), now); }; MZ.traf = requestAnimationFrame(loop); }
@@ -64,8 +70,7 @@ function mzTitleDraw(x, now) {
   if (mzFn('mazeTitle')) { const cv = x.canvas; x.imageSmoothingEnabled = false; x.clearRect(0, 0, cv.width, cv.height); x.drawImage(LAIRART.mazeTitle(cv.width, cv.height, (now % 6000) / 6000), 0, 0); return; }
   const tf = (now % 3000) / 3000; x.imageSmoothingEnabled = false; x.fillStyle = '#050407'; x.fillRect(0, 0, MW, MH);
   if (mzFn('mazeEntrance')) x.drawImage(LAIRART.mazeEntrance(MS, 5), 0, 0);
-  for (let c = 0; c < 40; c++) if (MZTG[c].use !== 'core') mzCellDraw(x, MZTG, c, tf, 'abyss');
-  mzCellDraw(x, MZTG, MAZE.CORE, tf, 'abyss'); if (typeof mzCoreBoss === 'function') mzCoreBoss(x, 'abyss', now); mzEggDraw(x, MAZE.EGG, 17, 20, now / 1000, false);
+  for (let c = 0; c < 40; c++) mzCellDraw(x, MZTG, c, tf, 'abyss');
   Object.keys(MZTU).forEach(c => mzUnitsDraw(x, MZTG, +c, MZTU[c]));
 }
 const MZHELP = [
@@ -168,16 +173,15 @@ function mzEggDraw(x, c, hp, max, t, shake) {
 function mzCellDraw(x, grid, c, t, form) {
   const g = grid[c], X = (c % 5) * MS, Y = MTOP + Math.floor(c / 5) * MS, A = LAIRART;
   if (!g.dug) { if (mzFn('mazeRock')) x.drawImage(A.mazeRock(MS, mzRockV(grid, c), c * 7 + 3), X, Y); else { x.fillStyle = '#120e16'; x.fillRect(X, Y, MS, MS); x.fillStyle = '#1c1722'; x.fillRect(X + 6 + (c * 13) % 30, Y + 10 + (c * 7) % 30, 10, 6); } return; }
-  if (g.use === 'core') { if (mzFn('mazeCore')) x.drawImage(A.mazeCore(MS, form, t, mzMask(grid, c)), X, Y); else { x.fillStyle = '#163238'; x.fillRect(X, Y, MS, MS); } return; }
-  const room = g.use === 'kin' || g.use === 'egg';
+  const room = g.use === 'kin';
   if (mzFn('mazeFloor')) x.drawImage(A.mazeFloor(MS, mzMask(grid, c), room ? 'room' : 'path', c * 5 + 1), X, Y); else { x.fillStyle = room ? '#1c3a3c' : '#16282c'; x.fillRect(X + 2, Y + 2, MS - 4, MS - 4); }
   if (g.use === 'kin' && g.room) { if (mzFn('mazeRoomMark')) x.drawImage(A.mazeRoomMark(MS, g.room, t), X, Y); else { try { x.globalAlpha = 0.8; x.drawImage(A.room(g.room, MS, 0, 1, t), X, Y); x.globalAlpha = 1; } catch (e) { x.globalAlpha = 1; } } }
   if (g.use === 'kin' && !g.room) { x.save(); x.strokeStyle = 'rgba(90,216,196,.35)'; x.lineWidth = 2; x.setLineDash([4, 4]); x.strokeRect(X + 6, Y + 6, MS - 12, MS - 12); x.restore(); }
   if (g.use === 'trap') mzTrapDraw(x, g.trap, X, Y, MS, t);
 }
 // 길: 입구에서 알까지 칸 가운데를 잇는 점선. 부서질 바위에는 금
-function mzPathDraw(x, cells, breaks, t) {
-  if (!cells || cells.length < 1) return; const pts = [[2, -1]].concat(cells.map(c => [c % 5, Math.floor(c / 5), breaks.includes(c)]));
+function mzPathDraw(x, cells, breaks, t, tail) {
+  if (!cells || cells.length < 1) return; const pts = [[2, -1]].concat(cells.map(c => [c % 5, Math.floor(c / 5), breaks.includes(c)]), (tail || []).map(q => [q.x / MS - 0.5, (q.y - MTOP) / MS - 0.5]));
   if (mzFn('mazePath')) { LAIRART.mazePath(x, pts, MS, t, 'walk', { oy: MTOP }); breaks.forEach(b => { const i = cells.indexOf(b); if (i < 0) return; const seg = [i > 0 ? cells[i - 1] : 2, b, cells[i + 1] != null ? cells[i + 1] : b].map((c, k) => (k === 0 && i === 0 ? [2, -1] : [c % 5, Math.floor(c / 5), c === b])); LAIRART.mazePath(x, seg, MS, t, 'break', { oy: MTOP }); }); return; }
   x.save(); x.strokeStyle = '#ffb060'; x.lineWidth = 3; x.setLineDash([6, 6]); x.lineDashOffset = -t * 40; x.beginPath(); pts.forEach(([q, r], i) => { const px = q * MS + MS / 2, py = MTOP + r * MS + MS / 2; if (i) x.lineTo(px, py); else x.moveTo(px, py); }); x.stroke(); x.restore();
   breaks.forEach(b => { x.save(); x.strokeStyle = '#ff8a40'; x.lineWidth = 2; const cx = mzCx(b), cy = mzCy(b); x.beginPath(); x.moveTo(cx - 14, cy - 12); x.lineTo(cx, cy); x.lineTo(cx + 12, cy - 6); x.moveTo(cx, cy); x.lineTo(cx - 4, cy + 14); x.stroke(); x.restore(); });
@@ -202,36 +206,66 @@ function mzBackDraw(x, cells, back, now) {
 }
 // 방의 권속: 셋까지 작은 그림으로 (본체 방은 둘)
 const MZUSPOT = [[0.28, 0.66], [0.72, 0.66], [0.5, 0.36]];
-// 본체 방의 본체: 칸보다 크게, 방 바닥에 발을 딛고 위로 솟는다
-function mzCoreBoss(x, form, now) { if (typeof LAIRART === 'undefined' || !LAIRART.boss) return; const h = lrBossH(form === 'drop' ? null : form, form === 'drop' ? 0 : 1), fr = h.frame('idle', now), c = MAZE.CORE, sz = Math.round(MS * 1.35), X = Math.round((c % 5) * MS + MS / 2 - sz / 2), Y = Math.round(MTOP + Math.floor(c / 5) * MS + MS * 1.02 - sz); x.drawImage(fr, X, Y, sz, sz); }
+// 지도 밖의 띠: 흙 바탕, 출구에서 내려가는 굴, 본체 방, 잇는 굴, 알의 방. 방은 격자 칸과 다른 틀 (돌테 + 빛)
+function mzRRect(x, X, Y, W, H, r) { x.beginPath(); x.moveTo(X + r, Y); x.arcTo(X + W, Y, X + W, Y + H, r); x.arcTo(X + W, Y + H, X, Y + H, r); x.arcTo(X, Y + H, X, Y, r); x.arcTo(X, Y, X + W, Y, r); x.closePath(); }
+function mzFloorFill(x, X, Y, W, H, r, seed) {
+  x.save(); mzRRect(x, X, Y, W, H, r); x.clip();
+  if (mzFn('mazeFloor')) { for (let yy = Y - (Y - MGY) % MS; yy < Y + H; yy += MS) for (let xx = 0; xx < MW; xx += MS) x.drawImage(LAIRART.mazeFloor(MS, 15, 'room', seed + xx / MS), xx, yy); } else { x.fillStyle = '#16282c'; x.fillRect(X, Y, W, H); }
+  x.restore();
+}
+function mzBandDraw(x, t, lit) {
+  const Y = MGY; if (mzFn('mazeRock')) { for (let yy = Y; yy < MH; yy += MS) for (let xx = 0; xx < MW; xx += MS) x.drawImage(LAIRART.mazeRock(MS, 15, 200 + xx / MS + yy), xx, yy); } else { x.fillStyle = '#120e16'; x.fillRect(0, Y, MW, MBAND); }
+  const ex = mzCx(MZEXIT), my = MZCR.y + MZCR.h / 2;
+  // 굴: 출구 밑에서 본체 방으로, 본체 방에서 알의 방으로
+  mzFloorFill(x, ex - 13, Y - 4, 26, MZCR.y - Y + 14, 6, 1); mzFloorFill(x, MZCR.x + MZCR.w - 10, my - 12, MZER.x - MZCR.x - MZCR.w + 20, 24, 6, 2);
+  x.save(); x.strokeStyle = 'rgba(90,216,196,.35)'; x.lineWidth = 1; mzRRect(x, ex - 13.5, Y - 4.5, 27, MZCR.y - Y + 14, 6); x.stroke(); x.restore();
+  // 본체 방
+  mzFloorFill(x, MZCR.x, MZCR.y, MZCR.w, MZCR.h, 12, 5);
+  x.save(); mzRRect(x, MZCR.x + 1.5, MZCR.y + 1.5, MZCR.w - 3, MZCR.h - 3, 12); x.lineWidth = 3; x.strokeStyle = '#2a2436'; x.stroke(); x.lineWidth = 1; x.strokeStyle = lit === 'core' ? '#fff3a0' : 'rgba(90,216,196,' + (0.5 + 0.2 * Math.sin(t * 6.2832)).toFixed(2) + ')'; mzRRect(x, MZCR.x + 4.5, MZCR.y + 4.5, MZCR.w - 9, MZCR.h - 9, 9); x.stroke(); x.restore();
+  // 알의 방
+  mzFloorFill(x, MZER.x, MZER.y, MZER.w, MZER.h, 14, 9);
+  x.save(); mzRRect(x, MZER.x + 1.5, MZER.y + 1.5, MZER.w - 3, MZER.h - 3, 14); x.lineWidth = 3; x.strokeStyle = '#2a2436'; x.stroke(); x.lineWidth = 1; x.strokeStyle = 'rgba(180,140,255,' + (0.45 + 0.25 * Math.sin(t * 6.2832 + 1)).toFixed(2) + ')'; mzRRect(x, MZER.x + 4.5, MZER.y + 4.5, MZER.w - 9, MZER.h - 9, 11); x.stroke(); x.restore();
+}
+// 본체 방의 본체(크게, 바닥에 발을 딛고)와 권속 둘
+function mzCoreDraw(x, core, now, alpha) {
+  if (typeof LAIRART !== 'undefined' && LAIRART.boss) { try { const st = core && core.step != null ? core.step : 0, form = core && core.form ? core.form : 'drop', h = typeof lrBossH === 'function' ? lrBossH(st ? form : 'drop', st) : LAIRART.boss(form, st), fr = h.frame('idle', now), sz = 84, X = Math.round(MZCR.x + 68 - sz / 2), Y = Math.round(MZCR.y + MZCR.h - 4 - sz * 0.92); x.drawImage(fr, X, Y, sz, sz); } catch (e) { /* 그림 없이 */ } }
+  ((core && core.units) || []).forEach((u, i) => { const sp = MZCORE_SPOTS[i]; if (!sp) return; const ic = mzIconCv(u.kind, u.star, 32); if (!ic) return; const px = Math.round(sp[0] - 16), py = Math.round(sp[1] - 30); x.save(); if (alpha && alpha[u.uid]) x.globalAlpha = 0.35; x.fillStyle = 'rgba(5,4,10,.5)'; x.beginPath(); x.ellipse(sp[0], sp[1], 12, 4, 0, 0, 6.2832); x.fill(); x.drawImage(ic, px, py); if (u.star > 1) { x.fillStyle = u.star >= 3 ? '#ffd040' : '#e8e8f0'; for (let k = 0; k < u.star; k++) x.fillRect(px + 9 + k * 5, py + 32, 4, 3); } x.restore(); MZ.dbg.units++; });
+}
+function mzEggRoomDraw(x, hp, max, t, shake) {
+  const crack = Math.max(0, Math.min(4, Math.floor((1 - hp / max) * 5))), cx = MZER.x + MZER.w / 2 + (shake ? Math.sin(t * 60) * 3 : 0), cy = MZER.y + MZER.h / 2;
+  if (mzFn('mazeEgg')) { const e = LAIRART.mazeEgg(MS, crack, t), sz = Math.min(MZER.w + 6, e.width); x.drawImage(e, Math.round(cx - sz / 2), Math.round(cy - sz / 2), sz, sz); return; }
+  x.save(); x.fillStyle = '#0a0612'; x.strokeStyle = '#6a4ab0'; x.lineWidth = 2; x.beginPath(); x.ellipse(cx, cy, 26, 34, 0, 0, 6.2832); x.fill(); x.stroke(); x.strokeStyle = '#e9e2cf'; x.lineWidth = 1; for (let k = 0; k < crack; k++) { x.beginPath(); x.moveTo(cx - 12 + k * 6, cy - 22); x.lineTo(cx - 6 + k * 6, cy); x.lineTo(cx - 10 + k * 6, cy + 18); x.stroke(); } x.restore();
+}
 function mzUnitsDraw(x, grid, c, units, alpha) {
-  const X = (c % 5) * MS, Y = MTOP + Math.floor(c / 5) * MS, core = grid[c].use === 'core', spots = core ? [[0.2, 0.74], [0.8, 0.74]] : MZUSPOT;
+  const X = (c % 5) * MS, Y = MTOP + Math.floor(c / 5) * MS, spots = MZUSPOT;
   units.forEach((u, i) => { const sp = spots[i]; if (!sp) return; const ic = mzIconCv(u.kind, u.star, 30); if (!ic) return; const px = Math.round(X + sp[0] * MS - 15), py = Math.round(Y + sp[1] * MS - 18); x.save(); if (alpha != null) x.globalAlpha = alpha; x.fillStyle = 'rgba(5,4,10,.5)'; x.beginPath(); x.ellipse(px + 15, py + 28, 11, 4, 0, 0, 6.2832); x.fill(); x.drawImage(ic, px, py); if (u.star > 1) { x.fillStyle = u.star >= 3 ? '#ffd040' : '#e8e8f0'; for (let s = 0; s < u.star; s++) x.fillRect(px + 9 + s * 5, py + 30, 4, 3); } x.restore(); MZ.dbg.units++; });
 }
+const MZTAIL = () => [{ x: mzCx(MZEXIT), y: MZCR.y + MZCR.h / 2 }, { x: MZER.x + 16, y: MZCR.y + MZCR.h / 2 }, mzPt('egg')];
 function mzRender(now) {
   const cv = $('mz-cv'), x = cv.getContext('2d'), M = MZ.M; if (!M) return; const P = MZ.play, v = MZ.v || mzView(), t = now / 1000, tf = (now % 3000) / 3000;
-  const grid = P ? P.grid : v.grid, form = typeof LAIR !== 'undefined' ? LAIR.formOf(Object.keys(M.board).reduce((a, c) => a.concat(M.board[c].map(id => M.unit[id] && M.unit[id].kind).filter(Boolean)), [])) : 'drop';
+  const grid = P ? P.grid : v.grid;
   MZ.dbg = { units: 0, lit: [], path: 0, party: 0, dark: MZ.dbg.dark || 0, lostLab: MZ.dbg.lostLab || 0, scoutDown: MZ.dbg.scoutDown || 0 };
   x.imageSmoothingEnabled = false; x.setTransform(1, 0, 0, 1, 0, 0); x.fillStyle = '#050407'; x.fillRect(0, 0, MW, MH);
-  if (mzFn('mazeEntrance')) x.drawImage(LAIRART.mazeEntrance(MS, 5), 0, 0); else { const gr = x.createLinearGradient(0, 0, 0, MTOP); gr.addColorStop(0, '#3a3020'); gr.addColorStop(1, '#050407'); x.fillStyle = gr; x.fillRect(0, 0, MW, MTOP); x.fillStyle = '#ffd890'; x.fillRect(MS * 2 + 22, 0, 20, MTOP - 6); }
-  for (let c = 0; c < 40; c++) if (grid[c].use !== 'core') mzCellDraw(x, grid, c, tf, form);
+  if (mzFn('mazeEntrance')) { const e = LAIRART.mazeEntrance(MS, 5); x.drawImage(e, 0, MTOP - e.height); } else { const gr = x.createLinearGradient(0, 0, 0, MTOP); gr.addColorStop(0, '#3a3020'); gr.addColorStop(1, '#050407'); x.fillStyle = gr; x.fillRect(0, 0, MW, MTOP); x.fillStyle = '#ffd890'; x.fillRect(MS * 2 + 22, 0, 20, MTOP - 4); }
+  for (let c = 0; c < 40; c++) mzCellDraw(x, grid, c, tf, 'drop');
   if (mzFn('mazeEntranceGlow')) x.drawImage(LAIRART.mazeEntranceGlow(MS, 5, tf), 0, MTOP);
+  const selU = MZ.sel && MZ.sel.uid ? MZ.sel.uid : MZ.drag && MZ.drag.moved ? MZ.drag.uid : null, places = selU && !P ? mzPlaces(v, selU) : null;
+  mzBandDraw(x, tf, places && places.core ? 'core' : null);
   // 부서지는 바위
   if (P && P.brk && P.brk.t1 > MZ.t) { const c = P.brk.cell, k = 1 - (P.brk.t1 - MZ.t) / P.brk.dur; x.save(); x.fillStyle = '#8a7a60'; for (let i = 0; i < 10; i++) { const a = i * 0.63, d = k * MS * 0.5; x.fillRect(Math.round(mzCx(c) + Math.cos(a) * d), Math.round(mzCy(c) + Math.sin(a) * d + k * k * 20), 4, 4); } x.restore(); }
-  // 다음 일행의 길 (준비 때). 알과 본체 그림 아래에
-  if (!P && v.next && MZ.phase === 'prep') { if (v.next.scout && v.next.scoutPath && v.next.scoutPath.length) mzScoutDraw(x, v.next.scoutPath, v.next.lostAt || [], now); mzPathDraw(x, v.next.path, v.next.breaks, tf); mzBackDraw(x, v.next.path, v.next.back || [], now); MZ.dbg.path = v.next.path.length; }
-  // 고른 권속을 세울 수 있는 방
-  const selU = MZ.sel && MZ.sel.uid ? MZ.sel.uid : MZ.drag && MZ.drag.moved ? MZ.drag.uid : null;
-  if (selU && !P) { for (let c = 0; c < 40; c++) { const g = v.grid[c]; if (!(g.use === 'kin' || g.use === 'core') || g.units.length >= g.max && !g.units.some(u => u.uid === selU)) continue; MZ.dbg.lit.push(c); const X = (c % 5) * MS, Y = MTOP + Math.floor(c / 5) * MS; x.save(); x.globalAlpha = 0.2 + 0.12 * Math.sin(now / 160); x.fillStyle = '#5ad8c4'; x.fillRect(X + 3, Y + 3, MS - 6, MS - 6); x.globalAlpha = 1; x.strokeStyle = MZ.hover === c ? '#fff3a0' : '#5ad8c4'; x.lineWidth = 2; x.strokeRect(X + 3.5, Y + 3.5, MS - 7, MS - 7); x.restore(); } }
-  mzCellDraw(x, grid, MAZE.CORE, tf, form);
-  mzCoreBoss(x, form, now);
-  mzEggDraw(x, MAZE.EGG, P ? P.egg : v.egg.hp, v.egg.max, t, P && P.eggHit > MZ.t);
+  // 다음 일행의 길 (준비 때): 출구에서 본체 방을 지나 알까지. 본체·알 그림 아래에
+  if (!P && v.next && MZ.phase === 'prep') { if (v.next.scout && v.next.scoutPath && v.next.scoutPath.length) mzScoutDraw(x, v.next.scoutPath, v.next.lostAt || [], now); mzPathDraw(x, v.next.path, v.next.breaks, tf, v.next.path[v.next.path.length - 1] === MZEXIT ? MZTAIL() : []); mzBackDraw(x, v.next.path, v.next.back || [], now); MZ.dbg.path = v.next.path.length; }
+  // 고른 권속을 놓을 수 있는 곳: 판 통로, 자리가 남은 권속 방, 본체 방
+  if (places) { places.cells.forEach(c => { MZ.dbg.lit.push(c); const X = (c % 5) * MS, Y = MTOP + Math.floor(c / 5) * MS; x.save(); x.globalAlpha = 0.18 + 0.12 * Math.sin(now / 160); x.fillStyle = '#5ad8c4'; x.fillRect(X + 3, Y + 3, MS - 6, MS - 6); x.globalAlpha = 1; x.strokeStyle = MZ.hover === c ? '#fff3a0' : '#5ad8c4'; x.lineWidth = 2; x.strokeRect(X + 3.5, Y + 3.5, MS - 7, MS - 7); x.restore(); });
+    if (places.core) { MZ.dbg.lit.push('core'); x.save(); x.globalAlpha = 0.16 + 0.1 * Math.sin(now / 160); x.fillStyle = '#5ad8c4'; mzRRect(x, MZCR.x + 3, MZCR.y + 3, MZCR.w - 6, MZCR.h - 6, 10); x.fill(); x.restore(); } }
+  mzCoreDraw(x, v.core, now, P && P.dead);
+  mzEggRoomDraw(x, P ? P.egg : v.egg.hp, v.egg.max, t, P && P.eggHit > MZ.t);
   // 권속
-  for (let c = 0; c < 40; c++) { const g = v.grid[c]; if (!g.units.length) continue; mzUnitsDraw(x, grid, c, g.units.map(u => ({ uid: u.uid, kind: u.kind, star: u.star })), P && P.dead && g.units.every(u => P.dead[u.uid]) ? 0.35 : null); }
+  for (let c = 0; c < 40; c++) { const g = v.grid[c]; if (!g.units || !g.units.length) continue; mzUnitsDraw(x, grid, c, g.units.map(u => ({ uid: u.uid, kind: u.kind, star: u.star })), P && P.dead && g.units.every(u => P.dead[u.uid]) ? 0.35 : null); }
   // 진화의 터짐
-  if (MZ.burst && MZ.burst.t1 > MZ.t) { const b = MZ.burst, k = 1 - (b.t1 - MZ.t) / 700; x.save(); x.strokeStyle = '#ffd040'; x.globalAlpha = 1 - k; x.lineWidth = 3; x.beginPath(); x.arc(mzCx(b.cell), mzCy(b.cell), 10 + k * 40, 0, 6.2832); x.stroke(); x.restore(); }
+  if (MZ.burst && MZ.burst.t1 > MZ.t) { const b = MZ.burst, k = 1 - (b.t1 - MZ.t) / 700, bp = mzPt(b.cell); x.save(); x.strokeStyle = '#ffd040'; x.globalAlpha = 1 - k; x.lineWidth = 3; x.beginPath(); x.arc(bp.x, bp.y, 10 + k * 40, 0, 6.2832); x.stroke(); x.restore(); }
   // 칸 고르기 표시
-  if (MZ.sheet && MZ.sheet.cell != null) { const c = MZ.sheet.cell, X = (c % 5) * MS, Y = MTOP + Math.floor(c / 5) * MS; x.save(); x.strokeStyle = '#fff3a0'; x.lineWidth = 2; x.setLineDash([5, 3]); x.lineDashOffset = -now / 60; x.strokeRect(X + 2.5, Y + 2.5, MS - 5, MS - 5); x.restore(); }
+  if (MZ.sheet && typeof MZ.sheet.cell === 'number') { const c = MZ.sheet.cell, X = (c % 5) * MS, Y = MTOP + Math.floor(c / 5) * MS; x.save(); x.strokeStyle = '#fff3a0'; x.lineWidth = 2; x.setLineDash([5, 3]); x.lineDashOffset = -now / 60; x.strokeRect(X + 2.5, Y + 2.5, MS - 5, MS - 5); x.restore(); }
   // 함정의 번쩍임
   if (P && P.flash && P.flash.t1 > MZ.t) { const c = P.flash.cell, k = (P.flash.t1 - MZ.t) / P.flash.dur; x.save(); x.globalAlpha = 0.55 * k; x.fillStyle = P.flash.col; x.fillRect((c % 5) * MS, MTOP + Math.floor(c / 5) * MS, MS, MS); x.restore(); }
   // 일행 표식
@@ -249,13 +283,25 @@ function mzRender(now) {
     }
   }
   // 막은 뒤: 방마다 쓰러뜨린 수의 꼬리표
-  if (MZ.tags && MZ.tags.t1 > MZ.t) MZ.tags.list.forEach(q => { const X = mzCx(q.cell), Y = mzCy(q.cell) - MS * 0.42; x.save(); x.globalAlpha = Math.min(1, (MZ.tags.t1 - MZ.t) / 500); x.fillStyle = '#0c0812'; x.fillRect(X - 15, Y - 9, 30, 17); x.fillStyle = q.n ? '#ffd040' : '#6a6478'; x.fillRect(X - 14, Y - 8, 28, 15); x.fillStyle = '#0c0812'; x.font = '700 12px "Nest Sans", sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('×' + q.n, X, Y); x.restore(); MZ.dbg.tags = (MZ.dbg.tags || 0) + 1; });
+  if (MZ.tags && MZ.tags.t1 > MZ.t) MZ.tags.list.forEach(q => { const qp = mzPt(q.cell), X = qp.x, Y = q.cell === 'core' ? MZCR.y + 10 : qp.y - MS * 0.42; x.save(); x.globalAlpha = Math.min(1, (MZ.tags.t1 - MZ.t) / 500); x.fillStyle = '#0c0812'; x.fillRect(X - 15, Y - 9, 30, 17); x.fillStyle = q.n ? '#ffd040' : '#6a6478'; x.fillRect(X - 14, Y - 8, 28, 15); x.fillStyle = '#0c0812'; x.font = '700 12px "Nest Sans", sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('×' + q.n, X, Y); x.restore(); MZ.dbg.tags = (MZ.dbg.tags || 0) + 1; });
 }
 
+// 고른 권속을 놓을 수 있는 곳: { cells, core }. 대기석의 권속인데 더 세울 수 없으면 비어 있다
+function mzPlaces(v, uid) {
+  const M = MZ.M, w = MAZE.whereOf(M, uid), fromBench = !w || w.bench != null, full = fromBench && v.placed >= v.cap, out = { cells: [], core: false, full };
+  if (full) return out;
+  v.grid.forEach(g => { if (!g.dug || g.canPlace === false) return; const here = (g.units || []).some(u => u.uid === uid); if (g.use === 'path' || (g.use === 'kin' && ((g.units || []).length < g.max || here))) out.cells.push(g.cell); });
+  const C = v.core; out.core = !!C && (C.units.length < C.max || C.units.some(u => u.uid === uid)); return out;
+}
+function mzSelect(uid) {
+  MZ.sel = { uid }; mzSay('click'); const v = MZ.v || mzView(), pl = mzPlaces(v, uid);
+  if (pl.full) mzToast('더 세울 수 없다 (' + v.cap + ')'); else if (!pl.cells.length && !pl.core) mzToast('놓을 곳이 없다. 바위를 판다');
+}
 // ---- 누르기 ----
-function mzCellAt(cx, cy) { const r = $('mz-cv').getBoundingClientRect(), x = (cx - r.left) / MZ.k, y = (cy - r.top) / MZ.k - MTOP; if (x < 0 || x >= MW || y < 0 || y >= MS * 8) return -1; return Math.floor(y / MS) * 5 + Math.floor(x / MS); }
+function mzCellAt(cx, cy) { const r = $('mz-cv').getBoundingClientRect(), x = (cx - r.left) / MZ.k, y = (cy - r.top) / MZ.k; const inB = B => x >= B.x && x < B.x + B.w && y >= B.y && y < B.y + B.h; if (inB(MZCR)) return 'core'; if (inB(MZER)) return 'egg'; const gy = y - MTOP; if (x < 0 || x >= MW || gy < 0 || gy >= MS * 8) return -1; return Math.floor(gy / MS) * 5 + Math.floor(x / MS); }
 function mzClick(e) {
-  if (e.target.id === 'mz-sheet' && MZ.sheet && MZ.sheet.kind !== 'result' && MZ.sheet.kind !== 'over') return mzSheetClose();
+  // 폰에서 손을 떼어 창을 연 바로 뒤에 오는 click 은 창 바깥(어둠)에 떨어진다: 막 연 창은 닫지 않는다
+  if (e.target.id === 'mz-sheet' && MZ.sheet && MZ.sheet.kind !== 'result' && MZ.sheet.kind !== 'over') { if (performance.now() - (MZ.sheetT || 0) < 450) return; return mzSheetClose(); }
   const b = e.target.closest('[data-m]'); if (!b || b.disabled) return; const a = b.dataset.m, M = MZ.M;
   if (a === 'menu') { mzSay('click'); return mzSheet({ kind: 'menu' }); }
   if (a === 'close') return mzSheetClose();
@@ -284,9 +330,9 @@ function mzClick(e) {
   if (a === 'use') { const u = b.dataset.u, r = MAZE.setUse(M, cell, u, u === 'trap' ? b.dataset.id || MAZE.TRAP_IDS[0] : null); if (!r.ok) return mzToast(r.msg); mzSay('click'); mzDraw(); return mzSheet({ kind: 'cell', cell }); }
   if (a === 'room') { const r = MAZE.setUse(M, cell, 'kin', b.dataset.id); if (!r.ok) return mzToast(r.msg); mzSay('thud'); mzDraw(); return mzSheet({ kind: 'cell', cell }); }
   if (a === 'trap') { const r = MAZE.setUse(M, cell, 'trap', b.dataset.id); if (!r.ok) return mzToast(r.msg); mzSay('thud'); mzDraw(); return mzSheet({ kind: 'cell', cell }); }
-  if (a === 'tobench') { const r = MAZE.move(M, +b.dataset.u, { bench: null }); if (!r.ok) return mzToast(r.msg); mzSay('click'); mzDraw(); return cell != null ? mzSheet({ kind: 'cell', cell }) : mzSheetClose(); }
-  if (a === 'sell') { const r = MAZE.sell(M, +b.dataset.u); if (!r.ok) return mzToast(r.msg); mzSay('coin'); MZ.sel = null; mzDraw(); return cell != null ? mzSheet({ kind: 'cell', cell }) : mzSheetClose(); }
-  if (a === 'pick') { MZ.sel = { uid: +b.dataset.u }; mzSheetClose(); mzSay('click'); return mzDraw(); }
+  if (a === 'tobench') { const r = MAZE.move(M, +b.dataset.u, { bench: null }); if (!r.ok) return mzToast(r.msg); mzSay('click'); mzDraw(); return MZ.sheet && MZ.sheet.kind === 'core' ? mzSheet({ kind: 'core' }) : cell != null ? mzSheet({ kind: 'cell', cell }) : mzSheetClose(); }
+  if (a === 'sell') { const r = MAZE.sell(M, +b.dataset.u); if (!r.ok) return mzToast(r.msg); mzSay('coin'); MZ.sel = null; mzDraw(); return MZ.sheet && MZ.sheet.kind === 'core' ? mzSheet({ kind: 'core' }) : cell != null ? mzSheet({ kind: 'cell', cell }) : mzSheetClose(); }
+  if (a === 'pick') { mzSheetClose(); mzSelect(+b.dataset.u); return mzDraw(); }
 }
 function mzBuy(i) {
   const M = MZ.M, r = MAZE.buy(M, i); if (!r.ok) { mzToast(r.msg); return mzDraw(); }
@@ -300,7 +346,7 @@ function mzMergePop(m) {
 function mzDown(e) {
   if (MZ.phase !== 'prep' || MZ.sheet) return; const slot = e.target.closest('.mz-slot'), onCv = e.target.id === 'mz-cv'; if (!slot && !onCv) return;
   let uid = null, cell = -1;
-  if (slot) uid = slot.dataset.u ? +slot.dataset.u : null; else { cell = mzCellAt(e.clientX, e.clientY); uid = cell >= 0 ? mzUnitNear(cell, e.clientX, e.clientY) : null; }
+  if (slot) uid = slot.dataset.u ? +slot.dataset.u : null; else { cell = mzCellAt(e.clientX, e.clientY); uid = cell === 'core' || cell >= 0 ? mzUnitNear(cell, e.clientX, e.clientY) : null; }
   MZ.drag = { uid, cell, bench: slot ? +slot.dataset.bench : null, x0: e.clientX, y0: e.clientY, moved: false };
   if (uid) e.preventDefault();
 }
@@ -315,32 +361,32 @@ function mzUp(e) {
   const d = MZ.drag; MZ.drag = null; $('mz-drag').hidden = true; MZ.hover = -1; if (!d || MZ.phase !== 'prep') return; const M = MZ.M;
   if (d.moved) {
     const el = document.elementFromPoint(e.clientX, e.clientY), slot = el && el.closest('.mz-slot'), cell = mzCellAt(e.clientX, e.clientY);
-    if (slot) return mzMoveTo(d.uid, { bench: +slot.dataset.bench }); if (el && el.closest('#mz-shop')) { const r = MAZE.sell(M, d.uid); if (r.ok) mzSay('coin'); return mzDraw(); } if (cell >= 0) return mzMoveTo(d.uid, { cell }); return mzDraw();
+    if (slot) return mzMoveTo(d.uid, { bench: +slot.dataset.bench }); if (el && el.closest('#mz-shop')) { const r = MAZE.sell(M, d.uid); if (r.ok) mzSay('coin'); return mzDraw(); } if (cell === 'core') return mzMoveTo(d.uid, { core: true }); if (cell === 'egg') { mzToast('알의 방에는 세울 수 없다'); return mzDraw(); } if (cell >= 0) return mzMoveTo(d.uid, { cell }); return mzDraw();
   }
   // 누르기
-  if (d.bench != null) { if (MZ.sel && MZ.sel.uid && MZ.sel.uid !== d.uid) return mzMoveTo(MZ.sel.uid, { bench: d.bench }); if (d.uid) { MZ.sel = MZ.sel && MZ.sel.uid === d.uid ? null : { uid: d.uid }; mzSay('click'); } return mzDraw(); }
-  const cell = d.cell; if (cell < 0) { MZ.sel = null; return mzDraw(); }
-  if (MZ.sel && MZ.sel.uid) { const g = M.grid[cell]; if (g.use === 'kin' || g.use === 'core') return mzMoveTo(MZ.sel.uid, { cell }); MZ.sel = null; mzDraw(); }
-  mzSay('click'); MZ.shop = false; $('mz-shop').hidden = true; mzSheet({ kind: 'cell', cell });
+  if (d.bench != null) { if (MZ.sel && MZ.sel.uid && MZ.sel.uid !== d.uid) return mzMoveTo(MZ.sel.uid, { bench: d.bench }); if (d.uid) { if (MZ.sel && MZ.sel.uid === d.uid) MZ.sel = null; else mzSelect(d.uid); } return mzDraw(); }
+  const cell = d.cell; if (cell === -1) { MZ.sel = null; return mzDraw(); }
+  if (MZ.sel && MZ.sel.uid) { if (cell === 'egg') { mzToast('알의 방에는 세울 수 없다'); return; } return mzMoveTo(MZ.sel.uid, cell === 'core' ? { core: true } : { cell }, true); }
+  mzSay('click'); MZ.shop = false; $('mz-shop').hidden = true; if (cell === 'core' || cell === 'egg') return mzSheet({ kind: cell }); mzSheet({ kind: 'cell', cell });
 }
 // 방 안에서 누른 자리에 가장 가까운 권속 (그림의 자리 MZUSPOT 대로)
 function mzUnitNear(cell, cx, cy) {
-  const here = MZ.M.board[cell] || []; if (!here.length) return null; const r = $('mz-cv').getBoundingClientRect(), x = (cx - r.left) / MZ.k - (cell % 5) * MS, y = (cy - r.top) / MZ.k - MTOP - Math.floor(cell / 5) * MS, sp = cell === MAZE.CORE ? [[0.2, 0.74], [0.8, 0.74]] : MZUSPOT;
+  const v = MZ.v || mzView(); if (cell === 'core') { const us = v.core ? v.core.units : [], r = $('mz-cv').getBoundingClientRect(), x = (cx - r.left) / MZ.k, y = (cy - r.top) / MZ.k; let best = null, bd = 1e9; us.forEach((u, i) => { const q = MZCORE_SPOTS[i]; if (!q) return; const d = Math.hypot(q[0] - x, q[1] - 14 - y); if (d < bd && d < 40) { bd = d; best = u.uid; } }); return best; }
+  const here = (v.grid[cell] && v.grid[cell].units || []).map(u => u.uid); if (!here.length) return null; const r = $('mz-cv').getBoundingClientRect(), x = (cx - r.left) / MZ.k - (cell % 5) * MS, y = (cy - r.top) / MZ.k - MTOP - Math.floor(cell / 5) * MS, sp = MZUSPOT;
   let best = here[here.length - 1], bd = 1e9; here.forEach((uid, i) => { const q = sp[i]; if (!q) return; const d = Math.hypot(q[0] * MS - x, q[1] * MS - 6 - y); if (d < bd) { bd = d; best = uid; } }); return best;
 }
-function mzMoveTo(uid, to) { const r = MAZE.move(MZ.M, uid, to); if (r.ok) { mzSay(to.cell != null ? 'thud' : 'click'); MZ.sel = null; } else mzToast(r.msg); mzDraw(); }
+// keep: 실패해도 고른 것을 그대로 둔다 (다른 칸을 눌러 볼 수 있게)
+function mzMoveTo(uid, to, keep) { const r = MAZE.move(MZ.M, uid, to); if (r.ok) { mzSay(to.bench != null ? 'click' : 'thud'); MZ.sel = null; const w = MAZE.whereOf(MZ.M, uid); if (w && (w.cell != null || w.core)) MZ.burst = { cell: w.core ? 'core' : w.cell, t1: MZ.t + 500 }; } else { mzToast(r.msg); if (!keep) MZ.sel = null; } mzDraw(); }
 
 // ---- 아래에서 올라오는 창 ----
 const mzFree = (v, id) => (v.free || []).some(q => q.id === id);
 const mzSt = (k, n) => `<span class="mz-st"><small>${k}</small><b>${n}</b></span>`;
 function mzUnitRow(u, cell) { return `<div class="mz-urow"><button class="mz-uin" data-m="uinfo" data-k="${u.kind}" data-s="${u.star}" data-u="${u.uid}"><img src="${mzIcon(u.kind, u.star, 36)}" alt=""><b>${esc(u.name)}</b>${mzStars(u.star)}</button><button data-m="pick" data-u="${u.uid}">옮기기</button><button data-m="tobench" data-u="${u.uid}">대기석</button><button data-m="sell" data-u="${u.uid}">팔기 ${u.sell}</button></div>`; }
 function mzSheet(s) {
-  MZ.sheet = s; const el = $('mz-sheet'), v = MZ.v || mzView(); let h = '';
+  if (!MZ.sheet || MZ.sheet.kind !== s.kind) MZ.sheetT = performance.now(); MZ.sheet = s; const el = $('mz-sheet'), v = MZ.v || mzView(); let h = '';
   if (s.kind === 'cell') {
     const g = v.grid[s.cell];
     if (!g.dug) h = `<h3>바위</h3><div class="mz-acts2"><button class="pri" data-m="dig"${g.canDig ? '' : ' disabled'}>파기 ${g.digCost}</button></div>${g.digWhy ? `<p class="mz-why">${esc(g.digWhy)}</p>` : ''}<p class="mz-note">판 칸 ${v.dug}/${v.dugCap}</p>`;
-    else if (g.use === 'egg') h = `<h3>알</h3><div class="mz-stats">${mzSt('체력', v.egg.hp + '/' + v.egg.max)}</div>`;
-    else if (g.use === 'core') h = `<h3>본체 방</h3><p class="mz-note">권속 ${g.units.length}/${g.max}</p>${g.units.map(u => mzUnitRow(u, s.cell)).join('')}`;
     else {
       const title = g.use === 'kin' ? (g.roomInfo ? g.roomInfo.name : '권속 방') : g.use === 'trap' ? g.trapInfo.name : '통로';
       h = `<h3>${esc(title)}</h3><div class="mz-uses">${[['path', '통로'], ['kin', '권속 방'], ['trap', '함정']].map(q => `<button data-m="use" data-u="${q[0]}" class="${g.use === q[0] ? 'on' : ''}" aria-pressed="${g.use === q[0]}">${q[1]}</button>`).join('')}</div>`;
@@ -350,6 +396,8 @@ function mzSheet(s) {
       h += `<div class="mz-acts2"><button data-m="fill"${g.canFill ? '' : ' disabled'}>메우기 +${g.fillGold}</button></div>${g.fillWhy ? `<p class="mz-why">${esc(g.fillWhy)}</p>` : ''}`;
     }
   }
+  if (s.kind === 'egg') h = `<h3>알의 방</h3><div class="mz-stats">${mzSt('알', v.egg.hp + '/' + v.egg.max)}</div>`;
+  if (s.kind === 'core') { const C = v.core || { units: [], max: 2 }; h = `<h3>본체 방</h3><p class="mz-note">권속 ${C.units.length}/${C.max}</p>${C.units.map(u => mzUnitRow(u, 'core')).join('')}`; }
   if (s.kind === 'shop') { const q = v.shop[s.i]; if (!q) return mzSheetClose(); h = mzUnitHtml(q) + `<div class="mz-acts2"><button class="pri" data-m="buy" data-i="${s.i}"${q.can ? '' : ' disabled'}>산다 ${q.cost}</button></div>`; }
   if (s.kind === 'unit') { const u = LAIR.unitInfo(s.kindId, s.star), w = s.uid != null ? MAZE.whereOf(MZ.M, s.uid) : null; h = mzUnitHtml(u) + (s.uid != null && MZ.phase === 'prep' ? `<div class="mz-acts2"><button data-m="pick" data-u="${s.uid}">옮기기</button>${w && w.cell != null ? `<button data-m="tobench" data-u="${s.uid}">대기석</button>` : ''}<button data-m="sell" data-u="${s.uid}">팔기 ${MAZE.sellValue(MZ.M.unit[s.uid])}</button></div>` : ''); }
   if (s.kind === 'party') { const n = v.next; if (!n) return mzSheetClose(); const sc = MAZE.SCOUTS || MAZE.AVOIDERS || []; h = `<h3>${esc(n.name)}</h3><p class="mz-note">걸음 ${n.len}${(n.back || []).some(Boolean) ? ' · 되돌아감 ' + n.back.filter(Boolean).length : ''}${n.breaks.length ? ' · 지름길 ' + n.breaks.length : ''}${n.avoided ? ' · 함정을 돌아감' : ''}</p><div class="mz-party">${n.party.map(p => `<div class="${sc.includes(p.kind) ? 'scout' : ''}"><img src="${mzIcon(p.kind, 1, 36)}" alt=""><b>${esc(p.name)}${sc.includes(p.kind) ? ' · 길잡이' : ''}</b><small>체력 ${p.hp}${p.noMad ? '' : ' · 정신 ' + p.san} · 알 −${p.egg}</small></div>`).join('')}</div>`; }
@@ -372,25 +420,31 @@ function mzCoach() {
   const c = $('mz-coach'); if (!c) return; const M = MZ.M;
   if (MZ.tut < 0 || MZ.tut >= MZTUT.length || MZ.sheet || MZ.phase !== 'prep' || !M) { c.hidden = true; return; }
   const v = MZ.v || mzView();
-  if (MZ.tut === 0 && v.dug > MZ.dug0) MZ.tut = 1;
-  if (MZ.tut === 1 && v.grid.some(g => g.use === 'kin')) MZ.tut = 2;
-  if (MZ.tut === 2 && v.placed) MZ.tut = 3;
+  if (MZ.tut === 0 && (Object.keys(M.unit).length || v.placed)) MZ.tut = 1;
+  if (MZ.tut === 1 && v.placed) MZ.tut = 2;
+  if (MZ.tut === 2 && v.dug > MZ.dug0) MZ.tut = 3;
   if (MZ.tut >= MZTUT.length) { c.hidden = true; return; }
   const st = MZTUT[MZ.tut]; let at = null;
   if (st.key === 'dig') { const g = v.grid.find(q => q.canDig); if (g) at = mzCellRect(g.cell); }
-  if (st.key === 'room') { const g = v.grid.find(q => q.dug && q.use === 'path' && !q.fixed && q.r > 0); if (g) at = mzCellRect(g.cell); }
-  if (st.key === 'place') { const b = mq('#mz-bench .mz-slot.has') || mq('#mz-shop .mz-card:not(.empty)'); if (b) at = b.getBoundingClientRect(); }
+  if (st.key === 'shop') { const b = mq('#mz-bench [data-m="shopt"]'); if (b) at = b.getBoundingClientRect(); }
+  if (st.key === 'place') { if (MZ.sel && MZ.sel.uid) { const pl = mzPlaces(v, MZ.sel.uid); if (pl.cells.length) at = mzCellRect(pl.cells[Math.min(1, pl.cells.length - 1)]); else if (pl.core) at = mzCellRect('core'); } else { const b = mq('#mz-bench .mz-slot.has'); if (b) at = b.getBoundingClientRect(); } }
   if (st.key === 'raid') { const b = mq('#mz-bench [data-m="raid"]'); if (b) at = b.getBoundingClientRect(); }
   if (!at) { c.hidden = true; return; }
   c.innerHTML = `<p>${esc(st.text)}</p><span>${st.ok ? '<button data-m="tutok">알았다</button>' : ''}<button data-m="tutoff">안내 끄기</button></span>`; c.hidden = false;
   const cw = Math.min(280, window.innerWidth - 16); c.style.width = cw + 'px'; const ch = c.offsetHeight || 70, below = at.top < 170;
   c.style.left = Math.max(8, Math.min(window.innerWidth - cw - 8, at.left + at.width / 2 - cw / 2)) + 'px'; c.style.top = (below ? at.bottom + 8 : at.top - ch - 8) + 'px';
 }
-function mzCellRect(c) { const r = $('mz-cv').getBoundingClientRect(), k = MZ.k, x = r.left + (c % 5) * MS * k, y = r.top + (MTOP + Math.floor(c / 5) * MS) * k; return { left: x, top: y, width: MS * k, height: MS * k, right: x + MS * k, bottom: y + MS * k }; }
+function mzCellRect(c) { const r = $('mz-cv').getBoundingClientRect(), k = MZ.k; if (c === 'core' || c === 'egg') { const B = c === 'core' ? MZCR : MZER; return { left: r.left + B.x * k, top: r.top + B.y * k, width: B.w * k, height: B.h * k, right: r.left + (B.x + B.w) * k, bottom: r.top + (B.y + B.h) * k }; } const x = r.left + (c % 5) * MS * k, y = r.top + (MTOP + Math.floor(c / 5) * MS) * k; return { left: x, top: y, width: MS * k, height: MS * k, right: x + MS * k, bottom: y + MS * k }; }
 
 // ---- 침입 ----
 // 걸음: 칸당 0.2초 (보통). 함정 0.8초, 바위 부수기 0.9초, 알 1.2초. 방의 싸움은 둥지 전투의 재생으로
 const MZWALK = 0.2;
+// 걷기와 같은 빠르기로 지도 밖의 굴을 걷는다
+function mzTravelStep(P, dt) {
+  const T = P.trav, sp = mzSpeed(); T.k += dt / 1000 * sp / MZWALK; const i = Math.min(T.pts.length - 1, Math.floor(T.k)), f = Math.min(1, T.k - Math.floor(T.k)), a = i === 0 ? T.from : T.pts[i - 1], b = T.pts[i];
+  P.pos = { x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f }; if (T.k < T.pts.length) return;
+  P.pos = Object.assign({}, T.pts[T.pts.length - 1]); P.at = T.to; P.trav = null; P.cur = T.s; if (T.s.type === 'fight') mzFight(T.s); else { P.i--; mzStepNext(); }
+}
 const mzSpeed = () => (typeof LU !== 'undefined' && LU.speed) || (typeof lrSpeedLoad === 'function' ? lrSpeedLoad() : 1);
 function mzRaid() {
   const M = MZ.M; MZ.sel = null; mzSheetClose(); const v0 = mzView(), party = MAZE.partyOf(M), kinAt = {}; Object.keys(M.board).forEach(c => { kinAt[c] = M.board[c].slice(); });
@@ -403,7 +457,7 @@ function mzRaid() {
 function mzPartyApply(snap) { const P = MZ.play; if (!snap) return; snap.forEach(s => { const p = P.party[s.i]; if (p) Object.assign(p, { hp: s.hp, mhp: s.mhp, san: s.san, msan: s.msan, alive: s.alive, mad: s.mad, out: s.out }); }); P.alive = P.party.filter(p => p.alive && !p.mad && !p.out); }
 function mzLog(text, cls, icon) { const P = MZ.play; P.log.push({ text, cls: cls || '', icon: icon || null }); if (P.log.length > 6) P.log.shift(); const el = $('mz-log'); if (el) el.innerHTML = mzLogHtml(); }
 function mzLogHtml() { const P = MZ.play; return P ? P.log.slice(-3).reverse().map(l => `<p class="${l.cls}">${l.icon ? `<img src="${l.icon}" alt="">` : ''}<span>${esc(l.text)}</span></p>`).join('') : ''; }
-const mzRoomName = (g, cell) => (cell === MAZE.CORE ? '본체 방' : g && g.room ? LAIR.ROOM[g.room].name : '권속 방');
+const mzRoomName = (g, cell) => (cell === 'core' ? '본체 방' : g && g.room ? LAIR.ROOM[g.room].name : '권속 방');
 function mzStepNext() {
   const P = MZ.play; if (!P || P.done) return; P.i++; const s = P.steps[P.i]; P.cur = s; P.t0 = MZ.t;
   if (!s) return mzRaidEnd();
@@ -411,12 +465,20 @@ function mzStepNext() {
   if (s.type === 'walk') { P.walk = { cells: s.cells, back: s.back || [], k: 0, n: 0, from: { x: P.pos.x, y: P.pos.y }, mad: s.mad || [] }; if (s.lost) mzScoutDown(); return; }
   if (s.type === 'trap') { const T = MAZE.trapInfo(s.id), hit = s.after.filter((a, i) => a.alive && (a.hp < s.before[i].hp || a.san < s.before[i].san || a.mad !== s.before[i].mad)).length; P.traps++; P.pos = { x: mzCx(s.cell), y: mzCy(s.cell) }; P.flash = { cell: s.cell, t1: MZ.t + 600 / sp, dur: 600 / sp, col: MZTRAPC[s.id] || '#ffffff' }; mzPartyApply(s.after); mzLabel(mzCx(s.cell), mzCy(s.cell) - 30, T.name + ' · ' + T.short, 'trap'); mzLog(T.name + ' · ' + hit, 'trap', mzTrapIcon(s.id)); mzSay('hit'); P.wait = MZ.t + 800 / sp; return; }
   if (s.type === 'break') { P.brk = { cell: s.cell, t1: MZ.t + 900 / sp, dur: 900 / sp }; P.grid[s.cell] = { dug: true, use: 'path', room: null, trap: null }; mzLabel(mzCx(s.cell), mzCy(s.cell) - 26, '지름길', 'brk'); mzLog('바위를 부수었다', 'brk'); mzSay('thud'); P.wait = MZ.t + 900 / sp; return; }
-  if (s.type === 'egg') { P.pos = { x: mzCx(s.cell), y: mzCy(s.cell) - 20 }; P.egg = s.egg; P.eggHit = MZ.t + 900; mzLabel(mzCx(s.cell), mzCy(s.cell) - 40, '알 −' + s.dmg, 'egg'); mzLog('알 −' + s.dmg, 'egg'); mzSay('die'); P.alive.forEach(p => { p.out = true; }); P.alive = []; mzRaidPanel(); mzDraw(); P.wait = MZ.t + 1200 / sp; return; }
+  if (s.type === 'egg' && mzTravel(P, 'egg', s)) return;
+  if (s.type === 'egg') { const ep = mzPt('egg'); P.pos = { x: ep.x, y: ep.y - 20 }; P.egg = s.egg; P.eggHit = MZ.t + 900; mzLabel(mzPt('egg').x, mzPt('egg').y - 40, '알 −' + s.dmg, 'egg'); mzLog('알 −' + s.dmg, 'egg'); mzSay('die'); P.alive.forEach(p => { p.out = true; }); P.alive = []; mzRaidPanel(); mzDraw(); P.wait = MZ.t + 1200 / sp; return; }
+  if (s.type === 'fight' && s.cell === 'core' && mzTravel(P, 'core', s)) return;
   if (s.type === 'fight') return mzFight(s);
   P.wait = MZ.t;
 }
+// 지도 밖으로: 출구 밑의 굴을 내려가 본체 방으로, 짧은 굴을 지나 알의 방으로. 다 걸으면 그 걸음(s)을 다시 연다
+function mzTravel(P, to, s) {
+  if (P.at === to) return false; const pts = [], ex = mzCx(MZEXIT), my = MZCR.y + MZCR.h / 2;
+  if (P.at !== 'core') pts.push({ x: ex, y: MGY + 2 }, { x: ex, y: my }); if (to === 'core') pts.push(mzPt('core')); else pts.push({ x: MZER.x + 10, y: my }, mzPt('egg'));
+  P.trav = { pts, k: 0, from: { x: P.pos.x, y: P.pos.y }, to, s }; P.cur = { type: 'travel' }; return true;
+}
 function mzFight(s) {
-  const P = MZ.play, g = P.grid[s.cell], name = mzRoomName(g, s.cell), sp = mzSpeed(); P.pos = { x: mzCx(s.cell), y: mzCy(s.cell) - 24 }; P.fights++;
+  const P = MZ.play, g = s.cell === 'core' ? null : P.grid[s.cell], name = mzRoomName(g, s.cell), sp = mzSpeed(), fp = mzPt(s.cell); P.pos = { x: fp.x, y: fp.y - 24 }; P.fights++;
   const go = () => {
     if (!MZ.play || MZ.play !== P || P.skip) return;
     const party = s.before.inv.filter(p => p.alive && !p.out).length;
@@ -427,7 +489,7 @@ function mzFight(s) {
 function mzFightAfter(s) {
   const P = MZ.play; mzPartyApply(s.after.inv); s.after.kin.forEach(k => { if (!k.alive) P.dead[k.uid] = 1; }); if (s.scoutDown) mzScoutDown(s.cell);
   const kills = s.after.inv.filter((a, i) => s.before.inv[i] && s.before.inv[i].alive && !a.alive).length, mads = s.after.inv.filter((a, i) => s.before.inv[i] && !s.before.inv[i].mad && a.mad).length;
-  mzLog(mzRoomName(P.grid[s.cell], s.cell) + ' · 쓰러뜨림 ' + kills + (mads ? ' · 미침 ' + mads : ''), s.fight.result === 'win' ? 'win' : 'lose', s.core ? mzIcon('boss:' + (s.fight.form || 'drop') + ':1', 1, 24) : P.grid[s.cell].room ? mzRoomIcon(P.grid[s.cell].room) : null);
+  mzLog(mzRoomName(P.grid[s.cell], s.cell) + ' · 쓰러뜨림 ' + kills + (mads ? ' · 미침 ' + mads : ''), s.fight.result === 'win' ? 'win' : 'lose', s.core ? mzIcon('boss:' + (s.fight.form || 'drop') + ':1', 1, 24) : P.grid[s.cell] && P.grid[s.cell].room ? mzRoomIcon(P.grid[s.cell].room) : null);
   mzRaidPanel(); P.wait = MZ.t + 250; P.cur = { type: 'idle' };
 }
 // 방으로 다가가기: 칸의 상자가 화면 가득 넓어진 뒤 싸움을 연다. 돌아올 때는 거꾸로. 움직임을 끈 설정이면 곧바로
@@ -442,13 +504,14 @@ function mzScoutDown(cell) { const P = MZ.play; if (!P || P.scoutDown) return; P
 // 넘기기: 남은 걸음을 바로 결과로
 function mzSkipAll() {
   const P = MZ.play; if (!P || P.done) return; P.skip = true;
+  if (P.trav) { P.cur = P.trav.s; P.trav = null; }
   if (typeof LU !== 'undefined' && LU.replay) { LU.replay.done = null; lrReplayEnd(); } mzUnder(false);
   $('mz-zoom').hidden = true; P.steps.forEach((s, i) => { if (i <= P.i && P.cur !== s) return; if (s.type === 'break') P.grid[s.cell] = { dug: true, use: 'path', room: null, trap: null }; if (s.type === 'trap' || s.type === 'fight') { if (s.type === 'trap') P.traps++; else P.fights++; mzPartyApply(s.type === 'trap' ? s.after : s.after.inv); } if (s.type === 'fight') s.after.kin.forEach(k => { if (!k.alive) P.dead[k.uid] = 1; }); if (s.type === 'egg') P.egg = s.egg; if (s.type === 'walk') (s.mad || []).forEach(i => { if (P.party[i]) P.party[i].mad = true; }); });
   P.i = P.steps.length; mzRaidEnd();
 }
 function mzRaidEnd() {
   const P = MZ.play; if (!P || P.done) return; P.done = true; P.egg = MZ.M.egg; mzSay(P.res.result.win ? 'up' : 'down'); mzMusic('day');
-  { const by = {}; P.res.steps.filter(q => q.type === 'fight').forEach(q => { by[q.cell] = (by[q.cell] || 0) + q.after.inv.filter((a, i) => q.before.inv[i] && q.before.inv[i].alive && !a.alive).length; }); MZ.tags = { t1: MZ.t + 2600, list: Object.keys(by).map(c => ({ cell: +c, n: by[c] })) }; }
+  { const by = {}; P.res.steps.filter(q => q.type === 'fight').forEach(q => { by[q.cell] = (by[q.cell] || 0) + q.after.inv.filter((a, i) => q.before.inv[i] && q.before.inv[i].alive && !a.alive).length; }); MZ.tags = { t1: MZ.t + 2600, list: Object.keys(by).map(c => ({ cell: c === 'core' ? 'core' : +c, n: by[c] })) }; }
   mzDraw(); mzSheet({ kind: MZ.M.phase === 'over' ? 'over' : 'result' });
 }
 function mzRaidPanel() {
@@ -458,7 +521,7 @@ function mzRaidPanel() {
 function mzLabel(x, y, text, cls, ms) { const d = document.createElement('span'), k = MZ.k; d.className = 'mz-lab ' + (cls || ''); d.textContent = text; if (ms) d.style.animationDuration = ms + 'ms'; const hw = (text.length * 12 + 14) / 2; d.style.left = Math.max(hw, Math.min(MW * k - hw, x * k)) + 'px'; d.style.top = Math.max(24, y * k) + 'px'; $('mz-ov').appendChild(d); setTimeout(() => d.remove(), ms || 1300); }
 // 굴 속의 어둠: 한 칸마다 일행의 정신이 깎인다 (표식 곁의 작은 보라 숫자, 표식 아래의 정신 띠)
 function mzDark(cell) {
-  const P = MZ.play, d = (MAZE.MK && MAZE.MK.darkSan) || 0; if (!d || cell === MAZE.EGG) return; let hit = 0;
+  const P = MZ.play, d = (MAZE.MK && MAZE.MK.darkSan) || 0; if (!d || typeof cell !== 'number') return; let hit = 0;
   P.alive.forEach(p => { if (!p.msan) return; p.san = Math.max(0, p.san - d); hit++; }); if (!hit) return; P.dark = (P.dark || 0) + d;
   mzLabel(P.pos.x + 22, P.pos.y - 10, '−' + d, 'dark'); MZ.dbg.dark = (MZ.dbg.dark || 0) + 1;
 }
@@ -478,13 +541,14 @@ function mzStep(dt) {
     if (W.k >= W.cells.length) { P.back = false; mzDarkEnd(W); P.pos = { x: mzCx(W.cells[W.cells.length - 1]), y: mzCy(W.cells[W.cells.length - 1]) }; P.walk = null; mzStepNext(); }
     return;
   }
+  if (s && s.type === 'travel' && P.trav) return mzTravelStep(P, dt);
   if (s && s.type === 'fight') return;
   if (MZ.t >= P.wait) mzStepNext();
 }
 function mzResultHtml() {
-  const P = MZ.play, r = P.res.result, steps = P.res.steps, rows = steps.filter(s => s.type === 'fight').map(s => { const kills = s.after.inv.filter((a, i) => s.before.inv[i] && s.before.inv[i].alive && !a.alive).length, mads = s.after.inv.filter((a, i) => s.before.inv[i] && !s.before.inv[i].mad && a.mad).length, lost = s.after.kin.filter(k => !k.alive).length, g = P.grid[s.cell];
+  const P = MZ.play, r = P.res.result, steps = P.res.steps, rows = steps.filter(s => s.type === 'fight').map(s => { const kills = s.after.inv.filter((a, i) => s.before.inv[i] && s.before.inv[i].alive && !a.alive).length, mads = s.after.inv.filter((a, i) => s.before.inv[i] && !s.before.inv[i].mad && a.mad).length, lost = s.after.kin.filter(k => !k.alive).length, g = s.cell === 'core' ? null : P.grid[s.cell];
     const best = (s.fight.breakdown || []).filter(b => b.side === 'nest' && !b.summon).sort((a, b) => (b.dmg + b.san) - (a.dmg + a.san))[0];
-    return `<div class="mz-rrow"><img src="${s.core ? mzIcon('boss:' + (s.fight.form || 'drop') + ':1', 1, 32) : g.room ? mzRoomIcon(g.room) : mzIcon(best ? best.kind : 'shell', 1, 32)}" alt=""><div><b>${esc(mzRoomName(g, s.cell))}</b><small>${['쓰러뜨림 ' + kills, mads ? '미침 ' + mads : '', lost ? '잃음 ' + lost : '', best && best.kind !== 'core' && LAIR.KIN[best.kind] ? LAIR.KIN[best.kind].name + ' ' + Math.round(best.dmg + best.san) : ''].filter(Boolean).join(' · ')}</small></div></div>`; }).join('');
+    return `<div class="mz-rrow"><img src="${s.core ? mzIcon('boss:' + (s.fight.form || 'drop') + ':1', 1, 32) : g && g.room ? mzRoomIcon(g.room) : mzIcon(best ? best.kind : 'shell', 1, 32)}" alt=""><div><b>${esc(mzRoomName(g, s.cell))}</b><small>${['쓰러뜨림 ' + kills, mads ? '미침 ' + mads : '', lost ? '잃음 ' + lost : '', best && best.kind !== 'core' && LAIR.KIN[best.kind] ? LAIR.KIN[best.kind].name + ' ' + Math.round(best.dmg + best.san) : ''].filter(Boolean).join(' · ')}</small></div></div>`; }).join('');
   const traps = steps.filter(s => s.type === 'trap'), tline = traps.length ? `<p class="mz-note">${traps.map(s => MAZE.TRAP[s.id].name).join(' · ')}</p>` : '';
   const n = MZ.v && MZ.v.next;
   return `<h3 class="${r.win ? 'win' : 'lose'}">${r.win ? '막아 냈다' : '알이 깎였다 ' + r.eggLost}</h3><p class="mz-nar">${esc(r.win ? MZNAR.win : MZNAR.hurt)}</p><p class="mz-sum"><span class="g">진액 +${r.gold}</span>${r.eggLost ? `<span class="l">알 −${r.eggLost}</span>` : ''}${r.mads ? `<span class="m">미침 ${r.mads}</span>` : ''}${r.breaks ? `<span>지름길 ${r.breaks}</span>` : ''}${r.avoided ? '<span>함정을 돌아감</span>' : ''}</p>${rows ? `<h4>방</h4>${rows}` : ''}${tline}`
@@ -505,5 +569,5 @@ function mzBoot() {
   t.addEventListener('click', mzTitleClick); $('modal').addEventListener('click', mzTitleClick); mzTitle();
 }
 // 시험용
-if (typeof window !== 'undefined') window.__maze = { get M() { return MZ.M; }, get meta() { return META; }, get Z() { return MZ; }, get P() { return MZ.play; }, view: () => mzView(), open: run => mzOpen(run), saved: () => mzSaved(), title: () => mzTitle(), redraw: () => mzDraw(), pt(c) { const r = $('mz-cv').getBoundingClientRect(); return { x: r.left + mzCx(c) * MZ.k, y: r.top + mzCy(c) * MZ.k }; }, spot(c, i) { const r = $('mz-cv').getBoundingClientRect(), q = (c === MAZE.CORE ? [[0.2, 0.74], [0.8, 0.74]] : MZUSPOT)[i]; return { x: r.left + ((c % 5) * MS + q[0] * MS) * MZ.k, y: r.top + (MTOP + Math.floor(c / 5) * MS + q[1] * MS - 6) * MZ.k }; }, dbg: () => MZ.dbg, skip: () => mzSkipAll(), give(kind, star, cell) { const M = MZ.M, uid = M.nextUid++; M.unit[uid] = { uid, kind, star: star || 1 }; if (cell != null) M.board[cell] = (M.board[cell] || []).concat([uid]); else M.bench[M.bench.indexOf(null)] = uid; mzDraw(); return uid; } };
+if (typeof window !== 'undefined') window.__maze = { get M() { return MZ.M; }, get meta() { return META; }, get Z() { return MZ; }, get P() { return MZ.play; }, view: () => mzView(), open: run => mzOpen(run), saved: () => mzSaved(), title: () => mzTitle(), redraw: () => mzDraw(), pt(c) { const r = $('mz-cv').getBoundingClientRect(), q = mzPt(c); return { x: r.left + q.x * MZ.k, y: r.top + q.y * MZ.k }; }, spot(c, i) { const r = $('mz-cv').getBoundingClientRect(); if (c === 'core') { const q = MZCORE_SPOTS[i]; return { x: r.left + q[0] * MZ.k, y: r.top + (q[1] - 14) * MZ.k }; } const q = MZUSPOT[i]; return { x: r.left + ((c % 5) * MS + q[0] * MS) * MZ.k, y: r.top + (MTOP + Math.floor(c / 5) * MS + q[1] * MS - 6) * MZ.k }; }, dbg: () => MZ.dbg, skip: () => mzSkipAll(), give(kind, star, cell) { const M = MZ.M, uid = M.nextUid++; M.unit[uid] = { uid, kind, star: star || 1 }; if (cell != null) M.board[cell] = (M.board[cell] || []).concat([uid]); else M.bench[M.bench.indexOf(null)] = uid; mzDraw(); return uid; } };
 mzBoot();

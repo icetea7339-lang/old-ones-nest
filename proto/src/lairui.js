@@ -413,7 +413,7 @@ function lairReplay(f, o) {
 // 싸움이 쓰는 칸만: 처음 선 칸, 걸어간 칸, 불려 나온 칸을 감싸는 상자 (막대·이름표가 들어갈 위쪽 여백과 함께). 캔버스 좌표
 function lrCropOf(f) {
   let r0 = 9, r1 = -1, c0 = 9, c1 = -1; const add = c => { if (c == null || c < 0 || c > 35) return; const r = Math.floor(c / 6), q = c % 6; r0 = Math.min(r0, r); r1 = Math.max(r1, r); c0 = Math.min(c0, q); c1 = Math.max(c1, q); };
-  f.units.forEach(u => { if (u.core) return; (u.cells && u.cells.length ? u.cells : [u.cell]).forEach(add); }); f.timeline.forEach(e => { if (e.type === 'move') add(e.to); if (e.type === 'spawn') add(e.cell); });
+  f.units.forEach(u => { (u.cells && u.cells.length ? u.cells : [u.cell]).forEach(add); }); f.timeline.forEach(e => { if (e.type === 'move') add(e.to); if (e.type === 'spawn') add(e.cell); });
   if (r1 < 0) return null; const y0 = Math.max(0, LU.wallH + r0 * LS - 40), y1 = LU.wallH + (r1 + 1) * LS + 6, x0 = Math.max(0, c0 * LS - 6), x1 = Math.min(LW, (c1 + 1) * LS + 6);
   return { x0, y0, w: x1 - x0, h: y1 - y0 };
 }

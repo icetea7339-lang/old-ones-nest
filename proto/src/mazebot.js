@@ -8,9 +8,9 @@ if (process.env.TSET) { const t = JSON.parse(process.env.TSET); for (const k in 
 const C = (r, c) => MZ.idx(r, c);
 function mk(seed) { const S = { s: seed | 0 }; return () => L.rnd(S); }
 // 지도의 꼴: dig 의 칸을 순서대로 파고, keep 밖의 판 칸은 메운다.
-//   DEAD1 (적당히): 가운데 굴을 4행에서 끊어 막다른 굴로 두고, 오른쪽으로 돌아 본체 방으로 간다
+//   DEAD1 (적당히): 가운데 굴을 4행에서 끊어 막다른 굴로 두고, 오른쪽으로 돌아 출구 위 칸(6행 가운데)으로 간다
 //   DEAD2 (미로): 2행에서 오른쪽으로 돌고, 가운데 막다른 굴 + 두 번째 침입부터 왼쪽 막다른 굴을 더한다
-const MID = [C(0, 2), C(1, 2), C(2, 2), C(3, 2), C(4, 2)];
+const MID = [C(0, 2), C(1, 2), C(2, 2), C(3, 2), C(4, 2), C(6, 2)];
 const DEAD1 = [C(3, 3), C(3, 4), C(4, 4), C(5, 4), C(6, 4), C(6, 3)], DEAD1_KEEP = MID.concat(DEAD1);
 const DEAD2 = [C(2, 3), C(2, 4), C(3, 4), C(4, 4), C(5, 4), C(6, 4), C(6, 3), C(2, 1), C(2, 0), C(3, 0), C(4, 0)], DEAD2_KEEP = MID.concat(DEAD2);
 const MIX = { dig: DEAD1, keep: DEAD1_KEEP, per: 1, core: 1, traps: 9, roomType: true };
@@ -32,7 +32,7 @@ function score(M, kind, st) { const d = L.KIN[kind], n = count(M, kind, 1), fo =
 function build(M, st, keepGold) {
   if (!st.dig) return;
   for (const c of st.dig) { if (M.gold - MZ.digCost(c) < keepGold) break; if (!M.grid[c].dug) MZ.dig(M, c); }
-  for (let k = 0; k < 3; k++) for (let c = 0; c < MZ.N; c++) if (M.grid[c].dug && !st.keep.includes(c) && c !== MZ.CORE && c !== MZ.EGG && !(M.board[c] || []).length) MZ.fill(M, c);
+  for (let k = 0; k < 3; k++) for (let c = 0; c < MZ.N; c++) if (M.grid[c].dug && !st.keep.includes(c) && c !== MZ.EXIT && !(M.board[c] || []).length) MZ.fill(M, c);
 }
 function shop(M, st, rng, keep) {
   for (let guard = 0; guard < 40; guard++) {
@@ -52,7 +52,7 @@ function arrange(M, st, rng) {
   const us = owned(M).sort((a, b) => val(b, st) - val(a, st) || a.uid - b.uid).slice(0, M.level), P = MZ.pathOf(M, M.raid);
   const per = st.per || 2, front = st.front && P.scout && (st.front === true || st.front.includes(M.raid)), fN = front ? st.frontN || per : per;
   const coreN = Math.min(front && st.frontCore != null ? st.frontCore : st.core || 0, us.length), coreUs = us.slice(0, coreN), rest = us.slice(coreN);
-  const nRooms = rest.length ? 1 + Math.ceil(Math.max(0, rest.length - fN) / per) : 0, okc = c => c !== MZ.ENT && c !== MZ.CORE && c !== MZ.EGG && M.grid[c].use !== 'trap', pass = {};
+  const nRooms = rest.length ? 1 + Math.ceil(Math.max(0, rest.length - fN) / per) : 0, okc = c => c !== MZ.ENT && c !== MZ.EXIT && M.grid[c].use !== 'trap', pass = {};
   P.cells.forEach(c => { if (okc(c)) pass[c] = (pass[c] || 0) + 1; });
   const byPass = Object.keys(pass).map(Number).sort((a, b) => pass[b] - pass[a] || P.cells.indexOf(a) - P.cells.indexOf(b)), rooms = [];
   if (front && nRooms) { const f = P.scoutPath.find(c => okc(c)); if (f != null) rooms.push(f); }
@@ -69,12 +69,12 @@ function arrange(M, st, rng) {
     MZ.setUse(M, c, 'kin', want && M.grid[c].room !== want && M.gold >= MZ.MK.roomCost + 2 ? want : undefined);
     grp.forEach(u => MZ.move(M, u.uid, { cell: c }));
   });
-  coreUs.forEach(u => MZ.move(M, u.uid, { cell: MZ.CORE }));
+  coreUs.forEach(u => MZ.move(M, u.uid, { core: true }));
   // 대기석이 차면 짝 없는 값싼 것부터 판다
   while (M.bench.filter(x => x != null).length > 4) { const b = M.bench.filter(x => x != null).map(id => M.unit[id]).sort((a, b2) => count(M, a.kind, a.star) - count(M, b2.kind, b2.star) || val(a, st) - val(b2, st))[0]; MZ.sell(M, b.uid); }
 }
 function traps(M, st) {
-  if (!st.traps) return; const P = MZ.pathOf(M, M.raid), free = [...new Set(P.cells)].filter(c => c !== MZ.ENT && M.grid[c].use === 'path' && c !== MZ.CORE && c !== MZ.EGG);
+  if (!st.traps) return; const P = MZ.pathOf(M, M.raid), free = [...new Set(P.cells)].filter(c => c !== MZ.ENT && c !== MZ.EXIT && M.grid[c].use === 'path');
   let have = M.grid.filter(g => g.use === 'trap').length; const ids = ['tr_whisper', 'tr_teeth', 'tr_spore', 'tr_slime'];
   const lim = st.traps + (st.trapGrow || 0) * (M.raid - 1);
   for (const c of free) { if (have >= lim || M.gold < MZ.MK.trapCost) break; if (MZ.setUse(M, c, 'trap', ids[have % ids.length]).ok) have++; }
@@ -84,7 +84,7 @@ function randomTurn(M, rng) {
     const x = rng(), c = Math.floor(rng() * MZ.N);
     if (x < 0.2) MZ.dig(M, c); else if (x < 0.3) MZ.fill(M, c); else if (x < 0.45) MZ.setUse(M, c, ['path', 'kin', 'trap'][Math.floor(rng() * 3)], rng() < 0.5 ? L.ROOM_IDS[Math.floor(rng() * 8)] : MZ.TRAP_IDS[Math.floor(rng() * 4)]);
     else if (x < 0.75) MZ.buy(M, Math.floor(rng() * 5)); else if (x < 0.8) MZ.reroll(M);
-    else { const us = owned(M); if (us.length) { const u = us[Math.floor(rng() * us.length)], ks = M.grid.map((g, i) => i).filter(i => M.grid[i].use === 'kin' || M.grid[i].use === 'core'); if (ks.length) MZ.move(M, u.uid, { cell: ks[Math.floor(rng() * ks.length)] }); } }
+    else { const us = owned(M); if (us.length) { const u = us[Math.floor(rng() * us.length)], ks = M.grid.map((g, i) => i).filter(i => M.grid[i].dug).concat([MZ.CORE]); if (ks.length) MZ.move(M, u.uid, { cell: ks[Math.floor(rng() * ks.length)] }); } }
   }
 }
 function playRun(seed, name) {
