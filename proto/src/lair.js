@@ -216,11 +216,14 @@ const LAIR = (function () {
 
   // ───────── 싸움 ─────────
   // S: { seed, nest: [{uid, kind, star, cell}], inv: [{kind, cell}], rooms: [{id, cells}], level, round, form, syn: {id: 단계} }
+  // 선택 인자 (굴 짓기가 쓴다. 없으면 둥지 전투 그대로): hpMul / sanMul (전체 배수 대신), noCore (본체 없이), clock { engage, frenzy, sudden, end },
+  //   inv[].hp / san (시작 체력·정신), inv[].mad (미친 채 시작), inv[].st [{ n, dur, v }] (시작 상태), nest[].hp (시작 체력), keep (결과에 final 과 시작 체력을 싣는다)
   function simulate(S) {
     const rs = { s: (S.seed | 0) ^ 0x51ed }, RN = () => rnd(rs);
     const T = [], U = [], occ = new Array(N).fill(null), pend = [], zones = [];
     let t = 0, sid = 0, eid = 0, gold = 0, over = null, conv = 0;
     const ev = (type, o) => { T.push(Object.assign({ t: Math.round(t * 100) / 100, type }, o)); };
+    const CL = S.clock || {}, T_FR = CL.frenzy != null ? CL.frenzy : K.frenzy, T_SD = CL.sudden != null ? CL.sudden : K.sudden, T_END = CL.end != null ? CL.end : K.end, T_ENG = CL.engage != null ? CL.engage : K.engageAt, HPM = S.hpMul || K.hpMul, SNM = S.sanMul || K.sanMul;
     const syn = S.syn || {}, tier = id => syn[id] || 0, round = S.round || 1, sc = S.core || null, coreLv = sc ? sc.lv : clamp(round, 1, 3), bo = {};
     Object.assign(bo, S.boons || {}); const ck = S.check || null, boBy = S.boonBy || {}; let stood = 0, firstBlood = false, nCheck = 0, nContact = 0, nMoment = 0;
     const fullRun = !!S.scale, rl = k => RV(k, S.roomLv);
@@ -236,8 +239,8 @@ const LAIR = (function () {
     const byId = id => U.find(x => x.id === id);
     function add(o) {
       const d = o.def, m = o.mul || 1;
-      const u = { id: o.id, side: o.side, home: o.side, kind: o.kind, star: o.star || 1, cell: o.cell, cells: o.cells || [o.cell], name: d.name, mhp: Math.round(d.hp * (o.hmul || m) * K.hpMul), atk: d.atk * m, as: d.as * K.pace.as, range: d.range, df: d.df, mmana: d.mana || 0, mana: 0, role: d.role || (o.core ? 'core' : 'melee'),
-        msan: d.san ? Math.round(d.san * (o.smul || 1) * K.sanMul) : 0, sanAtk: (d.sanAtk || 0) * (0.6 + 0.4 * m), speed: (d.speed || 1.6) * K.pace.speed, skill: d.skill || null, asp: d.asp || null, cls: d.cls || null, boss: !!d.boss, elite: !!d.elite, noMad: !!d.noMad, weak: !!d.weak, leap: !!d.leap, reader: !!d.reader, readAtk: d.readAtk != null ? d.readAtk : 0.8, readHurt: d.readHurt != null ? d.readHurt : 0.6, art: d.art || o.kind, will: o.will != null ? o.will : d.will || 0, cast: o.cast || null, chk: 0,
+      const u = { id: o.id, side: o.side, home: o.side, kind: o.kind, star: o.star || 1, cell: o.cell, cells: o.cells || [o.cell], name: d.name, mhp: Math.round(d.hp * (o.hmul || m) * HPM), atk: d.atk * m, as: d.as * K.pace.as, range: d.range, df: d.df, mmana: d.mana || 0, mana: 0, role: d.role || (o.core ? 'core' : 'melee'),
+        msan: d.san ? Math.round(d.san * (o.smul || 1) * SNM) : 0, sanAtk: (d.sanAtk || 0) * (0.6 + 0.4 * m), speed: (d.speed || 1.6) * K.pace.speed, skill: d.skill || null, asp: d.asp || null, cls: d.cls || null, boss: !!d.boss, elite: !!d.elite, noMad: !!d.noMad, weak: !!d.weak, leap: !!d.leap, reader: !!d.reader, readAtk: d.readAtk != null ? d.readAtk : 0.8, readHurt: d.readHurt != null ? d.readHurt : 0.6, art: d.art || o.kind, will: o.will != null ? o.will : d.will || 0, cast: o.cast || null, chk: 0,
         core: !!o.core, summon: !!o.summon, tierV: d.tier || d.cost || 0, st: {}, nextAtk: 0.3 + RN() * 0.5 + (d.range > 1 ? K.pace.back : 0), freeAt: d.range > 1 && !o.core && !o.summon ? K.pace.back : 0, tg: null, reT: 0, alive: true, mad: false, engage: o.side === 'inv' || !!o.summon, prov: null, firstCrit: 0, atkBonus: 0, eat: 0,
         stat: { dmg: 0, san: 0, heal: 0, kills: 0, casts: 0, taken: 0, conv: 0 } };
       u.hp = u.mhp; u.san = u.msan; u.cells.forEach(c => { occ[c] = u; }); U.push(u); return u;
@@ -249,7 +252,7 @@ const LAIR = (function () {
       return out;
     }
     const nSum = n => n + (tier('mother') >= 2 ? 1 : 0);
-    const pow = u => { let a = u.atk * (1 + u.atkBonus) * (t > K.frenzy ? 1 + K.frenzyUp * (t - K.frenzy) : 1); if (has(u, 'atkup')) a *= 1 + u.st.atkup.v; if (has(u, 'atkdown')) a *= 1 - u.st.atkdown.v; if (u.reader) a *= 1 + u.readAtk * (1 - u.san / u.msan); if (u.home === 'nest' && !u.summon && u.asp === 'abyss' && roomAt(u.cell, 'pool')) a *= 1 + rl('poolAtk'); if (bo.roomplus && u.home === 'nest' && !u.summon && !u.core && rooms.some(r => !r.dead && r.cells.includes(u.cell))) a *= 1 + bo.roomplus; return a; };
+    const pow = u => { let a = u.atk * (1 + u.atkBonus) * (t > T_FR ? 1 + K.frenzyUp * (t - T_FR) : 1); if (has(u, 'atkup')) a *= 1 + u.st.atkup.v; if (has(u, 'atkdown')) a *= 1 - u.st.atkdown.v; if (u.reader) a *= 1 + u.readAtk * (1 - u.san / u.msan); if (u.home === 'nest' && !u.summon && u.asp === 'abyss' && roomAt(u.cell, 'pool')) a *= 1 + rl('poolAtk'); if (bo.roomplus && u.home === 'nest' && !u.summon && !u.core && rooms.some(r => !r.dead && r.cells.includes(u.cell))) a *= 1 + bo.roomplus; return a; };
     function heal(u, amt, by) { if (!u.alive || amt <= 0) return 0; const h = Math.min(u.mhp - u.hp, Math.round(amt)); if (h <= 0) return 0; u.hp += h; if (by) by.stat.heal += h; ev('heal', { u: u.id, by: by ? by.id : null, amt: h, hp: u.hp }); return h; }
     function gainMana(u, x) { if (!u.mmana || !u.alive) return; let m = x; if (u.home === 'nest' && !u.mad) { if (u.cls === 'caller' && roomAt(u.cell, 'altar')) m *= 1 + rl('altar'); if (tier('caller') >= 2) m *= 1.25; if (bo.manaFast) m *= 1 + bo.manaFast; } u.mana = Math.min(u.mmana, u.mana + m); }
     function goMad(u, by) {
@@ -479,10 +482,10 @@ const LAIR = (function () {
     // ───── 세우기 ─────
     const lv = S.level || 3, cd = K.core, form = FORM[S.form] ? S.form : 'drop';
     const core = add({ id: 'core', side: 'nest', kind: 'core', core: true, cell: CORE[0], cells: CORE.slice(), def: { name: FORM[form].name, hp: sc ? cd.hp * sc.hp : cd.hp * (1 + cd.lvHp * (lv - 3)) * (1 + cd.rdHp * (round - 1)), atk: sc ? cd.atk * sc.atk : cd.atk * (1 + 0.15 * (round - 1)), as: cd.as, range: cd.range + ((sc && sc.range) || 0), df: cd.df, mana: cd.mana - ((sc && sc.manaCut) || 0), skill: FORM[form].skill, asp: form === 'drop' ? null : form } });
-    core.form = form; core.engage = true; core.t2 = !!(sc && sc.t2);
-    (S.nest || []).forEach(n => { const d = KIN[n.kind]; if (!d || occ[n.cell]) return; add({ id: 'k' + n.uid, side: 'nest', kind: n.kind, star: n.star, cell: n.cell, def: d, mul: STARM[n.star || 1] }); });
+    core.form = form; core.engage = true; if (S.noCore) { core.alive = false; core.cells.forEach(c => { if (occ[c] === core) occ[c] = null; }); } core.t2 = !!(sc && sc.t2);
+    (S.nest || []).forEach(n => { const d = KIN[n.kind]; if (!d || occ[n.cell]) return; const u = add({ id: 'k' + n.uid, side: 'nest', kind: n.kind, star: n.star, cell: n.cell, def: d, mul: STARM[n.star || 1] }); if (n.hp != null) u.hp = Math.max(1, Math.min(u.mhp, Math.round(n.hp))); });
     const sl = S.scale || null, rm = sl ? sl.atk : K.roundAtk[round - 1] || 1, rh = sl ? sl.hp : K.roundHp[round - 1] || 1, sm = (sl ? sl.san : K.roundSan[round - 1] || 1) * (1 - (bo.sanfrenzy || 0));
-    (S.inv || []).forEach(n => { const d = INV[n.kind]; if (!d || occ[n.cell]) return; add({ id: 'e' + (++eid), side: 'inv', kind: n.kind, cell: n.cell, will: n.will, cast: n.cast, def: n.poss ? Object.assign({}, d, { name: '홀린 ' + d.name, san: 0, noMad: true }) : d, mul: rm * (n.mul || 1), hmul: rh * (n.mul || 1), smul: sm }); });
+    (S.inv || []).forEach(n => { const d = INV[n.kind]; if (!d || occ[n.cell]) return; add({ id: 'e' + (++eid), side: 'inv', kind: n.kind, cell: n.cell, will: n.will, cast: n.cast, def: n.poss ? Object.assign({}, d, { name: '홀린 ' + d.name, san: 0, noMad: true }) : d, mul: rm * (n.mul || 1), hmul: rh * (n.mul || 1), smul: sm }); const u = U[U.length - 1]; u.src = S.inv.indexOf(n); if (n.hp != null) u.hp = Math.max(1, Math.min(u.mhp, Math.round(n.hp))); if (n.san != null && u.msan) u.san = Math.max(0, Math.min(u.msan, Math.round(n.san))); });
     // 시너지와 방: 싸움이 시작될 때 붙는 것
     SYN_IDS.forEach(id => { if (tier(id)) ev('synergy', { id, tier: tier(id), fx: 'on' }); });
     U.forEach(u => {
@@ -493,7 +496,9 @@ const LAIR = (function () {
     });
     // 오래된 것: 싸움이 시작될 때 붙는 것
     U.forEach(u => { if (u.home !== 'nest' || u.core) return; const hm = 1 + (bo.thick || 0) - (bo.kinWeak || 0); if (hm !== 1) { u.mhp = Math.round(u.mhp * hm); u.hp = u.mhp; } if (bo.sharp) u.atk *= 1 + bo.sharp; if (bo.firstfree && u.mmana) u.mana = Math.max(u.mana, u.mmana * Math.min(1, bo.firstfree)); });
-    const init = U.map(u => ({ id: u.id, side: u.side, kind: u.kind, art: u.art, will: u.will, cast: u.cast, star: u.star, cell: u.cell, cells: u.cells.slice(), name: u.name, mhp: u.mhp, msan: u.msan, mmana: u.mmana, mana: Math.round(u.mana), range: u.range, role: u.role, skill: u.skill, boss: u.boss, elite: u.elite, core: u.core, form: u.form || null, asp: u.asp, cls: u.cls }));
+    if (S.keep) U.forEach(u => { if (u.src == null || u.home !== 'inv') return; const n = S.inv[u.src]; (n.st || []).forEach(x => setSt(u, x.n, x.dur, x.v, null)); if (n.mad) goMad(u, null); });
+    if (S.keep) U.forEach(u => { u.hp0 = u.hp; u.sn0 = u.san; u.mad0 = u.mad; });
+    const init = U.filter(u => !(S.noCore && u.core)).map(u => ({ id: u.id, side: u.side, kind: u.kind, art: u.art, will: u.will, cast: u.cast, star: u.star, cell: u.cell, cells: u.cells.slice(), name: u.name, mhp: u.mhp, msan: u.msan, mmana: u.mmana, mana: Math.round(u.mana), range: u.range, role: u.role, skill: u.skill, boss: u.boss, elite: u.elite, core: u.core, form: u.form || null, asp: u.asp, cls: u.cls }));
     Object.keys(boBy).forEach(id => { if (bo[id]) bev(id, { fx: 'on' }); });
     if (bo.hatchstart) summon('spawn', core.cells[0] - COLS, 'nest', 1 + 0.1 * (round - 1), core, bo.hatchstart);
     if (S.zealots) summon('zealot', core.cells[0] - COLS, 'nest', 1 + 0.1 * (round - 1), core, S.zealots);
@@ -519,11 +524,11 @@ const LAIR = (function () {
         hurt(u, tg, pow(u), { k: 'atk', san: u.sanAtk, crit }); return;
       }
       if (u.core) return;
-      const go = u.engage || u.mad || t >= K.engageAt || d <= K.aggro + (u.range - 1) || (u.prov && tg.id === u.prov);
+      const go = u.engage || u.mad || t >= T_ENG || d <= K.aggro + (u.range - 1) || (u.prov && tg.id === u.prov);
       if (go) stepToward(u, tg);
     }
     // ───── 돌리기 ─────
-    const maxStep = Math.round(K.end / TICK);
+    const maxStep = Math.round(T_END / TICK);
     for (let step = 0; step <= maxStep && !over; step++) {
       t = step * TICK;
       for (let i = 0; i < pend.length; i++) { const p = pend[i]; if (p.t <= t + 1e-9) { pend.splice(i, 1); i--; if (!p.u || p.u.alive) p.fn(); if (over) break; } }
@@ -539,20 +544,24 @@ const LAIR = (function () {
       }
       if (step % 10 === 0 && step > 0) {
         rooms.forEach(r => { if (r.dead || r.id !== 'eye') return; const row = rc(r.cells[0])[0], tg = U.filter(u => u.alive && u.side === 'inv' && u.msan && rc(u.cell)[0] === row); if (tg.length) { ev('roomfx', { room: 'eye', kind: 'gaze', cells: r.cells, tgs: tg.map(x => x.id) }); tg.forEach(x => hurt(core, x, 0, { san: rl('eye'), k: 'san', sk: 'eye' })); } });
-        if (Math.abs(t - K.frenzy) < 1e-6) ev('frenzy', {});
-        if (t >= K.sudden) { if (Math.abs(t - K.sudden) < 1e-6) ev('sudden', {}); const f = 0.03 * (1 + (t - K.sudden) / 4); U.slice().forEach(u => { if (u.alive) hurt(null, u, u.mhp * f * (u.core ? 0.5 : 1), { k: 'true', sk: 'sudden' }); }); }
+        if (Math.abs(t - T_FR) < 1e-6) ev('frenzy', {});
+        if (t >= T_SD) { if (Math.abs(t - T_SD) < 1e-6) ev('sudden', {}); const f = 0.03 * (1 + (t - T_SD) / 4); U.slice().forEach(u => { if (u.alive) hurt(null, u, u.mhp * f * (u.core ? 0.5 : 1), { k: 'true', sk: 'sudden' }); }); }
       }
       if (over) break;
       for (const u of U.slice()) { if (!u.alive || over) continue; act(u); }
       if (!over && !U.some(u => u.alive && u.side === 'inv')) over = 'nest';
+      if (!over && S.noCore && !U.some(u => u.alive && u.side === 'nest')) over = 'inv';
     }
-    if (!over) { const fr = side => { const l = U.filter(u => u.home === side && !u.summon); return l.reduce((a, u) => a + (u.alive && u.side === side ? u.hp : 0), 0) / Math.max(1, l.reduce((a, u) => a + u.mhp, 0)); }; over = fr('nest') > fr('inv') ? 'nest' : 'inv'; }
+    if (!over) { const fr = side => { const l = U.filter(u => u.home === side && !u.summon && !(S.noCore && u.core)); return l.reduce((a, u) => a + (u.alive && u.side === side ? u.hp : 0), 0) / Math.max(1, l.reduce((a, u) => a + u.mhp, 0)); }; over = fr('nest') > fr('inv') ? 'nest' : 'inv'; }
     const survivors = U.filter(u => u.alive && u.side === 'inv').length;
     ev('win', { side: over, survivors });
     T.sort((a, b) => a.t - b.t);
-    return { seed: S.seed, round, form, syn, timeline: T, result: over === 'nest' ? 'win' : 'loss', winner: over, time: R1(t), units: init, rooms: rooms.map(r => ({ id: r.id, cells: r.cells, erased: r.dead })), gold, survivors, converted: U.filter(u => u.mad).length, checks: nCheck, lostKin: U.filter(u => u.home === 'nest' && !u.summon && !u.core && !u.alive).length, madLeft: U.filter(u => u.alive && u.mad && !u.cast && !u.summon).length,
+    if (S.keep) init.forEach(x => { const u = byId(x.id); x.hp = u.hp0; x.sn = u.sn0; x.mad = u.mad0; });
+    const OUT = { seed: S.seed, round, form, syn, timeline: T, result: over === 'nest' ? 'win' : 'loss', winner: over, time: R1(t), units: init, rooms: rooms.map(r => ({ id: r.id, cells: r.cells, erased: r.dead })), gold, survivors, converted: U.filter(u => u.mad).length, checks: nCheck, lostKin: U.filter(u => u.home === 'nest' && !u.summon && !u.core && !u.alive).length, madLeft: U.filter(u => u.alive && u.mad && !u.cast && !u.summon).length,
       eliteDown: U.filter(u => u.home === 'inv' && (u.elite || u.boss || u.cast) && (u.mad || u.how === 'swallow')).length, cast: U.filter(u => u.cast).map(u => ({ id: u.cast, alive: u.alive, mad: u.mad, how: u.alive ? null : u.how || 'kill' })), coreHp: Math.max(0, core.hp), coreMhp: core.mhp,
       breakdown: U.map(u => ({ id: u.id, kind: u.kind, name: u.name, side: u.home, star: u.star, summon: u.summon, alive: u.alive, mad: u.mad, dmg: u.stat.dmg, san: u.stat.san, heal: u.stat.heal, kills: u.stat.kills, casts: u.stat.casts, taken: u.stat.taken, conv: u.stat.conv })) };
+    if (S.keep) OUT.final = U.filter(u => !(S.noCore && u.core)).map(u => ({ id: u.id, kind: u.kind, home: u.home, side: u.side, src: u.src != null ? u.src : null, uid: u.home === 'nest' && !u.summon && !u.core ? +u.id.slice(1) : null, core: u.core, summon: u.summon, hp: Math.max(0, Math.round(u.hp)), mhp: u.mhp, san: Math.round(u.san), msan: u.msan, alive: u.alive, mad: u.mad }));
+    return OUT;
   }
 
   // ───────── 온전한 판의 표 ─────────

@@ -4,7 +4,7 @@
 cd "$(dirname "$0")/.."
 . ./build.list
 PAT="//[^'\"]*[가-힣][^'\"]* (for \(|if \(|const [a-zA-Z_]+ =|let [a-zA-Z_]+ =|return [a-zA-Z_(]|[A-Za-z_.]+\(G[,)]|[A-Za-z_.\[\]]+ = [A-Za-z_(]|[A-Za-z_]+\+\+;)"
-grep -nE "$PAT" $RULES $UI | cut -c1-220
-N=$(cat $RULES $UI | grep -cE "$PAT")
+grep -nE "$PAT" $RULES $UI src/maze.js src/mazeui.js | cut -c1-220
+N=$(cat $RULES $UI src/maze.js src/mazeui.js | grep -cE "$PAT")
 echo "주석이 삼킨 것으로 보이는 줄: $N"
 [ "$N" -eq 0 ]

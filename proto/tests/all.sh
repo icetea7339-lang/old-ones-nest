@@ -29,6 +29,13 @@ wait
 # 빠르기 시험은 혼자 돌린다
 run lairdrag_iphone14 node tests/lairdrag.js "iPhone 14"
 run lairdrag_a360 node tests/lairdrag.js a360
+# 굴 짓기 맛보기
+run mazerules node tests/mazerules.js
+run mazeui_pc node tests/mazeui.js &
+run mazeui_iphone14 node tests/mazeui.js "iPhone 14" &
+run mazeui_a360 node tests/mazeui.js a360 &
+run mazeui_a360_fz13 env FZ=1.3 node tests/mazeui.js a360 &
+wait
 run lairperf node tests/lairperf.js
 N=$(wc -l < "$LOG/count"); B=$(wc -l < "$LOG/failed")
 if [ "$B" -eq 0 ]; then echo "모두 통과 ($N)"; else echo "실패 $B / $N"; exit 1; fi

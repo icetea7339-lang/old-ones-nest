@@ -77,7 +77,7 @@ function lrSize() {
   const cv = $('lr-cv'), wrap = $('lr-boardwrap'), lr = $('lr'), vw = window.innerWidth, vh = window.innerHeight, wide = vw >= 900, H = LU.wallH + LS * 6;
   lr.classList.toggle('wide', wide);
   if (cv.height !== H) cv.height = H;
-  const barH = $('lr-bar').offsetHeight || 68;
+  const barH = $('lr-bar').offsetHeight || (lr.classList.contains('replay') ? 40 : 68);
   const availH = vh - barH - (wide ? 20 : LSIDE + 6), availW = wide ? vw - 470 : vw;
   let sc = Math.min(availW / LW, availH / H); if (wide) sc = Math.min(sc, 1.75); sc = Math.max(0.6, sc);
   LU.scale = sc; cv.style.width = Math.floor(LW * sc) + 'px'; cv.style.height = Math.floor(H * sc) + 'px'; wrap.style.width = Math.floor(LW * sc) + 'px'; wrap.style.height = Math.floor(H * sc) + 'px';
@@ -234,7 +234,7 @@ function lrCoach() {
 // ---- 누르기 ----
 function lrClick(e) {
   if (e.target.id === 'lr-sheet' && LU.sheet && LU.sheet.kind !== 'result') return lrSheetClose();
-  if (e.target.id === 'lr-cv' && LU.phase === 'fight' && LU.F && !LU.sheet) { const r = e.target.getBoundingClientRect(), px = (e.clientX - r.left) / LU.scale, py = (e.clientY - r.top) / LU.scale; let best = null, bd = 34; for (const id in LU.F.ents) { const q = LU.F.ents[id]; if (q.dead || q.summon) continue; const d = Math.hypot(q.x - px, q.y - 8 - py) * (q.core ? 0.6 : 1); if (d < bd) { bd = d; best = q; } } if (best) lrSheet(best.core ? { kind: 'core' } : best.cast ? { kind: 'cast', id: best.cast } : best.side === 'inv' ? { kind: 'inv', id: best.kind } : { kind: 'unit', id: best.kind, star: best.star }); return; }
+  if (e.target.id === 'lr-cv' && LU.phase === 'fight' && LU.F && !LU.sheet && !LU.replay) { const r = e.target.getBoundingClientRect(), px = (e.clientX - r.left) / LU.scale, py = (e.clientY - r.top) / LU.scale; let best = null, bd = 34; for (const id in LU.F.ents) { const q = LU.F.ents[id]; if (q.dead || q.summon) continue; const d = Math.hypot(q.x - px, q.y - 8 - py) * (q.core ? 0.6 : 1); if (d < bd) { bd = d; best = q; } } if (best) lrSheet(best.core ? { kind: 'core' } : best.cast ? { kind: 'cast', id: best.cast } : best.side === 'inv' ? { kind: 'inv', id: best.kind } : { kind: 'unit', id: best.kind, star: best.star }); return; }
   const b = e.target.closest('[data-l]'); if (!b || b.disabled) return; const a = b.dataset.l, R = LU.R;
   if (a === 'exit') { if (LU.sheet && LU.sheet.kind === 'result' && R.phase === 'over') { LU.sheet = null; $('lr-sheet').hidden = true; $('lr').classList.remove('sheeton'); } return lrExit(); }
   if (a === 'tutoff') { LU.tut = -1; if (META) { META.lairTut = 1; try { saveMeta(); } catch (er) { /* 저장 없이 */ } } $('lr-coach').hidden = true; document.querySelectorAll('#lr .lr-glow').forEach(x => x.classList.remove('lr-glow')); return; }
@@ -242,6 +242,8 @@ function lrClick(e) {
   if (a === 'close') return lrSheetClose();
   if (a === 'speed') { lrSpeedSet(+b.dataset.v); if (LU.sheet && LU.sheet.kind === 'menu') lrSheet({ kind: 'menu' }); return; }
   if (a === 'pause') { LU.paused = !LU.paused; return lrFightPanel(); }
+  if (a === 'rskip') { if (LU.replay && LU.replay.skip) LU.replay.skip(); return; }
+  if (LU.replay) return;
   if (a === 'next') return lrNext();
   if (a === 'again') { lrSheetClose(); return lrNew(); }
   if (a === 'syn') return lrSheet({ kind: 'syn', id: b.dataset.id });
@@ -389,9 +391,33 @@ function lrFight() {
   lrSay('night'); try { if (typeof music === 'function') music(boss ? 'boss' : 'night'); } catch (e) { /* 음악 없이 */ }
   const first = LU.tut >= 0 && LU.tut < LTUT.length; lrDraw(); lrSize(); if (first) { lrToast('위 줄은 체력, 파란 줄은 마나, 보라 줄은 정신이다.'); LU.toastT = LU.t + 5200; }
 }
+// ---- 다른 화면(굴 짓기)이 싸움 하나를 다시 보여 줄 때 ----
+// 판·유닛·스킬 연출·숫자·막대·아래의 「누가 얼마나」는 둥지 전투 그대로. 준비 화면과 결과 창 없이, 끝나면 o.done() 을 부른다.
+// f = LAIR.simulate 의 결과 (keep 이면 시작 체력·정신·미침이 실린다). o = { name, sub, form, step, done, skip }
+function lairReplay(f, o) {
+  o = o || {}; lrMount(); const lr = $('lr'); lr.classList.add('replay'); lr.hidden = false;
+  try { LU.wallH = LAIRART.wallTop(LS, 6, 0).height; } catch (e) { LU.wallH = 45; }
+  LU.replay = o; LU.sheet = null; LU.sel = null; LU.roomPick = null; LU.speed = lrSpeedLoad(); LU.paused = false; LU.phase = 'fight';
+  $('lr-sheet').hidden = true; $('lr-coach').hidden = true; $('lr-top').hidden = true; $('lr-top').innerHTML = ''; ['lr-bench', 'lr-shop', 'lr-info'].forEach(id => { $(id).hidden = true; }); $('lr-fight').hidden = false;
+  const F = { tl: f.timeline, i: 0, T: 0, ents: {}, fx: [], zones: [], nums: [], lines: [], late: [], feed: [], meter: {}, meterDirty: false, meterAt: 0, plates: [], crowd: false, stop: 0, shake: 0, shakeMag: 0, intro: 900, slowUntil: 0, slowK: 1, slows: 0, slowSeen: {}, blocks: 0, shots: 0, taunts: 0, checks: 0, bigChecks: 0, boons: 0, boonAt: {}, real: 0, done: false, endAt: 0, res: { fight: f, win: f.result === 'win' }, name: o.name || '', round: 1, v0: null, step: o.step || 0, labs: [], rooms: f.rooms.map(r => ({ id: r.id, cells: r.cells, erased: false, pulse: 0 })), syn: f.syn, form: o.form || f.form, banner: null, consumed: 0, mads: 0, casts: 0, bigCasts: 0, smallCasts: 0, frozen: 0 };
+  f.units.forEach(u => { const e = F.ents[u.id] = lrEnt(u); e.minor = !!LMINOR[u.kind]; if (e.hp < e.mhp) e.lag = e.hp / e.mhp; });
+  { const w = f.timeline.find(e => e.type === 'win'); let last = null; f.timeline.forEach(e => { if (e.type === 'die') last = e; }); if (w && last && w.t - last.t < 1) last.last = 1; }
+  LU.F = F; LU.res = F.res; $('lr-ov').innerHTML = ''; $('lr-toast').hidden = true; LU.toastT = 0;
+  $('lr-bar').innerHTML = `<div class="lr-b1 lr-rp"><b>${esc(F.name)}</b>${o.sub ? `<small>${esc(o.sub)}</small>` : ''}<button class="lr-rpskip" data-l="rskip">넘기기</button></div>`;
+  { const fit = () => { const b1 = $('lr-bar').querySelector('.lr-rp'), sm = b1 && b1.querySelector('small'); if (sm && b1.scrollWidth > b1.clientWidth + 1) sm.remove(); }; fit(); requestAnimationFrame(fit); }
+  { const d = document.createElement('div'); d.className = 'lr-intro'; d.style.animationDuration = '900ms'; d.innerHTML = `<b>${esc(F.name)}</b>`; $('lr-ov').appendChild(d); setTimeout(() => d.remove(), 900); }
+  Object.keys(F.ents).forEach(id => { const e = F.ents[id]; LU.warm.push([e.core ? null : lrArtId(e.kind, e.artSt), e.star || 1, 'attack']); }); LU.warm = LU.warm.filter(q => q[0]);
+  lrFightPanel(); lrSize(); if (!LU.raf) { LU.last = performance.now(); LU.raf = requestAnimationFrame(lrLoop); }
+}
+// 다시 보기를 끝낸다 (끝까지 보았거나 넘겼을 때). done 은 한 번만
+function lrReplayEnd() {
+  const o = LU.replay; if (!o) return; LU.replay = null; LU.F = null; LU.phase = 'prep'; const lr = $('lr'); lr.hidden = true; lr.classList.remove('replay'); $('lr-ov').innerHTML = ''; $('lr-top').hidden = false;
+  ['lr-bench', 'lr-shop'].forEach(id => { $(id).hidden = false; }); $('lr-fight').hidden = true; $('lr-bar').innerHTML = '';
+  if (o.done) o.done();
+}
 function lrEnt(u) {
   const p = lcen(u.cells && u.cells.length ? u.cells : [u.cell]);
-  return { id: u.id, side: u.side, kind: u.kind, cast: u.cast || null, will: u.will || 0, artSt: '', star: u.star || 1, core: !!u.core, form: u.form, boss: !!u.boss, elite: !!u.elite, name: u.name, asp: u.asp, cls: u.cls, x: p.x, y: p.y, fx: p.x, fy: p.y, tx: p.x, ty: p.y, mv0: 0, mvDur: 0, mvAnim: '', anim: 'idle', a0: 0, hp: u.mhp, mhp: u.mhp, san: u.msan || 0, msan: u.msan || 0, mana: u.mana || 0, mmana: u.mmana || 100, mad: false, dead: false, dieT: -1, st: {}, flash: 0, rx: 0, ry: 0, face: u.side === 'inv' ? 1 : 0, lunge: null, pop: 0, off: Math.random() * 1200, ranged: 0, dot: 0, dotT: 0, shield: 0, swallow: false, role: u.role || (u.core ? 'core' : 'melee'), range: u.range || 1, summon: !!u.summon };
+  return { id: u.id, side: u.side, kind: u.kind, cast: u.cast || null, will: u.will || 0, artSt: '', star: u.star || 1, core: !!u.core, form: u.form, boss: !!u.boss, elite: !!u.elite, name: u.name, asp: u.asp, cls: u.cls, x: p.x, y: p.y, fx: p.x, fy: p.y, tx: p.x, ty: p.y, mv0: 0, mvDur: 0, mvAnim: '', anim: 'idle', a0: 0, hp: u.hp != null ? u.hp : u.mhp, mhp: u.mhp, san: u.sn != null ? u.sn : u.msan || 0, msan: u.msan || 0, mana: u.mana || 0, mmana: u.mmana || 100, mad: !!u.mad, dead: false, dieT: -1, st: {}, flash: 0, rx: 0, ry: 0, face: u.side === 'inv' ? 1 : 0, lunge: null, pop: 0, off: Math.random() * 1200, ranged: 0, dot: 0, dotT: 0, shield: 0, swallow: false, role: u.role || (u.core ? 'core' : 'melee'), range: u.range || 1, summon: !!u.summon };
 }
 // 주역을 가리지 않게 작고 흐리게 그리는 것
 const LMINOR = { spawn: 1, infected: 1 };
@@ -569,7 +595,7 @@ function lrStep(dt) {
   F.fx = F.fx.filter(f => T - f.t0 < f.dur); F.zones = F.zones.filter(z => z.until > T); F.lines = F.lines.filter(l => l.until > T);
   { let n = 0; for (const id in F.ents) { const e = F.ents[id]; if (!e.dead && !e.core) n++; } F.crowd = n >= 12; } lrLabClean(F);
   if (F.meterDirty && LU.t - F.meterAt > 300) { F.meterAt = LU.t; F.meterDirty = false; const m = $('lr-meter'); if (m) m.innerHTML = lrMeterHtml(); }
-  if (F.done && LU.t >= F.endAt && !LU.sheet) lrShowResult();
+  if (F.done && LU.t >= F.endAt && !LU.sheet) { if (LU.replay) lrReplayEnd(); else lrShowResult(); }
 }
 function lrShowResult() {
   const F = LU.F, win = F.res.win; lrSay(win ? 'up' : 'down'); try { if (typeof music === 'function') music('day'); } catch (e) { /* 음악 없이 */ }
@@ -636,7 +662,7 @@ function lrDrawUnit(x, h, px, py, anim, t, o) {
 }
 function lrStarPips(x, cx, y, n) { if (n < 2) return; const w = n * 7 - 1; for (let k = 0; k < n; k++) { x.fillStyle = '#0c0812'; x.fillRect(cx - w / 2 + k * 7 - 1, y - 1, 7, 7); x.fillStyle = n >= 3 ? '#ffd040' : '#d8e0f0'; x.fillRect(cx - w / 2 + k * 7, y, 5, 5); } }
 function lrRender(now) {
-  const cv = $('lr-cv'), x = cv.getContext('2d'), R = LU.R, F = LU.F, gnd = LS * 0.3, t = now / 1000; if (!R) return;
+  const cv = $('lr-cv'), x = cv.getContext('2d'), R = LU.R, F = LU.F, gnd = LS * 0.3, t = now / 1000; if (!R && !F) return;
   LU.dbg = { badges: 0, range: [], rows: [], dive: 0, dice: 0, coreFade: 0 };
   x.imageSmoothingEnabled = false; x.setTransform(1, 0, 0, 1, 0, 0); x.fillStyle = '#07050c'; x.fillRect(0, 0, cv.width, cv.height);
   if (F && F.shake > LU.t) { const m = F.shakeMag * (F.shake - LU.t) / 220; x.translate(Math.round((Math.random() - 0.5) * 2 * m), Math.round((Math.random() - 0.5) * 2 * m)); } else if (F) F.shakeMag = 0;
@@ -755,4 +781,4 @@ function lrLoop(now) {
   if (LU.toastT && now > LU.toastT) { $('lr-toast').hidden = true; LU.toastT = 0; }
 }
 // 시험용
-if (typeof window !== 'undefined') window.__lair = { get R() { return LU.R; }, get U() { return LU; }, get F() { return LU.F; }, L: typeof LAIR !== 'undefined' ? LAIR : null, open: run => lairOpen(run), saved: () => lairSaved(), fresh: seed => lrNew(seed), view: () => lrView(), flow: () => lrFlow(), art: (k, st) => lrArtId(k, st), pt(c) { const r = $('lr-cv').getBoundingClientRect(); return { x: r.left + lcx(c) * LU.scale, y: r.top + lcy(c) * LU.scale }; }, redraw: () => { lrWarmPrep(); lrDraw(); }, give(kind, star, cell) { const R = LU.R, uid = R.nextUid++; R.unit[uid] = { uid, kind, star: star || 1 }; if (cell != null) R.board[cell] = uid; else R.bench[R.bench.indexOf(null)] = uid; return uid; }, sheet: s => lrSheet(s), dbg: () => LU.dbg, speeds: () => LSPD.map(q => q[0]), stats() { const F = LU.F; return F ? { T: F.T, i: F.i, n: F.tl.length, done: F.done, intro: F.intro, real: F.real / 1000, slows: F.slows, blocks: F.blocks, shots: F.shots, taunts: F.taunts, checks: F.checks, bigChecks: F.bigChecks, boons: F.boons, dice: F.plates.length, bigCasts: F.bigCasts, smallCasts: F.smallCasts, frozen: F.frozen, crowd: F.crowd, labs: F.labs.filter(l => l.until > LU.t && !l.ban).length, meter: Object.keys(F.meter).length, alive: Object.keys(F.ents).filter(id => !F.ents[id].dead && !F.ents[id].core).length, mads: F.mads, casts: F.casts, late: F.late.length, ents: Object.keys(F.ents).length, frames: LU.fpsN } : null; } };
+if (typeof window !== 'undefined') window.__lair = { get R() { return LU.R; }, get U() { return LU; }, get F() { return LU.F; }, L: typeof LAIR !== 'undefined' ? LAIR : null, open: run => lairOpen(run), saved: () => lairSaved(), fresh: seed => lrNew(seed), view: () => lrView(), flow: () => lrFlow(), art: (k, st) => lrArtId(k, st), pt(c) { const r = $('lr-cv').getBoundingClientRect(); return { x: r.left + lcx(c) * LU.scale, y: r.top + lcy(c) * LU.scale }; }, redraw: () => { lrWarmPrep(); lrDraw(); }, give(kind, star, cell) { const R = LU.R, uid = R.nextUid++; R.unit[uid] = { uid, kind, star: star || 1 }; if (cell != null) R.board[cell] = uid; else R.bench[R.bench.indexOf(null)] = uid; return uid; }, sheet: s => lrSheet(s), dbg: () => LU.dbg, speeds: () => LSPD.map(q => q[0]), stats() { const F = LU.F; return F ? { T: F.T, i: F.i, n: F.tl.length, done: F.done, intro: F.intro, real: F.real / 1000, slows: F.slows, blocks: F.blocks, shots: F.shots, taunts: F.taunts, replay: !!LU.replay, checks: F.checks, bigChecks: F.bigChecks, boons: F.boons, dice: F.plates.length, bigCasts: F.bigCasts, smallCasts: F.smallCasts, frozen: F.frozen, crowd: F.crowd, labs: F.labs.filter(l => l.until > LU.t && !l.ban).length, meter: Object.keys(F.meter).length, alive: Object.keys(F.ents).filter(id => !F.ents[id].dead && !F.ents[id].core).length, mads: F.mads, casts: F.casts, late: F.late.length, ents: Object.keys(F.ents).length, frames: LU.fpsN } : null; } };

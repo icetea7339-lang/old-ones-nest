@@ -2013,7 +2013,154 @@ const LAIRART = (() => {
     if (t >= 0.38) for (let i = 0; i < 7; i++) { const f = seg(t, 0.38 + i * 0.02, 0.8 + i * 0.02); if (f <= 0 || f >= 1) continue; const an = -Math.PI / 2 + (hsh(i, 2) - 0.5) * 2.4; g.a(1 - f).sq(b.x + cos(an) * U * 0.5 * f, gy - H * 0.5 + sin(an) * U * 0.4 * f + f * f * U * 0.4, i % 2 ? '#a8242c' : '#e06050', 2); }
     g.a(1); };
   // ── ART-INV2 끝
-  const API = { unit, boss, icon, prewarm, role, roleDraw, ROLEC, SHOOT, ANIM, DEF, BOSS, P, PAD, lean, FX, fx, num, bar, tile, wallTop, entrance, room, ROOMS, aspIcon, clsIcon, sym, mockBoard, mockScene, ids: side => Object.keys(DEF).filter(k => (DEF[k].side || 'kin') === side) };
+  // ── ART-MAZE 시작
+  // ---------- 굴 짓기의 지도: 땅의 단면. 젖은 검은 흙과 바위, 판 칸은 둥지의 축축한 돌바닥, 생물발광 ----------
+  // 이웃 비트: 위 1, 오른쪽 2, 아래 4, 왼쪽 8
+  const MZ = { soil: ['#050407', '#0c0a0e', '#141117', '#1c1820', '#26212a'], stone: ['#060609', '#16161c', '#22222a', '#32313b', '#4a4854'], root: ['#120d0a', '#2e2219', '#4a3828', '#6a5440'], glow: ['#0e3a38', '#1f8a80', '#5ad8c4', '#c8fff0'], vio: ['#1a1030', '#5a3a98', '#a888e0'], cache: {} };
+  const mzc = (k, f) => MZ.cache[k] || (MZ.cache[k] = f());
+  // 흙: 켜켜이 쌓인 젖은 흙, 박힌 돌, 뿌리. seed 로 칸마다 다르게
+  function mzSoil(p, S, seed, moss) {
+    const ox = (seed * 97) % 400, oy = (seed * 61) % 400;
+    for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) { const X = x + ox, Y = y + oy, v = 1.7 + (hsh(Math.floor(X / 7), Math.floor(Y / 4)) - 0.5) * 1.3 + (hsh(X, Y) - 0.5) * 0.7 + 0.35 * sin(Y * 0.23 + hsh(Math.floor(X / 19), 3) * 4); p.set(x, y, MZ.soil[clamp(Math.round(v), 0, 4)]); }
+    // 돌: 칸 안쪽에만 둔다(이웃과 이어 붙여도 잘리지 않게)
+    const n = 1 + Math.floor(hsh(seed, 1) * 3); for (let k = 0; k < n; k++) { const rx = S * (0.04 + hsh(seed, k + 10) * 0.1), ry = rx * (0.55 + hsh(seed, k + 20) * 0.3), cx = rx + 3 + hsh(seed, k + 30) * (S - rx * 2 - 6), cy = ry + 3 + hsh(seed, k + 40) * (S - ry * 2 - 6);
+      for (let j = -Math.ceil(ry) - 1; j <= ry + 1; j++) for (let i = -Math.ceil(rx) - 1; i <= rx + 1; i++) { const q = (i * i) / (rx * rx) + (j * j) / (ry * ry); if (q > 1 + 2 / ry) continue; if (q > 1) { p.set(cx + i, cy + j, MZ.stone[0]); continue; } const lv = -i / rx * 0.5 - j / ry * 0.8 + (hsh(cx + i, cy + j) - 0.5) * 0.3; p.set(cx + i, cy + j, MZ.stone[lv > 0.55 ? 4 : lv > 0.1 ? 3 : lv > -0.4 ? 2 : 1]); }
+      p.set(cx - rx * 0.4, cy - ry * 0.5, '#5e5c6a'); if (hsh(seed, k + 50) > 0.6) { p.set(cx - rx * 0.1, cy + ry * 0.7, MZ.glow[1]); } }
+    // 뿌리: 위에서 아래로 갈라지며 내려간다
+    const nr = 1 + Math.floor(hsh(seed, 2) * 2.4); for (let k = 0; k < nr; k++) { let x = 2 + hsh(seed, k + 60) * (S - 4), y = 0; const drift = (hsh(seed, k + 70) - 0.5) * 0.8; for (let q = 0; y < S * (0.5 + hsh(seed, k + 80) * 0.5); q++) { p.set(x, y, MZ.root[1]); if (q % 3 === 0) p.set(x + 1, y, MZ.root[2]); if (q % 7 === 3) { let bx = x, by = y; for (let b = 0; b < 4 + (q % 4); b++) { bx += (k % 2 ? 1 : -1); by += 1; p.set(bx, by, MZ.root[1]); } } x += drift + (hsh(q, seed + k) - 0.5) * 1.2; y += 1; } }
+    // 발광 이끼: 드물게
+    if (moss) { const cx = 4 + hsh(seed, 90) * (S - 8), cy = 4 + hsh(seed, 91) * (S - 8); for (let k = 0; k < 9; k++) { const x = cx + (hsh(seed, k + 100) - 0.5) * 9, y = cy + (hsh(seed, k + 110) - 0.5) * 5; p.set(x, y, MZ.glow[1 + (k % 3 === 0 ? 1 : 0)]); if (k % 4 === 0) p.mix(x, y - 1, MZ.glow[3], 0.7); } for (let r = 3; r < 9; r++) for (let a = 0; a < 16; a++) p.mix(cx + cos(a * 0.39) * r, cy + sin(a * 0.39) * r * 0.6, MZ.glow[1], 0.05); }
+  }
+  // 안 판 바위. variant = 이웃 가운데 바위인 쪽의 비트. 바위가 아닌 쪽 가장자리는 굴의 빛을 받아 젖은 테가 선다
+  function mazeRock(S, variant, seed) { S = Math.round(S || 64); variant = (variant | 0) & 15; seed = seed | 0; return mzc('rock:' + S + ':' + variant + ':' + seed, () => { const p = PX(S, S); mzSoil(p, S, seed + 7, hsh(seed, 3) > 0.82);
+    const open = [!(variant & 1), !(variant & 2), !(variant & 4), !(variant & 8)];
+    for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) { const d = Math.min(open[0] ? y : 99, open[1] ? S - 1 - x : 99, open[2] ? S - 1 - y : 99, open[3] ? x : 99), jit = 0; const k = clamp(1 - d / (S * 0.4), 0, 1); if (k > 0) p.mix(x, y, '#143230', 0.22 * k * k); if (variant === 15) p.mix(x, y, '#000000', 0.18); }
+    return p.done(); }); }
+  // 판 칸 바닥. mask = 이어진 이웃 비트, use = 'path' | 'room' | 'trap' (그 밖은 path). 통로는 둥근 굴, 방은 넓은 바닥
+  function mazeFloor(S, mask, use, seed) { S = Math.round(S || 64); mask = (mask | 0) & 15; use = use === 'room' ? 'room' : 'path'; seed = seed | 0; return mzc('floor:' + S + ':' + mask + ':' + use + ':' + seed, () => { const p = PX(S, S), H = S / 2; mzSoil(p, S, seed + 3, false);
+    const hw = S * 0.23, rc = use === 'room' ? 0 : S * 0.29, hr = S * 0.41, cr = S * 0.15, dirs = [[0, -1], [1, 0], [0, 1], [-1, 0]];
+    const sdf = (x, y) => { let d = rc - Math.hypot(x - H, y - H); if (use === 'room') { const qx = Math.abs(x - H) - (hr - cr), qy = Math.abs(y - H) - (hr - cr); d = Math.max(d, cr - (Math.hypot(Math.max(qx, 0), Math.max(qy, 0)) + Math.min(Math.max(qx, qy), 0))); }
+      dirs.forEach(([dx, dy], k) => { if (!(mask & (1 << k))) return; const along = dx ? (x - H) * dx : (y - H) * dy, across = dx ? Math.abs(y - H) : Math.abs(x - H); if (along >= -0.5) d = Math.max(d, hw - across); }); return d; };
+    const inside = (x, y) => { const edge = Math.min(x, y, S - 1 - x, S - 1 - y); return sdf(x, y) + (edge > 3 ? (hsh(x >> 1, (y >> 1) + seed) - 0.5) * 1.6 : 0); };
+    for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) { const d = inside(x, y); if (d < -2.6) continue; if (d < -1.2) { p.mix(x, y, MZ.glow[0], 0.35); continue; } if (d < 0) { p.set(x, y, MZ.soil[0]); continue; }
+      // 바닥: 둥지의 젖은 돌. 위 벽 밑은 그늘, 가장자리는 테
+      const up = inside(x, y - 3) < 0, lit = d < 1.4, ramp = RAMP.nest, gx = x + seed * 13, gy = y + seed * 7;
+      let v = 2 + (hsh(Math.floor(gx / (S * 0.3)), Math.floor(gy / (S * 0.24))) - 0.5) * 1 + (hsh(gx, gy) - 0.5) * 0.6; const fx = (gx % Math.round(S * 0.3)), fy = (gy % Math.round(S * 0.24)); if (fx === 0 || fy === 0) v -= 1; else if (fx === 1 || fy === 1) v += 0.5;
+      v -= 0.5; if (use === 'room') v += 0.25; if (up) v -= 1.3; if (lit) { p.set(x, y, up || hsh(x, y + seed) > 0.3 ? '#12393a' : MZ.glow[1]); continue; }
+      const glow = clamp(1 - Math.hypot(x - S * 0.3, y - S * 0.36) / (S * 0.7), 0, 1) * 0.16; p.set(x, y, (glow > bay(x, y) ? RAMP.nestLit : ramp)[clamp(Math.round(v), 0, 4)]); }
+    // 바닥의 물기와 이끼
+    for (let k = 0; k < 3; k++) { const x = H + (hsh(seed, k + 200) - 0.5) * S * 0.36, y = H + (hsh(seed, k + 210) - 0.5) * S * 0.36; if (inside(x, y) > 3) { p.ell(x, y, 2 + hsh(seed, k) * 3, 1 + hsh(seed, k + 1), '#0a1a1e'); p.set(x - 1, y, MZ.glow[1]); } }
+    for (let k = 0; k < 6; k++) { const x = hsh(seed, k + 220) * S, y = hsh(seed, k + 230) * S; if (inside(x, y) > 1 && inside(x, y) < 4) { p.set(x, y, MZ.glow[2]); p.mix(x + 1, y, MZ.glow[1], 0.8); } }
+    if (use === 'room') for (const [x, y] of [[S * 0.16, S * 0.16], [S * 0.84, S * 0.16], [S * 0.16, S * 0.84], [S * 0.84, S * 0.84]]) { p.ell(x, y, 2.2, 1.6, MZ.stone[2], MZ.stone[0]); p.set(x - 1, y - 1, MZ.stone[4]); }
+    return p.done(); }); }
+  // 함정 네 가지. 바닥(mazeFloor) 위에 얹는 덧그림, 배경은 비었다. t = 0..1 움직임 (8 장)
+  const MAZE_TRAPS = ['pit', 'whisper', 'slime', 'spore'];
+  function mazeTrap(S, id, t) { S = Math.round(S || 64); t = ((t || 0) % 1 + 1) % 1; const fr = Math.floor(t * 8) % 8, ph = fr / 8 * TAU; return mzc('trap:' + id + ':' + S + ':' + fr, () => { const D = kit(S, 48), out = mk(S);
+    if (id === 'pit') {
+      // 이빨 구덩이: 바닥이 둥근 입으로 벌어졌다. 숨 쉬듯 오므렸다 벌린다
+      const o = 0.82 + 0.18 * sin(ph), rx = 15 * o, ry = 10 * o;
+      D.shade(D.el(24, 25, rx + 4, ry + 3.4), (x, y) => { const v = -(x - 24) * 0.02 - (y - 25) * 0.1; return v > 0.3 ? '#c8586a' : v > -0.3 ? '#8a2a3c' : '#5a1020'; }, '#14060a');
+      D.flat(D.el(24, 25.6, rx, ry), MAWC, '#2a0a10'); D.flat(D.el(24, 26.6, rx * 0.66, ry * 0.62), '#3a0810'); D.flat(D.el(24, 27, rx * 0.38, ry * 0.36), VOID);
+      ringTeeth(D, 24, 25.6, rx + 0.4, ry + 0.4, 14, 3.4, 0.2 + fr * 0.04); ringTeeth(D, 24, 26.6, rx * 0.66, ry * 0.62, 10, 2.2, 0.5, [P.bone[0], P.bone[3], P.bone[1], '#7a7468']);
+      for (const a of [3.4, 4.3, 5.2, 6]) D.L([[24 + cos(a) * (rx + 4), 25 + sin(a) * (ry + 3.4)], [24 + cos(a) * (rx + 9), 25 + sin(a) * (ry + 6)]], 0.5, 0.4, ['#0000', '#5a1020', '#5a1020', '#5a1020'], null);
+      D.px(16, 19.6, '#f0a0ac'); D.px(17, 19, '#f0a0ac');
+    } else if (id === 'whisper') {
+      // 속삭이는 벽: 굴 벽이 불룩 내려앉았고 거기서 입술과 귀가 돋았다. 입술이 달싹이고 글자 같은 숨이 샌다
+      D.shade(D.poly([[0, 0], [48, 0], [48, 12], [42, 20], [34, 23], [24, 25], [14, 23], [6, 20], [0, 12]]), (x, y, X, Y) => { const v = (hsh(X >> 1, Y >> 1) - 0.5) * 0.3 - (y - 12) * 0.05 - (x - 24) * 0.01; return v > 0.36 ? '#5a4a4c' : v > 0.08 ? '#3e3236' : v > -0.2 ? '#2a2226' : '#1a1416'; }, MZ.soil[0]);
+      for (const [a2, b2] of [[[8, 6], [14, 15]], [[38, 4], [33, 16]], [[20, 3], [22, 10]]]) D.L([a2, b2], 0.5, 0.4, ['#0000', '#7a4a50', '#7a4a50', '#7a4a50'], null);
+      for (const [x, dir, sc] of [[8.6, -1, 1], [39.4, 1, 1], [30, 1, 0.7]]) { const y = x === 30 ? 6 : 12; D.G([[x - 2.6 * sc, y], [x + dir * 2.4 * sc, y - 5 * sc], [x + dir * 6 * sc, y + 0.6 * sc], [x + dir * 4.6 * sc, y + 6.6 * sc], [x + dir * 1.2 * sc, y + 8 * sc], [x - 0.6 * sc, y + 4 * sc]], ['#2a1414', '#c8a098', '#ecc8c0', '#8a6460']); D.L([[x + dir * 1.8 * sc, y], [x + dir * 3.4 * sc, y + 2.4 * sc], [x + dir * 1.8 * sc, y + 5 * sc]], 0.5, 0.4, ['#0000', '#6a3a3a', '#6a3a3a', '#6a3a3a'], null); }
+      const op = 0.3 + 0.7 * Math.abs(sin(ph * 2)); D.shade(D.el(23, 17, 9, 4.6), (x, y) => (y < 16.4 ? '#e0707e' : '#a83848'), '#2a0a10'); D.flat(D.el(23, 17.2, 6.6, 0.6 + op * 2.4), MAWC, null); D.px(19, 15.6, '#ffc0c8'); D.px(20, 15, '#ffc0c8'); if (op > 0.5) { for (const dx of [-3, -1, 1, 3]) D.px(23 + dx, 15.8 + op * 0.4, TOOTH); }
+      D.shade(D.el(13, 9, 3.6, 1.8), () => '#b8505e', '#2a0a10'); D.flat(D.el(13, 9.2, 2.4, 0.4 + (1 - op) * 0.8), MAWC, null);
+      for (let k = 0; k < 5; k++) { const f = ((k * 0.2 + t) % 1), x = 23 + sin(f * 7 + k) * (4 + f * 8), y = 22 + f * 22; const pat = [[0, 1, 1, 0, 1, 0, 0, 1, 1], [1, 0, 1, 0, 1, 0, 1, 0, 1], [1, 1, 0, 1, 0, 0, 1, 1, 1], [0, 1, 0, 1, 1, 1, 0, 1, 0], [1, 0, 0, 1, 1, 0, 0, 1, 1]][k]; if (f < 0.85) for (let i = 0; i < 9; i++) if (pat[i]) D.px(x + (i % 3 - 1) * 0.8, y + Math.floor(i / 3) * 0.8, f < 0.5 ? '#c8a8ff' : '#6a5a98'); }
+    } else if (id === 'slime') {
+      // 점액 늪: 번들거리는 검푸른 웅덩이. 거품이 부풀었다 터진다
+      D.shade(D.cut(D.el(24, 27, 20, 11), (x, y) => Math.hypot((x - 24) / 20, (y - 27) / 11) + sin(Math.atan2(y - 27, x - 24) * 5) * 0.07 < 1), (x, y, X, Y) => { const v = -(y - 27) * 0.05 + sin(X * 0.21 + Y * 0.5 + ph) * 0.12 + (hsh(X >> 1, Y) - 0.5) * 0.1; return v > 0.4 ? '#3a8a64' : v > 0.12 ? '#1a5a40' : v > -0.22 ? '#0e3a2a' : '#082218'; }, '#020a06');
+      D.L([[10, 23], [17, 20], [27, 19.4]], 0.6, 0.5, ['#0000', '#a8f0c0', '#a8f0c0', '#a8f0c0'], null); D.px(12, 22, '#ffffff'); D.L([[30, 33], [36, 31.6]], 0.4, 0.4, ['#0000', '#3a8a64', '#3a8a64', '#3a8a64'], null);
+      for (let k = 0; k < 3; k++) { const x = 6 + k * 18, y = 33 + (k % 2) * 3; D.L([[x, y], [x + 1, y + 4 + k]], 0.7, 0.4, ['#0000', '#0e3a2a', '#1a5a40', '#0e3a2a'], null); }
+      for (let k = 0; k < 3; k++) { const g = ((t + k / 3) % 1), x = 16 + k * 8, y = 27 + (k % 2) * 4, r = 0.6 + g * 2.4; if (g < 0.86) { D.flat(D.el(x, y, r, r * 0.8), '#2a8a5a', '#04140c'); D.px(x - r * 0.4, y - r * 0.4, '#c8ffd8'); } else for (const a of [0, 2, 4]) D.px(x + cos(a) * 3, y + sin(a) * 2, '#7ad89a'); }
+      for (const [x, y] of [[6, 18], [41, 34], [8, 36]]) { D.flat(D.el(x, y, 1.6, 1.1), '#145a3a', '#04140c'); D.px(x - 0.4, y - 0.4, '#7ad89a'); }
+    } else if (id === 'spore') {
+      // 포자 구덩이: 부푼 포자낭이 모여 숨을 쉰다. 터질 때마다 가루가 인다
+      D.flat(D.el(24, 31, 18, 9), '#1a220c', null); for (let k = 0; k < 7; k++) { const x = 8 + hsh(k, 1) * 32, y = 28 + hsh(k, 2) * 8; D.L([[x, y], [x + 3, y + 1]], 0.5, 0.4, ['#0000', '#4a6420', '#4a6420', '#4a6420'], null); }
+      [[16, 24, 6.4, 0], [30, 22, 7.6, 2.1], [23, 32, 5.2, 4], [36, 33, 4.4, 1.2], [10, 34, 3.6, 3.3]].forEach(([x, y, r, p0]) => { const s = 1 + 0.12 * sin(ph + p0), rr = r * s; D.L([[x, y + rr * 0.9], [x, y + rr * 1.4]], 1.2, 1, ['#14200c', '#4a6420', '#8aa83a', '#2c3c18']); D.shade(D.el(x, y, rr, rr * 0.92), (xx, yy) => { const dx = (xx - x) / rr, dy = (yy - y) / rr; return -dx * 0.6 - dy * 0.7 > 0.4 ? '#f0ffa0' : dx * 0.6 + dy * 0.7 > 0.5 ? '#6a8a2a' : '#b0c840'; }, '#14200c'); for (const [a, q] of [[0.6, 0.5], [2.4, 0.4], [4, 0.55]]) D.px(x + cos(a + p0) * rr * q, y + sin(a + p0) * rr * q, '#4a6420'); D.px(x - rr * 0.4, y - rr * 0.5, '#ffffff'); });
+      for (let k = 0; k < 10; k++) { const f = (hsh(k, 5) + t) % 1, x = 8 + hsh(k, 6) * 32 + sin(f * 6 + k) * 2, y = 30 - f * 28; D.px(x, y, k % 3 ? '#e8ff7a' : '#ffffff'); }
+    }
+    out.getContext('2d').drawImage(D.K.canvas(), PAD, PAD, S, S, 0, 0, S, S); return out; }); }
+  // 방 종류 표식: 둥지 전투의 방 그림을 칸 위에 얹는다. 바닥이 비치게 조금 엷게
+  function mazeRoomMark(S, roomId, t) { S = Math.round(S || 64); const fr = Math.floor(((t || 0) % 1) * 8); return mzc('rmark:' + roomId + ':' + S + ':' + fr, () => { const c = mk(S), x = c.getContext('2d'); if (!ROOMS[roomId]) return c; x.globalAlpha = 0.85; x.drawImage(room(roomId, S, 0, 1, fr / 8), 0, 0); x.globalAlpha = 1;
+    // 왼쪽 위 모서리의 작은 방패꼴 표지
+    const R = ROOMS[roomId], s = Math.max(1, Math.round(S / 48)), bx = Math.round(S * 0.08), by = Math.round(S * 0.08); x.fillStyle = '#0c0812'; x.fillRect(bx - s, by - s, 8 * s, 9 * s); x.fillStyle = R.dark; x.fillRect(bx, by, 6 * s, 7 * s); x.fillStyle = R.col; x.fillRect(bx + s, by + s, 4 * s, 4 * s); x.fillRect(bx + 2 * s, by + 5 * s, 2 * s, s); return c; }); }
+  // 입구: 위쪽 바깥. 땅 위의 희미한 빛이 새어 들고, 풀뿌리가 늘어진다. w = 칸 몇 개 너비, 가운데에 구멍
+  function mazeEntrance(S, w) { S = Math.round(S || 64); w = Math.max(1, w | 0 || 1); return mzc('ent:' + S + ':' + w, () => { const W = S * w, H = Math.round(S * 0.9), p = PX(W, H), cx = W / 2, hw = S * 0.23, gy = Math.round(H * 0.3);
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { if (y < gy - 2 + Math.round(1.4 * sin(x * 0.13) + hsh(x, 1))) { // 땅 위: 흐린 밤하늘
+        const v = y / gy; p.set(x, y, v < 0.4 ? '#0a0c14' : v < 0.75 ? '#0e1220' : '#141a2a'); if (hsh(x, y) > 0.995) p.set(x, y, '#8a92a8'); continue; }
+      const X = x + 31, Y = y + 17, v = 1.6 + (hsh(Math.floor(X / 7), Math.floor(Y / 4)) - 0.5) * 1.3 + (hsh(X, Y) - 0.5) * 0.7 + 0.35 * sin(Y * 0.23 + hsh(Math.floor(X / 19), 3) * 4); p.set(x, y, MZ.soil[clamp(Math.round(v - (y - gy) / H), 0, 4)]); }
+    // 풀: 땅의 테
+    for (let x = 0; x < W; x++) { const top = gy - 2 + Math.round(1.4 * sin(x * 0.13) + hsh(x, 1)), h = 1 + Math.floor(hsh(x, 2) * 3); for (let k = 0; k < h; k++) p.set(x, top - k, k ? '#2a3a2a' : '#1c2a1c'); p.set(x, top + 1, '#3a3022'); }
+    // 구멍: 아래로 이어지는 굴. 바깥 빛이 기둥으로 새어 든다
+    for (let y = gy - 3; y < H; y++) { const f = (y - gy) / (H - gy), half = hw * (1.25 - 0.25 * f) + (hsh(y, 4) - 0.5) * 1.4; for (let x = Math.floor(cx - half - 2); x <= cx + half + 2; x++) { const dx = Math.abs(x - cx); if (dx > half + 1.4) continue; if (dx > half) { p.set(x, y, MZ.soil[0]); continue; } const shaft = clamp(1 - dx / (half * 0.9), 0, 1) * (1 - f * 0.55); const c = shaft > 0.62 ? '#4a5a68' : shaft > 0.4 ? '#2e3a48' : shaft > 0.2 ? '#1a2230' : '#0c1018'; p.set(x, y, bay(x, y) < 0.3 && shaft > 0.3 ? '#3a4858' : c); } }
+    for (let k = 0; k < 14; k++) { const x = cx + (hsh(k, 7) - 0.5) * hw * 1.6, y = gy + hsh(k, 8) * (H - gy); p.set(x, y, hsh(k, 9) > 0.5 ? '#a8b4c4' : '#6a7888'); }
+    // 풀뿌리: 구멍 가장자리와 흙 속으로 늘어진다
+    for (let k = 0; k < 10 + w * 3; k++) { let x = (k < 8 ? cx + (k < 4 ? -1 : 1) * (hw + 1 + (k % 4) * 2.4) : hsh(k, 10) * W), y = gy; const len = H * (0.25 + hsh(k, 11) * 0.5); for (let q = 0; q < len; q++) { p.set(x, y, q < 3 ? '#3a3022' : MZ.root[1 + (q % 5 === 0 ? 1 : 0)]); x += (hsh(q, k) - 0.5) * 1.1; y += 1; } }
+    // 이끼 몇 점
+    for (let k = 0; k < 6; k++) { const x = cx + (k < 3 ? -1 : 1) * (hw + 3 + hsh(k, 12) * 6), y = gy + 6 + hsh(k, 13) * (H - gy - 10); p.set(x, y, MZ.glow[1]); p.mix(x, y - 1, MZ.glow[2], 0.6); }
+    return p.done(); }); }
+  // 본체 방 바닥: 둥근 방, 바닥에 그 모습의 문양이 천천히 돈다. mask = 이어진 이웃 (생략하면 위·아래)
+  const CORE_C = { abyss: ['#1f8a80', '#8fe8d8'], nebula: ['#6a4fc8', '#cdbcff'], brood: ['#5a9a34', '#d8f080'], dusk: ['#a8602a', '#f0a04a'], hunger: ['#a8242c', '#ff8a7a'], drop: ['#5a3a98', '#cdbcff'] };
+  function mazeCore(S, form, t, mask) { S = Math.round(S || 64); mask = mask == null ? 5 : mask & 15; const fr = Math.floor((((t || 0) % 1) + 1) % 1 * 8), C = CORE_C[form] || CORE_C.drop; return mzc('core:' + S + ':' + form + ':' + mask + ':' + fr, () => { const c = mk(S), x = c.getContext('2d'); x.drawImage(mazeFloor(S, mask, 'room', 5), 0, 0);
+    const p = PX(S, S), H = S / 2, R = S * 0.4; for (let y = 0; y < S; y++) for (let xx = 0; xx < S; xx++) { const d = Math.hypot(xx - H, (y - H) * 1.06); if (d < R && d > R - 1.4) p.set(xx, y, C[0]); else if (d < R - 1.4 && d > R - 3) p.mix(xx, y, '#000000', 0.4); else if (d < R - 3) { const a = Math.atan2(y - H, xx - H) + fr / 8 * TAU / 6, band = Math.abs(d - R * 0.62) < 1, spoke = Math.abs(sin(a * 3)) < 0.06 && d > R * 0.25 && d < R * 0.62; if (band && (Math.floor(a * 8 / TAU * 3) % 3)) p.set(xx, y, C[0]); else if (spoke) p.mix(xx, y, C[0], 0.8); else if (d < R * 0.22) p.mix(xx, y, C[0], 0.18 + 0.12 * sin(fr / 8 * TAU)); } }
+    for (let k = 0; k < 6; k++) { const a = k * TAU / 6 + fr / 8 * TAU / 6, gx = H + cos(a) * R * 0.82, gy = H + sin(a) * R * 0.78; p.set(gx, gy, C[1]); p.set(gx + 1, gy, C[0]); p.set(gx, gy + 1, C[0]); }
+    x.drawImage(p.done(), 0, 0); return c; }); }
+  // 「위대한 것」의 알: 판의 목적물. 크고 검은 별빛 껍질, 안에서 무언가가 맥박친다, 둘레에 뿌리 같은 촉수. crack 0~4 (4 = 깨짐 직전)
+  // 크기 = 1.4S 정사각. 칸 가운데에 맞춰 얹는다
+  function mazeEgg(S, crack, t) { S = Math.round(S || 64); crack = clamp(crack | 0, 0, 4); const fr = Math.floor((((t || 0) % 1) + 1) % 1 * 8), N = Math.round(S * 1.4); return mzc('egg:' + S + ':' + crack + ':' + fr, () => {
+    const D = kit(N, 48), out = mk(N), pulse = 0.5 + 0.5 * sin(fr / 8 * TAU), CX = 24, CY = 24, RX = 14.6, RY = 18.4, tp = [MZ.vio[0], '#3a2a5a', '#6a58a0', '#22183a'];
+    // 뒤의 빛무리: 맥박에 맞춰 커졌다 줄어든다
+    D.shade(D.el(CX, CY, RX + 6 + pulse * 1.4, RY + 5 + pulse * 1.4), (x, y, X, Y) => { const d = Math.hypot((x - CX) / (RX + 6), (y - CY) / (RY + 5)); return hsh(X, Y) > 0.35 + d * 0.5 ? (d < 0.86 ? '#3a2470' : '#1e1440') : null; }, null);
+    // 둘레의 뿌리 촉수: 바닥으로 파고든다
+    [[-1, 0.2, 0], [-1, 0.75, 1.4], [1, 0.25, 2.6], [1, 0.8, 3.7], [-0.4, 1, 0.8], [0.45, 1, 2]].forEach(([dir, h, ph]) => { const x0 = CX + dir * RX * 0.8, y0 = CY + RY * (0.1 + h * 0.6), sw = sin(fr / 8 * TAU + ph) * 0.8; tent(D, [[x0, y0], [x0 + dir * 6, y0 + 4 + sw], [x0 + dir * 11, y0 + 3 + h * 4], [x0 + dir * 15 + sw, y0 + 7 + h * 3]], 2.2, 0.5, tp, '#a888e0'); });
+    // 바닥에 고인 빛
+    D.shade(D.el(CX, CY + RY - 1, RX + 7, 3.6), (x, y, X, Y) => (hsh(X, Y) > 0.5 - pulse * 0.2 ? '#2a1a48' : '#160e28'), null);
+    // 껍질: 검고 별이 박혔다. 안쪽 맥박이 껍질 아래로 비친다
+    const shell = D.cut(D.el(CX, CY, RX, RY), (x, y) => { const f = (y - CY) / RY; return Math.abs(x - CX) <= RX * Math.sqrt(Math.max(0, 1 - f * f)) * (1 - 0.18 * Math.max(0, -f)) + 0.3; });
+    D.shade(shell, (x, y, X, Y) => { const dx = (x - CX) / RX, dy = (y - CY) / RY, rim = Math.hypot(dx, dy), v = -dx * 0.45 - dy * 0.6, n = hsh(X, Y), inner = clamp(1 - Math.hypot(dx * 1.2, (dy - 0.15) * 1.1) * 1.4, 0, 1) * (0.5 + pulse * 0.5) * (1 + crack * 0.18);
+      if (n > 0.982) return '#ffffff'; if (n > 0.962) return '#cdbcff'; if (n > 0.95) return '#8fe8d8'; if (inner > 0.55 + bay(X, Y) * 0.3) return inner > 0.85 ? '#5a3a98' : '#2e1e58'; if (rim > 0.92) return v > 0 ? '#6a58b0' : '#3a2e68'; if (rim > 0.84 && v > 0.1) return '#3a2e60'; return v > 0.55 ? '#2a2240' : v > 0.1 ? '#161224' : v > -0.4 ? '#0c0a16' : '#07050c'; }, '#000000');
+    D.L([[CX - RX * 0.62, CY - RY * 0.3], [CX - RX * 0.5, CY - RY * 0.6], [CX - RX * 0.2, CY - RY * 0.84]], 0.7, 0.5, ['#0000', '#8a7ac8', '#8a7ac8', '#8a7ac8'], null); D.px(CX - RX * 0.56, CY - RY * 0.46, '#ffffff');
+    // 껍질의 줄무늬: 별자리처럼 잇는 가는 선
+    for (const [a, b] of [[[CX + 3, CY - 9], [CX + 6, CY - 4]], [[CX + 6, CY - 4], [CX + 4, CY + 2]], [[CX - 5, CY + 4], [CX - 2, CY + 8]]]) D.L([a, b], 0.35, 0.35, ['#0000', '#3a2e60', '#3a2e60', '#3a2e60'], null);
+    // 금: 단계마다 늘고 굵어진다. 금 사이로 안의 빛이 샌다
+    const CR = [[[CX + 1, CY - RY + 1], [CX - 1, CY - 11], [CX + 3, CY - 6], [CX, CY - 1]], [[CX + RX - 1, CY - 3], [CX + 9, CY], [CX + 10, CY + 5], [CX + 5, CY + 8]], [[CX - RX + 1, CY + 3], [CX - 8, CY + 2], [CX - 7, CY + 8], [CX - 11, CY + 12]], [[CX, CY - 1], [CX - 4, CY + 4], [CX - 1, CY + 10], [CX + 2, CY + RY - 2]]];
+    for (let k = 0; k < crack; k++) { const w = 0.5 + (crack - k) * 0.12; D.L(CR[k], w + 0.5, w + 0.3, ['#0000', '#120a20', '#120a20', '#120a20'], null); D.L(CR[k], w, w * 0.7, ['#0000', k < crack - 1 || pulse > 0.4 ? '#e8d8ff' : '#a888e0', '#e8d8ff', '#e8d8ff'], null); for (const q of CR[k].slice(1)) D.px(q[0] + 1, q[1], '#c8a8ff'); }
+    // 깨짐 직전: 조각이 들리고 빛이 새어 나온다
+    if (crack >= 4) { D.G([[CX + 2, CY - 5], [CX + 6, CY - 9], [CX + 8, CY - 4], [CX + 4, CY - 2]], ['#000000', '#1a1430', '#3a2e60', '#0c0a16']); for (let k = 0; k < 8; k++) { const a = -1.4 + k * 0.4, r1 = 3 + (k % 2) * 2, r2 = r1 + 4 + pulse * 3; D.L([[CX + 1 + cos(a) * r1, CY - 3 + sin(a) * r1], [CX + 1 + cos(a) * r2, CY - 3 + sin(a) * r2]], 0.35, 0.3, ['#0000', '#e8d8ff', '#e8d8ff', '#e8d8ff'], null); } }
+    // 안에서 맥박치는 것: 껍질 너머로 눈 하나가 비친다 (금이 갈수록 또렷하다)
+    if (crack >= 2 || pulse > 0.7) { const op = Math.min(1, crack * 0.25 + pulse * 0.3); D.flat(D.el(CX + 1, CY + 1, 2.6 + op, 1.2 + op * 0.8), op > 0.6 ? '#f0a04a' : '#5a3a98', null); D.flat(D.el(CX + 1, CY + 1, 0.5, 1 + op * 0.6), VOID); }
+    // 둘레를 도는 빛 알갱이
+    for (let k = 0; k < 6; k++) { const a = k * TAU / 6 + fr / 8 * TAU / 6, x = CX + cos(a) * (RX + 4), y = CY + sin(a) * (RY * 0.7); D.px(x, y, k % 2 ? '#8fe8d8' : '#cdbcff'); }
+    out.getContext('2d').drawImage(D.K.canvas(), PAD, PAD, N, N, 0, 0, N, N); return out; }); }
+  // 지도 위 일행 표식: 우두머리의 작은 얼굴, 뒤따르는 횃불 점 몇, 머릿수. t = 걸음
+  function mazeParty(px, kinds, n, t) { px = Math.round(px || 40); kinds = kinds || []; n = n | 0 || kinds.length || 1; const fr = Math.floor((((t || 0) % 1) + 1) % 1 * 4), k = 'party:' + px + ':' + (kinds[0] || '') + ':' + n + ':' + fr; return mzc(k, () => { const c = mk(px), x = c.getContext('2d'), s = Math.max(1, Math.round(px / 32)), cx = px * 0.54, cy = px * 0.44, r = px * 0.3, bob = [0, -1, 0, 1][fr] * s;
+    x.imageSmoothingEnabled = false;
+    // 뒤따르는 점: 횃불빛
+    for (let i = 0; i < Math.min(4, Math.max(0, n - 1)); i++) { const fx = cx - r - (i + 1) * px * 0.1, fy = cy + r * 0.6 + ((fr + i) % 2) * s; x.fillStyle = '#2a0e06'; x.fillRect(Math.round(fx - 2 * s), Math.round(fy - 2 * s), 4 * s, 4 * s); x.fillStyle = i % 2 ? '#e08a30' : '#ffd070'; x.fillRect(Math.round(fx - s), Math.round(fy - s), 2 * s, 2 * s); }
+    // 바탕 원: 따뜻한 테
+    x.fillStyle = '#2a0e06'; x.beginPath(); x.arc(cx, cy + bob, r + 2 * s, 0, TAU); x.fill(); x.fillStyle = '#e08a30'; x.beginPath(); x.arc(cx, cy + bob, r + s, 0, TAU); x.fill(); x.fillStyle = '#1a120e'; x.beginPath(); x.arc(cx, cy + bob, r, 0, TAU); x.fill();
+    if (kinds[0]) { const ic = icon(kinds[0], 1, Math.round(r * 2)); x.save(); x.beginPath(); x.arc(cx, cy + bob, r, 0, TAU); x.clip(); x.drawImage(ic, Math.round(cx - r), Math.round(cy + bob - r)); x.restore(); }
+    // 머릿수
+    const str = String(n), dw = (str.length * 4 - 1) * s, bx = Math.round(px - dw - 3 * s), by = Math.round(px * 0.7); x.fillStyle = '#0c0812'; x.fillRect(bx - 2 * s, by - 2 * s, dw + 4 * s, 9 * s); x.fillStyle = '#ffe8c0'; for (let q = 0; q < str.length; q++) { const g = DIG[str[q]]; if (!g) continue; for (let i = 0; i < 15; i++) if (g[i] === '1') x.fillRect(bx + q * 4 * s + (i % 3) * s, by + Math.floor(i / 3) * s, s, s); }
+    return c; }); }
+  // 다음 일행이 갈 길: 칸 가운데를 잇는 횃불빛 점선이 흐른다. cells = [[열, 행, 부술 바위?], …] (행 -1 = 입구)
+  // kind 'break' 이면 세 번째 값이 참인 칸(부서질 바위)에 금을 긋는다. o = { ox, oy } 지도의 왼쪽 위
+  function mazePath(ctx, cells, S, t, kind, o) { if (!ctx || !cells || cells.length < 2) return false; o = o || {}; S = S || 64; t = ((t || 0) % 1 + 1) % 1; const ox = o.ox || 0, oy = o.oy || 0, s = Math.max(1, Math.round(S / 40)), pts = cells.map(q => Array.isArray(q) ? q : [q.c, q.r, q.rock]).map(([c, r, b]) => [ox + (c + 0.5) * S, oy + (r + 0.5) * S, b]);
+    ctx.save(); const step = 4 * s, dash = 3 * s; let acc = -t * step * 2;
+    for (let i = 1; i < pts.length; i++) { const [x0, y0] = pts[i - 1], [x1, y1] = pts[i], L = Math.hypot(x1 - x0, y1 - y0), ux = (x1 - x0) / L, uy = (y1 - y0) / L; for (let d = ((acc % step) + step) % step; d < L; d += step) { const px = Math.round(x0 + ux * d), py = Math.round(y0 + uy * d); ctx.fillStyle = '#2a0e06'; ctx.fillRect(px - s, py - s, dash, dash); ctx.fillStyle = (Math.floor((d - acc) / step) % 3) === 0 ? '#ffe0a0' : '#e08a30'; ctx.fillRect(px - s + Math.round(s / 2), py - s + Math.round(s / 2), Math.max(1, dash - s), Math.max(1, dash - s)); } acc -= L; }
+    // 끝: 화살촉
+    const [ex, ey] = pts[pts.length - 1], [px0, py0] = pts[pts.length - 2], L = Math.hypot(ex - px0, ey - py0) || 1, ux = (ex - px0) / L, uy = (ey - py0) / L, hx = ex - ux * S * 0.3, hy = ey - uy * S * 0.3; ctx.fillStyle = '#ffb050'; ctx.strokeStyle = '#2a0e06'; ctx.lineWidth = s; ctx.beginPath(); ctx.moveTo(hx + ux * 5 * s, hy + uy * 5 * s); ctx.lineTo(hx - uy * 4 * s, hy + ux * 4 * s); ctx.lineTo(hx + uy * 4 * s, hy - ux * 4 * s); ctx.closePath(); ctx.fill(); ctx.stroke();
+    // 부서질 바위: 붉은 금과 떨어지는 부스러기
+    if (kind === 'break') for (const [x, y, b] of pts) { if (!b) continue; const k = 0.6 + 0.4 * sin(t * TAU * 2); ctx.globalAlpha = k; ctx.fillStyle = '#ff8a40'; for (const [a, b2] of [[[-0.3, -0.36], [-0.05, -0.1]], [[-0.05, -0.1], [0.1, 0.12]], [[0.1, 0.12], [0.34, 0.2]], [[-0.05, -0.1], [-0.3, 0.14]], [[0.1, 0.12], [0.02, 0.36]]]) { const n = Math.ceil(S * 0.3 / s); for (let q = 0; q <= n; q++) ctx.fillRect(Math.round(x + lerp(a[0], b2[0], q / n) * S), Math.round(y + lerp(a[1], b2[1], q / n) * S), s, s); } ctx.globalAlpha = 1; for (let q = 0; q < 4; q++) { const f = (t + q / 4) % 1; ctx.fillStyle = '#6a5440'; ctx.fillRect(Math.round(x + (hsh(q, 3) - 0.5) * S * 0.5), Math.round(y + f * S * 0.4), 2 * s, 2 * s); } }
+    ctx.restore(); return true; }
+  // ── ART-MAZE 끝
+  const API = { unit, boss, icon, prewarm, mazeRock, mazeFloor, mazeTrap, mazeRoomMark, mazeEntrance, mazeEgg, mazeCore, mazeParty, mazePath, MAZE_TRAPS, role, roleDraw, ROLEC, SHOOT, ANIM, DEF, BOSS, P, PAD, lean, FX, fx, num, bar, tile, wallTop, entrance, room, ROOMS, aspIcon, clsIcon, sym, mockBoard, mockScene, ids: side => Object.keys(DEF).filter(k => (DEF[k].side || 'kin') === side) };
   if (typeof window !== 'undefined') window.LAIRART = API;
   return API;
 })();

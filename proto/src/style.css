@@ -397,6 +397,12 @@ canvas.px, .sh-ic, .sh-cv { image-rendering: pixelated; }
 #lr-sheet .lr-end div { display: flex; flex-direction: column; gap: 2px; } #lr-sheet .lr-end b { font-size: 16px; } #lr-sheet .lr-end span { color: var(--mute); font-size: 13px; }
 #lr-sheet .lr-track.end { margin: 0 0 4px; }
 #lr-sheet .lr-mem button { position: relative; } #lr-sheet .lr-mem small { position: absolute; right: 2px; bottom: 0; font-size: 12px; font-weight: 700; color: var(--coin); }
+/* 다른 화면(굴 짓기)이 싸움 하나를 다시 보여 줄 때 */
+#lr.replay { z-index: 45; }
+#lr-bar .lr-rp { gap: 8px; min-height: 34px; padding: 0 2px 0 6px; }
+#lr-bar .lr-rp b { flex: 0 0 auto; font-size: 15px; white-space: nowrap; color: #fff3a0; }
+#lr-bar .lr-rp small { flex: 1 1 auto; min-width: 0; color: var(--mute); font-size: 13px; white-space: nowrap; }
+#lr #lr-bar .lr-rpskip { flex: 0 0 auto; margin-left: auto; min-height: 34px; padding: 0 14px; font-weight: 700; }
 /* ==== LAIR-UI 끝 ==== */
 /* 폰에서 끌기가 길게 누르기(글 고르기·메뉴)나 당겨 새로 고침으로 끊기지 않게 */
 #lr { overscroll-behavior: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
