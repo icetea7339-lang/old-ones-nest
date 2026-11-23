@@ -106,6 +106,8 @@ function mzMount() {
   el.addEventListener('pointerdown', mzDown); el.addEventListener('pointermove', mzMove); el.addEventListener('pointerup', mzUp); el.addEventListener('pointercancel', mzCancel);
   // 끄는 동안에는 손가락의 움직임을 게임이 쥔다 (폰에서 스크롤로 넘어가 끌기가 취소되지 않게)
   el.addEventListener('touchmove', e => { if (MZ.drag && MZ.drag.uid && e.cancelable) e.preventDefault(); }, { passive: false });
+  // 손가락이 닿는 순간부터 쥔다: 앱(웹뷰)이 첫 움직임을 스크롤로 가져가 끌기가 끊기지 않게. 누르기는 pointer 사건이 그대로 받는다
+  el.addEventListener('touchstart', e => { const t = e.target; if (e.cancelable && MZ.phase === 'prep' && !MZ.sheet && (t.id === 'mz-cv' || (t.closest && t.closest('#mz-bench .mz-slot.has')))) e.preventDefault(); }, { passive: false });
   window.addEventListener('resize', () => { if (!el.hidden) mzSize(); });
   window.addEventListener('keydown', e => { if (el.hidden || e.key !== 'Escape') return; if (MZ.sheet && MZ.sheet.kind !== 'result') mzSheetClose(); else if (MZ.sel) { MZ.sel = null; mzDraw(); } });
 }
