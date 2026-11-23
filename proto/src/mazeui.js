@@ -302,8 +302,8 @@ function mzCellAt(cx, cy) { const r = $('mz-cv').getBoundingClientRect(), x = (c
 function mzClick(e) {
   // 폰에서 손을 떼어 창을 연 바로 뒤에 오는 click 은 창 바깥(어둠)에 떨어진다: 막 연 창은 닫지 않는다
   if (e.target.id === 'mz-sheet' && MZ.sheet && MZ.sheet.kind !== 'result' && MZ.sheet.kind !== 'over') { if (performance.now() - (MZ.sheetT || 0) < 450) return; return mzSheetClose(); }
-  // 칸을 손가락으로 눌러 연 창: 손을 뗄 때 따라오는 click 이 막 뜬 창의 단추(대기석, 팔기 …)를 누르지 않게 잠깐 받지 않는다
-  if (performance.now() - (MZ.sheetPtr || 0) < 500 && e.target.closest('#mz-sheet')) { e.preventDefault(); e.stopPropagation(); return; }
+  // 칸을 손가락으로 눌러 연 창: 손을 뗀 그 자리에 따라오는 click 하나가 막 뜬 창의 단추(대기석, 팔기 …)를 누르지 않게 버린다. 다른 자리를 누르는 것은 바로 받는다
+  { const g = MZ.sheetPtr; if (g && e.target.closest('#mz-sheet') && performance.now() - g.t < 600 && Math.hypot(e.clientX - g.x, e.clientY - g.y) < 14) { MZ.sheetPtr = null; e.preventDefault(); e.stopPropagation(); return; } }
   const b = e.target.closest('[data-m]'); if (!b || b.disabled) return; const a = b.dataset.m, M = MZ.M;
   if (a === 'menu') { mzSay('click'); return mzSheet({ kind: 'menu' }); }
   if (a === 'close') return mzSheetClose();
@@ -369,7 +369,7 @@ function mzUp(e) {
   if (d.bench != null) { if (MZ.sel && MZ.sel.uid && MZ.sel.uid !== d.uid) return mzMoveTo(MZ.sel.uid, { bench: d.bench }); if (d.uid) { if (MZ.sel && MZ.sel.uid === d.uid) MZ.sel = null; else mzSelect(d.uid); } return mzDraw(); }
   const cell = d.cell; if (cell === -1) { MZ.sel = null; return mzDraw(); }
   if (MZ.sel && MZ.sel.uid) { if (cell === 'egg') { mzToast('알의 방에는 세울 수 없다'); return; } return mzMoveTo(MZ.sel.uid, cell === 'core' ? { core: true } : { cell }, true); }
-  MZ.sheetPtr = performance.now(); mzSay('click'); MZ.shop = false; $('mz-shop').hidden = true; if (cell === 'core' || cell === 'egg') return mzSheet({ kind: cell }); mzSheet({ kind: 'cell', cell });
+  MZ.sheetPtr = { t: performance.now(), x: e.clientX, y: e.clientY }; mzSay('click'); MZ.shop = false; $('mz-shop').hidden = true; if (cell === 'core' || cell === 'egg') return mzSheet({ kind: cell }); mzSheet({ kind: 'cell', cell });
 }
 // 방 안에서 누른 자리에 가장 가까운 권속 (그림의 자리 MZUSPOT 대로)
 function mzUnitNear(cell, cx, cy) {
