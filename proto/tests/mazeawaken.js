@@ -32,9 +32,9 @@ const dev = process.argv[2] === 'pc' ? '' : process.argv[2] || 'iPhone 14', tag 
   await p.waitForTimeout(1200); { const r = await rd(); if (!r || r.q !== 'awaken') bad.push('깨어남 장면이 열리지 않는다 ' + JSON.stringify(r)); } for (let i = 0; i < 3; i++) await tap('#mzr .mzr-lines'); await shot('awaken1_scene');
   // 장면 중 저장 · 이어하기
   { const r0 = await rd(); await p.reload(); await p.waitForTimeout(500); await tap('[data-z="free"]'); await p.waitForTimeout(300); const r1 = await rd(); if (!r1 || r1.q !== 'awaken' || r1.l !== r0.l) bad.push('깨어남 장면 중간에서 이어지지 않는다 ' + JSON.stringify({ r0, r1 })); }
-  await skipAw(); { const c = await ev(() => __maze.view().core); if (c.form !== form1 || c.realStep !== 1 || c.max !== 3) bad.push('지도의 본체가 새 모습이 아니다 ' + JSON.stringify({ form: c.form, step: c.realStep, max: c.max })); }
+  await skipAw(); { const c = await ev(() => __maze.view().core); if (c.form !== form1 || c.realStep !== 1 || c.max !== 4) bad.push('지도의 본체가 새 모습이 아니다 ' + JSON.stringify({ form: c.form, step: c.realStep, max: c.max })); }
   await shot('map_body1');
-  { const pt = await ev(() => __maze.pt('core')); await p.mouse.click(pt.x, pt.y); await p.waitForTimeout(250); const t = await ev(() => (document.querySelector('#mz-sheet') || {}).textContent || ''); if (!/Lv/.test(t) || !/권속 \d\/3/.test(t)) bad.push('본체 방 창에 모습·기술·자리가 없다 ' + t.slice(0, 80)); await shot('core_sheet'); await tap('#mz-sheet [data-m="close"]'); }
+  { const pt = await ev(() => __maze.pt('core')); await p.mouse.click(pt.x, pt.y); await p.waitForTimeout(250); const t = await ev(() => (document.querySelector('#mz-sheet') || {}).textContent || ''); if (!/Lv/.test(t) || !/권속 \d\/4/.test(t)) bad.push('본체 방 창에 모습·기술·자리가 없다 ' + t.slice(0, 80)); await shot('core_sheet'); await tap('#mz-sheet [data-m="close"]'); }
   // 상점의 모습 권속 표지
   { await ev(() => { const M = __maze.M, k = __maze.view().core.kin[0]; M.shop[0] = k; M.gold = 30; __maze.redraw(); }); await tap('#mz-bench [data-m="shopt"]'); if (!(await p.$('#mz-shop .mz-card.formk'))) bad.push('상점에 모습 권속 표지가 없다'); await shot('shop_formkin'); await tap('#mz-bench [data-m="shopt"]'); }
   // 침입 2, 3 → 둘째 깨어남: 그대로 키운다

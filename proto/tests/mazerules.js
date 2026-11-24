@@ -19,8 +19,8 @@ function checkFight(f, tag) {
   const M = MZ.newRun(7), v = MZ.view(M);
   ok(v.cols === 5 && v.rows === 8 && v.grid.length === 40 && v.coreCell === 'core' && v.eggCell === 'egg' && MZ.CORE === 'core' && MZ.EGG === 'egg' && MZ.EXIT === C(7, 2) && v.entrance.cell === C(0, 2) && v.entrance.r === -1 && v.exit.cell === C(7, 2), '지도: 본체 방과 알의 방은 격자 밖');
   ok([0, 1, 2, 3, 4, 5, 6, 7].every(r => v.grid[C(r, 2)].dug && v.grid[C(r, 2)].use === 'path') && v.grid.filter(g => g.dug).length === 8 && v.grid.every(g => g.use !== 'core' && g.use !== 'egg') && v.grid[C(0, 2)].fixed && v.grid[C(7, 2)].fixed && v.grid.filter(g => g.fixed).length === 2, '처음에는 입구에서 출구까지 곧은 굴');
-  ok(v.core && Array.isArray(v.core.units) && !v.core.units.length && v.core.max === 2 && v.core.form === 'drop' && v.core.step === 0, '본체 방의 보기');
-  ok(v.raid === 1 && v.raids === null && v.endless && v.score.raids === 0 && v.daily === null && v.egg.hp === MZ.MK.egg && v.gold === MZ.MK.gold && v.cap === MZ.MK.level && v.shop.length === 5 && v.bench.length === 6 && v.next.name === MZ.RAIDS[0].name && v.next.party.length === 4 && v.next.path.join() === [2, 7, 12, 17, 22, 27, 32, 37].join(), '새 판의 보기');
+  ok(v.core && Array.isArray(v.core.units) && !v.core.units.length && v.core.max === MZ.MK.coreMax && MZ.MK.coreMax === 3 && v.core.form === 'drop' && v.core.step === 0, '본체 방의 보기');
+  ok(v.raid === 1 && v.raids === null && v.endless && v.score.raids === 0 && v.daily === null && v.egg.hp === MZ.MK.egg && v.gold === MZ.MK.gold && v.cap === MZ.MK.level + MZ.MK.capPlus && v.cap === 5 && v.shop.length === 5 && v.bench.length === 6 && v.next.name === MZ.RAIDS[0].name && v.next.party.length === 4 && v.next.path.join() === [2, 7, 12, 17, 22, 27, 32, 37].join(), '새 판의 보기');
   ok(v.grid.every(g => 'r' in g && 'c' in g && 'dug' in g && 'use' in g && 'room' in g && 'trap' in g && Array.isArray(g.units) && 'canDig' in g && 'digCost' in g && 'canFill' in g && 'fillGold' in g), '칸마다의 보기');
   ok(v.rooms.length === 8 && v.traps.length === 7 && v.traps.filter(t => t.maze).length === 3 && v.traps.every(t => t.cost >= 2 && t.cost <= 3) && v.traps.every(t => t.name && t.short && t.short.length <= 16 && t.more), '방과 함정 보기');
 }
@@ -49,10 +49,10 @@ function checkFight(f, tag) {
     const vg = MZ.view(X).grid; ok(vg[C(1, 2)].canPlace && !vg[C(1, 1)].canPlace && vg[C(1, 1)].placeWhy === '바위다. 먼저 판다' && !vg[C(3, 2)].canPlace && !vg[C(7, 2)].canPlace, '보기: 세울 수 있는 칸'); }
   ok(MZ.setUse(M, C(2, 2), 'trap', 'tr_teeth').ok && !M.board[C(2, 2)] && M.bench.includes(u) && M.grid[C(2, 2)].trap === 'tr_teeth', '함정으로 바꾸면 권속은 대기석으로');
   ok(!MZ.setUse(M, C(3, 2), 'trap', 'nope').ok && MZ.setUse(M, C(3, 2), 'path').ok, '없는 함정');
-  MZ.setUse(M, C(4, 2), 'kin'); for (let k = 0; k < 3; k++) { const x = give(M, 'biter'); MZ.move(M, x, { cell: C(4, 2) }); } ok(M.board[C(4, 2)].length === MZ.MK.roomMax, '방에는 셋까지');
+  MZ.setUse(M, C(4, 2), 'kin'); M.level = 9; for (let k = 0; k < MZ.MK.roomMax; k++) { const x = give(M, 'biter'); MZ.move(M, x, { cell: C(4, 2) }); } ok(M.board[C(4, 2)].length === MZ.MK.roomMax && MZ.MK.roomMax === 4, '방에는 넷까지');
   const y = give(M, 'gnaw'), full = MZ.move(M, y, { cell: C(4, 2) }); ok(!full.ok && full.msg === '방이 찼다', '찬 방에는 못 세운다');
-  M.level = 3; ok(!MZ.move(M, y, { core: true }).ok, '세울 수 있는 수는 레벨만큼');
-  const Q = MZ.newRun(11); const a = give(Q, 'shell'), b = give(Q, 'heap'), c = give(Q, 'maw'); Q.level = 6; ok(MZ.move(Q, a, { core: true }).ok && MZ.move(Q, b, { cell: 'core' }).ok && MZ.move(Q, c, { core: true }).msg === '방이 찼다' && Q.board.core.length === 2 && MZ.whereOf(Q, a).core && MZ.view(Q).core.units.length === 2, '본체 방에는 둘까지');
+  { const Z = MZ.newRun(12); let placed = 0; for (let k = 0; k < 7; k++) { const x = give(Z, 'shell'); if (MZ.move(Z, x, { cell: k < 4 ? C(2, 2) : 'core' }).ok) placed++; } ok(Z.level === 3 && placed === 5 && MZ.view(Z).cap === 5 && MZ.view(Z).placed === 5, '세울 수: 처음 5, 레벨마다 +1'); Z.level = 9; ok(MZ.view(Z).cap === 11, '레벨 9 면 11'); }
+  const Q = MZ.newRun(11); const a = give(Q, 'shell'), b = give(Q, 'heap'), c = give(Q, 'maw'); Q.level = 6; const d4 = give(Q, 'biter'); ok(MZ.move(Q, a, { core: true }).ok && MZ.move(Q, b, { cell: 'core' }).ok && MZ.move(Q, c, { core: true }).ok && MZ.move(Q, d4, { core: true }).msg === '방이 찼다' && Q.board.core.length === 3 && MZ.whereOf(Q, a).core && MZ.view(Q).core.units.length === 3, '본체 방에는 셋까지 (깨어나면 넷)');
   ok(MZ.move(Q, a, { bench: null }).ok && Q.bench.includes(a), '대기석으로');
 }
 // 4. 사기 · 팔기 · 셋이면 별 오름
@@ -245,9 +245,10 @@ function checkFight(f, tag) {
   const r0 = rd(M); ok(r0.ok && r0.raidId === 'c0_beast' && (r0.next === 'chapterEnd' || r0.next === 'over'), '장 0 의 침입 ' + r0.next);
   if (M.phase === 'chapterEnd') {
     ok(MZ.view(M).chapterEnd && MZ.view(M).chapterEnd.next === 1 && !MZ.view(M).next && !rd(M).ok, '장의 끝: 다음 장을 기다린다');
-    const g0 = M.gold, n = MZ.nextChapter(M), w = MZ.view(M);
+    const g0 = M.gold, grid0 = JSON.stringify(M.grid), board0 = JSON.stringify(M.board), bench0 = JSON.stringify(M.bench), lv0 = M.level, n = MZ.nextChapter(M), w = MZ.view(M);
     ok(n.ok && M.chapter === 1 && w.locks.dig && !w.locks.rooms && M.phase === 'prep' && M.raid === 1 && M.raids === 3 && n.raids.join() === 'c1_torch,c1_mob,c1_hounds', '다음 장: 침입 셋, 파기가 열린다');
-    ok(M.grid.filter(g => g.dug).length === 8 && !Object.keys(M.board).length && M.bench.includes(u) && M.gold === Math.floor(g0 * MZ.MK.story.keepGold) + MZ.MK.story.chapterGold + n.refund, '새 굴, 권속은 대기석, 진액 일부 + 들인 값');
+    ok(JSON.stringify(M.grid) === grid0 && JSON.stringify(M.board) === board0 && JSON.stringify(M.bench) === bench0 && M.level === lv0 && M.board[C(3, 2)].includes(u) && M.gold === Math.floor(g0 * MZ.MK.story.keepGold) + MZ.MK.story.chapterGold && n.refund === undefined, '장을 넘겨도 굴·배치·대기석·레벨이 그대로');
+    ok(MZ.dugCap(M) > MZ.MK.story.dugCap[0] && MZ.view(M).maxLv === MZ.MK.story.maxLv[1], '장마다 판 칸·레벨 상한이 는다');
     // 헤매기가 열리기 전에는 모두 길을 안다 (막다른 곳에 들어가지 않는다)
     M.gold = 99; [C(2, 3), C(3, 3), C(4, 3), C(5, 3), C(6, 3)].forEach(c => MZ.dig(M, c)); MZ.fill(M, C(5, 2)); const p1 = MZ.pathOf(M, 1);
     ok(p1.cells.join() === MZ.scoutPath(M, ['militia']).cells.join() && p1.back.every(b => !b), '장 1: 일행은 길을 안다');
@@ -301,7 +302,7 @@ function checkFight(f, tag) {
   M.egg = M.eggMax = 99; rd(M); const r2 = rd(M); ok((M.awaken && M.awaken.step === 2 && M.awaken.offer[0] === f1 && MZ.view(M).awaken.offer[0].keep && !MZ.view(M).awaken.offer[1].keep), '침입 3 뒤: 2단계, 첫째는 지금 모습');
   if (M.awaken) {
     const K = clone(M), X = clone(M); MZ.awaken(K, 0); MZ.awaken(X, 1); const bk = MZ.bodyOf(K), bx = MZ.bodyOf(X);
-    ok(bk.step === 2 && bk.t2 && bk.lv === 2 && !bk.mixed && bk.kin.length >= 1 && bx.mixed && bx.prev === f1 && !bx.t2 && bx.lv === 1 && bx.slots <= bk.slots && bx.share.length === 2, '그대로 키우면 강하게, 갈아타면 섞인 몸');
+    ok(bk.step === 2 && bk.t2 && bk.lv === MZ.MK.awaken.lv[2] && bk.lv === 3 && !bk.mixed && bk.kin.length >= 1 && bx.mixed && bx.prev === f1 && !bx.t2 && bx.lv === MZ.MK.awaken.lv[1] && bx.slots <= bk.slots && bx.share.length === 2, '그대로 키우면 강하게, 갈아타면 섞인 몸');
     const rk = rd(K), cf = rk.steps.find(x => x.type === 'fight' && x.core); ok(!cf || cf.fight.units.find(u => u.kind === 'core').name === L.FORM[bk.form].name, '본체 방 싸움의 본체가 그 모습');
   }
   // 갈래의 몫: 둥지에 많은 성향이 나오기 쉽고, 하나는 늘 적은 성향
@@ -357,5 +358,19 @@ function checkFight(f, tag) {
   MZ.attack(A); const r3 = MZ.attack(A); ok(r3.ok && A.attack.tries === 3 && MZ.attack(A).msg === '더 해 볼 수 없다' && MZ.hire(A, 'militia').msg !== undefined && A.attack.best.score === Math.max(...A.attack.results.map(x => x.score)), '세 번까지, 가장 좋은 것이 기록');
   const t = MZ.attackResultText(A); ok(/^받은 굴 들이치기 · 알 \d+\/15 깎음 · 일행 \d\n3번 가운데 가장 좋은 것 · 걸은 칸 \d+/.test(t) && MZ.view(A).attack.text === t, '결과 글');
   const S = MZ.load(MZ.save(A)); ok(S && S.mode === 'attack' && JSON.stringify(MZ.view(S).attack) === JSON.stringify(MZ.view(A).attack), '저장·불러오기: 들이치기');
+}
+// 18. 이어 짓는 이야기 굴, 다시 하기, 본체의 사거리
+{
+  const M = MZ.newStory(61); M.chapter = 2; M.raids = 3; M.raid = 3; M.level = 6; M.gold = 99; [C(2, 3), C(3, 3), C(4, 3)].forEach(c => MZ.dig(M, c)); MZ.setUse(M, C(2, 2), 'kin', 'bone');
+  for (let k = 0; k < 4; k++) { const u = give(M, 'heap', 3); MZ.move(M, u, { cell: C(2, 2) }); } give(M, 'shell', 2, 'core'); M.egg = 99; M.eggMax = 99;
+  const r = MZ.raid(M); if (M.awaken) MZ.awaken(M, 0);
+  if (M.phase === 'chapterEnd') {
+    const before = JSON.stringify([M.grid, M.board, M.bench, M.level]); ok(MZ.nextChapter(M).ok && JSON.stringify([M.grid, M.board, M.bench, M.level]) === before && M.chapter === 3, '장 2 → 3: 굴이 이어진다');
+    const snap0 = JSON.stringify([M.grid, M.board, M.bench, M.level, M.gold]); MZ.dig(M, C(5, 3)); MZ.setUse(M, C(3, 3), 'trap', 'tr_teeth'); Object.keys(M.board).forEach(c => M.board[c].slice().forEach(uid => MZ.move(M, uid, { bench: null }))); M.egg = 1; M.raid = M.raids; const hm = MZ.MK.story.hpMul; MZ.MK.story.hpMul = 30; const rr = MZ.raid(M); MZ.MK.story.hpMul = hm;
+    ok(rr.ok && M.phase === 'over' && M.over.retry && MZ.retryChapter(M).ok && JSON.stringify([M.grid, M.board, M.bench, M.level, M.gold]) === snap0 && M.chapter === 3 && M.raid === 1, '다시 하기: 그 장을 시작할 때의 굴로');
+  } else ok(false, '장 2 가 끝나지 않았다 ' + M.phase);
+  // 본체: 판 전체를 덮는 사거리, 한 방울도 스킬을 쓴다
+  const F = MZ.newRun(62); F.level = 6; const rf = MZ.raid(F), cf = rf.steps.find(x => x.type === 'fight' && x.core), core = cf && cf.fight.units.find(u => u.kind === 'core');
+  ok(core && core.range >= 4 && cf.fight.timeline.some(e => e.type === 'skillfx' && e.u === core.id && e.sk === MZ.MK.coreFight.dropSkill), '본체 방: 사거리 4 이상, 깨어나기 전에도 스킬 ' + (core && core.range));
 }
 console.log(bad ? '실패 ' + bad : '굴 짓기 규칙: 모두 맞음'); process.exitCode = bad ? 1 : 0;
