@@ -6695,7 +6695,10 @@ function lrLabel(x, y, text, cls, ms, pri) {
   if (F) F.labs.push({ x, y, hw, until: LU.t + ms, pri, ban, el: d }); return true;
 }
 // grp: 'hp'(피해) · 'san'(정신) · 'guard'(막음) · 'heal'. 같은 유닛·같은 갈래는 0.4초 안에서 하나로 더한다. 치명이 섞이면 치명으로 보인다
+// 싸움 중 떠오르는 숫자(피해·정신·회복·진액)는 사용자 요청으로 끔. 처형 장면을 가려서다. 되살리려면 true
+const LRNUMS = false;
 function lrNum(F, x, y, text, kind, id) {
+  if (!LRNUMS) return;
   const grp = kind === 'crit' || kind === 'dmg' ? 'hp' : kind;
   if (id && typeof text === 'number' && text > 0) { const q = F.nums.find(n => n.id === id && n.grp === grp && LU.t - n.t1 < 400 && LU.t - n.t0 < 900); if (q) { q.val += text; q.text = Math.round(q.val); if (kind === 'crit') q.kind = 'crit'; q.t1 = LU.t; q.t0 = Math.max(q.t0, LU.t - 110); return; } }
   if (F.nums.length > (F.crowd ? 12 : 18)) F.nums.shift(); F.nums.push({ x, y, text: typeof text === 'number' ? Math.round(text) : text, val: typeof text === 'number' ? text : 0, kind, grp, id, t0: LU.t, t1: LU.t });
