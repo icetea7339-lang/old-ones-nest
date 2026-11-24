@@ -1,5 +1,6 @@
 // 굴 짓기 이야기 모드 시험: 첫 화면(이야기 / 자유) → 장 제목 → 장면 (누르면 한 줄, 넘기기, 건너뛰기, 줄 모양) → 지도의 안내 한 줄 → 침입 → 침입 사이 장면
 // → 장 끝 → 다음 장 … 장 3부터 밤의 한 수(고르기·결과·고르지 않음) → 알이 깨진 장 다시 하기 → 마지막 장 → 결말 → 처음으로(본 결말 n/5)
+// 장면 그림: 장 제목 카드의 흐린 그림, 장의 첫 장면은 그림만 화면 가득 → 누르면 띠로 줄며 글, 대사의 초상(줄 곁 · 띠 아래 크게), 결말 그림, 움직임 끔.
 // 저장·이어하기는 장면 중간과 밤의 한 수 중간에서 본다. 잠긴 것(파기·함정)은 창에 나오지 않는다. 기록 탭.
 // node tests/mazestory.js [기기: 비우면 "iPhone 14" | a360 | pc]   (큰 글씨: FZ=1.3)
 const pw = require('playwright'), fs = require('fs'), path = require('path'), FZM = require('./_fz.js');
@@ -20,7 +21,12 @@ const dev = process.argv[2] === 'pc' ? '' : process.argv[2] || 'iPhone 14', tag 
   await shot('title');
   // 이야기 시작: 장 제목 카드
   await tap('[data-z="story"]'); { const r = await rd(); if (!r || r.card !== 0) bad.push('장 제목 카드가 없다 ' + JSON.stringify(r)); const t = await ev(() => document.querySelector('#mzr .mzr-card').textContent); if (!/서장/.test(t) || !/낙하/.test(t)) bad.push('장 제목이 맞지 않다 ' + t); } await shot('chapter_card');
-  await tap('#mzr'); { const r = await rd(); if (!r || r.q !== 'start' || r.l !== 1) bad.push('장면이 첫 줄부터 열리지 않는다 ' + JSON.stringify(r)); }
+  { const c = await rd(); if (!c.art) bad.push('장 제목 카드에 그림이 없다'); }
+  await tap('#mzr'); { const r = await rd(), d = await ev(() => ({ h: (document.querySelector('#mzr .mzr-art') || { getBoundingClientRect: () => ({ height: 0 }) }).getBoundingClientRect().height, vh: innerHeight, lines: document.querySelectorAll('#mzr .mzr-l').length, px: __maze.artPx('#mzr .mzr-art canvas') }));
+    if (!r || !r.hero || !r.art || d.lines || Math.abs(d.h - d.vh) > 4 || !(d.px > 100)) bad.push('장의 첫 장면이 그림만 화면 가득이 아니다 ' + JSON.stringify({ r, d })); await shot('scene_hero', true); }
+  await p.waitForTimeout(500); await tap('#mzr'); await p.waitForTimeout(600); { const r = await rd(), d = await ev(() => { const a = document.querySelector('#mzr .mzr-art').getBoundingClientRect(); return { w: a.width, h: a.height, vw: innerWidth, vh: innerHeight, px: __maze.artPx('#mzr .mzr-art canvas') }; });
+    const okBand = d.vw > d.vh ? Math.abs(d.w / d.h - 16 / 9) < 0.05 && d.h <= d.vh * 0.47 : d.h >= d.vh * 0.28 && d.h <= d.vh * 0.4 && d.w >= d.vw - 1;
+    if (!r || r.hero || r.q !== 'start' || r.l !== 1 || !okBand || !(d.px > 100)) bad.push('누르면 그림이 띠로 줄며 첫 줄이 나오지 않는다 ' + JSON.stringify({ r, d })); }
   // 누르면 한 줄씩
   for (let i = 0; i < 5; i++) await tap('#mzr .mzr-lines'); { const r = await rd(), c = await ev(() => document.querySelectorAll('#mzr .mzr-l').length); if (r.l !== 6 || c !== 6) bad.push('누르기마다 한 줄이 나오지 않는다 ' + JSON.stringify({ r, c })); }
   await tap('#mzr .mzr-lines'); await shot('scene_echo'); if (!(await p.$('#mzr .k-echo'))) bad.push('잔향 줄의 모양이 없다');
@@ -41,7 +47,7 @@ const dev = process.argv[2] === 'pc' ? '' : process.argv[2] || 'iPhone 14', tag 
   while (guard++ < 400) {
     const st = await ev(() => { const r = __maze.read(), M = __maze.M; return { r, title: !document.getElementById('title').hidden, ch: M ? M.chapter : null, raid: M ? M.raid : null, phase: M ? M.phase : null, sheet: __maze.Z.sheet && __maze.Z.sheet.kind, mapOn: !document.getElementById('mz').hidden }; });
     if (st.title) break;
-    if (st.r && st.r.ending) { ending = st.r.ending; await shot('ending_card'); await tap('#mzr [data-r="home"]'); continue; }
+    if (st.r && st.r.ending) { ending = st.r.ending; if (!st.r.art) bad.push('결말 제목에 그림이 없다'); await shot('ending_card'); await tap('#mzr [data-r="home"]'); continue; }
     // 본체의 깨어남 (2장·4장 끝): 첫 카드를 받아들이고 장면을 넘긴다
     if (st.r && st.r.awaken) { seen.awaken = (seen.awaken || 0) + 1; await tap('#mzr [data-r="acard"][data-i="0"]'); await p.waitForTimeout(300); await tap('#mzr [data-r="aok"]'); await p.waitForTimeout(1800); continue; }
     if (st.r && st.r.night) { seen.nights++;
@@ -57,7 +63,7 @@ const dev = process.argv[2] === 'pc' ? '' : process.argv[2] || 'iPhone 14', tag 
     if (st.r && st.r.q) {
       if (st.r.q === 'retry') seen.retry++; if (st.r.q === 'between') seen.between++; if (st.r.q === 'end') seen.ends++;
       // 대사 장면을 한 번 찍는다
-      if (!seen.said) { await tap('#mzr [data-r="skipscene"]'); if (await p.$('#mzr .k-say')) { seen.said = 1; await shot('scene_say'); const f = await ev(() => Array.from(document.querySelectorAll('#mzr .k-say .mzr-face')).map(e => !!e.querySelector('img') || !!e.querySelector('i'))); if (!f.every(Boolean)) bad.push('대사에 얼굴이 없다'); } }
+      if (!seen.said) { await tap('#mzr [data-r="skipscene"]'); if (await p.$('#mzr .k-say')) { seen.said = 1; await shot('scene_say'); { const d = await ev(() => ({ face: document.querySelectorAll('#mzr .k-say .mzr-face.bust img').length, big: __maze.artPx('#mzr .mzr-bust:not([hidden]) canvas'), who: (__maze.read() || {}).bust })); if (!d.face || !(d.big > 50) || !d.who) bad.push('대사에 초상이 그려지지 않았다 ' + JSON.stringify(d)); } const f = await ev(() => Array.from(document.querySelectorAll('#mzr .k-say .mzr-face')).map(e => !!e.querySelector('img') || !!e.querySelector('i'))); if (!f.every(Boolean)) bad.push('대사에 얼굴이 없다'); } }
       if (st.r.q === 'retry' && seen.retry === 1) await shot('retry');
       if (st.r.q === 'ending' && !seen.endScene) { seen.endScene = 1; await tap('#mzr [data-r="skipscene"]'); await shot('ending_scene'); }
       await p.waitForTimeout(st.r.q === 'retry' || st.r.q === 'ending' ? 1600 : 0); const sk = await p.$('#mzr [data-r="skipall"]:not([hidden])'); if (sk) await sk.click(); else { await p.waitForTimeout(1600); await tap('#mzr [data-r="skipall"]'); } await p.waitForTimeout(120); continue; }
@@ -82,6 +88,11 @@ const dev = process.argv[2] === 'pc' ? '' : process.argv[2] || 'iPhone 14', tag 
   await ev(() => { const b = document.querySelector('#mz-bar [data-m="menu"]'); b.click(); }); await p.waitForTimeout(150); await tap('#mz-sheet [data-m="home"]');
   { const d = await ev(() => ({ st: !!document.querySelector('[data-z="storyNew"]'), fr: !!document.querySelector('[data-z="freeNew"]') })); if (!d.st || !d.fr) bad.push('두 모드의 저장이 따로 남지 않는다 ' + JSON.stringify(d)); }
   await tap('[data-z="freeNew"]'); if (!(await p.$('#modal [data-z="newYes"]'))) bad.push('「새로」가 묻지 않는다'); await shot('ask_new'); await tap('#modal [data-z="mclose"]');
+  { const c2 = await FZM.context(b, dev, { reducedMotion: 'reduce' }).catch(() => null) || await b.newContext({ reducedMotion: 'reduce', viewport: { width: 390, height: 664 } }), q = await c2.newPage(); await q.emulateMedia({ reducedMotion: 'reduce' }); q.on('pageerror', e => errs.push('2: ' + e.message));
+    await q.route('http://nest.test/', r => r.fulfill({ contentType: 'text/html', body: html })); await q.route(/fonts\./, r => r.abort()); await q.goto('http://nest.test/'); await q.waitForTimeout(300); await q.click('[data-z="story"]'); await q.waitForTimeout(200);
+    if (await q.$('[data-z="newYes"]')) await q.click('[data-z="newYes"]'); await q.click('#mzr'); await q.waitForTimeout(450); await q.click('#mzr'); await q.waitForTimeout(80);
+    const d = await q.evaluate(() => { const a = document.querySelector('#mzr .mzr-art'); return { hero: document.getElementById('mzr').classList.contains('hero'), tr: a ? getComputedStyle(a).transitionDuration : '', anim: document.querySelectorAll('#mzr .mzr-l.in').length, lines: document.querySelectorAll('#mzr .mzr-l').length }; });
+    if (d.hero || d.anim || !d.lines || !/^0s/.test(d.tr)) bad.push('움직임 끔에서 그림·줄이 움직인다 ' + JSON.stringify(d)); await c2.close(); }
   await b.close();
   console.log(JSON.stringify({ tag, shots: n, seen, ending, errs, bad }, null, 1)); if (errs.length || bad.length) process.exit(1); console.log('이야기 모드 시험 통과');
 })().catch(e => { console.error('시험 실패', e); process.exit(1); });

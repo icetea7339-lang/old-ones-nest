@@ -275,3 +275,25 @@
 #mz-atknote { position: absolute; left: 50%; bottom: 6px; transform: translateX(-50%); z-index: 3; margin: 0; padding: 3px 10px; white-space: nowrap; font-size: 12px; color: #ffe0b0; background: #0b0a14e6; border: 1px solid #e8b048; border-radius: 6px; pointer-events: none; }
 #mz-sheet .mz-center { text-align: center; }
 #mz-raid .mz-ptyb small { font-size: 11px; color: var(--mute); }
+/* ===== 이야기 장면 그림 ===== */
+#mzr.read.arted { overflow: hidden; }
+#mzr .mzr-art { position: relative; flex: 0 0 auto; align-self: center; margin: calc(-8px - env(safe-area-inset-top, 0px)) -14px 8px; overflow: hidden; background: #05040a; transition: width .45s ease, height .45s ease; }
+#mzr .mzr-art canvas { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+@media (orientation: landscape) { #mzr .mzr-art { margin: 0 auto 8px; border-radius: 10px; box-shadow: 0 6px 24px #000c; } }
+@media (prefers-reduced-motion: reduce) { #mzr .mzr-art { transition: none; } }
+#mzr.read.hero .mzr-art { margin: calc(-8px - env(safe-area-inset-top, 0px)) -14px 0; border-radius: 0; box-shadow: none; }
+#mzr.read.hero .mzr-head { position: absolute; top: calc(env(safe-area-inset-top, 0px) + 8px); left: 14px; right: 14px; z-index: 2; border-bottom: 0; padding: 6px 8px; background: #05040ab0; border-radius: 8px; }
+#mzr.read.hero .mzr-lines { flex: 0 0 0; padding: 0; overflow: hidden; }
+#mzr.read.hero .mzr-foot { position: absolute; bottom: calc(env(safe-area-inset-bottom, 0px) + 12px); left: 14px; right: 14px; z-index: 2; color: #e8dcc0; text-shadow: 0 1px 2px #000; }
+#mzr.read.hero .mzr-bust { display: none; }
+#mzr .mzr-bust { position: relative; height: 0; z-index: 3; width: 100%; max-width: 640px; align-self: center; }
+#mzr .mzr-bust canvas { position: absolute; top: -110px; width: 96px; height: 96px; image-rendering: pixelated; border-radius: 10px; border: 1px solid #4a4068; background: #0b0a14; box-shadow: 0 4px 14px #000c; }
+#mzr .mzr-bust b { position: absolute; top: -26px; font-size: 12px; padding: 1px 6px; color: #e8c890; background: #0b0a14e6; border-radius: 4px; white-space: nowrap; }
+#mzr .mzr-bust.left canvas, #mzr .mzr-bust.left b { left: 4px; } #mzr .mzr-bust.right canvas, #mzr .mzr-bust.right b { right: 4px; }
+#mzr .mzr-bust.in canvas { animation: mzr-bust .35s ease-out both; } @keyframes mzr-bust { from { opacity: 0; transform: translateY(6px); } }
+@media (prefers-reduced-motion: reduce) { #mzr .mzr-bust.in canvas { animation: none; } }
+.mzr-face.bust { flex: 0 0 48px; width: 48px; height: 48px; border-radius: 8px; } .mzr-face.bust img { width: 48px; height: 48px; }
+#mzr.card .mzr-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; filter: blur(1.5px) brightness(.4); z-index: 0; } #mzr.card .mzr-card { position: relative; z-index: 1; }
+#mzr.card.ending .mzr-bg.full { filter: brightness(.7); } #mzr.card.ending .mzr-card { margin-top: auto; margin-bottom: 3vh; padding: 14px 18px; background: #05040acc; border-radius: 12px; }
+.mz-loghd img.bust { width: 40px; height: 40px; border-radius: 6px; }
+#title:has(#mz-tcv) { overflow-y: auto; -webkit-overflow-scrolling: touch; }

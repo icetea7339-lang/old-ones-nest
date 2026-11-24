@@ -42,6 +42,8 @@ function mzTrapIcon(id) {
 const mzStars = n => (n > 1 ? `<span class="mz-stars">${'★'.repeat(n)}</span>` : '');
 
 // ---- 저장: 둥지 전투의 저장과 섞이지 않게 제 키에. base.js 가 'maze' 를 아는 키로 두면 store 를 쓴다
+// 굴 나누기(굴 코드·들이치기)는 사용자 요청으로 잠시 내림. 코드는 그대로 두고 화면에서만 감춘다
+const MZSHARE = false;
 const MZKEY = 'maze', mzKeyOf = mode => (mode === 'story' ? 'mazestory' : mode === 'daily' ? 'mazedaily' : mode === 'attack' ? 'mazeattack' : MZKEY);
 const mzKindOf = M => (M.mode === 'story' ? 'story' : M.mode === 'attack' ? 'attack' : M.daily ? 'daily' : 'free');
 // 오늘 (UTC 날짜, 오늘의 판의 씨앗). 시험은 window.__mazeToday 로 날을 바꾼다
@@ -65,7 +67,7 @@ function mzTitle() {
   $('menu').innerHTML = `<div class="mz-mode"><button class="btn pri" data-z="story">이야기${st ? `<small>이어하기 · ${esc(mzChapName(st.chapter))} · 침입 ${st.raid}</small>` : ''}</button>${st ? '<button class="btn sm" data-z="storyNew">새로</button>' : ''}</div>${ends ? `<p class="mz-ends">본 결말 ${ends}/5</p>` : ''}`
     + `<div class="mz-mode"><button class="btn" data-z="free">자유${run ? `<small>이어하기 · 침입 ${run.raid}</small>` : ''}</button>${run ? '<button class="btn sm" data-z="freeNew">새로</button>' : ''}</div>${mzBest() ? `<p class="mz-ends">최고 · 침입 ${mzBest()} 버팀</p>` : ''}`
     + (() => { const td = mzToday(), dr = mzSaved('daily'), rec = mzDailyRec(td); return `<div class="mz-mode"><button class="btn" data-z="daily">오늘의 판 · ${mzDayName(td)}${dr ? `<small>이어하기 · 침입 ${dr.raid}</small>` : rec ? `<small>침입 ${rec.raids} 버팀 · 알 ${rec.egg} · 내일 다시</small>` : ''}</button></div>`; })()
-    + (() => { const at = mzSaved('attack'); return `<div class="mz-mode"><button class="btn" data-z="attack">들이치기${at ? `<small>이어하기 · 시도 ${at.attack.tries}/${at.attack.max}</small>` : ''}</button>${at ? '<button class="btn sm" data-z="attackNew">새로</button>' : ''}</div>`; })()
+    + (() => { if (!MZSHARE) return ''; const at = mzSaved('attack'); return `<div class="mz-mode"><button class="btn" data-z="attack">들이치기${at ? `<small>이어하기 · 시도 ${at.attack.tries}/${at.attack.max}</small>` : ''}</button>${at ? '<button class="btn sm" data-z="attackNew">새로</button>' : ''}</div>`; })()
     + `<div class="mz-row2"><button class="btn" data-z="help">도움말</button><button class="btn${snd ? ' on' : ''}" data-z="sound" aria-pressed="${snd}">소리 ${snd ? '켬' : '끔'}</button></div>`;
   mzMusic('title'); mzTitleScene(); mzTitleFit(); requestAnimationFrame(mzTitleFit);
 }
@@ -100,7 +102,7 @@ const MZHELP = [
   ['진화', '<p>같은 권속 셋을 모으면 하나가 되어 별이 오른다. 별은 셋까지 오른다.</p><p>방 안에서 같은 성향 둘이면 그 성향의 힘이 붙는다.</p>'],
 ];
 function mzHelp(page) {
-  page = page || 0; const m = $('modal'); const pages = MZHELP.concat([['기록', mzLogsHtml()]]); if (page >= pages.length) page = 0;
+  page = page || 0; const m = $('modal'); const pages = MZHELP.filter(q => MZSHARE || q[0] !== '굴 나누기').concat([['기록', mzLogsHtml()]]); if (page >= pages.length) page = 0;
   m.innerHTML = `<div class="sh-box mz-help" role="dialog" aria-modal="true"><div class="sh-head"><h2>도움말</h2><button class="sh-x" data-z="mclose" aria-label="닫기">✕</button></div><div class="sh-tabs" style="grid-template-columns:repeat(${pages.length},minmax(0,1fr))">${pages.map((q, i) => `<button class="sh-tab${i === page ? ' on' : ''}" data-z="hpage" data-i="${i}">${q[0]}</button>`).join('')}</div><div class="sh-body">${pages[page][1]}</div></div>`;
   m.hidden = false;
 }
@@ -545,7 +547,7 @@ function mzSheet(s) {
   if (s.kind === 'reward') { const R = v.reward; if (!R) return mzSheetClose(); h = `<h3>무료 하나</h3><div class="mz-rew">${R.opts.map(o => `<button data-m="reward" data-i="${o.i}"><img src="${o.type === 'room' ? mzRoomIcon(o.id) : mzTrapIcon(o.id)}" alt=""><b>${esc(o.name)}</b><small>${o.type === 'room' ? '방 종류' : '함정'} · ${esc(o.short)}</small><em>0</em></button>`).join('')}</div>`; }
   if (s.kind === 'raidparty') { const P = MZ.play; if (!P) return mzSheetClose(); h = `<h3>${esc(P.name)}</h3><div class="mz-party">${P.party.map(p => `<div class="${!p.alive ? 'dead' : p.mad ? 'mad' : ''}"><img src="${mzIcon(p.kind, 1, 36)}" alt=""><b>${esc(p.name)}${!p.alive ? ' · 쓰러짐' : p.mad ? ' · 미침' : p.out ? ' · 알' : ''}</b><small>체력 ${Math.max(0, Math.round(p.hp))}/${p.mhp}${p.msan ? ' · 정신 ' + Math.max(0, Math.round(p.san)) + '/' + p.msan : ''}</small></div>`).join('')}</div>`; }
   if (s.kind === 'menu') { const sp = MZSPD, cur = mzSpeed();
-    h = `<h3>메뉴</h3><p class="mz-setrow"><span>효과음</span><button data-m="tog" data-v="sound" class="${META.sound !== false ? 'on' : ''}" aria-pressed="${META.sound !== false}">${META.sound !== false ? '켬' : '끔'}</button></p><p class="mz-setrow"><span>음악</span><button data-m="tog" data-v="music" class="${META.music !== false ? 'on' : ''}" aria-pressed="${META.music !== false}">${META.music !== false ? '켬' : '끔'}</button></p><p class="mz-setrow"><span>빠르기</span><span class="mz-spd">${sp.map(q => `<button data-m="spd" data-v="${q[0]}" class="${cur === q[0] ? 'on' : ''}">${q[1]}</button>`).join('')}</span></p>${MZ.M.mode !== 'attack' && MZ.phase === 'prep' ? '<div class="mz-acts2"><button data-m="ncopy">굴 코드 복사</button></div><div class="mz-codebox" hidden></div>' : ''}<div class="mz-acts2"><button data-m="home">처음으로</button><button class="pri" data-m="close">돌아간다</button></div>`; }
+    h = `<h3>메뉴</h3><p class="mz-setrow"><span>효과음</span><button data-m="tog" data-v="sound" class="${META.sound !== false ? 'on' : ''}" aria-pressed="${META.sound !== false}">${META.sound !== false ? '켬' : '끔'}</button></p><p class="mz-setrow"><span>음악</span><button data-m="tog" data-v="music" class="${META.music !== false ? 'on' : ''}" aria-pressed="${META.music !== false}">${META.music !== false ? '켬' : '끔'}</button></p><p class="mz-setrow"><span>빠르기</span><span class="mz-spd">${sp.map(q => `<button data-m="spd" data-v="${q[0]}" class="${cur === q[0] ? 'on' : ''}">${q[1]}</button>`).join('')}</span></p>${MZSHARE && MZ.M.mode !== 'attack' && MZ.phase === 'prep' ? '<div class="mz-acts2"><button data-m="ncopy">굴 코드 복사</button></div><div class="mz-codebox" hidden></div>' : ''}<div class="mz-acts2"><button data-m="home">처음으로</button><button class="pri" data-m="close">돌아간다</button></div>`; }
   if (s.kind === 'acell') h = mzAcellHtml(v, s.cell);
   if (s.kind === 'attackres') h = mzAtkResHtml(v);
   if (s.kind === 'result') h = mzResultHtml();
@@ -818,7 +820,7 @@ function mzScoreHtml() {
     + `<p class="mz-marks" aria-label="침입마다 막음과 깎임">${esc(mzMarks(M))}</p>`
     + `<div class="mz-rrow"><img src="${mzBossUrl(C.form, C.realStep != null ? C.realStep : C.step, 40)}" alt=""><div><b>${esc(mzFormName(C.form, C.realStep, C.mixed))}</b><small>본체</small></div></div>`
     + (top.length ? `<h4>가장 많이 싸운 권속</h4>${top.map(([k, d]) => `<div class="mz-rrow"><img src="${mzIcon(k, 1, 32)}" alt=""><div><b>${esc(LAIR.KIN[k].name)}</b><small>피해 ${d}</small></div></div>`).join('')}` : '')
-    + `<div class="mz-acts2">${M.daily ? '<button data-m="copy">결과 복사</button>' : ''}<button data-m="ncopy">굴 코드 복사</button></div>${M.daily ? '<div id="mz-copybox" hidden></div>' : ''}<div class="mz-codebox" hidden></div>`
+    + `<div class="mz-acts2">${M.daily ? '<button data-m="copy">결과 복사</button>' : ''}${MZSHARE ? '<button data-m="ncopy">굴 코드 복사</button>' : ''}</div>${M.daily ? '<div id="mz-copybox" hidden></div>' : ''}<div class="mz-codebox" hidden></div>`
     + `<div class="mz-acts2"><button class="pri" data-m="again">${M.daily ? '오늘의 판 다시' : '다시 한 판'}</button><button data-m="home">처음으로</button></div>`;
 }
 // 결과 복사: 글만 (링크 없음). 클립보드가 안 되면 글을 보여 주고 길게 눌러 복사
@@ -903,7 +905,7 @@ function mzLogFirst(key) { if (!MZST) return 99; const names = MZLOGWHO[key] || 
 function mzLogsHtml() {
   if (!MZST || !MZST.logs) return '<p>없다.</p>'; const reach = META && META.mazeReach != null ? META.mazeReach : -1;
   return Object.keys(MZST.logs).map(k => { const at = mzLogFirst(k), parts = MZST.logs[k], kind = MZFACE[(MZLOGWHO[k] || [])[0]], nm = kind && LAIR.INV && LAIR.INV[kind] ? LAIR.INV[kind].name : k;
-    const open = parts.filter((t, i) => reach >= at + i); return `<div class="mz-log1"><div class="mz-loghd">${kind ? `<img src="${mzIcon(kind, 1, 28)}" alt="">` : ''}<b>${open.length ? esc(nm) : '아직 모른다'}</b><small>${open.length}/${parts.length}</small></div>${open.map(t => `<p class="mz-lognote">${esc(t)}</p>`).join('')}</div>`; }).join('');
+    const open = parts.filter((t, i) => reach >= at + i); const bu = open.length ? mzBustUrl((MZLOGWHO[k] || [])[0], 40, 'calm') : null; return `<div class="mz-log1"><div class="mz-loghd">${bu ? `<img class="bust" src="${bu}" alt="">` : kind ? `<img src="${mzIcon(kind, 1, 28)}" alt="">` : ''}<b>${open.length ? esc(nm) : '아직 모른다'}</b><small>${open.length}/${parts.length}</small></div>${open.map(t => `<p class="mz-lognote">${esc(t)}</p>`).join('')}</div>`; }).join('');
 }
 function mzStoryNew() { const M = MAZE.newStory((Date.now() % 1000000) + 1); M.ui = { guided: {}, read: { q: 'start', ch: 0, i: 0, s: 0, l: 0, card: 1 } }; mzMetaSet(m => { m.mazeReach = Math.max(m.mazeReach != null ? m.mazeReach : -1, 0); }); mzOpen(M); mzStoryGo(); }
 function mzStoryResume(M) { M.ui = M.ui || { guided: {} }; mzOpen(M); mzStoryGo(); }
@@ -934,6 +936,68 @@ function mzReadDone() {
   if (r.q === 'ending') { const k = r.key; mzMetaSet(m => { m.mazeEnds = Array.from(new Set(mzEndsSeen().concat([k]))); m.mazeReach = Math.max(m.mazeReach != null ? m.mazeReach : -1, MZST.chapters.length); }); mzSaveDel('story'); return mzEndingCard(k); }
   return mzStoryGo();
 }
+// ---- 장면 그림 ----
+const mzArtFn = n => typeof LAIRART !== 'undefined' && typeof LAIRART[n] === 'function';
+// 장면 id: 장id + '.s' 번호 / '.b' 침입 '.' 번호 / '.e' 번호, 결말 'endA0', 다시 하기 'retry0'. 깨어남은 본체 그림이라 없다
+function mzSceneId(r) { const C = MZST && MZST.chapters[r.ch] || {}; if (r.q === 'start') return C.id + '.s' + r.s; if (r.q === 'between') return C.id + '.b' + ((r.i || 0) + 1) + '.' + r.s; if (r.q === 'end') return C.id + '.e' + r.s; if (r.q === 'ending') return 'end' + r.key + r.s; if (r.q === 'retry') return 'retry' + r.s; return null; }
+function mzArtKeyOf(r, sc) { if (!mzArtFn('storyArt') || !mzArtFn('storyArtFor') || r.q === 'awaken') return null; const id = mzSceneId(r); if (!id) return null; if (!sc) { const scs = mzScenes(r); sc = scs[r.s]; } try { return LAIRART.storyArtFor(id, sc ? sc.place : ''); } catch (e) { return null; } }
+// 화면 가득 먼저: 장의 첫 장면, 결말의 첫 장면
+const mzHeroScene = r => (r.q === 'start' && r.s === 0) || (r.q === 'ending' && r.s === 0);
+MZ.heroSeen = {};
+function mzArtBg(key, cls) { if (!key || !mzArtFn('storyArt')) return ''; try { const w = Math.min(960, window.innerWidth), h = Math.min(960, window.innerHeight), c = LAIRART.storyArt(key, w, h, 0); return `<img class="${cls}" src="${c.toDataURL()}" alt="">`; } catch (e) { return ''; } }
+// 띠의 크기: 폰 세로는 폭 가득 · 높이 34%, 넓은 화면은 16:9. 화면 가득이면 온 화면
+function mzArtSize() {
+  const el = $('mzr'), box = el && el.querySelector('.mzr-art'); if (!box) return; const vw = window.innerWidth, vh = window.innerHeight, hero = el.classList.contains('hero');
+  let w, h; if (hero) { w = vw; h = vh; } else if (vw > vh) { h = Math.round(Math.min(vh * 0.46, (vw - 28) * 9 / 16, 440)); w = Math.round(h * 16 / 9); } else { w = vw; h = Math.round(vh * 0.34); }
+  box.style.width = w + 'px'; box.style.height = h + 'px'; MZ.artW = w; MZ.artH = h;
+}
+function mzArtShow(key) {
+  const box = $('mzr').querySelector('.mzr-art'); if (!box) return; const top = box.lastElementChild; if (top && top.dataset.k === key && !top.dataset.gone) { mzArtTick(true); return mzArtLoop(); }
+  const c = document.createElement('canvas'); c.dataset.k = key; c.className = 'mzr-artc'; c.setAttribute('role', 'img'); c.setAttribute('aria-label', key);
+  const mo = typeof motionOk !== 'function' || motionOk(); box.appendChild(c); mzArtTick(true);
+  if (mo && top) { c.style.opacity = '0'; void c.offsetWidth; c.style.transition = 'opacity .6s ease'; c.style.opacity = '1'; Array.from(box.children).forEach(o => { if (o !== c) { o.dataset.gone = '1'; setTimeout(() => o.remove(), 700); } }); }
+  else Array.from(box.children).forEach(o => { if (o !== c) o.remove(); });
+  mzArtLoop();
+}
+// 그림은 천천히 움직인다 (8장을 8초에). 장이 바뀔 때만 다시 그린다
+function mzArtTick(force) {
+  const el = $('mzr'), box = el && el.querySelector('.mzr-art'); if (!box) return false; const mo = typeof motionOk !== 'function' || motionOk(), now = performance.now(), t = mo ? (now % 8000) / 8000 : 0, fr = Math.floor(t * 8);
+  if (!force && fr === MZ.artFr && MZ.artDrawn === MZ.artW + 'x' + MZ.artH) { mzBustTick(now); return true; } MZ.artFr = fr; MZ.artDrawn = MZ.artW + 'x' + MZ.artH;
+  Array.from(box.children).forEach(c => { const w = Math.max(16, Math.round(MZ.artW || 390)), h = Math.max(16, Math.round(MZ.artH || 220)); try { const a = LAIRART.storyArt(c.dataset.k, w, h, t); if (c.width !== w) c.width = w; if (c.height !== h) c.height = h; const x = c.getContext('2d'); x.imageSmoothingEnabled = false; x.drawImage(a, 0, 0); } catch (e) { /* 그림 없이 */ } });
+  mzBustTick(now); return true;
+}
+function mzArtLoop() { if (MZ.artRaf) return; const f = () => { MZ.artRaf = null; const el = $('mzr'); if (!el || el.hidden || !el.querySelector('.mzr-art')) return; mzArtTick(false); MZ.artRaf = requestAnimationFrame(f); }; MZ.artRaf = requestAnimationFrame(f); }
+function mzArtStop() { if (MZ.artRaf) cancelAnimationFrame(MZ.artRaf); MZ.artRaf = null; MZ.artDrawn = null; MZ.hero = null; }
+if (typeof window !== 'undefined') window.addEventListener('resize', () => { const el = $('mzr'); if (el && !el.hidden && el.querySelector('.mzr-art')) { mzArtSize(); mzArtTick(true); } });
+// 화면 가득 → 띠로 줄고 글이 시작된다
+function mzHeroEnd(r, sc, all) {
+  const el = $('mzr'); MZ.heroSeen[mzReadKey(r) + ':' + r.s] = 1; MZ.hero = null; el.classList.remove('hero'); el.querySelector('.mzr-foot .mzr-tap').textContent = '누르면 다음 줄'; mzArtSize(); mzArtTick(true);
+  const box = el.querySelector('.mzr-lines'), n = all ? sc.lines.length : 1; for (let i = 0; i < n; i++) { mzLineAdd(box, sc.lines[i], !all && i === 0); mzBustFor(sc.lines[i], r, sc); } r.l = n; mzSave(); MZ.dbgRead.l = r.l; MZ.dbgRead.hero = false;
+}
+// 초상: 기본 calm. 「…」 이 많거나 떨림·비명 같은 말이면 fear, 결말·6장의 예언자는 grim, 미친 자의 말은 mad. 글 데이터에 mood 가 있으면 그것
+const MZPROPHET = ['에녹', '에녹 하르'];
+function mzMood(L, r) {
+  if (L && L.mood) return L.mood; const t = (L && L.t) || '', who = L && L.who;
+  if (/미쳤|미친 /.test(t)) return 'mad';
+  if (MZPROPHET.includes(who) && r && (r.q === 'ending' || r.ch >= 6)) return 'grim';
+  if ((t.match(/…/g) || []).length >= 2 || /떨|비명|살려|무서|두려|도망/.test(t)) return 'fear';
+  return 'calm';
+}
+const MZBUSTURL = {};
+function mzBustUrl(who, px, mood) { if (!who || !mzArtFn('bust')) return null; const k = who + ':' + px + ':' + mood; if (MZBUSTURL[k] === undefined) { try { const c = LAIRART.bust(who, px, mood, 0); MZBUSTURL[k] = c ? c.toDataURL() : null; } catch (e) { MZBUSTURL[k] = null; } } return MZBUSTURL[k]; }
+// 대사가 나오면 그 사람의 초상이 그림 띠 아래 왼쪽 · 오른쪽에 크게 (말한 이가 바뀌면 자리도 번갈아)
+function mzBustFor(L, r, sc) {
+  if (!L || L.k !== 'say' || !mzArtFn('bust')) return; const el = $('mzr'), b = el && el.querySelector('.mzr-bust'); if (!b) return;
+  const mood = mzMood(L, r), probe = (() => { try { return LAIRART.bust(L.who, 96, mood, 0); } catch (e) { return null; } })(); if (!probe) { b.hidden = true; MZ.bustWho = null; return; }
+  if (MZ.bustSide[L.who] == null) { const used = Object.values(MZ.bustSide), last = MZ.bustWho != null ? MZ.bustSide[MZ.bustWho] : 1; MZ.bustSide[L.who] = used.length ? 1 - last : 0; }
+  const side = MZ.bustSide[L.who] ? 'right' : 'left', same = MZ.bustWho === L.who && MZ.bustMood === mood; MZ.bustWho = L.who; MZ.bustMood = mood;
+  if (!same) { b.innerHTML = `<canvas width="96" height="96" aria-hidden="true"></canvas><b>${esc(L.who)}</b>`; b.className = 'mzr-bust ' + side + ((typeof motionOk !== 'function' || motionOk()) ? ' in' : ''); b.hidden = false; MZ.bustT = 0; }
+  mzBustTick(performance.now(), true); MZ.dbgRead.bust = L.who; MZ.dbgRead.mood = mood; MZ.dbgRead.side = side;
+}
+function mzBustTick(now, force) {
+  const el = $('mzr'), b = el && el.querySelector('.mzr-bust'); if (!b || b.hidden || !MZ.bustWho) return; if (!force && now - (MZ.bustT || 0) < 250) return; MZ.bustT = now;
+  const cv = b.querySelector('canvas'); if (!cv) return; try { const mo = typeof motionOk !== 'function' || motionOk(), c = LAIRART.bust(MZ.bustWho, 96, MZ.bustMood, mo ? now : 0); if (!c) return; const x = cv.getContext('2d'); x.imageSmoothingEnabled = false; x.clearRect(0, 0, 96, 96); x.drawImage(c, 0, 0, 96, 96); } catch (e) { /* 초상 없이 */ }
+}
 // ---- 장면 읽기 ----
 function mzReadMount() {
   let el = $('mzr'); if (el) return el; el = document.createElement('div'); el.id = 'mzr'; el.hidden = true; document.body.appendChild(el);
@@ -941,22 +1005,26 @@ function mzReadMount() {
   window.addEventListener('keydown', e => { if (el.hidden) return; if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); mzReadClick('tap'); } if (e.key === 'Escape') mzReadClick('skipscene'); });
   return el;
 }
-function mzReadClose() { const el = $('mzr'); if (el) { el.hidden = true; el.innerHTML = ''; } MZ.reading = false; const m = $('mz'); if (m) m.removeAttribute('aria-hidden'); }
+function mzReadClose() { mzArtStop(); const el = $('mzr'); if (el) { el.hidden = true; el.innerHTML = ''; el.className = ''; } MZ.reading = false; const m = $('mz'); if (m) m.removeAttribute('aria-hidden'); }
 // 읽는 동안 뒤의 지도는 가려 둔다 (읽기 화면 밖으로 눌리지도, 읽히지도 않게)
 function mzReadShow(el) { el.hidden = false; MZ.reading = true; const m = $('mz'); if (m) m.setAttribute('aria-hidden', 'true'); }
 function mzRead() {
   const M = MZ.M, r = M.ui.read, el = mzReadMount(); el.onclick = null; mzReadShow(el); MZ.readT0 = performance.now(); mzMusic('title');
-  if (r.card) { const C = MZST.chapters[r.ch] || {}; el.className = 'card'; el.innerHTML = `<div class="mzr-card"><small>${esc(mzChapName(r.ch))}</small><h2>${esc(C.title || '')}</h2><p>${esc(C.concept || '')}</p><span class="mzr-tap">누르면 넘어간다</span></div>`; MZ.dbgRead = { card: r.ch }; return; }
+  if (r.card) { const C = MZST.chapters[r.ch] || {}; el.className = 'card'; mzArtStop(); el.innerHTML = `${mzArtBg(mzArtKeyOf({ q: 'start', ch: r.ch, s: 0 }), 'mzr-bg')}<div class="mzr-card"><small>${esc(mzChapName(r.ch))}</small><h2>${esc(C.title || '')}</h2><p>${esc(C.concept || '')}</p><span class="mzr-tap">누르면 넘어간다</span></div>`; MZ.dbgRead = { card: r.ch, art: !!el.querySelector('.mzr-bg') }; return; }
   const scs = mzScenes(r); if (!scs.length || r.s >= scs.length) return mzReadDone();
-  const sc = scs[r.s], seen = !!(META && META.mazeSeen && META.mazeSeen[mzReadKey(r)]); el.className = 'read';
-  el.innerHTML = `<div class="mzr-head"><span><b>${esc(sc.place || '')}</b><small>${esc((sc.who || []).join(' · '))}</small></span><button data-r="skipscene">넘기기</button><button data-r="skipall" class="mzr-all"${seen ? '' : ' hidden'}>건너뛰기</button></div><div class="mzr-lines" aria-live="polite"></div><div class="mzr-foot"><span>${r.s + 1}/${scs.length}</span><span class="mzr-tap">누르면 다음 줄</span></div>`;
+  const sc = scs[r.s], seen = !!(META && META.mazeSeen && META.mazeSeen[mzReadKey(r)]), akey = mzArtKeyOf(r, sc), keep = el.className.indexOf('read') >= 0 ? el.querySelector('.mzr-art') : null;
+  const hero = !!akey && r.l === 0 && mzHeroScene(r) && !MZ.heroSeen[mzReadKey(r) + ':' + r.s]; el.className = 'read' + (akey ? ' arted' : '') + (hero ? ' hero' : '');
+  el.innerHTML = `${akey ? '<div class="mzr-art"></div><div class="mzr-bust" hidden></div>' : ''}<div class="mzr-head"><span><b>${esc(sc.place || '')}</b><small>${esc((sc.who || []).join(' · '))}</small></span><button data-r="skipscene">넘기기</button><button data-r="skipall" class="mzr-all"${seen ? '' : ' hidden'}>건너뛰기</button></div><div class="mzr-lines" aria-live="polite"></div><div class="mzr-foot"><span>${r.s + 1}/${scs.length}</span><span class="mzr-tap">누르면 다음 줄</span></div>`;
   if (!seen) setTimeout(() => { const b = el.querySelector('.mzr-all'); if (b && MZ.M && MZ.M.ui && MZ.M.ui.read === r) b.hidden = false; }, 1500);
-  const box = el.querySelector('.mzr-lines'); for (let i = 0; i < Math.max(1, r.l); i++) mzLineAdd(box, sc.lines[i], i === r.l - 1 || (r.l === 0 && i === 0));
-  if (r.l === 0) r.l = 1; MZ.dbgRead = { q: r.q, ch: r.ch, s: r.s, l: r.l, n: sc.lines.length, scenes: scs.length };
+  if (akey) { const slot = el.querySelector('.mzr-art'); if (keep) slot.replaceWith(keep); mzArtSize(); mzArtShow(akey); MZ.bustWho = null; MZ.bustSide = {}; } else mzArtStop();
+  MZ.dbgRead = { q: r.q, ch: r.ch, s: r.s, l: r.l, n: sc.lines.length, scenes: scs.length, art: akey, hero };
+  if (hero) { MZ.hero = { r, t0: performance.now() }; el.querySelector('.mzr-foot .mzr-tap').textContent = '누르면 시작한다'; return; } MZ.hero = null;
+  const box = el.querySelector('.mzr-lines'); for (let i = 0; i < Math.max(1, r.l); i++) { mzLineAdd(box, sc.lines[i], i === r.l - 1 || (r.l === 0 && i === 0)); mzBustFor(sc.lines[i], r, sc); }
+  if (r.l === 0) r.l = 1; MZ.dbgRead.l = r.l;
 }
 function mzLineAdd(box, L, fresh) {
   if (!L) return; const d = document.createElement('div'), anim = fresh && (typeof motionOk !== 'function' || motionOk()); d.className = 'mzr-l k-' + L.k + (anim ? ' in' : '');
-  if (L.k === 'say') { const kind = MZFACE[L.who]; d.innerHTML = `<span class="mzr-face">${kind ? `<img src="${mzIcon(kind, 1, 32)}" alt="">` : `<i>${esc((L.who || '?').slice(0, 1))}</i>`}</span><span class="mzr-say"><b>${esc(L.who || '')}</b><span>${esc(L.t)}</span></span>`; }
+  if (L.k === 'say') { const kind = MZFACE[L.who], bu = mzBustUrl(L.who, 48, mzMood(L, MZ.M && MZ.M.ui && MZ.M.ui.read)); d.innerHTML = `<span class="mzr-face${bu ? ' bust' : ''}">${bu ? `<img src="${bu}" alt="">` : kind ? `<img src="${mzIcon(kind, 1, 32)}" alt="">` : `<i>${esc((L.who || '?').slice(0, 1))}</i>`}</span><span class="mzr-say"><b>${esc(L.who || '')}</b><span>${esc(L.t)}</span></span>`; }
   else if (L.k === 'note') d.innerHTML = `${L.who ? `<b>${esc(L.who)}</b>` : ''}<span>${esc(L.t)}</span>`;
   else d.textContent = L.t;
   box.appendChild(d); if (box.scrollHeight > box.clientHeight) box.scrollTop = box.scrollHeight;
@@ -966,15 +1034,16 @@ function mzReadClick(a) {
   if (performance.now() - (MZ.readT0 || 0) < 120) return; mzSay('click');
   if (r.card) { r.card = 0; mzSave(); return mzRead(); }
   const scs = mzScenes(r), sc = scs[r.s]; if (!sc) return mzReadDone();
+  if (MZ.hero && MZ.hero.r === r && a !== 'skipall') { if (a === 'tap' && performance.now() - MZ.hero.t0 < 300) return; return mzHeroEnd(r, sc, a === 'skipscene'); }
   if (a === 'skipall') { r.s = scs.length; return mzReadDone(); }
-  if (a === 'skipscene' && r.l < sc.lines.length) { const box = $('mzr').querySelector('.mzr-lines'); for (let i = r.l; i < sc.lines.length; i++) mzLineAdd(box, sc.lines[i], false); r.l = sc.lines.length; mzSave(); MZ.dbgRead.l = r.l; return; }
-  if (r.l < sc.lines.length) { mzLineAdd($('mzr').querySelector('.mzr-lines'), sc.lines[r.l], true); r.l++; mzSave(); MZ.dbgRead.l = r.l; return; }
+  if (a === 'skipscene' && r.l < sc.lines.length) { const box = $('mzr').querySelector('.mzr-lines'); for (let i = r.l; i < sc.lines.length; i++) { mzLineAdd(box, sc.lines[i], false); mzBustFor(sc.lines[i], r, sc); } r.l = sc.lines.length; mzSave(); MZ.dbgRead.l = r.l; return; }
+  if (r.l < sc.lines.length) { mzLineAdd($('mzr').querySelector('.mzr-lines'), sc.lines[r.l], true); mzBustFor(sc.lines[r.l], r, sc); r.l++; mzSave(); MZ.dbgRead.l = r.l; return; }
   r.s++; r.l = 0; mzSave(); if (r.s >= scs.length) return mzReadDone(); return mzRead();
 }
 // ---- 결말 ----
 function mzEndingCard(k) {
-  const E = MZST.endings[k] || {}, el = mzReadMount(); mzReadShow(el); el.className = 'card ending'; MZ.readT0 = performance.now();
-  el.innerHTML = `<div class="mzr-card"><small>결말 ${esc(k)}</small><h2>${esc(E.title || '')}</h2><p>본 결말 ${mzEndsSeen().length}/5</p><button class="btn pri" data-r="home">처음으로</button></div>`; MZ.dbgRead = { ending: k };
+  const E = MZST.endings[k] || {}, el = mzReadMount(); mzReadShow(el); el.className = 'card ending'; MZ.readT0 = performance.now(); mzArtStop();
+  el.innerHTML = `${mzArtBg('end' + k, 'mzr-bg full')}<div class="mzr-card"><small>결말 ${esc(k)}</small><h2>${esc(E.title || '')}</h2><p>본 결말 ${mzEndsSeen().length}/5</p><button class="btn pri" data-r="home">처음으로</button></div>`; MZ.dbgRead = { ending: k, art: !!el.querySelector('.mzr-bg') };
   el.onclick = e => { if (e.target.closest('[data-r="home"]')) { el.onclick = null; mzReadClose(); MZ.M = null; $('mz').hidden = true; mzTitle(); } };
 }
 // ---- 밤의 한 수 ----
@@ -1022,5 +1091,5 @@ function mzGuide() {
   if (c.dataset.h !== line) { c.innerHTML = `<p>${esc(line)}</p><span><button data-m="guideok">알았다</button></span>`; c.dataset.h = line; } c.hidden = false; c.className = 'strip guide'; const vw = window.innerWidth;
   c.style.width = Math.min(vw - 16, r.width + 40) + 'px'; c.style.left = Math.max(8, Math.round(r.left + r.width / 2 - Math.min(vw - 16, r.width + 40) / 2)) + 'px'; c.style.top = Math.round(r.top + MTOP * MZ.k + 6) + 'px'; $('mz-ring').hidden = true; MZ.coachAt = null; MZ.dbgGuide = line; void at;
 }
-if (typeof window !== 'undefined') window.__maze = { get M() { return MZ.M; }, get meta() { return META; }, get Z() { return MZ; }, get P() { return MZ.play; }, view: () => mzView(), open: run => mzOpen(run), saved: () => mzSaved(), title: () => mzTitle(), redraw: () => mzDraw(), pt(c) { const r = $('mz-cv').getBoundingClientRect(), q = mzPt(c); return { x: r.left + q.x * MZ.k, y: r.top + q.y * MZ.k }; }, spot(c, i) { const r = $('mz-cv').getBoundingClientRect(); if (c === 'core') { const q = MZCORE_SPOTS[i]; return { x: r.left + q[0] * MZ.k, y: r.top + (q[1] - 14) * MZ.k }; } const q = MZUSPOT[i]; return { x: r.left + ((c % 5) * MS + q[0] * MS) * MZ.k, y: r.top + (MTOP + Math.floor(c / 5) * MS + q[1] * MS - 6) * MZ.k }; }, dbg: () => MZ.dbg, speed: () => mzSpeed(), read: () => (MZ.reading ? MZ.dbgRead : null), copied: () => MZ.copied || null, awaken: () => mzAwaken(), guide: () => MZ.dbgGuide || null, story: () => ({ go: mzStoryGo, done: mzReadDone, night: mzNight }), skip: () => mzSkipAll(), give(kind, star, cell) { const M = MZ.M, uid = M.nextUid++; M.unit[uid] = { uid, kind, star: star || 1 }; if (cell != null) M.board[cell] = (M.board[cell] || []).concat([uid]); else M.bench[M.bench.indexOf(null)] = uid; mzDraw(); return uid; } };
+if (typeof window !== 'undefined') window.__maze = { get M() { return MZ.M; }, get meta() { return META; }, get Z() { return MZ; }, get P() { return MZ.play; }, view: () => mzView(), open: run => mzOpen(run), saved: () => mzSaved(), title: () => mzTitle(), redraw: () => mzDraw(), pt(c) { const r = $('mz-cv').getBoundingClientRect(), q = mzPt(c); return { x: r.left + q.x * MZ.k, y: r.top + q.y * MZ.k }; }, spot(c, i) { const r = $('mz-cv').getBoundingClientRect(); if (c === 'core') { const q = MZCORE_SPOTS[i]; return { x: r.left + q[0] * MZ.k, y: r.top + (q[1] - 14) * MZ.k }; } const q = MZUSPOT[i]; return { x: r.left + ((c % 5) * MS + q[0] * MS) * MZ.k, y: r.top + (MTOP + Math.floor(c / 5) * MS + q[1] * MS - 6) * MZ.k }; }, dbg: () => MZ.dbg, speed: () => mzSpeed(), read: () => (MZ.reading ? MZ.dbgRead : null), artPx: sel => { const c = document.querySelector(sel); if (!c) return -1; try { const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let n = 0; for (let i = 0; i < d.length; i += 64) if (d[i + 3] > 0 && d[i] + d[i + 1] + d[i + 2] > 60) n++; return n; } catch (e) { return -2; } }, copied: () => MZ.copied || null, awaken: () => mzAwaken(), guide: () => MZ.dbgGuide || null, story: () => ({ go: mzStoryGo, done: mzReadDone, night: mzNight }), skip: () => mzSkipAll(), give(kind, star, cell) { const M = MZ.M, uid = M.nextUid++; M.unit[uid] = { uid, kind, star: star || 1 }; if (cell != null) M.board[cell] = (M.board[cell] || []).concat([uid]); else M.bench[M.bench.indexOf(null)] = uid; mzDraw(); return uid; } };
 mzBoot();

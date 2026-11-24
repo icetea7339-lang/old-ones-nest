@@ -47,8 +47,8 @@ wait
 run mazedaily_iphone14 node tests/mazedaily.js "iPhone 14" &
 run mazedaily_a360 node tests/mazedaily.js a360 &
 wait
-run mazeshare_iphone14 node tests/mazeshare.js "iPhone 14" &
-run mazeshare_a360 node tests/mazeshare.js a360 &
+# 굴 나누기는 잠시 내림: run mazeshare_iphone14 node tests/mazeshare.js "iPhone 14" &
+# 굴 나누기는 잠시 내림: run mazeshare_a360 node tests/mazeshare.js a360 &
 wait
 run lairperf node tests/lairperf.js
 N=$(wc -l < "$LOG/count"); B=$(wc -l < "$LOG/failed")
