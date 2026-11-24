@@ -1044,7 +1044,7 @@ const LAIR = (function () {
     const lv = S.level || 3, cd = K.core, form = FORM[S.form] ? S.form : 'drop';
     const core = add({ id: 'core', side: 'nest', kind: 'core', core: true, cell: CORE[0], cells: CORE.slice(), def: { name: FORM[form].name, hp: sc ? cd.hp * sc.hp : cd.hp * (1 + cd.lvHp * (lv - 3)) * (1 + cd.rdHp * (round - 1)), atk: sc ? cd.atk * sc.atk : cd.atk * (1 + 0.15 * (round - 1)), as: cd.as, range: cd.range + ((sc && sc.range) || 0), df: cd.df, mana: cd.mana - ((sc && sc.manaCut) || 0), skill: (sc && sc.skill && SK[sc.skill]) ? sc.skill : FORM[form].skill, asp: form === 'drop' ? null : form } });
     core.form = form; core.engage = true; if (S.noCore) { core.alive = false; core.cells.forEach(c => { if (occ[c] === core) occ[c] = null; }); } core.t2 = !!(sc && sc.t2);
-    (S.nest || []).forEach(n => { const d = KIN[n.kind]; if (!d || occ[n.cell]) return; const u = add({ id: 'k' + n.uid, side: 'nest', kind: n.kind, star: n.star, cell: n.cell, def: d, mul: STARM[n.star || 1] }); if (n.hp != null) u.hp = Math.max(1, Math.min(u.mhp, Math.round(n.hp))); if (n.leap) u.leap = true; });
+    (S.nest || []).forEach(n => { const d = KIN[n.kind]; if (!d || occ[n.cell]) return; const u = add({ id: 'k' + n.uid, side: 'nest', kind: n.kind, star: n.star, cell: n.cell, def: d, mul: STARM[n.star || 1] * (n.pow || 1), hmul: STARM[n.star || 1] * (n.hpow || n.pow || 1) }); if (n.hp != null) u.hp = Math.max(1, Math.min(u.mhp, Math.round(n.hp))); if (n.leap) u.leap = true; });
     const sl = S.scale || null, rm = sl ? sl.atk : K.roundAtk[round - 1] || 1, rh = sl ? sl.hp : K.roundHp[round - 1] || 1, sm = (sl ? sl.san : K.roundSan[round - 1] || 1) * (1 - (bo.sanfrenzy || 0));
     (S.inv || []).forEach(n => { const d = INV[n.kind]; if (!d || occ[n.cell]) return; add({ id: 'e' + (++eid), side: 'inv', kind: n.kind, cell: n.cell, will: n.will, cast: n.cast, def: n.poss ? Object.assign({}, d, { name: '홀린 ' + d.name, san: 0, noMad: true }) : d, mul: rm * (n.mul || 1), hmul: rh * (n.mul || 1), smul: sm }); const u = U[U.length - 1]; u.src = S.inv.indexOf(n); if (n.noLeap) u.leap = false; if (n.hp != null) u.hp = Math.max(1, Math.min(u.mhp, Math.round(n.hp))); if (n.san != null && u.msan) u.san = Math.max(0, Math.min(u.msan, Math.round(n.san))); });
     // 시너지와 방: 싸움이 시작될 때 붙는 것
@@ -1121,7 +1121,7 @@ const LAIR = (function () {
     const OUT = { seed: S.seed, round, form, syn, timeline: T, result: over === 'nest' ? 'win' : 'loss', winner: over, time: R1(t), units: init, rooms: rooms.map(r => ({ id: r.id, cells: r.cells, erased: r.dead })), gold, survivors, converted: U.filter(u => u.mad).length, checks: nCheck, lostKin: U.filter(u => u.home === 'nest' && !u.summon && !u.core && !u.alive).length, madLeft: U.filter(u => u.alive && u.mad && !u.cast && !u.summon).length,
       eliteDown: U.filter(u => u.home === 'inv' && (u.elite || u.boss || u.cast) && (u.mad || u.how === 'swallow')).length, cast: U.filter(u => u.cast).map(u => ({ id: u.cast, alive: u.alive, mad: u.mad, how: u.alive ? null : u.how || 'kill' })), coreHp: Math.max(0, core.hp), coreMhp: core.mhp,
       breakdown: U.map(u => ({ id: u.id, kind: u.kind, name: u.name, side: u.home, star: u.star, summon: u.summon, alive: u.alive, mad: u.mad, dmg: u.stat.dmg, san: u.stat.san, heal: u.stat.heal, kills: u.stat.kills, casts: u.stat.casts, taken: u.stat.taken, conv: u.stat.conv })) };
-    if (S.keep) OUT.final = U.filter(u => !(S.noCore && u.core)).map(u => ({ id: u.id, kind: u.kind, home: u.home, side: u.side, src: u.src != null ? u.src : null, uid: u.home === 'nest' && !u.summon && !u.core ? +u.id.slice(1) : null, core: u.core, summon: u.summon, hp: Math.max(0, Math.round(u.hp)), mhp: u.mhp, san: Math.round(u.san), msan: u.msan, alive: u.alive, mad: u.mad }));
+    if (S.keep) OUT.final = U.filter(u => !(S.noCore && u.core)).map(u => ({ id: u.id, kind: u.kind, home: u.home, side: u.side, src: u.src != null ? u.src : null, uid: u.home === 'nest' && !u.summon && !u.core ? +u.id.slice(1) : null, core: u.core, summon: u.summon, hp: Math.max(0, Math.round(u.hp)), mhp: u.mhp, san: Math.round(u.san), msan: u.msan, alive: u.alive, mad: u.mad, kills: u.stat.kills, dmg: Math.round(u.stat.dmg) }));
     return OUT;
   }
 
@@ -4521,12 +4521,21 @@ const LAIRART = (() => {
     const k = mood === 'fear' ? [0.2, 0.92, 0.95, 1.04, 6] : [0.18, 0.9, 0.88, 0.88, 0], f = v => Math.max(0, Math.min(255, Math.round(v))), nr = f(lerp(r, l, k[0]) * k[1]), ng = f(lerp(g, l, k[0]) * k[2]), nb = f(lerp(b, l, k[0]) * k[3] + k[4]);
     return ((a << 24) | (nb << 16) | (ng << 8) | nr) >>> 0; };
   const bgPal = (name, mood) => { const p = BUSTBG[name] || BUSTBG.road; return mood === 'fear' ? p.map(c => mixh(c, '#16203a', 0.4)) : mood === 'grim' ? p.map(c => mixh(c, '#0a0a0c', 0.3)) : mood === 'mad' ? p.map((c, i) => mixh(c, ['#0c0618', '#200c38', '#3a1a5a', '#5a2a80'][i], 0.6)) : p; };
-  function bustBase(key, S, mood, br, bl, fl) {
-    const d = BUST[key], k = 'bb:' + key + ':' + S + ':' + mood + ':' + br + bl + fl; if (bustCache[k]) return bustCache[k];
+  function bustBase(key, S, mood, br, bl, fl, bare) {
+    const d = BUST[key], k = 'bb:' + key + ':' + S + ':' + mood + ':' + br + bl + fl + (bare ? 'b' : ''); if (bustCache[k]) return bustCache[k];
     const D = kit(S, 64); D.S = S; d.draw(D, { mood, blink: !!bl, fl: !!fl, S });
     const C = S + PAD * 2, fig = D.K.canvas(), fc = fig.getContext('2d'), im = fc.getImageData(0, 0, C, C), f32 = new Uint32Array(im.data.buffer);
     for (let i = 0; i < f32.length; i++) if (f32[i] >>> 24) f32[i] = moodPix(f32[i], mood);
     fc.putImageData(im, 0, 0);
+    // 바탕 없는 판: 인물만. 어깨 아래와 양 옆 끝은 점무늬로 흩어지며 사라진다 (장면 화면에서 틀 없이 세운다)
+    if (bare) {
+      const o2 = mk(S), x2 = o2.getContext('2d'); x2.imageSmoothingEnabled = false; x2.drawImage(fig, -PAD, -PAD - Math.round(br / (64 / S)));
+      const im2 = x2.getImageData(0, 0, S, S), p32 = new Uint32Array(im2.data.buffer), y0 = Math.floor(S * 0.74), ex = Math.max(2, Math.round(S * 0.07));
+      for (let y = 0; y < S; y++) for (let xx = 0; xx < S; xx++) { const i = y * S + xx; if (!(p32[i] >>> 24)) continue;
+        const ky = y < y0 ? 1 : 1 - (y - y0 + 1) / (S - y0), kx = Math.min(1, (Math.min(xx, S - 1 - xx) + 1) / ex), keep = Math.min(ky, kx < 1 ? kx * (y < y0 ? 1 : ky + 0.3) : 1);
+        if (keep < 1 && bay(xx, y) >= keep) p32[i] = 0; }
+      x2.putImageData(im2, 0, 0); return (bustCache[k] = o2);
+    }
     const out = mk(S), x = out.getContext('2d'), bg = x.createImageData(S, S), b32 = new Uint32Array(bg.data.buffer), pal = bgPal(d.bg, mood).map(c => C32(c)), L = d.lamp || [6, 6], u = 64 / S, warm = C32(mood === 'mad' ? '#7a3aa8' : mood === 'fear' ? '#6a7aa0' : d.glow || '#a8682c');
     for (let y = 0; y < S; y++) for (let xx = 0; xx < S; xx++) { const nx = (xx + 0.5) * u, ny = (y + 0.5) * u, dd = Math.hypot(nx - L[0], (ny - L[1]) * 1.1) / 48, v = (1 - dd) * 2.8 + (fl ? 0.22 : 0) - (ny > 54 ? (ny - 54) * 0.04 : 0), lv = clamp(Math.floor(v + bay(xx, y) - 0.5), 0, 3);
       b32[y * S + xx] = lv === 3 && dd < 0.3 && bay(xx, y) > 0.55 ? warm : pal[lv]; }
@@ -4538,12 +4547,13 @@ const LAIRART = (() => {
   }
   // 시험용: 그 사람 얼굴의 비례 자리(64 눈금)
   const bustGeo = key => BUST[key] && BUST[key].face ? faceGeo(Object.assign({}, FACE0, BUST[key].face)) : null;
-  function bust(who, px, mood, t) {
-    const key = BUST[who] ? who : BUSTS[who]; if (!key || !BUST[key]) return null;
+  // opt.bare (또는 다섯째 인자가 true): 바탕 · 테두리 없이 인물만
+  function bust(who, px, mood, t, opt) {
+    const key = BUST[who] ? who : BUSTS[who]; if (!key || !BUST[key]) return null; const bare = opt === true || !!(opt && opt.bare);
     px = Math.max(16, Math.round(px || 96)); mood = BMOODS.indexOf(mood) >= 0 ? mood : 'calm'; t = Math.max(0, t || 0);
-    const d = BUST[key], kk = px >= 128 ? Math.floor(px / 64) : 1, S = Math.floor(px / kk), br = ((t + d.ph * 0.7) % 2800) / 2800 > 0.5 ? 1 : 0, bl = (t + d.ph) % 4100 < 140 ? 1 : 0, fl = d.flick ? Math.floor(t / 170) % 2 : 0, k = 'bx:' + key + ':' + px + ':' + mood + ':' + br + bl + fl;
+    const d = BUST[key], kk = px >= 128 ? Math.floor(px / 64) : 1, S = Math.floor(px / kk), br = ((t + d.ph * 0.7) % 2800) / 2800 > 0.5 ? 1 : 0, bl = (t + d.ph) % 4100 < 140 ? 1 : 0, fl = d.flick ? Math.floor(t / 170) % 2 : 0, k = 'bx:' + key + ':' + px + ':' + mood + ':' + br + bl + fl + (bare ? 'b' : '');
     if (bustCache[k]) return bustCache[k];
-    const base = bustBase(key, S, mood, br, bl, fl), c = mk(px), x = c.getContext('2d'), off = Math.floor((px - S * kk) / 2); x.imageSmoothingEnabled = false; x.fillStyle = INK; x.fillRect(0, 0, px, px); x.drawImage(base, off, off, S * kk, S * kk);
+    const base = bustBase(key, S, mood, br, bl, fl, bare), c = mk(px), x = c.getContext('2d'), off = Math.floor((px - S * kk) / 2); x.imageSmoothingEnabled = false; if (!bare) { x.fillStyle = INK; x.fillRect(0, 0, px, px); } x.drawImage(base, off, off, S * kk, S * kk);
     return (bustCache[k] = c);
   }
   const shoulders = (D, R, w, o) => cloth(D, [[2 - (w || 0), 66], [5 - (w || 0), 53], [16, 45.6], [27, 44], [40, 45], [50, 47], [60 + (w || 0), 54], [64 + (w || 0), 66]], R, o);
