@@ -493,7 +493,7 @@ canvas.px, .sh-ic, .sh-cv { image-rendering: pixelated; }
 #mz-sheet .mz-note { margin: 6px 0 0; color: var(--mute); font-size: 13px; }
 #mz-sheet .mz-acts2 { display: flex; gap: 8px; margin-top: 10px; }
 #mz #mz-sheet .mz-acts2 button { flex: 1 1 0; min-height: 46px; font-size: 15px; }
-#mz-sheet .mz-uses { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+#mz-sheet .mz-uses { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-bottom: 8px; }
 #mz #mz-sheet .mz-uses button { min-height: 44px; font-weight: 700; }
 #mz-sheet .mz-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
 #mz #mz-sheet .mz-grid button { display: grid; grid-template-columns: 36px 1fr; grid-template-rows: auto auto; column-gap: 6px; align-items: center; text-align: left; padding: 4px 6px; min-height: 48px; }
@@ -1838,31 +1838,32 @@ const LAIR = (function () {
 })();
 if (typeof module !== 'undefined') module.exports = LAIR;
 // 굴 짓기(미로 둥지) 규칙. DOM 없음. scratchpad/maze_spec.md 참고. LAIR 의 표와 simulate 를 쓴다.
-// 지도: 5열 x 8행, 칸 번호 = 행*5+열. 마흔 칸 모두 파는 자리다. 칸 2 (입구 바로 아래)와 칸 37 (맨 아래 가운데 = 출구)은 처음부터 판 통로이고 메울 수 없다.
+// 지도: 5열 x 6행, 칸 번호 = 행*5+열. 서른 자리에 방을 지어 붙인다 (지은 방에 붙은 빈 자리에만). 칸 2 (입구 바로 아래)와 칸 27 (맨 아래 가운데 = 출구)은 처음부터 지은 통로이고 허물 수 없다.
+// 짓기 = build(M, 칸, 쓰임, 종류): 통로 · 권속 방 · 함정 방을 한 번에. 허물기 = raze. (옛 이름 dig = 통로 짓기, fill = 허물기)
 // 본체 방과 알의 방은 격자 칸이 아니다 (CORE = 'core', EGG = 'egg'). 일행은 입구에서 출구까지 판 칸을 따라 걷고, 출구를 지나 본체 방 → 알의 방으로 간다.
 // 함정을 밟으면 발동하고, 권속이 선 방에 닿으면 그 방에서만 짧게 싸운다.
 const MAZE = (() => {
   'use strict';
   const L = typeof LAIR !== 'undefined' ? LAIR : require('./lair.js');
-  const V = 2, COLS = 5, ROWS = 8, N = COLS * ROWS, ENT = 2, EXIT = 7 * COLS + 2, CORE = 'core', EGG = 'egg';
+  const V = 3, COLS = 5, ROWS = 6, N = COLS * ROWS, ENT = 2, EXIT = (ROWS - 1) * COLS + 2, CORE = 'core', EGG = 'egg';
   const rc = i => [Math.floor(i / COLS), i % COLS], idx = (r, c) => r * COLS + c, inb = (r, c) => r >= 0 && r < ROWS && c >= 0 && c < COLS;
   const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
   // 수치
   const MK = {
     gold: 20, level: 3, maxLv: 6, xpNeed: { 3: 6, 4: 10, 5: 16 }, xpBuy: 4, xpCost: 4, xpRaid: 2, reroll: 2,
-    income: 9, winGold: 3, egg: 15, digBase: 1, digRow: 0.25, fillBack: 0.5, dugCap: [15, 18, 21, 24], roomCost: 3, trapCost: 2, roomMax: 4, coreMax: 3, capPlus: 2,
+    income: 9, winGold: 3, egg: 15, digBase: 1, digRow: 0.25, fillBack: 0.5, dugCap: [12, 14, 16, 18], roomCost: 3, trapCost: 2, roomMax: 4, coreMax: 3, capPlus: 2,
     // 싸움을 작게: 전체 체력·정신 배수, 시간 (engage = 둥지 쪽이 기다리지 않고 나선다)
-    hpMul: 1, sanMul: 2.0, clock: { engage: 0, frenzy: 10, sudden: 13, end: 16 }, raidMul: [1.4, 1.35, 2.6, 1.4], raidAtk: [1.1, 1.0, 1.95, 1.1], core: { hp: 0.5, atk: 1 },
+    hpMul: 1, sanMul: 1.7, clock: { engage: 0, frenzy: 10, sudden: 13, end: 16 }, raidMul: [1.4, 1.35, 2.6, 1.4], raidAtk: [1.1, 1.0, 1.95, 1.1], core: { hp: 0.5, atk: 1 },
     // 길: breakAt 보다 길면 무거운 자가 바위 하나를 부순다 (줄어드는 길이 breakMin 이상일 때). avoid = 함정을 돌아가는 데 쓰는 칸 수의 상한
-    breakAt: 13, breakMin: 3, avoid: 2,
+    breakAt: 10, breakMin: 3, avoid: 2,
     // 헤매는 일행: 헤매며 걸은 칸이 lostBreak 를 넘으면 무거운 자가 곁의 바위를 부수고 알 쪽으로 간다 (breakMin 칸 이상 줄어들 때)
-    lostBreak: 10,
+    lostBreak: 6,
     // 굴 속의 어둠: 일행이 한 칸 걸을 때마다 잃는 정신 (굴이 길수록 미치기 쉽다)
-    darkSan: 3,
+    darkSan: 5,
     // 어둠이 깊어진다: k 번째로 걷는 칸은 darkSan + darkGrow x (k-1) 을 깎는다 (긴 미로일수록 더 빨리 미친다)
     darkGrow: 0.75,
     // 헤매기: 갈림길에서 고르는 가중치 (아래 · 옆 · 위), 미끼 불빛이 끄는 거리, 이만큼 헤매면 아는 길로 출구에 간다
-    wander: { down: 3, side: 2, up: 1 }, lureRange: 6, wanderMax: 30,
+    wander: { down: 3, side: 2, up: 1 }, lureRange: 6, wanderMax: 24,
     // 정신을 깎는 함정을 한 침입에 여러 번 밟으면: 첫 번째 그대로, 두 번째 절반, 세 번째부터 4분의 1
     trapSanFade: [1, 0.5, 0.25],
     // 본체 방 싸움의 본체: range = 사거리 더함 (둥지 전투의 2 에 더해 판 전체), manaCut = 스킬을 더 자주, dropSkill = 깨어나기 전 (한 방울) 의 스킬
@@ -1873,11 +1874,11 @@ const MAZE = (() => {
     // 끝없는 자유: 침입 regenFrom 부터 침입이 끝날 때마다 알이 regen (막았으면 + regenWin) 만큼 찬다. 침입 5 부터 무리 전체의 체력 = hpBase + hpStep x (n-5), 공격 = atkBase + atkStep x (n-5)
     //   (무리가 누구든 같은 곡선, 우두머리는 bossHp·bossAtk 배). heads 마다 하나가 더 붙는다 (붙는 자의 길잡이·무거운 자 몫은 n 과 함께 오른다).
     //   bossEvery 마다 우두머리 침입 (seekerEvery 마다 책을 쫓는 자, 그 밖에는 성기사단장), mixAt 부터 새 무리 (교회 / 조사자). 판 칸 상한은 dugStep 침입마다 +1 (dugMax 까지), 레벨 상한은 lvEvery 침입마다 +1 (lvMax 까지)
-    endless: { regen: 3, regenWin: 0, regenFrom: 3, hpBase: 6500, hpStep: 1000, atkBase: 365, atkStep: 60, bossHp: 1.3, bossAtk: 1.2, heads: 4, bossEvery: 5, seekerEvery: 10, mixAt: [8, 12], dugStep: 2, dugMax: 32, lvEvery: 4, lvMax: 9, xpNeed: { 6: 22, 7: 28, 8: 34 } },
+    endless: { regen: 3, regenWin: 0, regenFrom: 3, hpBase: 6500, hpStep: 1000, atkBase: 365, atkStep: 60, bossHp: 1.3, bossAtk: 1.2, heads: 4, bossEvery: 5, seekerEvery: 10, mixAt: [8, 12], dugStep: 2, dugMax: 24, lvEvery: 4, lvMax: 9, xpNeed: { 6: 22, 7: 28, 8: 34 } },
     // 들이치기: 받은 굴을 칠 때의 진액 (budget + 받은 굴이 버틴 침입 perRaids 마다 1, bonusMax 까지), 일행 크기, 해 볼 수, 침입자 배수
     attack: { budget: 18, perRaids: 3, bonusMax: 6, size: 5, tries: 3, hp: 2.0, atk: 1.6, san: 0.6 },
     // 이야기 모드: 알·진액·장 사이에 이어지는 것, 장마다 파는 칸 상한, 침입자 배수(장의 배수에 곱함), 밤의 한 수
-    story: { egg: 14, gold: 16, heal: 2, keepGold: 1, chapterGold: 8, maxLv: [5, 6, 6, 7, 8, 9, 9], dugCap: [8, 15, 17, 19, 21, 23, 24], hpMul: 2.8, atkMul: 2.8, sanMul: 0.4,
+    story: { egg: 14, gold: 16, heal: 2, keepGold: 1, chapterGold: 8, maxLv: [5, 6, 6, 7, 8, 9, 9], dugCap: [6, 12, 13, 15, 16, 17, 18], hpMul: 2.8, atkMul: 2.8, sanMul: 0.4,
       alertMax: 10, alertDecay: 2, alert1: 3, alert2: 6, alert3: 9, nightGold: 6, huntLamp: 0.8, huntTower: 0.6, huntStep: 0.05, towerWeak: 0.6, waterCost: 3 },
   };
   // 침입 넷 (설계서 5장). scale = 침입자 배수
@@ -1964,9 +1965,33 @@ const MAZE = (() => {
     if (M.phase !== 'prep') return '지금은 메울 수 없다'; if (!locksOf(M).dig) return '아직 메울 수 없다'; const g = M.grid[cell]; if (!g || !g.dug) return '판 칸이 아니다'; if (fixedCell(cell)) return '메울 수 없는 칸이다'; if ((M.board[cell] || []).length) return '권속을 먼저 옮긴다';
     if (!connected(M, c => c !== cell && M.grid[c].dug)) return '길이 끊긴다'; if (M.grid.some((g, i) => i !== cell && g.use === 'trap' && g.trap === 'tr_maw' && sole(M, i, cell))) return '삼키는 구멍이 외길이 된다'; return null;
   }
+  const trapCost = id => (TRAP[id] && TRAP[id].cost) || MK.trapCost;
+  // 짓기: 빈 자리에 통로 · 권속 방 · 함정 방을 한 번에 짓는다. 값 = 자리 값 (깊을수록 조금 비쌈) + 방 종류 값 또는 함정 값 (받은 무료 것이면 그 값은 없음)
+  const USE_OK = ['path', 'kin', 'trap'];
+  function buildCost(M, cell, use, id) {
+    const base = digCost(cell); if (use === 'kin') { if (id == null) return base; const bodyFree = bodyOf(M).rooms.includes(id); return base + (bodyFree || freeTake(M, id) ? 0 : MK.roomCost); }
+    if (use === 'trap') return base + (freeTake(M, id) ? 0 : trapCost(id)); return base;
+  }
+  const BUILD_WORD = [['더 팔 수 없다', '더 지을 수 없다'], ['지금은 팔 수 없다', '지금은 지을 수 없다'], ['아직 팔 수 없다', '아직 지을 수 없다'], ['팔 수 없는 칸이다', '지을 수 없는 자리다'], ['이미 판 칸이다', '이미 지은 자리다'], ['판 칸에 붙어 있어야 한다', '지은 방에 붙어 있어야 한다']];
+  function canBuild(M, cell, use, id) {
+    let e = canDig(M, cell); if (e) { BUILD_WORD.forEach(([a, b]) => { e = e.replace(a, b); }); return e; }
+    use = use || 'path'; if (!USE_OK.includes(use)) return '없는 쓰임이다';
+    if (use === 'kin' && id != null) { if (!L.ROOM[id]) return '없는 방이다'; if (!locksOf(M).rooms) return '아직 방 종류를 깔 수 없다'; }
+    if (use === 'trap') { if (!TRAP[id]) return '없는 함정이다'; if (!trapOpen(M, id)) return '아직 쓸 수 없는 함정이다'; }
+    if (M.gold < buildCost(M, cell, use, id)) return '진액이 모자란다'; return null;
+  }
+  function build(M, cell, use, id) {
+    if (M.mode === 'attack') return fail('받은 굴은 고칠 수 없다'); use = use || 'path'; const e = canBuild(M, cell, use, id); if (e) return fail(e);
+    const gold0 = M.gold, g0 = Object.assign({}, M.grid[cell]), free0 = (M.free || []).slice(), d = dig(M, cell); if (!d.ok) return d;
+    if (use !== 'path') { const r = setUse(M, cell, use, id); if (!r.ok) { M.gold = gold0; M.grid[cell] = g0; M.free = free0; return r; } }
+    return ok({ cell, use, id: use === 'kin' ? M.grid[cell].room : use === 'trap' ? M.grid[cell].trap : null, cost: gold0 - M.gold });
+  }
+  // 허물기: 지은 방을 허물고 자리 값의 절반을 돌려받는다 (길이 끊기면 못 함)
+  function raze(M, cell) { if (M.mode === 'attack') return fail('받은 굴은 고칠 수 없다'); const e = canRaze(M, cell); if (e) return fail(e); return fill(M, cell); }
+  const RAZE_WORD = [['지금은 메울 수 없다', '지금은 허물 수 없다'], ['아직 메울 수 없다', '아직 허물 수 없다'], ['판 칸이 아니다', '지은 방이 아니다'], ['메울 수 없는 칸이다', '허물 수 없는 자리다']];
+  function canRaze(M, cell) { let e = canFill(M, cell); if (e) RAZE_WORD.forEach(([a, b]) => { e = e.replace(a, b); }); return e; }
   function dig(M, cell) { if (M.mode === 'attack') return fail('받은 굴은 고칠 수 없다'); const e = canDig(M, cell); if (e) return fail(e); const cost = digCost(cell); M.gold -= cost; Object.assign(M.grid[cell], { dug: true, use: 'path', room: null, trap: null }); return ok({ cell, cost }); }
   function fill(M, cell) { if (M.mode === 'attack') return fail('받은 굴은 고칠 수 없다'); const e = canFill(M, cell); if (e) return fail(e); const back = fillGold(cell); M.gold += back; Object.assign(M.grid[cell], { dug: false, use: null, room: null, trap: null }); delete M.board[cell]; return ok({ cell, gold: back }); }
-  const trapCost = id => (TRAP[id] && TRAP[id].cost) || MK.trapCost;
   // 막은 침입의 보상으로 받은 무료 방·함정 (id 목록)
   const freeTake = (M, id) => (M.free || []).includes(id), freeUse = (M, id) => { M.free.splice(M.free.indexOf(id), 1); };
   // 쓰임: path 통로 / kin 권속 방 (id = 방 종류, 없으면 그대로) / trap 함정 (id = 함정 종류)
@@ -2414,9 +2439,9 @@ const MAZE = (() => {
   }
   function awakenView(M) { return { step: M.awaken.step, offer: M.awaken.offer.map((form, i) => Object.assign({ i, form, name: L.FORM[form].name, asp: FORMS[form].asp }, awakenGains(M, form))) }; }
   // ───────── 굴 나누기 (글자 코드) · 들이치기 ─────────
-  // 코드: 'NEST1-' + base62 (0-9A-Za-z). 비트: 판(3) 레벨(4) 버틴 침입(7) 본체 모습(3) 단계(2) 옛 모습(3) / 칸 40 x 5 (0 바위 1 통로 2~10 권속 방 (방 종류 없음, 방 여덟) 11~17 함정) /
-  //   권속 수(5) x [칸(6, 40 = 본체 방) 종류(5) 별(2)] / 검사 값(16)
-  const B62 = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', CODE_HEAD = 'NEST1-', CODE_V = 1;
+  // 코드: 'NEST1-' + base62 (0-9A-Za-z). 비트: 판(3) 레벨(4) 버틴 침입(7) 본체 모습(3) 단계(2) 옛 모습(3) / 칸 30 x 5 (0 바위 1 통로 2~10 권속 방 (방 종류 없음, 방 여덟) 11~17 함정) /
+  //   권속 수(5) x [칸(6, 40 = 본체 방) 종류(5) 별(2)] / 검사 값(16). 코드 판 2 = 5x6 굴 (칸 30)
+  const B62 = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', CODE_HEAD = 'NEST1-', CODE_V = 2;
   const BODY_IDS = ['drop'].concat(FORM_IDS);
   const fnv16 = bits => { let h = 0x811c9dc5; for (let i = 0; i < bits.length; i++) { h ^= bits.charCodeAt(i); h = Math.imul(h, 0x01000193); } return (h ^ (h >>> 16)) & 0xffff; };
   const putBits = (arr, v, n) => { for (let i = n - 1; i >= 0; i--) arr.push((v >> i) & 1); };
@@ -2486,7 +2511,19 @@ const MAZE = (() => {
   function rosterView() { return ROSTER.map(([kind, cost]) => { const d = L.INV[kind]; return { kind, cost, name: d.name, role: d.role, tag: d.tag || '', hp: d.hp, atk: d.atk, san: d.san, egg: eggDmg(kind), scout: SCOUTS.includes(kind), avoid: AVOIDERS.includes(kind), breaker: BREAKERS.includes(kind), noMad: !!d.noMad, elite: !!d.elite }; }); }
   // ───────── 저장 ─────────
   function save(M) { return JSON.stringify(M); }
-  function load(json) { let M = null; try { M = typeof json === 'string' ? JSON.parse(json) : json; } catch (e) { return null; } if (!M || M.v !== V || !Array.isArray(M.grid) || M.grid.length !== N || !M.unit || !M.board || !Array.isArray(M.bench) || !M.rs) return null; if (!M.mode) M.mode = 'free'; if (M.mode === 'story' && (M.chapter == null || !M.eyes)) return null; return M; }
+  // 옛 이야기 저장 (판 2: 5x8 굴): 굴만 새 시작 굴로 바꾸고 나머지 (장·알·진액·권속·주인공·경계·세력의 눈) 는 살린다.
+  //   판 위에 섰던 권속은 곧은 굴의 방 (입구·출구 사이 넷) 에 차례로 세우고, 넘치면 대기석, 그래도 넘치면 판다. 본체 방은 그대로. 장 첫머리 (snap) 도 같이 옮긴다
+  function migrateStory(M) {
+    if (!M || M.v !== 2 || M.mode !== 'story' || !Array.isArray(M.grid) || M.grid.length !== 40 || M.chapter == null || !M.eyes || !M.unit || !M.board || !Array.isArray(M.bench)) return null;
+    const oldRooms = [], units = []; Object.keys(M.board).forEach(c => { if (c === CORE) return; const g = M.grid[+c]; (M.board[c] || []).forEach(uid => { if (M.unit[uid]) units.push(uid); }); if (g && g.room && !oldRooms.includes(g.room)) oldRooms.push(g.room); });
+    const grid = []; for (let i = 0; i < N; i++) grid.push({ dug: false, use: null, room: null, trap: null }); for (let r = 0; r < ROWS; r++) Object.assign(grid[idx(r, 2)], { dug: true, use: 'path' });
+    const board = {}; if (M.board[CORE]) board[CORE] = M.board[CORE].slice(); const slots = []; for (let r = 1; r < ROWS - 1; r++) slots.push(idx(r, 2));
+    units.forEach((uid, k) => { const c = slots[Math.floor(k / MK.roomMax)]; if (c != null) { if (!board[c]) { board[c] = []; Object.assign(grid[c], { use: 'kin', room: oldRooms[slots.indexOf(c)] || null }); } board[c].push(uid); return; } const b = M.bench.indexOf(null); if (b >= 0) M.bench[b] = uid; else { M.gold += 1; delete M.unit[uid]; } });
+    M.grid = grid; M.board = board; M.v = V; M.last = null; M.hist = []; M.migrated = 2;
+    if (typeof M.snap === 'string') { let S = null; try { S = JSON.parse(M.snap); } catch (e) { S = null; } const S2 = S && migrateStory(S); M.snap = S2 ? JSON.stringify(S2) : null; }
+    return M;
+  }
+  function load(json) { let M = null; try { M = typeof json === 'string' ? JSON.parse(json) : json; } catch (e) { return null; } if (M && M.v === 2 && M.mode === 'story') M = migrateStory(M); if (!M || M.v !== V || !Array.isArray(M.grid) || M.grid.length !== N || !M.unit || !M.board || !Array.isArray(M.bench) || !M.rs) return null; if (!M.mode) M.mode = 'free'; if (M.mode === 'story' && (M.chapter == null || !M.eyes)) return null; return M; }
 
   // ───────── 화면이 읽는 것 ─────────
   const trapInfo = id => (TRAP[id] ? { id, name: TRAP[id].name, short: TRAP[id].short, more: TRAP[id].more, fx: TRAP[id].fx, cost: trapCost(id), maze: !!(TRAP[id].lure || TRAP[id].maw || TRAP[id].confuse) } : null);
@@ -2501,7 +2538,7 @@ const MAZE = (() => {
     const P = M.phase === 'prep' ? pathOf(M) : null, R = raidOf(M);
     return { v: M.v, raid: M.raid, raids: M.endless ? null : M.raids, endless: !!M.endless, daily: M.daily || null, score: M.score ? Object.assign({}, M.score) : null, phase: M.phase, over: M.over, gold: M.gold, level: M.level, maxLv: maxLvOf(M), xp: M.xp, xpNeed: M.level < maxLvOf(M) ? xpNeedOf(M.level) : 0, cap: cap(M), placed: boardUids(M).length,
       egg: { hp: M.egg, max: M.eggMax }, core: coreView(M), cols: COLS, rows: ROWS, entrance: { r: -1, c: 2, cell: ENT }, exit: { r: ROWS - 1, c: 2, cell: EXIT }, coreCell: CORE, eggCell: EGG, dug: dugCount(M), dugCap: dugCap(M),
-      grid: M.grid.map((g, i) => { const p = rc(i), e1 = canDig(M, i), e2 = canFill(M, i); return { cell: i, r: p[0], c: p[1], dug: g.dug, use: g.use, room: g.room, roomInfo: g.room ? L.roomInfo(g.room) : null, trap: g.trap, trapInfo: g.trap ? trapInfo(g.trap) : null, units: (M.board[i] || []).map(uid => unitView(M, uid)), max: g.use === 'kin' ? roomCap(i, M) : 0, canPlace: !placeWhy(M, i), placeWhy: placeWhy(M, i), fixed: fixedCell(i), canDig: !e1, digCost: g.dug ? 0 : digCost(i), digWhy: e1, canFill: !e2, fillGold: g.dug && !fixedCell(i) ? fillGold(i) : 0, fillWhy: e2, onPath: !!P && P.cells.includes(i) }; }),
+      grid: M.grid.map((g, i) => { const p = rc(i), e1 = canDig(M, i), e2 = canFill(M, i), e1b = canBuild(M, i), e2b = canRaze(M, i); return { cell: i, r: p[0], c: p[1], dug: g.dug, use: g.use, room: g.room, roomInfo: g.room ? L.roomInfo(g.room) : null, trap: g.trap, trapInfo: g.trap ? trapInfo(g.trap) : null, units: (M.board[i] || []).map(uid => unitView(M, uid)), max: g.use === 'kin' ? roomCap(i, M) : 0, canPlace: !placeWhy(M, i), placeWhy: placeWhy(M, i), fixed: fixedCell(i), canDig: !e1, digCost: g.dug ? 0 : digCost(i), digWhy: e1, canFill: !e2, fillGold: g.dug && !fixedCell(i) ? fillGold(i) : 0, fillWhy: e2, canBuild: !e1b, buildWhy: e1b, buildCost: g.dug ? null : { path: digCost(i), kin: digCost(i), room: digCost(i) + MK.roomCost, trap: digCost(i) + MK.trapCost }, canRaze: !e2b, razeGold: g.dug && !fixedCell(i) ? fillGold(i) : 0, razeWhy: e2b, onPath: !!P && P.cells.includes(i) }; }),
       shop: M.shop.map((k, i) => (k ? Object.assign({ i, can: M.gold >= L.KIN[k].cost }, L.unitInfo(k, 1)) : null)), bench: M.bench.map(uid => (uid != null ? unitView(M, uid) : null)), merges: M.merges,
       costs: { reroll: MK.reroll, xp: MK.xpCost, room: MK.roomCost, trap: MK.trapCost }, canXp: M.level < maxLvOf(M) && M.gold >= MK.xpCost, canReroll: M.gold >= MK.reroll,
       next: M.phase === 'over' || M.phase === 'chapterEnd' ? null : { raid: M.raid, id: R.id, name: R.name, boss: !!R.boss, party: partyView(M), path: P ? P.cells : [], back: P ? P.back : [], breaks: P ? P.breaks : [], avoided: P ? P.avoided : false, len: P ? P.len : 0, scout: P ? P.scout : false, scoutPath: P ? P.scoutPath : [], lostAt: P ? P.lostAt : [], warp: P ? P.warp : [], warps: P ? P.warps : [], lured: P ? P.lured : [], confused: P ? P.confused : [] },
@@ -2511,7 +2548,7 @@ const MAZE = (() => {
       mode: M.mode || 'free', locks: locksOf(M), story: M.mode === 'story' ? storyView(M) : null, night: M.mode === 'story' && M.night ? nightView(M) : null, chapterEnd: M.phase === 'chapterEnd' ? chapterEndView(M) : null, ending: M.over && M.over.ending || null,
       reward: M.reward ? { opts: M.reward.opts.map((o, i) => Object.assign({ i, type: o.type }, o.type === 'room' ? L.roomInfo(o.id) : trapInfo(o.id))) } : null, free: (M.free || []).map(id => Object.assign({ type: L.ROOM[id] ? 'room' : 'trap' }, L.ROOM[id] ? L.roomInfo(id) : trapInfo(id))) };
   }
-  return { V, COLS, ROWS, N, ENT, EXIT, CORE, EGG, MK, RAIDS, newDaily, dateSeed, exportNest, importNest, newAttack, hire, unhire, attack, attackResultText, ROSTER, FORMS, FORM_IDS, awaken, bodyOf, CHAPTERS, CARDS, LOCKS, newStory, nextChapter, retryChapter, nightPick, endingOf, raidOf, TRAP, TRAP_IDS, AVOIDERS, BREAKERS, rc, idx, newRun, view, dig, fill, setUse, canDig, canFill, digCost, fillGold, pathOf, buy, sell, sellValue, reroll, buyXp, move, merge, whereOf, raid, partyOf, roomSyn, save, load, takeReward, walker, scoutPath, SCOUTS, trapInfo, dugCount, dugCap, connected };
+  return { V, COLS, ROWS, N, ENT, EXIT, CORE, EGG, MK, RAIDS, newDaily, dateSeed, exportNest, importNest, newAttack, hire, unhire, attack, attackResultText, ROSTER, FORMS, FORM_IDS, awaken, bodyOf, CHAPTERS, CARDS, LOCKS, newStory, nextChapter, retryChapter, nightPick, endingOf, raidOf, TRAP, TRAP_IDS, AVOIDERS, BREAKERS, rc, idx, newRun, view, dig, fill, setUse, canDig, canFill, digCost, fillGold, build, raze, canBuild, canRaze, buildCost, pathOf, buy, sell, sellValue, reroll, buyXp, move, merge, whereOf, raid, partyOf, roomSyn, save, load, takeReward, walker, scoutPath, SCOUTS, trapInfo, dugCount, dugCap, connected };
 })();
 if (typeof module !== 'undefined') module.exports = MAZE;
 </script>
@@ -2964,7 +3001,7 @@ const LAIRART = (() => {
   }
   const DEF = {}, BOSS = {}, cache = {};
   const SIZE = [0, 48, 56, 64];
-  function unit(id, star) { const st = clamp(star || 1, 1, 3), k = id + ':' + st; if (cache[k]) return cache[k]; const d = DEF[id]; if (!d) return null; const fl = FLESH1[id] && (st === 1 || FLESH1[id].always), S = fl ? 48 : d.size ? d.size(st) : (d.side === 'inv' ? 48 : SIZE[st]), R = Rig(id, S, st, d.side || 'kin', fl ? 48 : d.ds); if (fl) fleshKin(R, FLESH1[id]); else { d.build(R, st); if ((d.side || 'kin') === 'kin') R.flesh = 0.26; } return (cache[k] = handle(R)); }
+  function unit(id, star) { const st = clamp(star || 1, 1, 3), k = id + ':' + st; if (cache[k]) return cache[k]; const d = DEF[id]; if (!d) return null; const fl = FLESH1[id] && (st === 1 || FLESH1[id].always), S = fl ? 48 : d.size ? d.size(st) : (d.side === 'inv' ? 48 : SIZE[st]), R = Rig(id, S, st, d.side || 'kin', fl ? 48 : d.ds); if (fl) fleshKin(R, FLESH1[id]); else { d.build(R, st); if ((d.side || 'kin') === 'kin') { if (FLESH1[id]) fleshGrow(R, st, FLESH1[id].asp); else R.flesh = 0.26; } } return (cache[k] = handle(R)); }
   // 본체. step 을 안 주면 그 모습 그대로(예전처럼). step 0 = 떨어진 한 방울, 1 = 다섯 모습, 2 = 더 크고 빛이 더한 것, 3 = 다 깨어난 새 모습(BOSS3)
   function boss(form, step) {
     if (step === 0) form = 'drop'; if (!BOSS[form]) form = 'abyss'; if (form === 'drop' || !(step >= 2)) step = 1; step = Math.min(3, step);
@@ -4593,6 +4630,53 @@ const LAIRART = (() => {
     R.pose = (anim, f, G, T, fx, s) => { const b = T.body, k = sin(f * TAU); if (anim === 'idle' || anim === 'mad') { b.sx = 1 + 0.045 * k; b.sy = 1 - 0.05 * k; b.m = 0.5 + 0.5 * k; T.eye.m = (f > 0.34 && f < 0.7) ? (f < 0.4 ? 1 - (f - 0.34) / 0.06 : f > 0.64 ? (f - 0.64) / 0.06 : 0) : 1; T.eye.dy = -1.6 * s.u * k; }
       if (anim === 'cast') { T.eye.m = 0; b.sy *= 1 + 0.12 * s.rise; b.sx *= 1 + 0.06 * s.rise; } if (anim === 'attack') { T.eye.m = Math.max(0, 1 - Math.abs(s.L) * 2); } if (anim === 'hit') T.eye.m = 0.3; if (anim === 'move') T.eye.m = 0.6; };
   };
+  // ---------- 별이 오르며 살덩이가 형체를 갖춘다 ----------
+  // 2성: 생김새가 살덩이에서 반쯤 빠져나왔다. 아래는 아직 살 무더기에 묻혀 있고, 살 탯줄이 몸에 붙어 있다. 겉은 짙은 살빛
+  // 3성: 형체는 다 갖췄지만 겉가죽이 벗겨져 힘줄·핏줄이 드러난다. 성향 빛이 살 속에서 비친다
+  const ASPG = { abyss: '#4ae8d0', nebula: '#b48cff', brood: '#d8f060', dusk: '#ffb050', hunger: '#ff4a3a' };
+  const FSKIN = { vein: C32('#4a1a5e'), vein3: C32('#7a2a6a'), sin: C32('#f0a8aa'), gap: C32('#2a0612'), hi: C32('#ffe0e4') };
+  const mix32 = (c, t, k) => { const f = sh => Math.round(((c >>> sh) & 255) * (1 - k) + ((t >>> sh) & 255) * k); return ((255 << 24) | (f(16) << 16) | (f(8) << 8) | f(0)) >>> 0; };
+  // 조각 하나의 점들에 살결을 입힌다(조각에 붙어 움직이므로 무늬가 미끄러지지 않는다). 눈·빛·별처럼 밝거나 짙은 빛깔과 윤곽은 그대로 둔다
+  function fleshSkin(px, C, st, asp, seed) {
+    const op = i => (px[i] >>> 24) === 255, k = st >= 3 ? 0.74 : 0.78, gl = C32(ASPG[asp] || '#ff8a90'), glw = C32(mixh(ASPG[asp] || '#ff8a90', '#ffffff', 0.55));
+    for (let y = 1; y < C - 1; y++) for (let x = 1; x < C - 1; x++) { const i = y * C + x, c = px[i]; if (!op(i)) continue;
+      const r = c & 255, g = (c >>> 8) & 255, b = (c >>> 16) & 255, l = (r * 3 + g * 5 + b * 2) / 10, sat = Math.max(r, g, b) - Math.min(r, g, b);
+      if ((l > 200 && sat < 64) || l > 236 || l < 24 || (r > 190 && g > 130 && b < 140) || (sat > 170 && l > 150 && r > b)) continue;
+      const inner = op(i - 1) && op(i + 1) && op(i - C) && op(i + C), t = FRAMP[clamp(Math.floor(l / 50 + bay(x, y) * 0.6), 0, 4)];
+      let nc = mix32(c, t, k * (1 - Math.max(0, (l - 170) / 160)));
+      const vn = Math.abs(sin((x + seed) * 0.29 + sin(y * 0.21 + seed) * 2.1) + sin(y * 0.25 - x * 0.08) * 0.6);
+      if (st >= 3) {
+        if (inner) { const f = ((x * 2 + y * 3 + seed) % 8 + 8) % 8; if (f === 0 && l > 44) nc = mix32(nc, FSKIN.sin, 0.55); else if (f === 4) nc = mix32(nc, FSKIN.gap, 0.4); }
+        if (vn < 0.15 && l > 36) nc = mix32(nc, FSKIN.vein3, 0.6);
+        if (inner && hsh((x >> 2) + seed * 7, (y >> 2) + seed) < 0.11) { const d = hsh(x + seed, y); nc = mix32(nc, d < 0.4 ? glw : gl, 0.72); }
+      } else {
+        if (vn < 0.12 && l > 40) nc = mix32(nc, FSKIN.vein, 0.45);
+        if (inner && l > 110 && hsh(x * 3 + seed, y * 5) < 0.025) nc = FSKIN.hi;
+      }
+      px[i] = nc; } }
+  // 2성의 살 무더기: 발치를 덮고, 혹이 몸을 타고 오른다
+  function fleshMound(D, cx, gy, rx, pal, asp, seed) {
+    const lumps = [[-0.62, -2.4, 0.42, 3.4], [-0.1, -3.8, 0.5, 4.6], [0.5, -2.8, 0.42, 3.8], [0.95, -0.8, 0.26, 2.2], [-1.0, -0.6, 0.24, 2]];
+    const mask = D.el(cx, gy - 1.2, rx, 2.8); lumps.forEach(([dx, dy, a, b]) => D.el(cx + dx * rx, gy + dy, a * rx, b, mask)); D.cut(mask, (x, y) => y < gy + 0.9);
+    D.shade(mask, (x, y) => { const dx = (x - cx) / rx, dy = (y - gy + 3) / 5, v = -dx * 0.36 - dy * 0.7 + (1 - Math.hypot(dx, dy)) * 0.2; return v > 0.62 ? pal[2] : v > 0.1 ? pal[1] : v > -0.3 ? pal[3] : pal[4]; }, pal[0]);
+    lumps.forEach(([dx, dy, a, b], k) => { const x = cx + dx * rx, y = gy + dy, aa = a * rx * 0.9, bb = b * 0.9; D.shade(D.cut(D.el(x, y, aa, bb), (xx, yy) => yy < gy + 0.5), (xx, yy) => { const ex = (xx - x) / aa, ey = (yy - y) / bb, v = -ex * 0.5 - ey * 0.72 + (1 - Math.hypot(ex, ey)) * 0.34; return v > 0.7 ? pal[2] : v > 0.18 ? pal[1] : v > -0.2 ? pal[3] : null; }, null);
+      D.L([[x - aa * 0.9, y + bb * 0.7], [x, y + bb * 0.95], [x + aa * 0.85, y + bb * 0.66]], 0.45, 0.4, ['#0000', pal[4], pal[4], pal[4]], null); D.px(x - aa * 0.4, y - bb * 0.5, FL.hi); if (k < 3) D.px(x - aa * 0.4 + 0.8, y - bb * 0.5, FL.slime); });
+    const tc = ASPT[asp]; if (tc) for (let k = 0; k < 2; k++) { const x = cx + (hsh(seed, k + 3) - 0.5) * rx * 1.2, y = gy - 1.6 - hsh(seed, k + 7) * 1.6; D.flat(D.el(x, y, 1.6, 1.1), mixh(pal[3], tc, 0.55), null); D.px(x, y, mixh(pal[2], tc, 0.7)); }
+    for (let k = 0; k < 3; k++) { const x0 = cx + (hsh(seed, k + 20) - 0.5) * rx * 1.5, y0 = gy - 1 - hsh(seed, k + 21) * 2; D.L([[x0, y0], [x0 + (k - 1) * 2.4, y0 - 2], [x0 + (k - 1) * 3.4, y0 - 3.4]], 0.5, 0.35, ['#0000', FL.vein, FL.vein, FL.vein], null); }
+    for (const [dx, l] of [[-0.4, 1.6], [0.3, 2.2]]) { const x = cx + dx * rx; D.L([[x, gy - 0.6], [x + 0.3, gy + l]], 0.45, 0.35, ['#0000', pal[3], pal[3], pal[3]], null); D.px(x + 0.3, gy + l + 0.5, FL.lit); }
+  }
+  // 2·3성 권속을 다 지은 뒤 덧입힌다
+  function fleshGrow(R, st, asp) {
+    asp = asp || 'abyss'; const seed = (R.id.length * 13 + R.id.charCodeAt(0) * 3 + st * 5) % 97;
+    R.parts.forEach((p, n) => { const d0 = p.draw; p.draw = (D, m) => { d0(D, m); const kc = D.K.canvas; D.K.canvas = () => { const c = kc(), x = c.getContext('2d'), im = x.getImageData(0, 0, c.width, c.height); fleshSkin(new Uint32Array(im.data.buffer), c.width, st, asp, seed + n * 11); x.putImageData(im, 0, 0); return c; }; }; });
+    R.ichor = mixh(FL.fluid, ASPT[asp] || FL.fluid, 0.2);
+    if (st !== 2) return;
+    const pal = fpal(asp), gy = R.ground + 0.4, cx = R.cx, rx = clamp(R.shw * 1.05, 9, 19), top = Math.max(...R.parts.map(p => p.z)) + 1, low = Math.min(...R.parts.map(p => p.z)) - 1, H = R.DS * 0.42;
+    // 살 탯줄: 무더기에서 몸 뒤로 이어진다(떠 있는 것도 아직 살에 매여 있다)
+    [[-0.45, 0], [0.4, 1.9]].forEach(([dx, ph], k) => R.part('cord' + k, { px: cx + dx * rx, py: gy - 2, z: low, role: 'sway', amp: 0.5, ph }, D => tent(D, [[cx + dx * rx, gy - 2], [cx + dx * rx * 0.8, gy - H * 0.45], [cx + dx * rx * 0.35 + (k ? 1 : -1), gy - H * 0.8], [cx + (k ? 1.5 : -1.5), gy - H]], 1.7, 0.9, [FL.out, pal[3], pal[1], pal[4]], null)));
+    R.part('pool2', { px: cx, py: gy, z: low - 1 }, D => { D.flat(D.el(cx + 1, gy + 0.4, rx + 3.4, 1.7), mixh(FL.fluid, '#000000', 0.3), null); D.flat(D.el(cx - rx * 0.4, gy + 0.1, rx * 0.4, 0.6), FL.shade, null); D.px(cx - rx * 0.6, gy, FL.lit); });
+    R.part('mound', { px: cx, py: gy, z: top, role: 'body', amp: 0.45 }, D => fleshMound(D, cx, gy, rx, pal, asp, seed));
+  }
   // ── ART-FLESH 끝
   // ── ART-INV2 시작
   // 2·3막의 침입자 일곱, 이름 있는 조사자 여섯(다친 모습·홀린 모습), 사람 꼴로 불려 나오는 것 셋, 연출 일곱.
@@ -4948,40 +5032,7 @@ const LAIRART = (() => {
   // 이웃 비트: 위 1, 오른쪽 2, 아래 4, 왼쪽 8
   const MZ = { soil: ['#050407', '#0c0a0e', '#141117', '#1c1820', '#26212a'], stone: ['#060609', '#16161c', '#22222a', '#32313b', '#4a4854'], root: ['#120d0a', '#2e2219', '#4a3828', '#6a5440'], glow: ['#0e3a38', '#1f8a80', '#5ad8c4', '#c8fff0'], vio: ['#1a1030', '#5a3a98', '#a888e0'], cache: {} };
   const mzc = (k, f) => MZ.cache[k] || (MZ.cache[k] = f());
-  // 흙: 켜켜이 쌓인 젖은 흙, 박힌 돌, 뿌리. seed 로 칸마다 다르게
-  function mzSoil(p, S, seed, moss) {
-    const ox = (seed * 97) % 400, oy = (seed * 61) % 400;
-    for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) { const X = x + ox, Y = y + oy, v = 1.7 + (hsh(Math.floor(X / 7), Math.floor(Y / 4)) - 0.5) * 1.3 + (hsh(X, Y) - 0.5) * 0.7 + 0.35 * sin(Y * 0.23 + hsh(Math.floor(X / 19), 3) * 4); p.set(x, y, MZ.soil[clamp(Math.round(v), 0, 4)]); }
-    // 돌: 칸 안쪽에만 둔다(이웃과 이어 붙여도 잘리지 않게)
-    const n = 1 + Math.floor(hsh(seed, 1) * 3); for (let k = 0; k < n; k++) { const rx = S * (0.04 + hsh(seed, k + 10) * 0.1), ry = rx * (0.55 + hsh(seed, k + 20) * 0.3), cx = rx + 3 + hsh(seed, k + 30) * (S - rx * 2 - 6), cy = ry + 3 + hsh(seed, k + 40) * (S - ry * 2 - 6);
-      for (let j = -Math.ceil(ry) - 1; j <= ry + 1; j++) for (let i = -Math.ceil(rx) - 1; i <= rx + 1; i++) { const q = (i * i) / (rx * rx) + (j * j) / (ry * ry); if (q > 1 + 2 / ry) continue; if (q > 1) { p.set(cx + i, cy + j, MZ.stone[0]); continue; } const lv = -i / rx * 0.5 - j / ry * 0.8 + (hsh(cx + i, cy + j) - 0.5) * 0.3; p.set(cx + i, cy + j, MZ.stone[lv > 0.55 ? 4 : lv > 0.1 ? 3 : lv > -0.4 ? 2 : 1]); }
-      p.set(cx - rx * 0.4, cy - ry * 0.5, '#5e5c6a'); if (hsh(seed, k + 50) > 0.6) { p.set(cx - rx * 0.1, cy + ry * 0.7, MZ.glow[1]); } }
-    // 뿌리: 위에서 아래로 갈라지며 내려간다
-    const nr = 1 + Math.floor(hsh(seed, 2) * 2.4); for (let k = 0; k < nr; k++) { let x = 2 + hsh(seed, k + 60) * (S - 4), y = 0; const drift = (hsh(seed, k + 70) - 0.5) * 0.8; for (let q = 0; y < S * (0.5 + hsh(seed, k + 80) * 0.5); q++) { p.set(x, y, MZ.root[1]); if (q % 3 === 0) p.set(x + 1, y, MZ.root[2]); if (q % 7 === 3) { let bx = x, by = y; for (let b = 0; b < 4 + (q % 4); b++) { bx += (k % 2 ? 1 : -1); by += 1; p.set(bx, by, MZ.root[1]); } } x += drift + (hsh(q, seed + k) - 0.5) * 1.2; y += 1; } }
-    // 발광 이끼: 드물게
-    if (moss) { const cx = 4 + hsh(seed, 90) * (S - 8), cy = 4 + hsh(seed, 91) * (S - 8); for (let k = 0; k < 9; k++) { const x = cx + (hsh(seed, k + 100) - 0.5) * 9, y = cy + (hsh(seed, k + 110) - 0.5) * 5; p.set(x, y, MZ.glow[1 + (k % 3 === 0 ? 1 : 0)]); if (k % 4 === 0) p.mix(x, y - 1, MZ.glow[3], 0.7); } for (let r = 3; r < 9; r++) for (let a = 0; a < 16; a++) p.mix(cx + cos(a * 0.39) * r, cy + sin(a * 0.39) * r * 0.6, MZ.glow[1], 0.05); }
-  }
-  // 바위 속에 묻힌 것: 칸마다 하나쯤. 모두 판 칸보다 어둡다
-  const MZB = ['#0c0b0a', '#3a3630', '#5a544a', '#24211d'], MZM = ['#0a0806', '#2e2418', '#4a3a26', '#1a140e'];
-  function mzBuried(p, S, seed) { const h = hsh(seed, 501), cx = S * (0.3 + hsh(seed, 502) * 0.4), cy = S * (0.3 + hsh(seed, 503) * 0.4), u = S / 64;
-    const lineP = (x0, y0, x1, y1, c, w) => { const n = Math.ceil(Math.hypot(x1 - x0, y1 - y0)); for (let k = 0; k <= n; k++) for (let q = 0; q < (w || 1); q++) p.set(lerp(x0, x1, k / n) + q * 0.5, lerp(y0, y1, k / n) + q * 0.5, c); };
-    if (h < 0.22) { // 큰 바위: 갈라진 면이 있다
-      const rx = S * (0.2 + hsh(seed, 504) * 0.1), ry = rx * 0.7; for (let j = -Math.ceil(ry) - 1; j <= ry + 1; j++) for (let i = -Math.ceil(rx) - 1; i <= rx + 1; i++) { const q = (i * i) / (rx * rx) + (j * j) / (ry * ry) + (hsh(cx + i, cy + j) - 0.5) * 0.12; if (q > 1.08) continue; if (q > 1) { p.set(cx + i, cy + j, MZ.stone[0]); continue; } const lv = -i / rx * 0.45 - j / ry * 0.7; p.set(cx + i, cy + j, MZ.stone[lv > 0.5 ? 3 : lv > 0 ? 2 : 1]); }
-      lineP(cx - rx * 0.3, cy - ry * 0.8, cx + rx * 0.1, cy + ry * 0.1, MZ.stone[0]); lineP(cx + rx * 0.1, cy + ry * 0.1, cx + rx * 0.5, cy + ry * 0.5, MZ.stone[0]); p.set(cx - rx * 0.5, cy - ry * 0.5, MZ.stone[4]);
-    } else if (h < 0.4) { // 뼈 조각: 긴 뼈 하나와 부서진 갈비뼈
-      const a = hsh(seed, 505) * 3, L = S * 0.22, dx = cos(a) * L, dy = sin(a) * L * 0.5; lineP(cx - dx, cy - dy, cx + dx, cy + dy, MZB[3], 2); lineP(cx - dx, cy - dy - 0.5, cx + dx, cy + dy - 0.5, MZB[1]); for (const e of [-1, 1]) { p.ell(cx + e * dx, cy + e * dy, 1.6 * u + 0.6, 1.4 * u + 0.6, MZB[1], MZB[0]); p.set(cx + e * dx - 1, cy + e * dy - 1, MZB[2]); }
-      for (let k = 0; k < 3; k++) { const x = cx + (k - 1) * 4 * u + 3 * u, y = cy + 6 * u; for (let q = 0; q < 5 * u; q++) p.set(x + sin(q * 0.5) * 1.4, y + q, q % 2 ? MZB[3] : MZB[1]); }
-    } else if (h < 0.5) { // 묻힌 사람의 흔적: 해골과 녹슨 투구 또는 칼
-      p.ell(cx, cy, 4 * u + 0.6, 3.6 * u + 0.6, MZB[1], MZB[0]); p.set(cx - 1.6 * u, cy, MZB[0]); p.set(cx + 1.2 * u, cy, MZB[0]); p.rect(cx - 1.4 * u, cy + 2.4 * u, 3 * u, 1, MZB[3]); p.set(cx - 2 * u, cy - 2 * u, MZB[2]);
-      if (hsh(seed, 506) > 0.5) { for (let i = -5; i <= 5; i++) p.set(cx + i * u * 0.9, cy - 3.6 * u - Math.sqrt(Math.max(0, 25 - i * i)) * 0.4 * u, MZM[2]); p.rect(cx - 5 * u, cy - 3.4 * u, 10 * u, 1, MZM[1]); }
-      else { lineP(cx + 5 * u, cy + 4 * u, cx + 16 * u, cy - 2 * u, MZM[2]); lineP(cx + 5 * u, cy + 5 * u, cx + 16 * u, cy - 1 * u, MZM[1]); lineP(cx + 6 * u, cy + 1 * u, cx + 8 * u, cy + 7 * u, MZM[1]); }
-      for (let k = 0; k < 4; k++) p.set(cx - 7 * u - k * 1.4 * u, cy + 3 * u + (k % 2) * u, MZB[3]);
-    } else if (h < 0.68) { // 뿌리 다발: 굵은 뿌리가 엉겨 내려간다
-      for (let r = 0; r < 4; r++) { let x = cx + (r - 1.5) * 3 * u, y = 0; for (let q = 0; y < S * (0.7 + hsh(seed, 510 + r) * 0.3); q++) { p.set(x, y, MZ.root[1]); p.set(x + 1, y, r % 2 ? MZ.root[2] : MZ.root[1]); if (q % 5 === 0) p.set(x - 1, y, MZ.root[0]); x += sin(q * 0.15 + r * 1.7) * 0.7; y += 1; } }
-    } else if (h < 0.76) { // 발광 버섯 몇 송이
-      for (let k = 0; k < 3; k++) { const x = cx + (k - 1) * 4 * u, y = cy + (k % 2) * 3 * u, r = (2 + (k === 1 ? 1 : 0)) * u; p.rect(x, y, 1, r + 2 * u, '#3a4a48'); p.ell(x, y, r + 0.4, r * 0.55 + 0.4, MZ.glow[1], MZ.soil[0]); p.set(x - r * 0.4, y - 1, MZ.glow[3]); for (let q = 0; q < 10; q++) p.mix(x + cos(q) * (r + 3 * u), y + sin(q) * (r + 2 * u) * 0.6, MZ.glow[0], 0.25); }
-    } }
-  // 살: 동굴은 흙과 돌 사이로 파고든 살이다. 아래로 갈수록 살이 많다
+  // 살 빛깔: 벽(rock), 방 바닥(floor), 젖은 빛, 핏줄, 벽 입술, 체액
   const MFL = { rock: ['#0c0206', '#16040a', '#22070f', '#300b15', '#40111d', '#52182a'], floor: ['#1e070c', '#2e0c12', '#40141a', '#541c22', '#6a282c', '#844038'], wet: ['#b8787a', '#e0aaa8', '#fff0e8'], vein: ['#14030a', '#3e0a16', '#6a1424', '#9a2a3a'], lip: ['#12040a', '#4a1620', '#7a2e36', '#a8525a'], fluid: ['#3a1a14', '#6a3a2a', '#9a6a4a', '#d8b090'] };
   // 부드러운 값 잡음(0~1): 격자 점 사이를 이어 붙인다
   const vnz = (x, y, sd) => { const x0 = Math.floor(x), y0 = Math.floor(y), fx = x - x0, fy = y - y0, sx = fx * fx * (3 - 2 * fx), sy = fy * fy * (3 - 2 * fy), a = hsh(x0 + sd * 17, y0), b = hsh(x0 + 1 + sd * 17, y0), c = hsh(x0 + sd * 17, y0 + 1), d = hsh(x0 + 1 + sd * 17, y0 + 1); return lerp(lerp(a, b, sx), lerp(c, d, sx), sy); };
@@ -4993,25 +5044,32 @@ const LAIRART = (() => {
   function mzCreep(p, S, sd, f, ox, oy, edge) { if (f <= 0) return; for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) { const X = x + (ox || 0), Y = y + (oy || 0), n = vnz(X / 18, Y / 13, 3) * 0.7 + vnz(X / 7, Y / 6, 5) * 0.3 - (edge ? (y / S) * 0.3 : 0); if (n >= f) continue; const k = (f - n) / Math.max(0.05, f);
       p.set(x, y, n > f - 0.03 ? MFL.rock[1] : MFL.floor[clamp(Math.round(0.6 + k * 1.8 + (bay(x, y) - 0.5) * 0.7), 0, 3)]); if (k > 0.5 && hsh(X, Y + 3) > 0.985) p.set(x, y, MFL.wet[0]); } }
   // 바위 깊이: 화면이 넘기지 않으면 seed 에서 어림한다(지도 띠는 seed = 200 + 열 + 픽셀 높이, 첫 화면은 행 * 7 + 열 * 3)
-  //   굴 짓기 화면의 칸은 seed = 칸 번호 * 7 + 3 (칸 번호 = 행 * 5 + 열), 맨 아래 띠는 seed >= 200
-  const mzDepth = (S, seed) => seed >= 200 ? 1 : (seed - 3) % 7 === 0 && seed >= 3 ? clamp(Math.floor((seed - 3) / 35) / 7, 0, 1) : clamp(Math.floor(seed / 7) / 7, 0, 1);
+  //   굴 짓기 화면의 칸은 seed = 칸 번호 * 7 + 3 (칸 번호 = 행 * 5 + 열, 판은 6줄), 맨 아래 띠는 seed >= 200
+  const mzDepth = (S, seed) => seed >= 200 ? 1 : (seed - 3) % 7 === 0 && seed >= 3 ? clamp(Math.floor((seed - 3) / 35) / 5, 0, 1) : clamp(Math.floor(seed / 7) / 5, 0, 1);
   // 이어 붙는 잡음: 칸 가장자리의 격자 값은 seed 와 상관없이 같아서, 어느 칸끼리 붙여도 이음매가 없다. x, y 는 0~N
   const tvnz = (x, y, N, sd) => { const g = (i, j) => (i % N === 0 || j % N === 0 ? hsh(i % N === 0 ? 0 : i, j % N === 0 ? 0 : j) : hsh(i + sd * 17, j + sd * 5)), x0 = Math.floor(x), y0 = Math.floor(y), fx = x - x0, fy = y - y0, sx = fx * fx * (3 - 2 * fx), sy = fy * fy * (3 - 2 * fy); return lerp(lerp(g(x0, y0), g(x0 + 1, y0), sx), lerp(g(x0, y0 + 1), g(x0 + 1, y0 + 1), sx), sy); };
-  // 바위에 파고든 살: 깊을수록 넓게, 핏줄이 많게, 아주 깊으면 살 속의 눈
-  function mzFleshIn(p, S, sd, d) { const ox = (sd * 37) % 500, oy = (sd * 53) % 500;
-    for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) { const f = 0.08 + clamp(d + (y / S - 0.5) * 0.143, 0, 1) * 0.62, X = x + ox, Y = y + oy, n = tvnz(x / S * 4, y / S * 3, 4, sd) * 0.36 + tvnz(x / S * 4, y / S * 3, 3, sd + 1) * 0.26 + tvnz(x / S * 10, y / S * 10, 10, sd + 2) * 0.28 + vnz(X / 2.5, Y / 2.5, 13) * 0.1; if (n >= f) continue; const k = (f - n) / f, l = 0.35;
-      p.set(x, y, n > f - 0.04 ? MFL.rock[0] : MFL.rock[clamp(Math.round(1 + k * 2.6 + l + (hsh(X, Y) - 0.5) * 0.9), 1, 5)]); if (k > 0.45 && hsh(X, Y) > 0.992) p.set(x, y, MFL.wet[0]);
-      if (k > 0.3 && k < 0.36 && hsh(X >> 1, Y) > 0.5) p.set(x, y, MFL.rock[0]); }
-    mzVeins(p, S, sd + 11, Math.round(d * 3.4 + (hsh(sd, 91) > 0.6 ? 1 : 0)), [MFL.vein[0], MFL.vein[1], MFL.vein[2]]);
-    if (d > 0.55 && hsh(sd, 93) > 0.72) { const cx = S * (0.25 + hsh(sd, 94) * 0.5), cy = S * (0.25 + hsh(sd, 95) * 0.5), r = S * 0.055 + 1; p.ell(cx, cy, r * 1.8, r * 1.1, MFL.rock[4], MFL.rock[0]); p.ell(cx, cy, r * 1.2, r * 0.8, '#c8b8a8'); p.ell(cx + 0.5, cy, r * 0.6, r * 0.6, '#6a2010'); p.set(cx + 0.5, cy, '#000000'); p.set(cx - r * 0.3, cy - r * 0.3, '#ffffff'); p.line(cx - r * 1.8, cy - r * 0.5, cx + r * 1.8, cy - r * 0.6, MFL.rock[0]); } }
-  // 안 판 바위. variant = 이웃 가운데 바위인 쪽의 비트. 바위가 아닌 쪽은 굴의 빛이 엷게 번진다. seed 로 칸마다 다른 것이 묻혀 있다
-  function mazeRock(S, variant, seed, depth) { S = Math.round(S || 64); variant = (variant | 0) & 15; seed = seed | 0; const dp = depth == null ? mzDepth(S, seed) : clamp(+depth || 0, 0, 1); return mzc('rock:' + S + ':' + variant + ':' + seed + ':' + Math.round(dp * 8), () => { const p = PX(S, S); mzSoil(p, S, seed + 7, false); mzBuried(p, S, seed); mzFleshIn(p, S, seed, dp);
+  // 살 혹 잡음: 칸을 N×N 으로 나눠 칸마다 혹의 중심 하나. 가장자리 줄의 중심은 seed 와 상관없어(같은 자리 값) 이웃 칸과 이어 붙는다
+  function wly(u, w, N, sd) { const pt = (i, j) => { const iw = ((i % N) + N) % N, jw = ((j % N) + N) % N, edge = iw === 0 || jw === 0 || iw === N - 1 || jw === N - 1, k = edge ? 0 : sd; return [i + 0.2 + hsh(iw * 31 + k * 7, jw * 17 + 5) * 0.6, j + 0.2 + hsh(iw * 13 + k * 11, jw * 29 + 9) * 0.6]; };
+    const X = u * N, Y = w * N, ci = Math.floor(X), cj = Math.floor(Y); let f1 = 9, f2 = 9, dx = 0, dy = 0;
+    for (let j = cj - 1; j <= cj + 1; j++) for (let i = ci - 1; i <= ci + 1; i++) { const q = pt(i, j), ex = X - q[0], ey = Y - q[1], dd = Math.hypot(ex, ey); if (dd < f1) { f2 = f1; f1 = dd; dx = ex; dy = ey; } else if (dd < f2) f2 = dd; }
+    return [f1, f2, dx, dy]; }
+  // 지어지지 않은 자리의 살벽: 빽빽한 살 혹, 혹 사이의 깊은 주름, 핏줄, 젖은 빛, 깊을수록 가끔 박힌 눈. d = 깊이 0~1
+  function mzWall(p, S, sd, d) { const N = 4;
+    for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) { const u0 = x / S, w0 = y / S, u = u0 + (tvnz(u0 * 3, w0 * 3, 3, sd + 7) - 0.5) * 0.22, w = w0 + (tvnz(u0 * 3, w0 * 3, 3, sd + 8) - 0.5) * 0.22, q = wly(u, w, N, sd), gap = q[1] - q[0], dome = clamp(1 - q[0] / 0.72, 0, 1);
+      let v = 0.6 + dome * 2.6 - (q[2] + q[3]) * 1.3 + (tvnz(u0 * 8, w0 * 8, 8, sd + 2) - 0.5) * 0.7 + d * 0.35 + (bay(x, y) - 0.5) * 0.5;
+      if (gap < 0.05) v = -1; else if (gap < 0.12) v -= 1.4 * (1 - gap / 0.12);
+      p.set(x, y, MFL.rock[clamp(Math.round(v), 0, 5)]); if (dome > 0.55 && q[2] < -0.05 && q[3] < -0.05 && q[2] > -0.22 && q[3] > -0.22 && hsh(x + sd * 3, y) > 0.82) p.set(x, y, hsh(x, y + sd) > 0.6 ? MFL.wet[0] : MFL.lip[3]); }
+    mzVeins(p, S, sd + 11, Math.round(d * 2 + (hsh(sd, 91) > 0.6 ? 1 : 0)), [MFL.vein[0], MFL.vein[1], MFL.vein[2]]);
+    for (let k = 0; k < 3; k++) { const x = 3 + hsh(sd, k + 320) * (S - 6), y = 3 + hsh(sd, k + 330) * (S - 6); if (hsh(sd, k + 340) > 0.55) { p.set(x, y, MFL.wet[0]); p.set(x + 1, y + 1, MFL.rock[1]); } }
+    if (hsh(sd, 93) > 0.9 - d * 0.14) { const cx = S * (0.28 + hsh(sd, 94) * 0.44), cy = S * (0.28 + hsh(sd, 95) * 0.44), r = S * 0.05 + 1; p.ell(cx, cy, r * 2.1, r * 1.3, MFL.rock[3], MFL.rock[0]); p.ell(cx, cy, r * 1.2, r * 0.8, '#c8b8a8'); p.ell(cx + 0.5, cy, r * 0.6, r * 0.6, '#6a2010'); p.set(cx + 0.5, cy, '#000000'); p.set(cx - r * 0.3, cy - r * 0.3, '#ffffff'); p.line(cx - r * 2, cy - r * 0.5, cx + r * 2, cy - r * 0.6, MFL.rock[0]); p.line(cx - r * 1.8, cy + r * 0.9, cx + r * 1.8, cy + r * 0.8, MFL.rock[1]); } }
+  // 지어지지 않은 자리(살벽). variant = 이웃 가운데 벽인 쪽의 비트. 벽이 아닌 쪽은 방의 빛이 엷게 번진다. seed 로 칸마다 혹·핏줄·눈이 다르다
+  function mazeRock(S, variant, seed, depth) { S = Math.round(S || 64); variant = (variant | 0) & 15; seed = seed | 0; const dp = depth == null ? mzDepth(S, seed) : clamp(+depth || 0, 0, 1); return mzc('rock:' + S + ':' + variant + ':' + seed + ':' + Math.round(dp * 8), () => { const p = PX(S, S); mzWall(p, S, seed, dp);
     const open = [!(variant & 1), !(variant & 2), !(variant & 4), !(variant & 8)];
     for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) { const d = Math.min(open[0] ? y : 99, open[1] ? S - 1 - x : 99, open[2] ? S - 1 - y : 99, open[3] ? x : 99), k = clamp(1 - d / (S * 0.4), 0, 1); p.mix(x, y, '#000000', 0.22); if (k > 0) p.mix(x, y, '#3a0a14', 0.22 * k * k); if (variant === 15) p.mix(x, y, '#000000', 0.12); }
     return p.done(); }); }
-  // 판 칸 바닥. mask = 이어진 이웃 비트, use = 'path' | 'room' | 'trap' (그 밖은 path). 통로는 둥근 굴, 방은 넓은 바닥
-  function mazeFloor(S, mask, use, seed) { S = Math.round(S || 64); mask = (mask | 0) & 15; use = use === 'room' ? 'room' : 'path'; seed = seed | 0; return mzc('floor:' + S + ':' + mask + ':' + use + ':' + seed, () => { const p = PX(S, S), H = S / 2; mzSoil(p, S, seed + 3, false); mzFleshIn(p, S, seed + 3, 0.6);
-    const hw = S * 0.23, rc = use === 'room' ? 0 : S * 0.29, hr = S * 0.41, cr = S * 0.15, dirs = [[0, -1], [1, 0], [0, 1], [-1, 0]];
+  // 지은 방의 바닥(평면도). mask = 이어진 이웃 비트(그쪽 벽에 문 구멍), use = 'path' | 'room' (그 밖은 path). 통로는 좁은 굴, 방은 둥그스름한 넓은 방
+  function mazeFloor(S, mask, use, seed) { S = Math.round(S || 64); mask = (mask | 0) & 15; use = use === 'room' ? 'room' : 'path'; seed = seed | 0; return mzc('floor:' + S + ':' + mask + ':' + use + ':' + seed, () => { const p = PX(S, S), H = S / 2; mzWall(p, S, seed + 3, 0.45); for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) p.mix(x, y, '#000000', 0.22);
+    const hw = use === 'room' ? S * 0.2 : S * 0.16, rc = use === 'room' ? 0 : S * 0.21, hr = S * 0.42, cr = S * 0.25, dirs = [[0, -1], [1, 0], [0, 1], [-1, 0]];
     const sdf = (x, y) => { let d = rc - Math.hypot(x - H, y - H); if (use === 'room') { const qx = Math.abs(x - H) - (hr - cr), qy = Math.abs(y - H) - (hr - cr); d = Math.max(d, cr - (Math.hypot(Math.max(qx, 0), Math.max(qy, 0)) + Math.min(Math.max(qx, qy), 0))); }
       dirs.forEach(([dx, dy], k) => { if (!(mask & (1 << k))) return; const along = dx ? (x - H) * dx : (y - H) * dy, across = dx ? Math.abs(y - H) : Math.abs(x - H); if (along >= -0.5) d = Math.max(d, hw - across); }); return d; };
     const inside = (x, y) => { const edge = Math.min(x, y, S - 1 - x, S - 1 - y); return sdf(x, y) + (edge > 3 ? (hsh(x >> 1, (y >> 1) + seed) - 0.5) * 1.6 : 0); };
@@ -5214,7 +5272,7 @@ const LAIRART = (() => {
     const at = (r, cc) => r >= 0 && r < rows && cc >= 0 && cc < 5 ? G[r][cc] : (r === -1 && cc === 2 ? '.' : '#'), rock = ch => ch === '#';
     x.drawImage(mazeEntrance(S, 5), ox, 0);
     for (let r = 0; r < rows; r++) for (let cc = 0; cc < 5; cc++) { const ch = G[r][cc], X = ox + cc * S, Y = top + r * S, nb = [at(r - 1, cc), at(r, cc + 1), at(r + 1, cc), at(r, cc - 1)], seed = r * 7 + cc * 3; let v = 0, m = 0; nb.forEach((q, k) => { if (rock(q)) v |= 1 << k; else m |= 1 << k; });
-      if (rock(ch)) { x.drawImage(mazeRock(S, v, seed, r / 7), X, Y); continue; } if (ch === 'C') { x.drawImage(mazeCore(S, 'abyss', t, m), X, Y); continue; }
+      if (rock(ch)) { x.drawImage(mazeRock(S, v, seed, r / Math.max(1, rows - 1)), X, Y); continue; } if (ch === 'C') { x.drawImage(mazeCore(S, 'abyss', t, m), X, Y); continue; }
       x.drawImage(mazeFloor(S, m, ch === 'R' || ch === 'E' ? 'room' : 'path', seed), X, Y); if (ch === 'p') x.drawImage(mazeTrap(S, 'pit', t), X, Y); }
     x.drawImage(mazeRoomMark(S, 'pool', t), ox + S, top + S); x.drawImage(mazeRoomMark(S, 'altar', t), ox + 3 * S, top + 4 * S);
     x.drawImage(mazeEntranceGlow(S, 5, t), ox, top);
@@ -5256,39 +5314,43 @@ const LAIRART = (() => {
   // 귀 = 위끝이 눈썹, 아래끝이 코끝 높이(가까운 왼쪽 하나만). 눈 사이는 눈 하나 너비, 먼 눈은 작고 콧등 쪽으로 붙는다. 아이는 눈이 조금 아래(이마가 넓다).
   // f: skin top chin([x,y]) jaw([x,y]) child nb(콧등 굽음) np(코가 나온 정도) nl(코 길이 ±) brow browW iris thin fat age socket lip rim narrow noEar
   const FACE0 = { top: 9.6, chin: [39.2, 42.4], jaw: [25.4, 37.8], nb: 0, np: 0, nl: 0, browW: 0.75, iris: '#3a2a1e', thin: 0.3, fat: 0, age: 0, socket: 1, lip: null };
-  const faceGeo = f => { const T = f.top, C = f.chin[1], H = C - T, ey = T + H * (f.child ? 0.545 : 0.5), ny = (ey + C) / 2 + f.nl, my = ny + (C - ny) / 3;
-    return Object.assign(f, { ey, by: ey - 3, ny, my, ex1: 29.4, ex2: 39, ew1: 5, ew2: 3.6, nx: 41.8 + f.np, bx: 36, mx: 36.8, mw: 7, earT: ey - 3, earB: ny, earX: 25 }); };
-  const facePts = f => { const T = f.top, [cx, cy] = f.chin, [jx, jy] = f.jaw, b = f.nb, nx = f.nx, ny = f.ny, ey = f.ey, my = f.my;
-    return [[jx - 2.6, jy - 6], [21, T + 6], [27, T + 0.8], [34, T], [39.4, T + 2.4], [41.4, T + 7], [41.8, ey - 3.4], [42.2, ey - 2.4], [41.4, ey - 0.4], [41.4 + b * 0.4, ey + 1.6], [41.6 + b, ey + 3.6],
-      [nx - 0.4, ny - 2], [nx + 0.6, ny - 0.4], [nx + 0.2, ny + 0.6], [nx - 1, ny + 1.2], [41, ny + 1.6], [41.4, my - 1.2], [41.6, my - 0.2], [41.2, my + 0.4], [41.6, my + 1.4], [41, my + 3],
-      [cx + 1.6, cy - 1.6], [cx + 0.8, cy - 0.2], [cx - 1.6, cy + 0.6], [cx - 6, cy + 0.2 + f.fat * 1.6], [jx + 3.6, jy + 2.6], [jx, jy], [jx - 1.4, jy - 3]]; };
-  function faceLight(f, m, N) { const [cx, cy] = f.chin, [jx, jy] = f.jaw, nx0 = f.nx, ny0 = f.ny, at = (X, Y) => X >= 0 && Y >= 0 && X < N && Y < N && m[Y * N + X];
-    return (x, y, X, Y) => { const nx = (x - 32) / 14, ny = (y - 26) / 17, nz = Math.sqrt(Math.max(0.04, 1 - nx * nx - ny * ny)); let v = 0.44 - 0.42 * nx - (ny > 0 ? 0.16 : 0.34) * ny + 0.3 * nz;
-      for (const [ex, w] of [[f.ex1, f.ew1], [f.ex2, f.ew2]]) { const d = ((x - ex) / (w * 0.75)) ** 2 + ((y - f.ey + 0.3) / 2.8) ** 2; if (d < 1) v -= 0.2 * f.socket * (1 - d); }
-      if (y > f.by - 1.8 && y < f.by + 0.4 && x > f.ex1 - 3.6 && x < f.ex2 + 1.4) v += 0.06;
-      // 콧등: 미간(bx, 눈높이)에서 코끝으로. 왼쪽 면은 빛, 오른쪽(먼) 면은 그늘
-      const t = (y - f.ey) / (ny0 - f.ey); if (t > 0 && t < 1.02) { const rx = lerp(f.bx + f.nb * t * (1 - t) * 4, nx0 - 1.2, t); if (x > rx && x < rx + 2) v -= 0.3; else if (x <= rx && x > rx - 1.4 - t * 0.6) v += 0.15; }
-      if (((x - nx0 + 1.4) / 1.8) ** 2 + ((y - ny0 - 1.4) / 0.9) ** 2 < 1) v -= 0.24;
-      if (((x - nx0 + 4.6) / 1.3) ** 2 + ((y - ny0 + 0.2) / 1.4) ** 2 < 1) v -= 0.16;
-      if (((x - 29.6) / 3) ** 2 + ((y - ny0 + 0.6) / 2.2) ** 2 < 1) v -= 0.16 * f.thin; if (((x - 31) / 3.4) ** 2 + ((y - f.ey - 3.6) / 1.6) ** 2 < 1) v += 0.08 + 0.08 * f.thin;
-      if (f.fat && ((x - 32.6) / 4.4) ** 2 + ((y - ny0) / 3) ** 2 < 1) v += 0.08 * f.fat;
-      const jl = lerp(jy, cy + 0.6, clamp((x - jx) / (cx - jx), 0, 1)); if (y > jl - 1.8 && x > jx - 1) v -= 0.22;
-      if (f.fat && y > cy - 2.4 && y < cy + 0.2 && x > cx - 8 && x < cx) v -= 0.12 * f.fat;
-      if (((x - cx + 0.6) / 2.2) ** 2 + ((y - cy + 2.4) / 1.4) ** 2 < 1) v += 0.08;
-      if (((x - f.mx) / 2) ** 2 + ((y - f.my - 2.6) / 0.9) ** 2 < 1) v -= 0.1;
-      if (x < jx + 2 && y > f.ny - 2) v -= 0.06;
-      if (f.rim && !at(X + 1, Y) && x > 33 && y > f.ey - 4) v = 2;
-      return v; }; }
+  const faceGeo = f => { const T = f.top, C = f.chin[1], H = C - T, ey = T + H * (f.child ? 0.545 : 0.5), ny = (ey + C) / 2 + f.nl, my = ny + (C - ny) / 2.7;
+    return Object.assign(f, { ey, by: ey - 3, ny, my, ex1: 30, ex2: 38.8, ew1: 4.6, ew2: 3.4, nx: 41.4 + f.np * 0.6, bx: 35.4, mx: 37, mw: 6.4, earT: ey - 2.2, earB: ny + 0.6, earX: f.jaw[0] - 1.6 }); };
+  // 얼굴 윤곽: 이마 → 먼 쪽 관자놀이 → 눈두덩 → 콧등(윤곽에 살짝만 걸린다) → 인중 → 입 → 턱 끝 → 턱선 → 귀 밑
+  const facePts = f => { const T = f.top, [cx, cy] = f.chin, [jx, jy] = f.jaw, b = f.nb, nx = f.nx, ny = f.ny, ey = f.ey, my = f.my, fat = f.fat || 0;
+    return [[jx - 1.2, f.earT - 0.4], [21.6, T + 7], [24.6, T + 2.6], [30, T + 0.2], [36, T + 0.4], [39.8, T + 3], [41.4, T + 7.4], [41.4, ey - 3], [41, ey - 1], [41 + b * 0.3, ey + 1.6], [41.4 + b * 0.6, ey + 3.6],
+      [nx - 0.2, ny - 1.4], [nx, ny], [nx - 0.8, ny + 1], [40.6, ny + 1.6], [40.8, my - 1.4], [41, my], [40.6, my + 1.6],
+      [cx + 1.2, cy - 1.6], [cx + 0.4, cy - 0.2], [cx - 1.6, cy + 0.4], [cx - 5.4, cy + fat * 1.4], [jx + 4, jy + 2.4 + fat], [jx + 0.6, jy], [jx - 0.6, jy - 3]]; };
+  // 살빛의 단(1 깊은 그늘, 2 그늘, 3 바탕, 4 빛). 잡점 없이 면으로 나눈다: 빛은 왼쪽 위, 콧등에서 오른쪽(먼 뺨)은 그늘 면
+  function faceTone(f) { const [cx, cy] = f.chin, [jx, jy] = f.jaw, nx = f.nx, ny = f.ny, ey = f.ey, by = f.by, my = f.my, T = f.top;
+    const plane = y => y < by ? 40.4 : y < ny ? lerp(f.bx + 2.6, nx - 0.4, (y - by) / (ny - by)) : y < my + 1 ? lerp(nx - 1, f.mx + f.mw * 0.5 + 0.8, (y - ny) / (my + 1 - ny)) : lerp(f.mx + f.mw * 0.5 + 0.8, cx - 0.2, clamp((y - my - 1) / (cy - my - 1), 0, 1));
+    return (x, y) => {
+      if (((x - nx + 1.3) / 0.9) ** 2 + ((y - ny - 0.9) / 0.6) ** 2 < 1) return 1;
+      if (x > plane(y) + 0.2) return y > ny + 2 && x > plane(y) + 2.4 && y > my ? 1 : 2;
+      if (y > ny + 0.9 && y < ny + 1.9 && x > nx - 3.6 && x < nx) return 2;
+      if (y > ey - 2 && y < ey - 0.9 && x > f.ex2 - 2.4 && x < f.ex2 + 2) return 2;
+      if (((x - f.mx + 0.2) / 2) ** 2 + ((y - my - 2.2) / 0.6) ** 2 < 1) return 2;
+      if (y > lerp(jy, cy, clamp((x - jx) / (cx - jx), 0, 1)) - 1.1 && x > f.mx - 1) return 2;
+      if (((x - 30.4) / 7.4) ** 2 + ((y - T - 5.4) / 4.4) ** 2 < 1) return 4;
+      if (((x - 31) / (4.4 + (f.fat || 0) * 1.4)) ** 2 + ((y - ey - 4.2) / (3 + (f.fat || 0))) ** 2 < 1) return 4;
+      if (y > ey + 0.6 && y < ny - 0.6 && x < plane(y) && x > plane(y) - 1.2) return 4;
+      if (((x - cx + 2.4) / 1.8) ** 2 + ((y - cy + 2) / 1) ** 2 < 1) return 4;
+      return 3; }; }
   function bFace(D, f, md) {
-    const R = sRamp(f.skin), oc = sOut(f.skin), m = D.poly(facePts(f)), S2 = D.S + PAD * 2; D.el(30.6, f.top + 12.4, 11.4, 12.4, m);
-    const FL = faceLight(f, m, S2); D.shade(m, (x, y, X, Y) => { const v = FL(x, y, X, Y); return v > 1.5 ? f.rim.c : quant(R, v, X, Y, 0.6); }, oc);
-    // 귀: 위끝은 눈썹, 아래끝은 코끝 높이
-    if (!f.noEar) { const ec = (f.earT + f.earB) / 2, eh = (f.earB - f.earT) / 2; const em = D.el(f.earX, ec, 1.9, eh); D.el(f.earX + 0.6, f.earT + eh * 0.55, 2, eh * 0.55, em); D.shade(em, (x, y, X, Y) => quant(R, 0.6 - (x - f.earX) * 0.1 - (y - ec) * 0.03, X, Y, 0.6), mixh(f.skin, '#2a1410', 0.6)); flatL(D, [[f.earX + 0.4, f.earT + 2], [f.earX, ec], [f.earX + 0.6, f.earB - 2.4]], R[2], 0.4); D.px(f.earX + 0.8, ec + 0.6, R[1]); D.px(f.earX - 0.8, f.earT + 1.2, R[4]); }
-    // 코끝의 빛, 콧구멍 그늘(코끝 아래), 콧방울
-    D.px(f.nx - 0.8, f.ny - 1, R[5]); D.px(f.nx - 1.6, f.ny + 1, R[0]); D.px(f.nx - 0.8, f.ny + 1, R[1]); flatL(D, [[f.nx - 5, f.ny - 0.4], [f.nx - 4.6, f.ny + 1], [f.nx - 3.4, f.ny + 1.3]], R[1], 0.4);
-    const a = f.age, L = f.mx - f.mw * 0.55; if (a >= 1) { flatL(D, [[f.ex1 - 3.2, f.ey + 0.4], [f.ex1 - 4.4, f.ey + 1.6]], R[2], 0.4); flatL(D, [[f.ex1 - 2.6, f.ey + 2.4], [f.ex1 + 1.4, f.ey + 3]], R[2], 0.4); }
-    if (a >= 2) { flatL(D, [[f.nx - 5.2, f.ny + 0.8], [L - 0.6, f.my + 1.2]], R[1], 0.45); for (const yy of [f.top + 5, f.top + 7.4]) flatL(D, [[29, yy], [38.6, yy - 0.4]], R[2], 0.4); }
-    if (a >= 3) { flatL(D, [[f.ex1 - 3.4, f.ey - 0.6], [f.ex1 - 4.8, f.ey - 1]], R[2], 0.4); flatL(D, [[L - 0.6, f.my + 2], [L, f.my + 4.6]], R[1], 0.4); flatL(D, [[31, f.chin[1] - 4], [33.4, f.chin[1] - 1]], R[2], 0.4); }
+    const R = sRamp(f.skin), oc = sOut(f.skin), m = D.poly(facePts(f)); D.el(31, f.top + 11.6, 10.6, 11.6, m);
+    if (!f.noEar) D.cut(m, (x, y) => !(y > f.earT - 1 && y < f.earB + 2.6 && x < f.earX + 0.6));
+    const tone = faceTone(f), S2 = D.S + PAD * 2, at = (X, Y) => X >= 0 && Y >= 0 && X < S2 && Y < S2 && m[Y * S2 + X];
+    D.shade(m, (x, y, X, Y) => { const t = tone(x, y); if (f.rim && t <= 2 && !at(X + 1, Y) && y > f.ey - 4) return f.rim.c; return R[t]; }, oc);
+    // 귀: 머리 옆 뒤편, 위끝은 눈썹 아래, 아래끝은 코끝. 바깥 테가 윤곽이 되고 안쪽은 C 자 그늘. 얼굴 쪽 끝에는 테두리가 없다
+    if (!f.noEar) { const ex = f.earX, ec = (f.earT + f.earB) / 2, eh = (f.earB - f.earT) / 2 * 0.9, em = D.el(ex, ec, 1.8, eh);
+      D.shade(em, (x, y) => { if (((x - ex - 0.5) / 0.75) ** 2 + ((y - ec - eh * 0.15) / (eh * 0.38)) ** 2 < 1) return R[2]; return x < ex - 0.8 || y < ec - eh * 0.7 ? R[4] : R[3]; }, null);
+      for (let k = -0.92; k <= 0.92; k += 0.08) { const y = ec + k * eh, w = Math.sqrt(1 - k * k) * 1.8; D.px(ex - w - 0.5, y, oc); if (k < -0.5) D.px(ex + w * 0.6, y - 0.5, oc); }
+      D.px(ex + 0.6, ec + eh * 0.25, R[1]); }
+    // 코끝의 빛
+    D.px(f.nx - 1.6, f.ny - 0.6, R[5]);
+    const a = f.age, L = f.mx - f.mw * 0.5; if (a >= 1) { flatL(D, [[f.ex1 - 2.8, f.ey + 1.8], [f.ex1 + 0.8, f.ey + 2.4]], R[2], 0.4); }
+    if (a >= 2) { flatL(D, [[f.nx - 4.6, f.ny + 1.2], [L - 0.4, f.my + 1.2]], R[2], 0.45); flatL(D, [[29, f.top + 4.6], [37, f.top + 4.2]], R[3], 0.4); flatL(D, [[29.6, f.top + 6.6], [36.4, f.top + 6.4]], R[2], 0.4); }
+    if (a >= 3) { flatL(D, [[f.ex1 - 3.2, f.ey - 0.2], [f.ex1 - 4.4, f.ey - 0.8]], R[2], 0.4); flatL(D, [[L - 0.8, f.my + 1.8], [L - 0.2, f.my + 4.2]], R[2], 0.4); flatL(D, [[31.4, f.chin[1] - 3.4], [33.6, f.chin[1] - 1.2]], R[2], 0.4); }
     return R;
   }
   // 눈: 가까운 눈(왼쪽)은 온전히, 먼 눈은 좁다. 기분은 뜬 정도·눈동자 크기·윗눈꺼풀로 갈린다
@@ -5319,7 +5381,7 @@ const LAIRART = (() => {
     else { flatL(D, [[L + 1.6, y - 0.8], [Rr - 1.6, y - 0.8]], lipM, 0.4); flatL(D, [[L, y + 0.2], [L + 1, y], [x - 0.6, y + 0.2], [x, y], [Rr - 0.6, y], [Rr, y + 0.1]], dk, 0.45); flatL(D, [[x - 1.6, y + 1.1], [x + 1, y + 1.1]], lipL, 0.45); D.px(x - 0.4, y + 2.6, R[2]); }
   }
   // 목: 귀 아래에서 시작한다. 턱 밑은 그늘
-  const bNeck = (D, f, w) => { w = w || 0; const R = sRamp(f.skin); D.shade(D.poly([[f.earX - 0.6 - w, f.earB], [f.jaw[0] + 4, f.jaw[1] + 2.8], [f.chin[0] - 2, f.chin[1] + 0.4], [38.6 + w * 0.5, 50], [39 + w * 0.5, 52], [25 - w, 52], [24 - w, 44]]), (x, y, X, Y) => quant(R, 0.42 - (x - 30) * 0.03 - (y < f.chin[1] + 1.4 ? 0.2 : 0), X, Y), sOut(f.skin)); };
+  const bNeck = (D, f, w) => { w = w || 0; const R = sRamp(f.skin); D.shade(D.poly([[f.earX - 0.6 - w, f.earB], [f.jaw[0] + 4, f.jaw[1] + 2.8], [f.chin[0] - 2, f.chin[1] + 0.4], [38.6 + w * 0.5, 50], [39 + w * 0.5, 52], [25 - w, 52], [24 - w, 44]]), (x, y) => y < f.chin[1] + 2.2 && x > f.jaw[0] + 1 ? R[1] : x > 34 ? R[2] : R[3], sOut(f.skin)); };
   // 한 사람: o.face(얼굴 값), o.back o.body o.neck(false 면 없음) o.collar o.hairB(머리 뒤) o.beard o.hair o.hat o.front o.extra(얼굴 위 덧그림)
   const bustMan = o => ({ bg: o.bg, lamp: o.lamp, flick: o.flick, ph: o.ph || 0, glow: o.glow, face: o.noFace ? null : o.face, draw(D, md) {
     const f = faceGeo(Object.assign({}, FACE0, o.face));
@@ -5379,9 +5441,9 @@ const LAIRART = (() => {
     collar: D => { const st = STEEL6; cloth(D, [[24.4, 44], [41, 44.4], [43, 50.6], [22.6, 50.6]], st, { base: -0.08 }); flatL(D, [[23.4, 47.6], [42, 47.6]], st[1], 0.45); },
     hair: D => { const hr = ['#14100c', '#3a3028', '#5a4c3e', '#7a6a58', '#a09280']; hairG(D, [[21.6, 30], [20.6, 21], [22.6, 14], [28, 10], [35, 9.2], [40.6, 11.6], [42.4, 15.6], [39.6, 14.6], [35, 14.2], [30.4, 15.6], [27, 18.4], [25.8, 24], [25.6, 30]], hr, -0.25, { fq: 2, amp: 0.4 });
       for (const [x, y] of [[23, 22], [22.6, 25], [24, 19], [21.8, 27.6]]) D.px(x, y, '#c8c0b0'); },
-    beard: (D, md, R) => { const bd = ['#1a140f', '#4a3e32', '#6e6050', '#928472', '#b8ac9a']; hairG(D, [[25.8, 33.4], [28, 36], [31, 38], [33.6, 38.4], [35.6, 39.4], [38.6, 39.6], [41.2, 39], [41.4, 40.6], [40.6, 43], [38.6, 45], [34, 45.4], [29.6, 43.6], [26.6, 40.4], [25, 36]], bd, Math.PI / 2, { fq: 1.6, amp: 0.45, base: 0.08 });
-      for (const [x, y] of [[29, 40], [33, 43], [37.6, 44], [31.6, 38.6]]) D.px(x, y, '#c0b8a8'); },
-    beardF: D => { const bd = ['#1a140f', '#4a3e32', '#6e6050', '#928472', '#b8ac9a']; hairG(D, [[32, 37.4], [34.6, 35.8], [38, 35.6], [41.2, 35.8], [41.6, 37], [39.4, 36.8], [36.6, 37.2], [34, 38], [32.2, 38.4]], bd, 0.2, { fq: 2, amp: 0.3, base: 0.1 }); },
+    beard: (D, md, R) => { const bd = ['#1a140f', '#3a3028', '#5a4c3e', '#7a6a58', '#9a8a74']; D.shade(D.poly([[24.6, 34.6], [26.8, 38.4], [30, 40.6], [33.6, 41], [36, 40.4], [38.6, 41], [41, 40.6], [41.2, 42.4], [39.6, 44.6], [36, 45.6], [31.6, 45], [27.6, 42.6], [24.8, 38.6]]), (x, y) => { const v = 0.62 - (x - 28) / 18 - (y - 40) / 12 + (((x * 2 + y) | 0) % 3 === 0 ? -0.12 : 0); return v > 0.55 ? bd[4] : v > 0.3 ? bd[3] : v > 0.05 ? bd[2] : bd[1]; }, bd[0]);
+      for (const [x, y] of [[29, 41.4], [33, 43.6], [37.6, 44], [26.6, 38.4]]) D.px(x, y, '#b8ac9a'); },
+    beardF: (D, md) => { const bd = ['#1a140f', '#3a3028', '#5a4c3e', '#7a6a58', '#9a8a74'], my = 37.2; D.shade(D.poly([[32.4, my - 0.6], [34.6, my - 2], [38, my - 2.2], [41.2, my - 2], [41.6, my - 0.8], [39.4, my - 1], [36.6, my - 0.8], [34, my - 0.2], [32.6, my + 0.4]]), (x, y) => y < my - 1.6 ? bd[3] : bd[2], bd[0]); },
     extra: D => { flatL(D, [[38.2, 20.6], [39.2, 24.4]], '#e0a088', 0.45); flatL(D, [[39.8, 28], [40.6, 31]], '#e0a088', 0.45); flatL(D, [[39, 20.6], [40, 24.4]], '#6a3a2c', 0.35); } });
   // 에다 볼크, 기록관: 마른 학자의 얼굴(꺼진 뺨, 가는 턱, 긴 코), 철사 테의 둥근 안경, 뒤로 틀어 올린 검갈색 머리와 깃펜, 초록 외투와 흰 깃, 목에 건 돋보기
   BUST.eda = bustMan({ bg: 'road', lamp: [6, 8], ph: 300,
@@ -5419,7 +5481,7 @@ const LAIRART = (() => {
     back: D => { for (let y = 40; y < 66; y += 1.3) D.px(12 + (Math.round(y / 1.3) % 2) * 0.8, y, Math.round(y / 1.3) % 2 ? '#a8b0c4' : '#4a5064'); },
     body: D => { const sh = ['#0e0e0a', '#262a1e', '#3a4030', '#4e5640', '#68725a'], fur = ['#1c1008', '#4a3420', '#7a5a3a', '#9c7a52', '#c8a878']; cloth(D, [[4, 66], [7, 54], [18, 47], [45, 47], [56, 53], [60, 66]], sh, { folds: 2 });
       strands(D, D.poly([[3, 66], [6, 54], [16, 46], [26, 46.6], [24, 52], [20, 66]]), fur, 1.4, { fq: 1.4, amp: 0.5, cx: 14, cy: 50 }); strands(D, D.poly([[40, 47], [48, 47], [57, 53], [61, 66], [43, 66], [44, 54]]), fur, 1.8, { fq: 1.4, amp: 0.5, cx: 50, cy: 52 }); },
-    skinX: (D, md, R) => { for (let k = 0; k < 40; k++) { const x = 27 + hsh(k, 71) * 16, y = 34 + hsh(k, 72) * 9; if (y > 33 + (x - 27) * 0.1 && hsh(k, 73) > 0.35) D.px(x, y, R[1]); } flatL(D, [[28.6, 29.4], [31.4, 34.6]], '#d89a80', 0.4); flatL(D, [[29.2, 29.4], [32, 34.6]], '#6a3a2a', 0.3); },
+    skinX: (D, md, R) => { flatL(D, [[28.6, 29.4], [31.4, 34.6]], '#d89a80', 0.4); flatL(D, [[29.2, 29.4], [32, 34.6]], '#6a3a2a', 0.3); },
     extra: D => { flatL(D, [[21, 22], [36.8, 24.6]], '#4a3424', 0.4); flatL(D, [[41.2, 25], [41.8, 24.4]], '#4a3424', 0.4); D.flat(D.poly([[36.8, 23.8], [41, 23.6], [41.6, 26], [40.6, 28.4], [37.8, 28.6], [36.8, 26.6]]), '#3a2a20', '#0c0806'); D.px(37.8, 24.6, '#6a5040'); D.px(38.8, 24.4, '#6a5040'); flatL(D, [[37.4, 27.6], [40.4, 27.4]], '#241a14', 0.4); },
     hair: D => { const hr = ['#08070a', '#16131a', '#26222a', '#3a343c', '#544c56']; hairG(D, [[19.6, 32], [19, 20], [21, 13], [24, 11.6], [25.6, 8.4], [29, 10], [32, 6.8], [34.6, 9.4], [38.6, 7.4], [40.6, 10.6], [44, 11], [43.6, 15.6], [45, 18.6], [41, 17.4], [39, 19], [36.4, 16.6], [33, 18.6], [30, 17], [27.6, 20], [26, 25], [25.4, 33]], hr, 0.5, { fq: 1.4, amp: 0.45 }); },
     front: D => { const st = ['#1b1d2a', '#4a5068', '#8a92a8', '#c0c8dc', '#ffffff'], cx = 12.6, cy = 52.6, r = 8.4; strands(D, D.cut(D.el(cx, cy, r, r), (x, y) => { const dx = (x - cx) / (r - 2), dy = (y - cy) / (r - 2); return dx * dx + dy * dy > 1; }), st, 0.6, { fq: 0.6, amp: 0.1, cx, cy, rx: 9, ry: 9 });
@@ -5460,7 +5522,7 @@ const LAIRART = (() => {
     back: D => { D.L([[52, 66], [53, 10]], 1.1, 1.1, R4(P.wood)); D.L([[53, 10], [52.6, 4.6], [56.6, 1.6], [60.4, 3.6], [60, 7.6]], 1.1, 0.9, R4(P.wood)); },
     body: D => cloth(D, [[3, 66], [6, 54], [17, 47], [46, 47], [56, 53], [60, 66]], ['#16120c', '#3a3020', '#584a32', '#76664a', '#948464'], { folds: 3 }),
     collar: D => { const wl = ['#2a2418', '#a89c80', '#d0c6ae', '#ece4d0', '#fffaee']; const m = D.poly([[12, 54], [17, 45], [32, 46.6], [46, 45], [52, 53], [44, 57], [32, 51.6], [20, 57]]); for (const [x, y] of [[15, 50], [20, 48.6], [26, 48.4], [38, 48.4], [44, 48.6], [49, 50.6]]) D.el(x, y, 2.6, 2.2, m); strands(D, m, wl, 0.6, { fq: 2.4, amp: 0.55, cx: 32, cy: 46 }); },
-    skinX: (D, md, R) => { for (let k = 0; k < 50; k++) { const x = 26 + hsh(k, 81) * 18, y = 33 + hsh(k, 82) * 10; if (hsh(k, 83) > 0.62) D.px(x, y, k % 3 ? '#6a5a4a' : '#8a8070'); } },
+    beard: (D, md, R) => { const sg = ['#2a2622', '#5a544a', '#7a7468', '#948e82', '#b0aa9e']; D.shade(D.poly([[25.4, 34], [27.6, 37.6], [31, 40], [34.6, 41], [38.4, 40.6], [40.6, 38.6], [41, 40.4], [40.6, 42.6], [39, 43.4], [34, 43.8], [29.6, 42.4], [26.4, 39.4], [24.6, 36]]), (x, y) => x > 37 + (y - 38) * 0.4 ? sg[1] : y > 41.6 ? sg[1] : x < 28 ? sg[3] : sg[2], null); flatL(D, [[33.6, 37.2], [36.2, 36.4], [39.4, 36.6], [41, 37.2]], sg[1], 0.5); },
     hairB: D => hairG(D, [[18.6, 33], [18.6, 22], [24, 19], [25.6, 26], [25, 34]], ['#1a1814', '#4e4a42', '#7a7468', '#a29c90', '#c8c2b6'], 1.3, { fq: 1.8 }),
     hat: D => { const ft = ['#100c08', '#2e2418', '#4a3a26', '#665238', '#86704c']; cloth(D, [[20.6, 18.6], [22.6, 9.6], [30, 6.6], [38, 7.6], [42, 12], [42.4, 18.6]], ft, { base: 0.05 }); cloth(D, [[11, 21], [14.6, 17.4], [46.6, 16.6], [51, 20], [44, 21.4], [20, 22]], ft, { base: 0.08 }); D.rect(21.6, 15.4, 20.4, 1.4, '#1e1610'); } });
   // 기사단장: 짧게 깎은 회색 머리, 각진 턱과 턱의 흉터, 깊은 이마 주름, 금테 판금, 흰 겉옷의 붉은 감은 눈, 흰 망토
@@ -5471,7 +5533,7 @@ const LAIRART = (() => {
     body: D => { const st = STEEL6; D.shade(D.el(11.6, 54.6, 9.6, 6.8), (x, y, X, Y) => quant(st, 0.82 - (x - 9) / 16 - (y - 50) / 12, X, Y), st[0]); D.shade(D.el(53, 54.6, 9.2, 6.6), (x, y, X, Y) => quant(st, 0.62 - (x - 50) / 16 - (y - 50) / 12, X, Y), st[0]); flatL(D, [[3, 55], [20, 50.6]], '#e8c030', 0.6); flatL(D, [[44, 50.6], [61, 55]], '#e8c030', 0.6);
       cloth(D, [[19, 66], [20.6, 50], [44, 50], [45.6, 66]], WHT5, { base: 0.1 }); D.rect(20, 50, 25, 1.4, '#e8c030'); shutEye(D, 32.6, 58, CULTR); D.rect(32.2, 61, 0.9, 4, CULTR); },
     collar: D => { cloth(D, [[24.4, 43.6], [41, 44], [43, 50.4], [22.6, 50.4]], STEEL6, { base: -0.05 }); D.rect(23, 48.6, 20, 1, '#e8c030'); },
-    skinX: (D, md, R) => { flatL(D, [[37.4, 41.4], [39.4, 43.4]], '#e8b8a0', 0.4); flatL(D, [[38, 41.4], [40, 43.4]], '#6a3a30', 0.3); for (let k = 0; k < 24; k++) { const x = 28 + hsh(k, 91) * 15, y = 35 + hsh(k, 92) * 8; if (hsh(k, 93) > 0.5) D.px(x, y, R[2]); } },
+    skinX: (D, md, R) => { flatL(D, [[37.4, 41.4], [39.4, 43.4]], '#e8b8a0', 0.4); flatL(D, [[38, 41.4], [40, 43.4]], '#6a3a30', 0.3); },
     hair: D => hairG(D, [[20.6, 30], [20, 20], [22.6, 13], [29, 9.6], [36.6, 9.6], [41.6, 12.6], [42.6, 16.6], [38.6, 15.4], [33, 15], [28.6, 16.6], [26, 20], [25.6, 30]], ['#1b1d2a', '#5a5a64', '#8a8a92', '#b0b0b8', '#d8d8e0'], -0.2, { fq: 2.4, amp: 0.3 }) });
   // 심문관: 창백하고 여윈 얼굴, 가는 눈, 얇은 입, 검은 챙모자의 그늘, 높은 검은 깃, 붉은 옷, 달군 쇠 인장의 불빛
   BUST.inquis = bustMan({ bg: 'church', lamp: [52, 44], glow: '#a8481a', ph: 2900,
@@ -5479,14 +5541,13 @@ const LAIRART = (() => {
     body: D => { cloth(D, [[3, 66], [6, 54], [17, 47], [46, 47], [56, 53], [60, 66]], ['#1a0406', '#4a0c12', '#7a1a20', '#a8302c', '#c85040'], { folds: 1.5 }); cloth(D, [[29.4, 52], [35.4, 52], [36, 66], [29, 66]], ['#07050c', '#141018', '#221c26', '#302834', '#403644']); D.B(32.4, 56, 1.6, 1.6, R4(P.steel)); },
     collar: D => { const bk = ['#07050c', '#141018', '#221c26', '#302834', '#403644']; cloth(D, [[20, 36], [25, 44], [32.6, 46], [40, 44], [45, 36], [47.4, 52], [17.6, 52]], bk); },
     hat: D => { const bk = ['#07050c', '#141018', '#221c26', '#302834', '#403644']; cloth(D, [[22, 17.6], [23.6, 2], [40, 2], [41.6, 17.6]], bk, { base: 0.1 }); cloth(D, [[9, 20], [13, 16], [50.6, 16], [55, 20], [46, 21], [18, 21]], bk, { base: 0.1 }); D.rect(23.4, 13, 17.6, 2.2, '#7a1a20'); D.B(32, 14, 2.2, 2.2, P.gold); D.px(31.4, 13.4, '#fff3a0'); },
-    extra: D => { for (let x = 24; x < 44; x += 0.5) for (let y = 21; y < 23.4; y += 0.5) if (y < 22.2 || hsh(Math.round(x * 2), Math.round(y * 2)) > 0.5) D.px(x, y, '#3a2c28'); },
+    extra: D => { D.rect(24, 21, 19.6, 1.6, '#3a2c28'); D.rect(25, 22.6, 17, 0.8, '#6a5248'); },
     front: D => { D.L([[48, 66], [52, 44]], 1.2, 1.2, R4(P.steel)); D.B(53, 40, 4.4, 4.4, R4(P.steel)); D.flat(D.el(53.4, 39.4, 2.8, 2.8), '#ff8a2a', '#3a1008'); D.flat(D.el(53.2, 39.2, 1.3, 1.3), '#fff3c0'); D.B(49, 57, 2.8, 2.4, R4(['#2a1410', '#d8c0a8', '#f0dcc8', '#a08068'])); } });
   // 궁수: 젊은 사내, 초록 두건, 옅은 수염 자국, 가죽 옷, 어깨 너머 화살깃, 가슴을 가로지르는 활시위
   BUST.archer = bustMan({ bg: 'road', lamp: [6, 8], ph: 3500,
     face: { skin: '#d8a07c', brow: '#5a3a20', browW: 0.8, iris: '#3a4a2a', thin: 0.3, lip: '#9a5a48' },
     back: D => { cloth(D, [[8, 44], [16, 41], [20, 58], [12, 61]], ['#140c06', '#3a2414', '#5a3a22', '#7a5434', '#9a7048']); for (let k = 0; k < 4; k++) { D.rect(8.6 + k * 2.2, 31 - k * 1.2, 1.2, 10, '#c08a50'); D.G([[8 + k * 2.2, 32 - k * 1.2], [9.2 + k * 2.2, 26 - k * 1.2], [10.6 + k * 2.2, 32 - k * 1.2]], R4(P.red)); } },
     body: D => { cloth(D, [[3, 66], [6, 54], [17, 47], [46, 47], [56, 53], [60, 66]], ['#100a08', '#2a1c16', '#443028', '#5e463a', '#7a5e4e'], { folds: 2 }); flatL(D, [[14, 50], [46, 66]], '#e8e0d0', 0.4); },
-    skinX: (D, md, R) => { for (let k = 0; k < 20; k++) { const x = 30 + hsh(k, 95) * 12, y = 36 + hsh(k, 96) * 6; if (hsh(k, 97) > 0.5) D.px(x, y, R[2]); } },
     hat: D => { const g = ['#0c160c', '#1e3418', '#304e24', '#4a6c34', '#6a8c4a']; cloth(D, [[17, 46], [17.6, 22], [20, 13], [27, 7.6], [36, 7.6], [42.6, 11.6], [45, 18], [44.6, 24], [42.4, 18.6], [37, 15], [31, 15], [27, 17.6], [25, 22.6], [24.6, 34], [26, 40], [22, 46]], g, { base: 0.1 }); cloth(D, [[20, 46], [42, 44], [47, 49], [44, 54], [24, 54], [17, 50]], g, { base: 0.05 }); } });
   // ---------- 탑의 주인 ----------
   // 에녹 하르: 여윈 얼굴, 깊이 꺼진 눈두덩 속에서 빛나는 눈, 매부리코, 얇은 입, 모자 밑으로 흘러내린 잿빛 머리, 세운 깃 안의 붉은 목도리, 붉은 표지의 책
@@ -5495,7 +5556,7 @@ const LAIRART = (() => {
     body: D => { const coat = ['#0c0a0c', '#201a18', '#342a24', '#4a3c32', '#5e4e40']; cloth(D, [[3, 66], [6, 54], [17, 47], [46, 47], [56, 53], [60, 66]], coat, { folds: 1 }); flatL(D, [[32.6, 52], [32.6, 66]], coat[1], 0.5); for (const y of [56, 62]) D.px(34.4, y, P.gold[1]); },
     collar: D => { const coat = ['#0c0a0c', '#201a18', '#342a24', '#4a3c32', '#5e4e40']; cloth(D, [[22, 42.6], [42, 43], [44, 50], [20, 50]], ['#1a0406', '#44161c', '#6e2a30', '#8e3e40', '#a85a58']); cloth(D, [[12, 52], [16, 34], [22, 37], [24, 52]], coat, { base: 0.1 }); cloth(D, [[51, 52], [47, 34], [42, 37], [41, 52]], coat); },
     hairB: D => hairG(D, [[17.6, 18], [24, 17], [25, 30], [23.4, 40], [20, 44], [17, 38]], ['#141418', '#3e3c44', '#5e5a64', '#827e88', '#a8a4ae'], 1.45, { fq: 1.6, amp: 0.35 }),
-    extra: (D, md) => { for (let y = 20.6; y < 29; y += 0.5) for (let x = 25.6; x < 41.4; x += 0.5) { const k = (29 - y) / 8.4; if (hsh(Math.round(x * 2), Math.round(y * 2) + 7) < k * 0.9 + 0.1) D.px(x, y, k > 0.6 ? '#1e181c' : '#3a2e30'); }
+    extra: (D, md) => { D.rect(25.6, 20.6, 15.8, 3.6, '#1e181c'); D.rect(26, 24.2, 15.2, 4, '#2e2428'); D.rect(26.6, 28.2, 14, 0.8, '#4a3c3a');
       if (md.blink) return; const g = md.mood === 'mad' ? '#e070ff' : md.mood === 'fear' ? '#ffffff' : '#c8e0f8', gl = md.mood === 'mad' ? '#7a2aa8' : '#4a6a8a', op = md.mood === 'fear' ? 1.4 : md.mood === 'grim' ? 0.7 : 1;
       for (const [x, w] of [[29.4, 2.2], [39, 1.6]]) { D.flat(D.el(x, 26.6, w * 1.2, 0.9 * op + 0.4), gl, null); D.flat(D.el(x + 0.3, 26.6, w * 0.6, 0.45 * op + 0.2), g, null); D.px(x + 0.3, 26.6, '#ffffff'); } if (md.mood === 'mad') { flatL(D, [[29, 28.4], [28, 33.4]], '#1a1030', 0.4); flatL(D, [[39.2, 28.4], [39.8, 32.4]], '#1a1030', 0.4); } },
     hat: D => { const hp = ['#0c0a0c', '#1e1a18', '#302a24', '#463c32', '#5c5040']; cloth(D, [[22, 15.6], [23.6, 3.6], [40, 3.6], [41.6, 15.6]], hp, { base: 0.05 }); cloth(D, [[13, 18.4], [16, 15], [48, 15], [51, 18.4], [44, 19.6], [20, 19.6]], hp, { base: 0.08 }); D.rect(23.4, 11.6, 17.6, 2, '#5a2228'); } });
@@ -7139,7 +7200,7 @@ const MAZESTORY = (() => {
       ],
       guide: ['상점에서 권속을 사고, 밝아진 칸을 눌러 세운다.'] },
 
-    { id: 'c1', title: '떨어진 밤', concept: '바위를 판다', raids: ['c1_torch', 'c1_mob', 'c1_hounds'],
+    { id: 'c1', title: '떨어진 밤', concept: '방을 지어 붙인다', raids: ['c1_torch', 'c1_mob', 'c1_hounds'],
       start: [
         sc('물레골 집회소', ['촌장', '양치기', '늙은 바스코'], [
           S('양치기', '세 마리요. 문은 잠겨 있었소. 울타리도 멀쩡하고.'),
@@ -7179,7 +7240,7 @@ const MAZESTORY = (() => {
           D('바늘 하나가 돌아서는 소리. 아주 먼 데서.')
         ])
       ],
-      guide: ['바위를 눌러 판다. 굴이 길수록 침입자가 오래 걷는다.'] },
+      guide: ['빈 자리를 눌러 방을 짓는다. 굴이 길수록 침입자가 오래 걷는다.'] },
 
     { id: 'c2', title: '기록관의 편지', concept: '방 종류를 깔고, 헤매는 일행을 막다른 곳으로', raids: ['c2_party', 'c2_rogue', 'c2_eda'],
       start: [
@@ -7219,7 +7280,7 @@ const MAZESTORY = (() => {
           N('쓴 기억이 없는 문장이었다. 이튿날 아침 그녀는 기록장을 연금술사 조합에 보내지 않았다.')
         ])
       ],
-      guide: ['판 칸을 눌러 방 종류를 깐다. 막다른 곳은 헤매는 일행을 붙잡는다.', '다음 장부터 곧은 굴로는 버티기 어렵다. 곁가지와 막다른 곳을 판다.'] },
+      guide: ['지은 방을 눌러 방 종류를 깐다. 막다른 곳은 헤매는 일행을 붙잡는다.', '다음 장부터 곧은 굴로는 버티기 어렵다. 곁가지와 막다른 곳을 짓는다.'] },
 
     { id: 'c3', title: '연금술사의 값', concept: '함정을 깔고, 밤에 지상으로 손을 뻗는다', raids: ['c3_hired', 'c3_tappers', 'c3_isel'],
       start: [
@@ -7259,7 +7320,7 @@ const MAZESTORY = (() => {
           S('이셀', '…다음엔 세 배를 부른다.')
         ])
       ],
-      guide: ['판 칸을 함정으로 바꿀 수 있다.', '침입 사이 밤에 지상 카드 하나를 고른다.'] },
+      guide: ['빈 자리에 함정을 바로 짓거나, 지은 방을 함정으로 바꾼다.', '침입 사이 밤에 지상 카드 하나를 고른다.'] },
 
     { id: 'c4', title: '사냥꾼', concept: '길잡이를 먼저 쓰러뜨린다', raids: ['c4_tracker', 'c4_pack', 'c4_trap', 'c4_tov'],
       start: [
@@ -7349,7 +7410,7 @@ const MAZESTORY = (() => {
       ],
       guide: ['미끼 불빛은 헤매는 일행을 끌어들인다.', '삼키는 구멍은 일행을 입구로 되돌린다.', '헛갈림 벽은 다음 갈림길에서 틀린 쪽으로 가게 한다.'] },
 
-    { id: 'c6', title: '예언', concept: '바위를 부수고 오는 자를 막는다', raids: ['c6_thralls', 'c6_eda', 'c6_enoch'],
+    { id: 'c6', title: '예언', concept: '벽을 뚫고 오는 자를 막는다', raids: ['c6_thralls', 'c6_eda', 'c6_enoch'],
       start: [
         sc('북쪽 탑', ['에녹 하르', '에다 볼크'], [
           N('에다 볼크가 탑 계단을 다 올랐을 때 외투 긴 사내는 창가에 서 있었다. 기다리고 있었던 것처럼.'),
@@ -7385,7 +7446,7 @@ const MAZESTORY = (() => {
         ])]
       ],
       end: [],
-      guide: ['이번 일행은 바위를 부순다. 알의 방 앞에 마지막 방을 둔다.'] }
+      guide: ['이번 일행은 살벽을 뚫는다. 알의 방 앞에 마지막 방을 둔다.'] }
   ];
 
   const night = {
@@ -7613,16 +7674,16 @@ const MAZEAWAKEN = {
   }
 };
 if (typeof module !== 'undefined') module.exports = MAZEAWAKEN;
-// 굴 짓기 화면: 첫 화면, 지도(파기·메우기·방·함정·권속 세우기), 상점과 대기석, 침입 재생, 결과와 판 끝.
+// 굴 짓기 화면: 첫 화면, 지도(방 짓기·허물기·방 종류·함정·권속 세우기), 상점과 대기석, 침입 재생, 결과와 판 끝.
 // 규칙은 maze.js (MAZE), 싸움 재생은 둥지 전투의 것(lairui.js 의 lairReplay)을 그대로 쓴다. 그림은 lairart.js 의 maze* (없으면 단순한 대체).
 const MZ = { shop: false, travel: null, M: null, v: null, phase: 'title', sel: null, sheet: null, drag: null, hover: -1, k: 1, t: 0, last: 0, raf: 0, pops: {}, burst: null, play: null, tut: -1, toastT: 0, dug0: 0, dbg: {} };
-const MS = 64, MTOP = 40, MW = MS * 5, MGY = MTOP + MS * 8, MBAND = 104, MH = MGY + MBAND;
-// 지도 밖의 두 방 (캔버스 좌표): 출구(37) 밑으로 굴이 빠져나가 본체 방, 거기서 짧은 굴로 알의 방
+const MS = 64, MTOP = 40, MW = MS * 5, MGY = MTOP + MS * MAZE.ROWS, MBAND = 104, MH = MGY + MBAND;
+// 지도 밖의 두 방 (캔버스 좌표): 출구(27) 밑으로 굴이 빠져나가 본체 방, 거기서 짧은 굴로 알의 방
 const MZCR = { x: 10, y: MGY + 16, w: 200, h: 82 }, MZER = { x: 232, y: MGY + 8, w: 80, h: 92 };
 const MZCORE_SPOTS = [[MZCR.x + 126, MZCR.y + MZCR.h - 12], [MZCR.x + 156, MZCR.y + MZCR.h - 12], [MZCR.x + 186, MZCR.y + MZCR.h - 12]];
 // 칸 번호면 칸 가운데, 'core' 면 본체 방의 가운데(본체 자리), 'egg' 면 알
 function mzPt(c) { if (c === 'core') return { x: MZCR.x + 68, y: MZCR.y + MZCR.h * 0.55 }; if (c === 'egg') return { x: MZER.x + MZER.w / 2, y: MZER.y + MZER.h / 2 }; return { x: mzCx(c), y: mzCy(c) }; }
-const MZEXIT = 37;
+const MZEXIT = MAZE.EXIT;
 // 규칙의 함정 id → 그림의 함정 id
 const MZTRAP = { tr_teeth: 'pit', tr_whisper: 'whisper', tr_slime: 'slime', tr_spore: 'spore' };
 const MZTRAPC = { tr_teeth: '#e8e0d0', tr_whisper: '#b48cff', tr_slime: '#6ad08a', tr_spore: '#d8e870', tr_lure: '#ffc860', tr_maw: '#9a6ad8', tr_mirror: '#a8d8ff' };
@@ -7635,7 +7696,7 @@ const MZNAR = {
 const MZTUT = [
   { key: 'shop', text: '「상점」에서 권속을 산다.' },
   { key: 'place', text: '권속을 누르고 빛나는 통로를 누른다.' },
-  { key: 'dig', text: '바위를 눌러 굴을 넓힌다.' },
+  { key: 'build', text: '빈 자리를 눌러 방을 짓는다.' },
   { key: 'raid', text: '「침입」을 누르면 일행이 들어온다.', ok: 1 },
 ];
 const mq = s => document.querySelector(s);
@@ -7686,8 +7747,8 @@ function mzTitle() {
     + `<div class="mz-row2"><button class="btn" data-z="help">도움말</button><button class="btn${snd ? ' on' : ''}" data-z="sound" aria-pressed="${snd}">소리 ${snd ? '켬' : '끔'}</button></div>`;
   mzMusic('title'); mzTitleScene(); mzTitleFit(); requestAnimationFrame(mzTitleFit);
 }
-const MZTG = (() => { const g = []; for (let i = 0; i < 40; i++) g.push({ dug: false, use: null, room: null, trap: null }); const set = (c, use, o) => Object.assign(g[c], { dug: true, use }, o || {});
-  [2, 7, 6, 11, 16, 17, 18, 23, 28, 27].forEach(c => set(c, 'path')); set(16, 'kin', { room: 'eye' }); set(18, 'trap', { trap: 'tr_teeth' }); set(32, 'path'); set(37, 'path'); set(13, 'kin', { room: 'nursery' }); set(8, 'path'); set(12, 'path'); return g; })();
+const MZTG = (() => { const g = []; for (let i = 0; i < MAZE.N; i++) g.push({ dug: false, use: null, room: null, trap: null }); const set = (c, use, o) => Object.assign(g[c], { dug: true, use }, o || {});
+  [2, 7, 6, 11, 16, 17, 18, 23, 28, 27].forEach(c => set(c, 'path')); set(16, 'kin', { room: 'eye' }); set(18, 'trap', { trap: 'tr_teeth' }); set(13, 'kin', { room: 'nursery' }); set(8, 'path'); set(12, 'path'); return g; })();
 const MZTU = { 16: [{ kind: 'gazer', star: 2 }, { kind: 'hood', star: 1 }], 13: [{ kind: 'brood', star: 1 }] };
 // 첫 화면의 굴 그림은 단추가 다 들어가는 만큼만 (모드 단추가 늘어 좁은 폰에서 넘치지 않게)
 function mzTitleFit() {
@@ -7705,11 +7766,11 @@ function mzTitleDraw(x, now) {
   if (mzFn('mazeTitle')) { const cv = x.canvas; x.imageSmoothingEnabled = false; x.clearRect(0, 0, cv.width, cv.height); x.drawImage(LAIRART.mazeTitle(cv.width, cv.height, (now % 6000) / 6000), 0, 0); return; }
   const tf = (now % 3000) / 3000; x.imageSmoothingEnabled = false; x.fillStyle = '#050407'; x.fillRect(0, 0, MW, MH);
   if (mzFn('mazeEntrance')) x.drawImage(LAIRART.mazeEntrance(MS, 5), 0, 0);
-  for (let c = 0; c < 40; c++) mzCellDraw(x, MZTG, c, tf, 'abyss');
+  for (let c = 0; c < MAZE.N; c++) mzCellDraw(x, MZTG, c, tf, 'abyss');
   Object.keys(MZTU).forEach(c => mzUnitsDraw(x, MZTG, +c, MZTU[c]));
 }
 const MZHELP = [
-  ['짓기', '<p>바위를 눌러 판다. 입구에서 알까지 길이 끊기는 파기와 메우기는 되지 않는다.</p><p>판 칸은 통로, 권속 방, 함정 가운데 하나가 된다. 권속 방에는 셋까지 세우고, 방 종류 하나를 깐다.</p><p>본체 방에는 본체와 권속 둘이 선다.</p><p>미로 함정 셋은 길을 어지럽힌다. 미끼 불빛은 헤매는 일행을 끌고, 삼키는 구멍은 입구 아래로 뱉고, 헛갈림 벽은 다음 갈림길을 틀리게 한다.</p>'],
+  ['짓기', '<p>빈 자리를 누르면 지을 방을 고른다. 통로, 권속 방, 함정이 있고, 이미 지은 방에 붙은 자리에만 짓는다. 지을 수 있는 자리는 희미한 테두리로 보인다.</p><p>지은 방을 누르면 쓰임을 바꾸거나 허문다. 허물면 자리 값의 절반을 돌려받는다. 입구에서 알까지 길이 끊기는 허물기는 되지 않는다.</p><p>권속 방에는 권속을 ' + MAZE.MK.roomMax + '까지 세우고, 방 종류 하나를 깐다.</p><p>본체 방에는 본체와 권속 둘이 선다.</p><p>미로 함정 셋은 길을 어지럽힌다. 미끼 불빛은 헤매는 일행을 끌고, 삼키는 구멍은 입구 아래로 뱉고, 헛갈림 벽은 다음 갈림길을 틀리게 한다.</p>'],
   ['침입', '<p>일행은 입구에서 굴을 더듬어 내려온다. 길잡이가 없으면 갈림길마다 헤매고 막다른 곳에서 되돌아간다. 지도의 점선이 그 길이다.</p><p>추적자가 길잡이로 앞서면 일행은 알까지 곧게 온다. 길잡이가 쓰러지면 다시 헤맨다.</p><p>함정을 밟으면 다치고, 권속이 선 방에 닿으면 그 방에서 싸운다. 다친 것은 다음 방까지 이어진다.</p><p>알에 닿은 자마다 알이 깎인다. 알이 깨지면 판이 끝난다.</p>'],
   ['자유', '<p>자유 판은 끝이 없다. 알이 깨질 때까지 침입이 이어지고, 다섯 번째마다 우두머리가 온다. 침입 3부터는 침입이 끝날 때마다 알이 3 찬다.</p><p>점수는 버틴 침입, 남은 알, 쓰러뜨린 수로 매긴다. 가장 오래 버틴 판이 최고 기록으로 남는다.</p><p>오늘의 판은 하루에 하나, 모두가 같은 처음 상점과 같은 일행을 맞는다. 그날 처음 끝낸 판만 기록된다.</p>'],
   ['굴 나누기', '<p>준비 중의 메뉴나 판 끝 점수 판에서 「굴 코드 복사」를 누르면 지금 굴이 글자 코드 한 줄로 복사된다. 서버 없이 글로만 주고받는다.</p><p>첫 화면의 「들이치기」에 받은 글을 붙여 넣으면 그 굴을 들이친다. 받은 굴은 고칠 수 없다. 정해진 진액으로 일행 다섯까지 꾸리고, 세 번까지 해 본다. 가장 많이 알을 깎은 판이 기록이 된다.</p>'],
@@ -7797,6 +7858,9 @@ function mzDraw() {
 const mzSanTrap = id => { const T = MAZE.TRAP && MAZE.TRAP[id]; return !!(T && (T.san || T.sanFlat) && MAZE.MK && MAZE.MK.trapSanFade); };
 // 고른 함정·방 종류의 설명 (확인 줄 위)
 function mzPendInfo(pd, v) {
+  if (pd.act === 'build') { if (pd.u === 'trap') return mzPendInfo({ act: 'trap', id: pd.id, cost: pd.cost }, v); if (pd.u === 'kin' && pd.id) return mzPendInfo({ act: 'room', id: pd.id, cost: pd.cost }, v);
+    return `<div class="mz-cinfo"><img src="${mzFloorIcon(pd.u === 'kin' ? 'room' : 'path')}" alt=""><div><b>${pd.u === 'kin' ? '권속 방' : '통로'} · ${pd.cost}</b><p>${pd.u === 'kin' ? '권속을 ' + MAZE.MK.roomMax + '까지 세운다. 방 종류는 나중에 깔 수 있다.' : '일행이 지나가는 굴. 나중에 권속 방이나 함정으로 바꿀 수 있다.'}</p></div></div>`; }
+  if (pd.act === 'raze') return `<div class="mz-cinfo"><div><b>허물기 · +${pd.gold}</b><p>방이 살벽으로 돌아간다. 방 종류와 함정 값은 돌려받지 못한다.</p></div></div>`;
   if (pd.act === 'trap') { const T = MAZE.trapInfo(pd.id); if (!T) return ''; const av = (MAZE.AVOIDERS || []).map(k => (LAIR.INV && LAIR.INV[k] ? LAIR.INV[k].name : k)).join('·'), notes = [];
     if (!T.maze && av) notes.push(av + '가 낀 일행은 돌아갈 길이 있으면 피한다.'); if (mzSanTrap(pd.id) && !/절반/.test(T.more)) notes.push('정신을 깎는 함정은 두 번째부터 절반, 세 번째부터 4분의 1.');
     return `<div class="mz-cinfo"><img src="${mzTrapIcon(pd.id)}" alt=""><div><b>${esc(T.name)} · ${pd.cost}</b><p>${esc(T.more)}</p>${notes.map(n => `<small>${esc(n)}</small>`).join('')}</div></div>`; }
@@ -7805,12 +7869,17 @@ function mzPendInfo(pd, v) {
 }
 // 값이 드는 칸 일: 고르면 창 아래에 확인 줄. 같은 것을 다시 누르면 풀린다
 function mzPend(p) { const q = MZ.pend; MZ.pend = q && q.act === p.act && q.key === p.key && q.cell === p.cell ? null : p; MZ.pendT = performance.now(); mzSay('click'); mzSheet(MZ.sheet); }
+// 짓는 것의 이름: 통로 / 권속 방(방 종류 이름) / 함정 이름
+const mzBuildName = (u, id) => (u === 'trap' ? ((MAZE.trapInfo(id) || {}).name || '함정') : u === 'kin' ? (id && LAIR.ROOM[id] ? LAIR.ROOM[id].name : '권속 방') : '통로');
+const MZFLOORURL = {};
+function mzFloorIcon(kind) { if (MZFLOORURL[kind] == null) { try { MZFLOORURL[kind] = mzFn('mazeFloor') ? LAIRART.mazeFloor(48, 5, kind, 3).toDataURL() : ''; } catch (e) { MZFLOORURL[kind] = ''; } } return MZFLOORURL[kind]; }
 const mzJosa = (w, a, b) => { const c = w.charCodeAt(w.length - 1) - 0xac00; return w + (c >= 0 && c < 11172 && c % 28 ? a : b); };
 // 확인: 하고 나면 창을 닫고 지도에서 그 칸이 번쩍인다. 안 되면 창을 두고 까닭
 function mzConfirm() {
   const p = MZ.pend, M = MZ.M; if (!p || performance.now() - (MZ.pendT || 0) < 250) return; const c = p.cell; let r = null, msg = '', fx = 'drop', img = null;
-  if (p.act === 'dig') { r = MAZE.dig(M, c); msg = '팠다 · −' + (r.cost != null ? r.cost : p.cost); fx = 'dig'; }
-  else if (p.act === 'fill') { r = MAZE.fill(M, c); msg = '메웠다 · +' + (r.gold || 0); fx = 'dig'; }
+  if (p.act === 'build') { r = MAZE.build(M, c, p.u, p.id); msg = mzJosa(mzBuildName(p.u, p.id), '을', '를') + ' 지었다 · −' + (r.cost != null ? r.cost : p.cost); fx = 'build';
+    if (r.ok && p.u === 'trap' && mzFn('mazeTrap')) { img = LAIRART.mazeTrap(MS, MZTRAP[p.id] || p.id, 0); fx = 'drop'; } else if (r.ok && p.u === 'kin' && p.id && mzFn('mazeRoomMark')) { img = LAIRART.mazeRoomMark(MS, p.id, 0); fx = 'drop'; } }
+  else if (p.act === 'raze') { r = MAZE.raze(M, c); msg = '허물었다 · +' + (r.gold || 0); fx = 'build'; }
   else if (p.act === 'use') { r = MAZE.setUse(M, c, p.u, null); msg = p.u === 'kin' ? '권속 방으로 바꿨다' : '통로로 바꿨다'; }
   else if (p.act === 'room') { r = MAZE.setUse(M, c, 'kin', p.id); const nm = LAIR.ROOM[p.id] ? LAIR.ROOM[p.id].name : '방'; msg = mzJosa(nm, '을', '를') + ' 깔았다' + (r.cost ? ' · −' + r.cost : ''); if (mzFn('mazeRoomMark')) img = LAIRART.mazeRoomMark(MS, p.id, 0); }
   else if (p.act === 'trap') { r = MAZE.setUse(M, c, 'trap', p.id); const T = MAZE.trapInfo(p.id); msg = mzJosa(T ? T.name : '함정', '을', '를') + ' 깔았다' + (r.cost ? ' · −' + r.cost : ''); if (mzFn('mazeTrap')) img = LAIRART.mazeTrap(MS, MZTRAP[p.id] || p.id, 0); }
@@ -7842,12 +7911,15 @@ function mzShopHtml(v) {
   $('mz-shop').innerHTML = (s ? mzShopPanel(s, MZ.sel.shop, v) : '') + `<div class="mz-shead">${`<span class="mz-shint">진액 ${v.gold}</span><button data-m="reroll"${v.canReroll ? '' : ' disabled'}>뽑기 ${v.costs.reroll}</button><button data-m="xp"${v.canXp ? '' : ' disabled'}>${v.level >= v.maxLv ? 'Lv ' + v.level : '넓히기 ' + v.costs.xp}${v.level >= v.maxLv ? '' : `<i class="mz-xp"><b style="width:${v.xpNeed ? Math.round(v.xp / v.xpNeed * 100) : 100}%"></b></i>`}</button>`}</div>`
     + `<div class="mz-cards">${v.shop.map((q, i) => (q ? `<button style="${(v.core && (v.core.kin || []).includes(q.kind)) ? '--fk:' + (MZFORMC[v.core.form] || '#ffd040') : ''}" class="mz-card c${q.cost}${(v.core && (v.core.kin || []).includes(q.kind)) ? ' formk' : ''}${q.can ? '' : ' poor'}${MZ.sel && MZ.sel.shop === i ? ' on' : ''}" data-m="shop" data-i="${i}" aria-label="${esc(q.name)} ${q.cost}"><em>${q.cost}</em><img class="mz-asp" src="${mzSym(q.asp, 14)}" alt="${esc(q.aspName)}"><img src="${mzIcon(q.kind, 1, 36)}" alt=""><b>${esc(q.name)}</b></button>` : '<div class="mz-card empty"></div>')).join('')}</div>`;
 }
-function mzToast(msg, ms) { const t = $('mz-toast'), cv = $('mz-cv'); t.textContent = msg; t.hidden = false; if (cv && cv.offsetParent) { const r = cv.getBoundingClientRect(); t.style.top = Math.round(r.top + MTOP * MZ.k + 6) + 'px'; t.style.left = Math.round(r.left + r.width / 2) + 'px'; t.style.maxWidth = Math.round(r.width - 8) + 'px'; } MZ.toastT = MZ.t + (ms || 1700); }
+// 규칙 쪽 말 가운데 파기 시절 말을 짓기 말로
+const MZWORD = [['바위다. 먼저 판다', '빈 자리다. 먼저 방을 짓는다'], ['판 칸이 아니다', '지은 방이 아니다'], ['판 칸', '지은 방']];
+const mzW = m => MZWORD.reduce((a, [x, y]) => a.split(x).join(y), String(m == null ? '' : m));
+function mzToast(msg, ms) { msg = mzW(msg); const t = $('mz-toast'), cv = $('mz-cv'); t.textContent = msg; t.hidden = false; if (cv && cv.offsetParent) { const r = cv.getBoundingClientRect(); t.style.top = Math.round(r.top + MTOP * MZ.k + 6) + 'px'; t.style.left = Math.round(r.left + r.width / 2) + 'px'; t.style.maxWidth = Math.round(r.width - 8) + 'px'; } MZ.toastT = MZ.t + (ms || 1700); }
 
 // ---- 지도 그리기 ----
 const mzCx = c => (c % 5) * MS + MS / 2, mzCy = c => MTOP + Math.floor(c / 5) * MS + MS / 2;
 // 이웃: 위 1, 오른쪽 2, 아래 4, 왼쪽 8. 입구(0행 가운데의 위)는 판 칸으로 친다
-function mzNb(grid, c) { const r = Math.floor(c / 5), q = c % 5, out = []; [[-1, 0], [0, 1], [1, 0], [0, -1]].forEach(([dr, dc]) => { const rr = r + dr, cc = q + dc; if (rr === -1 && cc === 2) out.push(true); else if (rr < 0 || rr > 7 || cc < 0 || cc > 4) out.push(false); else out.push(!!grid[rr * 5 + cc].dug); }); return out; }
+function mzNb(grid, c) { const r = Math.floor(c / 5), q = c % 5, out = []; [[-1, 0], [0, 1], [1, 0], [0, -1]].forEach(([dr, dc]) => { const rr = r + dr, cc = q + dc; if (rr === -1 && cc === 2) out.push(true); else if (rr < 0 || rr > MAZE.ROWS - 1 || cc < 0 || cc > 4) out.push(false); else out.push(!!grid[rr * 5 + cc].dug); }); return out; }
 const mzMask = (grid, c) => mzNb(grid, c).reduce((a, d, k) => a | (d ? 1 << k : 0), 0);
 const mzRockV = (grid, c) => mzNb(grid, c).reduce((a, d, k) => a | (d ? 0 : 1 << k), 0);
 function mzTrapDraw(x, id, X, Y, S, t) {
@@ -7973,15 +8045,17 @@ function mzRender(now) {
   MZ.dbg = { fx: MZ.dbg.fx || null, units: 0, lit: [], path: 0, party: 0, dark: MZ.dbg.dark || 0, lostLab: MZ.dbg.lostLab || 0, scoutDown: MZ.dbg.scoutDown || 0, lureLab: MZ.dbg.lureLab || 0, confLab: MZ.dbg.confLab || 0, warp: MZ.dbg.warp || 0 };
   x.imageSmoothingEnabled = false; x.setTransform(1, 0, 0, 1, 0, 0); x.fillStyle = '#050407'; x.fillRect(0, 0, MW, MH);
   if (mzFn('mazeEntrance')) { const e = LAIRART.mazeEntrance(MS, 5); x.drawImage(e, 0, MTOP - e.height); } else { const gr = x.createLinearGradient(0, 0, 0, MTOP); gr.addColorStop(0, '#3a3020'); gr.addColorStop(1, '#050407'); x.fillStyle = gr; x.fillRect(0, 0, MW, MTOP); x.fillStyle = '#ffd890'; x.fillRect(MS * 2 + 22, 0, 20, MTOP - 4); }
-  for (let c = 0; c < 40; c++) mzCellDraw(x, grid, c, tf, 'drop');
+  for (let c = 0; c < MAZE.N; c++) mzCellDraw(x, grid, c, tf, 'drop');
   if (mzFn('mazeEntranceGlow')) x.drawImage(LAIRART.mazeEntranceGlow(MS, 5, tf), 0, MTOP);
   const selU = MZ.sel && MZ.sel.uid ? MZ.sel.uid : MZ.drag && MZ.drag.moved ? MZ.drag.uid : null, places = selU && !P ? mzPlaces(v, selU) : null;
   mzBandDraw(x, tf, places && places.core ? 'core' : null);
-  // 부서지는 바위
-  if (P && P.brk && P.brk.t1 > MZ.t) { const c = P.brk.cell, k = 1 - (P.brk.t1 - MZ.t) / P.brk.dur; x.save(); x.fillStyle = '#8a7a60'; for (let i = 0; i < 10; i++) { const a = i * 0.63, d = k * MS * 0.5; x.fillRect(Math.round(mzCx(c) + Math.cos(a) * d), Math.round(mzCy(c) + Math.sin(a) * d + k * k * 20), 4, 4); } x.restore(); }
+  // 지을 수 있는 빈 자리: 희미한 테두리 (권속을 고르는 중이나 침입 중에는 감춘다)
+  MZ.dbg.slots = 0; if (!P && MZ.phase === 'prep' && !places && !(v.locks && v.locks.dig === false) && v.grid) v.grid.forEach(g => { if (g.dug || mzBuildStop(g)) return; MZ.dbg.slots++; const X = (g.cell % 5) * MS, Y = MTOP + Math.floor(g.cell / 5) * MS; x.save(); x.globalAlpha = 0.3 + 0.12 * Math.sin(now / 420 + g.cell); x.strokeStyle = '#e8a8b0'; x.lineWidth = 1.5; x.setLineDash([5, 4]); mzRRect(x, X + 8.5, Y + 8.5, MS - 17, MS - 17, MS * 0.22); x.stroke(); x.restore(); });
+  // 뚫리는 살벽
+  if (P && P.brk && P.brk.t1 > MZ.t) { const c = P.brk.cell, k = 1 - (P.brk.t1 - MZ.t) / P.brk.dur; x.save(); x.fillStyle = '#7a2e36'; for (let i = 0; i < 10; i++) { const a = i * 0.63, d = k * MS * 0.5; x.fillRect(Math.round(mzCx(c) + Math.cos(a) * d), Math.round(mzCy(c) + Math.sin(a) * d + k * k * 20), 4, 4); } x.restore(); }
   if (MZ.fx && MZ.fx.t1 > MZ.t) { const f = MZ.fx, k = 1 - (f.t1 - MZ.t) / f.dur, X = (f.cell % 5) * MS, Y = MTOP + Math.floor(f.cell / 5) * MS; x.save();
     x.globalAlpha = 0.4 * (1 - k); x.fillStyle = '#fff3c8'; x.fillRect(X, Y, MS, MS); x.globalAlpha = 1;
-    if (f.kind === 'dig') { x.fillStyle = '#8a7a60'; for (let i = 0; i < 12; i++) { const a = i * 0.52 + 0.2, d = k * MS * 0.55; x.globalAlpha = 1 - k; x.fillRect(Math.round(X + MS / 2 + Math.cos(a) * d), Math.round(Y + MS / 2 + Math.sin(a) * d + k * k * 18), 4, 4); } }
+    if (f.kind === 'build') { x.fillStyle = '#a8525a'; for (let i = 0; i < 12; i++) { const a = i * 0.52 + 0.2, d = k * MS * 0.55; x.globalAlpha = 1 - k; x.fillRect(Math.round(X + MS / 2 + Math.cos(a) * d), Math.round(Y + MS / 2 + Math.sin(a) * d + k * k * 18), 4, 4); } }
     else { const q = Math.min(1, k * 1.7), sc = 1.6 - 0.6 * q; if (f.img) { x.globalAlpha = Math.min(1, k * 2.5); const w = MS * sc; x.drawImage(f.img, Math.round(X + (MS - w) / 2), Math.round(Y + (MS - w) / 2), Math.round(w), Math.round(w)); } if (k > 0.55) { x.globalAlpha = (1 - k) * 2; x.strokeStyle = '#e8dcc0'; x.lineWidth = 2; x.beginPath(); x.ellipse(X + MS / 2, Y + MS * 0.62, MS * (0.3 + (k - 0.55) * 0.6), MS * (0.1 + (k - 0.55) * 0.2), 0, 0, 6.2832); x.stroke(); } }
     x.restore(); }
   // 다음 일행의 길 (준비 때): 출구에서 본체 방을 지나 알까지. 본체·알 그림 아래에
@@ -7993,7 +8067,7 @@ function mzRender(now) {
   mzCoreDraw(x, v.core, now, P && P.dead);
   mzEggRoomDraw(x, P ? P.egg : v.egg.hp, v.egg.max, t, P && P.eggHit > MZ.t);
   // 권속
-  for (let c = 0; c < 40; c++) { const g = v.grid[c]; if (!g.units || !g.units.length) continue; mzUnitsDraw(x, grid, c, g.units.map(u => ({ uid: u.uid, kind: u.kind, star: u.star })), P && P.dead && g.units.every(u => P.dead[u.uid]) ? 0.35 : null); }
+  for (let c = 0; c < MAZE.N; c++) { const g = v.grid[c]; if (!g.units || !g.units.length) continue; mzUnitsDraw(x, grid, c, g.units.map(u => ({ uid: u.uid, kind: u.kind, star: u.star })), P && P.dead && g.units.every(u => P.dead[u.uid]) ? 0.35 : null); }
   // 진화의 터짐
   if (MZ.burst && MZ.burst.t1 > MZ.t) { const b = MZ.burst, k = 1 - (b.t1 - MZ.t) / 700, bp = mzPt(b.cell); x.save(); x.strokeStyle = '#ffd040'; x.globalAlpha = 1 - k; x.lineWidth = 3; x.beginPath(); x.arc(bp.x, bp.y, 10 + k * 40, 0, 6.2832); x.stroke(); x.restore(); }
   // 칸 고르기 표시
@@ -8028,7 +8102,7 @@ function mzPlaces(v, uid) {
 }
 function mzSelect(uid) {
   MZ.sel = { uid }; mzSay('click'); const v = MZ.v || mzView(), pl = mzPlaces(v, uid);
-  if (pl.full) mzToast('더 세울 수 없다 (' + v.cap + ')'); else if (!pl.cells.length && !pl.core) mzToast('놓을 곳이 없다. 바위를 판다');
+  if (pl.full) mzToast('더 세울 수 없다 (' + v.cap + ')'); else if (!pl.cells.length && !pl.core) mzToast('놓을 곳이 없다. 방을 짓는다');
 }
 // ---- 누르기 ----
 function mzCellAt(cx, cy) { const r = $('mz-cv').getBoundingClientRect(), x = (cx - r.left) / MZ.k, y = (cy - r.top) / MZ.k; const inB = B => x >= B.x && x < B.x + B.w && y >= B.y && y < B.y + B.h; if (inB(MZCR)) return 'core'; if (inB(MZER)) return 'egg'; const gy = y - MTOP; if (x < 0 || x >= MW || gy < 0 || gy >= MS * 8) return -1; return Math.floor(gy / MS) * 5 + Math.floor(x / MS); }
@@ -8073,9 +8147,10 @@ function mzClick(e) {
   if (a === 'xp') { const r = MAZE.buyXp(M); if (r.ok) { mzSay(r.up ? 'up' : 'click'); if (r.up) mzToast('Lv ' + M.level); } else mzToast(r.msg); return mzDraw(); }
   if (a === 'raid') return mzRaid();
   const cell = MZ.sheet && MZ.sheet.cell;
-  if (a === 'dig' || a === 'fill' || a === 'use' || a === 'room' || a === 'trap') { if (e.detail) MZ.sheetPtr = { t: performance.now(), x: e.clientX, y: e.clientY }; const v = MZ.v || mzView(), g = v.grid[cell], id = b.dataset.id;
-    if (a === 'dig') return mzPend({ act: 'dig', key: 'dig', cell, cost: g.digCost, label: '판다 · ' + g.digCost });
-    if (a === 'fill') return mzPend({ act: 'fill', key: 'fill', cell, cost: 0, label: '메운다 · +' + g.fillGold });
+  if (a === 'bview' && MZ.sheet && MZ.sheet.kind === 'cell') { MZ.sheet.view = b.dataset.u; mzSay('click'); return mzSheet(MZ.sheet); }
+  if (a === 'build' || a === 'raze' || a === 'use' || a === 'room' || a === 'trap') { if (e.detail) MZ.sheetPtr = { t: performance.now(), x: e.clientX, y: e.clientY }; const v = MZ.v || mzView(), g = v.grid[cell], id = b.dataset.id;
+    if (a === 'build') { const u = b.dataset.u, bid = id || null, c = MAZE.buildCost(M, cell, u, bid); return mzPend({ act: 'build', key: u + ':' + (bid || ''), u, id: bid, cell, cost: c, label: '짓는다 · ' + c }); }
+    if (a === 'raze') return mzPend({ act: 'raze', key: 'raze', cell, cost: 0, gold: g.razeGold, label: '허문다 · +' + g.razeGold });
     if (a === 'use') { const u = b.dataset.u; MZ.sheet.view = u; if (u === g.use || u === 'trap') { if (MZ.pend && MZ.pend.act === 'use') MZ.pend = null; mzSay('click'); return mzSheet(MZ.sheet); } return mzPend({ act: 'use', key: u, u, cell, cost: 0, label: '바꾼다 · 진액 0' }); }
     if (a === 'room') { if (g.use === 'kin' && g.room === id) return; const c = mzFree(v, id) ? 0 : v.costs.room; return mzPend({ act: 'room', key: id, id, cell, cost: c, label: '깐다 · 진액 ' + c }); }
     if (g.use === 'trap' && g.trap === id) return; const q = v.traps.find(t => t.id === id), c = mzFree(v, id) ? 0 : q && q.cost != null ? q.cost : v.costs.trap; return mzPend({ act: 'trap', key: id, id, cell, cost: c, label: '깐다 · 진액 ' + c }); }
@@ -8135,23 +8210,40 @@ function mzMoveTo(uid, to, keep) { const r = MAZE.move(MZ.M, uid, to); if (r.ok)
 const mzFree = (v, id) => (v.free || []).some(q => q.id === id);
 const mzSt = (k, n) => `<span class="mz-st"><small>${k}</small><b>${n}</b></span>`;
 function mzUnitRow(u, cell) { return `<div class="mz-urow"><button class="mz-uin" data-m="uinfo" data-k="${u.kind}" data-s="${u.star}" data-u="${u.uid}"><img src="${mzIcon(u.kind, u.star, 36)}" alt=""><b>${esc(u.name)}</b>${mzStars(u.star)}</button><button data-m="pick" data-u="${u.uid}">옮기기</button><button data-m="tobench" data-u="${u.uid}">대기석</button><button data-m="sell" data-u="${u.uid}">팔기 ${u.sell}</button></div>`; }
+// 빈 자리에서 짓기를 막는 까닭 (진액 말고: 붙어 있지 않다, 더 지을 수 없다 같은 것)
+const mzBuildStop = g => (g.buildWhy && g.buildWhy !== '진액이 모자란다' ? g.buildWhy : null);
+// 빈 자리 창: 갈래 셋(통로 · 권속 방 · 함정) 가운데 하나를 펴고, 그 갈래의 카드를 고르면 아래 확인 줄에 값과 설명, 「짓는다」로 한 번에 짓는다
+//   권속 방 갈래: 「그대로」(방 종류 없이) + 열린 방 종류. 함정 갈래: 열린 함정
+function mzBuildHtml(v, g, cell, pk, pr, view) {
+  const M = MZ.M, stop = mzBuildStop(g); let h = `<h3>빈 자리</h3><p class="mz-note">지은 방 ${v.dug}/${v.dugCap}</p>`;
+  if (stop) return h + `<p class="mz-why">${esc(stop)}</p>`;
+  const card = (u, id, img, name, short) => { const cost = MAZE.buildCost(M, cell, u, id), why = MAZE.canBuild(M, cell, u, id), key = u + ':' + (id || ''); return `<button data-m="build" data-u="${u}"${id ? ` data-id="${id}"` : ''} class="${why ? 'poor' : ''}${id && mzFree(v, id) ? ' free' : ''}${pk('build', key)}"${pr('build', key)}${why ? ' disabled' : ''}><img src="${img}" alt=""><b>${esc(name)} · ${cost}</b><small>${esc(why ? mzW(why) : short)}</small></button>`; };
+  const tabs = [['path', '통로'], ['kin', '권속 방'], ['trap', '함정']].filter(q => q[0] !== 'trap' || v.traps.length), cur = tabs.some(q => q[0] === view) ? view : 'path';
+  h += `<div class="mz-uses">${tabs.map(q => `<button data-m="bview" data-u="${q[0]}" class="${cur === q[0] ? 'on' : ''}" aria-pressed="${cur === q[0]}">${q[1]}</button>`).join('')}</div>`;
+  if (cur === 'path') h += `<div class="mz-grid">${card('path', null, mzFloorIcon('path'), '통로', '지나가는 굴')}</div><p class="mz-note">통로는 나중에 권속 방이나 함정으로 바꿀 수 있다.</p>`;
+  if (cur === 'kin') h += `<div class="mz-grid">${card('kin', null, mzFloorIcon('room'), '그대로', '방 종류 없이 · 권속 ' + MAZE.MK.roomMax + '까지')}${v.rooms.map(r => card('kin', r.id, mzRoomIcon(r.id), r.name, r.short)).join('')}</div>`;
+  if (cur === 'trap') h += `<div class="mz-grid">${v.traps.map(q => card('trap', q.id, mzTrapIcon(q.id), q.name, q.short + (mzSanTrap(q.id) ? ' · 겹치면 ½' : ''))).join('')}</div>${(MAZE.MK && MAZE.MK.trapSanFade) ? '<p class="mz-note">정신을 깎는 함정은 같은 일행에게 두 번째부터 절반, 세 번째부터 4분의 1만 깎는다.</p>' : ''}`;
+  return h;
+}
 function mzSheet(s) {
+  // 새 창을 열면 앞 일의 알림과 지도 위 글은 걷는다 (판이 낮아져 창 위로 겹치지 않게)
+  if (!MZ.sheet || MZ.sheet.kind !== s.kind || MZ.sheet.cell !== s.cell) { const tt = $('mz-toast'); if (tt) tt.hidden = true; MZ.toastT = 0; const ov = $('mz-ov'); if (ov) ov.querySelectorAll('.mz-lab').forEach(e => e.remove()); }
   if (!MZ.sheet || MZ.sheet.kind !== s.kind) MZ.sheetT = performance.now(); if (MZ.pend && (s.kind !== 'cell' || s.cell !== MZ.pend.cell)) MZ.pend = null; MZ.sheet = s; const el = $('mz-sheet'), v = MZ.v || mzView(); let h = '';
   if (s.kind === 'cell') {
     const g = v.grid[s.cell], pd = MZ.pend && MZ.pend.cell === s.cell ? MZ.pend : null, pk = (act, key) => (pd && pd.act === act && pd.key === key ? ' pick' : ''), pr = (act, key) => ` aria-pressed="${!!(pd && pd.act === act && pd.key === key)}"`;
     const lk = v.locks || {};
-    if (!g.dug && lk.dig === false) h = `<h3>바위</h3><p class="mz-note">이 장에서는 아직 파지 않는다.</p>`;
-    else if (!g.dug) h = `<h3>바위</h3><div class="mz-acts2"><button class="pri${pk('dig', 'dig')}" data-m="dig"${pr('dig', 'dig')}${g.canDig ? '' : ' disabled'}>파기 ${g.digCost}</button></div>${g.digWhy ? `<p class="mz-why">${esc(g.digWhy)}</p>` : ''}<p class="mz-note">판 칸 ${v.dug}/${v.dugCap}</p>`;
+    if (!g.dug && lk.dig === false) h = `<h3>빈 자리</h3><p class="mz-note">이 장에서는 아직 방을 짓지 않는다.</p>`;
+    else if (!g.dug) h = mzBuildHtml(v, g, s.cell, pk, pr, s.view);
     else {
       const view = s.view || g.use, title = g.use === 'kin' ? (g.roomInfo ? g.roomInfo.name : '권속 방') : g.use === 'trap' ? g.trapInfo.name : '통로';
       h = `<h3>${esc(title)}</h3><div class="mz-uses">${[['path', '통로'], ['kin', '권속 방'], ['trap', '함정']].filter(q => q[0] !== 'trap' || v.traps.length).map(q => `<button data-m="use" data-u="${q[0]}" class="${view === q[0] ? 'on' : ''}${pk('use', q[0])}" aria-pressed="${view === q[0]}">${q[1]}</button>`).join('')}</div>`;
       if (view === 'kin') h += `${g.use === 'kin' ? `<p class="mz-note">권속 ${g.units.length}/${g.max}</p>${g.units.map(u => mzUnitRow(u, s.cell)).join('')}` : ''}${v.rooms.length ? `<h4>방 종류 · ${v.costs.room}</h4>` : ''}<div class="mz-grid">${v.rooms.map(r => `<button data-m="room" data-id="${r.id}" class="${g.use === 'kin' && g.room === r.id ? 'on' : ''}${mzFree(v, r.id) ? ' free' : ''}${pk('room', r.id)}"${pr('room', r.id)}><img src="${mzRoomIcon(r.id)}" alt=""><b>${esc(r.name)}${mzFree(v, r.id) ? ' · 0' : ''}</b><small>${esc(r.short)}</small></button>`).join('')}</div>`;
       if (view === 'trap') h += `<div class="mz-grid">${v.traps.map(q => `<button data-m="trap" data-id="${q.id}" class="${g.use === 'trap' && g.trap === q.id ? 'on' : ''}${mzFree(v, q.id) ? ' free' : ''}${pk('trap', q.id)}"${pr('trap', q.id)}><img src="${mzTrapIcon(q.id)}" alt=""><b>${esc(q.name)} · ${mzFree(v, q.id) ? 0 : q.cost != null ? q.cost : v.costs.trap}</b><small>${esc(q.short)}${mzSanTrap(q.id) ? ' · 겹치면 ½' : ''}</small></button>`).join('')}</div>${(MAZE.MK && MAZE.MK.trapSanFade) ? '<p class="mz-note">정신을 깎는 함정은 같은 일행에게 두 번째부터 절반, 세 번째부터 4분의 1만 깎는다.</p>' : ''}`;
       if (view === 'path' && v.traps.length) { const tc = v.traps.map(q => (q.cost != null ? q.cost : v.costs.trap)), lo = Math.min.apply(null, tc), hi = Math.max.apply(null, tc); h += `<p class="mz-note">권속 방 0 · 함정 ${lo === hi ? lo : lo + '–' + hi}</p>`; }
-      if (lk.dig !== false) h += `<div class="mz-acts2"><button class="${pk('fill', 'fill').trim()}" data-m="fill"${pr('fill', 'fill')}${g.canFill ? '' : ' disabled'}>메우기 +${g.fillGold}</button></div>${g.fillWhy ? `<p class="mz-why">${esc(g.fillWhy)}</p>` : ''}`;
+      if (lk.dig !== false) h += `<div class="mz-acts2"><button class="${pk('raze', 'raze').trim()}" data-m="raze"${pr('raze', 'raze')}${g.canRaze ? '' : ' disabled'}>허물기 +${g.razeGold}</button></div>${g.razeWhy ? `<p class="mz-why">${esc(mzW(g.razeWhy))}</p>` : ''}`;
     }
     // 확인 줄은 늘 창 아래에 자리를 잡아 둔다 (고르기 전에는 흐리게): 고를 때 단추가 밀려 손가락 밑으로 오지 않게
-    if (!pd && !(lk.dig === false && (!g.dug || (!v.rooms.length && !v.traps.length)))) h += `<div class="mz-confirm idle"><div><button class="pri" data-m="ok" disabled>${g.dug ? '깐다' : '판다'}</button><button data-m="no" disabled>그만둔다</button></div></div>`;
+    if (!pd && !(lk.dig === false && (!g.dug || (!v.rooms.length && !v.traps.length))) && !(!g.dug && mzBuildStop(g))) h += `<div class="mz-confirm idle"><div><button class="pri" data-m="ok" disabled>${g.dug ? '깐다' : '짓는다'}</button><button data-m="no" disabled>그만둔다</button></div></div>`;
     if (pd) { const can = !pd.cost || v.gold >= pd.cost; h += `<div class="mz-confirm">${mzPendInfo(pd, v)}<div><button class="pri" data-m="ok"${can ? '' : ' disabled'}>${esc(pd.label)}</button><button data-m="no">그만둔다</button></div>${can ? '' : '<p class="mz-why">진액이 모자란다</p>'}</div>`; }
   }
   if (s.kind === 'egg') h = `<h3>알의 방</h3><div class="mz-stats">${mzSt('알', v.egg.hp + '/' + v.egg.max)}</div>`;
@@ -8168,7 +8260,7 @@ function mzSheet(s) {
   if (s.kind === 'result') h = mzResultHtml();
   if (s.kind === 'over') h = mzOverHtml();
   const modal = s.kind === 'result' || s.kind === 'over' || s.kind === 'attackres';
-  el.innerHTML = `<div class="mz-sbody${modal ? ' res' : ''}">${modal ? '' : '<button class="mz-x" data-m="close" aria-label="닫기">✕</button>'}${h}</div>`; el.hidden = false; $('mz-coach').hidden = true; mzUnder(true); { const cf = el.querySelector('.mz-confirm'); if (cf && cf.scrollIntoView) cf.scrollIntoView({ block: 'nearest' }); } mzCoach();
+  el.innerHTML = `<div class="mz-sbody${modal ? ' res' : ''}">${modal ? '' : '<button class="mz-x" data-m="close" aria-label="닫기">✕</button>'}${h}</div>`; el.hidden = false; $('mz-coach').hidden = true; mzUnder(true); { const cf = el.querySelector('.mz-confirm:not(.idle)'); if (cf && cf.scrollIntoView) cf.scrollIntoView({ block: 'nearest' }); } mzCoach();
 }
 // 창이나 싸움 다시 보기가 떠 있는 동안 밑의 지도는 읽는 이에게 가린다
 function mzUnder(on) { ['mz-bar', 'mz-main'].forEach(id => { const e = $(id); if (!e) return; if (on) e.setAttribute('aria-hidden', 'true'); else e.removeAttribute('aria-hidden'); }); }
@@ -8181,7 +8273,7 @@ function mzCoachNow() {
   const c = $('mz-coach'); if (!c) return; const M = MZ.M; let avoid = [];
   const off = () => { c.hidden = true; $('mz-ring').hidden = true; MZ.coachAt = null; };
   if (MZ.tut < 0 || MZ.tut >= MZTUT.length || MZ.phase !== 'prep' || !M) return off();
-  if (MZ.sheet && !(MZTUT[MZ.tut] && MZTUT[MZ.tut].key === 'dig' && MZ.sheet.kind === 'cell')) return off();
+  if (MZ.sheet && !(MZTUT[MZ.tut] && MZTUT[MZ.tut].key === 'build' && MZ.sheet.kind === 'cell')) return off();
   const v = MZ.v || mzView();
   if (MZ.tut === 0 && (Object.keys(M.unit).length || v.placed)) MZ.tut = 1;
   if (MZ.tut === 1 && v.placed) MZ.tut = 2;
@@ -8189,7 +8281,7 @@ function mzCoachNow() {
   if (MZ.tut >= MZTUT.length) return off();
   const st = MZTUT[MZ.tut]; let at = null;
   let text = st.text;
-  if (st.key === 'dig') { if (MZ.sheet) { const b = mq(MZ.pend && MZ.pend.act === 'dig' ? '#mz-sheet [data-m="ok"]' : '#mz-sheet [data-m="dig"]'); if (b) { at = b.getBoundingClientRect(); text = MZ.pend && MZ.pend.act === 'dig' ? '값을 보고 「판다」를 누른다.' : '「파기」를 누른다.'; } } else { const g = v.grid.find(q => q.canDig); if (g) at = mzCellRect(g.cell); } }
+  if (st.key === 'build') { if (MZ.sheet) { const b = mq(MZ.pend && MZ.pend.act === 'build' ? '#mz-sheet [data-m="ok"]' : '#mz-sheet [data-m="build"]:not([disabled])'); if (b) { at = b.getBoundingClientRect(); text = MZ.pend && MZ.pend.act === 'build' ? '값을 보고 「짓는다」를 누른다.' : '지을 방을 고른다. 처음엔 통로가 싸다.'; } } else { const g = v.grid.find(q => q.canBuild); if (g) at = mzCellRect(g.cell); } }
   if (st.key === 'shop') { if (MZ.shop && MZ.sel && MZ.sel.shop != null) { const b = mq('#mz-shop [data-m="buy"]'), pn = mq('#mz-shop .mz-spanel'); if (pn) avoid.push(pn.getBoundingClientRect()); if (b) { at = b.getBoundingClientRect(); text = '「산다」를 누르면 산다.'; } } else if (MZ.shop) { const b = mq('#mz-shop .mz-cards'); if (b) { at = b.getBoundingClientRect(); text = '카드를 누르면 설명이 뜬다.'; } } else { const b = mq('#mz-bench [data-m="shopt"]'); if (b) at = b.getBoundingClientRect(); } }
   if (st.key === 'place') { if (MZ.sel && MZ.sel.uid) { const pl = mzPlaces(v, MZ.sel.uid); if (pl.cells.length) at = mzCellRect(pl.cells[Math.min(1, pl.cells.length - 1)]); else if (pl.core) at = mzCellRect('core'); } else { const b = mq('#mz-bench .mz-slot.has'); if (b) at = b.getBoundingClientRect(); } }
   if (st.key === 'raid') { const b = mq('#mz-bench [data-m="raid"]'); if (b) at = b.getBoundingClientRect(); }
@@ -8247,7 +8339,7 @@ function mzStepNext() {
   if (s.type === 'warp') { const mo = typeof motionOk !== 'function' || motionOk(), dur = mo ? 1100 / sp : 0; P.pos = { x: mzCx(s.from), y: mzCy(s.from) }; P.warpFx = dur ? { from: s.from, to: s.to, t0: MZ.t, dur } : null; if (!dur) P.pos = { x: mzCx(s.to), y: mzCy(s.to) }; mzLog('삼켜져 입구로', 'trap', mzTrapIcon('tr_maw')); mzSay('die'); P.wait = MZ.t + dur + 200 / sp; MZ.dbg.warp = (MZ.dbg.warp || 0) + 1; return; }
   if (s.type === 'walk') { P.walk = { cells: s.cells, back: s.back || [], k: 0, n: 0, from: { x: P.pos.x, y: P.pos.y }, mad: s.mad || [] }; if (s.lost) mzScoutDown(); return; }
   if (s.type === 'trap') { const T = MAZE.trapInfo(s.id), hit = s.after.filter((a, i) => a.alive && (a.hp < s.before[i].hp || a.san < s.before[i].san || a.mad !== s.before[i].mad)).length; P.traps++; P.pos = { x: mzCx(s.cell), y: mzCy(s.cell) }; P.flash = { cell: s.cell, t1: MZ.t + 600 / sp, dur: 600 / sp, col: MZTRAPC[s.id] || '#ffffff' }; mzPartyApply(s.after); mzLabel(mzCx(s.cell), mzCy(s.cell) - 30, T.name + ' · ' + T.short, 'trap'); mzLog(T.name + ' · ' + hit, 'trap', mzTrapIcon(s.id)); mzSay('hit'); P.wait = MZ.t + 800 / sp; return; }
-  if (s.type === 'break') { P.brk = { cell: s.cell, t1: MZ.t + 900 / sp, dur: 900 / sp }; P.grid[s.cell] = { dug: true, use: 'path', room: null, trap: null }; mzLabel(mzCx(s.cell), mzCy(s.cell) - 26, '지름길', 'brk'); mzLog('바위를 부수었다', 'brk'); mzSay('thud'); P.wait = MZ.t + 900 / sp; return; }
+  if (s.type === 'break') { P.brk = { cell: s.cell, t1: MZ.t + 900 / sp, dur: 900 / sp }; P.grid[s.cell] = { dug: true, use: 'path', room: null, trap: null }; mzLabel(mzCx(s.cell), mzCy(s.cell) - 26, '지름길', 'brk'); mzLog('벽을 뚫었다', 'brk'); mzSay('thud'); P.wait = MZ.t + 900 / sp; return; }
   if (s.type === 'egg' && mzTravel(P, 'egg', s)) return;
   if (s.type === 'egg') { const ep = mzPt('egg'); P.pos = { x: ep.x, y: ep.y - 20 }; P.egg = s.egg; P.eggHit = MZ.t + 900; mzLabel(mzPt('egg').x, mzPt('egg').y - 40, '알 −' + s.dmg, 'egg'); mzLog('알 −' + s.dmg, 'egg'); mzSay('die'); P.alive.forEach(p => { p.out = true; }); P.alive = []; mzRaidPanel(); mzDraw(); P.wait = MZ.t + 1200 / sp; return; }
   if (s.type === 'fight' && s.cell === 'core' && mzTravel(P, 'core', s)) return;
@@ -8388,7 +8480,7 @@ function mzAtkBench(v) {
 }
 // 지난 시도와 같은 일행인가 (같은 굴 · 같은 일행이면 결과가 같다)
 function mzAtkSame(A) { const last = A.results && A.results.length ? A.results[A.results.length - 1].party : null; return !!(last && A.party.length && A.tries < A.max && last.slice().sort().join() === A.party.map(q => q.kind).sort().join()); }
-const MZRMARK = r => [r.scout ? '길잡이' : '', r.avoid ? '함정 피함' : '', r.breaker ? '바위 부숨' : '', r.noMad ? '광기에 강함' : '', r.elite ? '정예' : ''].filter(Boolean);
+const MZRMARK = r => [r.scout ? '길잡이' : '', r.avoid ? '함정 피함' : '', r.breaker ? '벽 뚫음' : '', r.noMad ? '광기에 강함' : '', r.elite ? '정예' : ''].filter(Boolean);
 function mzRosterHtml(v) {
   const A = v.attack, R = v.roster || [], sel = MZ.rsel ? R.find(r => r.kind === MZ.rsel) : null, done = A.tries >= A.max;
   const panel = sel ? (() => { const mk = MZRMARK(sel), can = !done && A.gold >= sel.cost && A.party.length < A.size; return `<div class="mz-spanel"><div class="mz-sp1"><img src="${mzIcon(sel.kind, 1, 36)}" alt=""><div><b>${esc(sel.name)} · ${sel.cost}</b><small>${esc(sel.tag || '')}</small></div><button class="mz-spx" data-m="rx" aria-label="닫기">✕</button></div><p class="mz-sp2">체력 ${sel.hp} · 공격 ${sel.atk} · 정신 ${sel.san || '-'} · 알 피해 ${sel.egg}</p>${mk.length ? `<p class="mz-sp3"><b>특성</b> ${esc(mk.join(' · '))}</p>` : ''}<div class="mz-sp5"><button class="pri" data-m="hire" data-k="${sel.kind}"${can ? '' : ' disabled'}>데려간다 · ${sel.cost}</button><button data-m="rx">닫기</button></div>${can ? '' : `<p class="mz-why">${done ? '더 해 볼 수 없다' : A.party.length >= A.size ? '일행이 찼다' : '진액이 모자란다'}</p>`}</div>`; })() : '';
@@ -8397,7 +8489,7 @@ function mzRosterHtml(v) {
 // 받은 굴의 칸: 정보만
 function mzAcellHtml(v, c) {
   if (c === 'core' || c === 'egg') { const C = v.core; return c === 'egg' ? `<h3>알의 방</h3><p class="mz-note">알 ${v.egg.max}</p>` : `<h3>본체 방</h3><p class="mz-note">${esc(mzFormName(C.form, C.realStep, C.mixed))}</p>${C.units.map(u => `<div class="mz-rrow"><img src="${mzIcon(u.kind, u.star, 32)}" alt=""><div><b>${esc(u.name)} ${mzStars(u.star)}</b><small>${esc(u.roleName)} · 체력 ${u.hp}</small></div></div>`).join('')}`; }
-  const g = v.grid[c]; if (!g.dug) return '<h3>바위</h3><p class="mz-note">받은 굴은 고칠 수 없다.</p>';
+  const g = v.grid[c]; if (!g.dug) return '<h3>빈 자리</h3><p class="mz-note">받은 굴은 고칠 수 없다.</p>';
   if (g.use === 'trap') return `<h3>${esc(g.trapInfo.name)}</h3><p class="mz-note">${esc(g.trapInfo.short)}</p><p class="mz-note">${esc(g.trapInfo.more)}</p>`;
   if (g.use === 'kin') return `<h3>${esc(g.roomInfo ? g.roomInfo.name : '권속 방')}</h3>${g.roomInfo ? `<p class="mz-note">${esc(g.roomInfo.short)}</p>` : ''}${g.units.map(u => `<div class="mz-rrow"><img src="${mzIcon(u.kind, u.star, 32)}" alt=""><div><b>${esc(u.name)} ${mzStars(u.star)}</b><small>${esc(u.roleName)} · 체력 ${u.hp} · 공격 ${u.atk}</small></div></div>`).join('')}`;
   return '<h3>통로</h3><p class="mz-note">받은 굴은 고칠 수 없다.</p>';
