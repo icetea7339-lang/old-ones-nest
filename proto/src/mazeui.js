@@ -944,7 +944,9 @@ function mzArtKeyOf(r, sc) { if (!mzArtFn('storyArt') || !mzArtFn('storyArtFor')
 // 화면 가득 먼저: 장의 첫 장면, 결말의 첫 장면
 const mzHeroScene = r => (r.q === 'start' && r.s === 0) || (r.q === 'ending' && r.s === 0);
 MZ.heroSeen = {};
-function mzArtBg(key, cls) { if (!key || !mzArtFn('storyArt')) return ''; try { const w = Math.min(960, window.innerWidth), h = Math.min(960, window.innerHeight), c = LAIRART.storyArt(key, w, h, 0); return `<img class="${cls}" src="${c.toDataURL()}" alt="">`; } catch (e) { return ''; } }
+// 이야기 그림 속 주인공은 지금 본체 모습 그대로 (깨어나기 전이면 한 방울)
+function mzBodyArt() { const b = MZ.M && MZ.M.body; return b && b.form && b.form !== 'drop' && b.step ? { form: b.form, step: b.step } : null; }
+function mzArtBg(key, cls) { if (!key || !mzArtFn('storyArt')) return ''; try { const w = Math.min(960, window.innerWidth), h = Math.min(960, window.innerHeight), c = LAIRART.storyArt(key, w, h, 0, mzBodyArt()); return `<img class="${cls}" src="${c.toDataURL()}" alt="">`; } catch (e) { return ''; } }
 // 띠의 크기: 폰 세로는 폭 가득 · 높이 34%, 넓은 화면은 16:9. 화면 가득이면 온 화면
 function mzArtSize() {
   const el = $('mzr'), box = el && el.querySelector('.mzr-art'); if (!box) return; const vw = window.innerWidth, vh = window.innerHeight, hero = el.classList.contains('hero');
@@ -963,7 +965,7 @@ function mzArtShow(key) {
 function mzArtTick(force) {
   const el = $('mzr'), box = el && el.querySelector('.mzr-art'); if (!box) return false; const mo = typeof motionOk !== 'function' || motionOk(), now = performance.now(), t = mo ? (now % 8000) / 8000 : 0, fr = Math.floor(t * 8);
   if (!force && fr === MZ.artFr && MZ.artDrawn === MZ.artW + 'x' + MZ.artH) { mzBustTick(now); return true; } MZ.artFr = fr; MZ.artDrawn = MZ.artW + 'x' + MZ.artH;
-  Array.from(box.children).forEach(c => { const w = Math.max(16, Math.round(MZ.artW || 390)), h = Math.max(16, Math.round(MZ.artH || 220)); try { const a = LAIRART.storyArt(c.dataset.k, w, h, t); if (c.width !== w) c.width = w; if (c.height !== h) c.height = h; const x = c.getContext('2d'); x.imageSmoothingEnabled = false; x.drawImage(a, 0, 0); } catch (e) { /* 그림 없이 */ } });
+  Array.from(box.children).forEach(c => { const w = Math.max(16, Math.round(MZ.artW || 390)), h = Math.max(16, Math.round(MZ.artH || 220)); try { const a = LAIRART.storyArt(c.dataset.k, w, h, t, mzBodyArt()); if (c.width !== w) c.width = w; if (c.height !== h) c.height = h; const x = c.getContext('2d'); x.imageSmoothingEnabled = false; x.drawImage(a, 0, 0); } catch (e) { /* 그림 없이 */ } });
   mzBustTick(now); return true;
 }
 function mzArtLoop() { if (MZ.artRaf) return; const f = () => { MZ.artRaf = null; const el = $('mzr'); if (!el || el.hidden || !el.querySelector('.mzr-art')) return; mzArtTick(false); MZ.artRaf = requestAnimationFrame(f); }; MZ.artRaf = requestAnimationFrame(f); }

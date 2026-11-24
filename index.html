@@ -4237,6 +4237,291 @@ const LAIRART = (() => {
     for (const side of [0, 1]) { const sg = x.createLinearGradient(side ? w : 0, 0, side ? w - S * 0.9 : S * 0.9, 0); sg.addColorStop(0, 'rgba(5,4,7,0.6)'); sg.addColorStop(1, 'rgba(5,4,7,0)'); x.fillStyle = sg; x.fillRect(0, 0, w, h); }
     return c; }
   // ── ART-MAZE 끝
+  // ── ART-BUST 시작
+  // 이야기의 인물 초상: 대사 옆에 나오는 반신(어깨까지). 싸움 그림과 따로, 사람의 얼굴로 그린다.
+  //   LAIRART.bust(who, px, mood, t) → canvas(px × px) 또는 null(초상이 없는 말: 기록, 쪽지, 한 방울)
+  //     who: 대사의 이름('로웬', '에녹' …) 또는 초상 key('rowen' …). mood: 'calm' | 'fear' | 'grim' | 'mad'. t: ms (숨쉬기, 눈 깜박임, 등불의 일렁임)
+  //   LAIRART.BUSTS: 이야기에 나오는 이름 → key (초상이 없으면 null)
+  // 64 눈금에 그린다. 96 까지는 그 크기 그대로 한 점씩, 128 이상은 64 바탕을 정수 배로 키운다.
+  // 빛은 왼쪽 위의 등불. 얼굴은 오른쪽으로 비스듬히(4분의 3) 본다. 살빛은 여섯 단, 단 사이는 점무늬로 섞는다.
+  const BUST = {}, BMOODS = ['calm', 'fear', 'grim', 'mad'], bustCache = {};
+  const BUSTBG = { village: ['#120c08', '#2a1a10', '#4a2e18', '#7a4a24'], church: ['#0c0b10', '#1e1b24', '#38323e', '#5e5258'], work: ['#080e0e', '#122220', '#1e3a36', '#34605a'],
+    tower: ['#0a0812', '#181228', '#2a2044', '#463668'], road: ['#0a0908', '#1c1612', '#34281c', '#5a4228'], field: ['#090b08', '#181e12', '#2c361e', '#4c5a30'] };
+  // 살빛 여섯 단: 가장 깊은 그늘 … 가장 밝은 곳
+  const sRamp = b => [mixh(b, '#1c0c14', 0.68), mixh(b, '#2a1218', 0.48), mixh(b, '#3a1a1a', 0.25), b, mixh(b, '#fff0d8', 0.26), mixh(b, '#fff8ec', 0.52)];
+  const sOut = b => mixh(b, '#0c0608', 0.8);
+  // 가락 결: 머리카락·수염·털. 빛(왼쪽 위의 공) 위에 결 방향(a, 라디안)으로 줄무늬를 얹어 단을 고른다
+  const quant = (R, v, X, Y, k) => R[clamp(Math.floor(v * R.length + (bay(X, Y) - 0.5) * (k == null ? 0.9 : k)), 0, R.length - 1)];
+  const strands = (D, m, R, a, o) => { o = o || {}; const cx = o.cx || 30, cy = o.cy || 20, rx = o.rx || 16, ry = o.ry || 18, amp = o.amp == null ? 0.32 : o.amp, fq = o.fq || 1.25, base = o.base == null ? 0 : o.base, kx = o.kx == null ? 0.38 : o.kx, ky = o.ky == null ? 0.34 : o.ky;
+    D.shade(m, (x, y, X, Y) => { const nx = (x - cx) / rx, ny = (y - cy) / ry, p = -x * sin(a) + y * cos(a), q = x * cos(a) + y * sin(a), n = hsh(Math.floor(p * fq), 11) - 0.5, n2 = sin(q * 0.9 + n * 6) * 0.08, v = 0.55 - nx * kx - ny * ky + n * amp + n2 + base; return quant(R, v, X, Y); }, o.oc === undefined ? R[0] : o.oc); return m; };
+  const hairG = (D, pts, R, a, o) => strands(D, D.poly(pts), R, a, o);
+  // 옷감: 빛 + 주름(세로 골)
+  const cloth = (D, pts, R, o) => { o = o || {}; const m = D.poly(pts); if (o.add) o.add.forEach(q => D.poly(q, m)); D.shade(m, (x, y, X, Y) => { const v = 0.62 - (x - 32) / 34 - (y - 46) / 40 + (o.folds ? sin(x * 0.7 + o.folds) * 0.09 : 0) + (o.base || 0); return quant(R, v, X, Y, 0.8); }, o.oc === undefined ? R[0] : o.oc); return m; };
+  const ringP = (D, cx, cy, r, c, oc) => D.flat(D.cut(D.el(cx, cy, r, r), (x, y) => (x - cx) * (x - cx) + (y - cy) * (y - cy) > (r - 1) * (r - 1)), c, oc === undefined ? null : oc);
+  const R4 = p => [p[0], deepOf(p), p[3], p[1], p[2]];
+  // ---------- 얼굴 ----------
+  // 비례는 머리 높이(정수리 top ~ 턱 chin[1])에서 나온다: 눈 = 절반, 눈썹 = 그 바로 위, 코끝 = 눈과 턱의 가운데, 입 = 코끝과 턱 사이의 위 3분의 1,
+  // 귀 = 위끝이 눈썹, 아래끝이 코끝 높이(가까운 왼쪽 하나만). 눈 사이는 눈 하나 너비, 먼 눈은 작고 콧등 쪽으로 붙는다. 아이는 눈이 조금 아래(이마가 넓다).
+  // f: skin top chin([x,y]) jaw([x,y]) child nb(콧등 굽음) np(코가 나온 정도) nl(코 길이 ±) brow browW iris thin fat age socket lip rim narrow noEar
+  const FACE0 = { top: 9.6, chin: [39.2, 42.4], jaw: [25.4, 37.8], nb: 0, np: 0, nl: 0, browW: 0.75, iris: '#3a2a1e', thin: 0.3, fat: 0, age: 0, socket: 1, lip: null };
+  const faceGeo = f => { const T = f.top, C = f.chin[1], H = C - T, ey = T + H * (f.child ? 0.545 : 0.5), ny = (ey + C) / 2 + f.nl, my = ny + (C - ny) / 3;
+    return Object.assign(f, { ey, by: ey - 3, ny, my, ex1: 29.4, ex2: 39, ew1: 5, ew2: 3.6, nx: 41.8 + f.np, bx: 36, mx: 36.8, mw: 7, earT: ey - 3, earB: ny, earX: 25 }); };
+  const facePts = f => { const T = f.top, [cx, cy] = f.chin, [jx, jy] = f.jaw, b = f.nb, nx = f.nx, ny = f.ny, ey = f.ey, my = f.my;
+    return [[jx - 2.6, jy - 6], [21, T + 6], [27, T + 0.8], [34, T], [39.4, T + 2.4], [41.4, T + 7], [41.8, ey - 3.4], [42.2, ey - 2.4], [41.4, ey - 0.4], [41.4 + b * 0.4, ey + 1.6], [41.6 + b, ey + 3.6],
+      [nx - 0.4, ny - 2], [nx + 0.6, ny - 0.4], [nx + 0.2, ny + 0.6], [nx - 1, ny + 1.2], [41, ny + 1.6], [41.4, my - 1.2], [41.6, my - 0.2], [41.2, my + 0.4], [41.6, my + 1.4], [41, my + 3],
+      [cx + 1.6, cy - 1.6], [cx + 0.8, cy - 0.2], [cx - 1.6, cy + 0.6], [cx - 6, cy + 0.2 + f.fat * 1.6], [jx + 3.6, jy + 2.6], [jx, jy], [jx - 1.4, jy - 3]]; };
+  function faceLight(f, m, N) { const [cx, cy] = f.chin, [jx, jy] = f.jaw, nx0 = f.nx, ny0 = f.ny, at = (X, Y) => X >= 0 && Y >= 0 && X < N && Y < N && m[Y * N + X];
+    return (x, y, X, Y) => { const nx = (x - 32) / 14, ny = (y - 26) / 17, nz = Math.sqrt(Math.max(0.04, 1 - nx * nx - ny * ny)); let v = 0.44 - 0.42 * nx - (ny > 0 ? 0.16 : 0.34) * ny + 0.3 * nz;
+      for (const [ex, w] of [[f.ex1, f.ew1], [f.ex2, f.ew2]]) { const d = ((x - ex) / (w * 0.75)) ** 2 + ((y - f.ey + 0.3) / 2.8) ** 2; if (d < 1) v -= 0.2 * f.socket * (1 - d); }
+      if (y > f.by - 1.8 && y < f.by + 0.4 && x > f.ex1 - 3.6 && x < f.ex2 + 1.4) v += 0.06;
+      // 콧등: 미간(bx, 눈높이)에서 코끝으로. 왼쪽 면은 빛, 오른쪽(먼) 면은 그늘
+      const t = (y - f.ey) / (ny0 - f.ey); if (t > 0 && t < 1.02) { const rx = lerp(f.bx + f.nb * t * (1 - t) * 4, nx0 - 1.2, t); if (x > rx && x < rx + 2) v -= 0.3; else if (x <= rx && x > rx - 1.4 - t * 0.6) v += 0.15; }
+      if (((x - nx0 + 1.4) / 1.8) ** 2 + ((y - ny0 - 1.4) / 0.9) ** 2 < 1) v -= 0.24;
+      if (((x - nx0 + 4.6) / 1.3) ** 2 + ((y - ny0 + 0.2) / 1.4) ** 2 < 1) v -= 0.16;
+      if (((x - 29.6) / 3) ** 2 + ((y - ny0 + 0.6) / 2.2) ** 2 < 1) v -= 0.16 * f.thin; if (((x - 31) / 3.4) ** 2 + ((y - f.ey - 3.6) / 1.6) ** 2 < 1) v += 0.08 + 0.08 * f.thin;
+      if (f.fat && ((x - 32.6) / 4.4) ** 2 + ((y - ny0) / 3) ** 2 < 1) v += 0.08 * f.fat;
+      const jl = lerp(jy, cy + 0.6, clamp((x - jx) / (cx - jx), 0, 1)); if (y > jl - 1.8 && x > jx - 1) v -= 0.22;
+      if (f.fat && y > cy - 2.4 && y < cy + 0.2 && x > cx - 8 && x < cx) v -= 0.12 * f.fat;
+      if (((x - cx + 0.6) / 2.2) ** 2 + ((y - cy + 2.4) / 1.4) ** 2 < 1) v += 0.08;
+      if (((x - f.mx) / 2) ** 2 + ((y - f.my - 2.6) / 0.9) ** 2 < 1) v -= 0.1;
+      if (x < jx + 2 && y > f.ny - 2) v -= 0.06;
+      if (f.rim && !at(X + 1, Y) && x > 33 && y > f.ey - 4) v = 2;
+      return v; }; }
+  function bFace(D, f, md) {
+    const R = sRamp(f.skin), oc = sOut(f.skin), m = D.poly(facePts(f)), S2 = D.S + PAD * 2; D.el(30.6, f.top + 12.4, 11.4, 12.4, m);
+    const FL = faceLight(f, m, S2); D.shade(m, (x, y, X, Y) => { const v = FL(x, y, X, Y); return v > 1.5 ? f.rim.c : quant(R, v, X, Y, 0.6); }, oc);
+    // 귀: 위끝은 눈썹, 아래끝은 코끝 높이
+    if (!f.noEar) { const ec = (f.earT + f.earB) / 2, eh = (f.earB - f.earT) / 2; const em = D.el(f.earX, ec, 1.9, eh); D.el(f.earX + 0.6, f.earT + eh * 0.55, 2, eh * 0.55, em); D.shade(em, (x, y, X, Y) => quant(R, 0.6 - (x - f.earX) * 0.1 - (y - ec) * 0.03, X, Y, 0.6), mixh(f.skin, '#2a1410', 0.6)); flatL(D, [[f.earX + 0.4, f.earT + 2], [f.earX, ec], [f.earX + 0.6, f.earB - 2.4]], R[2], 0.4); D.px(f.earX + 0.8, ec + 0.6, R[1]); D.px(f.earX - 0.8, f.earT + 1.2, R[4]); }
+    // 코끝의 빛, 콧구멍 그늘(코끝 아래), 콧방울
+    D.px(f.nx - 0.8, f.ny - 1, R[5]); D.px(f.nx - 1.6, f.ny + 1, R[0]); D.px(f.nx - 0.8, f.ny + 1, R[1]); flatL(D, [[f.nx - 5, f.ny - 0.4], [f.nx - 4.6, f.ny + 1], [f.nx - 3.4, f.ny + 1.3]], R[1], 0.4);
+    const a = f.age, L = f.mx - f.mw * 0.55; if (a >= 1) { flatL(D, [[f.ex1 - 3.2, f.ey + 0.4], [f.ex1 - 4.4, f.ey + 1.6]], R[2], 0.4); flatL(D, [[f.ex1 - 2.6, f.ey + 2.4], [f.ex1 + 1.4, f.ey + 3]], R[2], 0.4); }
+    if (a >= 2) { flatL(D, [[f.nx - 5.2, f.ny + 0.8], [L - 0.6, f.my + 1.2]], R[1], 0.45); for (const yy of [f.top + 5, f.top + 7.4]) flatL(D, [[29, yy], [38.6, yy - 0.4]], R[2], 0.4); }
+    if (a >= 3) { flatL(D, [[f.ex1 - 3.4, f.ey - 0.6], [f.ex1 - 4.8, f.ey - 1]], R[2], 0.4); flatL(D, [[L - 0.6, f.my + 2], [L, f.my + 4.6]], R[1], 0.4); flatL(D, [[31, f.chin[1] - 4], [33.4, f.chin[1] - 1]], R[2], 0.4); }
+    return R;
+  }
+  // 눈: 가까운 눈(왼쪽)은 온전히, 먼 눈은 좁다. 기분은 뜬 정도·눈동자 크기·윗눈꺼풀로 갈린다
+  function bEyes(D, f, md, R) {
+    const mood = md.mood, lash = mixh(f.skin, '#0c0608', 0.82), wh = mood === 'mad' ? '#e8dcd8' : '#d8cec4', ic = mood === 'mad' ? '#b040e0' : f.iris, open = mood === 'fear' ? 1.45 : mood === 'grim' ? 0.92 : mood === 'mad' ? 1.3 : f.narrow ? 0.8 : 1;
+    [[f.ex1, f.ew1, 1], [f.ex2, f.ew2, 0]].forEach(([cx, w, near]) => { const y = f.ey, h = 1.05 * open, ir = (near ? 1.35 : 1.1) * (mood === 'fear' ? 0.78 : 1), sx = near ? 0.5 : 0.5;
+      if (md.blink) { flatL(D, [[cx - w / 2, y + 0.2], [cx, y + 0.9], [cx + w / 2, y + 0.3]], lash, 0.55); flatL(D, [[cx - w / 2 + 0.4, y - 0.8], [cx + w / 2 - 0.4, y - 0.8]], R[2], 0.4); return; }
+      D.flat(D.el(cx, y, w / 2, h), wh, null);
+      D.flat(D.cut(D.el(cx + sx, y + 0.1, ir, ir * 1.05), (x, yy) => ((x - cx) / (w / 2)) ** 2 + ((yy - y) / h) ** 2 <= 1.05), ic, null);
+      if (mood !== 'mad') D.px(cx + sx, y + 0.2, '#0c0608'); else D.px(cx + sx, y, '#f8c8ff');
+      D.px(cx + sx - 0.6, y - 0.6, '#ffffff');
+      const top = mood === 'grim' ? y - h + 0.15 : y - h - 0.1; flatL(D, [[cx - w / 2 - 0.3, y + 0.2], [cx - w / 4, top], [cx + w / 4, top], [cx + w / 2 + 0.2, y - 0.2]], lash, near ? 0.6 : 0.5);
+      flatL(D, [[cx - w / 2 + 0.4, y + h + 0.5], [cx + w / 2 - 0.6, y + h + 0.3]], R[2], 0.4);
+      if (mood === 'fear') D.px(cx + sx, y - h + 0.2, wh); });
+  }
+  // 눈썹: 눈 바로 위. 안쪽 끝(콧등 쪽)이 기분에 따라 오르내린다
+  function bBrows(D, f, md) { if (!f.brow) return; const mood = md.mood, y0 = f.by;
+    [[f.ex1, f.ew1 + 0.6, 1], [f.ex2, f.ew2 + 0.8, 0]].forEach(([cx, w, near]) => { const inX = near ? cx + w / 2 : cx - w / 2, outX = near ? cx - w / 2 - 0.4 : cx + w / 2 + 0.2;
+      const lift = mood === 'fear' ? [1.8, 0.6] : mood === 'grim' ? [-1.4, 0.2] : mood === 'mad' ? (near ? [0.4, 1.8] : [-1.2, -0.2]) : [0, 0.3];
+      const pin = [inX, y0 - lift[0] + (mood === 'fear' ? -0.4 : 0)], pmid = [lerp(inX, outX, 0.45), y0 - 0.8 - lift[1] - (mood === 'fear' ? 0.6 : 0)], pout = [outX, y0 + 0.4 - (mood === 'fear' ? 0.6 : 0)];
+      flatL(D, [pin, pmid, pout], f.brow, f.browW); if (f.browW > 0.9) flatL(D, [[pin[0], pin[1] + 0.6], [pmid[0], pmid[1] + 0.6]], f.brow, f.browW * 0.6); });
+  }
+  // 입: 가운데선에서 보는 쪽으로 조금 치우치고, 입꼬리 너비는 두 눈동자 사이만큼
+  function bMouth(D, f, md, R) { const mood = md.mood, x = f.mx, y = f.my, w = f.mw, L = x - w * 0.55, Rr = x + w * 0.45, dk = mixh(f.skin, '#2a0a0e', 0.72), lipM = f.lip || mixh(f.skin, '#a0403a', 0.32), lipL = mixh(lipM, '#fff0e0', 0.3);
+    if (mood === 'fear') { D.flat(D.el(x, y + 0.9, w * 0.24, 1.7), MAWC, dk); D.rect(x - 1.4, y - 0.2, 2.6, 0.6, TOOTH2); flatL(D, [[x - 1.4, y + 3], [x + 1.4, y + 3]], lipL, 0.4); flatL(D, [[L + 1, y + 0.4], [x - 2, y + 0.2]], dk, 0.4); flatL(D, [[x + 2, y + 0.2], [Rr - 1, y + 0.4]], dk, 0.4); }
+    else if (mood === 'mad') { D.flat(D.poly([[L - 0.4, y - 1.4], [x, y - 0.4], [Rr + 0.4, y - 1.6], [Rr - 0.6, y + 1.2], [x, y + 2.2], [L + 0.4, y + 1]]), MAWC, dk); for (let k = 0; k < 6; k++) D.px(L + 0.8 + k * (Rr - L - 1) / 5, y - 0.4, TOOTH); D.rect(L + 1.2, y + 1, Rr - L - 2, 0.5, TOOTH2); }
+    else if (mood === 'grim') { flatL(D, [[L, y + 1.1], [L + 1.4, y + 0.1], [Rr - 1, y], [Rr, y + 0.9]], dk, 0.5); flatL(D, [[x - 1.6, y - 1], [x + 1.2, y - 1]], R[2], 0.4); flatL(D, [[x - 1.4, y + 3.2], [x + 1.2, y + 3.2]], R[2], 0.4); }
+    else { flatL(D, [[L + 1.6, y - 0.8], [Rr - 1.6, y - 0.8]], lipM, 0.4); flatL(D, [[L, y + 0.2], [L + 1, y], [x - 0.6, y + 0.2], [x, y], [Rr - 0.6, y], [Rr, y + 0.1]], dk, 0.45); flatL(D, [[x - 1.6, y + 1.1], [x + 1, y + 1.1]], lipL, 0.45); D.px(x - 0.4, y + 2.6, R[2]); }
+  }
+  // 목: 귀 아래에서 시작한다. 턱 밑은 그늘
+  const bNeck = (D, f, w) => { w = w || 0; const R = sRamp(f.skin); D.shade(D.poly([[f.earX - 0.6 - w, f.earB], [f.jaw[0] + 4, f.jaw[1] + 2.8], [f.chin[0] - 2, f.chin[1] + 0.4], [38.6 + w * 0.5, 50], [39 + w * 0.5, 52], [25 - w, 52], [24 - w, 44]]), (x, y, X, Y) => quant(R, 0.42 - (x - 30) * 0.03 - (y < f.chin[1] + 1.4 ? 0.2 : 0), X, Y), sOut(f.skin)); };
+  // 한 사람: o.face(얼굴 값), o.back o.body o.neck(false 면 없음) o.collar o.hairB(머리 뒤) o.beard o.hair o.hat o.front o.extra(얼굴 위 덧그림)
+  const bustMan = o => ({ bg: o.bg, lamp: o.lamp, flick: o.flick, ph: o.ph || 0, glow: o.glow, face: o.noFace ? null : o.face, draw(D, md) {
+    const f = faceGeo(Object.assign({}, FACE0, o.face));
+    if (o.back) o.back(D, md);
+    if (o.body) o.body(D, md);
+    if (o.neck !== false) bNeck(D, f, o.neckW);
+    if (o.collar) o.collar(D, md);
+    if (o.hairB) o.hairB(D, md);
+    if (!o.noFace) { const R = bFace(D, f, md); if (o.skinX) o.skinX(D, md, R); if (!o.noEyes) bEyes(D, f, md, R); bBrows(D, f, md); if (o.beard) o.beard(D, md, R); if (!o.noMouth) bMouth(D, f, md, R); if (o.beardF) o.beardF(D, md, R); }
+    if (o.extra) o.extra(D, md);
+    if (o.hair) o.hair(D, md);
+    if (o.hat) o.hat(D, md);
+    if (o.front) o.front(D, md);
+  } });
+  // 기분의 빛은 옅게만 얹는다(표정이 먼저 말한다)
+  const moodPix = (c, mood) => { if (mood === 'calm') return c; const a = c >>> 24, r = c & 255, g = (c >>> 8) & 255, b = (c >>> 16) & 255, l = (r * 3 + g * 5 + b * 2) / 10;
+    if (mood === 'mad') { const q = madPix(c), f = (v, w) => Math.round(lerp(v, w, 0.6)); return ((a << 24) | (f(b, (q >>> 16) & 255) << 16) | (f(g, (q >>> 8) & 255) << 8) | f(r, q & 255)) >>> 0; }
+    const k = mood === 'fear' ? [0.2, 0.92, 0.95, 1.04, 6] : [0.18, 0.9, 0.88, 0.88, 0], f = v => Math.max(0, Math.min(255, Math.round(v))), nr = f(lerp(r, l, k[0]) * k[1]), ng = f(lerp(g, l, k[0]) * k[2]), nb = f(lerp(b, l, k[0]) * k[3] + k[4]);
+    return ((a << 24) | (nb << 16) | (ng << 8) | nr) >>> 0; };
+  const bgPal = (name, mood) => { const p = BUSTBG[name] || BUSTBG.road; return mood === 'fear' ? p.map(c => mixh(c, '#16203a', 0.4)) : mood === 'grim' ? p.map(c => mixh(c, '#0a0a0c', 0.3)) : mood === 'mad' ? p.map((c, i) => mixh(c, ['#0c0618', '#200c38', '#3a1a5a', '#5a2a80'][i], 0.6)) : p; };
+  function bustBase(key, S, mood, br, bl, fl) {
+    const d = BUST[key], k = 'bb:' + key + ':' + S + ':' + mood + ':' + br + bl + fl; if (bustCache[k]) return bustCache[k];
+    const D = kit(S, 64); D.S = S; d.draw(D, { mood, blink: !!bl, fl: !!fl, S });
+    const C = S + PAD * 2, fig = D.K.canvas(), fc = fig.getContext('2d'), im = fc.getImageData(0, 0, C, C), f32 = new Uint32Array(im.data.buffer);
+    for (let i = 0; i < f32.length; i++) if (f32[i] >>> 24) f32[i] = moodPix(f32[i], mood);
+    fc.putImageData(im, 0, 0);
+    const out = mk(S), x = out.getContext('2d'), bg = x.createImageData(S, S), b32 = new Uint32Array(bg.data.buffer), pal = bgPal(d.bg, mood).map(c => C32(c)), L = d.lamp || [6, 6], u = 64 / S, warm = C32(mood === 'mad' ? '#7a3aa8' : mood === 'fear' ? '#6a7aa0' : d.glow || '#a8682c');
+    for (let y = 0; y < S; y++) for (let xx = 0; xx < S; xx++) { const nx = (xx + 0.5) * u, ny = (y + 0.5) * u, dd = Math.hypot(nx - L[0], (ny - L[1]) * 1.1) / 48, v = (1 - dd) * 2.8 + (fl ? 0.22 : 0) - (ny > 54 ? (ny - 54) * 0.04 : 0), lv = clamp(Math.floor(v + bay(xx, y) - 0.5), 0, 3);
+      b32[y * S + xx] = lv === 3 && dd < 0.3 && bay(xx, y) > 0.55 ? warm : pal[lv]; }
+    if (mood === 'mad') for (let i = 0; i < 18; i++) { const gx = Math.floor(hsh(i, 41) * S), gy = Math.floor(hsh(i, 42) * S * 0.8); if (gx > 1 && gy > 1 && gx < S - 2) { b32[gy * S + gx] = C32(i % 3 ? '#c8a8ff' : '#f0e8ff'); if (i % 4 === 0) { b32[gy * S + gx + 1] = C32('#6a3aa8'); b32[(gy + 1) * S + gx] = C32('#6a3aa8'); } } }
+    x.putImageData(bg, 0, 0); x.imageSmoothingEnabled = false; x.drawImage(fig, -PAD, -PAD - Math.round(br / u));
+    x.fillStyle = INK; x.fillRect(0, 0, S, 1); x.fillRect(0, S - 1, S, 1); x.fillRect(0, 0, 1, S); x.fillRect(S - 1, 0, 1, S);
+    x.fillStyle = mood === 'mad' ? '#3a1a5a' : '#3a2a1c'; x.fillRect(1, 1, S - 2, 1); x.fillRect(1, 1, 1, S - 2);
+    return (bustCache[k] = out);
+  }
+  // 시험용: 그 사람 얼굴의 비례 자리(64 눈금)
+  const bustGeo = key => BUST[key] && BUST[key].face ? faceGeo(Object.assign({}, FACE0, BUST[key].face)) : null;
+  function bust(who, px, mood, t) {
+    const key = BUST[who] ? who : BUSTS[who]; if (!key || !BUST[key]) return null;
+    px = Math.max(16, Math.round(px || 96)); mood = BMOODS.indexOf(mood) >= 0 ? mood : 'calm'; t = Math.max(0, t || 0);
+    const d = BUST[key], kk = px >= 128 ? Math.floor(px / 64) : 1, S = Math.floor(px / kk), br = ((t + d.ph * 0.7) % 2800) / 2800 > 0.5 ? 1 : 0, bl = (t + d.ph) % 4100 < 140 ? 1 : 0, fl = d.flick ? Math.floor(t / 170) % 2 : 0, k = 'bx:' + key + ':' + px + ':' + mood + ':' + br + bl + fl;
+    if (bustCache[k]) return bustCache[k];
+    const base = bustBase(key, S, mood, br, bl, fl), c = mk(px), x = c.getContext('2d'), off = Math.floor((px - S * kk) / 2); x.imageSmoothingEnabled = false; x.fillStyle = INK; x.fillRect(0, 0, px, px); x.drawImage(base, off, off, S * kk, S * kk);
+    return (bustCache[k] = c);
+  }
+  const shoulders = (D, R, w, o) => cloth(D, [[2 - (w || 0), 66], [5 - (w || 0), 53], [16, 45.6], [27, 44], [40, 45], [50, 47], [60 + (w || 0), 54], [64 + (w || 0), 66]], R, o);
+  // 로웬 하스, 파문당한 기사: 각진 군인 얼굴, 짧게 깎은 반백의 머리, 짧고 숱 많은 수염, 먼 눈썹을 가르는 흉터. 판금 어깨와 등의 방패, 어깨 너머 칼자루
+  const STEEL6 = ['#12131c', '#2c3040', '#4a5064', '#727a90', '#a8b0c4', '#dce4f4'];
+  BUST.rowen = bustMan({ bg: 'road', lamp: [6, 6], ph: 900,
+    face: { skin: '#c4865e', jaw: [23.8, 38.4], chin: [39.6, 42.8], np: 0.6, brow: '#3e342c', browW: 1.05, iris: '#4a4a3a', age: 1, thin: 0.25, narrow: true },
+    back: D => { const sh = ['#141210', '#5a5248', '#8a8070', '#b8b0a0', '#dcd4c4']; cloth(D, [[0, 40], [15, 40], [15, 60], [7, 66], [0, 66]], sh); for (const [a, b] of [[[1.6, 42], [13, 58]], [[13, 42.6], [2, 58.6]], [[5, 41], [9.6, 63]]]) flatL(D, [a, b], '#3e3a34', 0.55); D.flat(D.el(7.6, 50, 3.6, 3.8), '#8a5a48', null); D.flat(D.el(7.6, 50, 1.6, 1.8), '#b8b0a0', null);
+      D.L([[52, 46], [58, 26]], 1.5, 1.2, R4(P.steel)); D.rect(48.6, 43, 8.4, 1.8, '#4a4038'); D.B(50.6, 47.6, 1.8, 1.8, ['#1a1410', '#4a4038', '#7a6a58', '#2a221c']); D.px(57, 28, '#ffffff'); D.px(55.6, 33, INK); },
+    body: D => { cloth(D, [[3, 66], [6, 54], [17, 47], [46, 47], [57, 53], [61, 66]], ['#141010', '#2e2420', '#4a3a32', '#62504a', '#7e6a60'], { folds: 1 });
+      const st = STEEL6; cloth(D, [[19, 66], [20, 51], [45, 51], [46, 66]], st, { base: -0.12 }); for (const [a, b] of [[[24, 55], [29, 60]], [[36, 54], [38.6, 61]], [[27, 63], [33, 64.6]]]) flatL(D, [a, b], st[1], 0.45);
+      D.shade(D.el(12, 53.6, 8.6, 6.2), (x, y, X, Y) => quant(st, 0.8 - (x - 10) / 14 - (y - 50) / 12, X, Y), st[0]); D.shade(D.el(52, 53.6, 8.2, 6), (x, y, X, Y) => quant(st, 0.62 - (x - 50) / 14 - (y - 50) / 12, X, Y), st[0]);
+      flatL(D, [[5, 56.6], [19, 57]], st[1], 0.5); flatL(D, [[45, 57], [59, 56.6]], st[1], 0.5); },
+    collar: D => { const st = STEEL6; cloth(D, [[24.4, 44], [41, 44.4], [43, 50.6], [22.6, 50.6]], st, { base: -0.08 }); flatL(D, [[23.4, 47.6], [42, 47.6]], st[1], 0.45); },
+    hair: D => { const hr = ['#14100c', '#3a3028', '#5a4c3e', '#7a6a58', '#a09280']; hairG(D, [[21.6, 30], [20.6, 21], [22.6, 14], [28, 10], [35, 9.2], [40.6, 11.6], [42.4, 15.6], [39.6, 14.6], [35, 14.2], [30.4, 15.6], [27, 18.4], [25.8, 24], [25.6, 30]], hr, -0.25, { fq: 2, amp: 0.4 });
+      for (const [x, y] of [[23, 22], [22.6, 25], [24, 19], [21.8, 27.6]]) D.px(x, y, '#c8c0b0'); },
+    beard: (D, md, R) => { const bd = ['#1a140f', '#4a3e32', '#6e6050', '#928472', '#b8ac9a']; hairG(D, [[25.8, 33.4], [28, 36], [31, 38], [33.6, 38.4], [35.6, 39.4], [38.6, 39.6], [41.2, 39], [41.4, 40.6], [40.6, 43], [38.6, 45], [34, 45.4], [29.6, 43.6], [26.6, 40.4], [25, 36]], bd, Math.PI / 2, { fq: 1.6, amp: 0.45, base: 0.08 });
+      for (const [x, y] of [[29, 40], [33, 43], [37.6, 44], [31.6, 38.6]]) D.px(x, y, '#c0b8a8'); },
+    beardF: D => { const bd = ['#1a140f', '#4a3e32', '#6e6050', '#928472', '#b8ac9a']; hairG(D, [[32, 37.4], [34.6, 35.8], [38, 35.6], [41.2, 35.8], [41.6, 37], [39.4, 36.8], [36.6, 37.2], [34, 38], [32.2, 38.4]], bd, 0.2, { fq: 2, amp: 0.3, base: 0.1 }); },
+    extra: D => { flatL(D, [[38.2, 20.6], [39.2, 24.4]], '#e0a088', 0.45); flatL(D, [[39.8, 28], [40.6, 31]], '#e0a088', 0.45); flatL(D, [[39, 20.6], [40, 24.4]], '#6a3a2c', 0.35); } });
+  // 에다 볼크, 기록관: 마른 학자의 얼굴(꺼진 뺨, 가는 턱, 긴 코), 철사 테의 둥근 안경, 뒤로 틀어 올린 검갈색 머리와 깃펜, 초록 외투와 흰 깃, 목에 건 돋보기
+  BUST.eda = bustMan({ bg: 'road', lamp: [6, 8], ph: 300,
+    face: { skin: '#dcae88', jaw: [26.2, 37.4], chin: [38.6, 42.6], nl: 0.4, brow: '#3e2a22', browW: 0.6, iris: '#3a4a5a', thin: 0.85, lip: '#b0685e' },
+    body: D => { const ct = ['#0e120c', '#26301f', '#3a4a32', '#566a4a', '#7a8c6a']; cloth(D, [[4, 66], [7, 54], [18, 47], [45, 47], [56, 53], [60, 66]], ct, { folds: 2 }); flatL(D, [[22, 50], [19, 66]], ct[1], 0.5); flatL(D, [[44, 50], [46, 66]], ct[1], 0.5); for (const y of [55, 60]) D.px(42.6, y, P.gold[1]); },
+    collar: D => { const w = ['#3a3028', '#a8a090', '#d8d0c0', '#ece6da', '#ffffff']; cloth(D, [[24, 44.6], [33.4, 49.6], [42, 44.6], [43.4, 48.6], [33.4, 54.6], [22.6, 48.6]], w, { base: 0.15 }); flatL(D, [[27, 49], [30.6, 56]], '#8a6a20', 0.4); flatL(D, [[39.6, 49], [33.4, 56]], '#8a6a20', 0.4);
+      D.flat(D.el(32, 58.6, 3, 3), '#bfe0e8', '#4a3a14'); D.px(31, 57.4, '#ffffff'); D.px(31.6, 57.4, '#ffffff'); D.rect(31.6, 61.6, 1, 3, '#6a5020'); },
+    hairB: D => { const hr = ['#120a08', '#2a1a14', '#40281e', '#5a3c2c', '#7a5440']; strands(D, D.el(20, 17, 5.4, 5), hr, 0.8, { fq: 1.6 }); D.L([[19, 15], [12.6, 4]], 0.7, 0.45, ['#3a2a10', '#a89870', '#e8dcc0', '#c8b890']); D.G([[11, 6.6], [13.6, 1.6], [15, 7.6], [13, 9.4]], ['#3a2a10', '#c8b890', '#ffffff', '#e8dcc0']); },
+    extra: D => { const g = '#7a5c1c'; for (const [x, r] of [[29.4, 3.3], [39, 2.6]]) ringP(D, x, 26.1, r, g); flatL(D, [[32.6, 25.6], [36.5, 25.6]], g, 0.4); flatL(D, [[26.2, 25.8], [24.6, 26.6]], g, 0.4); D.px(27.8, 24.4, '#fff0c0'); D.px(37.8, 24.8, '#fff0c0'); },
+    hair: D => { const hr = ['#120a08', '#2a1a14', '#40281e', '#5a3c2c', '#7a5440']; hairG(D, [[19.4, 30], [19, 20], [22, 13], [29, 9.2], [37, 9.4], [42, 12.6], [43.2, 18.4], [40.6, 16.6], [37.6, 16.4], [34, 15.6], [30.4, 16.8], [27.6, 18.6], [26.2, 23], [26.2, 27], [24.4, 31.6], [21.6, 33]], hr, 0.55, { fq: 1.8, amp: 0.38 });
+      D.L([[26, 21], [25, 27], [26.4, 31.6]], 0.5, 0.4, [hr[0], hr[3], hr[4], hr[2]]); } });
+  // 미렐 수녀, 구마 수녀: 엄한 중년의 얼굴(팔자 주름, 얇게 다문 입), 얼굴을 꼭 감싼 흰 두건, 젖은 검은 너울, 어깨에 감은 두레박 줄
+  const WIM = ['#3a342e', '#9a948a', '#c8c2b6', '#e6e0d4', '#faf6ee'], VEIL = ['#08070a', '#16131a', '#26212a', '#3a333e', '#544a58'];
+  BUST.mirel = bustMan({ bg: 'church', lamp: [6, 5], ph: 1500,
+    face: { skin: '#d8a888', jaw: [25.4, 38], chin: [39, 42.4], brow: '#4a3a30', browW: 0.7, iris: '#4a5a6a', age: 2, thin: 0.45, lip: '#9a5a52', noEar: true },
+    back: D => { cloth(D, [[10, 66], [13, 40], [15, 22], [19, 12], [28, 6], [38, 6.4], [45, 11], [48, 20], [50, 40], [54, 66]], VEIL, { folds: 3 }); for (const [x, y] of [[14, 50], [16, 36], [48.6, 44], [50, 56], [12.6, 60]]) { D.px(x, y, '#8ac8e8'); D.px(x, y + 1, '#d8f0ff'); } },
+    body: D => cloth(D, [[3, 66], [7, 55], [17, 49], [46, 49], [56, 54], [60, 66]], VEIL, { folds: 0.5 }),
+    collar: D => cloth(D, [[21, 33], [25.4, 38.4], [30, 42.6], [38, 44.4], [41.6, 42.6], [44.6, 46], [46.6, 55], [33, 58.6], [19.6, 55], [18.6, 44]], WIM, { base: 0.12 }),
+    extra: D => { cloth(D, [[21, 34], [20.8, 21], [23, 14.6], [30, 11.4], [38, 11.6], [42.4, 14.6], [43.2, 19.6], [39.6, 18.6], [33.6, 18.2], [28, 19], [25.4, 21.6], [24.8, 33], [22.8, 36.4]], WIM, { base: 0.14 }); flatL(D, [[24.8, 22], [24.6, 33]], WIM[1], 0.4);
+      cloth(D, [[19.6, 24], [20.4, 13.6], [25.6, 8.6], [34, 7.6], [42, 9.6], [45.4, 15], [46.4, 24], [43.8, 16.6], [38, 12.4], [30, 12], [24, 14.2], [21.6, 19]], VEIL, { base: 0.1 }); for (const [x, y] of [[22, 14], [44.6, 19], [27, 10]]) { D.px(x, y, '#8ac8e8'); D.px(x + 0.6, y + 0.6, '#d8f0ff'); } },
+    front: D => { const rp = ['#2a1c10', '#6e5638', '#a8875a', '#c8a878', '#e0c898']; for (let k = 0; k < 3; k++) { const cx = 50 + k * 1.2, cy = 56 - k * 1.6, m = D.cut(D.el(cx, cy, 7, 4.6), (x, y) => { const dx = (x - cx) / 5.2, dy = (y - cy) / 3; return dx * dx + dy * dy > 1; }); strands(D, m, rp, 0.9, { fq: 1.4, amp: 0.4, cx: 50, cy: 52 }); }
+      D.flat(D.el(33, 52, 2.4, 2.4), '#e8c030', '#5a4010'); D.flat(D.el(33, 52, 1.2, 1.2), WIM[3], null); flatL(D, [[29.6, 46.4], [32.4, 49.8]], '#a87e14', 0.4); flatL(D, [[37, 46.4], [33.6, 49.8]], '#a87e14', 0.4); } });
+  // 이셀 드란, 연금술사: 날카로운 눈매와 높은 광대, 뾰족한 턱, 가까운 뺨의 화상 자국, 뒤로 묶은 붉은 머리, 이마에 올린 고글, 아래에서 비치는 푸른 불빛
+  BUST.isel = bustMan({ bg: 'work', lamp: [52, 54], flick: true, glow: '#2a5a9a', ph: 2700,
+    face: { skin: '#dfae8a', jaw: [26, 37.4], chin: [39.6, 42.8], brow: '#7a2e14', browW: 0.7, iris: '#7a5a20', thin: 0.65, narrow: true, lip: '#a85a4a', rim: { c: '#8ac0ff' } },
+    hairB: D => { const hr = ['#2a0806', '#6a2210', '#a8401c', '#d0602c', '#f0904c']; hairG(D, [[19, 18], [14, 22], [11, 32], [12, 40], [15, 36], [17, 28], [22, 22]], hr, 1.2, { fq: 1.6, amp: 0.4 }); D.B(19.6, 18.6, 2, 1.6, ['#1a1008', '#4a3420', '#6a4c30', '#2a1c10']); },
+    body: D => { const sh = ['#140608', '#381214', '#5a2220', '#7a3a32', '#9a5446'], ap = ['#2a2014', '#6a5a3a', '#8e7c54', '#b09c70', '#ccbc90']; cloth(D, [[4, 66], [7, 54], [18, 47], [45, 47], [56, 53], [60, 66]], sh, { folds: 1.5 }); cloth(D, [[19, 66], [21, 51], [44, 51], [46, 66]], ap, { base: 0.1 }); flatL(D, [[22, 51], [26, 45]], ap[1], 0.6); flatL(D, [[43, 51], [40, 45]], ap[1], 0.6); for (const [x, y, c] of [[27, 56, '#4a9aff'], [37, 61, '#2a5ab0'], [32, 63, '#4a3a2a']]) D.px(x, y, c); },
+    skinX: (D, md, R) => { for (let k = 0; k < 26; k++) { const x = 28.6 + hsh(k, 61) * 5.4, y = 30.4 + hsh(k, 62) * 4.6; if (((x - 31.2) / 2.8) ** 2 + ((y - 32.6) / 2.4) ** 2 < 1) D.px(x, y, k % 3 ? '#c87868' : k % 2 ? '#e8a090' : '#9a4a40'); } },
+    hair: D => { const hr = ['#2a0806', '#6a2210', '#a8401c', '#d0602c', '#f0904c']; hairG(D, [[19.4, 29], [19, 19], [22, 12.6], [29, 9], [37, 9.2], [42, 12.4], [43.6, 18.6], [41, 17], [38, 17.4], [35, 16.4], [31.6, 17.6], [28.6, 17.6], [26, 21], [25.6, 30]], hr, 0.9, { fq: 1.7, amp: 0.38 }); D.L([[41.6, 17], [43, 22], [42.4, 26]], 0.5, 0.4, [hr[0], hr[2], hr[3], hr[1]]); },
+    hat: D => { const ker = ['#10141c', '#2c3848', '#4e6078', '#8094ac', '#b0c4d8']; cloth(D, [[20, 15.6], [22, 13], [43, 11.6], [44.4, 14], [43, 15.8], [21, 17.6]], ker, { base: 0.1 }); for (const [x, r] of [[31, 2.8], [39, 2.4]]) { D.flat(D.el(x, 13.4, r, r * 0.9), '#5ab0a0', '#10141c'); D.flat(D.el(x - 0.6, 12.8, r * 0.4, r * 0.3), '#c8f0e8', null); } },
+    front: (D, md) => { const BF = md.fl ? '#7ac0ff' : '#4a9aff'; D.flat(D.el(53, 55, 4.2, 5.4), BF, '#101830'); D.flat(D.el(52.6, 55.6, 2, 3.2), '#d8f0ff'); D.rect(48.6, 49, 9, 1.4, '#2a2a3a'); D.rect(48.6, 60.4, 9, 1.4, '#2a2a3a'); D.rect(49, 50, 1, 10.4, '#2a2a3a'); D.rect(56.4, 50, 1, 10.4, '#2a2a3a'); D.px(53, md.fl ? 51.6 : 52.2, '#ffffff'); } });
+  // 토브 카인, 덫 사냥꾼: 부러졌다 붙은 비뚤어진 코, 거친 수염 자국, 먼 눈을 가린 천, 뺨의 흉터, 흐트러진 검은 머리, 털 깃, 어깨에 건 쇠덫
+  BUST.tov = bustMan({ bg: 'field', lamp: [6, 8], ph: 2100,
+    face: { skin: '#b88060', jaw: [24.6, 38.6], chin: [39.4, 42.6], np: 0.8, nb: 1.4, brow: '#1a1514', browW: 0.95, iris: '#3a2a1a', age: 1, thin: 0.35, narrow: true, lip: '#7a4434' },
+    back: D => { for (let y = 40; y < 66; y += 1.3) D.px(12 + (Math.round(y / 1.3) % 2) * 0.8, y, Math.round(y / 1.3) % 2 ? '#a8b0c4' : '#4a5064'); },
+    body: D => { const sh = ['#0e0e0a', '#262a1e', '#3a4030', '#4e5640', '#68725a'], fur = ['#1c1008', '#4a3420', '#7a5a3a', '#9c7a52', '#c8a878']; cloth(D, [[4, 66], [7, 54], [18, 47], [45, 47], [56, 53], [60, 66]], sh, { folds: 2 });
+      strands(D, D.poly([[3, 66], [6, 54], [16, 46], [26, 46.6], [24, 52], [20, 66]]), fur, 1.4, { fq: 1.4, amp: 0.5, cx: 14, cy: 50 }); strands(D, D.poly([[40, 47], [48, 47], [57, 53], [61, 66], [43, 66], [44, 54]]), fur, 1.8, { fq: 1.4, amp: 0.5, cx: 50, cy: 52 }); },
+    skinX: (D, md, R) => { for (let k = 0; k < 40; k++) { const x = 27 + hsh(k, 71) * 16, y = 34 + hsh(k, 72) * 9; if (y > 33 + (x - 27) * 0.1 && hsh(k, 73) > 0.35) D.px(x, y, R[1]); } flatL(D, [[28.6, 29.4], [31.4, 34.6]], '#d89a80', 0.4); flatL(D, [[29.2, 29.4], [32, 34.6]], '#6a3a2a', 0.3); },
+    extra: D => { flatL(D, [[21, 22], [36.8, 24.6]], '#4a3424', 0.4); flatL(D, [[41.2, 25], [41.8, 24.4]], '#4a3424', 0.4); D.flat(D.poly([[36.8, 23.8], [41, 23.6], [41.6, 26], [40.6, 28.4], [37.8, 28.6], [36.8, 26.6]]), '#3a2a20', '#0c0806'); D.px(37.8, 24.6, '#6a5040'); D.px(38.8, 24.4, '#6a5040'); flatL(D, [[37.4, 27.6], [40.4, 27.4]], '#241a14', 0.4); },
+    hair: D => { const hr = ['#08070a', '#16131a', '#26222a', '#3a343c', '#544c56']; hairG(D, [[19.6, 32], [19, 20], [21, 13], [24, 11.6], [25.6, 8.4], [29, 10], [32, 6.8], [34.6, 9.4], [38.6, 7.4], [40.6, 10.6], [44, 11], [43.6, 15.6], [45, 18.6], [41, 17.4], [39, 19], [36.4, 16.6], [33, 18.6], [30, 17], [27.6, 20], [26, 25], [25.4, 33]], hr, 0.5, { fq: 1.4, amp: 0.45 }); },
+    front: D => { const st = ['#1b1d2a', '#4a5068', '#8a92a8', '#c0c8dc', '#ffffff'], cx = 12.6, cy = 52.6, r = 8.4; strands(D, D.cut(D.el(cx, cy, r, r), (x, y) => { const dx = (x - cx) / (r - 2), dy = (y - cy) / (r - 2); return dx * dx + dy * dy > 1; }), st, 0.6, { fq: 0.6, amp: 0.1, cx, cy, rx: 9, ry: 9 });
+      for (let k = 0; k < 11; k++) { const an = -Math.PI + 0.25 + k * ((Math.PI - 0.5) / 10); D.G([[cx + cos(an - 0.12) * (r - 1.8), cy + sin(an - 0.12) * (r - 1.8)], [cx + cos(an + 0.12) * (r - 1.8), cy + sin(an + 0.12) * (r - 1.8)], [cx + cos(an) * (r - 4.2), cy + sin(an) * (r - 4.2)]], [INK, '#cfc8b4', '#ffffff', '#a8a294']); } D.rect(cx - r, cy - 0.5, r * 2, 1, '#4a5068'); } });
+  // 늙은 바스코, 등불지기: 깊은 주름과 검버섯, 벗어진 정수리, 처진 흰 눈썹, 길게 늘어진 흰 수염, 붉은 목도리, 오른쪽 장대 끝 등불의 빛
+  const WHITE5 = ['#2a2620', '#8a847a', '#b8b2a8', '#dcd8d0', '#f8f6f0'];
+  BUST.vasco = bustMan({ bg: 'road', lamp: [54, 14], flick: true, glow: '#c88a30', ph: 3300,
+    face: { skin: '#c49478', jaw: [25, 38.2], chin: [39.2, 42.6], np: 0.4, brow: '#ece8e0', browW: 1.35, iris: '#4a4030', age: 3, thin: 0.55, narrow: true, lip: '#8a5040', rim: { c: '#ffd890' } },
+    back: (D, md) => { D.L([[50.6, 66], [51, 4]], 1.2, 1.1, R4(P.wood)); D.L([[51, 4], [54, 1.6], [57, 2.6]], 1, 0.8, R4(P.wood)); D.rect(56.4, 2.6, 1, 3, '#3a2a1a');
+      const lc = md.fl ? '#ffe8a0' : '#ffd070'; D.flat(D.el(57, 12.6, 4.6, 5.8), lc, '#3a2410'); D.flat(D.el(56.8, 12.6, 2.6, 3.8), '#fff8d8'); D.px(56.2, 11, '#ffffff'); D.rect(52, 6.6, 10, 1.4, '#5a3a1a'); D.rect(52, 18, 10, 1.4, '#5a3a1a'); D.rect(52.4, 8, 1, 10, '#5a3a1a'); D.rect(60.6, 8, 1, 10, '#5a3a1a'); },
+    body: D => { const ct = ['#100c08', '#2e2418', '#4a3a28', '#64503a', '#806a4e']; cloth(D, [[3, 66], [6, 54], [17, 47.6], [46, 47.6], [56, 53], [60, 66]], ct, { folds: 2.5 }); D.L([[48, 66], [50, 56]], 3, 2.6, R4(['#2a1410', '#c49478', '#e0b898', '#94684e'])); D.B(50.6, 54.6, 3, 2.6, R4(['#2a1410', '#c49478', '#e0b898', '#94684e'])); },
+    collar: D => { const sc = ['#140606', '#3a1210', '#5e2018', '#843424', '#a84c34']; cloth(D, [[21, 44], [42, 43.6], [45, 50], [33, 53], [19, 50]], sc, { folds: 1 }); strands(D, D.poly([[22, 50], [27, 50], [26, 60], [22, 61]]), sc, 1.5, { fq: 1.2, amp: 0.3, cx: 24, cy: 52 }); },
+    hairB: D => { hairG(D, [[18.6, 32], [18.6, 22], [20.6, 17], [23.6, 17.4], [25.4, 24], [24.6, 33]], WHITE5, 1.3, { fq: 1.8, amp: 0.35 }); },
+    extra: D => { for (const [x, y] of [[28, 13], [33.6, 11.6], [36, 14], [31, 15.6]]) D.px(x, y, '#9a6a50'); D.px(34, 12.4, '#e8c8b0'); },
+    beard: (D, md, R) => hairG(D, [[25.6, 33.6], [28, 36.4], [31.6, 38.2], [34.6, 38.4], [37, 39.6], [40.6, 39.4], [41.6, 38.4], [42, 42], [41.2, 48], [38.6, 55], [34.6, 60], [31.2, 55], [27.6, 48], [25.2, 40]], WHITE5, Math.PI / 2 - 0.1, { fq: 1.7, amp: 0.4, base: 0.2, ky: 0.08, kx: 0.3, cy: 40 }),
+    beardF: D => hairG(D, [[31.4, 37.8], [34.4, 36], [38.4, 35.8], [41.6, 36], [42.6, 38.6], [40.6, 37.6], [37.6, 37.6], [34.4, 38.6], [32, 39.4]], WHITE5, 0.3, { fq: 2, amp: 0.3, base: 0.25, ky: 0.08 }) });
+  // 촌장: 살집 있는 얼굴과 두 겹 턱, 붉은 뺨, 작은 눈, 짙은 콧수염, 옆으로 빗어 넘긴 성긴 머리, 놋쇠 사슬, 손에 쥔 모자
+  BUST.chief = bustMan({ bg: 'village', lamp: [6, 7], ph: 500,
+    face: { skin: '#dca080', jaw: [23.6, 39], chin: [39.6, 43.4], brow: '#5a4030', browW: 0.85, iris: '#3a2a1a', fat: 1, age: 1, thin: 0, narrow: true, lip: '#9a4a3a' },
+    body: D => { const dbl = ['#140a06', '#3a2414', '#5a3a22', '#7a5434', '#9a7048']; cloth(D, [[1, 66], [4, 54], [16, 46.4], [47, 46.4], [58, 53], [63, 66]], dbl, { folds: 1.2 }); flatL(D, [[33, 50], [33, 66]], dbl[1], 0.5); for (const y of [55, 60, 65]) D.px(34.6, y, P.gold[1]); },
+    collar: D => { for (let k = 0; k <= 12; k++) { const t = k / 12, x = lerp(18, 47, t), y = 49 + sin(t * Math.PI) * 8; D.B(x, y, 1.3, 1, P.gold); } D.B(32.6, 59, 3, 3, P.gold); D.px(31.8, 58.2, '#fff3a0'); D.px(32.6, 59.6, P.gold[3]); },
+    skinX: (D, md, R) => { for (const [x, y] of [[29.6, 31], [30.6, 31.6], [29.4, 32.4], [31.4, 32.4], [30.4, 33.2]]) D.px(x, y, '#e07a68'); flatL(D, [[31, 43.4], [39, 44.6]], R[1], 0.4); },
+    hairB: D => hairG(D, [[19, 33], [18.6, 24], [20.4, 19], [24.6, 18.6], [25.6, 25], [25, 33]], ['#1a1410', '#4a3e30', '#7a6a58', '#9a8a76', '#b8aa96'], 1.3, { fq: 1.8 }),
+    beardF: D => hairG(D, [[32.4, 37.6], [35, 35.8], [38.4, 35.6], [41.4, 35.8], [41.8, 37.4], [39.6, 36.8], [36.8, 37.2], [34.4, 38], [32.6, 38.6]], ['#1a100a', '#4a3424', '#6e5038', '#8e6c4e', '#ae8c6a'], 0.2, { fq: 2.2, amp: 0.3, base: 0.25, ky: 0.1 }),
+    hair: D => { for (let k = 0; k < 5; k++) flatL(D, [[23 + k * 0.4, 16 - k * 1.2], [33 + k * 1.2, 12 - k * 0.6], [40 + k * 0.4, 13 + k * 0.4]], k % 2 ? '#4a3e30' : '#7a6a58', 0.45); },
+    front: D => { const hat = ['#100a06', '#2e1e10', '#4a3220', '#6a4a30', '#8a6644']; cloth(D, [[6, 58], [9, 52], [22, 51], [25, 58], [26, 64], [5, 64]], hat); D.rect(7, 56, 17, 1.4, '#1a0e06'); D.B(25, 58, 3.2, 2.8, R4(['#2a1410', '#dca080', '#f4c8a8', '#a86c54'])); D.B(6.6, 59, 3, 2.8, R4(['#2a1410', '#dca080', '#f4c8a8', '#a86c54'])); } });
+  // 도제: 열두어 살의 얼굴(넓은 이마, 짧은 코, 둥근 뺨), 그을음, 헝클어진 연갈색 머리, 목에 건 고글, 큰 앞치마, 작은 병
+  BUST.apprentice = bustMan({ bg: 'work', lamp: [8, 8], ph: 1100,
+    face: { skin: '#e8b890', child: true, top: 10.6, jaw: [26.2, 36.8], chin: [38.4, 41.2], nl: -0.6, brow: '#8a6438', browW: 0.65, iris: '#5a4020', thin: 0, fat: 0.4, lip: '#b8706a' },
+    body: D => { const sh = ['#121216', '#2c2c34', '#46464e', '#62626a', '#80808a'], ap = ['#140a06', '#3a2414', '#5a3a22', '#7a5434', '#9a7048']; cloth(D, [[6, 66], [9, 55], [19, 48.6], [44, 48.6], [54, 54], [58, 66]], sh, { folds: 2 }); cloth(D, [[18, 66], [20, 53], [44, 53], [46, 66]], ap, { base: 0.05 }); flatL(D, [[21, 53], [25, 46]], ap[1], 0.7); flatL(D, [[43, 53], [40, 46]], ap[1], 0.7); },
+    collar: D => { const ker = ['#10141c', '#4e6078', '#8094ac', '#2c3848']; flatL(D, [[25, 44], [32.6, 49], [41, 44]], ker[3], 0.6); for (const x of [28.6, 37]) { D.flat(D.el(x, 48.6, 2.8, 2.4), '#5ab0a0', '#10141c'); D.px(x - 0.8, 47.6, '#c8f0e8'); } },
+    skinX: (D, md, R) => { for (const [x, y] of [[32.6, 32.6], [33.6, 33.4], [34.4, 32.4], [27.4, 21.6], [28.4, 22.2], [42.6, 29.4]]) D.px(x, y, '#5a4a44'); D.px(31, 31.6, '#f0a090'); D.px(31.8, 31.2, '#f0a090'); },
+    hair: D => hairG(D, [[20.6, 32], [19.6, 22], [21, 14.6], [24, 13.4], [25, 9.6], [28.6, 12], [31, 8.4], [34, 11.4], [37.4, 8.6], [39, 12.4], [42.6, 12], [42.4, 16], [44.4, 19], [40.6, 18.6], [38.6, 20.4], [36.6, 17.6], [33.6, 19.4], [31, 17.6], [28.6, 20], [26.6, 23.6], [26, 33]], ['#1c1008', '#5a4020', '#8a6a3a', '#b08a54', '#d0aa70'], 0.7, { fq: 1.4, amp: 0.45 }),
+    front: D => { D.B(48.6, 58.6, 2.8, 2.6, R4(['#2a1410', '#e8b890', '#f8d8b8', '#b88468'])); D.rect(47.6, 50, 2, 3, '#c8f0e0'); D.flat(D.el(48.6, 55, 3, 3), '#c8f0e0', '#1a2a1a'); D.flat(D.cut(D.el(48.6, 55, 2.3, 2.3), (x, y) => y > 54.6), '#58d040'); D.px(47.6, 53.8, '#ffffff'); D.rect(47.4, 49, 2.4, 1.2, P.wood[1]); } });
+  // 양치기: 볕과 바람에 탄 얼굴, 주름, 회색 수염 자국, 챙 넓은 펠트 모자, 양털 깃, 어깨 너머의 지팡이
+  BUST.shepherd = bustMan({ bg: 'field', lamp: [6, 6], ph: 1700,
+    face: { skin: '#b07a58', jaw: [24.8, 38.4], chin: [39.4, 42.6], brow: '#5a5048', browW: 0.85, iris: '#4a4030', age: 2, thin: 0.5, narrow: true, lip: '#7a4434' },
+    back: D => { D.L([[52, 66], [53, 10]], 1.1, 1.1, R4(P.wood)); D.L([[53, 10], [52.6, 4.6], [56.6, 1.6], [60.4, 3.6], [60, 7.6]], 1.1, 0.9, R4(P.wood)); },
+    body: D => cloth(D, [[3, 66], [6, 54], [17, 47], [46, 47], [56, 53], [60, 66]], ['#16120c', '#3a3020', '#584a32', '#76664a', '#948464'], { folds: 3 }),
+    collar: D => { const wl = ['#2a2418', '#a89c80', '#d0c6ae', '#ece4d0', '#fffaee']; const m = D.poly([[12, 54], [17, 45], [32, 46.6], [46, 45], [52, 53], [44, 57], [32, 51.6], [20, 57]]); for (const [x, y] of [[15, 50], [20, 48.6], [26, 48.4], [38, 48.4], [44, 48.6], [49, 50.6]]) D.el(x, y, 2.6, 2.2, m); strands(D, m, wl, 0.6, { fq: 2.4, amp: 0.55, cx: 32, cy: 46 }); },
+    skinX: (D, md, R) => { for (let k = 0; k < 50; k++) { const x = 26 + hsh(k, 81) * 18, y = 33 + hsh(k, 82) * 10; if (hsh(k, 83) > 0.62) D.px(x, y, k % 3 ? '#6a5a4a' : '#8a8070'); } },
+    hairB: D => hairG(D, [[18.6, 33], [18.6, 22], [24, 19], [25.6, 26], [25, 34]], ['#1a1814', '#4e4a42', '#7a7468', '#a29c90', '#c8c2b6'], 1.3, { fq: 1.8 }),
+    hat: D => { const ft = ['#100c08', '#2e2418', '#4a3a26', '#665238', '#86704c']; cloth(D, [[20.6, 18.6], [22.6, 9.6], [30, 6.6], [38, 7.6], [42, 12], [42.4, 18.6]], ft, { base: 0.05 }); cloth(D, [[11, 21], [14.6, 17.4], [46.6, 16.6], [51, 20], [44, 21.4], [20, 22]], ft, { base: 0.08 }); D.rect(21.6, 15.4, 20.4, 1.4, '#1e1610'); } });
+  // 기사단장: 짧게 깎은 회색 머리, 각진 턱과 턱의 흉터, 깊은 이마 주름, 금테 판금, 흰 겉옷의 붉은 감은 눈, 흰 망토
+  const WHT5 = ['#2a2620', '#a8a296', '#ccc6ba', '#e8e4da', '#ffffff'];
+  BUST.knightcmd = bustMan({ bg: 'church', lamp: [6, 6], ph: 2300,
+    face: { skin: '#d4a284', jaw: [23.6, 38.8], chin: [39.8, 43.2], brow: '#7a7a80', browW: 1, iris: '#4a5a6a', age: 2, thin: 0.35, narrow: true, lip: '#8a5048' },
+    back: D => cloth(D, [[0, 66], [3, 50], [14, 44], [50, 44], [61, 50], [64, 66]], WHT5, { folds: 2 }),
+    body: D => { const st = STEEL6; D.shade(D.el(11.6, 54.6, 9.6, 6.8), (x, y, X, Y) => quant(st, 0.82 - (x - 9) / 16 - (y - 50) / 12, X, Y), st[0]); D.shade(D.el(53, 54.6, 9.2, 6.6), (x, y, X, Y) => quant(st, 0.62 - (x - 50) / 16 - (y - 50) / 12, X, Y), st[0]); flatL(D, [[3, 55], [20, 50.6]], '#e8c030', 0.6); flatL(D, [[44, 50.6], [61, 55]], '#e8c030', 0.6);
+      cloth(D, [[19, 66], [20.6, 50], [44, 50], [45.6, 66]], WHT5, { base: 0.1 }); D.rect(20, 50, 25, 1.4, '#e8c030'); shutEye(D, 32.6, 58, CULTR); D.rect(32.2, 61, 0.9, 4, CULTR); },
+    collar: D => { cloth(D, [[24.4, 43.6], [41, 44], [43, 50.4], [22.6, 50.4]], STEEL6, { base: -0.05 }); D.rect(23, 48.6, 20, 1, '#e8c030'); },
+    skinX: (D, md, R) => { flatL(D, [[37.4, 41.4], [39.4, 43.4]], '#e8b8a0', 0.4); flatL(D, [[38, 41.4], [40, 43.4]], '#6a3a30', 0.3); for (let k = 0; k < 24; k++) { const x = 28 + hsh(k, 91) * 15, y = 35 + hsh(k, 92) * 8; if (hsh(k, 93) > 0.5) D.px(x, y, R[2]); } },
+    hair: D => hairG(D, [[20.6, 30], [20, 20], [22.6, 13], [29, 9.6], [36.6, 9.6], [41.6, 12.6], [42.6, 16.6], [38.6, 15.4], [33, 15], [28.6, 16.6], [26, 20], [25.6, 30]], ['#1b1d2a', '#5a5a64', '#8a8a92', '#b0b0b8', '#d8d8e0'], -0.2, { fq: 2.4, amp: 0.3 }) });
+  // 심문관: 창백하고 여윈 얼굴, 가는 눈, 얇은 입, 검은 챙모자의 그늘, 높은 검은 깃, 붉은 옷, 달군 쇠 인장의 불빛
+  BUST.inquis = bustMan({ bg: 'church', lamp: [52, 44], glow: '#a8481a', ph: 2900,
+    face: { skin: '#d8c0a8', jaw: [25.8, 38], chin: [39, 42.8], nl: 0.4, brow: '#2a2024', browW: 0.65, iris: '#2a2024', thin: 0.9, age: 1, narrow: true, lip: '#7a4a40', rim: { c: '#ffa860' } },
+    body: D => { cloth(D, [[3, 66], [6, 54], [17, 47], [46, 47], [56, 53], [60, 66]], ['#1a0406', '#4a0c12', '#7a1a20', '#a8302c', '#c85040'], { folds: 1.5 }); cloth(D, [[29.4, 52], [35.4, 52], [36, 66], [29, 66]], ['#07050c', '#141018', '#221c26', '#302834', '#403644']); D.B(32.4, 56, 1.6, 1.6, R4(P.steel)); },
+    collar: D => { const bk = ['#07050c', '#141018', '#221c26', '#302834', '#403644']; cloth(D, [[20, 36], [25, 44], [32.6, 46], [40, 44], [45, 36], [47.4, 52], [17.6, 52]], bk); },
+    hat: D => { const bk = ['#07050c', '#141018', '#221c26', '#302834', '#403644']; cloth(D, [[22, 17.6], [23.6, 2], [40, 2], [41.6, 17.6]], bk, { base: 0.1 }); cloth(D, [[9, 20], [13, 16], [50.6, 16], [55, 20], [46, 21], [18, 21]], bk, { base: 0.1 }); D.rect(23.4, 13, 17.6, 2.2, '#7a1a20'); D.B(32, 14, 2.2, 2.2, P.gold); D.px(31.4, 13.4, '#fff3a0'); },
+    extra: D => { for (let x = 24; x < 44; x += 0.5) for (let y = 21; y < 23.4; y += 0.5) if (y < 22.2 || hsh(Math.round(x * 2), Math.round(y * 2)) > 0.5) D.px(x, y, '#3a2c28'); },
+    front: D => { D.L([[48, 66], [52, 44]], 1.2, 1.2, R4(P.steel)); D.B(53, 40, 4.4, 4.4, R4(P.steel)); D.flat(D.el(53.4, 39.4, 2.8, 2.8), '#ff8a2a', '#3a1008'); D.flat(D.el(53.2, 39.2, 1.3, 1.3), '#fff3c0'); D.B(49, 57, 2.8, 2.4, R4(['#2a1410', '#d8c0a8', '#f0dcc8', '#a08068'])); } });
+  // 궁수: 젊은 사내, 초록 두건, 옅은 수염 자국, 가죽 옷, 어깨 너머 화살깃, 가슴을 가로지르는 활시위
+  BUST.archer = bustMan({ bg: 'road', lamp: [6, 8], ph: 3500,
+    face: { skin: '#d8a07c', brow: '#5a3a20', browW: 0.8, iris: '#3a4a2a', thin: 0.3, lip: '#9a5a48' },
+    back: D => { cloth(D, [[8, 44], [16, 41], [20, 58], [12, 61]], ['#140c06', '#3a2414', '#5a3a22', '#7a5434', '#9a7048']); for (let k = 0; k < 4; k++) { D.rect(8.6 + k * 2.2, 31 - k * 1.2, 1.2, 10, '#c08a50'); D.G([[8 + k * 2.2, 32 - k * 1.2], [9.2 + k * 2.2, 26 - k * 1.2], [10.6 + k * 2.2, 32 - k * 1.2]], R4(P.red)); } },
+    body: D => { cloth(D, [[3, 66], [6, 54], [17, 47], [46, 47], [56, 53], [60, 66]], ['#100a08', '#2a1c16', '#443028', '#5e463a', '#7a5e4e'], { folds: 2 }); flatL(D, [[14, 50], [46, 66]], '#e8e0d0', 0.4); },
+    skinX: (D, md, R) => { for (let k = 0; k < 20; k++) { const x = 30 + hsh(k, 95) * 12, y = 36 + hsh(k, 96) * 6; if (hsh(k, 97) > 0.5) D.px(x, y, R[2]); } },
+    hat: D => { const g = ['#0c160c', '#1e3418', '#304e24', '#4a6c34', '#6a8c4a']; cloth(D, [[17, 46], [17.6, 22], [20, 13], [27, 7.6], [36, 7.6], [42.6, 11.6], [45, 18], [44.6, 24], [42.4, 18.6], [37, 15], [31, 15], [27, 17.6], [25, 22.6], [24.6, 34], [26, 40], [22, 46]], g, { base: 0.1 }); cloth(D, [[20, 46], [42, 44], [47, 49], [44, 54], [24, 54], [17, 50]], g, { base: 0.05 }); } });
+  // ---------- 탑의 주인 ----------
+  // 에녹 하르: 여윈 얼굴, 깊이 꺼진 눈두덩 속에서 빛나는 눈, 매부리코, 얇은 입, 모자 밑으로 흘러내린 잿빛 머리, 세운 깃 안의 붉은 목도리, 붉은 표지의 책
+  BUST.enoch = bustMan({ bg: 'tower', lamp: [8, 50], glow: '#6a4a9a', ph: 3700, noEyes: true,
+    face: { skin: '#c8b4a0', jaw: [26, 38], chin: [39, 43.6], np: 1, nl: 0.4, nb: 1.2, brow: '#4a464e', browW: 0.9, iris: '#b8d0e8', thin: 1, age: 2, socket: 2.6, narrow: true, lip: '#6a3a38' },
+    body: D => { const coat = ['#0c0a0c', '#201a18', '#342a24', '#4a3c32', '#5e4e40']; cloth(D, [[3, 66], [6, 54], [17, 47], [46, 47], [56, 53], [60, 66]], coat, { folds: 1 }); flatL(D, [[32.6, 52], [32.6, 66]], coat[1], 0.5); for (const y of [56, 62]) D.px(34.4, y, P.gold[1]); },
+    collar: D => { const coat = ['#0c0a0c', '#201a18', '#342a24', '#4a3c32', '#5e4e40']; cloth(D, [[22, 42.6], [42, 43], [44, 50], [20, 50]], ['#1a0406', '#44161c', '#6e2a30', '#8e3e40', '#a85a58']); cloth(D, [[12, 52], [16, 34], [22, 37], [24, 52]], coat, { base: 0.1 }); cloth(D, [[51, 52], [47, 34], [42, 37], [41, 52]], coat); },
+    hairB: D => hairG(D, [[17.6, 18], [24, 17], [25, 30], [23.4, 40], [20, 44], [17, 38]], ['#141418', '#3e3c44', '#5e5a64', '#827e88', '#a8a4ae'], 1.45, { fq: 1.6, amp: 0.35 }),
+    extra: (D, md) => { for (let y = 20.6; y < 29; y += 0.5) for (let x = 25.6; x < 41.4; x += 0.5) { const k = (29 - y) / 8.4; if (hsh(Math.round(x * 2), Math.round(y * 2) + 7) < k * 0.9 + 0.1) D.px(x, y, k > 0.6 ? '#1e181c' : '#3a2e30'); }
+      if (md.blink) return; const g = md.mood === 'mad' ? '#e070ff' : md.mood === 'fear' ? '#ffffff' : '#c8e0f8', gl = md.mood === 'mad' ? '#7a2aa8' : '#4a6a8a', op = md.mood === 'fear' ? 1.4 : md.mood === 'grim' ? 0.7 : 1;
+      for (const [x, w] of [[29.4, 2.2], [39, 1.6]]) { D.flat(D.el(x, 26.6, w * 1.2, 0.9 * op + 0.4), gl, null); D.flat(D.el(x + 0.3, 26.6, w * 0.6, 0.45 * op + 0.2), g, null); D.px(x + 0.3, 26.6, '#ffffff'); } if (md.mood === 'mad') { flatL(D, [[29, 28.4], [28, 33.4]], '#1a1030', 0.4); flatL(D, [[39.2, 28.4], [39.8, 32.4]], '#1a1030', 0.4); } },
+    hat: D => { const hp = ['#0c0a0c', '#1e1a18', '#302a24', '#463c32', '#5c5040']; cloth(D, [[22, 15.6], [23.6, 3.6], [40, 3.6], [41.6, 15.6]], hp, { base: 0.05 }); cloth(D, [[13, 18.4], [16, 15], [48, 15], [51, 18.4], [44, 19.6], [20, 19.6]], hp, { base: 0.08 }); D.rect(23.4, 11.6, 17.6, 2, '#5a2228'); } });
+  // 사 가는 이: 6장 전의 에녹. 두건과 세운 깃 속은 어둠뿐이다. 목에 붉은 천이 조금, 손에 백 년 된 은화 하나
+  BUST.buyer = bustMan({ bg: 'work', lamp: [6, 14], ph: 4500, noFace: true, neck: false,
+    body: D => { const cl = ['#07050c', '#141016', '#201a20', '#2e2628', '#3e3434']; cloth(D, [[2, 66], [5, 54], [16, 46], [48, 46], [58, 53], [62, 66]], cl, { folds: 1 }); cloth(D, [[26, 44], [38, 44], [37.4, 48], [26.6, 48]], ['#14060a', '#2a0c10', '#44161c', '#6e2a30', '#8e3e40']); },
+    collar: D => { const cl = ['#07050c', '#141016', '#221c22', '#30282c', '#42383a']; cloth(D, [[12, 50], [17, 28], [25, 33], [26, 50]], cl, { base: 0.1 }); cloth(D, [[52, 50], [47, 28], [39, 33], [38, 50]], cl); },
+    hat: (D, md) => { const hd = ['#07050c', '#18121a', '#261e24', '#382c30', '#4c3e40']; cloth(D, [[15, 46], [15, 20], [19, 10], [32, 5.6], [44, 9.6], [49, 20], [49.6, 46], [44, 34], [43.4, 20], [38, 15], [26, 15], [21, 20], [20.6, 34]], hd, { base: 0.18 });
+      D.flat(D.poly([[21, 20], [26, 15], [38, 15], [43.4, 20], [44, 34], [38.6, 41], [26, 41], [20.6, 34]]), VOID, null); flatL(D, [[16, 22], [19.6, 11]], '#7a5a30', 0.4); flatL(D, [[19.6, 11], [30, 6.4]], '#5a4024', 0.4);
+      if (md.mood === 'mad' && !md.blink) { D.px(28, 27, '#c8a8ff'); D.px(37, 27, '#c8a8ff'); } else if (md.mood === 'fear' && !md.blink) { D.px(28, 27, '#3a3a50'); D.px(37, 27, '#3a3a50'); } else if (md.mood === 'grim') { flatL(D, [[27, 26.4], [29, 27]], '#201820', 0.4); flatL(D, [[36, 27], [38, 26.4]], '#201820', 0.4); } },
+    front: D => { D.B(46, 56, 3.4, 3, R4(['#07050c', '#241e22', '#3e3434', '#161216'])); D.flat(D.el(46.6, 51.4, 2.8, 2.8), '#c8ccd8', '#3a3a44'); D.px(45.6, 50.4, '#ffffff'); D.px(47.6, 52.4, '#8a8e9a'); D.px(46.6, 51.4, '#a8acb8'); } });
+  // 이야기의 이름 → 초상. 기록·쪽지·편지와 사람이 아닌 것(한 방울, 모험가 일행)은 초상이 없다
+  const BUSTS = { '로웬': 'rowen', '로웬 하스': 'rowen', '에녹': 'enoch', '에녹 하르': 'enoch', '사 가는 이': 'buyer', '이셀': 'isel', '이셀 드란': 'isel', '에다': 'eda', '에다 볼크': 'eda',
+    '미렐': 'mirel', '미렐 수녀': 'mirel', '바스코': 'vasco', '늙은 바스코': 'vasco', '촌장': 'chief', '도제': 'apprentice', '토브': 'tov', '토브 카인': 'tov', '양치기': 'shepherd',
+    '기사단장': 'knightcmd', '심문관': 'inquis', '궁수': 'archer',
+    '한 방울': null, '모험가 일행': null, '쪽지': null, '에다 볼크의 보고서': null, '기록장의 마지막 쪽': null, '토브 카인의 쪽지': null, '에다 볼크의 마지막 편지': null };
+  bust.geo = bustGeo;
+  // ── ART-BUST 끝
   // ── ART-STORY 시작
   // ---------- 이야기 모드의 장면 그림: 낮은 해상도의 픽셀 그림을 정수 배로 키운다 ----------
   // storyArt(key, w, h, t): 바탕은 폭 약 200 점(w / k, k = round(w / 200)). 장면 함수는 W x H 바탕에 W/2 를 가운데로, 땅을 아래쪽 비율로 놓아 넓은 띠·16:9·세로 화면에 모두 맞는다
@@ -4275,10 +4560,21 @@ const LAIRART = (() => {
     // 바깥 흙빛으로 가장자리를 어둡게
     vignette(p, W, H, a) { for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const d = Math.max(Math.abs(x / W - 0.5) * 2, Math.abs(y / H - 0.5) * 2); if (d > 0.7) p.mix(x, y, '#000000', Math.ceil((d - 0.7) / 0.3 * 3) / 3 * (a || 0.5)); } },
   };
+  // 게임 속 그림을 그대로 얹는다: 장면 함수는 바탕 좌표로 SA.hero / SA.kin / SA.egg 를 부르고, 키운 뒤 그 그림을 제 점 크기대로 덧그린다
+  // s = 그림 한 점이 바탕 몇 점인가, dim = 장면 빛에 맞춰 어둡게(0..1)
+  SA.hero = (x, y, s, dim) => SA.spr.push({ k: 'hero', x, y, s, dim: dim || 0 });
+  SA.kin = (id, x, y, s, dim, star, flip) => SA.spr.push({ k: 'kin', id, x, y, s, dim: dim == null ? 0.25 : dim, star: star || 1, flip });
+  SA.egg = (x, y, S, crack, dim) => SA.spr.push({ k: 'egg', x, y, S, crack: crack || 0, dim: dim || 0 });
+  function saSprites(ctx, k, t) { const shade = (cv, dim, w, h) => { if (!(dim > 0)) return cv; const c = mk(w, h), x = c.getContext('2d'); x.imageSmoothingEnabled = false; x.drawImage(cv, 0, 0, w, h); x.globalCompositeOperation = 'source-atop'; x.globalAlpha = Math.min(0.9, dim); x.fillStyle = '#05040a'; x.fillRect(0, 0, w, h); return c; };
+    const heroK = SA.o.form === 'drop' ? 1 : [0.8, 0.74, 0.68, 0.62][SA.o.step] || 0.7; for (const q of SA.spr) { const sc0 = q.s * k * (q.k === 'hero' ? heroK : 1), sc = sc0 >= 1 ? Math.round(sc0) : sc0;
+      if (q.k === 'egg') { const eg = mazeEgg(Math.max(8, Math.round(q.S * k)), q.crack, t); ctx.drawImage(shade(eg, q.dim, eg.width, eg.height), Math.round(q.x * k - eg.width / 2), Math.round(q.y * k - eg.height / 2)); continue; }
+      const h = q.k === 'hero' ? boss(SA.o.form, SA.o.step) : unit(q.id, q.star); if (!h) continue; const fr = h.frame('idle', t * 1200 + (q.x * 37 % 600)), C = h.w, gy = PAD + h.rig.ground * h.rig.u, w2 = Math.max(1, Math.round(C * sc)), cv = shade(fr, q.dim, w2, w2);
+      ctx.save(); ctx.imageSmoothingEnabled = false; ctx.translate(Math.round(q.x * k), Math.round(q.y * k)); if (q.flip) ctx.scale(-1, 1); ctx.drawImage(cv, Math.round(-w2 / 2), Math.round(-gy * sc)); ctx.restore(); } }
   // 그림 하나: key 의 장면을 W x H 바탕에 그리고 k 배로 키운다. key 뒤의 '@n' 은 같은 장면의 빛 변형
-  function storyArt(key, w, h, t) { w = Math.max(16, Math.round(w || 390)); h = Math.max(16, Math.round(h || Math.round(w * 9 / 16))); t = (((t || 0) % 1) + 1) % 1; const fr = Math.floor(t * 8) % 8, ck = key + ':' + w + ':' + h + ':' + fr;
+  // o = { form, step }: 주인공의 지금 모습. 없으면 떨어진 한 방울(drop, 0)
+  function storyArt(key, w, h, t, o) { w = Math.max(16, Math.round(w || 390)); h = Math.max(16, Math.round(h || Math.round(w * 9 / 16))); t = (((t || 0) % 1) + 1) % 1; o = o || {}; const form = o.form && BOSS[o.form] ? o.form : 'drop', step = form === 'drop' ? 0 : clamp(o.step == null ? 1 : o.step | 0, 0, 3), fr = Math.floor(t * 8) % 8, ck = key + ':' + w + ':' + h + ':' + fr + ':' + form + ':' + step;
     if (SA.cache[ck]) return SA.cache[ck]; const parts = String(key).split('@'), base = parts[0], vari = +(parts[1] || 0), fn = SA.scene[base] || SA.scene.burrow1, k = Math.max(1, Math.round(w / 200)), W = Math.ceil(w / k), H = Math.ceil(h / k), p = PX(W, H);
-    fn(p, W, H, fr, vari); const src = p.done(), c = mk(w, h), x = c.getContext('2d'); x.imageSmoothingEnabled = false; x.drawImage(src, 0, 0, W, H, 0, 0, W * k, H * k);
+    SA.o = { form, step }; SA.spr = []; fn(p, W, H, fr, vari); const src = p.done(), c = mk(w, h), x = c.getContext('2d'); x.imageSmoothingEnabled = false; x.drawImage(src, 0, 0, W, H, 0, 0, W * k, H * k); saSprites(x, k, fr / 8);
     const keys = Object.keys(SA.cache); if (keys.length > 120) delete SA.cache[keys[0]]; return (SA.cache[ck] = c); }
   // 하늘과 언덕: 별 사이에서 빛이 떨어진다. 언덕의 바위 두 개가 맞닿은 틈으로. 첫 장면
   SA.scene.sky = (p, W, H, f) => { const cx = W / 2, hz = Math.round(H * 0.62), u = Math.min(H, W * 0.5625) / 108;
@@ -4287,7 +4583,7 @@ const LAIRART = (() => {
     for (let y = 0; y < hz; y++) for (let x = 0; x < W; x++) { const d = Math.abs((x - cx * 0.4) * 0.5 - (y - hz * 0.1)) / (H * 0.3); if (d < 1) p.mix(x, y, '#3a2a68', Math.ceil((1 - d) * 3) / 3 * 0.22 * (hsh(x >> 2, y >> 2) * 0.6 + 0.4)); }
     // 떨어지는 빛: 꼬리가 길고, 머리가 희다
     const hx = cx + W * 0.08, hy = hz - 22 * u, tx = hx - 70 * u, ty = hy - 52 * u; for (let k = 0; k <= 60; k++) { const q = k / 60, x = lerp(tx, hx, q), y = lerp(ty, hy, q) + sin(q * 9 + f) * 0.3, w = Math.round(q * 2.4 * u); for (let j = -w; j <= w; j++) p.mix(x - j * 0.6, y + j, q > 0.8 ? '#ffffff' : q > 0.5 ? '#cdbcff' : '#6a58c0', 0.25 + q * 0.7); }
-    S2.glow(p, hx, hy, 26 * u, '#8a78e0', 0.5); S2.glow(p, hx, hy, 9 * u, '#ffffff', 0.9); for (let k = 0; k < 10; k++) { const a = hsh(k, f + 1) * TAU, r = (4 + hsh(k, 3) * 10) * u; p.set(hx + cos(a) * r, hy + sin(a) * r, k % 2 ? '#e8e0ff' : '#8fe8d8'); }
+    S2.glow(p, hx, hy, 26 * u, '#8a78e0', 0.5); S2.glow(p, hx, hy, 9 * u, '#ffffff', 0.6); SA.hero(hx, hy + 9 * u, 0.24 * u, 0); for (let k = 0; k < 10; k++) { const a = hsh(k, f + 1) * TAU, r = (4 + hsh(k, 3) * 10) * u; p.set(hx + cos(a) * r, hy + sin(a) * r, k % 2 ? '#e8e0ff' : '#8fe8d8'); }
     // 먼 언덕 셋: 떨어지는 빛을 받은 쪽은 테가 선다
     [[hz - 12 * u, '#121a30', 0.02, 3, 10], [hz - 4 * u, '#0b1020', 0.031, 7, 8], [hz + 3 * u, '#06080f', 0.024, 13, 6]].forEach(([b, col, fq, sd, amp]) => S2.fill(p, W, H, x => b - Math.abs(sin(x * fq + sd)) * amp * u - sin(x * fq * 2.7 + sd) * 2 * u, () => col));
     // 앞의 비탈: 풀과 바위 둘
@@ -4311,11 +4607,11 @@ const LAIRART = (() => {
     // 물방울이 떨어진다
     const dy = ((f / 8) * 30 * u) % (30 * u); p.set(px - 4 * u, fy - 30 * u + dy, '#8ab8e0'); p.set(px - 4 * u, fy - 31 * u + dy, '#4a6a90');
     // 살덩이: 흐르듯 고였다. 안에 작은 울림이 빛난다
-    const sx = cx - 22 * u, sy = fy + 3 * u, pul = 0.6 + 0.4 * sin(f / 8 * TAU); for (let y = -9 * u; y <= 4 * u; y++) for (let x = -18 * u; x <= 18 * u; x++) { const q = (x * x) / (324 * u * u) + (y * y) / (81 * u * u) + sin(x * 0.5) * 0.06; if (q > 1 || y > 3.4 * u) continue; const v = -x / (18 * u) * 0.5 - y / (9 * u) * 0.8; p.set(sx + x, sy + y, v > 0.7 ? '#a888e0' : v > 0.1 ? '#5a3a98' : v > -0.5 ? '#3a2470' : '#1e1440'); }
-    S2.glow(p, sx + 1 * u, sy - 1 * u, 8 * u, '#8fe8d8', 0.4 * pul); p.set(sx + u, sy - u, '#c8fff0'); p.set(sx - 6 * u, sy - 3.4 * u, '#ffffff');
+    // 살덩이: 게임 속 한 방울 그대로. 곁에 품기 시작한 알
+    const sx = cx - 22 * u, sy = fy + 4 * u, pul = 0.6 + 0.4 * sin(f / 8 * TAU); S2.glow(p, sx, sy - 10 * u, 18 * u, '#8fe8d8', 0.25 * pul); SA.hero(sx, sy, 0.5 * u, 0.12);
     // 품기 시작한 둥근 것: 검고 매끈한 알의 싹
-    const ex = cx + 2 * u, ey = fy - 6 * u; for (let y = -11 * u; y <= 11 * u; y++) for (let x = -8.6 * u; x <= 8.6 * u; x++) { const q = (x * x) / (74 * u * u) + (y * y) / (121 * u * u); if (q > 1) continue; const v = -x / (8.6 * u) * 0.5 - y / (11 * u) * 0.7; p.set(ex + x, ey + y, hsh(ex + x, ey + y) > 0.97 ? '#cdbcff' : v > 0.6 ? '#2a2240' : v > 0 ? '#14101e' : '#08060c'); }
-    S2.glow(p, ex, ey, 10 * u, '#5a3a98', 0.18 * pul); S2.vignette(p, W, H, 0.6); };
+    const ex = cx + 6 * u, ey = fy - 4 * u; S2.glow(p, ex, ey, 14 * u, '#5a3a98', 0.25 * pul); SA.egg(ex, ey, 16 * u, 0, 0.15);
+    S2.vignette(p, W, H, 0.6); };
   // 고갯길의 등불: 밤 고갯길, 장대 끝의 등불, 굽은 노인의 그림자
   SA.scene.pass = (p, W, H, f, v) => { const cx = W / 2, hz = Math.round(H * 0.5), u = Math.min(H, W * 0.5625) / 108;
     S2.sky(p, W, 0, hz + 10, v === 2 ? DAWN : NIGHT); S2.stars(p, W, hz, 23, Math.round(W * H / 90), f);
@@ -4471,32 +4767,28 @@ const LAIRART = (() => {
     // 뿌리
     for (let k = 0; k < 5; k++) { let x = hsh(k, 51) * W, y = 0; const len = (10 + hsh(k, 52) * 20) * u; for (let q = 0; q < len; q++) { p.set(x, y, '#1e160e'); x += (hsh(q, k) - 0.5) * 1.2; y += 1; } }
     return fy; };
-  // 굴의 짐승 실루엣: 둥지의 권속을 작게 (그림이 있으면 그 그림을 어둡게 비춘다)
-  const kinAt = (p, id, x, y, sc, f) => { const h = unit(id, 1); if (!h) return; const cv = h.frame('idle', f * 150), C = h.w, d = cv.getContext('2d').getImageData(0, 0, C, C).data, g = PAD + h.rig.ground * h.rig.u;
-    for (let j = 0; j < C; j++) for (let i = 0; i < C; i++) { const a = d[(j * C + i) * 4 + 3]; if (a < 200) continue; const X = Math.round(x + (i - C / 2) * sc), Y = Math.round(y + (j - g) * sc); const r = d[(j * C + i) * 4], gg = d[(j * C + i) * 4 + 1], b = d[(j * C + i) * 4 + 2]; p.set(X, Y, ((255 << 24) | (Math.round(b * 0.55) << 16) | (Math.round(gg * 0.62) << 8) | Math.round(r * 0.5)) >>> 0); } };
   // 굴: 장마다 자란다. @0 들어올 때, @1·@2 침입 사이, @3 끝맺음 (빛만 조금씩 다르다)
   SA.scene.burrow1 = (p, W, H, f, v) => { const cx = W / 2, u = Math.min(H, W * 0.5625) / 108, fy = cave(p, W, H, f, { r: 0.3, glow: 8, lit: v * 0.1 });
     // 좁은 젖은 굴: 물방울, 웅크린 새 살
     for (let k = 0; k < 4; k++) { const x = cx - 20 * u + k * 13 * u, dy = ((f + k * 2) % 8) / 8 * 30 * u; p.set(x, fy - 40 * u + dy, '#6a9ab8'); }
-    const sx = cx, sy = fy + 2 * u, pul = 0.6 + 0.4 * sin(f / 8 * TAU); for (let y = -7 * u; y <= 2 * u; y++) for (let x = -12 * u; x <= 12 * u; x++) { const q = (x * x) / (144 * u * u) + (y * y) / (49 * u * u); if (q > 1) continue; const vv = -x / (12 * u) * 0.5 - y / (7 * u) * 0.8; p.set(sx + x, sy + y, vv > 0.7 ? '#a888e0' : vv > 0.1 ? '#5a3a98' : vv > -0.5 ? '#3a2470' : '#1e1440'); }
-    for (const [x, y] of [[sx + 4 * u, sy - 3 * u], [sx - 3 * u, sy - 2 * u]]) { p.set(x, y, '#f0d040'); p.set(x + 1, y, '#2a1a08'); } S2.glow(p, sx, sy - 2 * u, 16 * u, '#8fe8d8', 0.3 * pul);
+    const sx = cx, sy = fy + 3 * u, pul = 0.6 + 0.4 * sin(f / 8 * TAU); S2.glow(p, sx, sy - 10 * u, 20 * u, '#8fe8d8', 0.25 * pul); SA.hero(sx, sy, 0.5 * u, 0.1);
     S2.vignette(p, W, H, 0.6); };
   SA.scene.burrow2 = (p, W, H, f, v) => { const cx = W / 2, u = Math.min(H, W * 0.5625) / 108, fy = cave(p, W, H, f, { r: 0.46, glow: 14, lit: v * 0.1 });
     // 갈래 둘: 왼쪽은 어두운 굴, 오른쪽은 방(빛과 권속)
     for (const [ox, w, lit2] of [[-34, 11, 0], [30, 16, 1]]) { const x0 = cx + ox * u, w2 = w * u; for (let y = fy - 26 * u; y < fy; y++) for (let x = x0 - w2; x <= x0 + w2; x++) { const d = Math.hypot((x - x0) / w2, (y - fy) / (26 * u)); if (d < 1) p.set(x, y, lit2 ? sv(['#0a1416', '#0f2224', '#163234'], 1 + (1 - d) * 1.4, x, y) : '#020204'); } }
     S2.glow(p, cx + 30 * u, fy - 10 * u, 30 * u, MZ.glow[1], 0.35);
-    kinAt(p, 'shell', cx + 24 * u, fy, 0.5 * u, f); kinAt(p, 'gazer', cx + 38 * u, fy - 2 * u, 0.45 * u, f);
+    SA.kin('shell', cx + 22 * u, fy + 2 * u, 0.5 * u); SA.kin('gazer', cx + 38 * u, fy + u, 0.48 * u); SA.hero(cx - 8 * u, fy + 3 * u, 0.42 * u, 0.2);
     S2.vignette(p, W, H, 0.55); };
   SA.scene.burrow3 = (p, W, H, f, v) => { const cx = W / 2, u = Math.min(H, W * 0.5625) / 108, fy = cave(p, W, H, f, { r: 0.5, glow: 16, lit: v * 0.1 });
     // 고인 물과 이빨 구덩이
     for (let y = -5 * u; y <= 5 * u; y++) for (let x = -30 * u; x <= 30 * u; x++) { if ((x * x) / (900 * u * u) + (y * y) / (25 * u * u) > 1) continue; const rip = sin(x * 0.3 + f * 0.8 + y * 0.6) > 0.85; p.set(cx - 22 * u + x, fy + 8 * u + y, rip ? '#3a7a98' : y < -3 * u ? '#14304a' : '#0c2034'); }
     const tc = mazeTrap(40, 'pit', f / 8), tx = Math.round(cx + 30 * u), ty = Math.round(fy + 2 * u), sc = 0.9 * u, d2 = tc.getContext('2d').getImageData(0, 0, 40, 40).data; for (let j = 0; j < 40; j++) for (let i = 0; i < 40; i++) { const a = d2[(j * 40 + i) * 4 + 3]; if (a < 128) continue; p.set(tx + (i - 20) * sc, ty + (j - 20) * sc * 0.6, ((255 << 24) | (d2[(j * 40 + i) * 4 + 2] << 16) | (d2[(j * 40 + i) * 4 + 1] << 8) | d2[(j * 40 + i) * 4]) >>> 0); }
-    kinAt(p, 'tangle', cx - 4 * u, fy - u, 0.5 * u, f);
+    SA.kin('tangle', cx - 2 * u, fy + 2 * u, 0.5 * u); SA.hero(cx - 46 * u, fy + 4 * u, 0.42 * u, 0.2);
     S2.vignette(p, W, H, 0.55); };
   SA.scene.burrow4 = (p, W, H, f, v) => { const cx = W / 2, u = Math.min(H, W * 0.5625) / 108, fy = cave(p, W, H, f, { r: 0.6, glow: 18, lit: v * 0.1 });
     // 깊어진 굴: 막다른 구멍 여럿이 어둠 속으로 이어진다
     [[-50, 9, 20], [-24, 7, 30], [4, 10, 24], [30, 6, 34], [52, 8, 18]].forEach(([ox, w, hh], k) => { const x0 = cx + ox * u, w2 = w * u, h2 = hh * u; for (let y = fy - h2; y < fy; y++) for (let x = x0 - w2; x <= x0 + w2; x++) { const d = Math.hypot((x - x0) / w2, (y - fy) / h2); if (d < 1) p.set(x, y, d < 0.7 ? '#010102' : '#06060a'); } if (k === 3) { p.set(x0 - 1.6 * u, fy - h2 * 0.5, '#f0d040'); p.set(x0 + 1.6 * u, fy - h2 * 0.5, '#f0d040'); } });
-    kinAt(p, 'famine', cx - 34 * u, fy + 2 * u, 0.45 * u, f);
+    SA.kin('famine', cx - 34 * u, fy + 4 * u, 0.48 * u); SA.hero(cx + 12 * u, fy + 4 * u, 0.42 * u, 0.2);
     S2.vignette(p, W, H, 0.6); };
   SA.scene.burrow5 = (p, W, H, f, v) => { const cx = W / 2, u = Math.min(H, W * 0.5625) / 108, fy = cave(p, W, H, f, { r: 0.56, glow: 20, lit: v * 0.1 });
     // 속삭이는 벽: 벽에 입술과 귀가 돋았고, 글자 같은 숨이 흐른다. 곁으로 미로의 갈래
@@ -4504,28 +4796,29 @@ const LAIRART = (() => {
     for (const [ex, ey, dir] of [[-20, -2, -1], [20, -2, 1], [8, -10, 1]]) { const x0 = cx + ex * u, y0 = wy + ey * u, s3 = ex === 8 ? 0.6 : 1; S2.quad(p, [x0, y0 - 4 * u * s3], [x0 + dir * 5 * u * s3, y0 - 6 * u * s3], [x0 + dir * 6 * u * s3, y0 + 3 * u * s3], [x0 + dir * 1 * u * s3, y0 + 5 * u * s3], '#c8a098'); p.line(x0 + dir * 2 * u * s3, y0 - 2 * u * s3, x0 + dir * 3 * u * s3, y0 + 2 * u * s3, '#6a3a3a'); }
     p.ell(cx, wy + 2 * u, 9 * u, 4 * u, '#c85a6a', '#2a0a10'); p.ell(cx, wy + 2.4 * u, 6.4 * u, (0.6 + op * 2.2) * u, MAWC); p.set(cx - 5 * u, wy, '#ffc0c8'); p.ell(cx - 12 * u, wy - 8 * u, 3 * u, 1.4 * u, '#a84858', '#2a0a10'); p.rect(Math.round(cx - 14 * u), Math.round(wy - 8 * u), Math.round(4 * u), Math.max(1, Math.round((1 - op) * u)), MAWC);
     for (const ox of [-48, 46]) { const x0 = cx + ox * u; for (let y = fy - 20 * u; y < fy; y++) for (let x = x0 - 8 * u; x <= x0 + 8 * u; x++) if (Math.hypot((x - x0) / (8 * u), (y - fy) / (20 * u)) < 1) p.set(x, y, '#020204'); }
+    SA.hero(cx - 26 * u, fy + 4 * u, 0.42 * u, 0.2); SA.kin('hood', cx + 24 * u, fy + 3 * u, 0.48 * u);
     for (let k = 0; k < 8; k++) { const q = ((f / 8) + k / 8) % 1, x = cx + (k % 2 ? 1 : -1) * q * 40 * u, y = fy - 18 * u + sin(q * 6 + k) * 4 * u; p.set(x, y, q < 0.6 ? '#c8a8ff' : '#6a5a98'); p.set(x + 1, y + 1, '#6a5a98'); }
     S2.vignette(p, W, H, 0.6); };
   SA.scene.burrow6 = (p, W, H, f, v) => { const cx = W / 2, u = Math.min(H, W * 0.5625) / 108, fy = cave(p, W, H, f, { r: 0.8, floor: 0.8, glow: 30, lit: 0.3 + v * 0.1 });
     // 거대한 둥지: 넓은 굴, 여러 권속, 맨 뒤에서 알의 빛
     const ex = cx, ey = fy - 30 * u, pul = 0.6 + 0.4 * sin(f / 8 * TAU); S2.glow(p, ex, ey, 70 * u, '#5a3a98', 0.45 * pul + 0.2);
-    const eg = mazeEgg(40, 0, f / 8), d2 = eg.getContext('2d').getImageData(0, 0, eg.width, eg.height).data, N = eg.width, sc = 0.7 * u; for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) { const a = d2[(j * N + i) * 4 + 3]; if (a < 128) continue; p.set(ex + (i - N / 2) * sc, ey + (j - N / 2) * sc, ((255 << 24) | (d2[(j * N + i) * 4 + 2] << 16) | (d2[(j * N + i) * 4 + 1] << 8) | d2[(j * N + i) * 4]) >>> 0); }
-    [['maw', -56, 4, 0.5], ['mother', -30, 2, 0.45], ['shell', 26, 3, 0.45], ['hood', 46, 1, 0.42], ['brood', 62, 5, 0.42], ['heap', -70, 6, 0.42], ['biter', 8, 9, 0.4]].forEach(([id, ox, oy, sc2]) => kinAt(p, id, cx + ox * u, fy + oy * u, sc2 * u, f));
+    SA.egg(ex, ey, 30 * u, 0, 0);
+    [['maw', -58, 6, 0.5], ['mother', -36, 4, 0.48], ['heap', -74, 7, 0.44], ['shell', 30, 5, 0.48], ['hood', 48, 4, 0.46], ['brood', 66, 7, 0.46], ['biter', 16, 9, 0.44]].forEach(([id, ox, oy, sc2]) => SA.kin(id, cx + ox * u, fy + oy * u, sc2 * u, 0.2)); SA.hero(cx - 14 * u, fy + 9 * u, 0.55 * u, 0.05);
     S2.vignette(p, W, H, 0.5); };
   // 알의 방 앞: 마지막 굴, 막처럼 비치는 문 너머 보랏빛. 등불을 든 외투 긴 사내와 그 뒤의 홀린 자들
   SA.scene.eggdoor = (p, W, H, f) => { const cx = W / 2, u = Math.min(H, W * 0.5625) / 108, fy = cave(p, W, H, f, { r: 0.5, glow: 10 });
     const dx = cx + 24 * u, dy = fy, rr = 22 * u, pul = 0.6 + 0.4 * sin(f / 8 * TAU); for (let y = dy - rr * 1.5; y < dy; y++) for (let x = dx - rr; x <= dx + rr; x++) { const d = Math.hypot((x - dx) / rr, (y - dy) / (rr * 1.5)); if (d < 1) p.set(x, y, d > 0.9 ? '#5a3a68' : sv(['#1e1440', '#3a2470', '#5a3a98', '#8a68d0'], (1 - d) * 3 * pul + sin(y * 0.3 + f) * 0.3, x, y)); }
-    S2.glow(p, dx, dy - rr * 0.6, 50 * u, '#6a4ab8', 0.5 * pul);
+    S2.glow(p, dx, dy - rr * 0.6, 50 * u, '#6a4ab8', 0.5 * pul); SA.hero(dx, dy - 2 * u, 0.36 * u, 0.55);
     S2.person(p, cx - 8 * u, fy + 2 * u, 36 * u, { cloak: true, col: '#08060a', dir: 1, book: true }); S2.rim(p, 0, 0, W, H, '#08060a', 1, 0, '#8a68d0');
     for (const [ox, h] of [[-30, 28], [-44, 26], [-56, 24]]) S2.person(p, cx + ox * u, fy + 2 * u, h * u, { hood: true, col: '#0c0a10', dir: 1, bend: 0.8 });
     S2.vignette(p, W, H, 0.6); };
   // 알의 방: 알이 맥박치는 방. @1 다시 하기 (알 앞의 한 방울)
   SA.scene.eggroom = (p, W, H, f, v) => { const cx = W / 2, u = Math.min(H, W * 0.5625) / 108, fy = cave(p, W, H, f, { r: 0.62, floor: 0.82, glow: 24, lit: 0.2 }), pul = 0.6 + 0.4 * sin(f / 8 * TAU);
     S2.glow(p, cx, fy - 34 * u, 80 * u, '#5a3a98', 0.55 * pul + 0.2);
-    const eg = mazeEgg(64, v === 3 ? 4 : 0, f / 8), d2 = eg.getContext('2d').getImageData(0, 0, eg.width, eg.height).data, N = eg.width, sc = 0.82 * u; for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) { const a = d2[(j * N + i) * 4 + 3]; if (a < 128) continue; p.set(cx + (i - N / 2) * sc, fy - 30 * u + (j - N / 2) * sc, ((255 << 24) | (d2[(j * N + i) * 4 + 2] << 16) | (d2[(j * N + i) * 4 + 1] << 8) | d2[(j * N + i) * 4]) >>> 0); }
+    SA.egg(cx, fy - 30 * u, 52 * u, v === 3 ? 4 : 0, 0);
     // 둘레의 뿌리 촉수가 바닥으로 번진다
     for (let k = 0; k < 8; k++) { const dir = k % 2 ? 1 : -1; let x = cx + dir * 16 * u, y = fy - 8 * u; for (let q = 0; q < 40 * u; q++) { p.set(x, y, '#2a1e48'); p.set(x, y - 1, '#3a2a68'); x += dir * (0.8 + hsh(q, k) * 0.4); y += sin(q * 0.15 + k) * 0.5 + 0.1; } }
-    if (v === 1) { const sx = cx - 30 * u, sy = fy + 4 * u; for (let y = -4 * u; y <= 2 * u; y++) for (let x = -7 * u; x <= 7 * u; x++) { if ((x * x) / (49 * u * u) + (y * y) / (16 * u * u) > 1) continue; p.set(sx + x, sy + y, y < -u ? '#8a68d0' : '#3a2470'); } }
+    SA.hero(cx - 34 * u, fy + 6 * u, 0.5 * u, 0.1);
     S2.vignette(p, W, H, 0.5); };
   // 결말 다섯. 각 결말의 첫 장면에 쓴다
   // A 확보된 것: 탑 꼭대기에서 알을 들어 올린 사내의 실루엣. 알에서 빛이 샌다
@@ -4537,8 +4830,7 @@ const LAIRART = (() => {
     // 사내: 외투, 두 팔을 들어 알을 받쳤다
     const mx = cx, my = ty, hh = 50 * u, pul = 0.6 + 0.4 * sin(f / 8 * TAU), ex = mx, ey = my - hh - 14 * u; S2.glow(p, ex, ey, 70 * u, '#8a68d0', 0.5 * pul + 0.3);
     S2.person(p, mx, my, hh, { cloak: true, col: '#030206' }); for (const dir of [-1, 1]) S2.quad(p, [mx + dir * 5 * u, my - hh * 0.72], [mx + dir * 8 * u, my - hh * 0.7], [ex + dir * 6 * u, ey + 4 * u], [ex + dir * 3.6 * u, ey + 5 * u], '#030206');
-    for (let y = -11 * u; y <= 11 * u; y++) for (let x = -8 * u; x <= 8 * u; x++) { const q = (x * x) / (64 * u * u) + (y * y) / (121 * u * u); if (q > 1) continue; p.set(ex + x, ey + y, hsh(ex + x, ey + y) > 0.93 ? '#e8e0ff' : q > 0.82 ? '#6a4ab8' : '#0c0816'); }
-    p.line(ex, ey - 10 * u, ex - 2 * u, ey - 2 * u, '#f0e8ff'); p.line(ex - 2 * u, ey - 2 * u, ex + 2 * u, ey + 4 * u, '#f0e8ff'); p.line(ex - 2 * u, ey - 2 * u, ex - 5 * u, ey + 2 * u, '#c8a8ff');
+    SA.egg(ex, ey, 22 * u, 3, 0);
     S2.rim(p, 0, 0, W, ty, '#030206', 0, -1, '#8a68d0'); S2.vignette(p, W, H, 0.5); };
   // B 봉인: 돌로 메운 언덕, 꽂힌 깃발, 새벽. 메워진 굴 위의 그림에 까마귀를 더한다
   SA.scene.endB = (p, W, H, f) => { SA.scene.sealed(p, W, H, f, 2); const u = Math.min(H, W * 0.5625) / 108; for (let k = 0; k < 3; k++) { const x = W * (0.2 + k * 0.12) + sin(f / 8 * TAU + k) * 3 * u, y = H * (0.18 + k * 0.05); p.line(x - 3 * u, y - u, x, y, '#050408'); p.line(x, y, x + 3 * u, y - u, '#050408'); } };
@@ -4549,7 +4841,7 @@ const LAIRART = (() => {
     for (let k = 0; k < 40; k++) { const q = ((f / 8) * 0.5 + k / 40) % 1, x = kx + sin(q * 8 + k) * (4 + q * 26) * u, y = ky - 18 * u - q * 70 * u, r = (2 + q * 6) * u; p.ell(x, y, r, r * 0.7, k % 3 ? '#3a2a68' : '#1f6a68'); } for (let k = 0; k < 10; k++) { const q = ((f / 8) * 0.5 + k / 10) % 1; p.set(kx + sin(q * 8 + k) * 20 * u, ky - 20 * u - q * 64 * u, '#c8fff0'); }
     S2.vignette(p, W, H, 0.5); };
   // D 일곱째 바늘: 알이 깨어난다. 껍질 틈에서 빛이 쏟아지고, 둥지의 권속이 둘러섰다
-  SA.scene.endD = (p, W, H, f) => { SA.scene.burrow6(p, W, H, f, 0); const cx = W / 2, u = Math.min(H, W * 0.5625) / 108, fy = Math.round(H * 0.8), ex = cx, ey = fy - 30 * u;
+  SA.scene.endD = (p, W, H, f) => { SA.scene.burrow6(p, W, H, f, 0); SA.spr.forEach(q => { if (q.k === 'egg') q.crack = 4; }); const cx = W / 2, u = Math.min(H, W * 0.5625) / 108, fy = Math.round(H * 0.8), ex = cx, ey = fy - 30 * u;
     for (let k = 0; k < 9; k++) { const a = -Math.PI / 2 + (k - 4) * 0.28 + sin(f / 8 * TAU) * 0.03; for (let q = 6 * u; q < H; q++) { const x = ex + cos(a) * q, y = ey + sin(a) * q; if (y < 0) break; p.mix(x, y, k % 2 ? '#e8d8ff' : '#8fe8d8', 0.4 * (1 - q / H)); } }
     S2.glow(p, ex, ey, 40 * u, '#ffffff', 0.5); for (const [a, b] of [[[-3, -10], [1, -3]], [[1, -3], [-2, 4]], [[1, -3], [5, 2]]]) p.line(ex + a[0] * u, ey + a[1] * u, ex + b[0] * u, ey + b[1] * u, '#ffffff'); S2.vignette(p, W, H, 0.4); };
   // E 기록: 책상 위 펼쳐진 기록, 꺼진 등에서 오르는 연기, 새벽 창
@@ -4573,282 +4865,6 @@ const LAIRART = (() => {
     if (place === '굴') { const c = /^c(\d)/.exec(id), n = c ? clamp(+c[1], 1, 6) : 1, part = /\.(s|b|e)(\d+)/.exec(id), vi = part ? (part[1] === 's' ? 0 : part[1] === 'b' ? 1 + (+part[2] % 2) : 3) : 0; return 'burrow' + n + (vi ? '@' + vi : ''); }
     if (/^retry/.test(id)) return 'eggroom@1'; return STORY_ART[place] || (place && place.indexOf('굴') >= 0 ? 'burrow1' : 'sky'); }
   // ── ART-STORY 끝
-  // ── ART-BUST 시작
-  // 이야기의 인물 초상: 대사 옆에 나오는 반신(어깨까지). 싸움 그림과 따로, 사람의 얼굴로 그린다.
-  //   LAIRART.bust(who, px, mood, t) → canvas(px × px) 또는 null(초상이 없는 말: 기록, 쪽지, 한 방울)
-  //     who: 대사의 이름('로웬', '에녹' …) 또는 초상 key('rowen' …). mood: 'calm' | 'fear' | 'grim' | 'mad'. t: ms (숨쉬기, 눈 깜박임, 등불의 일렁임)
-  //   LAIRART.BUSTS: 이야기에 나오는 이름 → key (초상이 없으면 null)
-  // 64 눈금에 그린다. 96 까지는 그 크기 그대로 한 점씩, 128 이상은 64 바탕을 정수 배로 키운다.
-  // 빛은 왼쪽 위의 등불. 얼굴은 오른쪽으로 비스듬히(4분의 3) 본다. 살빛은 여섯 단, 단 사이는 점무늬로 섞는다.
-  const BUST = {}, BMOODS = ['calm', 'fear', 'grim', 'mad'], bustCache = {};
-  const BUSTBG = { village: ['#120c08', '#2a1a10', '#4a2e18', '#7a4a24'], church: ['#0c0b10', '#1e1b24', '#38323e', '#5e5258'], work: ['#080e0e', '#122220', '#1e3a36', '#34605a'],
-    tower: ['#0a0812', '#181228', '#2a2044', '#463668'], road: ['#0a0908', '#1c1612', '#34281c', '#5a4228'], field: ['#090b08', '#181e12', '#2c361e', '#4c5a30'] };
-  // 살빛 여섯 단: 가장 깊은 그늘 … 가장 밝은 곳
-  const sRamp = b => [mixh(b, '#1c0c14', 0.68), mixh(b, '#2a1218', 0.48), mixh(b, '#3a1a1a', 0.25), b, mixh(b, '#fff0d8', 0.26), mixh(b, '#fff8ec', 0.52)];
-  const sOut = b => mixh(b, '#0c0608', 0.8);
-  // 가락 결: 머리카락·수염·털. 빛(왼쪽 위의 공) 위에 결 방향(a, 라디안)으로 줄무늬를 얹어 단을 고른다
-  const quant = (R, v, X, Y, k) => R[clamp(Math.floor(v * R.length + (bay(X, Y) - 0.5) * (k == null ? 0.9 : k)), 0, R.length - 1)];
-  const strands = (D, m, R, a, o) => { o = o || {}; const cx = o.cx || 30, cy = o.cy || 20, rx = o.rx || 16, ry = o.ry || 18, amp = o.amp == null ? 0.32 : o.amp, fq = o.fq || 1.25, base = o.base == null ? 0 : o.base, kx = o.kx == null ? 0.38 : o.kx, ky = o.ky == null ? 0.34 : o.ky;
-    D.shade(m, (x, y, X, Y) => { const nx = (x - cx) / rx, ny = (y - cy) / ry, p = -x * sin(a) + y * cos(a), q = x * cos(a) + y * sin(a), n = hsh(Math.floor(p * fq), 11) - 0.5, n2 = sin(q * 0.9 + n * 6) * 0.08, v = 0.55 - nx * kx - ny * ky + n * amp + n2 + base; return quant(R, v, X, Y); }, o.oc === undefined ? R[0] : o.oc); return m; };
-  const hairG = (D, pts, R, a, o) => strands(D, D.poly(pts), R, a, o);
-  // 옷감: 빛 + 주름(세로 골)
-  const cloth = (D, pts, R, o) => { o = o || {}; const m = D.poly(pts); if (o.add) o.add.forEach(q => D.poly(q, m)); D.shade(m, (x, y, X, Y) => { const v = 0.62 - (x - 32) / 34 - (y - 46) / 40 + (o.folds ? sin(x * 0.7 + o.folds) * 0.09 : 0) + (o.base || 0); return quant(R, v, X, Y, 0.8); }, o.oc === undefined ? R[0] : o.oc); return m; };
-  const ringP = (D, cx, cy, r, c, oc) => D.flat(D.cut(D.el(cx, cy, r, r), (x, y) => (x - cx) * (x - cx) + (y - cy) * (y - cy) > (r - 1) * (r - 1)), c, oc === undefined ? null : oc);
-  const R4 = p => [p[0], deepOf(p), p[3], p[1], p[2]];
-  // ---------- 얼굴 ----------
-  // f: skin(살 바탕색) ey ex1 ex2(가까운 눈·먼 눈의 가운데) nt([x,y] 코끝) nb(콧등 굽음) mx my mw(입) chin([x,y]) jaw([x,y]) brow(눈썹 색) browW
-  //    iris thin(광대 아래 꺼짐 0~1) fat(살집 0~1) age(주름 0~3) socket(눈두덩 그늘 배수) lip rim({c, k}: 오른쪽에서 오는 둘째 빛) narrow(가는 눈매) young
-  const FACE0 = { ey: 25, ex1: 29, ex2: 38.6, nt: [44.6, 31.4], nb: 0, mx: 38.4, my: 36.6, mw: 5.6, chin: [40.6, 42], jaw: [25, 39], browW: 0.75, iris: '#3a2a1e', thin: 0.3, fat: 0, age: 0, socket: 1, lip: null };
-  const facePts = f => { const [tx, ty] = f.nt, [cx, cy] = f.chin, [jx, jy] = f.jaw, b = f.nb;
-    return [[jx - 2, 30], [23, 16], [30, 10.4], [38, 11], [41.6, 15], [42.6, 19.6], [42.8, 23], [42.4 + b * 0.6, 24.6], [43 + b, 27], [tx, ty - 0.6], [tx - 0.2, ty + 0.6], [tx - 1.6, ty + 1.6], [42.4, ty + 2], [43, f.my - 1.2], [42.6, f.my], [42.9, f.my + 1.2], [42.2, f.my + 2.6], [cx + 0.6, cy - 1.4], [cx, cy], [cx - 2.4, cy + 1.2], [cx - 6, cy + 0.8 + f.fat * 1.6], [jx + 3, jy + 2], [jx, jy], [jx - 1.6, 33]]; };
-  function faceLight(f, m, N) { const [tx, ty] = f.nt, [cx, cy] = f.chin, [jx, jy] = f.jaw, at = (X, Y) => X >= 0 && Y >= 0 && X < N && Y < N && m[Y * N + X];
-    return (x, y, X, Y) => { const nx = (x - 33) / 14, ny = (y - 27) / 17, nz = Math.sqrt(Math.max(0.04, 1 - nx * nx - ny * ny)); let v = 0.42 - 0.42 * nx - 0.34 * ny + 0.3 * nz;
-      for (const [ex, w] of [[f.ex1, 5.2], [f.ex2, 4]]) { const d = ((x - ex) / (w * 0.72)) ** 2 + ((y - f.ey + 0.2) / 2.7) ** 2; if (d < 1) v -= 0.2 * f.socket * (1 - d); }
-      if (y > f.ey - 5 && y < f.ey - 2.8 && x > f.ex1 - 4 && x < f.ex2 + 1) v += 0.06;
-      const t = (y - 24.4) / (ty - 24.4); if (t > 0 && t < 1.05) { const rx = lerp(41 + f.nb * 0.5, tx - 1.4, t); if (x > rx && x < rx + 2.8) v -= 0.26; else if (x < rx && x > rx - 2.4) v += 0.1; }
-      if (((x - tx + 2.2) / 2.6) ** 2 + ((y - ty - 2.4) / 1.2) ** 2 < 1) v -= 0.22;
-      if (((x - tx + 4) / 1.3) ** 2 + ((y - ty) / 1.4) ** 2 < 1) v -= 0.16;
-      if (((x - 34.6) / 3.6) ** 2 + ((y - 33.6) / 2.4) ** 2 < 1) v -= 0.18 * f.thin; if (((x - 31) / 3.4) ** 2 + ((y - 29.4) / 1.6) ** 2 < 1) v += 0.08 + 0.08 * f.thin;
-      if (f.fat && ((x - 33) / 4.4) ** 2 + ((y - 33) / 3) ** 2 < 1) v += 0.08 * f.fat;
-      const jl = lerp(jy, cy + 1, clamp((x - jx) / (cx - jx), 0, 1)); if (y > jl - 1.8 && x > jx - 1) v -= 0.22;
-      if (f.fat && y > cy - 2.4 && y < cy + 0.2 && x > cx - 8 && x < cx) v -= 0.12 * f.fat;
-      if (((x - cx + 1.6) / 2.2) ** 2 + ((y - cy + 2.4) / 1.4) ** 2 < 1) v += 0.08;
-      if (x < jx + 2 && y > 32) v -= 0.06;
-      if (f.rim && !at(X + 1, Y) && x > 33 && y > 21) v = 2;
-      return v; }; }
-  function bFace(D, f, md) {
-    const R = sRamp(f.skin), oc = sOut(f.skin), m = D.poly(facePts(f)), S2 = D.S + PAD * 2; D.el(31, 22, 11.6, 12.6, m);
-    const FL = faceLight(f, m, S2); D.shade(m, (x, y, X, Y) => { const v = FL(x, y, X, Y); return v > 1.5 ? f.rim.c : quant(R, v, X, Y); }, oc);
-    // 귀
-    if (!f.noEar) D.shade(D.el(24.4, 28.6, 2.1, 3.6), (x, y, X, Y) => quant(R, 0.62 - (x - 24.4) * 0.12 - (y - 28.6) * 0.05, X, Y), oc); if (!f.noEar) { D.px(24.8, 28.6, R[1]); D.px(24.6, 29.8, R[1]); D.px(24, 27, R[4]); }
-    // 코끝과 콧방울
-    D.px(f.nt[0] - 1.4, f.nt[1] - 1.4, R[5]); D.px(f.nt[0] - 2.6, f.nt[1] + 1, R[0]); D.px(f.nt[0] - 3.4, f.nt[1] + 0.4, R[1]);
-    // 주름
-    const a = f.age; if (a >= 1) { flatL(D, [[f.ex1 - 3.4, f.ey + 0.4], [f.ex1 - 4.6, f.ey + 1.6]], R[2], 0.4); flatL(D, [[f.ex1 - 3.2, f.ey + 2.2], [f.ex1 + 1.2, f.ey + 2.8]], R[2], 0.4); }
-    if (a >= 2) { flatL(D, [[f.nt[0] - 4.2, f.nt[1] + 1.4], [f.mx - f.mw * 0.66, f.my + 1.4]], R[1], 0.45); for (const yy of [15.2, 17.4]) flatL(D, [[29, yy], [38.6, yy - 0.4]], R[2], 0.4); }
-    if (a >= 3) { flatL(D, [[f.ex1 - 3.6, f.ey - 0.6], [f.ex1 - 5, f.ey - 1]], R[2], 0.4); flatL(D, [[f.mx - f.mw * 0.7, f.my + 2], [f.mx - f.mw * 0.6, f.my + 4.6]], R[1], 0.4); flatL(D, [[32.4, 36], [35, 39]], R[2], 0.4); }
-    return R;
-  }
-  // 눈: 가까운 눈(왼쪽)이 넓고 먼 눈이 좁다. 기분은 뜬 정도·눈동자 크기·윗눈꺼풀로 갈린다
-  function bEyes(D, f, md, R) {
-    const mood = md.mood, lash = mixh(f.skin, '#0c0608', 0.82), wh = mood === 'mad' ? '#e8dcd8' : '#d8cec4', ic = mood === 'mad' ? '#b040e0' : f.iris, open = mood === 'fear' ? 1.45 : mood === 'grim' ? 0.92 : mood === 'mad' ? 1.3 : f.narrow ? 0.8 : 1;
-    [[f.ex1, 5, 1], [f.ex2, 3.8, 0]].forEach(([cx, w, near]) => { const y = f.ey, h = 1.05 * open, ir = (near ? 1.35 : 1.15) * (mood === 'fear' ? 0.78 : 1), sx = near ? 0.5 : 0.7;
-      if (md.blink) { flatL(D, [[cx - w / 2, y + 0.2], [cx, y + 0.9], [cx + w / 2, y + 0.3]], lash, 0.55); flatL(D, [[cx - w / 2 + 0.4, y - 0.8], [cx + w / 2 - 0.4, y - 0.8]], R[2], 0.4); return; }
-      const em = D.el(cx, y, w / 2, h); D.flat(em, wh, null);
-      D.flat(D.cut(D.el(cx + sx, y + 0.1, ir, ir * 1.05), (x, yy) => ((x - cx) / (w / 2)) ** 2 + ((yy - y) / h) ** 2 <= 1.05), ic, null);
-      if (mood !== 'mad') D.px(cx + sx, y + 0.2, '#0c0608'); else { D.px(cx + sx, y, '#f8c8ff'); }
-      D.px(cx + sx - 0.6, y - 0.6, '#ffffff');
-      const top = mood === 'grim' ? y - h + 0.15 : y - h - 0.1; flatL(D, [[cx - w / 2 - 0.3, y + 0.2], [cx - w / 4, top], [cx + w / 4, top], [cx + w / 2 + 0.2, y - 0.2]], lash, near ? 0.6 : 0.5);
-      flatL(D, [[cx - w / 2 + 0.4, y + h + 0.5], [cx + w / 2 - 0.6, y + h + 0.3]], R[2], 0.4);
-      if (mood === 'fear') D.px(cx + sx, y - h + 0.2, wh); });
-  }
-  // 눈썹: 안쪽 끝(콧등 쪽)이 기분에 따라 오르내린다
-  function bBrows(D, f, md) { if (!f.brow) return; const mood = md.mood, y0 = f.ey - 3.4;
-    [[f.ex1, 5.4, 1], [f.ex2, 4.2, 0]].forEach(([cx, w, near]) => { const inX = near ? cx + w / 2 : cx - w / 2, outX = near ? cx - w / 2 - 0.4 : cx + w / 2 + 0.2;
-      const lift = mood === 'fear' ? [1.8, 0.6] : mood === 'grim' ? [-1.4, 0.2] : mood === 'mad' ? (near ? [0.4, 1.8] : [-1.2, -0.2]) : [0, 0.3];
-      const pin = [inX, y0 - lift[0] + (mood === 'fear' ? -0.4 : 0)], pmid = [lerp(inX, outX, 0.45), y0 - 0.8 - lift[1] - (mood === 'fear' ? 0.6 : 0)], pout = [outX, y0 + 0.4 - (mood === 'fear' ? 0.6 : 0)];
-      flatL(D, [pin, pmid, pout], f.brow, f.browW); if (f.browW > 0.9) flatL(D, [[pin[0], pin[1] + 0.6], [pmid[0], pmid[1] + 0.6]], f.brow, f.browW * 0.6); });
-  }
-  // 입: 윗입술 선, 아랫입술의 빛. 두려움은 벌어지고, 굳음은 꾹 다물고 입꼬리가 처지고, 광기는 이를 드러내고 웃는다
-  function bMouth(D, f, md, R) { const mood = md.mood, x = f.mx, y = f.my, w = f.mw, L = x - w * 0.6, Rr = x + w * 0.42, dk = mixh(f.skin, '#2a0a0e', 0.72), lipM = f.lip || mixh(f.skin, '#a0403a', 0.32), lipL = mixh(lipM, '#fff0e0', 0.3);
-    if (mood === 'fear') { D.flat(D.el(x - 0.4, y + 0.9, w * 0.32, 1.7), MAWC, dk); D.rect(x - 1.6, y - 0.2, 2.4, 0.6, TOOTH2); flatL(D, [[x - 1.6, y + 3], [x + 0.8, y + 3]], lipL, 0.4); }
-    else if (mood === 'mad') { D.flat(D.poly([[L - 0.8, y - 1.4], [x, y - 0.4], [Rr + 0.6, y - 1.6], [Rr - 0.4, y + 1.2], [x, y + 2.2], [L, y + 1]]), MAWC, dk); for (let k = 0; k < 5; k++) D.px(L + 0.6 + k * (Rr - L) / 5, y - 0.4 + Math.abs(k - 2) * -0.2, TOOTH); D.rect(L + 1, y + 1, Rr - L - 1.6, 0.5, TOOTH2); }
-    else if (mood === 'grim') { flatL(D, [[L - 0.4, y + 1.1], [L + 1, y + 0.1], [Rr - 0.6, y], [Rr + 0.2, y + 0.9]], dk, 0.5); flatL(D, [[x - 1.6, y - 1], [x + 1, y - 1]], R[2], 0.4); flatL(D, [[x - 1.4, y + 3.4], [x + 1, y + 3.4]], R[2], 0.4); }
-    else { flatL(D, [[L + 0.4, y - 0.9], [x - 0.6, y - 1.3], [Rr - 0.6, y - 0.9]], lipM, 0.5); flatL(D, [[L, y], [x - 0.6, y + 0.2], [x, y], [Rr, y - 0.2]], dk, 0.5); flatL(D, [[L + 1.2, y + 1.2], [Rr - 1.2, y + 1.2]], lipL, 0.5); D.px(x - 0.6, y + 2.6, R[2]); }
-  }
-  // 목: 턱 밑은 그늘
-  const bNeck = (D, f, w) => { w = w || 0; const R = sRamp(f.skin); D.shade(D.poly([[27 - w, 36], [38 + w * 0.5, 38], [39 + w * 0.5, 52], [26.4 - w, 52]]), (x, y, X, Y) => quant(R, 0.42 - (x - 30) * 0.03 - (y < 43 ? 0.18 : 0), X, Y), sOut(f.skin)); };
-  // 한 사람: o.face(얼굴 값), o.back o.body o.neck(false 면 없음) o.collar o.hairB(머리 뒤) o.beard o.hair o.hat o.front o.extra(얼굴 위 덧그림)
-  const bustMan = o => ({ bg: o.bg, lamp: o.lamp, flick: o.flick, ph: o.ph || 0, glow: o.glow, draw(D, md) {
-    const f = Object.assign({}, FACE0, o.face);
-    if (o.back) o.back(D, md);
-    if (o.body) o.body(D, md);
-    if (o.neck !== false) bNeck(D, f, o.neckW);
-    if (o.collar) o.collar(D, md);
-    if (o.hairB) o.hairB(D, md);
-    if (!o.noFace) { const R = bFace(D, f, md); if (o.skinX) o.skinX(D, md, R); if (!o.noEyes) bEyes(D, f, md, R); bBrows(D, f, md); if (o.beard) o.beard(D, md, R); if (!o.noMouth) bMouth(D, f, md, R); if (o.beardF) o.beardF(D, md, R); }
-    if (o.extra) o.extra(D, md);
-    if (o.hair) o.hair(D, md);
-    if (o.hat) o.hat(D, md);
-    if (o.front) o.front(D, md);
-  } });
-  // 기분의 빛은 옅게만 얹는다(표정이 먼저 말한다)
-  const moodPix = (c, mood) => { if (mood === 'calm') return c; const a = c >>> 24, r = c & 255, g = (c >>> 8) & 255, b = (c >>> 16) & 255, l = (r * 3 + g * 5 + b * 2) / 10;
-    if (mood === 'mad') { const q = madPix(c), f = (v, w) => Math.round(lerp(v, w, 0.6)); return ((a << 24) | (f(b, (q >>> 16) & 255) << 16) | (f(g, (q >>> 8) & 255) << 8) | f(r, q & 255)) >>> 0; }
-    const k = mood === 'fear' ? [0.2, 0.92, 0.95, 1.04, 6] : [0.18, 0.9, 0.88, 0.88, 0], f = v => Math.max(0, Math.min(255, Math.round(v))), nr = f(lerp(r, l, k[0]) * k[1]), ng = f(lerp(g, l, k[0]) * k[2]), nb = f(lerp(b, l, k[0]) * k[3] + k[4]);
-    return ((a << 24) | (nb << 16) | (ng << 8) | nr) >>> 0; };
-  const bgPal = (name, mood) => { const p = BUSTBG[name] || BUSTBG.road; return mood === 'fear' ? p.map(c => mixh(c, '#16203a', 0.4)) : mood === 'grim' ? p.map(c => mixh(c, '#0a0a0c', 0.3)) : mood === 'mad' ? p.map((c, i) => mixh(c, ['#0c0618', '#200c38', '#3a1a5a', '#5a2a80'][i], 0.6)) : p; };
-  function bustBase(key, S, mood, br, bl, fl) {
-    const d = BUST[key], k = 'bb:' + key + ':' + S + ':' + mood + ':' + br + bl + fl; if (bustCache[k]) return bustCache[k];
-    const D = kit(S, 64); D.S = S; d.draw(D, { mood, blink: !!bl, fl: !!fl, S });
-    const C = S + PAD * 2, fig = D.K.canvas(), fc = fig.getContext('2d'), im = fc.getImageData(0, 0, C, C), f32 = new Uint32Array(im.data.buffer);
-    for (let i = 0; i < f32.length; i++) if (f32[i] >>> 24) f32[i] = moodPix(f32[i], mood);
-    fc.putImageData(im, 0, 0);
-    const out = mk(S), x = out.getContext('2d'), bg = x.createImageData(S, S), b32 = new Uint32Array(bg.data.buffer), pal = bgPal(d.bg, mood).map(c => C32(c)), L = d.lamp || [6, 6], u = 64 / S, warm = C32(mood === 'mad' ? '#7a3aa8' : mood === 'fear' ? '#6a7aa0' : d.glow || '#a8682c');
-    for (let y = 0; y < S; y++) for (let xx = 0; xx < S; xx++) { const nx = (xx + 0.5) * u, ny = (y + 0.5) * u, dd = Math.hypot(nx - L[0], (ny - L[1]) * 1.1) / 48, v = (1 - dd) * 2.8 + (fl ? 0.22 : 0) - (ny > 54 ? (ny - 54) * 0.04 : 0), lv = clamp(Math.floor(v + bay(xx, y) - 0.5), 0, 3);
-      b32[y * S + xx] = lv === 3 && dd < 0.3 && bay(xx, y) > 0.55 ? warm : pal[lv]; }
-    if (mood === 'mad') for (let i = 0; i < 18; i++) { const gx = Math.floor(hsh(i, 41) * S), gy = Math.floor(hsh(i, 42) * S * 0.8); if (gx > 1 && gy > 1 && gx < S - 2) { b32[gy * S + gx] = C32(i % 3 ? '#c8a8ff' : '#f0e8ff'); if (i % 4 === 0) { b32[gy * S + gx + 1] = C32('#6a3aa8'); b32[(gy + 1) * S + gx] = C32('#6a3aa8'); } } }
-    x.putImageData(bg, 0, 0); x.imageSmoothingEnabled = false; x.drawImage(fig, -PAD, -PAD - Math.round(br / u));
-    x.fillStyle = INK; x.fillRect(0, 0, S, 1); x.fillRect(0, S - 1, S, 1); x.fillRect(0, 0, 1, S); x.fillRect(S - 1, 0, 1, S);
-    x.fillStyle = mood === 'mad' ? '#3a1a5a' : '#3a2a1c'; x.fillRect(1, 1, S - 2, 1); x.fillRect(1, 1, 1, S - 2);
-    return (bustCache[k] = out);
-  }
-  function bust(who, px, mood, t) {
-    const key = BUST[who] ? who : BUSTS[who]; if (!key || !BUST[key]) return null;
-    px = Math.max(16, Math.round(px || 96)); mood = BMOODS.indexOf(mood) >= 0 ? mood : 'calm'; t = Math.max(0, t || 0);
-    const d = BUST[key], kk = px >= 128 ? Math.floor(px / 64) : 1, S = Math.floor(px / kk), br = ((t + d.ph * 0.7) % 2800) / 2800 > 0.5 ? 1 : 0, bl = (t + d.ph) % 4100 < 140 ? 1 : 0, fl = d.flick ? Math.floor(t / 170) % 2 : 0, k = 'bx:' + key + ':' + px + ':' + mood + ':' + br + bl + fl;
-    if (bustCache[k]) return bustCache[k];
-    const base = bustBase(key, S, mood, br, bl, fl), c = mk(px), x = c.getContext('2d'), off = Math.floor((px - S * kk) / 2); x.imageSmoothingEnabled = false; x.fillStyle = INK; x.fillRect(0, 0, px, px); x.drawImage(base, off, off, S * kk, S * kk);
-    return (bustCache[k] = c);
-  }
-  const shoulders = (D, R, w, o) => cloth(D, [[2 - (w || 0), 66], [5 - (w || 0), 53], [16, 45.6], [27, 44], [40, 45], [50, 47], [60 + (w || 0), 54], [64 + (w || 0), 66]], R, o);
-  // 로웬 하스, 파문당한 기사: 각진 군인 얼굴, 짧게 깎은 반백의 머리, 짧고 숱 많은 수염, 먼 눈썹을 가르는 흉터. 판금 어깨와 등의 방패, 어깨 너머 칼자루
-  const STEEL6 = ['#12131c', '#2c3040', '#4a5064', '#727a90', '#a8b0c4', '#dce4f4'];
-  BUST.rowen = bustMan({ bg: 'road', lamp: [6, 6], ph: 900,
-    face: { skin: '#c4865e', jaw: [23.4, 40.6], chin: [40.6, 42.8], nt: [45, 31.2], brow: '#3e342c', browW: 1.05, iris: '#4a4a3a', age: 1, thin: 0.25, narrow: true },
-    back: D => { const sh = ['#141210', '#5a5248', '#8a8070', '#b8b0a0', '#dcd4c4']; cloth(D, [[0, 40], [15, 40], [15, 60], [7, 66], [0, 66]], sh); for (const [a, b] of [[[1.6, 42], [13, 58]], [[13, 42.6], [2, 58.6]], [[5, 41], [9.6, 63]]]) flatL(D, [a, b], '#3e3a34', 0.55); D.flat(D.el(7.6, 50, 3.6, 3.8), '#8a5a48', null); D.flat(D.el(7.6, 50, 1.6, 1.8), '#b8b0a0', null);
-      D.L([[52, 46], [58, 26]], 1.5, 1.2, R4(P.steel)); D.rect(48.6, 43, 8.4, 1.8, '#4a4038'); D.B(50.6, 47.6, 1.8, 1.8, ['#1a1410', '#4a4038', '#7a6a58', '#2a221c']); D.px(57, 28, '#ffffff'); D.px(55.6, 33, INK); },
-    body: D => { cloth(D, [[3, 66], [6, 54], [17, 47], [46, 47], [57, 53], [61, 66]], ['#141010', '#2e2420', '#4a3a32', '#62504a', '#7e6a60'], { folds: 1 });
-      const st = STEEL6; cloth(D, [[19, 66], [20, 51], [45, 51], [46, 66]], st, { base: -0.12 }); for (const [a, b] of [[[24, 55], [29, 60]], [[36, 54], [38.6, 61]], [[27, 63], [33, 64.6]]]) flatL(D, [a, b], st[1], 0.45);
-      D.shade(D.el(12, 53.6, 8.6, 6.2), (x, y, X, Y) => quant(st, 0.8 - (x - 10) / 14 - (y - 50) / 12, X, Y), st[0]); D.shade(D.el(52, 53.6, 8.2, 6), (x, y, X, Y) => quant(st, 0.62 - (x - 50) / 14 - (y - 50) / 12, X, Y), st[0]);
-      flatL(D, [[5, 56.6], [19, 57]], st[1], 0.5); flatL(D, [[45, 57], [59, 56.6]], st[1], 0.5); },
-    collar: D => { const st = STEEL6; cloth(D, [[24.4, 44], [41, 44.4], [43, 50.6], [22.6, 50.6]], st, { base: -0.08 }); flatL(D, [[23.4, 47.6], [42, 47.6]], st[1], 0.45); },
-    hair: D => { const hr = ['#14100c', '#3a3028', '#5a4c3e', '#7a6a58', '#a09280']; hairG(D, [[21.6, 30], [20.6, 21], [22.6, 14], [28, 10], [35, 9.2], [40.6, 11.6], [42.4, 15.6], [39.6, 14.6], [35, 14.2], [30.4, 15.6], [27, 18.4], [25.8, 24], [25.6, 30]], hr, -0.25, { fq: 2, amp: 0.4 });
-      for (const [x, y] of [[23, 22], [22.6, 25], [24, 19], [21.8, 27.6]]) D.px(x, y, '#c8c0b0'); },
-    beard: (D, md, R) => { const bd = ['#1a140f', '#4a3e32', '#6e6050', '#928472', '#b8ac9a']; hairG(D, [[25.4, 32], [27.6, 35.4], [31, 37.4], [34.6, 37], [37, 38.6], [40.6, 39.2], [43.2, 38], [43.2, 40], [42, 42.8], [40, 45], [35, 45.4], [30, 43.6], [26.6, 40.4], [24.8, 35.6]], bd, Math.PI / 2, { fq: 1.6, amp: 0.45, base: 0.08 });
-      for (const [x, y] of [[29, 40], [33, 43], [37.6, 44], [31.6, 38.6]]) D.px(x, y, '#c0b8a8'); },
-    beardF: D => { const bd = ['#1a140f', '#4a3e32', '#6e6050', '#928472', '#b8ac9a']; hairG(D, [[35.6, 35.2], [38.6, 33.8], [42, 33.6], [43.6, 34.6], [43.4, 35.8], [41, 35.2], [38.6, 35.6], [36.6, 37]], bd, 0.2, { fq: 2, amp: 0.3, base: 0.1 }); },
-    extra: D => { flatL(D, [[38.6, 19.4], [39.8, 23.4]], '#e0a088', 0.45); flatL(D, [[40.2, 26.6], [41.2, 29.6]], '#e0a088', 0.45); flatL(D, [[39.4, 19.4], [40.6, 23.4]], '#6a3a2c', 0.35); } });
-  // 에다 볼크, 기록관: 마른 학자의 얼굴(꺼진 뺨, 가는 턱, 긴 코), 철사 테의 둥근 안경, 뒤로 틀어 올린 검갈색 머리와 깃펜, 초록 외투와 흰 깃, 목에 건 돋보기
-  BUST.eda = bustMan({ bg: 'road', lamp: [6, 8], ph: 300,
-    face: { skin: '#dcae88', jaw: [26, 38.4], chin: [40.2, 42.4], nt: [45.2, 31.4], brow: '#3e2a22', browW: 0.6, iris: '#3a4a5a', thin: 0.85, lip: '#b0685e', mw: 5 },
-    body: D => { const ct = ['#0e120c', '#26301f', '#3a4a32', '#566a4a', '#7a8c6a']; cloth(D, [[4, 66], [7, 54], [18, 47], [45, 47], [56, 53], [60, 66]], ct, { folds: 2 }); flatL(D, [[22, 50], [19, 66]], ct[1], 0.5); flatL(D, [[44, 50], [46, 66]], ct[1], 0.5); for (const y of [55, 60]) D.px(42.6, y, P.gold[1]); },
-    collar: D => { const w = ['#3a3028', '#a8a090', '#d8d0c0', '#ece6da', '#ffffff']; cloth(D, [[24, 44.6], [33.4, 49.6], [42, 44.6], [43.4, 48.6], [33.4, 54.6], [22.6, 48.6]], w, { base: 0.15 }); flatL(D, [[27, 49], [30.6, 56]], '#8a6a20', 0.4); flatL(D, [[39.6, 49], [33.4, 56]], '#8a6a20', 0.4);
-      D.flat(D.el(32, 58.6, 3, 3), '#bfe0e8', '#4a3a14'); D.px(31, 57.4, '#ffffff'); D.px(31.6, 57.4, '#ffffff'); D.rect(31.6, 61.6, 1, 3, '#6a5020'); },
-    hairB: D => { const hr = ['#120a08', '#2a1a14', '#40281e', '#5a3c2c', '#7a5440']; strands(D, D.el(20, 17, 5.4, 5), hr, 0.8, { fq: 1.6 }); D.L([[19, 15], [12.6, 4]], 0.7, 0.45, ['#3a2a10', '#a89870', '#e8dcc0', '#c8b890']); D.G([[11, 6.6], [13.6, 1.6], [15, 7.6], [13, 9.4]], ['#3a2a10', '#c8b890', '#ffffff', '#e8dcc0']); },
-    extra: D => { const g = '#7a5c1c'; for (const [x, r] of [[29, 3.4], [38.8, 2.7]]) ringP(D, x, 25.2, r, g); flatL(D, [[32.4, 24.6], [36.1, 24.6]], g, 0.4); flatL(D, [[25.6, 24.8], [23.6, 26.4]], g, 0.4); D.px(27.4, 23.4, '#fff0c0'); D.px(37.6, 23.8, '#fff0c0'); },
-    hair: D => { const hr = ['#120a08', '#2a1a14', '#40281e', '#5a3c2c', '#7a5440']; hairG(D, [[19.4, 30], [19, 20], [22, 13], [29, 9.2], [37, 9.4], [42, 12.6], [43.2, 18.4], [40.6, 16.6], [37.6, 16.4], [34, 15.6], [30.4, 16.8], [27.6, 18.6], [26.2, 23], [26.2, 27], [24.4, 31.6], [21.6, 33]], hr, 0.55, { fq: 1.8, amp: 0.38 });
-      D.L([[26, 21], [25, 27], [26.4, 31.6]], 0.5, 0.4, [hr[0], hr[3], hr[4], hr[2]]); } });
-  // 미렐 수녀, 구마 수녀: 엄한 중년의 얼굴(팔자 주름, 얇게 다문 입), 얼굴을 꼭 감싼 흰 두건, 젖은 검은 너울, 어깨에 감은 두레박 줄
-  const WIM = ['#3a342e', '#9a948a', '#c8c2b6', '#e6e0d4', '#faf6ee'], VEIL = ['#08070a', '#16131a', '#26212a', '#3a333e', '#544a58'];
-  BUST.mirel = bustMan({ bg: 'church', lamp: [6, 5], ph: 1500,
-    face: { skin: '#d8a888', jaw: [25.4, 39], chin: [40.4, 42.4], nt: [44.6, 31.2], brow: '#4a3a30', browW: 0.7, iris: '#4a5a6a', age: 2, thin: 0.45, mw: 4.6, lip: '#9a5a52', noEar: true },
-    back: D => { cloth(D, [[10, 66], [13, 40], [15, 22], [19, 12], [28, 6], [38, 6.4], [45, 11], [48, 20], [50, 40], [54, 66]], VEIL, { folds: 3 }); for (const [x, y] of [[14, 50], [16, 36], [48.6, 44], [50, 56], [12.6, 60]]) { D.px(x, y, '#8ac8e8'); D.px(x, y + 1, '#d8f0ff'); } },
-    body: D => cloth(D, [[3, 66], [7, 55], [17, 49], [46, 49], [56, 54], [60, 66]], VEIL, { folds: 0.5 }),
-    collar: D => cloth(D, [[21, 33], [25.4, 38.4], [30, 42.6], [38, 44.4], [41.6, 42.6], [44.6, 46], [46.6, 55], [33, 58.6], [19.6, 55], [18.6, 44]], WIM, { base: 0.12 }),
-    extra: D => { cloth(D, [[21, 34], [20.8, 21], [23, 14.6], [30, 11.4], [38, 11.6], [42.4, 14.6], [43.2, 19.6], [39.6, 18.6], [33.6, 18.2], [28, 19], [25.4, 21.6], [24.8, 33], [22.8, 36.4]], WIM, { base: 0.14 }); flatL(D, [[24.8, 22], [24.6, 33]], WIM[1], 0.4);
-      cloth(D, [[19.6, 24], [20.4, 13.6], [25.6, 8.6], [34, 7.6], [42, 9.6], [45.4, 15], [46.4, 24], [43.8, 16.6], [38, 12.4], [30, 12], [24, 14.2], [21.6, 19]], VEIL, { base: 0.1 }); for (const [x, y] of [[22, 14], [44.6, 19], [27, 10]]) { D.px(x, y, '#8ac8e8'); D.px(x + 0.6, y + 0.6, '#d8f0ff'); } },
-    front: D => { const rp = ['#2a1c10', '#6e5638', '#a8875a', '#c8a878', '#e0c898']; for (let k = 0; k < 3; k++) { const cx = 50 + k * 1.2, cy = 56 - k * 1.6, m = D.cut(D.el(cx, cy, 7, 4.6), (x, y) => { const dx = (x - cx) / 5.2, dy = (y - cy) / 3; return dx * dx + dy * dy > 1; }); strands(D, m, rp, 0.9, { fq: 1.4, amp: 0.4, cx: 50, cy: 52 }); }
-      D.flat(D.el(33, 52, 2.4, 2.4), '#e8c030', '#5a4010'); D.flat(D.el(33, 52, 1.2, 1.2), WIM[3], null); flatL(D, [[29.6, 46.4], [32.4, 49.8]], '#a87e14', 0.4); flatL(D, [[37, 46.4], [33.6, 49.8]], '#a87e14', 0.4); } });
-  // 이셀 드란, 연금술사: 날카로운 눈매와 높은 광대, 뾰족한 턱, 가까운 뺨의 화상 자국, 뒤로 묶은 붉은 머리, 이마에 올린 고글, 아래에서 비치는 푸른 불빛
-  BUST.isel = bustMan({ bg: 'work', lamp: [52, 54], flick: true, glow: '#2a5a9a', ph: 2700,
-    face: { skin: '#dfae8a', jaw: [26, 38.2], chin: [41, 42.8], nt: [44.6, 31], brow: '#7a2e14', browW: 0.7, iris: '#7a5a20', thin: 0.65, narrow: true, mw: 5, lip: '#a85a4a', rim: { c: '#8ac0ff' } },
-    hairB: D => { const hr = ['#2a0806', '#6a2210', '#a8401c', '#d0602c', '#f0904c']; hairG(D, [[19, 18], [14, 22], [11, 32], [12, 40], [15, 36], [17, 28], [22, 22]], hr, 1.2, { fq: 1.6, amp: 0.4 }); D.B(19.6, 18.6, 2, 1.6, ['#1a1008', '#4a3420', '#6a4c30', '#2a1c10']); },
-    body: D => { const sh = ['#140608', '#381214', '#5a2220', '#7a3a32', '#9a5446'], ap = ['#2a2014', '#6a5a3a', '#8e7c54', '#b09c70', '#ccbc90']; cloth(D, [[4, 66], [7, 54], [18, 47], [45, 47], [56, 53], [60, 66]], sh, { folds: 1.5 }); cloth(D, [[19, 66], [21, 51], [44, 51], [46, 66]], ap, { base: 0.1 }); flatL(D, [[22, 51], [26, 45]], ap[1], 0.6); flatL(D, [[43, 51], [40, 45]], ap[1], 0.6); for (const [x, y, c] of [[27, 56, '#4a9aff'], [37, 61, '#2a5ab0'], [32, 63, '#4a3a2a']]) D.px(x, y, c); },
-    skinX: (D, md, R) => { for (let k = 0; k < 26; k++) { const x = 28.6 + hsh(k, 61) * 5.4, y = 30.4 + hsh(k, 62) * 4.6; if (((x - 31.2) / 2.8) ** 2 + ((y - 32.6) / 2.4) ** 2 < 1) D.px(x, y, k % 3 ? '#c87868' : k % 2 ? '#e8a090' : '#9a4a40'); } },
-    hair: D => { const hr = ['#2a0806', '#6a2210', '#a8401c', '#d0602c', '#f0904c']; hairG(D, [[19.4, 29], [19, 19], [22, 12.6], [29, 9], [37, 9.2], [42, 12.4], [43.6, 18.6], [41, 17], [38, 17.4], [35, 16.4], [31.6, 17.6], [28.6, 17.6], [26, 21], [25.6, 30]], hr, 0.9, { fq: 1.7, amp: 0.38 }); D.L([[41.6, 17], [43, 22], [42.4, 26]], 0.5, 0.4, [hr[0], hr[2], hr[3], hr[1]]); },
-    hat: D => { const ker = ['#10141c', '#2c3848', '#4e6078', '#8094ac', '#b0c4d8']; cloth(D, [[20, 15.6], [22, 13], [43, 11.6], [44.4, 14], [43, 15.8], [21, 17.6]], ker, { base: 0.1 }); for (const [x, r] of [[31, 2.8], [39, 2.4]]) { D.flat(D.el(x, 13.4, r, r * 0.9), '#5ab0a0', '#10141c'); D.flat(D.el(x - 0.6, 12.8, r * 0.4, r * 0.3), '#c8f0e8', null); } },
-    front: (D, md) => { const BF = md.fl ? '#7ac0ff' : '#4a9aff'; D.flat(D.el(53, 55, 4.2, 5.4), BF, '#101830'); D.flat(D.el(52.6, 55.6, 2, 3.2), '#d8f0ff'); D.rect(48.6, 49, 9, 1.4, '#2a2a3a'); D.rect(48.6, 60.4, 9, 1.4, '#2a2a3a'); D.rect(49, 50, 1, 10.4, '#2a2a3a'); D.rect(56.4, 50, 1, 10.4, '#2a2a3a'); D.px(53, md.fl ? 51.6 : 52.2, '#ffffff'); } });
-  // 토브 카인, 덫 사냥꾼: 부러졌다 붙은 비뚤어진 코, 거친 수염 자국, 먼 눈을 가린 천, 뺨의 흉터, 흐트러진 검은 머리, 털 깃, 어깨에 건 쇠덫
-  BUST.tov = bustMan({ bg: 'field', lamp: [6, 8], ph: 2100,
-    face: { skin: '#b88060', jaw: [24.4, 39.8], chin: [40.6, 42.6], nt: [45.8, 32.4], nb: 1.6, brow: '#1a1514', browW: 0.95, iris: '#3a2a1a', age: 1, thin: 0.35, narrow: true, mw: 5.4, lip: '#7a4434' },
-    back: D => { for (let y = 40; y < 66; y += 1.3) D.px(12 + (Math.round(y / 1.3) % 2) * 0.8, y, Math.round(y / 1.3) % 2 ? '#a8b0c4' : '#4a5064'); },
-    body: D => { const sh = ['#0e0e0a', '#262a1e', '#3a4030', '#4e5640', '#68725a'], fur = ['#1c1008', '#4a3420', '#7a5a3a', '#9c7a52', '#c8a878']; cloth(D, [[4, 66], [7, 54], [18, 47], [45, 47], [56, 53], [60, 66]], sh, { folds: 2 });
-      strands(D, D.poly([[3, 66], [6, 54], [16, 46], [26, 46.6], [24, 52], [20, 66]]), fur, 1.4, { fq: 1.4, amp: 0.5, cx: 14, cy: 50 }); strands(D, D.poly([[40, 47], [48, 47], [57, 53], [61, 66], [43, 66], [44, 54]]), fur, 1.8, { fq: 1.4, amp: 0.5, cx: 50, cy: 52 }); },
-    skinX: (D, md, R) => { for (let k = 0; k < 40; k++) { const x = 27 + hsh(k, 71) * 16, y = 34 + hsh(k, 72) * 9; if (y > 33 + (x - 27) * 0.1 && hsh(k, 73) > 0.35) D.px(x, y, R[1]); } flatL(D, [[28.6, 29.4], [31.4, 34.6]], '#d89a80', 0.4); flatL(D, [[29.2, 29.4], [32, 34.6]], '#6a3a2a', 0.3); },
-    extra: D => { flatL(D, [[25.6, 21.6], [36.4, 23.6]], '#4a3424', 0.4); flatL(D, [[41.4, 24.4], [43.6, 23.4]], '#4a3424', 0.4); D.flat(D.poly([[36.4, 22.8], [40.8, 22.6], [41.4, 25], [40.2, 27.4], [37.4, 27.6], [36.4, 25.6]]), '#3a2a20', '#0c0806'); D.px(37.4, 23.6, '#6a5040'); D.px(38.4, 23.4, '#6a5040'); flatL(D, [[37, 26.6], [40.4, 26.4]], '#241a14', 0.4); },
-    hair: D => { const hr = ['#08070a', '#16131a', '#26222a', '#3a343c', '#544c56']; hairG(D, [[19.6, 32], [19, 20], [21, 13], [24, 11.6], [25.6, 8.4], [29, 10], [32, 6.8], [34.6, 9.4], [38.6, 7.4], [40.6, 10.6], [44, 11], [43.6, 15.6], [45, 18.6], [41, 17.4], [39, 19], [36.4, 16.6], [33, 18.6], [30, 17], [27.6, 20], [26, 25], [25.4, 33]], hr, 0.5, { fq: 1.4, amp: 0.45 }); },
-    front: D => { const st = ['#1b1d2a', '#4a5068', '#8a92a8', '#c0c8dc', '#ffffff'], cx = 12.6, cy = 52.6, r = 8.4; strands(D, D.cut(D.el(cx, cy, r, r), (x, y) => { const dx = (x - cx) / (r - 2), dy = (y - cy) / (r - 2); return dx * dx + dy * dy > 1; }), st, 0.6, { fq: 0.6, amp: 0.1, cx, cy, rx: 9, ry: 9 });
-      for (let k = 0; k < 11; k++) { const an = -Math.PI + 0.25 + k * ((Math.PI - 0.5) / 10); D.G([[cx + cos(an - 0.12) * (r - 1.8), cy + sin(an - 0.12) * (r - 1.8)], [cx + cos(an + 0.12) * (r - 1.8), cy + sin(an + 0.12) * (r - 1.8)], [cx + cos(an) * (r - 4.2), cy + sin(an) * (r - 4.2)]], [INK, '#cfc8b4', '#ffffff', '#a8a294']); } D.rect(cx - r, cy - 0.5, r * 2, 1, '#4a5068'); } });
-  // 늙은 바스코, 등불지기: 깊은 주름과 검버섯, 벗어진 정수리, 처진 흰 눈썹, 길게 늘어진 흰 수염, 붉은 목도리, 오른쪽 장대 끝 등불의 빛
-  const WHITE5 = ['#2a2620', '#8a847a', '#b8b2a8', '#dcd8d0', '#f8f6f0'];
-  BUST.vasco = bustMan({ bg: 'road', lamp: [54, 14], flick: true, glow: '#c88a30', ph: 3300,
-    face: { skin: '#c49478', jaw: [25, 39.2], chin: [40.4, 42.6], nt: [45, 32], brow: '#ece8e0', browW: 1.35, iris: '#4a4030', age: 3, thin: 0.55, narrow: true, mw: 5, lip: '#8a5040', rim: { c: '#ffd890' } },
-    back: (D, md) => { D.L([[50.6, 66], [51, 4]], 1.2, 1.1, R4(P.wood)); D.L([[51, 4], [54, 1.6], [57, 2.6]], 1, 0.8, R4(P.wood)); D.rect(56.4, 2.6, 1, 3, '#3a2a1a');
-      const lc = md.fl ? '#ffe8a0' : '#ffd070'; D.flat(D.el(57, 12.6, 4.6, 5.8), lc, '#3a2410'); D.flat(D.el(56.8, 12.6, 2.6, 3.8), '#fff8d8'); D.px(56.2, 11, '#ffffff'); D.rect(52, 6.6, 10, 1.4, '#5a3a1a'); D.rect(52, 18, 10, 1.4, '#5a3a1a'); D.rect(52.4, 8, 1, 10, '#5a3a1a'); D.rect(60.6, 8, 1, 10, '#5a3a1a'); },
-    body: D => { const ct = ['#100c08', '#2e2418', '#4a3a28', '#64503a', '#806a4e']; cloth(D, [[3, 66], [6, 54], [17, 47.6], [46, 47.6], [56, 53], [60, 66]], ct, { folds: 2.5 }); D.L([[48, 66], [50, 56]], 3, 2.6, R4(['#2a1410', '#c49478', '#e0b898', '#94684e'])); D.B(50.6, 54.6, 3, 2.6, R4(['#2a1410', '#c49478', '#e0b898', '#94684e'])); },
-    collar: D => { const sc = ['#140606', '#3a1210', '#5e2018', '#843424', '#a84c34']; cloth(D, [[21, 44], [42, 43.6], [45, 50], [33, 53], [19, 50]], sc, { folds: 1 }); strands(D, D.poly([[22, 50], [27, 50], [26, 60], [22, 61]]), sc, 1.5, { fq: 1.2, amp: 0.3, cx: 24, cy: 52 }); },
-    hairB: D => { hairG(D, [[18.6, 32], [18.6, 22], [20.6, 17], [23.6, 17.4], [25.4, 24], [24.6, 33]], WHITE5, 1.3, { fq: 1.8, amp: 0.35 }); },
-    extra: D => { for (const [x, y] of [[28, 13], [33.6, 11.6], [36, 14], [31, 15.6]]) D.px(x, y, '#9a6a50'); D.px(34, 12.4, '#e8c8b0'); },
-    beard: (D, md, R) => hairG(D, [[25.6, 32], [28, 35.6], [32, 37.4], [35.6, 36.6], [38.6, 38.6], [42.6, 39], [44, 37.6], [44.4, 42], [42.6, 48], [39.6, 55], [35, 60], [31.6, 55], [28, 48], [25.4, 40]], WHITE5, Math.PI / 2 - 0.1, { fq: 1.7, amp: 0.4, base: 0.2, ky: 0.08, kx: 0.3, cy: 40 }),
-    beardF: D => hairG(D, [[34.6, 35.6], [38.4, 33.8], [42.6, 33.6], [45.6, 35.4], [45.8, 38.6], [43.4, 36.8], [40.6, 36.4], [37.6, 37.8], [35.6, 38.6]], WHITE5, 0.3, { fq: 2, amp: 0.3, base: 0.25, ky: 0.08 }) });
-  // 촌장: 살집 있는 얼굴과 두 겹 턱, 붉은 뺨, 작은 눈, 짙은 콧수염, 옆으로 빗어 넘긴 성긴 머리, 놋쇠 사슬, 손에 쥔 모자
-  BUST.chief = bustMan({ bg: 'village', lamp: [6, 7], ph: 500,
-    face: { skin: '#dca080', jaw: [23.4, 40.4], chin: [41, 43.4], nt: [45, 31.8], brow: '#5a4030', browW: 0.85, iris: '#3a2a1a', fat: 1, age: 1, thin: 0, narrow: true, mw: 5.4, lip: '#9a4a3a' },
-    body: D => { const dbl = ['#140a06', '#3a2414', '#5a3a22', '#7a5434', '#9a7048']; cloth(D, [[1, 66], [4, 54], [16, 46.4], [47, 46.4], [58, 53], [63, 66]], dbl, { folds: 1.2 }); flatL(D, [[33, 50], [33, 66]], dbl[1], 0.5); for (const y of [55, 60, 65]) D.px(34.6, y, P.gold[1]); },
-    collar: D => { for (let k = 0; k <= 12; k++) { const t = k / 12, x = lerp(18, 47, t), y = 49 + sin(t * Math.PI) * 8; D.B(x, y, 1.3, 1, P.gold); } D.B(32.6, 59, 3, 3, P.gold); D.px(31.8, 58.2, '#fff3a0'); D.px(32.6, 59.6, P.gold[3]); },
-    skinX: (D, md, R) => { for (const [x, y] of [[29.6, 31], [30.6, 31.6], [29.4, 32.4], [31.4, 32.4], [30.4, 33.2]]) D.px(x, y, '#e07a68'); flatL(D, [[31, 43.4], [39, 44.6]], R[1], 0.4); },
-    hairB: D => hairG(D, [[19, 33], [18.6, 24], [20.4, 19], [24.6, 18.6], [25.6, 25], [25, 33]], ['#1a1410', '#4a3e30', '#7a6a58', '#9a8a76', '#b8aa96'], 1.3, { fq: 1.8 }),
-    beardF: D => hairG(D, [[34.4, 35.2], [37.6, 33.6], [41.6, 33.4], [44.4, 34.4], [44.2, 36.6], [42, 35.8], [39.6, 35.6], [37, 36.4], [35, 37.4]], ['#1a100a', '#4a3424', '#6e5038', '#8e6c4e', '#ae8c6a'], 0.2, { fq: 2.2, amp: 0.3, base: 0.25, ky: 0.1 }),
-    hair: D => { for (let k = 0; k < 5; k++) flatL(D, [[23 + k * 0.4, 16 - k * 1.2], [33 + k * 1.2, 12 - k * 0.6], [40 + k * 0.4, 13 + k * 0.4]], k % 2 ? '#4a3e30' : '#7a6a58', 0.45); },
-    front: D => { const hat = ['#100a06', '#2e1e10', '#4a3220', '#6a4a30', '#8a6644']; cloth(D, [[6, 58], [9, 52], [22, 51], [25, 58], [26, 64], [5, 64]], hat); D.rect(7, 56, 17, 1.4, '#1a0e06'); D.B(25, 58, 3.2, 2.8, R4(['#2a1410', '#dca080', '#f4c8a8', '#a86c54'])); D.B(6.6, 59, 3, 2.8, R4(['#2a1410', '#dca080', '#f4c8a8', '#a86c54'])); } });
-  // 도제: 열두어 살의 얼굴(넓은 이마, 짧은 코, 둥근 뺨), 그을음, 헝클어진 연갈색 머리, 목에 건 고글, 큰 앞치마, 작은 병
-  BUST.apprentice = bustMan({ bg: 'work', lamp: [8, 8], ph: 1100,
-    face: { skin: '#e8b890', ey: 26.4, ex1: 29.4, ex2: 38.8, jaw: [26.4, 37.6], chin: [40, 41], nt: [43.6, 31.6], mx: 37.8, my: 36.4, mw: 4.6, brow: '#8a6438', browW: 0.65, iris: '#5a4020', thin: 0, fat: 0.4, lip: '#b8706a' },
-    body: D => { const sh = ['#121216', '#2c2c34', '#46464e', '#62626a', '#80808a'], ap = ['#140a06', '#3a2414', '#5a3a22', '#7a5434', '#9a7048']; cloth(D, [[6, 66], [9, 55], [19, 48.6], [44, 48.6], [54, 54], [58, 66]], sh, { folds: 2 }); cloth(D, [[18, 66], [20, 53], [44, 53], [46, 66]], ap, { base: 0.05 }); flatL(D, [[21, 53], [25, 46]], ap[1], 0.7); flatL(D, [[43, 53], [40, 46]], ap[1], 0.7); },
-    collar: D => { const ker = ['#10141c', '#4e6078', '#8094ac', '#2c3848']; flatL(D, [[25, 44], [32.6, 49], [41, 44]], ker[3], 0.6); for (const x of [28.6, 37]) { D.flat(D.el(x, 48.6, 2.8, 2.4), '#5ab0a0', '#10141c'); D.px(x - 0.8, 47.6, '#c8f0e8'); } },
-    skinX: (D, md, R) => { for (const [x, y] of [[32.6, 32.6], [33.6, 33.4], [34.4, 32.4], [27.4, 21.6], [28.4, 22.2], [42.6, 29.4]]) D.px(x, y, '#5a4a44'); D.px(31, 31.6, '#f0a090'); D.px(31.8, 31.2, '#f0a090'); },
-    hair: D => hairG(D, [[20.6, 32], [19.6, 22], [21, 14.6], [24, 13.4], [25, 9.6], [28.6, 12], [31, 8.4], [34, 11.4], [37.4, 8.6], [39, 12.4], [42.6, 12], [42.4, 16], [44.4, 19], [40.6, 18.6], [38.6, 20.4], [36.6, 17.6], [33.6, 19.4], [31, 17.6], [28.6, 20], [26.6, 23.6], [26, 33]], ['#1c1008', '#5a4020', '#8a6a3a', '#b08a54', '#d0aa70'], 0.7, { fq: 1.4, amp: 0.45 }),
-    front: D => { D.B(48.6, 58.6, 2.8, 2.6, R4(['#2a1410', '#e8b890', '#f8d8b8', '#b88468'])); D.rect(47.6, 50, 2, 3, '#c8f0e0'); D.flat(D.el(48.6, 55, 3, 3), '#c8f0e0', '#1a2a1a'); D.flat(D.cut(D.el(48.6, 55, 2.3, 2.3), (x, y) => y > 54.6), '#58d040'); D.px(47.6, 53.8, '#ffffff'); D.rect(47.4, 49, 2.4, 1.2, P.wood[1]); } });
-  // 양치기: 볕과 바람에 탄 얼굴, 주름, 회색 수염 자국, 챙 넓은 펠트 모자, 양털 깃, 어깨 너머의 지팡이
-  BUST.shepherd = bustMan({ bg: 'field', lamp: [6, 6], ph: 1700,
-    face: { skin: '#b07a58', jaw: [24.6, 39.6], chin: [40.6, 42.6], nt: [45.4, 31.8], brow: '#5a5048', browW: 0.85, iris: '#4a4030', age: 2, thin: 0.5, narrow: true, mw: 5.2, lip: '#7a4434' },
-    back: D => { D.L([[52, 66], [53, 10]], 1.1, 1.1, R4(P.wood)); D.L([[53, 10], [52.6, 4.6], [56.6, 1.6], [60.4, 3.6], [60, 7.6]], 1.1, 0.9, R4(P.wood)); },
-    body: D => cloth(D, [[3, 66], [6, 54], [17, 47], [46, 47], [56, 53], [60, 66]], ['#16120c', '#3a3020', '#584a32', '#76664a', '#948464'], { folds: 3 }),
-    collar: D => { const wl = ['#2a2418', '#a89c80', '#d0c6ae', '#ece4d0', '#fffaee']; const m = D.poly([[12, 54], [17, 45], [32, 46.6], [46, 45], [52, 53], [44, 57], [32, 51.6], [20, 57]]); for (const [x, y] of [[15, 50], [20, 48.6], [26, 48.4], [38, 48.4], [44, 48.6], [49, 50.6]]) D.el(x, y, 2.6, 2.2, m); strands(D, m, wl, 0.6, { fq: 2.4, amp: 0.55, cx: 32, cy: 46 }); },
-    skinX: (D, md, R) => { for (let k = 0; k < 50; k++) { const x = 26 + hsh(k, 81) * 18, y = 33 + hsh(k, 82) * 10; if (hsh(k, 83) > 0.62) D.px(x, y, k % 3 ? '#6a5a4a' : '#8a8070'); } },
-    hairB: D => hairG(D, [[18.6, 33], [18.6, 22], [24, 19], [25.6, 26], [25, 34]], ['#1a1814', '#4e4a42', '#7a7468', '#a29c90', '#c8c2b6'], 1.3, { fq: 1.8 }),
-    hat: D => { const ft = ['#100c08', '#2e2418', '#4a3a26', '#665238', '#86704c']; cloth(D, [[20.6, 18.6], [22.6, 9.6], [30, 6.6], [38, 7.6], [42, 12], [42.4, 18.6]], ft, { base: 0.05 }); cloth(D, [[11, 21], [14.6, 17.4], [46.6, 16.6], [51, 20], [44, 21.4], [20, 22]], ft, { base: 0.08 }); D.rect(21.6, 15.4, 20.4, 1.4, '#1e1610'); } });
-  // 기사단장: 짧게 깎은 회색 머리, 각진 턱과 턱의 흉터, 깊은 이마 주름, 금테 판금, 흰 겉옷의 붉은 감은 눈, 흰 망토
-  const WHT5 = ['#2a2620', '#a8a296', '#ccc6ba', '#e8e4da', '#ffffff'];
-  BUST.knightcmd = bustMan({ bg: 'church', lamp: [6, 6], ph: 2300,
-    face: { skin: '#d4a284', jaw: [23.2, 40.6], chin: [41, 43.2], nt: [45, 31.4], brow: '#7a7a80', browW: 1, iris: '#4a5a6a', age: 2, thin: 0.35, narrow: true, mw: 5.2, lip: '#8a5048' },
-    back: D => cloth(D, [[0, 66], [3, 50], [14, 44], [50, 44], [61, 50], [64, 66]], WHT5, { folds: 2 }),
-    body: D => { const st = STEEL6; D.shade(D.el(11.6, 54.6, 9.6, 6.8), (x, y, X, Y) => quant(st, 0.82 - (x - 9) / 16 - (y - 50) / 12, X, Y), st[0]); D.shade(D.el(53, 54.6, 9.2, 6.6), (x, y, X, Y) => quant(st, 0.62 - (x - 50) / 16 - (y - 50) / 12, X, Y), st[0]); flatL(D, [[3, 55], [20, 50.6]], '#e8c030', 0.6); flatL(D, [[44, 50.6], [61, 55]], '#e8c030', 0.6);
-      cloth(D, [[19, 66], [20.6, 50], [44, 50], [45.6, 66]], WHT5, { base: 0.1 }); D.rect(20, 50, 25, 1.4, '#e8c030'); shutEye(D, 32.6, 58, CULTR); D.rect(32.2, 61, 0.9, 4, CULTR); },
-    collar: D => { cloth(D, [[24.4, 43.6], [41, 44], [43, 50.4], [22.6, 50.4]], STEEL6, { base: -0.05 }); D.rect(23, 48.6, 20, 1, '#e8c030'); },
-    skinX: (D, md, R) => { flatL(D, [[37.4, 41.4], [39.4, 43.4]], '#e8b8a0', 0.4); flatL(D, [[38, 41.4], [40, 43.4]], '#6a3a30', 0.3); for (let k = 0; k < 24; k++) { const x = 28 + hsh(k, 91) * 15, y = 35 + hsh(k, 92) * 8; if (hsh(k, 93) > 0.5) D.px(x, y, R[2]); } },
-    hair: D => hairG(D, [[20.6, 30], [20, 20], [22.6, 13], [29, 9.6], [36.6, 9.6], [41.6, 12.6], [42.6, 16.6], [38.6, 15.4], [33, 15], [28.6, 16.6], [26, 20], [25.6, 30]], ['#1b1d2a', '#5a5a64', '#8a8a92', '#b0b0b8', '#d8d8e0'], -0.2, { fq: 2.4, amp: 0.3 }) });
-  // 심문관: 창백하고 여윈 얼굴, 가는 눈, 얇은 입, 검은 챙모자의 그늘, 높은 검은 깃, 붉은 옷, 달군 쇠 인장의 불빛
-  BUST.inquis = bustMan({ bg: 'church', lamp: [52, 44], glow: '#a8481a', ph: 2900,
-    face: { skin: '#d8c0a8', jaw: [25.6, 39], chin: [40.6, 42.6], nt: [45.2, 31.6], brow: '#2a2024', browW: 0.65, iris: '#2a2024', thin: 0.9, age: 1, narrow: true, mw: 4.6, lip: '#7a4a40', rim: { c: '#ffa860' } },
-    body: D => { cloth(D, [[3, 66], [6, 54], [17, 47], [46, 47], [56, 53], [60, 66]], ['#1a0406', '#4a0c12', '#7a1a20', '#a8302c', '#c85040'], { folds: 1.5 }); cloth(D, [[29.4, 52], [35.4, 52], [36, 66], [29, 66]], ['#07050c', '#141018', '#221c26', '#302834', '#403644']); D.B(32.4, 56, 1.6, 1.6, R4(P.steel)); },
-    collar: D => { const bk = ['#07050c', '#141018', '#221c26', '#302834', '#403644']; cloth(D, [[20, 36], [25, 44], [32.6, 46], [40, 44], [45, 36], [47.4, 52], [17.6, 52]], bk); },
-    hat: D => { const bk = ['#07050c', '#141018', '#221c26', '#302834', '#403644']; cloth(D, [[22, 17.6], [23.6, 2], [40, 2], [41.6, 17.6]], bk, { base: 0.1 }); cloth(D, [[9, 20], [13, 16], [50.6, 16], [55, 20], [46, 21], [18, 21]], bk, { base: 0.1 }); D.rect(23.4, 13, 17.6, 2.2, '#7a1a20'); D.B(32, 14, 2.2, 2.2, P.gold); D.px(31.4, 13.4, '#fff3a0'); },
-    extra: D => { for (let x = 24; x < 44; x += 0.5) for (let y = 21; y < 23.4; y += 0.5) if (y < 22.2 || hsh(Math.round(x * 2), Math.round(y * 2)) > 0.5) D.px(x, y, '#3a2c28'); },
-    front: D => { D.L([[48, 66], [52, 44]], 1.2, 1.2, R4(P.steel)); D.B(53, 40, 4.4, 4.4, R4(P.steel)); D.flat(D.el(53.4, 39.4, 2.8, 2.8), '#ff8a2a', '#3a1008'); D.flat(D.el(53.2, 39.2, 1.3, 1.3), '#fff3c0'); D.B(49, 57, 2.8, 2.4, R4(['#2a1410', '#d8c0a8', '#f0dcc8', '#a08068'])); } });
-  // 궁수: 젊은 사내, 초록 두건, 옅은 수염 자국, 가죽 옷, 어깨 너머 화살깃, 가슴을 가로지르는 활시위
-  BUST.archer = bustMan({ bg: 'road', lamp: [6, 8], ph: 3500,
-    face: { skin: '#d8a07c', jaw: [25.4, 39], chin: [40.6, 42.4], nt: [44.8, 31.2], brow: '#5a3a20', browW: 0.8, iris: '#3a4a2a', thin: 0.3, mw: 5, lip: '#9a5a48' },
-    back: D => { cloth(D, [[8, 44], [16, 41], [20, 58], [12, 61]], ['#140c06', '#3a2414', '#5a3a22', '#7a5434', '#9a7048']); for (let k = 0; k < 4; k++) { D.rect(8.6 + k * 2.2, 31 - k * 1.2, 1.2, 10, '#c08a50'); D.G([[8 + k * 2.2, 32 - k * 1.2], [9.2 + k * 2.2, 26 - k * 1.2], [10.6 + k * 2.2, 32 - k * 1.2]], R4(P.red)); } },
-    body: D => { cloth(D, [[3, 66], [6, 54], [17, 47], [46, 47], [56, 53], [60, 66]], ['#100a08', '#2a1c16', '#443028', '#5e463a', '#7a5e4e'], { folds: 2 }); flatL(D, [[14, 50], [46, 66]], '#e8e0d0', 0.4); },
-    skinX: (D, md, R) => { for (let k = 0; k < 20; k++) { const x = 30 + hsh(k, 95) * 12, y = 36 + hsh(k, 96) * 6; if (hsh(k, 97) > 0.5) D.px(x, y, R[2]); } },
-    hat: D => { const g = ['#0c160c', '#1e3418', '#304e24', '#4a6c34', '#6a8c4a']; cloth(D, [[17, 46], [17.6, 22], [20, 13], [27, 7.6], [36, 7.6], [42.6, 11.6], [45, 18], [44.6, 24], [42.4, 18.6], [37, 15], [31, 15], [27, 17.6], [25, 22.6], [24.6, 34], [26, 40], [22, 46]], g, { base: 0.1 }); cloth(D, [[20, 46], [42, 44], [47, 49], [44, 54], [24, 54], [17, 50]], g, { base: 0.05 }); } });
-  // ---------- 탑의 주인 ----------
-  // 에녹 하르: 여윈 얼굴, 깊이 꺼진 눈두덩 속에서 빛나는 눈, 매부리코, 얇은 입, 모자 밑으로 흘러내린 잿빛 머리, 세운 깃 안의 붉은 목도리, 붉은 표지의 책
-  BUST.enoch = bustMan({ bg: 'tower', lamp: [8, 50], glow: '#6a4a9a', ph: 3700, noEyes: true,
-    face: { skin: '#c8b4a0', jaw: [26, 38.6], chin: [40.4, 43.6], nt: [46, 31], nb: 1.2, brow: '#4a464e', browW: 0.9, iris: '#b8d0e8', thin: 1, age: 2, socket: 2.6, narrow: true, mw: 4.6, lip: '#6a3a38' },
-    body: D => { const coat = ['#0c0a0c', '#201a18', '#342a24', '#4a3c32', '#5e4e40']; cloth(D, [[3, 66], [6, 54], [17, 47], [46, 47], [56, 53], [60, 66]], coat, { folds: 1 }); flatL(D, [[32.6, 52], [32.6, 66]], coat[1], 0.5); for (const y of [56, 62]) D.px(34.4, y, P.gold[1]); },
-    collar: D => { const coat = ['#0c0a0c', '#201a18', '#342a24', '#4a3c32', '#5e4e40']; cloth(D, [[22, 42.6], [42, 43], [44, 50], [20, 50]], ['#1a0406', '#44161c', '#6e2a30', '#8e3e40', '#a85a58']); cloth(D, [[12, 52], [16, 34], [22, 37], [24, 52]], coat, { base: 0.1 }); cloth(D, [[51, 52], [47, 34], [42, 37], [41, 52]], coat); },
-    hairB: D => hairG(D, [[17.6, 18], [24, 17], [25, 30], [23.4, 40], [20, 44], [17, 38]], ['#141418', '#3e3c44', '#5e5a64', '#827e88', '#a8a4ae'], 1.45, { fq: 1.6, amp: 0.35 }),
-    extra: (D, md) => { for (let y = 19.8; y < 28; y += 0.5) for (let x = 25.6; x < 42.4; x += 0.5) { const k = (28 - y) / 8.2; if (hsh(Math.round(x * 2), Math.round(y * 2) + 7) < k * 0.9 + 0.1) D.px(x, y, k > 0.6 ? '#1e181c' : '#3a2e30'); }
-      if (md.blink) return; const g = md.mood === 'mad' ? '#e070ff' : md.mood === 'fear' ? '#ffffff' : '#c8e0f8', gl = md.mood === 'mad' ? '#7a2aa8' : '#4a6a8a', op = md.mood === 'fear' ? 1.4 : md.mood === 'grim' ? 0.7 : 1;
-      for (const [x, w] of [[29, 2.2], [38.6, 1.6]]) { D.flat(D.el(x, 25.2, w * 1.2, 0.9 * op + 0.4), gl, null); D.flat(D.el(x + 0.3, 25.2, w * 0.6, 0.45 * op + 0.2), g, null); D.px(x + 0.3, 25.2, '#ffffff'); } if (md.mood === 'mad') { flatL(D, [[28.6, 27], [27.6, 32]], '#1a1030', 0.4); flatL(D, [[38.8, 27], [39.4, 31]], '#1a1030', 0.4); } },
-    hat: D => { const hp = ['#0c0a0c', '#1e1a18', '#302a24', '#463c32', '#5c5040']; cloth(D, [[22, 15.6], [23.6, 3.6], [40, 3.6], [41.6, 15.6]], hp, { base: 0.05 }); cloth(D, [[13, 18.4], [16, 15], [48, 15], [51, 18.4], [44, 19.6], [20, 19.6]], hp, { base: 0.08 }); D.rect(23.4, 11.6, 17.6, 2, '#5a2228'); } });
-  // 사 가는 이: 6장 전의 에녹. 두건과 세운 깃 속은 어둠뿐이다. 목에 붉은 천이 조금, 손에 백 년 된 은화 하나
-  BUST.buyer = bustMan({ bg: 'work', lamp: [6, 14], ph: 4500, noFace: true, neck: false,
-    body: D => { const cl = ['#07050c', '#141016', '#201a20', '#2e2628', '#3e3434']; cloth(D, [[2, 66], [5, 54], [16, 46], [48, 46], [58, 53], [62, 66]], cl, { folds: 1 }); cloth(D, [[26, 44], [38, 44], [37.4, 48], [26.6, 48]], ['#14060a', '#2a0c10', '#44161c', '#6e2a30', '#8e3e40']); },
-    collar: D => { const cl = ['#07050c', '#141016', '#221c22', '#30282c', '#42383a']; cloth(D, [[12, 50], [17, 28], [25, 33], [26, 50]], cl, { base: 0.1 }); cloth(D, [[52, 50], [47, 28], [39, 33], [38, 50]], cl); },
-    hat: (D, md) => { const hd = ['#07050c', '#18121a', '#261e24', '#382c30', '#4c3e40']; cloth(D, [[15, 46], [15, 20], [19, 10], [32, 5.6], [44, 9.6], [49, 20], [49.6, 46], [44, 34], [43.4, 20], [38, 15], [26, 15], [21, 20], [20.6, 34]], hd, { base: 0.18 });
-      D.flat(D.poly([[21, 20], [26, 15], [38, 15], [43.4, 20], [44, 34], [38.6, 41], [26, 41], [20.6, 34]]), VOID, null); flatL(D, [[16, 22], [19.6, 11]], '#7a5a30', 0.4); flatL(D, [[19.6, 11], [30, 6.4]], '#5a4024', 0.4);
-      if (md.mood === 'mad' && !md.blink) { D.px(28, 27, '#c8a8ff'); D.px(37, 27, '#c8a8ff'); } else if (md.mood === 'fear' && !md.blink) { D.px(28, 27, '#3a3a50'); D.px(37, 27, '#3a3a50'); } else if (md.mood === 'grim') { flatL(D, [[27, 26.4], [29, 27]], '#201820', 0.4); flatL(D, [[36, 27], [38, 26.4]], '#201820', 0.4); } },
-    front: D => { D.B(46, 56, 3.4, 3, R4(['#07050c', '#241e22', '#3e3434', '#161216'])); D.flat(D.el(46.6, 51.4, 2.8, 2.8), '#c8ccd8', '#3a3a44'); D.px(45.6, 50.4, '#ffffff'); D.px(47.6, 52.4, '#8a8e9a'); D.px(46.6, 51.4, '#a8acb8'); } });
-  // 이야기의 이름 → 초상. 기록·쪽지·편지와 사람이 아닌 것(한 방울, 모험가 일행)은 초상이 없다
-  const BUSTS = { '로웬': 'rowen', '로웬 하스': 'rowen', '에녹': 'enoch', '에녹 하르': 'enoch', '사 가는 이': 'buyer', '이셀': 'isel', '이셀 드란': 'isel', '에다': 'eda', '에다 볼크': 'eda',
-    '미렐': 'mirel', '미렐 수녀': 'mirel', '바스코': 'vasco', '늙은 바스코': 'vasco', '촌장': 'chief', '도제': 'apprentice', '토브': 'tov', '토브 카인': 'tov', '양치기': 'shepherd',
-    '기사단장': 'knightcmd', '심문관': 'inquis', '궁수': 'archer',
-    '한 방울': null, '모험가 일행': null, '쪽지': null, '에다 볼크의 보고서': null, '기록장의 마지막 쪽': null, '토브 카인의 쪽지': null, '에다 볼크의 마지막 편지': null };
-  // ── ART-BUST 끝
   const API = { storyArt, storyArtFor, STORY_ART, STORY_KEYS, unit, boss, icon, bust, BUSTS, prewarm, mazeRock, mazeFloor, mazeTrap, mazeRoomMark, mazeEntrance, mazeEntranceGlow, mazeEgg, mazeBack, mazeScout, mazeTitle, mazeCore, mazeParty, mazePath, MAZE_TRAPS, role, roleDraw, ROLEC, SHOOT, ANIM, DEF, BOSS, P, PAD, lean, FX, fx, num, bar, tile, wallTop, entrance, room, ROOMS, aspIcon, clsIcon, sym, mockBoard, mockScene, ids: side => Object.keys(DEF).filter(k => (DEF[k].side || 'kin') === side) };
   if (typeof window !== 'undefined') window.LAIRART = API;
   return API;
