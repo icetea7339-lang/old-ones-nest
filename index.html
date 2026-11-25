@@ -748,8 +748,34 @@ const LAIR = (function () {
     gulp: { n2: '더 부른 배', n3: '터질 듯한 배', t2: { name: '늘어난 배', short: '체력 +15%', hp: 0.15 }, t3: { name: '들이마시기', short: '「꿀꺽」 때 곁의 적을 2초 동안 제게로 끌어들입니다' } },
     hollow: { n2: '뼈만 남은 것', n3: '텅 빈 아가리', t2: { name: '마른 피', short: '보통 공격으로 준 피해의 10%만큼 체력을 되찾습니다', vamp: 0.1 }, t3: { name: '채워지지 않음', short: '「거둠」으로 쓰러뜨리면 체력을 25% 되찾습니다' } },
   };
+  // 혼종 갈래 (b): 2성이 되는 순간 본체의 짝 성향이 그 권속 자기 성향보다 높으면 이 갈래로 간다 (굴 짓기가 정한다).
+  //   pair = 짝 성향. t2 · t3 의 뜻은 위와 같다. 3성 효과는 simulate 안의 EVO3B (종류 이름으로 찾는다)
+  const KEVOB = {
+    shell: { pair: 'dusk', n2: '종을 삼킨 비늘지기', n3: '울리는 껍데기', t2: { name: '속이 우는 비늘', short: '보통 공격이 정신도 깎습니다', san: 6 }, t3: { name: '껍데기의 울림', short: '「조개 닫기」 때 두 칸 안의 적이 정신 15를 잃습니다' } },
+    tangle: { pair: 'hunger', n2: '이빨 난 촉수', n3: '삼키는 손', t2: { name: '빠는 입', short: '보통 공격으로 준 피해의 12%만큼 체력을 되찾습니다', vamp: 0.12 }, t3: { name: '찢어 끌기', short: '「끌어당김」으로 끌려온 적이 피를 흘립니다' } },
+    maw: { pair: 'brood', n2: '알을 머금은 입', n3: '알 낳는 해구', t2: { name: '입속의 알', short: '쓰러지면 새끼 하나가 나옵니다', spawn: 1 }, t3: { name: '뱉어 내기', short: '「삼킴」 뒤 새끼 하나를 뱉어 냅니다' } },
+    ink: { pair: 'nebula', n2: '별빛 먹물 뿜는 것', n3: '밤하늘 먹물', t2: { name: '멀리 뿜기', short: '사거리 +1', range: 1 }, t3: { name: '별 박힌 먹물', short: '「먹물」에 맞은 적은 받는 피해가 15% 늘어납니다' } },
+    biter: { pair: 'hunger', n2: '굶주린 깨물이', n3: '살 뜯는 무리', t2: { name: '피 냄새', short: '보통 공격으로 준 피해의 15%만큼 체력을 되찾습니다', vamp: 0.15 }, t3: { name: '배부른 이빨', short: '「물어뜯기」 뒤 체력을 15% 되찾습니다' } },
+    brood: { pair: 'abyss', n2: '젖은 알 무더기', n3: '물에 잠긴 알집', t2: { name: '물컹한 껍질', short: '받는 피해 −12%', dr: 0.12 }, t3: { name: '터지는 물주머니', short: '「부화」 때 곁의 적을 적셔 느리게 합니다' } },
+    mother: { pair: 'nebula', n2: '눈 달린 포자 어미', n3: '별 포자의 어미', t2: { name: '포자 속의 눈', short: '보통 공격이 정신도 깎습니다', san: 6 }, t3: { name: '눈이 트는 포자', short: '「포자 구름」을 맞은 적은 받는 피해가 15% 늘어납니다' } },
+    queen: { pair: 'dusk', n2: '상복 입은 여왕', n3: '장례의 여왕', t2: { name: '곡소리', short: '보통 공격이 정신도 깎습니다', san: 8 }, t3: { name: '입 다무는 밤', short: '「다시 낳음」 때 두 칸 안의 적이 2초 동안 기술을 못 씁니다' } },
+    gazer: { pair: 'dusk', n2: '눈감은 눈', n3: '꿈꾸는 눈', t2: { name: '감았다 뜨기', short: '첫 공격이 두 배입니다', crit: 2 }, t3: { name: '악몽', short: '「응시」에 맞은 적이 정신 15를 더 잃습니다' } },
+    heap: { pair: 'abyss', n2: '물에 뜬 눈 더미', n3: '가라앉은 눈의 산', t2: { name: '부은 살', short: '체력 +15%', hp: 0.15 }, t3: { name: '젖은 시선', short: '「뭇시선」 때 두 칸 안의 적을 적셔 느리게 합니다' } },
+    orbit: { pair: 'brood', n2: '알 품은 눈들', n3: '알을 도는 눈들', t2: { name: '눈알 속 새끼', short: '쓰러지면 새끼 하나가 나옵니다', spawn: 1 }, t3: { name: '떨어지는 알', short: '「떨어지는 별」이 떨어진 자리의 적을 감염시킵니다' } },
+    rift: { pair: 'hunger', n2: '이빨 난 틈', n3: '삼키는 하늘', t2: { name: '틈의 이빨', short: '보통 공격으로 준 피해의 10%만큼 체력을 되찾습니다', vamp: 0.1 }, t3: { name: '하늘의 아가리', short: '「하늘이 열린다」 뒤 체력이 가장 낮은 적이 피를 흘립니다' } },
+    hood: { pair: 'nebula', n2: '별을 읽는 두건', n3: '별자리 두건', t2: { name: '먼 데 속삭임', short: '사거리 +1', range: 1 }, t3: { name: '흐려지는 손', short: '「속삭임」 뒤 세 칸 안의 적은 공격이 20% 무뎌집니다' } },
+    mask: { pair: 'hunger', n2: '이빨 가면', n3: '먹는 얼굴', t2: { name: '가면 밑 입', short: '보통 공격으로 준 피해의 12%만큼 체력을 되찾습니다', vamp: 0.12 }, t3: { name: '훔친 살', short: '「얼굴 훔치기」 뒤 체력을 20% 되찾습니다' } },
+    bell: { pair: 'abyss', n2: '물에 잠긴 종', n3: '바다 밑 종', t2: { name: '젖은 종소리', short: '보통 공격이 적을 적셔 느리게 합니다', wet: 0.15 }, t3: { name: '물 밑의 종', short: '「종소리」 때 두 칸 안의 적이 1초 동안 묶입니다' } },
+    preach: { pair: 'brood', n2: '알을 축복하는 설교자', n3: '번식의 설교자', t2: { name: '축복받은 배', short: '쓰러지면 새끼 하나가 나옵니다', spawn: 1 }, t3: { name: '젖 같은 말', short: '「부름」 때 두 칸 안의 권속이 체력을 10% 되찾습니다' } },
+    gnaw: { pair: 'brood', n2: '새끼 밴 허기', n3: '배고픈 어미', t2: { name: '배 속의 새끼', short: '쓰러지면 새끼 하나가 나옵니다', spawn: 1 }, t3: { name: '나눠 먹기', short: '「뜯어먹기」 때 새끼 하나를 낳습니다' } },
+    famine: { pair: 'abyss', n2: '젖은 통삼킴', n3: '해일 통삼킴', t2: { name: '미끄러운 살', short: '받는 피해 −12%', dr: 0.12 }, t3: { name: '물보라', short: '「굶주린 돌진」 뒤 곁의 적을 적셔 느리게 합니다' } },
+    gulp: { pair: 'dusk', n2: '곡하는 배', n3: '장례 배불뚝이', t2: { name: '배 속의 울음', short: '보통 공격이 정신도 깎습니다', san: 6 }, t3: { name: '삼킨 울음', short: '「꿀꺽」 때 두 칸 안의 적이 정신 20을 잃습니다' } },
+    hollow: { pair: 'nebula', n2: '별 보는 뼈', n3: '별을 거두는 것', t2: { name: '빈 눈구멍', short: '보통 공격이 정신도 깎습니다', san: 6 }, t3: { name: '별의 낫', short: '「거둠」 뒤 가장 센 적의 받는 피해가 20% 늘어납니다' } },
+  };
+  // 갈래의 진화 표 (br = 'b' 면 혼종, 아니면 기본)
+  const evoOf = (kind, br) => (br === 'b' ? KEVOB[kind] : KEVO[kind]) || KEVO[kind];
   // 별에 맞는 이름 (1성은 본래 이름)
-  const evoName = (kind, star) => { const e = KEVO[kind], d = KIN[kind]; return !e || !(star > 1) ? (d ? d.name : kind) : star >= 3 ? e.n3 : e.n2; };
+  const evoName = (kind, star, br) => { const e = evoOf(kind, br), d = KIN[kind]; return !e || !(star > 1) ? (d ? d.name : kind) : star >= 3 ? e.n3 : e.n2; };
   // 방 타일 여덟. len = 가로로 차지하는 칸
   const ROOM = {
     nursery: { name: '알집', len: 2, short: '죽으면 새끼 2', more: '이 위에 선 권속이 죽으면 새끼 둘이 나온다.' },
@@ -1071,8 +1097,8 @@ const LAIR = (function () {
       },
     };
     // ───── 진화 (굴 짓기만): 2성 특성을 붙이고, 3성이면 기술 뒤에 EVO3 가 한 번 더 일한다 ─────
-    function evoOn(u, star, full) {
-      u.evo = star; const e = KEVO[u.kind]; if (!e || star < 2) return; const T = e.t2; u.evoT = T; u.name = evoName(u.kind, star);
+    function evoOn(u, star, full, br) {
+      u.evo = star; u.evoBr = br === 'b' ? 'b' : 'a'; const e = evoOf(u.kind, u.evoBr); if (!e || star < 2) return; const T = e.t2; u.evoT = T; u.name = evoName(u.kind, star, u.evoBr);
       if (T.hp) { u.mhp = Math.round(u.mhp * (1 + T.hp)); if (full) u.hp = u.mhp; } if (T.atk) u.atk *= 1 + T.atk; if (T.mana && u.mmana) u.mana = Math.max(u.mana, u.mmana * T.mana);
       if (T.range) u.range += T.range; if (T.san) u.sanAtk += T.san; if (T.leap) u.leap = true; if (T.crit) u.firstCrit = Math.max(u.firstCrit || 0, T.crit);
     }
@@ -1098,11 +1124,34 @@ const LAIR = (function () {
       gorge(u) { foes(u).filter(x => dist(x, u) <= 1 && !x.boss).forEach(x => setSt(x, 'taunted', 2, 1, u)); },
       reap(u, l, k0) { if (u.stat.kills > k0) heal(u, u.mhp * 0.25, u); },
     };
+    // 혼종 갈래의 3성 효과 (종류 이름으로 찾는다)
+    const EVO3B = {
+      shell(u) { foes(u).filter(x => dist(x, u) <= 2).forEach(x => hurt(u, x, 0, { san: 15, k: 'skill', sk: 'evo' })); },
+      tangle(u) { const x = (u.tg && byId(u.tg)) || nearest(u, foes(u).filter(y => dist(y, u) <= 2)); if (x && x.alive && x.side !== u.side) setSt(x, 'bleed', 4, pow(u) * 0.3, u); },
+      maw(u) { const out = summon('spawn', u.cell, u.side, STARM[u.star], u, 1); if (out.length) ev('skillfx', { u: u.id, sk: 'evo', fx: 'hatch', cells: out.map(x => x.cell), tgs: out.map(x => x.id) }); },
+      ink(u) { foes(u).filter(x => has(x, 'silenced')).forEach(x => setSt(x, 'marked', 4, 0.15, u)); },
+      biter(u) { heal(u, u.mhp * 0.15, u); },
+      brood(u) { foes(u).filter(x => dist(x, u) <= 1).forEach(x => setSt(x, 'wet', 4, 0.3, u)); },
+      mother(u) { const tg = pickTarget(u); if (!tg) return; foes(u).filter(x => dist(x, tg) <= 2).forEach(x => setSt(x, 'marked', 4, 0.15, u)); },
+      queen(u) { foes(u).filter(x => dist(x, u) <= 2 && x.skill && !x.boss).forEach(x => setSt(x, 'silenced', 2, 1, u)); },
+      gazer(u) { const tg = pickTarget(u); if (tg) hurt(u, tg, 0, { san: 15, k: 'skill', sk: 'evo' }); },
+      heap(u) { foes(u).filter(x => dist(x, u) <= 2).forEach(x => setSt(x, 'wet', 4, 0.3, u)); },
+      orbit(u) { const tg = pickTarget(u); if (!tg) return; foes(u).filter(x => dist(x, tg) <= 1 && !x.boss).forEach(x => setSt(x, 'infected', 8, 12 * STARM[u.star], u)); },
+      rift(u) { const fs = foes(u); if (!fs.length) return; const x = fs.reduce((a, b) => (b.hp < a.hp ? b : a)); setSt(x, 'bleed', 5, pow(u) * 0.4, u); ev('skillfx', { u: u.id, sk: 'evo', fx: 'mark', tgs: [x.id], cells: x.cells }); },
+      hood(u) { foes(u).filter(x => dist(x, u) <= 3).forEach(x => setSt(x, 'atkdown', 4, 0.2, u)); },
+      mask(u) { heal(u, u.mhp * 0.2, u); },
+      bell(u) { foes(u).filter(x => dist(x, u) <= 2 && !x.boss).forEach(x => setSt(x, 'stun', 1, 1, u)); },
+      preach(u) { pals(u).filter(x => !x.core && dist(x, u) <= 2).forEach(x => heal(x, x.mhp * 0.1, u)); },
+      gnaw(u) { const out = summon('spawn', u.cell, u.side, STARM[u.star], u, 1); if (out.length) ev('skillfx', { u: u.id, sk: 'evo', fx: 'hatch', cells: out.map(x => x.cell), tgs: out.map(x => x.id) }); },
+      famine(u) { foes(u).filter(x => dist(x, u) <= 1).forEach(x => setSt(x, 'wet', 4, 0.3, u)); },
+      gulp(u) { foes(u).filter(x => dist(x, u) <= 2).forEach(x => hurt(u, x, 0, { san: 20, k: 'skill', sk: 'evo' })); },
+      hollow(u) { const fs = foes(u).filter(x => !x.core); if (!fs.length) return; const x = fs.reduce((a, b) => (b.atk > a.atk ? b : a)); setSt(x, 'marked', 4, 0.2, u); ev('skillfx', { u: u.id, sk: 'evo', fx: 'mark', tgs: [x.id], cells: x.cells }); },
+    };
     // ───── 세우기 ─────
     const lv = S.level || 3, cd = K.core, form = FORM[S.form] ? S.form : 'drop';
     const core = add({ id: 'core', side: 'nest', kind: 'core', core: true, cell: CORE[0], cells: CORE.slice(), def: { name: FORM[form].name, hp: sc ? cd.hp * sc.hp : cd.hp * (1 + cd.lvHp * (lv - 3)) * (1 + cd.rdHp * (round - 1)), atk: sc ? cd.atk * sc.atk : cd.atk * (1 + 0.15 * (round - 1)), as: cd.as, range: cd.range + ((sc && sc.range) || 0), df: cd.df, mana: cd.mana - ((sc && sc.manaCut) || 0), skill: (sc && sc.skill && SK[sc.skill]) ? sc.skill : FORM[form].skill, asp: form === 'drop' ? null : form } });
     core.form = form; core.engage = true; if (S.noCore) { core.alive = false; core.cells.forEach(c => { if (occ[c] === core) occ[c] = null; }); } core.t2 = !!(sc && sc.t2);
-    (S.nest || []).forEach(n => { const d = KIN[n.kind]; if (!d || occ[n.cell]) return; const u = add({ id: 'k' + n.uid, side: 'nest', kind: n.kind, star: n.star, cell: n.cell, def: d, mul: STARM[n.star || 1] * (n.pow || 1), hmul: STARM[n.star || 1] * (n.hpow || n.pow || 1) }); if (n.evo) evoOn(u, n.evo, n.hp == null); if (n.hp != null) u.hp = Math.max(1, Math.min(u.mhp, Math.round(n.hp))); if (n.leap) u.leap = true; });
+    (S.nest || []).forEach(n => { const d = KIN[n.kind]; if (!d || occ[n.cell]) return; const u = add({ id: 'k' + n.uid, side: 'nest', kind: n.kind, star: n.star, cell: n.cell, def: d, mul: STARM[n.star || 1] * (n.pow || 1), hmul: STARM[n.star || 1] * (n.hpow || n.pow || 1) }); if (n.evo) evoOn(u, n.evo, n.hp == null, n.br); if (n.hp != null) u.hp = Math.max(1, Math.min(u.mhp, Math.round(n.hp))); if (n.leap) u.leap = true; });
     const sl = S.scale || null, rm = sl ? sl.atk : K.roundAtk[round - 1] || 1, rh = sl ? sl.hp : K.roundHp[round - 1] || 1, sm = (sl ? sl.san : K.roundSan[round - 1] || 1) * (1 - (bo.sanfrenzy || 0));
     (S.inv || []).forEach(n => { const d = INV[n.kind]; if (!d || occ[n.cell]) return; add({ id: 'e' + (++eid), side: 'inv', kind: n.kind, cell: n.cell, will: n.will, cast: n.cast, def: n.poss ? Object.assign({}, d, { name: '홀린 ' + d.name, san: 0, noMad: true }) : d, mul: rm * (n.mul || 1), hmul: rh * (n.mul || 1), smul: sm }); const u = U[U.length - 1]; u.src = S.inv.indexOf(n); if (n.noLeap) u.leap = false; if (n.hp != null) u.hp = Math.max(1, Math.min(u.mhp, Math.round(n.hp))); if (n.san != null && u.msan) u.san = Math.max(0, Math.min(u.msan, Math.round(n.san))); });
     // 시너지와 방: 싸움이 시작될 때 붙는 것
@@ -1117,7 +1166,7 @@ const LAIR = (function () {
     U.forEach(u => { if (u.home !== 'nest' || u.core) return; const hm = 1 + (bo.thick || 0) - (bo.kinWeak || 0); if (hm !== 1) { u.mhp = Math.round(u.mhp * hm); u.hp = u.mhp; } if (bo.sharp) u.atk *= 1 + bo.sharp; if (bo.firstfree && u.mmana) u.mana = Math.max(u.mana, u.mmana * Math.min(1, bo.firstfree)); });
     if (S.keep) U.forEach(u => { if (u.src == null || u.home !== 'inv') return; const n = S.inv[u.src]; (n.st || []).forEach(x => setSt(u, x.n, x.dur, x.v, null)); if (n.mad) goMad(u, null); });
     if (S.keep) U.forEach(u => { u.hp0 = u.hp; u.sn0 = u.san; u.mad0 = u.mad; });
-    const init = U.filter(u => !(S.noCore && u.core)).map(u => ({ id: u.id, side: u.side, kind: u.kind, art: u.art, will: u.will, cast: u.cast, star: u.star, cell: u.cell, cells: u.cells.slice(), name: u.name, mhp: u.mhp, msan: u.msan, mmana: u.mmana, mana: Math.round(u.mana), range: u.range, role: u.role, skill: u.skill, boss: u.boss, elite: u.elite, core: u.core, form: u.form || null, asp: u.asp, cls: u.cls }));
+    const init = U.filter(u => !(S.noCore && u.core)).map(u => ({ id: u.id, side: u.side, kind: u.kind, art: u.art, will: u.will, cast: u.cast, star: u.star, br: u.evoBr === 'b' ? 'b' : undefined, cell: u.cell, cells: u.cells.slice(), name: u.name, mhp: u.mhp, msan: u.msan, mmana: u.mmana, mana: Math.round(u.mana), range: u.range, role: u.role, skill: u.skill, boss: u.boss, elite: u.elite, core: u.core, form: u.form || null, asp: u.asp, cls: u.cls }));
     Object.keys(boBy).forEach(id => { if (bo[id]) bev(id, { fx: 'on' }); });
     if (bo.hatchstart) summon('spawn', core.cells[0] - COLS, 'nest', 1 + 0.1 * (round - 1), core, bo.hatchstart);
     if (S.zealots) summon('zealot', core.cells[0] - COLS, 'nest', 1 + 0.1 * (round - 1), core, S.zealots);
@@ -1133,7 +1182,7 @@ const LAIR = (function () {
       const d = dist(u, tg);
       if (u.skill && u.mmana && u.mana >= u.mmana && !has(u, 'silenced') && (d <= Math.max(u.range, 4) || u.core || FAR[u.skill])) {
         u.mana = 0; u.stat.casts++; ev('cast', { u: u.id, sk: u.skill, tg: tg.id, dur: K.castWind }); u.freeAt = t + K.castWind + 0.15; u.nextAtk = Math.max(u.nextAtk, t + K.castWind + 0.2);
-        const sk = u.skill, l = u.core ? coreLv : u.star; pend.push({ t: t + K.castWind, u, fn: () => { if (has(u, 'stun')) return; const k0 = u.stat.kills; F[sk](u, l); if (u.evo >= 3 && u.alive && EVO3[sk]) EVO3[sk](u, l, k0); if (ck && u.alive && u.home === 'nest' && !u.mad && (u.core || u.tierV >= 5) && (ck.moment == null || nMoment < ck.moment)) { nMoment++; const c = U.filter(x => x.alive && x.home === 'inv' && !x.mad && x.will && x.msan).sort((a, b) => b.tierV - a.tierV || a.san / a.msan - b.san / b.msan || a.cell - b.cell)[0]; if (c) check(c, u, 'skill', sk); } } }); return;
+        const sk = u.skill, l = u.core ? coreLv : u.star; pend.push({ t: t + K.castWind, u, fn: () => { if (has(u, 'stun')) return; const k0 = u.stat.kills; F[sk](u, l); if (u.evo >= 3 && u.alive) { if (u.evoBr === 'b') { if (EVO3B[u.kind]) EVO3B[u.kind](u, l, k0); } else if (EVO3[sk]) EVO3[sk](u, l, k0); } if (ck && u.alive && u.home === 'nest' && !u.mad && (u.core || u.tierV >= 5) && (ck.moment == null || nMoment < ck.moment)) { nMoment++; const c = U.filter(x => x.alive && x.home === 'inv' && !x.mad && x.will && x.msan).sort((a, b) => b.tierV - a.tierV || a.san / a.msan - b.san / b.msan || a.cell - b.cell)[0]; if (c) check(c, u, 'skill', sk); } } }); return;
       }
       if (d <= u.range) {
         if (t < u.nextAtk) return;
@@ -1723,7 +1772,7 @@ const LAIR = (function () {
       curses: R.curses.map(c => ({ id: c.id, name: CURSE[c.id].name, short: CURSE[c.id].short, left: c.left })), cult: R.cult, omen: R.omen, zealots: R.zealots + R.cult,
       cast: R.cast.active.map(id => castInfo(R, id)) });
   }
-  return { KEVO, evoName, COLS, ROWS, N, CORE, NEST_ROW, TICK, K, KIN, KIN_IDS, INV, INV_IDS, SUMMON, FORM, SK, ROOM, ROOM_IDS, SYN, SYN_IDS, ROUNDS, ACTS, EVO, MYTHOS, MYTHOS_IDS, TIERN, ENC, ENC_IDS, CAST, CAST_IDS, CURSE, STAT, WORLD, SAVE_V, ROOMLV, ASPN, ASPS, CLSN, CLSS, STARM, ROLE, ROLE_IDS, reachText, rc, idx, cheb, rnd, isNestCell,
+  return { KEVO, KEVOB, evoOf, evoName, COLS, ROWS, N, CORE, NEST_ROW, TICK, K, KIN, KIN_IDS, INV, INV_IDS, SUMMON, FORM, SK, ROOM, ROOM_IDS, SYN, SYN_IDS, ROUNDS, ACTS, EVO, MYTHOS, MYTHOS_IDS, TIERN, ENC, ENC_IDS, CAST, CAST_IDS, CURSE, STAT, WORLD, SAVE_V, ROOMLV, ASPN, ASPS, CLSN, CLSS, STARM, ROLE, ROLE_IDS, reachText, rc, idx, cheb, rnd, isNestCell,
     simulate, newRun, view, buy, sell, sellValue, reroll, buyXp, move, placeRoom, canPlaceRoom, roomSpots, roomCells, ready, setupOf, merge, synOf, formOf, cap, whereOf, unitInfo, invInfo, skillInfo, roomInfo, synInfo, formInfo, enemyOf,
     choose, setElite, save, load, mythosPick, mythosReroll, encounterChoose, encounterReroll, encounterResolve, cardInfo, coreInfo, castInfo, actInfo, oddsOf, econOf, scaleOf, coreOf, modOf, nestStat, partyOf, previewOf, curEnemy, gainText, addFear, settle, castAfter };
 })();
@@ -2203,6 +2252,9 @@ if (typeof window !== 'undefined') window.__zz = { kinds: Object.keys(ZZ), rende
 //       step 을 안 주면 그 모습 그대로(80 점). step 0 = drop, 1 = 다섯 모습, 2 = 더 크고 빛이 더한 것(90 점), 3 = 다 깨어난 새 모습(96 점)
 //       초상은 icon('boss:' + form) 또는 icon('boss:' + form + ':' + step, 1, px). prewarm 도 'boss:form:step' 을 받는다
 //   LAIRART.icon(id, star, px) → 얼굴 그림 canvas.   LAIRART.prewarm(ids, star) → 프레임을 미리 만든다
+//   진화 갈래 (2026-11-25): 권속 2·3성은 갈래가 둘. 'a'(또는 없음) = 기본 갈래, 'b' = 혼종(짝 속성이 섞인 모습, PARTNER 표).
+//       unit(id, star, 'b') 또는 unit(id, star, { branch: 'b' }) · icon(id, star, px, 'b') 또는 icon(id, star, px, { branch: 'b' }). 갈래를 안 주면 예전 그림 그대로.
+//       1성·침입자·본체에는 갈래가 없다(주어도 무시). LAIRART.PARTNER[id] = 그 권속의 짝 속성
 //   LAIRART.fx(name, ctx, from, to, t01, opts{ px, size(칸 크기), r, col, n, w, targets }) — from·to = { x, y } 화면 좌표. 이름은 LAIRART.FX 의 키
 //   LAIRART.num(ctx, x, y, text, kind, t01, px)   kind: dmg crit san heal mad block gold
 //   LAIRART.bar(ctx, x, y, w, hp01, san01|null, { side: 'inv'|'kin', mana, shield, px })
@@ -2348,7 +2400,7 @@ const LAIRART = (() => {
   }
   const DEF = {}, BOSS = {}, cache = {};
   const SIZE = [0, 48, 56, 64];
-  function unit(id, star) { const st = clamp(star || 1, 1, 3), k = id + ':' + st; if (cache[k]) return cache[k]; const d = DEF[id]; if (!d) return null; const fl = FLESH1[id] && (st === 1 || FLESH1[id].always), S = fl ? 48 : d.size ? d.size(st) : (d.side === 'inv' ? 48 : SIZE[st]), R = Rig(id, S, st, d.side || 'kin', fl ? 48 : d.ds); if (fl) fleshKin(R, FLESH1[id]); else { d.build(R, st); if ((d.side || 'kin') === 'kin') { if (FLESH1[id]) fleshGrow(R, st, FLESH1[id].asp); else R.flesh = 0.26; } } return (cache[k] = handle(R)); }
+  function unit(id, star, br) { const st = clamp(star || 1, 1, 3), p2 = hybOf(id, st, br), k = id + ':' + st + (p2 ? ':b' : ''); if (cache[k]) return cache[k]; const d = DEF[id]; if (!d) return null; const fl = FLESH1[id] && (st === 1 || FLESH1[id].always), S = fl ? 48 : d.size ? d.size(st) : (d.side === 'inv' ? 48 : SIZE[st]), R = Rig(id, S, st, d.side || 'kin', fl ? 48 : d.ds); if (fl) fleshKin(R, FLESH1[id]); else { d.build(R, st); if ((d.side || 'kin') === 'kin') { if (FLESH1[id]) fleshGrow(R, st, FLESH1[id].asp, p2); else R.flesh = 0.26; } } return (cache[k] = handle(R)); }
   // 본체. step 을 안 주면 그 모습 그대로(예전처럼). step 0 = 떨어진 한 방울, 1 = 다섯 모습, 2 = 더 크고 빛이 더한 것, 3 = 다 깨어난 새 모습(BOSS3)
   function boss(form, step) {
     if (step === 0) form = 'drop'; if (!BOSS[form]) form = 'abyss'; if (form === 'drop' || !(step >= 2)) step = 1; step = Math.min(3, step);
@@ -2357,7 +2409,7 @@ const LAIRART = (() => {
     else { R = Rig('boss_' + form, step === 2 ? 90 : 80, 3, 'kin', 80); BOSS[form](R); if (step === 2) awake(R, 2); }
     if (form !== 'drop') R.flesh = step === 3 ? 0.8 : 0.84; return (cache[k] = handle(R));
   }
-  function icon(id, star, px) { const k = 'ic:' + id + ':' + star + ':' + px; if (cache[k]) return cache[k]; const bf = typeof id === 'string' && id.indexOf('boss:') === 0 ? id.slice(5).split(':') : null, h = bf ? boss(bf[0], bf[1] === undefined ? undefined : +bf[1]) : (unit(id, star) || (BOSS[id] ? boss(id) : null)); if (!h) return mk(px); const src = h.frame('idle', 0), C = h.w, d = src.getContext('2d').getImageData(0, 0, C, C).data; let x0 = C, y0 = C, x1 = 0, y1 = 0; for (let y = 0; y < C; y++) for (let x = 0; x < C; x++) if (d[(y * C + x) * 4 + 3] > 200) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); } const w = x1 - x0 + 1, hh = y1 - y0 + 1, sc = Math.min(px / w, px / hh), k2 = sc >= 1 ? Math.floor(sc) : sc, c = mk(px), x = c.getContext('2d'); x.imageSmoothingEnabled = false; x.drawImage(src, x0, y0, w, hh, Math.round((px - w * k2) / 2), Math.round(px - hh * k2 - (px - hh * k2) * 0.3), Math.round(w * k2), Math.round(hh * k2)); return (cache[k] = c); }
+  function icon(id, star, px, br) { const hb = hybOf(id, clamp(star || 1, 1, 3), br), k = 'ic:' + id + ':' + star + ':' + px + (hb ? ':b' : ''); if (cache[k]) return cache[k]; const bf = typeof id === 'string' && id.indexOf('boss:') === 0 ? id.slice(5).split(':') : null, h = bf ? boss(bf[0], bf[1] === undefined ? undefined : +bf[1]) : (unit(id, star, hb ? 'b' : undefined) || (BOSS[id] ? boss(id) : null)); if (!h) return mk(px); const src = h.frame('idle', 0), C = h.w, d = src.getContext('2d').getImageData(0, 0, C, C).data; let x0 = C, y0 = C, x1 = 0, y1 = 0; for (let y = 0; y < C; y++) for (let x = 0; x < C; x++) if (d[(y * C + x) * 4 + 3] > 200) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); } const w = x1 - x0 + 1, hh = y1 - y0 + 1, sc = Math.min(px / w, px / hh), k2 = sc >= 1 ? Math.floor(sc) : sc, c = mk(px), x = c.getContext('2d'); x.imageSmoothingEnabled = false; x.drawImage(src, x0, y0, w, hh, Math.round((px - w * k2) / 2), Math.round(px - hh * k2 - (px - hh * k2) * 0.3), Math.round(w * k2), Math.round(hh * k2)); return (cache[k] = c); }
   // ---------- 권속 ----------
   // 비늘지기: 한쪽 팔이 통째로 따개비 덮인 등딱지. 웅크린 몸, 젖은 청록
   DEF.shell = { build(R, st) {
@@ -3875,6 +3927,11 @@ const LAIRART = (() => {
     hunger: { pal: ['#160204', '#aa2a2c', '#ea7a6a', '#681018', '#3a0610'], vein: '#2a0408', sp: '#f0e6d0', sp2: '#a89a80' },
   };
   const AVEIN = a => (APAL[a] ? APAL[a].vein : FL.vein);
+  // 진화 갈래: 권속마다 짝 속성 (속성마다 네 종류가 다른 네 속성과 하나씩). 혼종 갈래('b')는 짝 속성의 빛깔이 얼룩지고 짝 속성의 부위가 붙는다
+  const PARTNER = { shell: 'dusk', tangle: 'hunger', maw: 'brood', ink: 'nebula', biter: 'hunger', brood: 'abyss', mother: 'nebula', queen: 'dusk', gazer: 'dusk', heap: 'abyss', orbit: 'brood', rift: 'hunger',
+    hood: 'nebula', mask: 'hunger', bell: 'abyss', preach: 'brood', gnaw: 'brood', famine: 'abyss', gulp: 'dusk', hollow: 'nebula' };
+  // 갈래 인자 ('b' 또는 { branch: 'b' }) → 혼종이면 짝 속성, 아니면 null. 1성·짝이 없는 것은 늘 null
+  const hybOf = (id, st, br) => { const b = br && typeof br === 'object' ? br.branch : br; return b === 'b' && st >= 2 && PARTNER[id] ? PARTNER[id] : null; };
   // 2·3성 살결의 단계 (어두운 데 → 밝은 데)
   const ARAMP = {}; Object.keys(APAL).forEach(a => { const q = APAL[a].pal; ARAMP[a] = [q[0], q[4], q[3], q[1], q[2]].map(c => C32(c)); });
   // 살결 덧칠: 빛깔을 살빛 단계로 끌어가되, 눈·빛나는 것(밝거나 누렇거나 차가운 빛)은 그대로 둔다. 핏줄이 결을 따라 밴다
@@ -4004,11 +4061,13 @@ const LAIRART = (() => {
   const FSKIN = { vein: C32('#4a1a5e'), vein3: C32('#7a2a6a'), sin: C32('#f0a8aa'), gap: C32('#2a0612'), hi: C32('#ffe0e4') };
   const mix32 = (c, t, k) => { const f = sh => Math.round(((c >>> sh) & 255) * (1 - k) + ((t >>> sh) & 255) * k); return ((255 << 24) | (f(16) << 16) | (f(8) << 8) | f(0)) >>> 0; };
   // 조각 하나의 점들에 살결을 입힌다(조각에 붙어 움직이므로 무늬가 미끄러지지 않는다). 눈·빛·별처럼 밝거나 짙은 빛깔과 윤곽은 그대로 둔다
-  function fleshSkin(px, C, st, asp, seed) {
-    const RMP = ARAMP[asp] || FRAMP, VN = C32(AVEIN(asp)), op = i => (px[i] >>> 24) === 255, k = st >= 3 ? 0.8 : 0.82, gl = C32(ASPG[asp] || '#ff8a90'), glw = C32(mixh(ASPG[asp] || '#ff8a90', '#ffffff', 0.55));
+  function fleshSkin(px, C, st, asp, seed, p2) {
+    const RMP0 = ARAMP[asp] || FRAMP, RMP2 = p2 ? ARAMP[p2] : null, VN = C32(AVEIN(p2 || asp)), op = i => (px[i] >>> 24) === 255, k = st >= 3 ? 0.8 : 0.82, gl = C32(ASPG[p2 || asp] || '#ff8a90'), glw = C32(mixh(ASPG[p2 || asp] || '#ff8a90', '#ffffff', 0.55));
     for (let y = 1; y < C - 1; y++) for (let x = 1; x < C - 1; x++) { const i = y * C + x, c = px[i]; if (!op(i)) continue;
       const r = c & 255, g = (c >>> 8) & 255, b = (c >>> 16) & 255, l = (r * 3 + g * 5 + b * 2) / 10, sat = Math.max(r, g, b) - Math.min(r, g, b);
       if ((l > 200 && sat < 64) || l > 236 || l < 24 || (r > 190 && g > 130 && b < 140) || (sat > 170 && l > 150 && r > b)) continue;
+      // 혼종: 짝 속성의 살빛이 얼룩으로 번진다 (몸의 절반 넘게)
+      const RMP = RMP2 && (hsh((x >> 2) + seed * 3, (y >> 2) + seed) + (sin(x * 0.21 + y * 0.13 + seed) * 0.18)) < 0.6 ? RMP2 : RMP0;
       const inner = op(i - 1) && op(i + 1) && op(i - C) && op(i + C), t = RMP[clamp(Math.floor(l / 50 + bay(x, y) * 0.6), 0, 4)];
       let nc = mix32(c, t, k * (1 - Math.max(0, (l - 170) / 160)));
       const vn = Math.abs(sin((x + seed) * 0.29 + sin(y * 0.21 + seed) * 2.1) + sin(y * 0.25 - x * 0.08) * 0.6);
@@ -4035,47 +4094,60 @@ const LAIRART = (() => {
 
   // 3성: 속성마다 몸에 덧붙는 것. 2성과 실루엣이 확실히 다르게 (심연 따개비 갑옷·긴 촉수 / 번식 알주머니 더미·포자 구름 / 성운 떠도는 눈·별 고리 / 황혼 촛불 관·넝마 망토 / 기아 갈비뼈·둘째 턱)
   function rigBox(R) { let x0 = 1e9, y0 = 1e9, x1 = -1e9; const u = R.u; R.parts.forEach(p => { const q = partPix(R, p, 0); if (q.x1 < 0) return; x0 = Math.min(x0, (q.x0 - PAD) / u); x1 = Math.max(x1, (q.x1 - PAD) / u); y0 = Math.min(y0, (q.y0 - PAD) / u); }); if (x1 < x0) { x0 = R.cx - 10; x1 = R.cx + 10; y0 = R.ground - 20; } return { x0, x1, y0, w: x1 - x0, h: R.ground - y0, cx: (x0 + x1) / 2 }; }
-  function fleshCrown(R, asp, seed) {
-    const A = APAL[asp]; if (!A) return; const B = rigBox(R), gy = R.ground, pal = A.pal, top = Math.max(...R.parts.map(p => p.z)) + 1, low = Math.min(...R.parts.map(p => p.z)) - 1, L0 = Math.max(4, B.x0 + 1), R0 = Math.min(R.DS - 4, B.x1 - 1);
+  // pick: 0 = 둘 다, 1 = 첫째 것만(갑옷·알주머니·고리·망토·갈비뼈), 2 = 둘째 것만(촉수·포자·떠도는 눈·촛불·둘째 턱). 혼종 3성은 자기 것 1 + 짝 것 2
+  function fleshCrown(R, asp, seed, pick) {
+    const A = APAL[asp]; if (!A) return; const one = !pick || pick === 1, two = !pick || pick === 2; const B = rigBox(R), gy = R.ground, pal = A.pal, top = Math.max(...R.parts.map(p => p.z)) + 1, low = Math.min(...R.parts.map(p => p.z)) - 1, L0 = Math.max(4, B.x0 + 1), R0 = Math.min(R.DS - 4, B.x1 - 1);
     if (asp === 'abyss') {
       // 따개비 갑옷: 등 위로 껍데기 넷
-      R.part('barn', { px: B.cx, py: B.y0 + 4, z: top }, D => { for (let k = 0; k < 4; k++) { const f = (k + 0.5) / 4, x = B.x0 + B.w * (0.12 + f * 0.76), y = B.y0 + 2.4 + Math.abs(f - 0.5) * B.h * 0.32; D.G([[x - 2.4, y + 1.8], [x - 0.8, y - 2.4], [x + 0.9, y - 2.6], [x + 2.4, y + 1.8]], ['#0c1614', '#6e8076', '#d4e0cc', '#3e4e48']); D.flat(D.el(x, y - 1.6, 0.9, 0.5), '#081012', null); } });
+      if (one) R.part('barn', { px: B.cx, py: B.y0 + 4, z: top }, D => { for (let k = 0; k < 4; k++) { const f = (k + 0.5) / 4, x = B.x0 + B.w * (0.12 + f * 0.76), y = B.y0 + 2.4 + Math.abs(f - 0.5) * B.h * 0.32; D.G([[x - 2.4, y + 1.8], [x - 0.8, y - 2.4], [x + 0.9, y - 2.6], [x + 2.4, y + 1.8]], ['#0c1614', '#6e8076', '#d4e0cc', '#3e4e48']); D.flat(D.el(x, y - 1.6, 0.9, 0.5), '#081012', null); } });
       // 긴 촉수 둘: 양옆 바닥에서 뻗어 올라 끝이 말린다
-      [[-1, 0], [1, 2.2]].forEach(([dir, ph], k) => { const x = dir < 0 ? L0 + 1 : R0 - 1, ex = x + dir * 9; R.part('ltent' + k, { px: x, py: gy - 2, z: k ? top : low, role: 'sway', amp: 1.3, ph }, D => tent(D, [[x, gy - 2], [x + dir * 4, gy - 7], [ex, gy - 12], [ex - dir * 1.5, gy - 17], [ex - dir * 4, gy - 16]], 1.9, 0.5, [pal[0], pal[1], pal[2], pal[3]], A.sp)); });
+      if (two) [[-1, 0], [1, 2.2]].forEach(([dir, ph], k) => { const x = dir < 0 ? L0 + 1 : R0 - 1, ex = x + dir * 9; R.part('ltent' + k, { px: x, py: gy - 2, z: k ? top : low, role: 'sway', amp: 1.3, ph }, D => tent(D, [[x, gy - 2], [x + dir * 4, gy - 7], [ex, gy - 12], [ex - dir * 1.5, gy - 17], [ex - dir * 4, gy - 16]], 1.9, 0.5, [pal[0], pal[1], pal[2], pal[3]], A.sp)); });
     } else if (asp === 'brood') {
       // 알주머니 더미: 몸 뒤 바닥에 다섯
-      R.part('sacs', { px: B.x0, py: gy - 3, z: low }, D => { [[L0 - 2, gy - 3, 3.2], [L0 + 2.4, gy - 5.4, 3.6], [L0 - 3.4, gy - 8, 2.6], [L0 + 1, gy - 10, 2.8], [R0 + 1.6, gy - 3.2, 2.8]].forEach(([x, y, r], k) => egg2(D, x, y, r, r * 1.2, k === 1)); });
+      if (one) R.part('sacs', { px: B.x0, py: gy - 3, z: low }, D => { [[L0 - 2, gy - 3, 3.2], [L0 + 2.4, gy - 5.4, 3.6], [L0 - 3.4, gy - 8, 2.6], [L0 + 1, gy - 10, 2.8], [R0 + 1.6, gy - 3.2, 2.8]].forEach(([x, y, r], k) => egg2(D, x, y, r, r * 1.2, k === 1)); });
       // 포자 구름: 머리 위를 떠다닌다
-      R.part('spore', { px: B.cx, py: B.y0 - 2, z: top, role: 'float', amp: 1.6, ph: 0.7 }, D => { for (let k = 0; k < 7; k++) { const x = B.cx + (hsh(seed, k + 60) - 0.5) * B.w * 1.1, y = B.y0 - 1 - hsh(seed, k + 66) * 6, r = 0.7 + hsh(seed, k + 70) * 0.9; D.flat(D.el(x, y, r, r), k % 3 ? A.sp2 : A.sp, null); D.px(x - 0.3, y - 0.3, A.sp); } });
+      if (two) R.part('spore', { px: B.cx, py: B.y0 - 2, z: top, role: 'float', amp: 1.6, ph: 0.7 }, D => { for (let k = 0; k < 7; k++) { const x = B.cx + (hsh(seed, k + 60) - 0.5) * B.w * 1.1, y = B.y0 - 1 - hsh(seed, k + 66) * 6, r = 0.7 + hsh(seed, k + 70) * 0.9; D.flat(D.el(x, y, r, r), k % 3 ? A.sp2 : A.sp, null); D.px(x - 0.3, y - 0.3, A.sp); } });
     } else if (asp === 'nebula') {
       // 별 고리: 몸 뒤로 도는 고리 (앞쪽은 몸에 가린다)
-      R.part('ring', { px: B.cx, py: B.y0 + B.h * 0.5, z: low }, D => { const cy = B.y0 + B.h * 0.5, rx = B.w * 0.68 + 3, ry = Math.max(3, B.h * 0.18); for (let k = 0; k < 28; k++) { const a = k / 28 * TAU, x = B.cx + cos(a) * rx, y = cy + sin(a) * ry; D.px(x, y, k % 4 === 0 ? A.sp : k % 2 ? A.sp2 : pal[2]); } D.spark(B.cx + rx, cy, A.sp, true); D.spark(B.cx - rx, cy, A.sp, false); });
+      if (one) R.part('ring', { px: B.cx, py: B.y0 + B.h * 0.5, z: low }, D => { const cy = B.y0 + B.h * 0.5, rx = B.w * 0.68 + 3, ry = Math.max(3, B.h * 0.18); for (let k = 0; k < 28; k++) { const a = k / 28 * TAU, x = B.cx + cos(a) * rx, y = cy + sin(a) * ry; D.px(x, y, k % 4 === 0 ? A.sp : k % 2 ? A.sp2 : pal[2]); } D.spark(B.cx + rx, cy, A.sp, true); D.spark(B.cx - rx, cy, A.sp, false); });
       // 떠도는 눈 둘
-      [[-1, 0.4], [1, 3.4]].forEach(([dir, ph], k) => R.part('feye' + k, { px: B.cx, py: B.y0 - 2, z: top, role: 'orbit', ph, amp: 3 }, D => { const x = B.cx + dir * (B.w * 0.42 + 2), y = B.y0 - 1 - k * 2; D.flat(D.el(x, y, 2.6, 2.4), pal[4], pal[0]); D.B(x, y, 2, 1.8, ['#1a1018', '#ece4d8', '#ffffff', '#b8a8a0']); D.flat(D.el(x + 0.3 * dir, y, 0.9, 1.1), '#3a2580', null); D.px(x - 0.7, y - 0.7, '#ffffff'); }));
+      if (two) [[-1, 0.4], [1, 3.4]].forEach(([dir, ph], k) => R.part('feye' + k, { px: B.cx, py: B.y0 - 2, z: top, role: 'orbit', ph, amp: 3 }, D => { const x = B.cx + dir * (B.w * 0.42 + 2), y = B.y0 - 1 - k * 2; D.flat(D.el(x, y, 2.6, 2.4), pal[4], pal[0]); D.B(x, y, 2, 1.8, ['#1a1018', '#ece4d8', '#ffffff', '#b8a8a0']); D.flat(D.el(x + 0.3 * dir, y, 0.9, 1.1), '#3a2580', null); D.px(x - 0.7, y - 0.7, '#ffffff'); }));
     } else if (asp === 'dusk') {
       // 넝마 망토: 양옆으로 해진 천이 바닥까지
-      R.part('rags', { px: B.cx, py: gy, z: low }, D => { const cl = ['#070606', '#2a2426', '#4c4246', '#1a1618'], my = B.y0 + B.h * 0.35; D.G([[L0 + 3, my], [L0 - 3, my + B.h * 0.3], [L0 - 4, gy - 1], [L0 - 2, gy - 3], [L0, gy], [L0 + 2, gy - 2], [L0 + 4, gy]], cl); D.G([[R0 - 3, my], [R0 + 3, my + B.h * 0.3], [R0 + 4, gy - 1], [R0 + 2, gy - 3], [R0, gy], [R0 - 2, gy - 2], [R0 - 4, gy]], cl); });
+      if (one) R.part('rags', { px: B.cx, py: gy, z: low }, D => { const cl = ['#070606', '#2a2426', '#4c4246', '#1a1618'], my = B.y0 + B.h * 0.35; D.G([[L0 + 3, my], [L0 - 3, my + B.h * 0.3], [L0 - 4, gy - 1], [L0 - 2, gy - 3], [L0, gy], [L0 + 2, gy - 2], [L0 + 4, gy]], cl); D.G([[R0 - 3, my], [R0 + 3, my + B.h * 0.3], [R0 + 4, gy - 1], [R0 + 2, gy - 3], [R0, gy], [R0 - 2, gy - 2], [R0 - 4, gy]], cl); });
       // 촛불 관: 머리 위 초 셋
-      R.part('candles', { px: B.cx, py: B.y0, z: top, role: 'sway', amp: 0.3 }, D => { [[-4, 1, 4], [0, -0.6, 5.4], [4, 1, 3.6]].forEach(([dx, dy, hh], k) => { const x = B.cx + dx, y = B.y0 + dy; D.rect(x - 0.7, y - hh, 1.4, hh, '#e6dac0'); D.px(x - 0.7, y - hh, '#fff6e0'); D.rect(x - 0.7, y - 0.6, 1.4, 0.6, '#8a7a5a'); D.flat(D.el(x, y - hh - 1.4, 0.9, 1.5), A.sp, A.sp2); D.px(x, y - hh - 1.2, '#fff3c0'); D.px(x + (k - 1) * 0.6, y - hh * 0.5, '#c8b898'); }); });
+      if (two) R.part('candles', { px: B.cx, py: B.y0, z: top, role: 'sway', amp: 0.3 }, D => { [[-4, 1, 4], [0, -0.6, 5.4], [4, 1, 3.6]].forEach(([dx, dy, hh], k) => { const x = B.cx + dx, y = B.y0 + dy; D.rect(x - 0.7, y - hh, 1.4, hh, '#e6dac0'); D.px(x - 0.7, y - hh, '#fff6e0'); D.rect(x - 0.7, y - 0.6, 1.4, 0.6, '#8a7a5a'); D.flat(D.el(x, y - hh - 1.4, 0.9, 1.5), A.sp, A.sp2); D.px(x, y - hh - 1.2, '#fff3c0'); D.px(x + (k - 1) * 0.6, y - hh * 0.5, '#c8b898'); }); });
     } else if (asp === 'hunger') {
       // 갈비뼈: 등에서 휘어 솟는 뼈 다섯
-      R.part('ribs3', { px: B.cx, py: B.y0 + 4, z: low }, D => { for (let k = 0; k < 5; k++) { const f = k / 4, x = B.x0 + B.w * (0.1 + f * 0.62), y = B.y0 + 3 + Math.abs(f - 0.45) * 4; D.L([[x, y + 4], [x - 1.6, y - 2], [x - 0.4, y - 5.4], [x + 1.2, y - 6.4]], 0.9, 0.45, [pal[0], A.sp2, A.sp, A.sp2]); } });
+      if (one) R.part('ribs3', { px: B.cx, py: B.y0 + 4, z: low }, D => { for (let k = 0; k < 5; k++) { const f = k / 4, x = B.x0 + B.w * (0.1 + f * 0.62), y = B.y0 + 3 + Math.abs(f - 0.45) * 4; D.L([[x, y + 4], [x - 1.6, y - 2], [x - 0.4, y - 5.4], [x + 1.2, y - 6.4]], 0.9, 0.45, [pal[0], A.sp2, A.sp, A.sp2]); } });
       // 둘째 턱: 몸 앞 아래에 이빨 박힌 입이 하나 더
-      R.part('jaw2', { px: R0, py: gy - 5, z: top, role: 'sway', amp: 0.4, strike: 0.5 }, D => { const x = R0 - 1, y = gy - 5; D.flat(D.el(x, y, 4.6, 2.6), '#3a0610', pal[0]); D.flat(D.el(x + 0.4, y + 0.3, 3, 1.2), '#120204', null); D.fangs(x - 3.6, x + 3.6, y - 1.6, 1, 1.6, 1.4, A.sp); D.fangs(x - 3, x + 3, y + 2.2, -1, 1.2, 1.4, A.sp); });
+      if (two) R.part('jaw2', { px: R0, py: gy - 5, z: top, role: 'sway', amp: 0.4, strike: 0.5 }, D => { const x = R0 - 1, y = gy - 5; D.flat(D.el(x, y, 4.6, 2.6), '#3a0610', pal[0]); D.flat(D.el(x + 0.4, y + 0.3, 3, 1.2), '#120204', null); D.fangs(x - 3.6, x + 3.6, y - 1.6, 1, 1.6, 1.4, A.sp); D.fangs(x - 3, x + 3, y + 2.2, -1, 1.2, 1.4, A.sp); });
     }
   }
-  // 2·3성 권속을 다 지은 뒤 덧입힌다
-  function fleshGrow(R, st, asp) {
+  // 혼종 2성: 짝 속성의 부위 하나가 몸에 돋는다 (등 위 오른쪽). 3성은 덧붙임(fleshCrown)이 그 몫을 한다
+  function hybMark(R, p2, seed) {
+    const A = APAL[p2]; if (!A) return; const B = rigBox(R), pal = A.pal, top = Math.max(...R.parts.map(p => p.z)) + 1, x = B.x0 + B.w * 0.68, y = B.y0 + 2.2;
+    if (p2 === 'abyss') R.part('hyb', { px: x, py: y, z: top, role: 'sway', amp: 0.4 }, D => { [[-2.6, 0.8, 2], [0.6, -0.6, 2.5], [3.2, 1, 1.8]].forEach(([dx, dy, r]) => { const xx = x + dx, yy = y + dy; D.G([[xx - r, yy + r * 0.8], [xx - r * 0.3, yy - r], [xx + r * 0.4, yy - r], [xx + r, yy + r * 0.8]], ['#0c1614', '#6e8076', A.sp, '#3e4e48']); D.flat(D.el(xx, yy - r * 0.6, r * 0.35, r * 0.25), pal[0], null); }); D.L([[x - 4, y + 2], [x - 6.5, y - 1.5], [x - 5.5, y - 4.5], [x - 3.6, y - 4]], 0.9, 0.45, [pal[0], pal[1], pal[2], pal[1]], null); });
+    else if (p2 === 'brood') R.part('hyb', { px: x, py: y, z: top, role: 'pulse', amp: 0.25 }, D => { [[-2.4, 1, 2], [0.6, -1.2, 2.4], [3, 1.2, 1.8]].forEach(([dx, dy, r], k) => egg2(D, x + dx, y + dy, r, r * 1.2, k === 1)); });
+    else if (p2 === 'nebula') R.part('hyb', { px: x, py: y - 3, z: top, role: 'float', amp: 1.2, ph: 0.4 }, D => { const yy = y - 3.5; D.flat(D.el(x, yy, 3, 2.8), pal[4], pal[0]); D.B(x, yy, 2.3, 2.1, ['#1a1018', '#ece4d8', '#ffffff', '#b8a8a0']); D.flat(D.el(x + 0.4, yy, 1, 1.2), '#3a2580', null); D.px(x - 0.8, yy - 0.8, '#ffffff'); D.spark(x + 4, yy - 2, A.sp, true); D.spark(x - 4, yy + 1, A.sp2, false); });
+    else if (p2 === 'dusk') R.part('hyb', { px: x, py: y, z: top, role: 'sway', amp: 0.3 }, D => { D.G([[x - 4, y + 3], [x - 2.4, y - 3], [x + 0.4, y - 5.4], [x + 2.6, y - 2.6], [x + 4, y + 3], [x + 1.2, y + 1.6], [x - 1.4, y + 3.2]], ['#070606', '#2a2426', '#4c4246', '#1a1618']); const cx = x + 0.4, cy = y - 5.4; D.rect(cx - 0.7, cy - 4, 1.4, 4, '#e6dac0'); D.px(cx - 0.7, cy - 4, '#fff6e0'); D.flat(D.el(cx, cy - 5.4, 0.9, 1.5), A.sp, A.sp2); D.px(cx, cy - 5.2, '#fff3c0'); });
+    else if (p2 === 'hunger') R.part('hyb', { px: x, py: y, z: top }, D => { for (let k = 0; k < 4; k++) { const xx = x - 4 + k * 2.6, yy = y + Math.abs(k - 1.5) * 0.8; D.L([[xx, yy + 2], [xx - 1, yy - 2.6], [xx + 0.6, yy - 5.2]], 0.85, 0.4, [pal[0], A.sp2, A.sp, A.sp2], null); } });
+    void seed;
+  }
+  // 2·3성 권속을 다 지은 뒤 덧입힌다. p2 = 혼종 갈래의 짝 속성(없으면 기본 갈래)
+  function fleshGrow(R, st, asp, p2) {
     asp = asp || 'abyss'; const seed = (R.id.length * 13 + R.id.charCodeAt(0) * 3 + st * 5) % 97;
-    R.parts.forEach((p, n) => { const d0 = p.draw; p.draw = (D, m) => { d0(D, m); const kc = D.K.canvas; D.K.canvas = () => { const c = kc(), x = c.getContext('2d'), im = x.getImageData(0, 0, c.width, c.height); fleshSkin(new Uint32Array(im.data.buffer), c.width, st, asp, seed + n * 11); x.putImageData(im, 0, 0); return c; }; }; });
+    R.parts.forEach((p, n) => { const d0 = p.draw; p.draw = (D, m) => { d0(D, m); const kc = D.K.canvas; D.K.canvas = () => { const c = kc(), x = c.getContext('2d'), im = x.getImageData(0, 0, c.width, c.height); fleshSkin(new Uint32Array(im.data.buffer), c.width, st, asp, seed + n * 11, p2); x.putImageData(im, 0, 0); return c; }; }; });
     R.ichor = mixh(FL.fluid, ASPT[asp] || FL.fluid, 0.2);
-    if (st === 3) fleshCrown(R, asp, seed);
+    if (st === 3) { if (p2) { fleshCrown(R, asp, seed, 1); fleshCrown(R, p2, seed + 5, 2); } else fleshCrown(R, asp, seed); }
+    if (st === 2 && p2) hybMark(R, p2, seed);
     if (st !== 2) return;
-    const pal = fpal(asp), gy = R.ground + 0.4, cx = R.cx, rx = clamp(R.shw * 1.05, 9, 19), top = Math.max(...R.parts.map(p => p.z)) + 1, low = Math.min(...R.parts.map(p => p.z)) - 1, H = R.DS * 0.42;
+    // 혼종 2성은 발치의 살 무더기와 탯줄이 짝 속성 빛이다 (작은 아이콘에서도 갈래가 갈리게)
+    const pal = fpal(p2 || asp), gy = R.ground + 0.4, cx = R.cx, rx = clamp(R.shw * 1.05, 9, 19), top = Math.max(...R.parts.map(p => p.z)) + 1, low = Math.min(...R.parts.map(p => p.z)) - 1, H = R.DS * 0.42;
     // 살 탯줄: 무더기에서 몸 뒤로 이어진다(떠 있는 것도 아직 살에 매여 있다)
     [[-0.45, 0], [0.4, 1.9]].forEach(([dx, ph], k) => R.part('cord' + k, { px: cx + dx * rx, py: gy - 2, z: low, role: 'sway', amp: 0.5, ph }, D => tent(D, [[cx + dx * rx, gy - 2], [cx + dx * rx * 0.8, gy - H * 0.45], [cx + dx * rx * 0.35 + (k ? 1 : -1), gy - H * 0.8], [cx + (k ? 1.5 : -1.5), gy - H]], 1.7, 0.9, [FL.out, pal[3], pal[1], pal[4]], null)));
     R.part('pool2', { px: cx, py: gy, z: low - 1 }, D => { D.flat(D.el(cx + 1, gy + 0.4, rx + 3.4, 1.7), mixh(FL.fluid, '#000000', 0.3), null); D.flat(D.el(cx - rx * 0.4, gy + 0.1, rx * 0.4, 0.6), FL.shade, null); D.px(cx - rx * 0.6, gy, FL.lit); });
-    R.part('mound', { px: cx, py: gy, z: top, role: 'body', amp: 0.45 }, D => fleshMound(D, cx, gy, rx, pal, asp, seed));
+    R.part('mound', { px: cx, py: gy, z: top, role: 'body', amp: 0.45 }, D => fleshMound(D, cx, gy, rx, pal, p2 || asp, seed));
   }
   // ── ART-FLESH 끝
   // ── ART-INV2 시작
@@ -5702,7 +5774,7 @@ const LAIRART = (() => {
   }
   const EXEC_IDS = Object.keys(EXEC);
   // ── ART-EXEC 끝
-  const API = { storyArt, storyArtFor, STORY_ART, STORY_KEYS, unit, boss, icon, bust, BUSTS, prewarm, mazeRock, mazeFloor, mazeTrap, mazeRoomMark, mazeEntrance, mazeEntranceGlow, mazeEgg, mazeBack, mazeScout, mazeTitle, mazeCore, mazeParty, mazePath, MAZE_TRAPS, role, roleDraw, ROLEC, SHOOT, ANIM, DEF, BOSS, P, PAD, lean, FX, fx, num, bar, tile, wallTop, entrance, room, ROOMS, aspIcon, clsIcon, sym, mockBoard, mockScene, exec, EXEC_DUR, EXEC_GORE, EXEC_IDS, gore, ids: side => Object.keys(DEF).filter(k => (DEF[k].side || 'kin') === side) };
+  const API = { storyArt, storyArtFor, STORY_ART, STORY_KEYS, unit, boss, icon, bust, BUSTS, PARTNER, prewarm, mazeRock, mazeFloor, mazeTrap, mazeRoomMark, mazeEntrance, mazeEntranceGlow, mazeEgg, mazeBack, mazeScout, mazeTitle, mazeCore, mazeParty, mazePath, MAZE_TRAPS, role, roleDraw, ROLEC, SHOOT, ANIM, DEF, BOSS, P, PAD, lean, FX, fx, num, bar, tile, wallTop, entrance, room, ROOMS, aspIcon, clsIcon, sym, mockBoard, mockScene, exec, EXEC_DUR, EXEC_GORE, EXEC_IDS, gore, ids: side => Object.keys(DEF).filter(k => (DEF[k].side || 'kin') === side) };
   if (typeof window !== 'undefined') window.LAIRART = API;
   return API;
 })();
@@ -6334,7 +6406,7 @@ function lrEnt(u) {
 }
 // 주역을 가리지 않게 작고 흐리게 그리는 것
 const LMINOR = { spawn: 1, infected: 1 };
-function lrHandle(e) { if (e.core) return lrBossH(e.form || 'drop', LU.F ? LU.F.step : 0); const aid = lrArtId(e.kind, e.artSt); if (aid === 'seeker') { const k = e.msan ? e.san / e.msan : 1; return LAIRART.unit('seeker', k > 0.66 ? 1 : k > 0.33 ? 2 : 3); } return LAIRART.unit(aid, aid === e.kind || LAIR.KIN[e.kind] ? e.star : 1) || LAIRART.unit('spawn', 1); }
+function lrHandle(e) { if (e.core) return lrBossH(e.form || 'drop', LU.F ? LU.F.step : 0); const aid = lrArtId(e.kind, e.artSt); if (aid === 'seeker') { const k = e.msan ? e.san / e.msan : 1; return LAIRART.unit('seeker', k > 0.66 ? 1 : k > 0.33 ? 2 : 3); } return (e.br ? LAIRART.unit(aid, aid === e.kind || LAIR.KIN[e.kind] ? e.star : 1, e.br) : LAIRART.unit(aid, aid === e.kind || LAIR.KIN[e.kind] ? e.star : 1)) || LAIRART.unit('spawn', 1); }
 function lrSetAnim(e, anim, T) { e.anim = anim; e.a0 = T; }
 // pri: 3 = 본체·우두머리의 스킬, 2 = 조사자·값진 권속의 스킬과 미침, 1 = 그 밖. 셋이 떠 있으면 더 가벼운 것을 지우고 뜨거나, 뜨지 않는다
 const LLABMAX = 3;
