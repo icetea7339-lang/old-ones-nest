@@ -853,6 +853,21 @@ html.mzbig { --mzf: 1.16; }
 @media (prefers-reduced-motion: reduce) { #mzv .mzv-lines p.now { animation: none; } }
 /* 안내서·창의 기록자 한 줄 (3판 문체): 본문과 구분되게 기울여 흐리게 */
 .mz-help .mz-nar, #modal .mz-nar { margin: 0 0 8px; color: #c9c4b4; font-style: italic; line-height: 1.55; }
+/* 땅 위 (src/mazesurf.js): 밤 지도와 누르는 자리, 장소 창, 둥지 방의 「땅 위」 단추 */
+#mz-sheet .mzsf-map { position: relative; margin: 6px 0 8px; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: #05040c; }
+#mz-sheet .mzsf-map canvas { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; image-rendering: pixelated; }
+#mz #mz-sheet .mzsf-pin { position: absolute; transform: translate(-50%, -50%); min-height: 28px; padding: 0 6px; border-radius: 12px; border: 1px solid #ffffff40; background: #0b0812cc; color: #f0e6d0; font-size: calc(11px * var(--mzf, 1)); white-space: nowrap; }
+#mz #mz-sheet .mzsf-pin.fog { color: #8a8494; border-style: dashed; }
+#mz #mz-sheet .mzsf-pin.on { border-color: #ffd36a; color: #ffd36a; }
+#mz-sheet .mzsf-panel { display: flex; gap: 10px; align-items: flex-start; margin: 4px 0 8px; padding: 8px; border-radius: 8px; background: #0f0c18; }
+#mz-sheet .mzsf-panel canvas { flex: 0 0 38%; width: 38%; height: auto; aspect-ratio: 2 / 1; image-rendering: pixelated; border-radius: 4px; }
+#mz-sheet .mzsf-panel > div { flex: 1 1 auto; min-width: 0; }
+#mz-sheet .mzsf-panel b { display: block; font-size: calc(15px * var(--mzf, 1)); color: #f0e6d0; }
+#mz-sheet .mzsf-panel.fog { display: block; color: #a8a2b4; }
+#mz-sheet .mzsf-panel p { margin: 4px 0 0; font-size: calc(12.5px * var(--mzf, 1)); line-height: 1.45; }
+#mz-sheet .mzsf-mem { color: #b490ea; } #mz-sheet .mzsf-who { color: #ffcf8a; } #mz-sheet .mzsf-know { color: #d8d0c4; }
+#mzn-stage { position: relative; }
+#mz #mzn-surf { position: absolute; right: 8px; top: 6px; min-height: 28px; padding: 0 10px; border-radius: 14px; border: 1px solid #ffcf6a66; background: #0b0812cc; color: #ffcf8a; font-size: calc(12px * var(--mzf, 1)); z-index: 2; }
 /* 장면 읽기 (src/mazescene.js, #mzs). 그림이 화면 가득, 아래 대사 상자와 이름 칸, 말하는 이의 큰 초상 */
 #mzs { position: fixed; inset: 0; z-index: 80; overflow: hidden; background: #050308; color: var(--text); font-family: var(--body); font-size: 16px; line-height: 1.6; cursor: pointer; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent;
   --sat: env(safe-area-inset-top, 0px); --sab2: env(safe-area-inset-bottom, 0px); --bp: 176px; --ah: 78vh; }
@@ -2784,6 +2799,37 @@ const MAZE = (() => {
     tower: { need: 8, lv: 7, gold: 18, food: 6, alert: 6, asp: 'nebula', avenger: 'inquis' },
   };
   const STRIKE_IDS = Object.keys(STRIKE), POWERS = ['weak', 'strong', 'raze'];
+  // 먹은 자의 기억 (2026-11-25): 사람을 먹으면 그 사람이 알던 땅 위의 곳이 살덩이에게 들어온다. 그곳을 알아야 칠 수 있다(need 대신).
+  //   KNOW = 침입자 종류 → 아는 곳들. 처음에는 떨어진 언덕 아래 양 우리(hut)만 안다. 속삭임도 그 사람이 있는 곳의 기억을 하나 준다(WHO_AT).
+  //   MEM_LV = 기억이 이만큼 쌓이면 그곳에 대해 더 안다(장면이 뜬다). 마지막 단계(4)부터는 그곳의 약한 데를 알아 칠 때 진액 +2, 경계 −1.
+  const KNOW = {
+    militia: ['village'], torch: ['village'], banner: ['village', 'chapel'], archer: ['village', 'archive'], bard: ['village', 'archive'], rogue: ['village', 'workshop'],
+    knight: ['archive', 'workshop'], mage: ['archive', 'tower'], priest: ['chapel'], paladin: ['chapel'], templar: ['chapel'], exorcist: ['chapel'], inquis: ['chapel', 'tower'],
+    crossbow: ['workshop'], alchemist: ['workshop'], tracker: ['hut', 'chapel'], seeker: ['tower'], seekerm: ['tower'],
+    c_eda: ['archive', 'tower'], c_rowen: ['archive'], c_mirel: ['chapel'], c_tov: ['hut', 'chapel'], c_isel: ['workshop'], c_vasco: ['village'],
+  };
+  const WHO_AT = { vasco: 'village', chief: 'village', eda: 'archive', rowen: 'archive', isel: 'workshop', mirel: 'chapel' };
+  const MEM_LV = [1, 2, 4];
+  const memLv = n => MEM_LV.reduce((a, t, i) => (n >= t ? i + 1 : a), 0);
+  // 기억을 하나 더한다. 단계가 오르면 장면을 줄에 넣는다 (who = 먹은 자의 종류 또는 'whisper'·'dream'·'raid')
+  function knowAdd(M, place, n, who) {
+    if (!STRIKE[place]) return 0; M.known = M.known || {}; M.memQ = M.memQ || []; M.memSeen = M.memSeen || {};
+    const a = M.known[place] || 0, b = a + (n || 1), la = memLv(a), lb = memLv(b); M.known[place] = b;
+    for (let lv = la + 1; lv <= lb; lv++) { const key = place + ':' + lv; if (!M.memSeen[key]) { M.memSeen[key] = 1; M.memQ.push({ place, lv, who: who || null, night: M.night }); } }
+    if (who && /^c_/.test(who) && la === lb) { const key = place + ':' + who; if (!M.memSeen[key]) { M.memSeen[key] = 1; M.memQ.push({ place, lv: lb, who, night: M.night, named: true }); } }
+    return lb - la;
+  }
+  function knowFrom(M, kind) { (KNOW[kind] || []).forEach(p => knowAdd(M, p, 1, kind)); }
+  // 옛 저장: 지금까지 친 곳과, 예전 규칙(need)으로 열려 있던 곳을 아는 것으로 친다
+  function knowMigrate(M) {
+    if (M.known) return; M.known = { hut: 1 }; M.memQ = []; M.memSeen = { 'hut:1': 1 };
+    STRIKE_IDS.forEach(id => { if ((M.struck[id] || 0) > 0 || M.strikes >= STRIKE[id].need) { M.known[id] = Math.max(M.known[id] || 0, 1); M.memSeen[id + ':1'] = 1; } });
+  }
+  // 지금 그곳에 있는 이름 있는 인물 (이야기의 밤을 따라). 먹힌 이는 빠진다
+  const WHO_PLACE = [['hut', '양치기', 0, 99, null], ['village', '촌장', 0, 99, null], ['village', '늙은 바스코', 3, 99, 'c_vasco'], ['archive', '에다 볼크', 8, 30, 'c_eda'], ['archive', '로웬 하스', 8, 99, 'c_rowen'],
+    ['workshop', '이셀 드란', 13, 99, 'c_isel'], ['chapel', '미렐 수녀', 24, 99, 'c_mirel'], ['chapel', '기사단장', 24, 99, null], ['tower', '에녹 하르', 0, 99, null], ['tower', '에다 볼크', 31, 99, 'c_eda']];
+  function whoAt(M, place) { if (M.mode !== 'story') return []; const ate = (M.grow && M.grow.ate) || {}; return WHO_PLACE.filter(w => w[0] === place && M.night >= w[2] && M.night <= w[3] && !(w[4] && ate[w[4]])).map(w => w[1]); }
+  const memDone = M => { if (M.memQ && M.memQ.length) M.memQ.shift(); return ok({ left: (M.memQ || []).length }); };
   // 이름에 든 사람이 일행에서 빠지면 바뀌는 침입 이름
   const RENAME = { c5_mirel: ['c_mirel', '성기사단'], c4_tov: ['c_tov', '덫 사냥꾼들'], c3_isel: ['c_isel', '깔때기 든 행렬'] };
   // 속삭일 수 있는 여섯: need = 이 밤부터, 이 침입을 겪은 뒤. unit = 일행에 끼어 오는 그 사람, asp = 오르는 성향, result = 다섯 번 채우면 서는 깃발
@@ -2838,7 +2884,7 @@ const MAZE = (() => {
     const G = MK.grow, cat = victimCat(kind), mul = where.cell === CORE ? G.coreMul : 1, room = where.cell === CORE ? null : (M.grid[where.cell] && M.grid[where.cell].room) || null;
     let a = ROOM_ASP[room] || (where.wet ? 'abyss' : null) || VICTIM_ASP[kind] || null, pts = (G.pts[cat] || 1) * mul; const known = !!a;
     if (!a) { a = topAsp(M) || (where.cell === CORE && M.body && FORMS[M.body.form] ? M.body.form : null); pts = pts * G.other; }
-    const food = (G.food[cat] || 1) * mul; M.xp += food; M.grow.eaten += food; addAsp(M, a, pts, 'eat');
+    const food = (G.food[cat] || 1) * mul; M.xp += food; M.grow.eaten += food; addAsp(M, a, pts, 'eat'); knowFrom(M, kind);
     const why = ROOM_ASP[room] ? room : where.wet ? 'wet' : known ? cat === 'seeker' ? kind : a : 'other'; M.grow.ate[why] = (M.grow.ate[why] || 0) + 1;
     return { kind, food, asp: a, pts, core: where.cell === CORE, room };
   }
@@ -2877,7 +2923,7 @@ const MAZE = (() => {
       gold: MK.gold, level: MK.level, xp: 0, egg: MK.egg, eggMax: MK.egg, alert: 0, heat: 0, drift: 0,
       pick: Object.assign(ML.defaults(), { core: 'core_2' }), rooms: {}, grid: [], builds: 0, spent: 0,
       unit: {}, board: {}, bench: [], nextUid: 1, rows: [], born: 0, bornSpent: 0, freeBirth: 0,
-      strikes: 0, struck: {}, shut: {}, whisper: {}, flags: {}, fired: {}, raidLog: [], raidN: 0, extraN: 0, sure: false, avenge: null, boon: {},
+      strikes: 0, struck: {}, shut: {}, known: { hut: 1 }, memQ: [], memSeen: { 'hut:1': 1 }, whisper: {}, flags: {}, fired: {}, raidLog: [], raidN: 0, extraN: 0, sure: false, avenge: null, boon: {},
       captives: 0, kills: 0, cmd: null, omen: null, dawn: null, last: null, hist: [], grow: newGrow(), body: null, awaken: null, awakened: 0, snap: null, retries: 0, score: null };
     for (let i = 0; i < MK.bench; i++) M.bench.push(null);
     restamp(M); return M;
@@ -3320,6 +3366,7 @@ const MAZE = (() => {
     if (M.mode !== 'story' && M.egg < M.eggMax && M.night % 4 === 0) M.egg = Math.min(M.eggMax, M.egg + MK.free.regen);
     signNight(M);
     rollRows(M); M.omen = omenOf(M);
+    if (M.mode === 'story' && actIx(M) >= ACTS.length - 1 && !(M.known && M.known.tower)) knowAdd(M, 'tower', 1, 'dream');
     if (M.mode === 'story' && ACTS.some(A => A.from === M.night)) M.snap = snapOf(M);
     return M;
   }
@@ -3354,15 +3401,16 @@ const MAZE = (() => {
   function back(M) { if (M.phase !== 'build' && M.phase !== 'birth') return fail('물릴 명령이 없다'); if (M.cmd.did) return fail('이미 손을 댔다'); M.phase = 'night'; M.cmd = null; return ok({ back: true }); }
   // 땅 위를 친다
   function strikeWhy(M, place, power) {
-    const T = STRIKE[place]; if (!T) return '없는 곳이다'; if (!POWERS.includes(power)) return '없는 세기이다'; if (M.strikes < T.need) return '땅 위를 ' + T.need + '번 친 뒤에 열린다';
+    const T = STRIKE[place]; if (!T) return '없는 곳이다'; if (!POWERS.includes(power)) return '없는 세기이다'; if (!((M.known || {})[place] >= 1)) return '그대는 아직 그곳을 모른다. 그곳 사람을 먹어야 기억이 들어오리라'; if (M.strikes < T.need) return '그곳까지 손을 뻗기에는 아직 이르다. 땅 위를 ' + (T.need - M.strikes) + '번 더 쳐야 하리라';
     if (M.shut[place]) return '쓸어버린 곳이다. ' + M.shut[place] + '번째 밤에 다시 열린다'; const lv = power === 'weak' ? 0 : T.lv + (power === 'raze' ? MK.strike.lvUp : 0); if (M.level < lv) return '본체 레벨 ' + lv + '부터 할 수 있다'; return null;
   }
   // 그 세기로 치면 얻는 것 (보기용)
-  function strikeGain(M, place, power) { const T = STRIKE[place], P = MK.strike[power]; return { gold: Math.round(T.gold * P.gold), food: Math.round(T.food * P.food), alert: place === 'hut' && power === 'weak' ? -1 : Math.max(1, Math.round(T.alert * P.alert)), asp: T.asp, pts: P.pts, kinXp: P.kin || 0 }; }
+  function strikeGain(M, place, power) { const T = STRIKE[place], P = MK.strike[power], deep = memLv(((M && M.known) || {})[place] || 0) >= MEM_LV.length, al = place === 'hut' && power === 'weak' ? -1 : Math.max(1, Math.round(T.alert * P.alert) - (deep ? 1 : 0)); return { gold: Math.round(T.gold * P.gold) + (deep ? 2 : 0), food: Math.round(T.food * P.food), alert: al, asp: T.asp, pts: P.pts, kinXp: P.kin || 0, deep }; }
   function strike(M, place, power) {
     power = power || 'strong'; const e = commandWhy(M, 'strike') || strikeWhy(M, place, power); if (e) return fail(e); const g = strikeGain(M, place, power);
     M.gold += g.gold; M.xp += g.food; M.grow.eaten += g.food; addAsp(M, g.asp, g.pts, 'night'); M.alert = clamp(M.alert + g.alert, 0, MK.alert.max); M.strikes++; M.struck[place] = (M.struck[place] || 0) + 1; M.sure = M.night; M.avenge = place;
     if (g.kinXp) { let n = 0; boardUids(M).forEach(uid => { if (M.unit[uid]) { kinGain(M, uid, g.kinXp); n++; } }); g.kin = n; }
+    if (power !== 'weak') knowAdd(M, place, 1, 'raid');
     if (power === 'raze') { M.shut[place] = M.night + MK.strike.shut; M.flags['razed_' + place] = true; }
     if (place === 'workshop' && power !== 'weak') M.flags.forge = true; if (place === 'tower' && power !== 'weak') M.flags.towerDown = true;
     const up = levelUp(M), next = proceed(M, 'strike', { place, power }, Object.assign({ up }, g)); return ok({ place, power, gains: g, up, alert: M.alert, next });
@@ -3374,7 +3422,7 @@ const MAZE = (() => {
   }
   function whisper(M, who) {
     const e = commandWhy(M, 'whisper') || whisperWhy(M, who); if (e) return fail(e); const W = WHO[who], n = (M.whisper[who] = (M.whisper[who] || 0) + 1), pts = addAsp(M, W.asp, MK.whisper.pts, 'night');
-    M.alert = clamp(M.alert + MK.alert.whisper, 0, MK.alert.max); let result = null;
+    M.alert = clamp(M.alert + MK.alert.whisper, 0, MK.alert.max); let result = null; if (WHO_AT[who]) knowAdd(M, WHO_AT[who], 1, 'whisper');
     // 그 장면의 효과 (이야기 자료): 진액 · 경계 · 알, 다음 일행 (reveal 갈 길이 보임 · lost 헤맴 · drop 하나가 빠짐)
     const SD = storyData(), sc = SD && SD.whispers && SD.whispers[who] && SD.whispers[who].scenes ? SD.whispers[who].scenes[n - 1] : null, fx = signWhisperFx(M, (sc && sc.effect) || null), eff = {};
     if (fx) { if (fx.gold) { const g0 = M.gold; M.gold = Math.max(0, M.gold + fx.gold); eff.gold = M.gold - g0; } if (fx.alert) { const a0 = M.alert; M.alert = clamp(M.alert + fx.alert, 0, MK.alert.max); eff.alert = M.alert - a0; } if (fx.egg) { const e0 = M.egg; M.egg = clamp(M.egg + fx.egg, 1, M.eggMax); eff.egg = M.egg - e0; }
@@ -3465,7 +3513,7 @@ const MAZE = (() => {
   const parse = json => { try { return typeof json === 'string' ? JSON.parse(json) : json; } catch (e) { return null; } };
   // 옛 판의 저장인가 (불러올 수 없다. 화면은 「옛 저장」이라고 알린다)
   function isOld(json) { const M = parse(json); return !!(M && typeof M === 'object' && M.v != null && M.v !== V); }
-  function load(json) { const M = parse(json); if (!M || M.v !== V || !M.pick || !M.unit || !M.board || !Array.isArray(M.bench) || !M.rs || !M.grow || !M.omen) return null; if (!ML.ZONE_IDS.every(z => ML.get(M.pick[z]))) return null; restamp(M); sgFill(M); return M; }
+  function load(json) { const M = parse(json); if (!M || M.v !== V || !M.pick || !M.unit || !M.board || !Array.isArray(M.bench) || !M.rs || !M.grow || !M.omen) return null; if (!ML.ZONE_IDS.every(z => ML.get(M.pick[z]))) return null; restamp(M); sgFill(M); knowMigrate(M); return M; }
 
   // ───────── 화면이 읽는 것 ─────────
   const trapInfo = id => (TRAP[id] ? { id, name: TRAP[id].name, short: TRAP[id].short, more: TRAP[id].more, fx: TRAP[id].fx, maze: !!(TRAP[id].lure || TRAP[id].maw || TRAP[id].confuse) } : null);
@@ -3540,10 +3588,10 @@ const MAZE = (() => {
       // 권속
       bench: M.bench.map(uid => (uid != null ? unitView(M, uid) : null)), units: owned(M).map(u => unitView(M, u.uid)), births: M.rows.map((r, i) => rowView(M, r, i)), born: M.born, bornSpent: M.bornSpent, birthOpen: MK.birth.open,
       // 땅 위 · 속삭임
-      strikes: { n: M.strikes, list: STRIKE_IDS.map(id => { const T = STRIKE[id]; return { id, need: T.need, lv: T.lv, asp: T.asp, struck: M.struck[id] || 0, shut: M.shut[id] || null, open: M.strikes >= T.need, powers: POWERS.map(p => { const why = strikeWhy(M, id, p); return Object.assign({ id: p, can: !why && !commandWhy(M, 'strike'), why }, strikeGain(M, id, p)); }) }; }) },
+      strikes: { n: M.strikes, list: STRIKE_IDS.map(id => { const T = STRIKE[id], mem = (M.known || {})[id] || 0, lv = memLv(mem); return { id, need: T.need, lv: T.lv, asp: T.asp, struck: M.struck[id] || 0, shut: M.shut[id] || null, open: mem >= 1, mem, memLv: lv, memNext: MEM_LV[lv] || null, deep: lv >= MEM_LV.length, who: whoAt(M, id), powers: POWERS.map(p => { const why = strikeWhy(M, id, p); return Object.assign({ id: p, can: !why && !commandWhy(M, 'strike'), why }, strikeGain(M, id, p)); }) }; }) },
       whispers: WHO_IDS.map(id => { const W = WHO[id], why = whisperWhy(M, id), n = M.whisper[id] || 0; return { id, n, max: MK.whisper.max, half: MK.whisper.half, asp: W.asp, unit: W.unit, met: M.mode === 'story' && M.night >= W.night && (!W.afterRaid || M.raidLog.includes(W.afterRaid)), can: !why && !commandWhy(M, 'whisper'), why, until: WHISPER_UNTIL, result: W.result, done: flagOn(M, W.result), boon: RESULT[W.result] }; }),
       // 기르기 · 깨어남 · 이야기
-      grow: growView(M), awaken: M.awaken ? awakenView(M) : null, awakened: M.awakened || 0, story: M.mode === 'story' ? storyView(M) : null, events: dueEvents(M), ending: M.over && M.over.ending || null, endingAsp: M.over && M.over.endingAsp || null,
+      surface: { tier: gradeOf(M), known: STRIKE_IDS.filter(id => ((M.known || {})[id] || 0) >= 1).length }, memories: (M.memQ || []).slice(), grow: growView(M), awaken: M.awaken ? awakenView(M) : null, awakened: M.awakened || 0, story: M.mode === 'story' ? storyView(M) : null, events: dueEvents(M), ending: M.over && M.over.ending || null, endingAsp: M.over && M.over.endingAsp || null,
       last: M.last, hist: M.hist, raidLog: M.raidLog.slice(), raidN: M.raidN };
   }
   // ───────── 밤의 징조 (자료: src/mazeomens.js) ─────────
@@ -3708,7 +3756,7 @@ const MAZE = (() => {
   return { V, COLS, ROWS, N, ENT, EXIT, CORE, EGG, MK, ACTS, CHAPTERS: ACTS, WHISPER_UNTIL, NIGHTS, SCRIPT, RAID_DEF, COMMANDS, STRIKE, STRIKE_IDS, POWERS, WHO, WHO_IDS, RESULT, PERK, TRAP, TRAP_IDS, FORMS, FORM_IDS, CHORES, CHORE_IDS, VICTIM_ASP, ROOM_ASP, RISE_KIN, AVOIDERS, BREAKERS, SCOUTS, ASPN,
     rc, idx, useStory, newRun, newDaily, dateSeed, newStory, view, save, load, isOld,
     dream, quench, darkMulOf, signView, signKeep, pressOf, signNight, signApply, sgFill, birthPrice, quietOf, SIGN: MO,
-    command, commandWhy, done, back, setLayout, layoutWhy, setRoom, roomWhy, birth, birthWhy, birthLock, rollRows, priceOf, strike, strikeWhy, strikeGain, whisper, whisperWhy, raise, chore, rest, raid, retry,
+    command, commandWhy, done, back, setLayout, layoutWhy, setRoom, roomWhy, birth, birthWhy, birthLock, rollRows, priceOf, strike, strikeWhy, strikeGain, KNOW, WHO_AT, MEM_LV, memLv, knowAdd, eatOne, knowMigrate, memDone, whoAt, whisper, whisperWhy, raise, chore, rest, raid, retry,
     evoView, brCheck, move, placeWhy, roomCap, eatKin, feedKin, eatValue, feedXp, whereOf, kinPow, kinGain, kinNeed, kinTotal, newUnit, awaken, bodyOf, topAsp, growView,
     omenOf, raidOf, nextRaid, partyOf, pathOf, walker, scoutPath, roomSyn, gradeOf, opensOf, actIx, luxOf, fxOf, wallsOf, restamp, dueEvents, eventDone, whenOk, needOk, endingOf, endingAspOf, scoreOf, trapInfo, unitView, maxLvOf, advance };
 })();
@@ -9655,27 +9703,27 @@ const MAZESTORY = (() => {
   // 4. 땅 위를 치는 대상. need.strikes = 그만큼 친 뒤에 열린다. outcomes: weak 약하게 / strong 세게 / raze 다 쓸어버림(얻는 것이 줄고 경계가 크게 오른다)
   //    숫자는 규칙 쪽. 이름 있는 사람은 다 쓸어도 죽지 않는다(글이 그렇게 적혀 있다)
   const strikes = [
-    { id: 'hut', name: '양치기의 우리', place: 'village', need: { strikes: 0 }, desc: '언덕 아래 양 우리입니다. 지키는 것은 개 한 마리뿐입니다.', outcomes: {
+    { id: 'hut', name: '양치기의 우리', place: 'village', need: { strikes: 0 }, desc: '언덕 아래 양 우리이다. 지키는 것은 개 한 마리뿐이다.', outcomes: {
       weak: '아침이 되자 우리에는 젖은 털만 남아 있었다. 양 두 마리가 없어졌으니, 울타리 안쪽 진흙에 남은 자국은 인간의 어떤 짐승 도감에도 없는 것이었다.',
       strong: '개는 짖지 않았다. 양치기는 빈 우리 앞에서 발자국을 세다가 그만두었다. 발가락 수가 걸음마다 달랐다. 그는 그날 이후 다시는 발자국을 세지 않았다.',
       raze: '아침에는 우리도 오두막도 없었다. 양치기는 맨발로 마을까지 달려 내려가 입을 열지 못하였다. 그날로 언덕 아래에는 아무도 살지 않게 되었다.' } },
-    { id: 'village', name: '물레골', place: 'village', need: { strikes: 1 }, desc: '굴뚝 스무 개 남짓한 마을입니다. 해가 지면 집집마다 덧문을 겁니다.', outcomes: {
+    { id: 'village', name: '물레골', place: 'village', need: { strikes: 1 }, desc: '굴뚝 스무 개 남짓한 마을이다. 해가 지면 집집마다 덧문을 건다.', outcomes: {
       weak: '술집에서 나온 사내는 집에 닿지 못하였다. 이튿날 굴 밑에서 눈을 떴을 때 그는 이미 사람이 아니었으니, 그가 무엇이 되었는지는 차라리 모르는 편이 낫다.',
       strong: '곳간 문이 안쪽에서 열려 있었다. 촌장은 없어진 것을 장부에 적다가 사람의 이름을 적을 차례에 이르러 펜을 놓았다.',
       raze: '그날 밤 물레골 굴뚝의 절반이 식었다. 남은 집들은 불을 끄고 숨을 죽였다. 고갯길 등불만이, 그 이름 붙일 수 없는 밤 한가운데서 홀로 타고 있었다.' } },
-    { id: 'chapel', name: '예배당', place: 'chapel', need: { strikes: 2 }, desc: '종탑과 고해실이 있습니다. 치면 교단 사람들이 서둘러 옵니다.', outcomes: {
+    { id: 'chapel', name: '예배당', place: 'chapel', need: { strikes: 2 }, desc: '종탑과 고해실이 있다. 치면 교단 사람들이 서둘러 오리라.', outcomes: {
       weak: '고해실의 신부는 그날 밤 자기 죄가 아닌 것을 고백하였다. 그 죄는 인간이 지을 수 있는 종류의 것이 아니었고, 신부 자신도 그것을 기억하지 못하였다.',
       strong: '종이 한 번 울리다 말았다. 그 끊긴 울림이 채 가시기도 전에, 고개 너머에서 횃불이 줄지어 일어섰다.',
       raze: '종은 줄째 끊겨 종탑 바닥에 엎어져 있었다. 제단은 젖었고 성수반은 비었다. 수녀는 무릎 꿇은 자리에서 한참 일어나지 못하였으니, 신성모독이란 바로 그런 광경을 두고 하는 말이었다.' } },
-    { id: 'archive', name: '기록관의 방', place: 'archive', need: { strikes: 4 }, desc: '여관 이층, 기록관 에다 볼크의 방입니다. 저울과 기록장이 있습니다.', outcomes: {
+    { id: 'archive', name: '기록관의 방', place: 'archive', need: { strikes: 4 }, desc: '여관 이층, 기록관 에다 볼크의 방이다. 저울과 기록장이 있다.', outcomes: {
       weak: '그날 밤 에다 볼크는 잠결에 굴의 지도를 그렸다. 아침에 그 지도를 받아 간 일행은 그것이 거꾸로인 줄 몰랐다.',
       strong: '기록장은 젖은 채 돌아왔다. 마지막 쪽만 뜯겨 나가 있었다. 무엇이 그 쪽을 가져갔는지, 그 쪽에 무엇이 적혀 있었는지 기록관은 떠올리기를 거부하였다.',
       raze: '여관 이층에는 저울 하나만 남았다. 종이는 한 장도 없었다. 기록관은 그 밤 자신이 어디 있었는지 스스로도 대지 못하였다.' } },
-    { id: 'workshop', name: '연금술 공방', place: 'workshop', need: { strikes: 6 }, desc: '이셀 드란의 공방입니다. 꺼지지 않는 화로와 굴물 병들이 있습니다.', outcomes: {
+    { id: 'workshop', name: '연금술 공방', place: 'workshop', need: { strikes: 6 }, desc: '이셀 드란의 공방이다. 꺼지지 않는 화로와 굴물 병들이 있다.', outcomes: {
       weak: '북쪽 창턱에 있던 병 하나가 떨어져 깨졌다. 쏟아진 진액은 마치 제 갈 길을 아는 듯 마루 틈으로 스며 아래로 돌아갔다.',
       strong: '화로가 안쪽에서 터졌다. 불을 넣은 사람은 없었다. 터진 자리의 쇠는 녹은 것이 아니라 비유클리드적인 각도로 접혀 있었다.',
       raze: '공방 굴뚝에서 사흘 동안 보랏빛 연기가 났다. 병은 하나도 남지 않았다. 이셀 드란은 도제를 업고 나와 길 건너에서 그 불경한 연기를 끝까지 지켜보았다.' } },
-    { id: 'tower', name: '북쪽 탑', place: 'tower', need: { strikes: 8 }, desc: '밤새 불이 켜진 탑입니다. 누가 사는지 마을 사람들은 모릅니다.', outcomes: {
+    { id: 'tower', name: '북쪽 탑', place: 'tower', need: { strikes: 8 }, desc: '밤새 불이 켜진 탑이다. 누가 사는지 마을 사람들은 모른다.', outcomes: {
       weak: '탑의 창이 밤새 열려 있었다. 누군가 권속들이 꾼 꿈을 받아 적었으니, 권속들은 그 뒤로 한동안 꿈을 꾸지 않았다.',
       strong: '탑의 책상에 굴의 지도가 펼쳐져 있었다. 이미 다 그려진, 아직 파이지 않은 갈래까지 그려진 지도였다.',
       raze: '탑의 계단은 끝이 없었다. 위로 오를수록 계단은 인간의 기하학이 허락하지 않는 방향으로 휘었다. 올라간 권속들은 내려오지 않았다.' } }
@@ -9791,7 +9839,63 @@ const MAZESTORY = (() => {
     ]
   };
 
-  return { chapters, night, endings, endingAsp, logs, retry, KINDS: ['n', 'echo', 'dream', 'say', 'note'],
+  // 7. 먹은 자의 기억 (2026-11-25): 땅 위의 곳이 살덩이에게 드러나는 장면. 곳마다 셋(기억 1·2·4). who 가 이름 있는 인물이면 named 의 한 줄이 덧붙는다.
+  //    place = 장면 그림을 고르는 장소 이름(STORY_ART), know = 땅 위 화면에서 그곳에 대해 아는 것(단계마다 한 줄), how = 기억이 들어온 길(먹음·속삭임·꿈)마다 첫 줄
+  const memories = {
+    how: {
+      eat: '— 이름 모를 수기. 먹힌 자의 기억이 살 속으로 스며들던 밤에 관하여.',
+      whisper: '— 이름 모를 수기. 잠든 자의 꿈길을 거슬러 올라가 보았던 것에 관하여.',
+      raid: '— 이름 모를 수기. 땅 위에서 끌어 내린 자들의 마지막 눈에 남아 있던 것에 관하여.',
+      dream: '— 이름 모를 수기. 누군가의 꿈이 거꾸로 흘러들어 오던 밤에 관하여.',
+    },
+    hut: { place: '하늘과 언덕', know: ['언덕 아래, 개 한 마리가 지키는 양 우리가 있다. 처음 떨어진 밤부터 그 냄새를 알고 있었다.', '양치기는 해가 지면 우리 문을 두 번 확인하고 그 뒤로는 돌아보지 않는다.', '울타리 북쪽 말뚝 셋이 썩었으니, 그리로 들어가면 개도 짖지 못한다.'],
+      scenes: [
+        ['살덩이가 처음 땅 위를 안 것은 젖은 털과 마른 풀 냄새를 통해서였다.', '언덕 아래에는 숨 쉬는 것들이 울타리 안에 모여 잠들어 있었고, 그 가장자리에서 개 한 마리가 낮게 으르렁거렸다.', '그것은 아직 그 짐승들의 이름을 몰랐으나, 그 따뜻함만은 뼛속까지 스며드는 굶주림으로 기억하였다.'],
+        ['먹힌 자의 기억 속에서 양치기의 손이 우리 문의 빗장을 두 번 만지고 있었다.', '그 손은 떨리고 있었으니, 그는 이미 언덕 밑의 무언가를 두려워하고 있었던 것이다.', '그 두려움의 맛은 살덩이에게 놀랍도록 달았다.'],
+        ['기억이 쌓이자 우리의 모든 말뚝과 진흙의 자국이 형언할 수 없을 만큼 또렷해졌다.', '북쪽 말뚝 셋이 속부터 썩어 있었고, 개는 그쪽 바람을 등지고 잠드는 버릇이 있었다.', '이제 그곳은 살덩이의 혀끝처럼 가까웠다.'],
+      ] },
+    village: { place: '물레골 집회소', know: ['굴뚝 스무 개 남짓한 마을, 물레골. 해가 지면 집집마다 덧문을 건다.', '집회소에서 촌장이 사람들을 모은다. 창을 쥘 줄 아는 사내는 많지 않다.', '고갯길 등불 아래 밤번이 서는 시각과, 그들이 졸기 시작하는 시각을 안다.'],
+      scenes: [
+        ['횃불을 든 사내의 살을 삼키는 순간, 낯선 풍경이 살덩이의 안쪽에서 문을 열었다.', '낮게 엎드린 지붕들, 연기 오르는 굴뚝들, 그리고 저녁마다 덧문을 거는 손들 — 물레골이라는 이름이 거기 붙어 있었다.', '그것은 그날 처음으로, 자신이 사는 굴 위에 그토록 많은 따뜻한 것들이 모여 산다는 사실을 알았다.'],
+        ['두 번째 기억은 집회소의 불빛이었다. 사내들이 둘러앉아 목소리를 낮추고 언덕 밑의 일을 의논하고 있었다.', '그들의 말은 알아들을 수 없었으나 그 목소리에 섞인 공포는 어떤 언어보다도 분명하게 읽혔다.', '촌장이라 불리는 자가 모자를 손에서 돌리고 있었다.'],
+        ['기억이 넷에 이르자 마을은 살덩이에게 하나의 몸처럼 느껴졌다. 골목은 핏줄이었고 우물은 심장이었다.', '고갯길 등불 아래 밤번이 서는 시각과 그들이 졸기 시작하는 시각을, 그것은 이제 제 숨처럼 알았다.', '그 앎이야말로 인간의 이성으로는 견딜 수 없는 종류의 친밀함이었다.'],
+      ] },
+    chapel: { place: '물레골 예배당', know: ['종탑과 고해실이 있는 예배당. 치면 교단 사람들이 서둘러 온다.', '종은 해 질 녘과 자정에 울린다. 자정의 종 뒤로는 예배당이 비어 있다.', '제단 밑 지하 방에 성수 통이 있다. 그 물은 살덩이를 태우지 못한다.'],
+      scenes: [
+        ['성수 병을 쥐고 내려온 자의 기억은 쓰고 뜨거웠으니, 그 안에는 종탑이 하나 서 있었다.', '돌로 쌓은 그 높은 탑 아래에서 사람들은 무릎을 꿇고, 이름 붙일 수 없는 두려움을 다른 이름으로 불렀다.', '살덩이는 그 노래의 가락을 기억하였다. 그것은 오래전 별 사이에서 들은 무언가와 불길하게 닮아 있었다.'],
+        ['다른 사제의 기억은 고해실의 어둠이었다. 격자창 너머에서 누군가 굴 밑의 꿈을 털어놓고 있었다.', '사제는 그 꿈을 끝까지 듣지 못하고 창을 닫았다. 자정의 종이 울린 뒤 예배당은 비어 있었다.', '그 빈 시간의 길이를, 살덩이는 정확히 알게 되었다.'],
+        ['기억이 넷에 이르자 제단 밑 지하 방이 보였다. 성수 통들이 줄지어 있었고 그 물에는 아무 힘도 없었다.', '신은 이 골짜기 위에서 멈추어 서 있었으니, 아래까지는 결코 내려오지 않았던 것이다.', '그 사실을 안 순간 살덩이의 안쪽에서 무언가가 낮게 웃었다.'],
+      ] },
+    archive: { place: '여관의 이층 방', know: ['여관 이층, 도시에서 온 기록관의 방. 저울과 기록장이 있다.', '기록관은 밤새 굴물을 달고 숫자를 적는다. 등잔은 새벽까지 꺼지지 않는다.', '기록장의 마지막 쪽은 늘 비어 있다. 누군가 그 쪽을 채우기를 기다리는 것처럼.'],
+      scenes: [
+        ['칼을 찬 사내의 기억 속에는 좁은 계단과 이층 방 하나가 있었다. 창가에서 여자가 저울에 물을 달고 있었다.', '그 물은 굴에서 길어 간 것이었고, 여자는 그 무게를 몇 번이고 다시 적었다. 열하나, 열하나.', '살덩이는 그 숫자가 무엇을 뜻하는지 몰랐으나, 자신이 재어지고 있다는 것만은 알았다.'],
+        ['두 번째 기억은 등잔 밑의 기록장이었다. 빽빽한 글씨는 차분하다가, 굴에 관한 쪽에 이르러 흔들리기 시작하였다.', '기록관은 새벽까지 잠들지 않았다. 그 눈 밑의 그늘이 살덩이의 기억 속에서 점점 짙어졌다.'],
+        ['기억이 넷에 이르자 기록장의 마지막 쪽이 보였다. 그 쪽은 비어 있었으니, 마치 무언가를 기다리는 듯하였다.', '살덩이는 그 빈 종이가 저를 향해 열려 있다는, 이성을 초월한 확신에 사로잡혔다.'],
+      ] },
+    workshop: { place: '이셀의 공방', know: ['연금술사 이셀 드란의 공방. 꺼지지 않는 화로와 굴물 병들이 있다.', '공방은 굴물을 졸여 연료로 판다. 해가 지면 문을 두드리는 손님이 온다.', '화로 뒤 선반의 병들은 굴에서 길어 간 살이다. 그것들은 아직 살아 있다.'],
+      scenes: [
+        ['깔때기를 든 자의 기억에는 매캐한 연기와 붉은 화로가 가득하였다.', '선반마다 병이 늘어서 있었고, 그 안에서 굴의 진액이 느리게 끓고 있었다. 저 자들은 굴의 피를 길어다 팔고 있었던 것이다.', '그것을 안 살덩이의 분노는 인간의 말로는 형언할 수 없는 것이었다.'],
+        ['두 번째 기억은 장부였다. 여자의 손이 굴물의 값을 적어 나가고 있었다. 한 병, 두 병, 은화 몇 닢.', '해가 지면 문을 두드리는 손님이 있었으니, 그 얼굴을 똑바로 본 기억은 어느 먹힌 자에게도 없었다.'],
+        ['기억이 넷에 이르자 화로 뒤 선반의 병들이 보였다. 그 병 속의 살은 아직 살아 있었다.', '병 속의 것들이 유리 너머에서 살덩이를 향해 꿈틀거렸으니, 그것들은 제 몸으로 돌아오기를 원하고 있었다.'],
+      ] },
+    tower: { place: '북쪽 탑', know: ['북쪽 언덕 위, 밤새 불이 켜진 탑. 누가 사는지 마을 사람들은 모른다.', '탑의 학자는 서른 해 동안 젖은 장부 한 권을 읽었다. 그 장부에는 이 굴이 적혀 있다.', '탑 꼭대기 방에서 학자는 일곱 별을 센다. 그 계단은 돌 하나가 늘 비어 있다.'],
+      scenes: [
+        ['그 밤 살덩이의 안쪽으로 낯선 꿈이 거꾸로 흘러들어 왔다. 북쪽 언덕 위에 불 켜진 탑이 하나 서 있었다.', '탑 꼭대기에서 누군가 창밖의 별을 세고 있었고, 그는 세는 동안 단 한 번도 굴 쪽을 돌아보지 않았다.', '돌아볼 필요가 없었던 것이다. 그는 이미 이 굴을, 이 살을, 이 밤을 알고 있었으니.'],
+        ['두 번째 기억 속에서 젖은 장부가 펼쳐져 있었다. 서른 해 동안 마른 적 없는 그 종이에 굴의 갈래가 그려져 있었다.', '살덩이가 아직 파지 않은 갈래까지 그 위에 있었으니, 그것을 본 순간 뼛속까지 스며드는 한기가 살을 훑었다.'],
+        ['기억이 넷에 이르자 탑의 계단이 보였다. 돌 하나가 늘 비어 있는 그 계단을, 학자는 밤마다 오르내렸다.', '흐륵 나우그 크샤-이르. 탑 꼭대기에서 들려오던 그 말을 살덩이는 이제 따라 할 수 있었다.'],
+      ] },
+    named: {
+      c_eda: '기록관의 마지막 기억은 비어 있는 기록장의 쪽이었다. 그 쪽은 이제 살덩이의 안쪽에서 채워지고 있었다.',
+      c_rowen: '쫓겨난 기사의 기억에는 긁어낸 문장 자리가 있었다. 그는 끝까지 자신을 내쫓은 자들의 이름을 되뇌었다.',
+      c_mirel: '수녀의 기억 속 기도는 마지막 순간까지 끊기지 않았다. 다만 그 기도가 누구에게 닿았는지는 알 수 없었다.',
+      c_tov: '덫 사냥꾼은 굴이 숨 쉬는 간격을 기억하고 있었다. 그 간격은 이제 살덩이 자신의 숨과 같았다.',
+      c_isel: '연금술사의 기억은 장부의 숫자로 가득하였다. 마지막 줄에 적힌 값은 그녀 자신의 것이었다.',
+      c_vasco: '등불지기의 기억에서는 서른 해 동안 꺼지지 않은 등불이 마침내 꺼지고 있었다.',
+    },
+  };
+  ['hut', 'village', 'chapel', 'archive', 'workshop', 'tower'].forEach(id => { const P = memories[id]; P.scenes = P.scenes.map((ls, i) => ({ id: 'm.' + id + '.' + (i + 1), place: P.place, who: [], lines: ls.map(N) })); });
+
+  return { chapters, night, endings, endingAsp, logs, retry, memories, KINDS: ['n', 'echo', 'dream', 'say', 'note'],
     nights, events, whispers, strikes, endings2, commands, raidMods, EFFECTS, RAIDMOD,
     WHEN: ['night', 'afterRaid', 'strikes', 'struck', 'whisper', 'alert', 'aspect', 'flag'], NEED: ['egg', 'whisper', 'lux', 'aspect', 'alert'], ASPECTS: ['abyss', 'nebula', 'brood', 'dusk', 'hunger'] };
 })();
@@ -10995,6 +11099,7 @@ if (typeof module !== 'undefined') module.exports = MZLAST;
 //   MZVIGN.title(cv, lineEl)  첫 화면에서 장면을 돌린다 (MZVIGN.stop() 으로 멈춤)
 //   MZVIGN.feast(ctx, onDone)  포식 장면. ctx = { victim: { kind, name }, killer, place, lines, count } (MZLAST.pick 과 같은 꼴)
 //     그림 아래에 lines 를 한 줄씩(누르면 다음 줄, 다 읽으면 닫힘). lines 가 없으면 한 줄만 보이고 잠시 뒤 저절로 닫힌다
+//   MZVIGN.raidUp(ctx, onDone)  땅 위 습격 장면 (장소 여섯 × 세기 셋 = 18, 글 없음, 3~5초 뒤나 누르면 닫힘). ctx = { place: hut|village|chapel|archive|workshop|tower, power: weak|strong|raze, kin: [{ kind, star, br }] (0~2, 없으면 살덩이 촉수), victims: [침입자 종류] (없으면 장소의 사람), night }
 //   MZVIGN.pickDeath(res, M) → 그 밤 죽은 사람 가운데 가장 눈에 띄는 하나의 ctx (사람만, 짐승 빼고) | null
 const MZVIGN = (() => {
   const W = 160, H = 100, K = 3, DW = W * K, DH = H * K, FPS = 12, GY = 86;
@@ -11492,6 +11597,122 @@ const MZVIGN = (() => {
     return { t, sfx: r.sfx || [], flash: r.flash || 0, shake: r.shake || 0 };
   }
 
+  // ── 땅 위 습격 장면 18개: 장소 여섯 × 세기 셋 (MZVIGN.raidUp 이 띄운다) ──
+  // 장소마다 배경(받은 그림)·사람·떨어뜨리는 물건·문이 다르다. 세기: weak 한 사람이 끌려 사라짐 / strong 문을 부수고 여럿을 덮침, 불이 꺼짐 / raze 불길·무너짐·시체 더미·잿더미
+  // o = { gore, vics: [침입자 종류 …], kins: [{ kind, star, br } …] (없으면 살덩이 촉수), place, power }
+  const RP = {
+    hut: { bg: 'pass', vic: ['militia', 'torch', 'militia'], item: 'lantern', door: ['#4a3220', '#2a1a10'] },
+    village: { bg: 'hall', vic: ['militia', 'torch', 'militia'], item: 'torch', door: ['#5a3a22', '#2e1c10'] },
+    chapel: { bg: 'chapel', vic: ['priest', 'exorcist', 'templar'], item: 'candle', door: ['#6a6470', '#34303a'] },
+    archive: { bg: 'inn', vic: ['mage', 'bard', 'mage'], item: 'book', door: ['#5a3a22', '#2e1c10'] },
+    workshop: { bg: 'workshop', vic: ['alchemist', 'rogue', 'crossbow'], item: 'vial', door: ['#4a4030', '#24200e'] },
+    tower: { bg: 'tower', vic: ['inquis', 'templar', 'archer'], item: 'lantern', door: ['#3a3a44', '#1a1a22'] },
+  };
+  const POWERS = ['weak', 'strong', 'raze'];
+  // 사람: 2배, 왼쪽을 본다. 머리 자리를 돌려준다
+  function rp(a, kind, x, anim, ms, y) { const hu = unitH(kind); if (hu && x > -40 && x < W + 40) hu.draw(a, Math.round(x), y == null ? GY : y, anim, ms, { scale: XS, flip: true }); const hd = headOf(kind); return { x: x - hd.dx * XS, y: (y == null ? GY : y) + hd.dy * XS + 4 }; }
+  // 권속: 별이 높을수록 그림이 커지므로 키를 맞춘다 (배우 층에서 높이 hgt 안팎, 화면 폭의 1/3 남짓)
+  function rk(a, k, x, anim, ms, y, hgt, flip) { let h = null; try { h = LAIRART.unit(k.kind, k.star || 1, k.br || undefined); } catch (e) { h = null; } if (!h) return; const sz = h.size || 48, sc = clamp((hgt || 46) / sz, 0.45, 1.35); h.draw(a, Math.round(x), y == null ? GY + 2 : y, anim, ms, { scale: sc, flip: !!flip }); }
+  // 떨어뜨리는 물건: 등불·횃불·초·책·약병
+  function ritem(a, kind, x, y, lit, t) {
+    x = Math.round(x); y = Math.round(y); const fl = Math.floor(t * FPS) % 2;
+    if (lit > 0) { const g = a.createRadialGradient(x, y - 2, 1, x, y - 2, 16 * lit); g.addColorStop(0, 'rgba(255,200,110,' + (0.55 * lit).toFixed(2) + ')'); g.addColorStop(1, 'rgba(255,200,110,0)'); a.fillStyle = g; a.fillRect(x - 18, y - 20, 36, 36); }
+    if (kind === 'book') { a.fillStyle = '#5a2a1a'; a.fillRect(x - 3, y - 2, 6, 3); a.fillStyle = '#e8dcc0'; a.fillRect(x - 2, y - 3, 4, 1); return; }
+    if (kind === 'vial') { a.fillStyle = '#b0e8c8'; a.fillRect(x - 1, y - 4, 2, 4); a.fillStyle = '#5ad88a'; a.fillRect(x - 1, y - 2, 2, 2); return; }
+    if (kind === 'candle') { a.fillStyle = '#e8e0c8'; a.fillRect(x - 1, y - 4, 2, 4); if (lit > 0) { a.fillStyle = fl ? '#ffd24a' : '#ff9a3a'; a.fillRect(x - 1, y - 6, 2, 2); } return; }
+    if (kind === 'torch') { a.fillStyle = '#5a3a1a'; a.fillRect(x - 4, y - 1, 8, 2); if (lit > 0) { a.fillStyle = fl ? '#ffd24a' : '#ff8a2a'; a.fillRect(x + 3, y - 3, 3, 3); } return; }
+    a.fillStyle = '#2a2420'; a.fillRect(x - 2, y - 5, 5, 6); a.fillStyle = lit > 0 ? (fl ? '#ffe08a' : '#ffc060') : '#3a3020'; a.fillRect(x - 1, y - 4, 3, 4);
+  }
+  // 문 (부서지면 널빤지가 튄다)
+  function rdoor(a, P, x, u, t) {
+    const c = P.door; if (u <= 0) { a.fillStyle = c[1]; a.fillRect(x - 9, GY - 34, 18, 35); a.fillStyle = c[0]; a.fillRect(x - 8, GY - 33, 16, 33); a.fillStyle = c[1]; for (let k = 0; k < 3; k++) a.fillRect(x - 8 + k * 5 + 4, GY - 33, 1, 33); a.fillRect(x + 4, GY - 16, 2, 2); return; }
+    a.fillStyle = '#050308'; a.fillRect(x - 8, GY - 33, 16, 33);
+    for (let k = 0; k < 6; k++) { const vx = 18 + hx(k, 1, 501) * 40, vy = -20 - hx(k, 2, 501) * 30, tt = Math.min(1.4, u * 1.4), px = x + vx * tt * (k % 2 ? 1 : 0.7), py = GY - 30 + k * 5 + vy * tt + 60 * tt * tt; a.fillStyle = k % 2 ? c[0] : c[1]; a.save(); a.translate(Math.round(px), Math.min(GY, Math.round(py))); a.rotate(tt * (3 + k)); a.fillRect(-3, -1, 7, 2); a.restore(); }
+  }
+  // 불길 (u 세기, 바닥과 뒤쪽), 연기
+  function rfire(a, t, u, green) {
+    if (u <= 0) return; const f = Math.floor(t * FPS), cols = green ? ['#c8ff8a', '#5ad88a', '#1a7a4a'] : ['#ffe27a', '#ff8a2a', '#c8301a'];
+    for (let x = 0; x < W; x += 2) { const hgt = (6 + hx(x, f % 7, 511) * 22) * u * (0.6 + 0.4 * Math.sin(x * 0.13 + t * 3)); for (let y = 0; y < hgt; y++) { const k = y / Math.max(1, hgt); a.fillStyle = k < 0.35 ? cols[2] : k < 0.75 ? cols[1] : cols[0]; if (hx(x, y + f, 513) < 0.85) a.fillRect(x, Math.round(GY - y), 2, 1); } }
+    for (let k = 0; k < 10 * u; k++) { const ph = (t * 0.25 + k / 10) % 1, px = (hx(k, 1, 517) * W + t * 6) % W; a.fillStyle = 'rgba(30,26,30,' + (0.5 * (1 - ph)).toFixed(2) + ')'; a.beginPath(); a.arc(Math.round(px), Math.round(GY - 30 - ph * 60), 4 + ph * 8, 0, 6.2832); a.fill(); }
+    for (let k = 0; k < 12 * u; k++) { const ph = (t * 0.6 + k / 12) % 1; a.fillStyle = k % 2 ? '#ffd24a' : '#ff6a2a'; a.fillRect(Math.round(hx(k, 3, 519) * W + Math.sin(ph * 9 + k) * 4), Math.round(GY - ph * 70), 1, 1); }
+  }
+  // 무너지는 들보
+  function rbeams(a, t, t0, P) { for (let k = 0; k < 4; k++) { const st = t0 + k * 0.12, u = seg(t, st, st + 0.45); if (u <= 0) continue; const x = 30 + k * 30 + hx(k, 1, 521) * 10, y = -8 + (GY - 4 + 8) * u * u; a.save(); a.translate(Math.round(x), Math.round(Math.min(GY - 2, y))); a.rotate((k % 2 ? 0.4 : -0.5) * u + 0.2); a.fillStyle = P.door[1]; a.fillRect(-14, -2, 28, 5); a.fillStyle = P.door[0]; a.fillRect(-13, -1, 26, 2); a.restore(); } }
+  // 잿더미
+  function rash(a, u) { if (u <= 0) return; a.globalAlpha = Math.min(1, u); for (let x = 4; x < W - 4; x += 3) { const hgt = Math.round((1 + hx(x, 1, 531) * 4) * u); a.fillStyle = hx(x, 2, 531) < 0.5 ? '#3a3634' : '#5a5450'; a.fillRect(x, GY + 1 - hgt, 3, hgt); } for (let k = 0; k < 8; k++) { a.fillStyle = '#ff7a2a'; if (hx(k, Math.floor(u * 9), 533) < 0.5) a.fillRect(Math.round(hx(k, 4, 533) * W), GY - 1, 1, 1); } a.globalAlpha = 1; }
+  // 살덩이 촉수(권속이 없을 때) — 문이나 그림자에서 뻗는다
+  const rtent = (a, from, to, bend, u, gore, pulses) => tentacle(a, from, to, bend, u, 2, gore ? FLESH : '#1a1c22', FLESH_D, pulses || []);
+  const RSC = {};
+  Object.keys(RP).forEach((place, pi) => {
+    const P = RP[place], sd = 600 + pi * 37;
+    // weak: 밤길의 한 사람이 그림자 속에서 끌려 사라진다. 들고 있던 것이 떨어져 굴러간다
+    RSC['raid_' + place + '_weak'] = { grp: 'raid', look: place + ' 약하게', bg: P.bg, len: 4400, key: 2300, draw(a, t, o) {
+      const v = o.vics[0], k = o.kins[0], grab = 1.2, fall = 1.5, d0 = 1.9, d1 = 3.5, wx = 130 - 22 * ease(seg(t, 0, 1.1)), xf = 108;
+      const x = t < d0 ? wx : xf - (xf + 40) * ease(seg(t, d0, d1)), anim = t < grab ? 'idle' : t < fall ? 'hit' : 'die', ms = t < fall ? t * 1000 : dieAt((t - fall) * 1000);
+      // 물건: 손에서 떨어져 구르다 멈춘다
+      const it = P.item, iu = seg(t, grab, grab + 0.35), ir = ease(seg(t, grab + 0.35, 3.0)), ix = (t < grab ? x - 10 : xf - 10) + ir * 26, iy = t < grab ? GY - 28 : GY - 28 + 27 * iu * iu;
+      if (o.gore && t > fall) trail(a, Math.max(0, x), xf, GY);
+      if (k) { const kx = t < grab ? -20 + 44 * ease(seg(t, 0.6, grab)) : Math.max(-60, x - 26); rk(a, k, kx, t < grab + 0.3 ? 'attack' : 'idle', t * 1000); }
+      else rtent(a, { x: -2, y: GY - 4 }, { x: (t < grab ? wx : x) + 4, y: GY - 2 }, { x: 0, y: 10 }, ease(seg(t, 0.7, grab)), o.gore, [seg(t, 1.6, 3.2)]);
+      const h = x > -30 ? rp(a, v, x, anim, ms) : null; ritem(a, it, ix, iy, 1 - seg(t, 3.4, 4.3) * 0.7, t);
+      let pop = null;
+      if (o.gore) { if (t > grab) spray(a, xf + 6, GY - 4, seg(t, grab, grab + 0.6), sd + 1, 8); if (t > 2.9) { headBurst(a, 10, GY - 10, seg(t, 2.9, 3.6), sd + 3); guts(a, Math.max(4, x + 6), GY - 4, Math.max(20, x + 30), GY, seg(t, 2.2, 3.6), t, sd + 5); } bigPool(a, xf, GY + 1, 3 + 8 * seg(t, fall, 3)); if (h && t > fall && t < 2.9) bits(a, h.x, GY - 6, t, sd + 7, 5); pop = pops(t, [grab, 2.9]); }
+      return { dark: o.gore ? 0 : seg(t, d0, d1) * 0.55, flash: pop && pop.flash, shake: pop && pop.shake, sfx: [[grab, 'hit'], [fall, 'thud'], [d0, 'slide'], [2.9, 'burst']] }; } };
+    // strong: 문을 부수고 들어가 여럿을 덮친다. 불이 꺼진다
+    RSC['raid_' + place + '_strong'] = { grp: 'raid', look: place + ' 세게', bg: P.bg, len: 4800, key: 2500, draw(a, t, o) {
+      const dx = 52, br = 0.6, xs = [94, 116, 138], die = [1.4, 2.0, 2.6], out = seg(t, 3.2, 3.9);
+      for (let i = 0; i < 3; i++) ritem(a, P.item === 'book' ? 'candle' : P.item === 'vial' ? 'candle' : P.item, xs[i] - 6, GY - 1, (1 - out) * (t < die[i] ? 1 : 0.4), t + i);
+      rdoor(a, P, dx, seg(t, br, br + 1.1), t);
+      const ks = o.kins.length ? o.kins : null;
+      if (ks) ks.forEach((k, i) => { const tx = i ? 70 : 84, x = dx + (tx - dx) * ease(seg(t, br + i * 0.15, br + 0.5 + i * 0.15)); if (t > br) rk(a, k, x, (t > 1.2 && t < 2.9) ? 'attack' : 'idle', t * 1000); });
+      else for (let i = 0; i < 3; i++) rtent(a, { x: dx, y: GY - 16 + i * 6 }, { x: xs[i] - 6, y: GY - 14 + i * 3 }, { x: 0, y: -10 + i * 8 }, ease(seg(t, br + 0.1, die[i])) * (1 - seg(t, 3.8, 4.6)), o.gore, [seg(t, die[i], die[i] + 1)]);
+      const hs = []; for (let i = 0; i < 3; i++) { const v = o.vics[i % o.vics.length], an = t < die[i] - 0.15 ? 'idle' : t < die[i] ? 'hit' : 'die'; hs.push(rp(a, v, xs[i], an, t < die[i] ? t * 1000 : dieAt((t - die[i]) * 1000))); }
+      let pop = null;
+      if (o.gore) { headBurst(a, hs[0].x, hs[0].y, seg(t, die[0], die[0] + 0.8), sd + 11); if (t > die[0]) a.clearRect(Math.round(hs[0].x - 9), Math.round(hs[0].y - 12), 18, 10);
+        if (t > die[1]) { limb(a, xs[1], GY - 20, seg(t, die[1], die[1] + 1), 1, sd + 13); guts(a, xs[1] - 2, GY - 8, xs[1] - 26, GY, seg(t, die[1], die[1] + 1.2), t, sd + 15); }
+        if (t > die[2]) { spray(a, xs[2], GY - 30, seg(t, die[2], die[2] + 0.7), sd + 17, 14); guts(a, xs[2], GY - 8, xs[2] + 14, GY, seg(t, die[2] + 0.2, die[2] + 1.4), t, sd + 19); }
+        xs.forEach((x, i) => bigPool(a, x - 4, GY + 1, 3 + 12 * seg(t, die[i], die[i] + 1.6))); pop = pops(t, [br, die[0], die[1], die[2]]); }
+      else if (t > br && t < br + 0.2) pop = null;
+      return { dark: out * 0.6, flash: pop ? pop.flash : (t > br && t < br + 0.1 ? 0.25 : 0), shake: pop ? pop.shake : (t > br && t < br + 0.2 ? 2 : 0), sfx: [[br, 'thud'], [die[0], 'die'], [die[1], 'hit'], [die[2], 'die'], [3.3, 'night']] }; } };
+    // raze: 불길이 번지고 지붕이 무너진다. 시체가 쌓이고 권속이 그 위에서 먹는다. 잿더미
+    RSC['raid_' + place + '_raze'] = { grp: 'raid', look: place + ' 쓸어버림', bg: P.bg, len: 5400, key: 3500, draw(a, t, o) {
+      const xs = [86, 112, 138], die = [1.5, 2.1, 2.5], pile = 100, gather = seg(t, 3.0, 3.5), fireU = ease(seg(t, 0.2, 2.2)) * (1 - 0.6 * seg(t, 4.2, 5.2)), green = place === 'workshop';
+      rfire(a, t, fireU * 0.7, green);
+      const hs = [];
+      for (let i = 0; i < 3; i++) { const v = o.vics[i % o.vics.length], dead = t >= die[i], x = dead ? xs[i] + (pile - xs[i]) * gather : xs[i] + Math.sin(t * 9 + i) * 3 * seg(t, 0.4, die[i]), y = dead ? GY - Math.round(gather * i * 5) : GY;
+        if (t < 4.4 || !o.gore) hs.push(rp(a, v, x, dead ? 'die' : t > 0.6 ? 'mad' : 'idle', dead ? dieAt((t - die[i]) * 1000) : t * 1000, y)); }
+      rbeams(a, t, 2.0, P);
+      const ks = o.kins.length ? o.kins : null;
+      if (t > 2.8) { if (ks) ks.forEach((k, i) => rk(a, k, pile - 10 + i * 20, 'attack', t * 1000, GY - 8 - i * 2, 40, i % 2 === 1)); else for (let i = 0; i < 3; i++) rtent(a, { x: 20 + i * 10, y: GY }, { x: pile - 6 + i * 6, y: GY - 14 }, { x: 0, y: -16 }, ease(seg(t, 2.8, 3.4)), o.gore, [seg(t, 3, 4.6)]); }
+      rfire(a, t + 0.37, fireU * 0.45, green);
+      rash(a, seg(t, 4.0, 5.2));
+      let pop = null;
+      if (o.gore) { if (hs[1]) headBurst(a, hs[1].x, hs[1].y, seg(t, die[1], die[1] + 0.8), sd + 21);
+        if (t > die[0]) spray(a, xs[0], GY - 26, seg(t, die[0], die[0] + 0.7), sd + 23, 10);
+        if (t > 3.2) { bits(a, pile, GY - 14, t, sd + 25, 16); guts(a, pile, GY - 10, pile - 30, GY, seg(t, 3.2, 4.4), t, sd + 27); guts(a, pile + 4, GY - 10, pile + 26, GY, seg(t, 3.4, 4.6), t, sd + 29); limb(a, pile, GY - 16, seg(t, 3.3, 4.4), -1, sd + 31); limb(a, pile + 4, GY - 14, seg(t, 3.6, 4.6), 1, sd + 33); }
+        if (t > 4.4) { skull(a, pile - 4, GY - 4, seg(t, 4.4, 5)); skull(a, pile + 8, GY - 3, seg(t, 4.6, 5.2)); ribs(a, pile + 2, GY - 10, seg(t, 4.4, 5.2)); }
+        bigPool(a, pile, GY + 1, 6 + 22 * seg(t, 1.5, 4.6)); pop = pops(t, [die[0], 2.2, die[2]]); }
+      return { dark: seg(t, 4.6, 5.4) * 0.35, flash: pop ? pop.flash : (t > 2.2 && t < 2.3 ? 0.3 : 0), shake: pop ? pop.shake : (t > 2.2 && t < 2.4 ? 2 : 0), sfx: [[0.3, 'night'], [die[0], 'die'], [2.2, 'burst'], [die[2], 'die'], [3.2, 'hit'], [4.2, 'slide']] }; } };
+  });
+  Object.keys(RSC).forEach(id => { SCENES[id] = RSC[id]; });
+  const RIDS = Object.keys(RSC);
+  // 땅 위 습격을 띄운다. ctx = { place, power, kin: [{ kind, star, br }] (0~2), victims: [침입자 종류 …], night }. 끝나거나 누르면 onDone
+  function raidUp(ctx, onDone) {
+    ctx = ctx || {}; const place = RP[ctx.place] ? ctx.place : 'village', power = POWERS.includes(ctx.power) ? ctx.power : 'strong', sid = 'raid_' + place + '_' + power, P = RP[place], need = power === 'weak' ? 1 : 3;
+    const vics = (ctx.victims || []).filter(k => typeof k === 'string' && !isBeast(k) && unitH(k)).slice(0, need); for (let i = 0; vics.length < need; i++) vics.push(P.vic[i % P.vic.length]);
+    const kins = (ctx.kin || []).filter(k => k && k.kind).slice(0, power === 'weak' ? 1 : 2);
+    const el = feEl(); el.hidden = false; FE.mode = 'raid'; FE.done = onDone || null; FE.ctx = ctx; FE.lines = []; FE.li = 0; FE.auto = 1;
+    el.querySelector('.mzv-lines').innerHTML = ''; el.querySelector('.mzv-tap').textContent = '누르면 넘어간다';
+    const cv = el.querySelector('canvas'), S = SCENES[sid], len = S.len, t0 = performance.now(), mo = moOn(), o = { vics, kins, place, power }; let lastF = -1; const fired = {};
+    FE.scene = sid; FE.t0 = t0; FE.len = len; if (FE.raf) cancelAnimationFrame(FE.raf);
+    const step = now => {
+      FE.raf = requestAnimationFrame(step); const ms = mo ? Math.min(now - t0, len - 1) : S.key, f = Math.floor(ms / 1000 * FPS);
+      if (f !== lastF) { lastF = f; const r = render(cv, sid, ms, o); if (mo) (r ? r.sfx : []).forEach(q => { const key = q[1] + q[0]; if (!fired[key] && ms / 1000 >= q[0]) { fired[key] = 1; say(q[1]); } }); }
+      if (now - t0 > (mo ? len + 700 : 2600)) finish();
+    };
+    FE.raf = requestAnimationFrame(step); return true;
+  }
+
   // ── 첫 화면: 장면을 하나씩 돌린다 (장면 사이 짧은 암전) ──
   const TL = { raf: 0, cv: null, line: null, i: 0, t0: 0, fade: 450, frames: [] };
   function title(cv, lineEl) {
@@ -11548,6 +11769,8 @@ const MZVIGN = (() => {
   }
   function mark(ctx, M) { if (!M) return; const ui = M.ui = M.ui || {}; ui.feastSeen = 1; ui.feastLast = ctx.night || M.night || 0; }
   const FE = { el: null, raf: 0, done: null, lines: [], li: 0, auto: 0 };
+  // 처형 장면과 땅 위 습격이 같이 쓰는 겹창 (#mzv)
+  function feEl() { let el = FE.el; if (!el) { el = document.createElement('div'); el.id = 'mzv'; el.innerHTML = '<canvas width="' + DW + '" height="' + DH + '" role="img" aria-label="사람이 죽는 장면"></canvas><div class="mzv-lines" aria-live="polite"></div><p class="mzv-tap"></p>'; document.body.appendChild(el); FE.el = el; el.addEventListener('click', () => next()); } return el; }
   // 글 자료(MZLAST)에 넘기는 꼴로 바꾼다: place 'kin' → 'room', 'lost' → 정체 모를 것('room' + 죽인 이 없음). 최근 쓴 글 id 는 판 저장(M.ui.lastIds)에 열여섯 개까지
   function lastLines(ctx) {
     const k = ctx.killer || {}, M = (typeof MZ !== 'undefined' && MZ.M) || null, ui = M ? (M.ui = M.ui || {}) : {};
@@ -11564,8 +11787,7 @@ const MZVIGN = (() => {
     const jo = (w, a1, a2) => (typeof mzJosa === 'function' ? mzJosa(w, a1, a2) : w + a1);
     const head = ctx.place === 'core' ? '본체가 ' + jo(nm, '을', '를') + ' 먹었다.' : ctx.place === 'lost' ? jo(nm, '이', '가') + ' 굴에서 길을 잃고 죽었다.' : ctx.place === 'trap' ? jo(nm, '이', '가') + ' 함정에 걸려 죽었다.' : jo(nm, '이', '가') + ' 권속 방에서 죽었다.';
     FE.lines = Array.isArray(lines) && lines.length ? lines.slice(0, 10) : [head + (more > 0 ? ' 그 밤 죽은 사람 ' + (more + 1) + '명.' : '')]; FE.li = 0; FE.auto = !(Array.isArray(lines) && lines.length);
-    let el = FE.el; if (!el) { el = document.createElement('div'); el.id = 'mzv'; el.innerHTML = '<canvas width="' + DW + '" height="' + DH + '" role="img" aria-label="사람이 죽는 장면"></canvas><div class="mzv-lines" aria-live="polite"></div><p class="mzv-tap"></p>'; document.body.appendChild(el); FE.el = el; el.addEventListener('click', () => next()); }
-    el.hidden = false; FE.done = onDone || null; FE.ctx = ctx; showLine();
+    const el = feEl(); el.hidden = false; FE.mode = 'feast'; FE.done = onDone || null; FE.ctx = ctx; showLine();
     const k = ctx.killer || {}, Mm = (typeof MZ !== 'undefined' && MZ.M) || null, cv = el.querySelector('canvas'), sid = ctx.scene && SCENES[ctx.scene] ? ctx.scene : execScene(ctx, lines, Mm ? Mm.seed : 0), S = SCENES[sid], len = S.len, t0 = performance.now(), mo = moOn();
     const o = { kind, form: k.form, step: k.step, killer: k.kind ? k : null }; let lastF = -1; const fired = {};
     FE.scene = sid; FE.t0 = t0; FE.len = len;
@@ -11582,11 +11804,11 @@ const MZVIGN = (() => {
     box.innerHTML = FE.lines.slice(0, FE.li + 1).map((l, i) => '<p class="' + (i === FE.li ? 'now' : 'old') + '">' + String(l).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])) + '</p>').join('');
     el.querySelector('.mzv-tap').textContent = FE.li < FE.lines.length - 1 ? '누르면 다음 줄 · ' + (FE.li + 1) + '/' + FE.lines.length : '누르면 닫힌다';
   }
-  function next() { if (FE.li < FE.lines.length - 1) { FE.li++; showLine(); return; } finish(); }
-  function finish() { if (FE.raf) cancelAnimationFrame(FE.raf); FE.raf = 0; if (FE.el) FE.el.hidden = true; const d = FE.done; FE.done = null; if (d) d(); }
+  function next() { if (FE.mode === 'raid') return finish(); if (FE.li < FE.lines.length - 1) { FE.li++; showLine(); return; } finish(); }
+  function finish() { if (FE.raf) cancelAnimationFrame(FE.raf); FE.raf = 0; if (FE.el) FE.el.hidden = true; FE.mode = null; const d = FE.done; FE.done = null; if (d) d(); }
   const active = () => !!(FE.el && !FE.el.hidden);
 
-  return { IDS, TIDS, XGRP, SCENES, W, H, DW, DH, FPS, render, title, stop, feast, pickDeath, roll, mark, execScene, feastP, isBeast, next, finish, active, frames: () => TL.frames.slice(), get cur() { return TIDS[TL.i]; }, get feastState() { return FE.el && !FE.el.hidden ? { scene: FE.scene, li: FE.li, n: FE.lines.length, lines: FE.lines.slice(), victim: FE.ctx && FE.ctx.victim, place: FE.ctx && FE.ctx.place } : null; } };
+  return { IDS, TIDS, XGRP, RIDS, RP, raidUp, SCENES, W, H, DW, DH, FPS, render, title, stop, feast, pickDeath, roll, mark, execScene, feastP, isBeast, next, finish, active, frames: () => TL.frames.slice(), get cur() { return TIDS[TL.i]; }, get raidState() { return FE.el && !FE.el.hidden && FE.mode === 'raid' ? { scene: FE.scene, t0: FE.t0, len: FE.len } : null; }, get feastState() { return FE.el && !FE.el.hidden && FE.mode !== 'raid' ? { scene: FE.scene, li: FE.li, n: FE.lines.length, lines: FE.lines.slice(), victim: FE.ctx && FE.ctx.victim, place: FE.ctx && FE.ctx.place } : null; } };
 })();
 if (typeof window !== 'undefined') window.__mzvign = MZVIGN;
 // 굴 짓기 — 장면 읽기 (MZSCENE). 화면 가득 그림, 아래 대사 상자와 이름 칸, 말하는 이의 큰 초상.
@@ -12447,6 +12669,118 @@ function mzLedgerHtml(L, more) {
     + `<div class="mz-ledger"><div>${left}</div><div>${right}</div></div>${detail}`
     + `<div class="mz-acts2"><button data-m="ldetail" aria-pressed="${!!more}">권속 자세히</button><button class="pri" data-m="lclose">닫기</button></div>`;
 }
+// 굴 짓기 — 땅 위 (2026-11-25). 먹은 자의 기억으로 드러나는 물레골의 밤 지도, 장소 창, 둥지 방의 마을 불빛, 기억 장면.
+// 규칙은 maze.js (KNOW·known·memQ·strikeWhy), 글은 mazestory.js 의 memories·strikes. 이 파일은 그리기와 창 글만.
+//   mzSurfHtml(v, s, view)  땅 위 창의 안쪽 (view = 보기만: 「땅 위」 단추로 연 것). s.place = 고른 곳
+//   mzSurfDraw(v, s)        창이 들어간 뒤 지도와 장소 그림을 캔버스에 그린다
+//   mzSurfLights(x, W, H, v) 둥지 방 그림 위쪽에 굴 입구 너머 마을 불빛 (불빛 수 = 경계 급)
+//   mzMemScenes(m)          기억 하나(maze.js memQ 의 한 칸) → 장면 읽기 화면에 넘길 장면 배열
+//   mzRaidCtx(M, place, power) 공격 장면(MZVIGN.raidUp)에 넘길 것
+// 장소는 지도 위 자리(MZSURF_AT, 320×180 그림 칸 기준)와 받은 배경 그림 열쇠(MZSURF_PIC)를 갖는다.
+const MZSURF_W = 320, MZSURF_H = 180;
+const MZSURF_AT = { hut: [58, 128], village: [150, 132], chapel: [206, 112], archive: [118, 110], workshop: [182, 150], tower: [276, 58] };
+const MZSURF_PIC = { hut: 'sky', village: 'hall', chapel: 'chapel', archive: 'inn', workshop: 'workshop', tower: 'tower' };
+// 그곳에 사는 사람 (공격 장면에서 덮치는 사람의 그림): 기억 표(KNOW)를 거꾸로 읽되 이름 있는 이는 빼고, 없으면 마을 사람
+function mzSurfFolk(place) { const K = (typeof MAZE !== 'undefined' && MAZE.KNOW) || {}, o = Object.keys(K).filter(k => !/^c_/.test(k) && K[k][0] === place); return o.length ? o : ['militia']; }
+const mzSurfName = id => ((MZST && MZST.strikes && MZST.strikes.find(s => s.id === id)) || { name: id }).name;
+const mzSurfMem = id => (MZST && MZST.memories && MZST.memories[id]) || null;
+
+// 작은 결정적 주사위 (지도의 별·창 불빛이 그릴 때마다 같게)
+function mzSurfRng(seed) { let s = seed >>> 0 || 7; return () => { s = (Math.imul(s, 1103515245) + 12345) >>> 0; return s / 4294967296; }; }
+
+// ---- 지도 ----
+function mzSurfMap(x, v) {
+  const W = MZSURF_W, H = MZSURF_H, r = mzSurfRng(4242), list = v.strikes.list, by = {}; list.forEach(p => { by[p.id] = p; });
+  const R = (c, X, Y, w, h) => { x.fillStyle = c; x.fillRect(Math.round(X), Math.round(Y), Math.round(w), Math.round(h)); };
+  // 밤하늘과 별
+  const g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#05040c'); g.addColorStop(0.55, '#0d0a18'); g.addColorStop(1, '#120c10'); x.fillStyle = g; x.fillRect(0, 0, W, H);
+  for (let i = 0; i < 60; i++) { const sx = r() * W, sy = r() * H * 0.45; R(r() < 0.15 ? '#cfd8ff' : '#6a6a8a', sx, sy, 1, 1); }
+  // 언덕 겹 (멀리 → 가까이)
+  const hill = (base, amp, fr, ph, col) => { x.fillStyle = col; x.beginPath(); x.moveTo(0, H); for (let X = 0; X <= W; X += 4) x.lineTo(X, base - amp * Math.sin(X * fr + ph) - amp * 0.4 * Math.sin(X * fr * 2.7 + ph * 2)); x.lineTo(W, H); x.closePath(); x.fill(); };
+  hill(72, 16, 0.018, 1.2, '#140f1c'); hill(96, 12, 0.026, 3.1, '#191320'); hill(124, 8, 0.03, 0.4, '#1d1418'); hill(150, 6, 0.04, 2.2, '#221714');
+  // 북쪽 언덕 위 탑으로 오르는 길, 고갯길
+  x.strokeStyle = '#3a2c22'; x.lineWidth = 2; x.beginPath(); x.moveTo(20, 176); x.bezierCurveTo(70, 150, 90, 120, 120, 118); x.bezierCurveTo(170, 116, 200, 130, 230, 120); x.bezierCurveTo(255, 100, 262, 80, 276, 66); x.stroke();
+  // 굴 입구 (왼쪽 언덕): 붉게 숨 쉬는 틈
+  R('#000', 18, 86, 18, 8); R('#3a0a10', 20, 88, 14, 4); R('#7a1a20', 24, 89, 6, 2);
+  // 고갯길 등불 (바스코)
+  R('#3a2a1a', 96, 74, 2, 14); R('#ffcf6a', 95, 72, 4, 3);
+  // 장소 그림
+  const lit = (X, Y) => R(r() < 0.75 ? '#ffcc66' : '#7a5a2a', X, Y, 2, 2);
+  const house = (X, Y, w, h, roof) => { R('#2a2026', X, Y - h, w, h); R(roof || '#3d2a24', X - 1, Y - h - 3, w + 2, 3); lit(X + 2, Y - h + 3); };
+  const draw = {
+    hut: (X, Y) => { house(X - 6, Y, 12, 8, '#4a3826'); for (let i = 0; i < 6; i++) R('#5a4630', X + 10 + i * 3, Y - 4, 1, 4); R('#5a4630', X + 10, Y - 3, 17, 1); },
+    village: (X, Y) => { for (let i = 0; i < 9; i++) house(X - 30 + (i % 5) * 13 + (i > 4 ? 6 : 0), Y - (i > 4 ? 10 : 0), 10, 7 + (i % 3)); },
+    chapel: (X, Y) => { R('#2c2630', X - 8, Y - 12, 16, 12); R('#2c2630', X - 3, Y - 30, 6, 18); R('#3a3040', X - 4, Y - 33, 8, 3); R('#c8b070', X - 1, Y - 26, 2, 3); R('#ffcc66', X - 2, Y - 8, 4, 4); },
+    archive: (X, Y) => { R('#2e2224', X - 10, Y - 18, 20, 18); R('#3d2a24', X - 12, Y - 21, 24, 3); R('#ffcc66', X - 6, Y - 14, 3, 3); R('#ffe7a0', X + 3, Y - 14, 3, 3); R('#7a5a2a', X - 6, Y - 7, 3, 3); },
+    workshop: (X, Y) => { house(X - 9, Y, 18, 10, '#3a2a24'); R('#2a2026', X + 5, Y - 20, 4, 10); R('#c84a20', X - 5, Y - 5, 4, 4); for (let i = 0; i < 4; i++) R('rgba(140,120,120,0.35)', X + 6 + i, Y - 24 - i * 4, 3, 3); },
+    tower: (X, Y) => { R('#22202c', X - 5, Y - 34, 10, 34); R('#2e2a3a', X - 7, Y - 37, 14, 3); R('#ffe7a0', X - 2, Y - 30, 4, 4); R('#7a6a40', X - 1, Y - 18, 2, 3); },
+  };
+  Object.keys(MZSURF_AT).forEach(id => { const [X, Y] = MZSURF_AT[id]; if (draw[id]) draw[id](X, Y); });
+  // 경계: 급마다 횃불과 밤번이 는다
+  const T = (v.surface && v.surface.tier) || 1, torches = [[104, 116], [134, 122], [168, 128], [196, 124], [224, 118], [88, 132], [150, 146], [212, 136], [240, 108], [120, 140], [184, 112], [258, 92]];
+  torches.slice(0, Math.min(torches.length, (T - 1) * 2 + (T > 1 ? 1 : 0))).forEach(([X, Y], i) => { R('#4a3020', X, Y - 6, 1, 6); R(i % 2 ? '#ffb040' : '#ff8a30', X - 1, Y - 9, 3, 3); if (T >= 3 && i % 2 === 0) R('#3a3040', X + 3, Y - 6, 2, 6); });
+  // 모르는 곳은 안개
+  Object.keys(MZSURF_AT).forEach(id => { const p = by[id]; if (p && p.open) return; const [X, Y] = MZSURF_AT[id], fr = mzSurfRng(id.length * 977);
+    for (let i = 0; i < 26; i++) { const a = fr() * 6.283, d = fr() * 22, rr = 7 + fr() * 9; x.fillStyle = 'rgba(8,6,12,' + (0.55 + fr() * 0.3).toFixed(2) + ')'; x.beginPath(); x.arc(X + Math.cos(a) * d, Y - 12 + Math.sin(a) * d * 0.6, rr, 0, 6.283); x.fill(); } });
+}
+// 지도 위에 누르는 자리 (그림 칸 기준 % 자리)
+function mzSurfPins(v, s) {
+  return v.strikes.list.map(p => { const [X, Y] = MZSURF_AT[p.id] || [0, 0], on = s.place === p.id, nm = p.open ? mzSurfName(p.id) : '안개';
+    return `<button class="mzsf-pin${p.open ? '' : ' fog'}${on ? ' on' : ''}" data-m="splace" data-id="${p.id}" style="left:${(X / MZSURF_W * 100).toFixed(1)}%;top:${((Y - 14) / MZSURF_H * 100).toFixed(1)}%" aria-label="${esc(p.open ? nm : '안개에 가린 곳')}"><span>${esc(nm)}</span></button>`; }).join('');
+}
+
+// ---- 창 ----
+function mzSurfHtml(v, s, view) {
+  const pd = MZ.pend, names = (v.grow && v.grow.names) || {}, known = v.strikes.list.filter(p => p.open).length;
+  let h = `<h3>땅 위</h3><p class="mz-sub">${view ? '굴 위 물레골의 밤이다. 그대가 아는 것은 먹은 자들이 남긴 기억뿐이니, 모르는 곳은 안개에 가려 있다.' : '마을의 한 곳을 골라 습격하라. 그대가 아는 곳만 칠 수 있다.'} 아는 곳 ${known}/6 · 습격 ${v.strikes.n}번 · 경계 ${v.alert.n}</p>`;
+  h += `<div class="mzsf-map"><canvas id="mzsf-cv" class="px" width="${MZSURF_W}" height="${MZSURF_H}" role="img" aria-label="위에서 내려다본 물레골의 밤"></canvas>${mzSurfPins(v, s)}</div>`;
+  const p = s.place ? v.strikes.list.find(q => q.id === s.place) : null;
+  if (!p) return h + `<p class="mz-note">지도의 곳을 누르면 그곳에 대해 아는 것이 보인다.${view ? '' : ' 치는 세기는 그다음에 고른다.'}</p>`;
+  const Mm = mzSurfMem(p.id), T = (MZST && MZST.strikes.find(q => q.id === p.id)) || { name: p.id, desc: '' };
+  if (!p.open) return h + `<div class="mzsf-panel fog"><b>안개에 가린 곳</b><p>그대는 아직 이곳을 모른다. 이곳 사람을 먹거나 이곳에 사는 이에게 속삭이면 기억이 들어오리라.</p></div>`;
+  const lines = Mm ? Mm.know.slice(0, Math.max(1, p.memLv)) : [T.desc];
+  h += `<div class="mzsf-panel"><canvas id="mzsf-pic" class="px" width="240" height="120" aria-hidden="true"></canvas><div><b>${esc(T.name)}</b>`
+    + `<p class="mzsf-mem">기억 ${p.mem}${p.memNext ? ' · 기억 ' + p.memNext + '에 이르면 더 알게 된다' : ' · 약한 데를 안다: 칠 때 진액 +2, 경계 −1'}</p>`
+    + lines.map(t => `<p class="mzsf-know">${esc(t)}</p>`).join('')
+    + (p.who && p.who.length ? `<p class="mzsf-who">지금 그곳에 있는 이: ${esc(p.who.join(', '))}</p>` : '')
+    + (p.struck ? `<p class="mzsf-who">습격 ${p.struck}번${p.shut ? ' · ' + p.shut + '번째 밤까지 닫힘' : ''}</p>` : '') + '</div></div>';
+  if (view) return h + `<p class="mz-note">치려면 둥지 방에서 「땅 위를 친다」 명령을 고르라.</p>`;
+  h += `<div class="mz-pows">${p.powers.map(q => `<button data-m="spow" data-p="${q.id}" class="${q.can ? '' : 'off'}${pd && pd.act === 'strike' && pd.power === q.id ? ' pick' : ''}" aria-disabled="${!q.can}"><b>${MZPOW[q.id]}</b><small>${esc(mzGainText(q, v))}</small>${q.can ? '' : `<small class="mz-why">${esc(q.why || '')}</small>`}</button>`).join('')}</div>`;
+  if (pd && pd.act === 'strike') { const q = p.powers.find(x => x.id === pd.power); if (q) h += mzConfirmHtml(`<b>${esc(T.name)} · ${MZPOW[q.id]}</b><p>${esc(mzGainText(q, v))} (${esc(names[q.asp] || q.asp)})</p><p>습격한 다음 밤에는 반드시 복수하러 오리라.${q.id === 'raze' ? ' 쓸어버린 곳은 여덟 밤 동안 다시 칠 수 없다.' : ''}</p>${q.can ? '' : `<p class="mz-why">${esc(q.why || '')}</p>`}`, '친다', !q.can); }
+  return h;
+}
+function mzSurfDraw(v, s) {
+  const cv = $('mzsf-cv'); if (cv) { const x = cv.getContext('2d'); x.imageSmoothingEnabled = false; try { mzSurfMap(x, v); } catch (e) { /* 그림 없이 */ } }
+  const pc = $('mzsf-pic'); if (pc && s && s.place) { const x = pc.getContext('2d'), key = MZSURF_PIC[s.place]; x.fillStyle = '#05040a'; x.fillRect(0, 0, pc.width, pc.height);
+    const P = typeof MZPICS !== 'undefined' ? MZPICS : null, im = P ? P.bg(key + '@1') : null;
+    if (im && !P.draw(x, im, key + '@1', pc.width, pc.height, 0.5) && !im.complete) im.onload = () => { if (MZ.sheet && MZ.sheet.place === s.place) P.draw(x, im, key + '@1', pc.width, pc.height, 0.5); };
+    else if (!im && typeof LAIRART !== 'undefined' && LAIRART.storyArt) { try { x.drawImage(LAIRART.storyArt(key, pc.width, pc.height, 0), 0, 0); } catch (e) { /* 그림 없이 */ } } }
+}
+
+// ---- 둥지 방: 굴 입구 너머 마을 불빛 ----
+function mzSurfLights(x, W, H, v) {
+  const T = (v && v.surface && v.surface.tier) || 1, cx = Math.round(W * 0.78), cy = Math.round(H * 0.1), w = Math.max(18, Math.round(W * 0.16));
+  x.fillStyle = '#020104'; x.fillRect(cx - (w >> 1), cy - 2, w, 6); x.fillStyle = '#0b0812'; x.fillRect(cx - (w >> 1) + 1, cy - 1, w - 2, 4);
+  for (let i = 0; i < T; i++) { const lx = cx - (w >> 1) + 3 + Math.round(i * (w - 6) / Math.max(1, T)), on = i < 2 || T >= 3; x.fillStyle = on ? (i % 2 ? '#ffcf6a' : '#ff9a40') : '#7a5a2a'; x.fillRect(lx, cy + (i % 2), 1, 1); }
+  MZ.dbg.lights = T;
+}
+
+// ---- 기억 장면 ----
+function mzMemScenes(m) {
+  const P = mzSurfMem(m.place), MM = MZST && MZST.memories; if (!P || !MM) return null;
+  const sc = P.scenes[Math.max(0, Math.min(P.scenes.length - 1, (m.lv || 1) - 1))]; if (!sc) return null;
+  const how = m.who === 'whisper' ? 'whisper' : m.who === 'dream' ? 'dream' : m.who === 'raid' ? 'raid' : 'eat', lines = [{ k: 'n', t: MM.how[how] }];
+  if (m.named && MM.named[m.who]) return [{ id: sc.id + '.' + m.who, place: sc.place, who: [], lines: lines.concat([{ k: 'n', t: MM.named[m.who] }]) }];
+  const tail = /^c_/.test(m.who || '') && MM.named[m.who] ? [{ k: 'n', t: MM.named[m.who] }] : [];
+  return [{ id: sc.id, place: sc.place, who: [], lines: lines.concat(sc.lines, tail) }];
+}
+
+// ---- 공격 장면에 넘길 것 ----
+function mzRaidCtx(M, place, power) {
+  const v = MZ.v || mzView(), kin = (v.units || []).filter(u => u.at && u.at.cell != null).slice(0, 2).map(u => ({ kind: u.kind, star: u.star, br: u.br || null }));
+  const folk = mzSurfFolk(place), victims = []; for (let i = 0; i < (power === 'weak' ? 1 : power === 'strong' ? 3 : 5); i++) victims.push(folk[i % folk.length]);
+  return { place, power, kin, victims, night: M.night };
+}
 // 굴 짓기 — 길잡이 (2026-11-25 사용자: "게임 안 단어가 불친절해서 게임을 알기 어렵다, 가이드를 추가해야 하지 않을까")
 // 세 가지를 한다. 글은 모두 이 파일에 모은다 (안내 말투: ~한다 / ~하라. scratchpad/style_voice2.md 의 용어표).
 //   1. 용어를 누르면 설명: 위 띠 · 둥지 방 · 지도 아래 줄 · 대기석 빈 칸을 누르면 작은 말풍선(#mz-tip)이 뜬다.
@@ -12748,7 +13082,7 @@ function mzMount() {
   if ($('mz')) return;
   const el = document.createElement('div'); el.id = 'mz'; el.hidden = true;
   el.innerHTML = `<div id="mz-bar"></div>
-<div id="mz-nest"><p id="mzn-omen"></p><div id="mzn-stage"><canvas id="mzn-cv" width="160" height="120" role="img" aria-label="둥지 방의 본체"></canvas><p id="mzn-name"></p></div><div id="mzn-grow"></div><div id="mzn-sign" hidden></div><p id="mzn-dawn"></p><p id="mzn-first" hidden></p><div id="mzn-cmds"></div><div id="mzn-views"></div></div>
+<div id="mz-nest"><p id="mzn-omen"></p><div id="mzn-stage"><canvas id="mzn-cv" width="160" height="120" role="img" aria-label="둥지 방의 본체"></canvas><button id="mzn-surf" data-m="surf" aria-label="땅 위. 굴 입구 너머 마을을 본다">땅 위</button><p id="mzn-name"></p></div><div id="mzn-grow"></div><div id="mzn-sign" hidden></div><p id="mzn-dawn"></p><p id="mzn-first" hidden></p><div id="mzn-cmds"></div><div id="mzn-views"></div></div>
 <div id="mz-main" hidden><div id="mz-mapwrap"><canvas id="mz-cv" width="${MW}" height="${MH}"></canvas><div id="mz-ov"></div><button id="mz-next" data-m="pinfo" hidden></button><button id="mz-uinfo" data-m="uinfo" hidden></button></div>
 <div id="mz-side"><div id="mz-strip"></div><div id="mz-bench"></div><div id="mz-raid" hidden></div></div></div>
 <div id="mz-sheet" hidden></div><div id="mz-toast" hidden></div><img id="mz-drag" alt="" hidden><div id="mz-zoom" hidden></div>`;
@@ -12837,6 +13171,7 @@ function mzNestRender(now) {
   if (mzFn('mazeRock')) for (let yy = 0; yy < fy; yy += T) for (let xx = 0; xx < W; xx += T) x.drawImage(LAIRART.mazeRock(T, 15, 300 + (xx / T) * 3 + yy, 1), xx, yy);
   if (mzFn('mazeFloor')) for (let yy = fy; yy < H; yy += T) for (let xx = 0; xx < W; xx += T) x.drawImage(LAIRART.mazeFloor(T, 15, 'room', 40 + xx / T + yy), xx, yy);
   const gr = x.createLinearGradient(0, 0, 0, H); gr.addColorStop(0, 'rgba(6,2,4,.82)'); gr.addColorStop(0.55, 'rgba(6,2,4,.25)'); gr.addColorStop(1, 'rgba(6,2,4,.6)'); x.fillStyle = gr; x.fillRect(0, 0, W, H);
+  if (typeof mzSurfLights === 'function') mzSurfLights(x, W, H, v);
   if (v.omen && v.omen.steps) { const g2 = x.createRadialGradient(W / 2, 0, 2, W / 2, 0, H * 0.7); g2.addColorStop(0, 'rgba(255,190,110,' + (0.3 + 0.08 * Math.sin(now / 300)).toFixed(2) + ')'); g2.addColorStop(1, 'rgba(255,190,110,0)'); x.fillStyle = g2; x.fillRect(0, 0, W, H); }
   try { const C = v.core, stp = Math.min(2, C.step || 0), h = typeof lrBossH === 'function' ? lrBossH(stp ? C.form : 'drop', stp) : LAIRART.boss(C.form, stp), fr = h.frame('idle', now), k = Math.max(1, Math.floor(Math.min(H * 0.98, W * 0.85) / fr.width)), sz = fr.width * k, bx = Math.round(W / 2 - sz / 2), by = Math.round(fy + (H - fy) * 0.55 - sz * 0.92);
     x.fillStyle = 'rgba(4,1,3,.55)'; x.beginPath(); x.ellipse(W / 2, by + sz * 0.93, sz * 0.36, Math.max(3, sz * 0.07), 0, 0, 6.2832); x.fill(); x.drawImage(fr, bx, by, sz, sz); MZ.dbg.nestBody = sz;
@@ -12880,6 +13215,8 @@ function mzGo() {
   if (v.awaken) return mzAwakenPlay(v);
   if (v.events && v.events.length) return mzEventPlay(v, v.events[0]);
   if (v.phase === 'over') return mzOver(v);
+  // 먹은 자의 기억 (판이 끝났으면 띄우지 않는다)
+  if (v.memories && v.memories.length) return mzMemPlay(v, v.memories[0]);
   if (mzSignDue(v) && mzSignShow(v)) return;
   if (v.phase === 'build') { MZ.scr = 'map'; mzDraw(); mzSize(); return; }
   if (v.phase === 'birth') { mzDraw(); if (MZ.scr === 'nest' && !(MZ.sheet && (MZ.sheet.kind === 'births' || MZ.sheet.kind === 'birth'))) mzSheet({ kind: 'births' }); return; }
@@ -12924,6 +13261,11 @@ function mzPendPlay() {
   if (!sc) return fin(); mzPlay([sc], o, fin);
 }
 // 사건: 조건이 찬 장면. 막이 바뀐 뒤의 첫 사건에는 제목 카드가 붙는다
+// 먹은 자의 기억이 땅 위의 곳을 드러낸다 (규칙 maze.js knowAdd → memQ). 다 읽으면 줄에서 뺀다
+function mzMemPlay(v, m) {
+  const M = MZ.M, fin = () => { MAZE.memDone(M); mzSave(); mzGo(); }, sc = typeof mzMemScenes === 'function' ? mzMemScenes(m) : null;
+  if (!sc) return fin(); MZ.dbg.mem = (MZ.dbg.mem || 0) + 1; mzPlay(sc, { ids: sc.map(q => q.id), body: mzBodyArt(v), skippable: true }, fin);
+}
 function mzEventPlay(v, ev) {
   const M = MZ.M, E = MZST && MZST.events ? MZST.events.find(e => e.id === ev.id) : null, fin = () => { MAZE.eventDone(M, ev.id); mzSave(); mzGo(); };
   if (!E) return fin(); const scenes = ev.variant != null && E.variants && E.variants[ev.variant] ? E.variants[ev.variant].scenes : E.scenes;
@@ -12985,6 +13327,7 @@ function mzClick(e) {
   if (a === 'tomap') { mzSay('click'); if (S) mzSheetClose(); MZ.scr = 'map'; MZ.sel = null; mzDraw(); return mzSize(); }
   if (a === 'tonest') { mzSay('click'); MZ.scr = 'nest'; MZ.sel = null; return mzGo(); }
   if (a === 'births') { mzSay('click'); MZ.scr = 'nest'; MZ.sel = null; mzDraw(); return mzSheet({ kind: 'births' }); }
+  if (a === 'surf') { mzSay('click'); return mzSheet({ kind: 'surface', place: null }); }
   if (a === 'kin' || a === 'log' || a === 'goals' || a === 'scorev' || a === 'growinfo' || a === 'signs' || a === 'signv') { mzSay('click'); return mzSheet({ kind: a }); }
   if (a === 'rumor') { mzSay('click'); return mzSheet({ kind: 'rumor', id: b.dataset.id }); }
   if (a === 'quench') return mzQuench(b.dataset.id);
@@ -13026,7 +13369,10 @@ function mzConfirm() {
   if (pd.act === 'strike') {
     const r = MAZE.command(M, 'strike', { place: pd.place, power: pd.power }); if (!r.ok) { mzToast(r.msg); return mzSheet(MZ.sheet); } M.ui.cmdUsed = M.ui.cmdUsed || {}; M.ui.cmdUsed.strike = 1; mzSay('thud'); mzSave();
     const T = (MZST && MZST.strikes.find(s => s.id === pd.place)) || { name: pd.place, outcomes: {} }; mzDraw();
-    return mzSheet({ kind: 'note', title: T.name + ' · ' + MZPOW[pd.power], text: (T.outcomes || {})[pd.power] || '', line: mzGainText(r.gains, v) + (r.up ? ' · 본체 Lv ' + M.level : ''), foot: '다음 밤에는 반드시 복수하러 온다.' });
+    const note = () => mzSheet({ kind: 'note', title: T.name + ' · ' + MZPOW[pd.power], text: (T.outcomes || {})[pd.power] || '', line: mzGainText(r.gains, v) + (r.up ? ' · 본체 Lv ' + M.level : ''), foot: '다음 밤에는 반드시 복수하러 온다.' });
+    const t = mzTestOpt(), sceneOn = META.mzFeast !== false && !(t && t.feast === false) && typeof MZVIGN !== 'undefined' && typeof MZVIGN.raidUp === 'function';
+    if (sceneOn) { mzSheetClose(); MZ.dbg.raidUp = (MZ.dbg.raidUp || 0) + 1; let done = false; try { MZVIGN.raidUp(mzRaidCtx(M, pd.place, pd.power), () => { if (!done) { done = true; note(); } }); return; } catch (e) { if (!done) { done = true; return note(); } return; } }
+    return note();
   }
   if (pd.act === 'raise') { const c = v.grow.chores.find(q => q.id === pd.id), r = MAZE.command(M, 'raise', pd.id); if (!r.ok) { mzToast(r.msg); return mzSheet(MZ.sheet); } mzSay('up'); mzAfterCmd(); return mzToast((c ? c.name : '길렀다') + ' · ' + mzGainText(r.gains, v), 2200); }
   if (pd.act === 'whisper') {
@@ -13168,15 +13514,7 @@ function mzBirthHtml(v, i) {
   return mzUnitHtml(b) + `<div class="mz-money"><p><span>가진 진액</span><b>${v.gold}</b></p><p><span>값</span><b>${price}</b></p><p><span>남는 진액</span><b>${v.gold - price}</b></p></div>${why ? `<p class="mz-why">${esc(why)}</p>` : ''}`
     + `<div class="mz-acts2 stick"><button data-m="births">돌아간다</button><button class="pri" data-m="birth" data-i="${b.i}"${b.can ? '' : ' disabled'}>낳는다 · 진액 ${price}</button></div>`;
 }
-function mzStrikeHtml(v, s) {
-  const pd = MZ.pend, names = v.grow.names || {};
-  let h = `<h3>땅 위를 친다</h3><p class="mz-sub">마을의 한 곳을 골라 습격한다. 지금까지 ${v.strikes.n}번 습격했고, 마을의 경계는 ${v.alert.n}이다.</p><div class="mz-places">`;
-  h += v.strikes.list.map(p => { const T = (MZST && MZST.strikes.find(q => q.id === p.id)) || { name: p.id, desc: '' }, lock = !p.open ? (p.powers[0] && p.powers[0].why) || '아직 닿지 않는다' : null, on = s.place === p.id;
-    return `<div class="mz-place${p.open ? '' : ' off'}${on ? ' on' : ''}"><button data-m="splace" data-id="${p.id}" aria-expanded="${on}"><b>${esc(T.name)}</b><small>${esc(lock || T.desc)}</small>${p.struck ? `<em>${p.struck}번</em>` : ''}</button>`
-      + (on && p.open ? `<div class="mz-pows">${p.powers.map(q => `<button data-m="spow" data-p="${q.id}" class="${q.can ? '' : 'off'}${pd && pd.act === 'strike' && pd.power === q.id ? ' pick' : ''}" aria-disabled="${!q.can}"><b>${MZPOW[q.id]}</b><small>${esc(mzGainText(q, v))}</small>${q.can ? '' : `<small class="mz-why">${esc(q.why || '')}</small>`}</button>`).join('')}</div>` : '') + '</div>'; }).join('') + '</div>';
-  if (pd && pd.act === 'strike') { const p = v.strikes.list.find(q => q.id === pd.place), q = p && p.powers.find(x => x.id === pd.power), T = (MZST && MZST.strikes.find(x => x.id === pd.place)) || { name: pd.place }; if (q) h += mzConfirmHtml(`<b>${esc(T.name)} · ${MZPOW[q.id]}</b><p>${esc(mzGainText(q, v))} (${esc(names[q.asp] || q.asp)})</p><p>습격한 다음 밤에는 반드시 복수하러 온다.${q.id === 'raze' ? ' 쓸어버린 곳은 여덟 밤 동안 다시 칠 수 없다.' : ''}</p>${q.can ? '' : `<p class="mz-why">${esc(q.why || '')}</p>`}`, '친다', !q.can); }
-  return h;
-}
+// 땅 위 창은 src/mazesurf.js (mzSurfHtml)
 function mzRaiseHtml(v) {
   const pd = MZ.pend, names = v.grow.names || {};
   let h = `<h3>기른다</h3><p class="mz-sub">${Object.keys(v.grow.asp).map(a => (names[a] || a) + ' ' + mzNum1(v.grow.asp[a])).join(' · ')}${v.grow.next ? ' · 깨어나는 값 ' + v.grow.next : ''}</p><p class="mz-sub">일과를 하나 고르면 그 성향이 오른다.</p><div class="mz-chores">${v.grow.chores.map(c => `<button data-m="chore" data-id="${c.id}" class="${pd && pd.act === 'raise' && pd.id === c.id ? 'pick' : ''}" style="--c:${MZASPC[c.asp] || '#fff'}"><b>${esc(c.name)}</b><small>${esc(c.short)}</small></button>`).join('')}</div>`;
@@ -13277,7 +13615,7 @@ function mzSheet(s) {
   else if (k === 'unit') { const u = v.units.find(q => q.uid === s.uid); h = u ? mzOwnUnitHtml(v, u) : '<h3>권속</h3><p class="mz-note">없는 권속이다.</p>'; }
   else if (k === 'births') h = mzBirthsHtml(v);
   else if (k === 'birth') h = mzBirthHtml(v, s.i);
-  else if (k === 'strike') h = mzStrikeHtml(v, s);
+  else if (k === 'strike' || k === 'surface') h = mzSurfHtml(v, s, k === 'surface');
   else if (k === 'raise') h = mzRaiseHtml(v);
   else if (k === 'whisper') h = mzWhisperHtml(v);
   else if (k === 'coming') h = mzComingHtml(v, s);
@@ -13299,6 +13637,7 @@ function mzSheet(s) {
   const modal = mzModalSheet(k);
   el.className = modal ? 'modal' : ''; el.innerHTML = `<div class="mz-sbody${modal ? ' res' : ''} k-${k}">${modal ? '' : '<button class="mz-x" data-m="close" aria-label="닫기">✕</button>'}${h}</div>`; el.hidden = false; mzUnder(true);
   if (typeof mzGuideSheet === 'function') mzGuideSheet(k, el);
+  if (k === 'strike' || k === 'surface') mzSurfDraw(v, s);
   { const cf = el.querySelector('.mz-confirm'); if (cf && cf.scrollIntoView) cf.scrollIntoView({ block: 'nearest' }); }
 }
 // 창이나 싸움 다시 보기가 떠 있는 동안 밑의 화면은 읽는 이에게 가린다
