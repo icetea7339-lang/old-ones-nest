@@ -6712,7 +6712,7 @@ const LAIRART = (() => {
   const BUSTS = { '로웬': 'rowen', '로웬 하스': 'rowen', '에녹': 'enoch', '에녹 하르': 'enoch', '사 가는 이': 'buyer', '이셀': 'isel', '이셀 드란': 'isel', '에다': 'eda', '에다 볼크': 'eda',
     '미렐': 'mirel', '미렐 수녀': 'mirel', '바스코': 'vasco', '늙은 바스코': 'vasco', '촌장': 'chief', '도제': 'apprentice', '토브': 'tov', '토브 카인': 'tov', '양치기': 'shepherd',
     '기사단장': 'knightcmd', '심문관': 'inquis', '궁수': 'archer',
-    '한 방울': null, '모험가 일행': null, '쪽지': null, '에다 볼크의 보고서': null, '기록장의 마지막 쪽': null, '토브 카인의 쪽지': null, '에다 볼크의 마지막 편지': null };
+    '한 방울': null, '모험가 일행': null, '쪽지': null, '에다 볼크의 보고서': null, '기록장의 마지막 쪽': null, '토브 카인의 쪽지': null, '에다 볼크의 마지막 편지': null, '촌장의 편지': null };
   bust.geo = bustGeo;
   // ── ART-BUST 끝
   // ── ART-STORY 시작
@@ -8303,39 +8303,46 @@ const MAZESTORY = (() => {
     { id: 'c0', title: '낙하', concept: '권속을 사서 세운다', raids: ['c0_beast'],
       start: [
         sc('하늘과 언덕', ['한 방울'], [
-          N('처음 안 것은 뜨거움이었다.'),
-          N('별 사이 바다의 찬 물을 건너는 동안에는 아무것도 느끼지 못했다. 공기가 닿자 겉이 타올랐고 그것은 타는 게 곧 아픈 것이라는 걸 그때 배웠다.'),
-          N('땅이 다가왔다. 풀을 누르고 흙을 튀기며 언덕 비탈을 구르던 그것은 바위 두 개가 맞닿은 틈으로 빨려 들어갔다.'),
-          N('틈 안은 젖어 있었고 어두웠다. 오래 비어 있던 곳의 냄새.'),
-          N('손바닥만 한 살덩이였다. 먹은 것도 기억하는 것도 없었는데 안쪽 깊은 데서 무언가가 아주 작게 울렸다.'),
+          N('그날 밤 물레골 북쪽 언덕에 별 하나가 떨어졌다.'),
+          N('별이 아니었다. 별 사이의 차고 검은 바다를 아주 오래 건너온 살 한 방울이었다.'),
+          N('공기에 닿자 겉이 타올랐다. 그것은 그때 처음으로 아픔이 무엇인지 알았다.'),
+          N('비탈을 구르던 살덩이는 바위 두 개가 맞닿은 틈으로 굴러 들어갔다. 틈 안은 젖어 있었고 어두웠다.'),
+          N('손바닥만 한 크기였다. 기억도 이름도 없었다. 다만 몸 안쪽 깊은 데서 목소리 하나가 울렸다.'),
+          N('별 너머에서 잠든 큰 것, 이 살을 떨어뜨린 「위대한 것」이 남겨 둔 목소리였다. 살덩이는 그 목소리를 따랐다.'),
           E('고여라.'),
           N('살덩이는 바위의 오목한 데로 흘러가 고였다. 물이 그러듯이.'),
           E('넓혀라. 이빨이 돋을 때까지.')
         ]),
         sc('바위틈', ['한 방울'], [
-          N('첫 밤에 위쪽 틈으로 날개 치는 소리가 내려왔다.'),
-          N('작고 마른 것들이었다. 눈이 없어서 서로 내는 소리로 벽을 더듬었다. 살덩이에서 나는 열을 그것들은 먹이의 열로 알았다.'),
-          E('살을 떼어 내라. 떼어 낸 것이 지킨다.')
+          N('이튿날 밤, 바위틈 밖에서 무언가가 킁킁거렸다.'),
+          N('마을에서 풀려나온 사냥개였다. 별이 떨어진 자리의 탄내를 따라 언덕까지 올라온 것이다.'),
+          N('개는 틈 안에서 풍기는 따뜻한 냄새를 먹이 냄새로 알았다. 낮게 으르렁거리며 머리를 들이밀었다.'),
+          N('살덩이는 아직 혼자서는 개 한 마리도 당해 내지 못했다.'),
+          E('살을 떼어 내라.'),
+          E('떼어 낸 것이 너를 지킨다.')
         ])
       ],
       between: [],
       end: [
         sc('바위틈', ['한 방울'], [
-          N('떨어져 나온 살은 한동안 떨기만 했다. 그러다 눈을 떴는데 이빨이 먼저 나 있었다.'),
-          N('날개들은 오래 버티지 못했다.'),
+          N('떼어 낸 살은 한동안 바닥에서 떨기만 했다. 그러다 눈을 떴다. 이빨이 먼저 나 있었다.'),
+          N('개는 오래 버티지 못했다.'),
           E('먹어라.'),
-          N('그날 밤 살덩이는 처음으로 배가 불렀다. 그리고 바위틈 가장 깊은 곳, 물이 고인 오목한 자리에서 무언가를 품기 시작했다.'),
-          N('둥글고 차가운 것이었다. 안에서 아주 느리게 맥이 뛰었다.'),
+          N('그날 밤 살덩이는 처음으로 배가 불렀다.'),
+          N('바위틈 가장 깊은 곳, 물이 고인 자리에 둥글고 차가운 것이 하나 생겨 있었다. 알이었다. 안에서 아주 느리게 맥이 뛰었다.'),
+          N('누가 가르쳐 준 것도 아닌데 살덩이는 알았다. 이 알을 지켜야 했다. 알이 깨지면 자기도 끝이었다.'),
           D('무거운 물. 천장 없는 도시. 오래 닫혀 있던 문 하나가 머리카락 한 올만큼 열린다.')
         ]),
         sc('고갯길의 등불', ['늙은 바스코'], [
-          N('같은 밤, 물레골 북쪽 고갯길에서 늙은 바스코는 등불 심지를 돋우고 있었다.'),
-          N('하늘을 긋고 떨어지는 빛은 그도 보았다. 빛이 북쪽 언덕 너머로 사라지고 한참 뒤에야 땅이 한 번 울렸다.'),
-          N('그는 해 질 녘 문틈에 꽂혀 있던 쪽지를 다시 꺼내 펼쳤다.'),
-          W('쪽지', '오늘 밤 고갯길 등불을 끄시오.'),
-          S('바스코', '끄라고.'),
-          S('바스코', '선대가 이르셨느니. 등불은 길 밝히자고 거는 게 아니라, 아래 것이 위를 못 보게 하려고 거는 거라고.'),
-          N('그는 쪽지를 등불에 대어 태웠다. 서른 해 동안 그래 왔듯 그날 밤에도 등불 곁에서 잠들지 않았다.')
+          N('같은 밤, 물레골 북쪽 고갯길.'),
+          N('늙은 바스코는 고갯길 등불을 지키는 노인이었다. 서른 해 동안 하룻밤도 그 불을 꺼뜨린 적이 없었다.'),
+          N('그도 별이 떨어지는 것을 보았다. 그리고 오늘 언덕으로 올라간 사냥개 한 마리가 내려오지 않았다.'),
+          N('바스코는 저녁에 문틈에 꽂혀 있던 쪽지를 다시 펼쳤다. 누가 두고 갔는지는 몰랐다.'),
+          W('쪽지', '등불지기 앞. 오늘 밤부터 고갯길 등불을 꺼 주십시오. 사례는 넉넉히 하겠습니다. (서명 없음)'),
+          S('바스코', '불을 끄라고? 누가 이런 걸 써.'),
+          S('바스코', '우리 아버지가 그랬지. 이 불은 길 밝히려고 거는 게 아니다. 언덕 밑에 있는 것이 마을을 못 보게 거는 거다.'),
+          S('바스코', '그러니 못 꺼.'),
+          N('바스코는 쪽지를 등불에 대어 태웠다. 그날 밤에도 그는 등불 곁에서 자지 않았다.')
         ])
       ],
       guide: ['상점에서 권속을 사고, 밝아진 칸을 눌러 세운다.'] },
@@ -8343,41 +8350,56 @@ const MAZESTORY = (() => {
     { id: 'c1', title: '떨어진 밤', concept: '방을 지어 붙인다', raids: ['c1_torch', 'c1_mob', 'c1_hounds'],
       start: [
         sc('물레골 집회소', ['촌장', '양치기', '늙은 바스코'], [
-          S('양치기', '세 마리요. 문은 잠겨 있었소. 울타리도 멀쩡하고.'),
-          N('집회소가 조용해졌다. 난로 곁에 앉은 촌장이 모자를 손에서 돌렸다.'),
-          S('촌장', '발자국이… 그러니까 그 발자국이, 북쪽 언덕까지 갔다는 거요?'),
-          S('양치기', '젖은 발자국이었소. 짐승 것도 아니오. 발가락 수가 걸음마다 다르더란 말이오.'),
-          N('누군가 성호를 그었다. 별이 떨어진 밤 얘기를 꺼낸 사람은 옆 사람에게 팔꿈치로 찔리고 입을 다물었다.'),
-          S('촌장', '그게, 별 떨어지기 이레 전이었나… 외투 긴 사내 하나가 여관에 묵었소. 옛 우물 자리가 어디냐고, 그것만 묻고 갔지요.'),
-          S('촌장', '그게 무슨 상관인지는… 모르겠소. 나도 모르겠소.'),
-          S('바스코', '언덕 밑은 건드리지 말게.'),
-          S('바스코', '내 선대도 그리 일렀고 그 선대도 그랬느니.'),
-          S('양치기', '가만있으면 다음엔 애들이오. 양 말고.'),
-          N('촌장은 모자를 내려놓았다. 손이 떨렸다.'),
-          S('촌장', '…창 들 수 있는 사람은 내일 아침 언덕 밑으로. 횃불도. 횃불도 챙기고.')
+          N('사흘째 밤, 물레골 집회소. 양이 또 없어졌다는 말에 마을 사람들이 모였다.'),
+          N('물레골은 고개 아래 서른 집 남짓한 산골 마을이다. 촌장은 난로 곁에 앉아 모자를 손에서 빙빙 돌리고 있었다.'),
+          S('양치기', '세 마리예요, 세 마리. 우리 문은 잠겨 있었고 울타리도 멀쩡했다고요.'),
+          S('촌장', '늑대 아니고? 지난겨울에도 늑대가 내려왔잖아.'),
+          S('양치기', '늑대가 빗장을 열어요? 발자국이 북쪽 언덕까지 나 있었어요. 젖은 발자국인데 발가락 수가 걸음마다 달라요.'),
+          N('누군가 성호를 그었다. 별이 떨어진 날 얘기를 꺼내려던 사람은 옆 사람이 팔꿈치로 찌르자 입을 다물었다.'),
+          S('촌장', '그러고 보니 별 떨어지기 이레 전에 외투 긴 사내 하나가 여관에 묵었지. 옛 우물 자리가 어디냐고만 묻고 갔어.'),
+          S('촌장', '그게 이거랑 무슨 상관인지는 나도 모르겠다만.'),
+          N('구석에서 듣고만 있던 늙은 바스코가 입을 열었다.'),
+          S('바스코', '언덕 밑에는 가지 마라. 거기 뭐가 있든 건드리지 마.'),
+          S('양치기', '가만있으면요? 다음엔 양이 아니라 애들이 없어질 거예요.'),
+          N('집회소가 조용해졌다. 촌장은 모자를 내려놓았다. 손이 떨리고 있었다.'),
+          S('촌장', '좋아. 창 들 수 있는 사람은 내일 아침에 언덕 밑으로 모여. 횃불도 챙기고.')
         ]),
         sc('굴', ['한 방울'], [
-          N('아침이 되자 위쪽이 시끄러워졌다. 쇠가 돌에 부딪는 소리와 거친 숨소리 사이로 불 타는 냄새가 섞여 내려왔다.'),
-          N('살덩이는 불 냄새를 싫어했다. 불은 말리는 것이었다.'),
+          N('아침이 되자 굴 위가 시끄러워졌다. 쇠붙이가 바위에 부딪는 소리와 거친 숨소리, 그리고 불 냄새가 내려왔다.'),
+          N('마을 사람들이 창과 횃불을 들고 언덕 밑으로 온 것이다.'),
+          N('살덩이는 불 냄새가 싫었다. 불은 젖은 것을 말려 죽였다.'),
           E('위의 것들이 온다.'),
           E('굴을 넓혀라. 오래 걷게 하라.'),
-          N('흙을 밀어낸 자리에서 진액이 배어 나왔다. 진액은 곧 새 살이 되었다.')
+          N('살이 바위틈을 밀고 나간 자리마다 진액이 배어 나왔다. 진액은 곧 새 살이 되었고 새 살은 방이 되었다.')
         ])
       ],
       between: [
-        [sc('굴', [], [N('횃불 하나가 굴 바닥에 떨어져 오래 연기를 냈다. 주우러 돌아온 자는 없었다.'), E('불 든 것부터 꺾어라.')])],
-        [sc('굴', [], [N('첫 횃불은 굴 입구에서 한참을 머뭇거렸다. 불도 안쪽의 물기를 싫어했다. 그걸 든 자들도 마찬가지였다.')])]
+        [sc('굴', [], [
+          N('횃불을 든 사람들은 굴 깊이 들어오지 못했다. 몇은 쓰러졌고 나머지는 달아났다.'),
+          N('횃불 하나가 굴 바닥에 떨어져 오래 연기를 냈다. 그것을 주우러 돌아온 사람은 없었다.'),
+          N('살덩이는 쓰러진 자들을 먹었다. 사람의 살은 개보다 따뜻했다.'),
+          E('불 든 것부터 꺾어라.'),
+          N('그날 밤 언덕 아래 마을에서는 늦게까지 등불이 꺼지지 않았다. 다음에는 마을 남자들이 다 같이 올 것이다.')
+        ])],
+        [sc('굴', [], [
+          N('이번에는 마을 남자들이 거의 다 왔다. 낫과 쇠스랑을 든 농부들이었다.'),
+          N('그들은 굴 입구에서 한참을 머뭇거렸다. 안쪽에서 올라오는 축축하고 따뜻한 바람이 싫었던 것이다. 들어온 사람 가운데 나간 사람은 몇 되지 않았다.'),
+          N('살아 나간 사람이 마을에 말을 전했다. 사람 힘으로는 안 된다고. 개를 풀어 냄새로 쫓아야 한다고.')
+        ])]
       ],
       end: [
         sc('집회소, 깊은 밤', ['촌장', '늙은 바스코'], [
-          N('일곱이 내려가서 둘이 돌아왔다. 둘 다 입을 열지 않았다.'),
-          N('촌장은 등잔 밑에서 편지를 쓰고 있었다. 글씨가 자꾸 비뚤어졌다.'),
-          S('바스코', '어디로 보내는 겐가.'),
-          S('촌장', '도시, 학회요. 이런 걸… 아는 사람들이 있다고. 돈 받고 와 준다고 하더이다.'),
-          S('바스코', '돈 받고 오는 자들은…'),
-          N('노인은 말끝을 맺지 않았다. 촌장도 되묻지 않았다. 창밖으로 고갯길 등불이 보였는데 오늘따라 많이 흔들렸다.'),
-          N('그날 밤 물레골 사람들은 모두 같은 꿈을 꾸었다. 무거운 물과 천장 없는 도시. 아침에 그 얘기를 꺼낸 사람은 없었다.'),
-          D('바늘 하나가 돌아서는 소리. 아주 먼 데서.')
+          N('그날 밤, 물레골 집회소. 개를 앞세우고 굴로 내려간 사람은 일곱이었다. 돌아온 사람은 둘이었다.'),
+          N('둘 다 굴에서 무엇을 봤는지 말하지 않았다. 한 사람은 밤새 벽만 보고 앉아 있었다.'),
+          N('촌장은 등잔 밑에서 편지를 쓰고 있었다. 글씨가 자꾸 비뚤어졌다. 바스코가 들어와 맞은편에 앉았다.'),
+          S('바스코', '누구한테 쓰는 거야?'),
+          S('촌장', '도시에 있는 학회. 이런 일을 조사하는 사람들이 있대. 돈만 주면 사람을 보내 준다고.'),
+          S('바스코', '돈 받고 오는 사람들은 끝을 볼 때까지 안 가. 끝을 봐야 돈을 받으니까.'),
+          S('촌장', '그럼 어쩌라고. 마을 남자 절반이 굴에서 안 나왔어. 우리 힘으로는 안 돼.'),
+          N('바스코는 더 말하지 않았다. 촌장은 편지 끝에 이름을 쓰고 봉했다.'),
+          W('촌장의 편지', '물레골에서, 별이 떨어진 지 엿새째. 학회 사무국 앞. 북쪽 언덕 바위틈에 무언가가 살고 있습니다. 양 일곱 마리와 사람 다섯을 잃었습니다. 사람을 보내 주십시오. 마을에서 모은 돈을 함께 보냅니다. — 물레골 촌장'),
+          N('그날 밤 물레골 사람들은 모두 같은 꿈을 꾸었다. 무거운 물과 천장 없는 도시. 아침에 그 꿈 얘기를 꺼낸 사람은 없었다.'),
+          N('편지는 이튿날 아침 우편 마차에 실려 고개를 넘었다. 며칠 뒤면 도시에서 누군가 올 것이다.')
         ])
       ],
       guide: ['빈 자리를 눌러 방을 짓는다. 굴이 길수록 침입자가 오래 걷는다.'] },
@@ -8656,7 +8678,7 @@ const MAZESTORY = (() => {
       ]),
       sc('고갯길의 등불', ['늙은 바스코'], [
         N('그날 밤 고갯길 등불이 처음으로 저 혼자 꺼졌다. 바스코는 장대를 짚고 서서 북쪽 언덕 위 별들이 하나씩 자리를 옮기는 것을 보았다.'),
-        S('바스코', '선대가 그러셨느니. 등불이 저 혼자 꺼지는 날엔 등불지기도 쉬라고.'),
+        S('바스코', '아버지가 그랬지. 등불이 저 혼자 꺼지는 날에는 등불지기도 이제 쉬라고.'),
         N('물레골은 그날 밤 같은 꿈에서 깨어나지 못했다. 위대한 것에게 그건 아무 일도 아니었다.')
       ])] },
     E: { title: '기록', cond: '알이 남았고, 기록관의 집에 두 번 이상 속삭였고, 고갯길의 등불을 노리지 않았다.', scenes: [
@@ -8725,7 +8747,7 @@ const MAZESTORY = (() => {
       { id: 'c5', title: '봉인하러 온 자들', from: 24, opens: [] },
       { id: 'c6', title: '예언', from: 31, opens: [] }
     ],
-    omen: { quiet: '굴 위가 조용하다.', steps: '발소리가 들린다. 이 밤의 명령 뒤에 침입이 온다.', sure: '땅 위를 쳤다. 이 밤에는 반드시 온다.', last: '마지막 밤이다. 탑의 주인이 온다.' },
+    omen: { quiet: '굴 위가 조용합니다.', steps: '발소리가 들립니다. 오늘 밤 침입이 옵니다.', sure: '마을을 습격했습니다. 오늘 밤 반드시 옵니다.', last: '마지막 밤입니다. 탑의 주인이 옵니다.' },
     left: '남은 밤'
   };
 
@@ -8741,16 +8763,20 @@ const MAZESTORY = (() => {
       E('들어가라. 말은 적게.')
     ])),
     strike1: idd('x.strike1', sc('물레골 집회소', ['촌장', '양치기'], [
-      S('양치기', '줄이 끊긴 게 아니오. 풀려 있었소. 매듭째로.'),
-      N('촌장은 풀린 줄을 받아 들었다. 젖어 있었다.'),
-      S('촌장', '늑대가… 늑대가 매듭을 푸나.'),
-      N('대답하는 사람이 없었다. 그날부터 물레골은 해가 지면 덧문을 걸었다.')
+      N('이튿날 아침, 물레골 집회소. 밤사이 마을 끝 오두막이 습격당했다. 굴에 있는 것이 처음으로 마을까지 내려온 것이다.'),
+      S('양치기', '밧줄이 끊긴 게 아니에요. 풀려 있었어요. 매듭째로.'),
+      N('촌장은 양치기가 내민 밧줄을 받아 들었다. 젖어 있었고 비린내가 났다.'),
+      S('촌장', '짐승이 매듭을 푼다고? 그럴 리가 있나.'),
+      S('양치기', '그러니까 짐승이 아니라는 거죠. 그게 이제 굴에서 나와요. 우리 쪽으로.'),
+      N('그날부터 물레골은 해가 지면 덧문을 걸었다. 마을이 굴을 경계하기 시작한 것이다.')
     ])),
     watch: idd('x.watch', sc('고갯길의 등불', ['늙은 바스코', '양치기'], [
-      N('고갯길에 횃불이 둘 더 섰다. 촌장이 세운 밤번이었다.'),
-      S('바스코', '불을 늘린다고 덜 오는 게 아닐세.'),
-      S('양치기', '그럼 뭘 하란 말이오. 앉아서 세라는 거요, 없어지는 걸.'),
-      N('노인은 대답 없이 제 등불 심지만 올렸다. 밤번들은 북쪽을 등지고 섰다. 그쪽은 보고 싶지 않았던 것이다.')
+      N('물레골 고갯길, 밤. 마을이 굴을 경계하기 시작하자 촌장은 밤마다 길목에 보초를 세웠다.'),
+      N('바스코의 등불 옆에 횃불이 둘 더 섰다. 보초는 양치기와 젊은 농부들이 돌아가며 섰다.'),
+      S('바스코', '횃불을 늘린다고 덜 오는 게 아니야.'),
+      S('양치기', '그럼 뭘 해요? 앉아서 양이 없어지는 걸 세고 있어요?'),
+      S('바스코', '내 등불은 길 밝히려고 거는 게 아니야. 저 횃불들은 그냥 불이고. 저걸로는 못 막아.'),
+      N('양치기는 대답하지 못했다. 보초들은 북쪽 언덕을 등지고 섰다. 그쪽은 아무도 보고 싶어 하지 않았다.')
     ])),
     bell: idd('x.bell', sc('물레골 예배당', ['미렐 수녀', '촌장'], [
       N('예배당 종이 해 질 녘마다 울리기 시작했다. 미렐 수녀가 시킨 일이었다.'),
@@ -8802,11 +8828,11 @@ const MAZESTORY = (() => {
       N('굴은 그를 삼키지 않았다. 권속들이 그의 양옆을 지나 앞으로 나갔다.')
     ])),
     vascoLast: idd('x.last@vasco', sc('고갯길의 등불', ['늙은 바스코'], [
-      N('북쪽 탑의 창이 그날 밤 처음으로 어두웠다.'),
-      S('바스코', '불 끄고 나섰구먼. 자네 손님일세.'),
-      N('노인은 등불에 대고 말했다. 요즘은 그게 버릇이 되었다.'),
-      S('바스코', '걸어서 이틀. 그자가 문 앞에 서거든 내 등불이 아직 탄다고 일러 주게. 적힌 대로 안 된 게 하나 있다고.'),
-      N('장대 밑동의 젖은 자국이 한 번 짙어졌다 옅어졌다. 노인은 그것을 대답으로 쳤다.')
+      N('서른네 번째 밤, 고갯길. 북쪽 탑의 창이 그날 밤 처음으로 어두웠다. 탑의 주인이 길을 나선 것이다.'),
+      S('바스코', '불 끄고 나섰네. 네 손님이야.'),
+      N('바스코는 등불에 대고 말했다. 요즘은 그게 버릇이 되었다.'),
+      S('바스코', '걸어서 이틀이야. 그자가 굴 앞에 서면 내 등불이 아직 탄다고 전해 줘. 그자 뜻대로 안 된 게 하나 있다고.'),
+      N('장대 밑동의 젖은 자국이 한 번 짙어졌다가 옅어졌다. 바스코는 그것을 대답으로 여겼다.')
     ])),
     mirelLine: idd('x.mirel6', sc('굴 입구, 새벽', ['미렐 수녀', '기사단장'], [
       N('탑에서 내려온 행렬이 굴 입구에 닿았을 때 수녀가 소금 선 위에 서 있었다.'),
@@ -8840,8 +8866,6 @@ const MAZESTORY = (() => {
     ]))
   };
   const c1s = part('c1', 's');
-  // 「흙을 밀어낸 자리」는 파기를 전제한 말이라 고친다
-  c1s[1] = swap(c1s[1], 4, N('살이 벽을 밀고 나간 자리마다 진액이 배어 나왔다. 진액은 곧 새 살이 되었다.'));
   const events = [
     EV('c0.start', { night: 1 }, part('c0', 's')),
     EV('c0.end', { afterRaid: 'c0_beast' }, part('c0', 'e')),
@@ -9101,57 +9125,59 @@ const MAZESTORY = (() => {
       ])
     ] },
 
-    vasco: { name: '늙은 바스코', role: '등불지기', desc: '이미 알고 있다. 놀라지 않고 되묻는다.', need: { night: 3, afterRaid: 'c0_beast' }, result: 'vasco_lamp', scenes: [
+    vasco: { name: '늙은 바스코', role: '등불지기', desc: '고갯길 등불을 서른 해째 지키는 노인. 언덕 밑에 무엇이 있는지 어렴풋이 안다.', need: { night: 3, afterRaid: 'c0_beast' }, result: 'vasco_lamp', scenes: [
       wsc('vasco', 1, '심지', '고갯길의 등불', ['늙은 바스코'], [
-        N('늙은 바스코는 등불 곁에서 잠들지 않았다. 서른 해를 그랬다. 그러니 꿈일 수는 없었고 불꽃이 한 번 옆으로 누웠을 뿐이다.'),
-        S('바스코', '왔는가.'),
-        N('그는 놀라지 않았다. 심지를 조금 올렸다.'),
-        S('바스코', '선대도 한 번 들었다 하셨느니. 아래서 부르는 소리를.'),
+        N('고갯길의 등불, 깊은 밤. 살덩이는 처음으로 땅 위 사람의 꿈에 말을 걸어 보았다.'),
+        N('잠든 사람의 꿈에는 문이 없었다. 숨결을 따라 굴까지 흘러 내려온 꿈속으로 들어가면 그 사람에게 말을 할 수 있었다.'),
+        N('늙은 바스코는 등불 곁 의자에서 깜빡 졸고 있었다. 서른 해 만에 처음 든 선잠이었다.'),
+        S('바스코', '누구야. 거기 누구 있어?'),
+        N('꿈속에서도 그는 등불 곁에 앉아 있었다. 놀라지 않았다. 심지를 조금 올렸을 뿐이다.'),
+        S('바스코', '우리 아버지도 한 번 들었다고 했지. 언덕 밑에서 누가 부르는 소리를. 너구나.'),
         E('불을 꺼라.'),
-        S('바스코', '그 소린 쪽지로도 받았느니. 글씨가 기울었더구먼.'),
-        S('바스코', '끌 수 없는 불일세.'),
-        N('불꽃이 도로 섰다. 노인은 장대에 등을 기대고 북쪽 언덕을 오래 보았다.')
+        S('바스코', '그 말은 쪽지로도 받았어. 그것도 너야? 아니면 다른 놈이야?'),
+        S('바스코', '어느 쪽이든 못 꺼. 이건 꺼지면 안 되는 불이야.'),
+        N('바스코는 잠에서 깼다. 등불은 그대로 타고 있었다. 그는 북쪽 언덕을 오래 바라보았다.')
       ]),
-      wsc('vasco', 2, '선대', '고갯길의 등불', ['늙은 바스코'], [
-        S('바스코', '선대 얘길 해 주랴.'),
-        N('묻는 이는 없었다. 노인은 등불에 대고 말했다.'),
-        S('바스코', '그 양반이 불을 한 번 꺼뜨렸느니. 딱 하룻밤. 비가 몹시 오던 밤일세.'),
-        S('바스코', '이튿날 우물 셋이 거꾸로 돌았고 아이 하나가 사흘을 깨지 않았다 하더구먼.'),
-        N('불꽃이 작아졌다. 듣고 있는 것처럼.'),
-        E('위.'),
-        S('바스코', '그렇지, 위. 자네가 보고 싶은 게 그걸세.'),
-        S('바스코', '보면 어찌 되는지는 선대도 몰랐느니. 모르니까 가리는 걸세.'),
-        N('이튿날 노인은 집회소에 내려가 한마디만 하고 올라왔다. 그 이레 동안 창을 들고 언덕으로 간 사람은 없었다.')
+      wsc('vasco', 2, '아버지', '고갯길의 등불', ['늙은 바스코'], [
+        N('며칠 뒤 바스코는 또 등불 곁에서 졸았다. 이번에는 그가 먼저 말을 꺼냈다.'),
+        S('바스코', '우리 아버지 얘기 해 줄까. 이 등불을 나한테 물려준 사람.'),
+        S('바스코', '아버지가 딱 하룻밤 불을 꺼뜨린 적이 있어. 비가 억수로 오던 밤이었지.'),
+        S('바스코', '다음 날 마을 우물 세 개에서 물이 거꾸로 솟았고 애 하나가 사흘 동안 깨어나지 않았어.'),
+        N('꿈속의 불꽃이 작아졌다. 듣고 있는 것처럼.'),
+        E('위를 보고 싶다.'),
+        S('바스코', '그래. 너는 위를 보고 싶은 거지. 마을을.'),
+        S('바스코', '보면 어떻게 되는지는 아버지도 몰랐어. 모르니까 가리는 거야.'),
+        N('이튿날 바스코는 집회소에 내려가 언덕에 창 들고 가지 말라는 말 한마디만 하고 올라왔다. 그 뒤 이레 동안 언덕으로 간 사람은 없었다.')
       ], { alert: -1 }, '경계 −1'),
       wsc('vasco', 3, '타다 남은 쪽지', '고갯길의 등불', ['늙은 바스코'], [
-        N('그는 품에서 쪽지 귀퉁이를 꺼냈다. 다 태우지 못한 조각에 글자 반 토막이 남아 있었다.'),
-        S('바스코', '이 글씨 쓴 자가 자네를 부추기는 겐가, 자네가 그자를 부리는 겐가.'),
-        E('읽는 자. 꿈을 훔친다.'),
-        S('바스코', '훔친다.'),
-        N('노인은 그 말을 한 번 굴려 보고 고개를 끄덕였다.'),
-        S('바스코', '그럼 자네도 당하는 쪽이구먼. 그건 몰랐느니.'),
+        N('꿈속에서 바스코는 품에서 종이 조각을 꺼냈다. 등불을 끄라던 그 쪽지에서 다 타지 않은 귀퉁이였다.'),
+        S('바스코', '이거 네가 쓴 거야? 아니면 이걸 쓴 놈이 너를 부리는 거야?'),
+        E('아니다. 읽는 자다.'),
+        E('꿈을 훔치는 자.'),
+        S('바스코', '꿈을 훔친다고. 그럼 너도 당하는 쪽이네. 그건 몰랐어.'),
         N('등불이 흔들렸다. 바람은 없었다.'),
-        S('바스코', '그자한테는 문을 열어 주지 말게. 나더러 불 끄라는 건 그다음 얘길세.')
+        S('바스코', '별 떨어지기 전에 옛 우물 자리를 묻고 다닌 외투 긴 사내가 있었어. 그놈이구나.'),
+        S('바스코', '좋아. 그놈한테는 문을 열어 주지 마. 등불 얘기는 그다음에 하자.')
       ]),
       wsc('vasco', 4, '장대', '고갯길의 등불', ['늙은 바스코'], [
-        N('그 겨울 들어 노인의 손이 장대를 자주 놓쳤다. 심지 올리는 데 예전의 두 배가 걸렸다.'),
-        S('바스코', '나도 오래는 못 서 있을 걸세.'),
-        S('바스코', '물려줄 놈이 없구먼. 물레골 젊은것들은 등불이 길 밝히는 건 줄 아느니.'),
-        E('꺼진다.'),
-        S('바스코', '꺼질 걸세. 내가 가면.'),
-        N('그는 그 말을 겁 없이 했다. 장대 끝의 불이 얼굴 주름을 하나하나 비췄다.'),
-        S('바스코', '그러니 묻는 걸세. 자네, 위를 꼭 봐야겠는가.'),
-        N('굴 쪽에서 바람이 한 번 들어갔다 나왔다. 대답으로 듣기에는 너무 길었다.')
+        N('겨울이 깊어지자 바스코의 손이 자주 떨렸다. 등불 장대를 놓치는 날이 많아졌다.'),
+        S('바스코', '나도 오래는 못 버텨.'),
+        S('바스코', '물려줄 사람도 없어. 마을 젊은 애들은 이 등불이 그냥 길 밝히는 불인 줄 알아.'),
+        E('네가 가면 꺼진다.'),
+        S('바스코', '그렇지. 내가 죽으면 꺼지겠지.'),
+        N('그는 그 말을 아무렇지 않게 했다. 장대 끝의 불빛이 얼굴의 주름을 하나하나 비췄다.'),
+        S('바스코', '그러니까 묻는 거야. 너, 정말로 위를 봐야겠어?'),
+        N('굴 쪽에서 바람이 한 번 들어갔다 나왔다. 대답이라고 하기에는 너무 길었다.')
       ]),
       wsc('vasco', 5, '등불지기', '고갯길의 등불', ['늙은 바스코'], [
-        N('마지막 밤에 노인은 장대를 땅에 꽂아 두고 앉았다. 서른 해 만에 처음 앉아 보는 자리.'),
-        S('바스코', '자네 품은 것이 깨면 건너오는 게 있다더구먼.'),
-        S('바스코', '그게 자네를 살려 둘 것 같은가. 문지기를.'),
-        N('굴의 숨이 한 박자 걸렀다.'),
+        N('그 밤 바스코는 장대를 땅에 꽂아 두고 그 옆에 앉았다. 서른 해 만에 처음으로 앉아 보는 자리였다.'),
+        S('바스코', '네가 품은 알이 깨면 뭔가가 건너온다며.'),
+        S('바스코', '그게 너를 살려 둘 것 같아? 문 지키던 놈을?'),
+        N('굴의 숨이 한 박자 늦었다.'),
         E('모른다.'),
-        S('바스코', '그럼 우린 같은 처지일세. 모르는 걸 하나씩 지키고 앉았으니.'),
-        S('바스코', '불은 내가 지킴세. 자네는 그 알이나 지키게. 급히 깨우지는 말고.'),
-        N('노인은 그러고 잠들었다. 등불은 타고 있었다. 장대 밑동에 젖은 자국 하나가 올라와 있었는데 불에 닿지 않을 만큼만 떨어져 있었다.')
+        S('바스코', '그럼 우린 같은 처지네. 둘 다 모르는 걸 하나씩 지키고 앉아 있으니까.'),
+        S('바스코', '불은 내가 지킬게. 너는 그 알이나 지켜. 서둘러 깨우지는 말고.'),
+        N('바스코는 그러고 잠들었다. 등불은 계속 타고 있었다. 장대 밑동까지 젖은 자국 하나가 올라와 있었다. 불에는 닿지 않을 만큼 떨어진 자리였다.')
       ], { alert: -1 }, '경계 −1')
     ] },
 
@@ -9350,14 +9376,14 @@ const MAZESTORY = (() => {
 
   // 6. 명령 여섯. from = 처음 열리는 막(nights.acts 의 opens 와 같다). first = 처음 나올 때 안내 한 줄
   const commands = {
-    turn: '한 밤에 명령 하나를 고른다. 권속을 세우고 옮기는 것은 명령으로 치지 않는다.',
+    turn: '한 밤에 명령을 하나 고릅니다. 권속을 굴에 세우거나 옮기는 것은 명령이 아니니 언제든 할 수 있습니다.',
     list: [
-      { id: 'birth', name: '권속을 낳는다', from: 'c0', desc: '알자리 목록에서 골라 낳는다. 진액이 든다.', first: '갓 낳은 권속은 살덩이다. 싸우면서 자라고, 낳을수록 목록이 넓어진다.' },
-      { id: 'build', name: '굴을 고친다', from: 'c1', desc: '구역을 골라 모양을 바꾼다. 진액이 든다.', first: '구역을 누르면 지을 수 있는 모양이 나온다. 그 구역에 있던 권속은 대기석으로 돌아온다.' },
-      { id: 'rest', name: '쉰다', from: 'c1', desc: '알과 본체가 회복하고 진액이 조금 고인다. 경계가 조금 내린다.', first: '발소리가 들리는 밤에 쉬면 회복한 채로 침입을 맞는다.' },
-      { id: 'raise', name: '기른다', from: 'c2', desc: '일과 하나로 본체의 성향을 올린다.', first: '성향이 문턱을 넘으면 본체가 그 갈래로 깨어난다.' },
-      { id: 'whisper', name: '속삭인다', from: 'c2', desc: '잠든 사람 하나의 꿈에 말을 건다.', first: '같은 사람에게 거듭 속삭이면 그 사람의 일이 달라지고 결말이 갈린다.' },
-      { id: 'strike', name: '땅 위를 친다', from: 'c3', desc: '지상의 한 곳을 친다. 진액과 먹이를 얻고 세운 권속이 자란다. 경계가 오른다.', first: '친 다음에는 반드시 침입이 온다. 다 쓸어버리면 얻는 것이 줄고 경계만 크게 오른다.' }
+      { id: 'birth', name: '권속을 낳는다', from: 'c0', desc: '알자리에서 권속을 골라 낳습니다. 진액이 듭니다.', first: '갓 낳은 권속은 약한 살덩이입니다. 싸움에서 살아남을수록 레벨이 오르고, 많이 낳을수록 고를 수 있는 권속이 늘어납니다.' },
+      { id: 'build', name: '굴을 고친다', from: 'c1', desc: '굴의 한 구역을 골라 모양을 바꿉니다. 진액이 듭니다.', first: '구역을 누르면 놓을 수 있는 모양이 나옵니다. 모양을 바꾸면 그 구역에 서 있던 권속은 대기석으로 돌아옵니다.' },
+      { id: 'rest', name: '쉰다', from: 'c1', desc: '알과 본체가 조금 회복하고 진액이 조금 고입니다. 마을의 경계도 조금 누그러집니다.', first: '발소리가 들리는 밤에 쉬면 회복한 상태로 침입을 맞습니다.' },
+      { id: 'raise', name: '기른다', from: 'c2', desc: '일과를 하나 골라 본체의 성향을 기릅니다.', first: '한 성향이 정해진 값을 넘으면 본체가 그 모습으로 깨어납니다.' },
+      { id: 'whisper', name: '속삭인다', from: 'c2', desc: '잠든 사람 하나의 꿈에 말을 겁니다.', first: '같은 사람에게 거듭 속삭이면 그 사람의 생각이 바뀌고, 이야기의 결말도 달라집니다.' },
+      { id: 'strike', name: '땅 위를 친다', from: 'c3', desc: '권속을 보내 마을의 한 곳을 습격합니다. 진액과 먹이를 얻고 굴에 세운 권속이 자랍니다. 대신 마을의 경계가 높아집니다.', first: '습격한 다음 밤에는 마을 사람들이 반드시 복수하러 옵니다. 쓸어버리면 얻는 것은 줄고 경계는 크게 오릅니다.' }
     ]
   };
 
@@ -10578,18 +10604,22 @@ function mzTitleScene() {
 const mzK = () => MAZE.MK;
 function mzSignHelp() {
   const D = MAZE.SIGN.DECK, wl = (D.debt && D.debt.whisperLine) || 0;
-  return `<p>이야기는 ${D.start.story}번째 밤부터, 자유는 ${D.start.free}번째 밤부터 밤이 넘어갈 때마다 패 한 장이 뒤집힌다. 패는 그 밤에 든다.</p><p>고요는 아무 일도 없거나 작은 것이 남는다. 징조는 그 밤의 조건이다: 못 고르는 명령, 바뀐 값, 다음 일행에 걸리는 것. 성향을 재는 징조는 그 밤의 명령이 끝날 때 재므로, 그 밤에 길러서 넘길 수 있다.</p><p>소문은 정해진 밤 안에 꺼야 한다. 끄는 명령을 고르거나 값을 치른다. 못 끄면 터진다.</p><p>꿈은 받으면 판 끝까지 가는 권능과 빚이 남는다. 물려도 된다.${wl ? ' 속삭임의 줄기를 끝내도 빚이 ' + wl + ' 는다.' : ''} 셈의 패가 뒤집히는 밤에 빚 하나마다 거둬 간다.</p><p>위엄, 본체 레벨, 성향, 빚이 쌓일수록 센 패가 나온다. 경계가 낮아 위가 조용하면 「조용한 굴의 징조」가 섞인다.</p><p>난이도는 고요의 몫, 셈의 횟수, 성향을 재는 문턱을 바꾼다. 침입과 굴의 수치는 같다.</p>`;
+  return `<p>이야기는 ${D.start.story}번째 밤부터, 자유는 ${D.start.free}번째 밤부터 밤이 바뀔 때마다 패가 한 장 뒤집힙니다. 패는 그 밤 하루 동안만 듭니다.</p>`
+    + `<p><b>고요</b>는 별일 없이 지나가거나 작은 것을 남깁니다. <b>징조</b>는 그 밤의 조건입니다. 고를 수 없는 명령이 생기거나, 값이 바뀌거나, 다음 일행에게 무언가가 붙습니다. 성향을 재는 징조는 그 밤 명령을 마칠 때 재니, 그 밤에 「기른다」로 성향을 올려 넘길 수 있습니다.</p>`
+    + `<p><b>소문</b>은 정해진 밤 안에 꺼야 합니다. 끄는 명령을 고르거나 진액을 치르세요. 끄지 못하면 터집니다.</p>`
+    + `<p><b>꿈</b>을 받으면 판이 끝날 때까지 가는 힘을 얻고 빚을 집니다. 받지 않아도 됩니다.${wl ? ' 속삭임을 한 사람에게 다섯 번 채워도 빚이 ' + wl + ' 늡니다.' : ''} <b>셈</b>의 패가 뒤집히는 밤에 빚 하나마다 값을 치릅니다.</p>`
+    + `<p>위엄, 본체 레벨, 성향, 빚이 쌓일수록 센 패가 나옵니다. 마을의 경계가 낮아 굴 위가 조용하면 「조용한 굴의 징조」가 섞입니다.</p><p>난이도는 고요가 나오는 몫, 셈이 오는 횟수, 성향을 재는 값을 바꿉니다. 침입자와 굴의 수치는 같습니다.</p>`;
 }
 function mzHelpPages() {
   const K = mzK(), A = K.alert, N = K.kin;
   return [
-    ['밤', `<p>한 밤에 명령 하나를 고른다: 권속을 낳는다, 굴을 고친다, 땅 위를 친다, 속삭인다, 기른다, 쉰다. 권속을 세우고 옮기는 것은 명령으로 치지 않는다.</p><p>위 띠의 불이 켜진 밤에는 발소리가 들린다. 그 밤의 명령이 끝나면 침입이 온다. 땅 위를 친 다음 밤에는 반드시 온다.</p><p>진액은 밤마다 ${K.night.drip} 고인다. 쉬면 진액 +${K.night.rest.gold}, 알 +${K.night.rest.egg}, 경계 ${K.night.rest.alert}.</p>`],
-    ['굴', '<p>굴은 구역 열하나로 나뉜다: 깊이 셋마다 목 하나와 왼굴·오른굴, 그리고 본체 방과 굴 바깥. 굴을 고치는 밤에 구역을 누르면 그 구역에 놓을 수 있는 모양이 나온다.</p><p>모양마다 통로, 권속 방, 함정, 시설이 정해져 있다. 값은 깊을수록 비싸고, 굴을 고친 횟수와 굴에 쓴 진액에 따라 새 모양이 열린다.</p><p>살벽으로 막힌 이웃 칸 사이에는 길이 없다. 무거운 자는 살벽 하나를 뚫는다.</p><p>모양을 바꾸면 그 구역에 설 자리가 없어진 권속은 대기석으로 돌아온다.</p>'],
-    ['권속', `<p>권속은 알자리 목록에서 골라 낳는다. 같은 종류도 태어날 때 체력과 공격이 조금씩 다르다. 낳은 횟수와 쓴 진액에 따라 목록이 넓어지고, 드문 것은 본체의 성향이 문턱에 닿으면 열린다.</p><p>갓 낳은 권속은 살덩이다. 싸움에서 살아남으면 경험 +${N.fight}, 죽이면 +${N.kill}. 레벨 ${N.star[1]}에 2성, ${N.star[2]}에 3성이 된다. 레벨 ${N.perkAt}에 보조 능력 하나가 붙는다.</p><p>같은 종류를 먹이면 먹은 쪽이 경험을 크게 얻는다. 본체에게 먹이면 진액을 조금 돌려받는다. 쓰러진 권속은 죽지 않고, 그 침입에서 얻은 경험만 잃는다.</p><p>세울 수 있는 수는 본체 레벨 + 2.</p>`],
-    ['오는 자들', `<p>일행은 입구에서 굴을 더듬어 내려온다. 길잡이가 없으면 갈림길마다 헤매고 막다른 곳에서 되돌아간다. 지도의 점선이 그 길이다.</p><p>함정을 밟으면 다치고, 권속이 선 방에 닿으면 그 방에서 싸운다. 다친 것은 다음 방까지 이어진다. 굴의 어둠은 한 칸마다 정신을 깎고, 정신이 바닥난 자는 미쳐서 둥지 편에 선다. 처음 몇 밤은 어둠이 얕아서 일행이 제정신으로 방에 닿는다.</p><p>알에 닿은 자는 알을 깎고 진액을 빼앗는다. 알이 깨지면 판이 끝난다.</p><p>경계는 땅 위를 치면 오르고 쉬면 내린다. 경계 ${A.step}마다 오는 자의 등급이 오른다: 더 세지만 죽이면 진액도 많다. 경계 ${A.size[0]}, ${A.size[1]}부터 일행이 하나씩 는다.</p>`],
-    ['기르기', `<p>본체는 굴에서 죽은 자를 먹고 자란다. 본체 방에서 죽은 자는 두 배로 친다. 레벨이 오르면 권속을 하나 더 세운다.</p><p>성향은 다섯이다: 심연, 성운, 번식, 기아, 황혼. 무엇을 먹었는지, 어떤 일과를 골랐는지, 땅 위의 어디를 쳤는지에 따라 쌓인다.</p><p>한 성향이 문턱에 닿으면 본체는 그 모습으로 깨어난다. 고르지 않는다. 깨어나면 기술이 바뀌고 그 모습의 권속과 방이 열린다.</p>`],
+    ['밤', `<p>한 밤에 명령을 하나 고릅니다. 권속을 낳는다, 굴을 고친다, 땅 위를 친다, 속삭인다, 기른다, 쉰다 가운데 하나입니다. 권속을 굴에 세우거나 옮기는 것은 명령이 아니어서 언제든 할 수 있습니다.</p><p>위 띠의 등불이 켜진 밤에는 발소리가 들립니다. 그 밤 명령을 마치면 침입자가 옵니다. 마을을 습격한 다음 밤에는 반드시 옵니다.</p><p>진액은 밤마다 ${K.night.drip}씩 고입니다. 쉬면 진액 +${K.night.rest.gold}, 알 +${K.night.rest.egg}, 경계 ${K.night.rest.alert}.</p>`],
+    ['굴', '<p>굴은 구역 열하나로 나뉩니다. 깊이마다 가운데 길목 하나와 왼쪽·오른쪽 곁굴이 있고, 그 밖에 본체 방과 굴 바깥이 있습니다. 「굴을 고친다」를 고른 밤에 구역을 누르면 그 자리에 놓을 수 있는 모양이 나옵니다.</p><p>모양마다 통로, 권속 방, 함정, 시설이 정해져 있습니다. 깊은 곳일수록 비싸고, 굴을 자주 고치고 진액을 많이 쓸수록 새 모양이 열립니다.</p><p>살벽으로 막힌 칸 사이로는 지나갈 수 없습니다. 다만 무거운 침입자는 살벽 하나를 뚫고 지나갑니다.</p><p>모양을 바꾸면 그 구역에 서 있을 자리가 없어진 권속은 대기석으로 돌아옵니다.</p>'],
+    ['권속', `<p>권속은 알자리에서 골라 낳습니다. 같은 종류라도 태어날 때 체력과 공격이 조금씩 다릅니다. 많이 낳고 진액을 많이 쓸수록 고를 수 있는 권속이 늘고, 드문 권속은 본체의 성향이 정해진 값에 닿으면 나옵니다.</p><p>갓 낳은 권속은 약한 살덩이입니다. 싸움에서 살아남거나 적을 죽일 때마다 경험이 쌓입니다(살아남으면 +${N.fight}, 죽이면 +${N.kill}). 레벨 ${N.star[1]}에 2성, ${N.star[2]}에 3성이 되고, 레벨 ${N.perkAt}에 보조 능력이 하나 붙습니다.</p><p>같은 종류의 권속을 먹이면 먹은 쪽이 경험을 크게 얻습니다. 본체에게 먹이면 진액을 조금 돌려받습니다. 쓰러진 권속은 죽지 않고, 그 침입에서 얻은 경험만 잃습니다.</p><p>굴에 세울 수 있는 권속은 본체 레벨 + 2마리입니다.</p>`],
+    ['오는 자들', `<p>침입자는 입구에서부터 굴을 더듬어 내려옵니다. 길잡이가 없으면 갈림길마다 헤매고, 막다른 곳에서는 되돌아갑니다. 지도의 점선이 그들이 걸을 길입니다.</p><p>함정을 밟으면 다치고, 권속이 서 있는 방에 닿으면 거기서 싸움이 붙습니다. 입은 상처는 다음 방까지 이어집니다. 굴의 어둠은 한 칸마다 정신을 깎고, 정신이 바닥난 사람은 미쳐서 굴 편에 섭니다. 처음 몇 밤은 어둠이 얕아서 침입자가 제정신으로 방까지 옵니다.</p><p>알까지 온 침입자는 알을 깎고 진액을 빼앗아 갑니다. 알이 깨지면 판이 끝납니다.</p><p>경계는 마을이 굴을 얼마나 알고 대비하는지입니다. 마을을 습격하면 오르고 쉬면 내립니다. 경계가 ${A.step} 오를 때마다 더 센 침입자가 옵니다. 대신 죽였을 때 얻는 진액도 많습니다. 경계 ${A.size[0]}과 ${A.size[1]}부터는 일행이 한 명씩 늡니다.</p>`],
+    ['기르기', `<p>본체는 굴에서 죽은 침입자를 먹고 자랍니다. 본체 방에서 죽은 자는 두 배로 칩니다. 레벨이 오르면 굴에 권속을 하나 더 세울 수 있습니다.</p><p>성향은 심연, 성운, 번식, 기아, 황혼 다섯 가지입니다. 무엇을 먹었는지, 어떤 일과를 골랐는지, 마을의 어디를 습격했는지에 따라 쌓입니다.</p><p>한 성향이 정해진 값에 닿으면 본체는 그 모습으로 깨어납니다. 고를 수는 없습니다. 깨어나면 쓰는 기술이 바뀌고 그 모습에 맞는 권속과 방이 열립니다.</p>`],
     ['징조', mzSignHelp()],
-    ['결말', '<p>이야기는 서른여섯 밤이다. 마지막 밤에 탑의 주인이 온다.</p><p>만난 사람의 꿈에 속삭일 수 있다. 한 사람에게 다섯 번 속삭이면 그 사람의 줄기가 끝나고 굴에 남는 것이 생긴다. 속삭임은 서른 번째 밤까지 닿는다.</p><p>결말은 알이 남았는지, 누구에게 다섯 번 속삭였는지, 위엄과 경계와 성향으로 갈린다. 둥지 방의 「목표」에서 조건을 본다.</p><p>자유 판과 오늘의 판은 끝이 없다. 알이 깨질 때까지 버틴 밤을 센다.</p>'],
+    ['결말', '<p>이야기는 서른여섯 밤입니다. 마지막 밤에 탑의 주인이 옵니다.</p><p>이야기에서 만난 사람의 꿈에 속삭일 수 있습니다. 한 사람에게 다섯 번 속삭이면 그 사람의 이야기가 매듭지어지고 굴에 도움이 되는 것이 남습니다. 속삭임은 서른 번째 밤까지만 닿습니다.</p><p>결말은 알이 남았는지, 누구에게 다섯 번 속삭였는지, 위엄과 경계와 성향에 따라 갈립니다. 둥지 방의 「목표」에서 조건을 볼 수 있습니다.</p><p>자유 판과 오늘의 판에는 끝이 없습니다. 알이 깨질 때까지 몇 밤을 버텼는지 셉니다.</p>'],
   ];
 }
 function mzHelp(page) {
@@ -10605,7 +10635,7 @@ function mzBigApply() { try { document.documentElement.classList.toggle('mzbig',
 const mzSetRows = attr => MZSET.map(([k, n]) => `<p class="mz-setrow"><span>${n}</span><button ${attr}="tog" data-v="${k}" class="${mzSetOn(k) ? 'on' : ''}" aria-pressed="${mzSetOn(k)}">${mzSetOn(k) ? '켬' : '끔'}</button></p>`).join('');
 function mzSetModal() { const m = $('modal'); m.innerHTML = `<div class="sh-box mz-help mz-set" role="dialog" aria-modal="true"><div class="sh-head"><h2>설정</h2><button class="sh-x" data-z="mclose" aria-label="닫기">✕</button></div><div class="sh-body">${mzSetRows('data-z')}</div></div>`; m.hidden = false; }
 function mzAskNew(mode) {
-  const m = $('modal'); m.innerHTML = `<div class="sh-box mz-ask" role="dialog" aria-modal="true"><div class="sh-head"><h2>${mode === 'story' ? '이야기' : '자유'} 새로 시작</h2><button class="sh-x" data-z="mclose" aria-label="닫기">✕</button></div><div class="sh-body"><p>${mode === 'story' ? '이야기의' : '자유 판의'} 저장을 지운다. 다른 모드의 저장은 남는다.</p><div class="mz-row2"><button class="btn pri" data-z="newYes" data-mode="${mode}">지우고 시작</button><button class="btn" data-z="mclose">그만둔다</button></div></div></div>`; m.hidden = false;
+  const m = $('modal'); m.innerHTML = `<div class="sh-box mz-ask" role="dialog" aria-modal="true"><div class="sh-head"><h2>${mode === 'story' ? '이야기' : '자유'} 새로 시작</h2><button class="sh-x" data-z="mclose" aria-label="닫기">✕</button></div><div class="sh-body"><p>${mode === 'story' ? '이야기의' : '자유 판의'} 저장을 지웁니다. 다른 모드의 저장은 그대로 남습니다.</p><div class="mz-row2"><button class="btn pri" data-z="newYes" data-mode="${mode}">지우고 시작</button><button class="btn" data-z="mclose">그만둔다</button></div></div></div>`; m.hidden = false;
 }
 const mzSeed = () => (Date.now() % 1000000) + 1;
 // 시험용: window.__mazeOpt 가 있으면 그 값으로 새 판을 짓는다 ({ omens: false } 면 징조 없이, difficulty 가 있으면 난이도를 묻지 않는다)
@@ -10701,13 +10731,13 @@ function mzNest(v) {
   const C = v.core; $('mzn-name').textContent = mzFormName(C.form, C.realStep, C.mixed);
   // 자람: 본체 레벨과 먹이, 다섯 성향과 다음 문턱
   const G = v.grow, top = G.next || (G.wake && G.wake[G.wake.length - 1]) || 1, done = v.level >= v.maxLv;
-  $('mzn-grow').innerHTML = `<div class="mzn-lv" aria-label="본체 레벨 ${v.level}, 먹이 ${mzNum1(v.xp)}/${v.xpNeed}"><b>Lv ${v.level}</b><i class="mzn-bar"><u style="width:${done ? 100 : Math.min(100, Math.round(v.xp / Math.max(1, v.xpNeed) * 100))}%"></u></i><small>${done ? '다 자랐다' : '먹이 ' + mzNum1(v.xp) + '/' + v.xpNeed}</small><small class="k">권속 ${v.placed}/${v.cap} · 위엄 ${v.lux}</small></div>`
-    + `<button class="mzn-asps" data-m="growinfo" aria-label="다섯 성향. 다음 문턱 ${G.next || '없음'}">${Object.keys(G.asp).map(a => `<span class="mzn-asp${G.top === a ? ' top' : ''}" style="--c:${MZASPC[a] || '#fff'}"><em>${esc(G.names[a] || a)}</em><i class="mzn-bar"><u style="width:${Math.min(100, Math.round(G.asp[a] / top * 100))}%"></u></i><b>${mzNum1(G.asp[a])}</b></span>`).join('')}<small>${G.next ? '문턱 ' + G.next : '다 깨어났다'}</small></button>`;
+  $('mzn-grow').innerHTML = `<div class="mzn-lv" aria-label="본체 레벨 ${v.level}, 먹이 ${mzNum1(v.xp)}/${v.xpNeed}"><b>Lv ${v.level}</b><i class="mzn-bar"><u style="width:${done ? 100 : Math.min(100, Math.round(v.xp / Math.max(1, v.xpNeed) * 100))}%"></u></i><small>${done ? '다 자랐다' : '먹이 ' + mzNum1(v.xp) + '/' + v.xpNeed}</small><small class="k">세운 권속 ${v.placed}/${v.cap} · 위엄 ${v.lux}</small></div>`
+    + `<button class="mzn-asps" data-m="growinfo" aria-label="다섯 성향. 다음 문턱 ${G.next || '없음'}">${Object.keys(G.asp).map(a => `<span class="mzn-asp${G.top === a ? ' top' : ''}" style="--c:${MZASPC[a] || '#fff'}"><em>${esc(G.names[a] || a)}</em><i class="mzn-bar"><u style="width:${Math.min(100, Math.round(G.asp[a] / top * 100))}%"></u></i><b>${mzNum1(G.asp[a])}</b></span>`).join('')}<small>${G.next ? '깨어나는 값 ' + G.next : '다 깨어났다'}</small></button>`;
   $('mzn-dawn').textContent = mzDawnText(v); mzNestSign(v);
   // 처음 열린 명령의 안내 한 줄
   const ui = M.ui, used = ui.cmdUsed || {}, cmds = v.commands.filter(c => c.open), fresh = cmds.find(c => !used[c.id]), first = $('mzn-first');
   const bld = cmds.find(c => c.id === 'build'), noRoom = !!(bld && bld.can && !v.grid.some(g => g && g.use === 'kin'));
-  const tn = v.tonight || { cost: {} }, hint = ready ? '' : tn.twice ? '긴 밤이다. 이 밤은 명령을 한 번 더 고른다.' : !ui.turnSeen && MZST && MZST.commands ? MZST.commands.turn : noRoom ? '권속 방이 없다. 지금은 본체 방에서만 싸운다. 「굴을 고친다」로 길 위에 방을 놓으면 권속이 거기서 막는다.' : fresh ? mzCmdInfo(fresh.id).name + ': ' + mzCmdInfo(fresh.id).first : '';
+  const tn = v.tonight || { cost: {} }, hint = ready ? '' : tn.twice ? '긴 밤입니다. 오늘은 명령을 한 번 더 고를 수 있습니다.' : !ui.turnSeen && MZST && MZST.commands ? MZST.commands.turn : noRoom ? '아직 권속 방이 없어서 본체 방에서만 싸웁니다. 「굴을 고친다」로 길목에 권속 방을 놓으면 권속이 거기서 침입자를 막습니다.' : fresh ? mzCmdInfo(fresh.id).name + ': ' + mzCmdInfo(fresh.id).first : '';
   first.hidden = !hint; first.textContent = hint || '';
   $('mzn-cmds').className = ready ? 'ready' : ''; $('mzn-cmds').innerHTML = ready
     ? `<button data-m="coming">오는 자들<small>${esc(v.coming ? v.coming.band : '')}</small></button><button class="pri" data-m="raid">맞는다</button>`
@@ -10783,7 +10813,7 @@ function mzCmd(id) {
   mzSheet({ kind: id });
 }
 // 고치기·낳기를 끝낸다. 한 것이 없으면 물린 것으로 친다 (밤이 가지 않는다)
-function mzDone() { const M = MZ.M, r = MAZE.done(M); if (!r.ok) return mzToast(r.msg); mzSay('click'); MZ.zone = null; if (r.back) { MZ.scr = 'nest'; MZ.sel = null; if (MZ.sheet) mzSheetClose(); mzDraw(); return mzToast('아무것도 안 했다. 다른 명령을 고른다'); } mzAfterCmd(); }
+function mzDone() { const M = MZ.M, r = MAZE.done(M); if (!r.ok) return mzToast(r.msg); mzSay('click'); MZ.zone = null; if (r.back) { MZ.scr = 'nest'; MZ.sel = null; if (MZ.sheet) mzSheetClose(); mzDraw(); return mzToast('아무것도 하지 않았습니다. 다른 명령을 고르세요'); } mzAfterCmd(); }
 
 // ---- 장면: 읽기 화면은 MZSCENE (src/mazescene.js) ----
 const mzSceneApi = () => MZSCENE;
@@ -10909,12 +10939,12 @@ function mzConfirm() {
   if (pd.act === 'strike') {
     const r = MAZE.command(M, 'strike', { place: pd.place, power: pd.power }); if (!r.ok) { mzToast(r.msg); return mzSheet(MZ.sheet); } M.ui.cmdUsed = M.ui.cmdUsed || {}; M.ui.cmdUsed.strike = 1; mzSay('thud'); mzSave();
     const T = (MZST && MZST.strikes.find(s => s.id === pd.place)) || { name: pd.place, outcomes: {} }; mzDraw();
-    return mzSheet({ kind: 'note', title: T.name + ' · ' + MZPOW[pd.power], text: (T.outcomes || {})[pd.power] || '', line: mzGainText(r.gains, v) + (r.up ? ' · 본체 Lv ' + M.level : ''), foot: '다음 밤에는 반드시 침입이 온다.' });
+    return mzSheet({ kind: 'note', title: T.name + ' · ' + MZPOW[pd.power], text: (T.outcomes || {})[pd.power] || '', line: mzGainText(r.gains, v) + (r.up ? ' · 본체 Lv ' + M.level : ''), foot: '다음 밤에는 반드시 복수하러 옵니다.' });
   }
   if (pd.act === 'raise') { const c = v.grow.chores.find(q => q.id === pd.id), r = MAZE.command(M, 'raise', pd.id); if (!r.ok) { mzToast(r.msg); return mzSheet(MZ.sheet); } mzSay('up'); mzAfterCmd(); return mzToast((c ? c.name : '길렀다') + ' · ' + mzGainText(r.gains, v), 2200); }
   if (pd.act === 'whisper') {
     const w = v.whispers.find(q => q.id === pd.who), r = MAZE.command(M, 'whisper', pd.who); if (!r.ok) { mzToast(r.msg); return mzSheet(MZ.sheet); } mzSave();
-    const W = MZST && MZST.whispers[pd.who], sc = W && W.scenes[r.scene - 1], fx = [r.short || '', mzGainText(r.effect || {}, v), r.result && w && w.boon ? '줄기가 끝났다 · ' + w.boon.short : ''].filter(Boolean).filter((t, i, a) => a.indexOf(t) === i).join(' · ');
+    const W = MZST && MZST.whispers[pd.who], sc = W && W.scenes[r.scene - 1], fx = [r.short || '', mzGainText(r.effect || {}, v), r.result && w && w.boon ? '다섯 번을 채웠습니다 · ' + w.boon.short : ''].filter(Boolean).filter((t, i, a) => a.indexOf(t) === i).join(' · ');
     MZ.dbg.whisper = { who: pd.who, scene: r.scene, fx };
     if (!sc) { mzAfterCmd(); return mzToast((W ? W.name : pd.who) + '에게 속삭였다' + (fx ? ' · ' + fx : '')); }
     M.ui.pend = { t: 'wh', who: pd.who, i: r.scene - 1, fx: fx || null }; mzSave(); return mzPendPlay();
@@ -10929,7 +10959,7 @@ function mzAfterRaid() { mzSheetClose(); MZ.play = null; MZ.paused = false; MZ.s
 const mzTend = () => MZ.scr === 'map' && !MZ.reading && !!MZ.v && MZ.v.phase !== 'over';
 function mzSelect(uid) {
   MZ.sel = { uid }; mzSay('click'); const v = MZ.v || mzView(), pl = mzPlaces(v, uid);
-  if (pl.full) mzToast('더 세울 수 없다 (' + v.cap + ')'); else if (!pl.cells.length && !pl.core) mzToast('설 자리가 없다. 권속 방이 있는 모양을 놓는다');
+  if (pl.full) mzToast('더 세울 수 없다 (' + v.cap + ')'); else if (!pl.cells.length && !pl.core) mzToast('세울 자리가 없습니다. 권속 방이 있는 모양을 놓으세요');
 }
 function mzDown(e) {
   if (!mzTend() || MZ.sheet) return; const slot = e.target.closest('.mz-slot'), onCv = e.target.id === 'mz-cv'; if (!slot && !onCv) return;
@@ -10990,12 +11020,12 @@ function mzLayLine(it) { const b = []; if (it.kinCap) b.push('권속 ' + it.kinC
 function mzConfirmHtml(info, label, off) { return `<div class="mz-confirm"><div class="mz-cinfo">${info}</div><div><button class="pri" data-m="ok"${off ? ' disabled' : ''}>${label}</button><button data-m="no">그만둔다</button></div></div>`; }
 function mzZoneHtml(v, s) {
   const M = MZ.M, z = v.zones.find(q => q.id === s.zone); if (!z) return '<h3>구역</h3>'; const build = v.phase === 'build', pd = MZ.pend, g = typeof s.cell === 'number' ? v.grid[s.cell] : null;
-  let h = `<h3>${esc(z.name)}</h3><p class="mz-sub">지금 · ${esc(z.layoutName)} · 위엄 ${z.lux}${build ? ' · 진액 ' + v.gold : ''}</p>${build ? '' : '<p class="mz-note">굴을 고치는 밤에 모양을 바꾼다.</p>'}`;
+  let h = `<h3>${esc(z.name)}</h3><p class="mz-sub">지금 · ${esc(z.layoutName)} · 위엄 ${z.lux}${build ? ' · 진액 ' + v.gold : ''}</p>${build ? '' : '<p class="mz-note">「굴을 고친다」를 고른 밤에 모양을 바꿀 수 있습니다.</p>'}`;
   // 권속 방 칸을 눌렀으면 그 방의 종류부터
   if (g && g.use === 'kin' && build) {
-    if (!v.roomsOpen) h += '<p class="mz-note">방 종류는 아직 깔 수 없다.</p>';
+    if (!v.roomsOpen) h += '<p class="mz-note">방 종류는 아직 깔 수 없습니다.</p>';
     else h += `<h4>이 방의 종류${g.roomInfo ? ' · ' + esc(g.roomInfo.name) : ''}</h4><div class="mz-grid">${v.rooms.map(r => { const why = MAZE.roomWhy(M, s.cell, r.id), cur = g.room === r.id, on = pd && pd.act === 'room' && pd.id === r.id; return `<button data-m="room" data-id="${r.id}" class="${cur ? 'cur' : ''}${on ? ' pick' : ''}${why && !cur ? ' off' : ''}" aria-pressed="${!!on}"${cur ? ' disabled' : ''}><img src="${mzRoomIcon(r.id)}" alt=""><b>${esc(r.name)}</b><small>${cur ? '지금' : r.free ? '값 0' : '값 ' + r.cost}</small></button>`; }).join('')}${g.room ? `<button data-m="room" data-id="" class="${pd && pd.act === 'room' && !pd.id ? 'pick' : ''}"><b>걷어 낸다</b><small>값 0</small></button>` : ''}</div>`;
-    if (pd && pd.act === 'room') { const r = pd.id ? v.rooms.find(q => q.id === pd.id) : null, why = MAZE.roomWhy(M, s.cell, pd.id); h += mzConfirmHtml(r ? `<b>${esc(r.name)}</b><p>${esc(r.more || r.short || '')}</p>${why ? `<p class="mz-why">${esc(why)}</p>` : ''}` : '<b>걷어 낸다</b><p>방 종류를 걷어 내고 빈 권속 방으로 둔다.</p>', r ? '깐다 · 진액 ' + (r.free ? 0 : r.cost) : '걷어 낸다', !!why); }
+    if (pd && pd.act === 'room') { const r = pd.id ? v.rooms.find(q => q.id === pd.id) : null, why = MAZE.roomWhy(M, s.cell, pd.id); h += mzConfirmHtml(r ? `<b>${esc(r.name)}</b><p>${esc(r.more || r.short || '')}</p>${why ? `<p class="mz-why">${esc(why)}</p>` : ''}` : '<b>걷어 낸다</b><p>방 종류를 걷어 내고 빈 권속 방으로 둡니다.</p>', r ? '깐다 · 진액 ' + (r.free ? 0 : r.cost) : '걷어 낸다', !!why); }
     h += '<h4>이 구역의 모양</h4>';
   }
   h += `<div class="mz-lays">${z.list.map(it => { const on = pd && pd.act === 'lay' && pd.id === it.id, url = mzLayUrl(v, z, it); return `<button class="mz-lay${it.current ? ' cur' : ''}${!it.can && !it.current ? ' off' : ''}${on ? ' pick' : ''}" data-m="lay" data-id="${it.id}" aria-pressed="${!!on}"${it.current ? ' aria-current="true"' : ''}>${url ? `<img class="${z.kind}" src="${url}" alt="">` : '<i class="mz-layph"></i>'}<span><b>${esc(it.name)}</b><em>${it.current ? '지금' : '값 ' + it.cost}</em><small>${esc(mzLayLine(it))}</small>${!it.current && !it.can && it.why ? `<small class="mz-why">${esc(it.why)}</small>` : ''}</span></button>`; }).join('')}</div>`;
@@ -11009,7 +11039,7 @@ function mzUnitHtml(u) {
   const own = u.lv != null, need = own && u.xpNeed ? Math.min(100, Math.round(u.xp / u.xpNeed * 100)) : 0;
   return `<div class="mz-shead"><img src="${mzIcon(u.kind, u.star, 64)}" alt=""><div><h3>${esc(u.name)} ${mzStars(u.star)}</h3><p class="mz-tags">${esc(u.roleName)} · ${esc(u.reach)}</p><p class="mz-tags"><img src="${mzSym(u.asp, 16)}" alt="">${esc(u.aspName)} · ${esc(u.clsName || '')}</p></div></div>`
     + `<div class="mz-stats">${mzSt('체력', u.hp + mzPctS(u.hpv))}${mzSt('공격', u.atk + mzPctS(u.atkv))}${mzSt('방어', u.df)}${mzSt('닿는 칸', u.range)}</div>`
-    + (own ? `<div class="mz-lvrow"><b>Lv ${u.lv}</b><i class="mzn-bar"><u style="width:${u.lv >= u.maxLv ? 100 : need}%"></u></i><small>${u.lv >= u.maxLv ? '다 자랐다' : '경험 ' + mzNum1(u.xp) + '/' + u.xpNeed}${u.nextStarLv ? ' · Lv ' + u.nextStarLv + '에 ' + (u.star + 1) + '성' : ''}</small></div>` : `<p class="mz-note">갓 낳으면 Lv 1의 살덩이다. 싸우면서 자란다.</p>`)
+    + (own ? `<div class="mz-lvrow"><b>Lv ${u.lv}</b><i class="mzn-bar"><u style="width:${u.lv >= u.maxLv ? 100 : need}%"></u></i><small>${u.lv >= u.maxLv ? '다 자랐다' : '경험 ' + mzNum1(u.xp) + '/' + u.xpNeed}${u.nextStarLv ? ' · Lv ' + u.nextStarLv + '에 ' + (u.star + 1) + '성' : ''}</small></div>` : `<p class="mz-note">갓 낳으면 레벨 1의 약한 살덩이입니다. 싸우면서 자랍니다.</p>`)
     + `<div class="mz-skill"><b>${esc(u.skill.name)}</b><span>${esc(u.skill.short)}</span><p>${esc(u.skill.more)}</p></div>`
     + `<div class="mz-skill perk${own && u.perk ? '' : ' none'}"><b>${own && u.perk ? esc(u.perk.name) : '보조 능력'}</b><span>${own && u.perk ? esc(u.perk.short) : 'Lv ' + (u.perkAt || MAZE.MK.kin.perkAt) + '에 하나가 붙는다'}</span></div>`;
 }
@@ -11017,12 +11047,12 @@ function mzOwnUnitHtml(v, u) {
   const pd = MZ.pend, placed = u.at && u.at.cell != null, same = v.units.filter(q => q.kind === u.kind && q.uid !== u.uid && q.lv < q.maxLv);
   let h = mzUnitHtml(u) + `<p class="mz-sub">${esc(mzWhere(u, v))}${v.tonight && v.tonight.out.includes(u.uid) ? ' · 이 밤은 싸우지 않는다 (징조)' : ''}</p><div class="mz-acts2"><button data-m="pick" data-u="${u.uid}">옮긴다</button>${placed ? `<button data-m="tobench" data-u="${u.uid}">대기석으로</button>` : ''}</div>`;
   h += `<h4>먹인다</h4><div class="mz-feeds"><button data-m="eat" data-u="${u.uid}" class="${pd && pd.act === 'eat' ? 'pick' : ''}"><b>본체에게</b><small>진액 +${u.eat}${v.grow.feedLeft > 0 ? ' · 먹이와 성향' : ''}</small></button>${same.map(t => `<button data-m="feedto" data-u="${u.uid}" data-t="${t.uid}" class="${pd && pd.act === 'feed' && pd.to === t.uid ? 'pick' : ''}"><b>${esc(t.name)} Lv ${t.lv}에게</b><small>경험 +${mzNum1(u.feedXp)} · ${esc(mzWhere(t, v))}</small></button>`).join('')}</div>`;
-  if (pd && (pd.act === 'eat' || pd.act === 'feed') && pd.uid === u.uid) h += mzConfirmHtml(`<b>${esc(u.name)} Lv ${u.lv}</b><p>먹이면 이 권속은 사라진다.</p>`, '먹인다', false);
+  if (pd && (pd.act === 'eat' || pd.act === 'feed') && pd.uid === u.uid) h += mzConfirmHtml(`<b>${esc(u.name)} Lv ${u.lv}</b><p>먹이면 이 권속은 사라집니다.</p>`, '먹인다', false);
   return h;
 }
 function mzBirthsHtml(v) {
   const free = v.bench.filter(x => !x).length, did = v.cmd ? v.cmd.did : 0;
-  return `<h3>권속을 낳는다</h3><p class="mz-sub">알자리에 밴 알 · 진액 ${v.gold} · 낳은 수 ${v.born} · 대기석 빈 자리 ${free}${v.grow.freeBirth ? ' · 값 없이 ' + v.grow.freeBirth : ''}</p>`
+  return `<h3>권속을 낳는다</h3><p class="mz-sub">본체가 알자리에 배어 둔 알입니다. 골라서 낳으세요.</p><p class="mz-sub">진액 ${v.gold} · 대기석 빈 자리 ${free} · 지금까지 낳은 권속 ${v.born}${v.grow.freeBirth ? ' · 값 없이 낳기 ' + v.grow.freeBirth : ''}</p>`
     + `<div class="mz-brows">${v.births.map(b => `<button class="mz-brow${b.sold ? ' sold' : ''}${b.lock ? ' lock' : ''}${b.rare ? ' rare' : ''}${!b.sold && !b.lock && !b.can ? ' off' : ''}" data-m="brow" data-i="${b.i}" aria-label="${esc(b.name)}${b.lock ? ', 잠김' : b.sold ? ', 낳았다' : ', 값 ' + b.price}"><img src="${mzIcon(b.kind, 1, 36)}" alt=""><span><b>${esc(b.name)}</b><small>${b.lock ? esc(b.lock) : '체력 ' + b.hp + ' · 공격 ' + b.atk + ' · ' + esc(b.roleName)}</small></span><em>${b.sold ? '낳았다' : b.lock ? '잠김' : b.free ? '0' : b.price}</em></button>`).join('')}</div>`
     + `<div class="mz-acts2 stick"><button data-m="tomap">굴 보기</button><button class="pri" data-m="done">${did ? '마친다' : '다른 명령'}</button></div>`;
 }
@@ -11033,31 +11063,31 @@ function mzBirthHtml(v, i) {
 }
 function mzStrikeHtml(v, s) {
   const pd = MZ.pend, names = v.grow.names || {};
-  let h = `<h3>땅 위를 친다</h3><p class="mz-sub">친 횟수 ${v.strikes.n} · 경계 ${v.alert.n} · 본체 Lv ${v.level}</p><div class="mz-places">`;
+  let h = `<h3>땅 위를 친다</h3><p class="mz-sub">마을의 한 곳을 골라 습격합니다. 지금까지 ${v.strikes.n}번 습격했고, 마을의 경계는 ${v.alert.n}입니다.</p><div class="mz-places">`;
   h += v.strikes.list.map(p => { const T = (MZST && MZST.strikes.find(q => q.id === p.id)) || { name: p.id, desc: '' }, lock = !p.open ? (p.powers[0] && p.powers[0].why) || '아직 닿지 않는다' : null, on = s.place === p.id;
     return `<div class="mz-place${p.open ? '' : ' off'}${on ? ' on' : ''}"><button data-m="splace" data-id="${p.id}" aria-expanded="${on}"><b>${esc(T.name)}</b><small>${esc(lock || T.desc)}</small>${p.struck ? `<em>${p.struck}번</em>` : ''}</button>`
       + (on && p.open ? `<div class="mz-pows">${p.powers.map(q => `<button data-m="spow" data-p="${q.id}" class="${q.can ? '' : 'off'}${pd && pd.act === 'strike' && pd.power === q.id ? ' pick' : ''}" aria-disabled="${!q.can}"><b>${MZPOW[q.id]}</b><small>${esc(mzGainText(q, v))}</small>${q.can ? '' : `<small class="mz-why">${esc(q.why || '')}</small>`}</button>`).join('')}</div>` : '') + '</div>'; }).join('') + '</div>';
-  if (pd && pd.act === 'strike') { const p = v.strikes.list.find(q => q.id === pd.place), q = p && p.powers.find(x => x.id === pd.power), T = (MZST && MZST.strikes.find(x => x.id === pd.place)) || { name: pd.place }; if (q) h += mzConfirmHtml(`<b>${esc(T.name)} · ${MZPOW[q.id]}</b><p>${esc(mzGainText(q, v))} (${esc(names[q.asp] || q.asp)})</p><p>친 다음 밤에는 반드시 침입이 온다.${q.id === 'raze' ? ' 쓸어버린 곳은 여덟 밤 동안 닫힌다.' : ''}</p>${q.can ? '' : `<p class="mz-why">${esc(q.why || '')}</p>`}`, '친다', !q.can); }
+  if (pd && pd.act === 'strike') { const p = v.strikes.list.find(q => q.id === pd.place), q = p && p.powers.find(x => x.id === pd.power), T = (MZST && MZST.strikes.find(x => x.id === pd.place)) || { name: pd.place }; if (q) h += mzConfirmHtml(`<b>${esc(T.name)} · ${MZPOW[q.id]}</b><p>${esc(mzGainText(q, v))} (${esc(names[q.asp] || q.asp)})</p><p>습격한 다음 밤에는 반드시 복수하러 옵니다.${q.id === 'raze' ? ' 쓸어버린 곳은 여덟 밤 동안 다시 칠 수 없습니다.' : ''}</p>${q.can ? '' : `<p class="mz-why">${esc(q.why || '')}</p>`}`, '친다', !q.can); }
   return h;
 }
 function mzRaiseHtml(v) {
   const pd = MZ.pend, names = v.grow.names || {};
-  let h = `<h3>기른다</h3><p class="mz-sub">${Object.keys(v.grow.asp).map(a => (names[a] || a) + ' ' + mzNum1(v.grow.asp[a])).join(' · ')}${v.grow.next ? ' · 문턱 ' + v.grow.next : ''}</p><div class="mz-chores">${v.grow.chores.map(c => `<button data-m="chore" data-id="${c.id}" class="${pd && pd.act === 'raise' && pd.id === c.id ? 'pick' : ''}" style="--c:${MZASPC[c.asp] || '#fff'}"><b>${esc(c.name)}</b><small>${esc(c.short)}</small></button>`).join('')}</div>`;
+  let h = `<h3>기른다</h3><p class="mz-sub">${Object.keys(v.grow.asp).map(a => (names[a] || a) + ' ' + mzNum1(v.grow.asp[a])).join(' · ')}${v.grow.next ? ' · 깨어나는 값 ' + v.grow.next : ''}</p><p class="mz-sub">일과를 하나 고르면 그 성향이 오릅니다.</p><div class="mz-chores">${v.grow.chores.map(c => `<button data-m="chore" data-id="${c.id}" class="${pd && pd.act === 'raise' && pd.id === c.id ? 'pick' : ''}" style="--c:${MZASPC[c.asp] || '#fff'}"><b>${esc(c.name)}</b><small>${esc(c.short)}</small></button>`).join('')}</div>`;
   if (pd && pd.act === 'raise') { const c = v.grow.chores.find(q => q.id === pd.id); if (c) h += mzConfirmHtml(`<b>${esc(c.name)}</b><p>${esc(c.more)}</p>`, '기른다', false); }
   return h;
 }
 const mzLineDebt = v => (mzSignOn(v) && MAZE.SIGN.DECK.debt ? MAZE.SIGN.DECK.debt.whisperLine || 0 : 0);
 function mzWhisperHtml(v) {
   const pd = MZ.pend, met = v.whispers.filter(w => w.met);
-  let h = `<h3>속삭인다</h3><p class="mz-sub">만난 사람의 꿈에 말을 건다 · 밤 ${met.length ? met[0].until : 30}까지${v.tonight && v.tonight.whisper2 ? ' · 이 밤은 얻는 것이 두 배' : ''}</p>`;
-  if (!met.length) return h + '<p class="mz-note">아직 닿는 사람이 없다.</p>';
-  h += `<div class="mz-whos">${met.map(w => { const W = (MZST && MZST.whispers[w.id]) || { name: w.id, role: '' }, bu = mzBustUrl(W.name, 48); return `<button data-m="who" data-id="${w.id}" class="${w.can ? '' : 'off'}${w.done ? ' done' : ''}${pd && pd.act === 'whisper' && pd.who === w.id ? ' pick' : ''}" aria-disabled="${!w.can}">${bu ? `<img src="${bu}" alt="">` : `<i class="mz-ini">${esc(W.name.slice(0, 1))}</i>`}<span><b>${esc(W.name)}</b><small>${esc(W.role || '')}</small><small>${w.done ? '줄기가 끝났다 · ' + esc(w.boon.short) : '다섯 번이면 · ' + esc(w.boon.short) + (mzLineDebt(v) ? ' · 빚 +' + mzLineDebt(v) : '')}</small>${w.can || w.done ? '' : `<small class="mz-why">${esc(w.why || '')}</small>`}</span><em>${w.n}/${w.max}</em></button>`; }).join('')}</div>`;
-  if (pd && pd.act === 'whisper') { const w = met.find(q => q.id === pd.who), W = (MZST && MZST.whispers[pd.who]) || { name: pd.who }; if (w) h += mzConfirmHtml(`<b>${esc(W.name)} · ${w.n + 1}번째</b><p>${esc(W.desc || '')}</p>${w.n + 1 === w.half ? '<p>세 번째부터 이 사람은 미친 채 굴에 온다.</p>' : ''}${w.n + 1 === w.max && mzLineDebt(v) ? `<p class="mz-why">줄기를 끝내면 빚 +${mzLineDebt(v)}.</p>` : ''}${w.can ? '' : `<p class="mz-why">${esc(w.why || '')}</p>`}`, '속삭인다', !w.can); }
+  let h = `<h3>속삭인다</h3><p class="mz-sub">이야기에서 만난 사람이 잠들면 그 꿈에 말을 걸 수 있습니다. ${met.length ? met[0].until : 30}번째 밤까지 닿습니다.${v.tonight && v.tonight.whisper2 ? ' 오늘은 얻는 것이 두 배입니다.' : ''}</p>`;
+  if (!met.length) return h + '<p class="mz-note">아직 꿈에 닿을 사람이 없습니다. 이야기에서 사람을 만나면 늘어납니다.</p>';
+  h += `<div class="mz-whos">${met.map(w => { const W = (MZST && MZST.whispers[w.id]) || { name: w.id, role: '' }, bu = mzBustUrl(W.name, 48); return `<button data-m="who" data-id="${w.id}" class="${w.can ? '' : 'off'}${w.done ? ' done' : ''}${pd && pd.act === 'whisper' && pd.who === w.id ? ' pick' : ''}" aria-disabled="${!w.can}">${bu ? `<img src="${bu}" alt="">` : `<i class="mz-ini">${esc(W.name.slice(0, 1))}</i>`}<span><b>${esc(W.name)}</b><small>${esc(W.role || '')}</small><small>${w.done ? '다섯 번을 채웠습니다 · ' + esc(w.boon.short) : '다섯 번 속삭이면 · ' + esc(w.boon.short) + (mzLineDebt(v) ? ' · 빚 +' + mzLineDebt(v) : '')}</small>${w.can || w.done ? '' : `<small class="mz-why">${esc(w.why || '')}</small>`}</span><em>${w.n}/${w.max}</em></button>`; }).join('')}</div>`;
+  if (pd && pd.act === 'whisper') { const w = met.find(q => q.id === pd.who), W = (MZST && MZST.whispers[pd.who]) || { name: pd.who }; if (w) h += mzConfirmHtml(`<b>${esc(W.name)} · ${w.n + 1}번째</b><p>${esc(W.desc || '')}</p>${w.n + 1 === w.half ? '<p>세 번째부터 이 사람은 정신이 흐려진 채 굴에 옵니다.</p>' : ''}${w.n + 1 === w.max && mzLineDebt(v) ? `<p class="mz-why">다섯 번을 채우면 빚이 ${mzLineDebt(v)} 늡니다.</p>` : ''}${w.can ? '' : `<p class="mz-why">${esc(w.why || '')}</p>`}`, '속삭인다', !w.can); }
   return h;
 }
 // 오는 자들: 일행 이름과 등급, 종류별 수, 가진 기술, 이야기의 한 줄, 우리 쪽 셈
 function mzComingHtml(v, s) {
-  const C = v.coming || v.next, now = !!v.coming; if (!C) return '<h3>오는 자들</h3><p class="mz-note">오는 자가 없다.</p>'; const c = v.counts, ready = v.phase === 'ready' && now && !s.peek;
+  const C = v.coming || v.next, now = !!v.coming; if (!C) return '<h3>오는 자들</h3><p class="mz-note">오는 자가 없습니다.</p>'; const c = v.counts, ready = v.phase === 'ready' && now && !s.peek;
   return `<h3 class="${C.boss ? 'boss' : ''}">${esc(C.band || C.name)}</h3><p class="mz-sub">${now ? '이 밤에 온다' : '다음에 온다'} · ${C.grade}급${C.boss ? ' · 우두머리' : ''} · ${C.party.length}명 · 길 ${C.len}칸</p>`
     + `<p class="mz-cats">${Object.keys(C.cats || {}).map(k => `<span>${esc(k === 'named' ? '이름 있는 자' : k)} ${C.cats[k]}</span>`).join('')}</p>`
     + ((C.traits || []).length ? `<p class="mz-traits">${C.traits.map(t => `<span>${esc(t)}</span>`).join('')}</p>` : '')
@@ -11068,13 +11098,13 @@ function mzComingHtml(v, s) {
     + (ready ? `<div class="mz-acts2 stick"><button data-m="tomap">권속 다시 세우기</button><button class="pri" data-m="raid">맞는다</button></div>` : '');
 }
 function mzKinHtml(v) {
-  if (!v.units.length) return '<h3>권속</h3><p class="mz-note">아직 권속이 없다. 「권속을 낳는다」로 낳는다.</p>';
+  if (!v.units.length) return '<h3>권속</h3><p class="mz-note">아직 권속이 없습니다. 「권속을 낳는다」로 낳으세요.</p>';
   return `<h3>권속 ${v.units.length}</h3><p class="mz-sub">세움 ${v.placed}/${v.cap}</p><div class="mz-kins">${v.units.slice().sort((a, b) => b.lv - a.lv || a.uid - b.uid).map(u => `<button data-m="uinfo" data-u="${u.uid}"><img src="${mzIcon(u.kind, u.star, 36)}" alt=""><span><b>${esc(u.name)} ${mzStars(u.star)}</b><small>${esc(mzWhere(u, v))}</small></span><em>Lv ${u.lv}</em></button>`).join('')}</div>`;
 }
 const MZCMDPAST = { birth: '권속을 낳았다', build: '굴을 고쳤다', strike: '땅 위를 쳤다', whisper: '속삭였다', raise: '길렀다', rest: '쉬었다' };
 function mzLogHtml2(v) {
   const hist = (v.hist || []).slice(-14).reverse().map(h => (h.raid ? `<p class="${h.win ? 'w' : 'l'}"><span>밤 ${h.night}</span><b>${esc(h.name)} · ${h.grade}급</b><small>${h.win ? '막음' : '알 −' + h.eggLost} · 죽인 수 ${h.killed || 0}</small></p>` : `<p><span>밤 ${h.night}</span><b>${MZCMDPAST[h.cmd] || h.cmd}</b><small>${h.cmd === 'strike' && h.arg ? esc(mzPlaceName(h.arg.place)) : h.cmd === 'whisper' ? esc(mzWhoName(h.arg)) : ''}</small></p>`)).join('');
-  let h = `<h3>기록</h3><h4>지난 밤</h4><div class="mz-hist">${hist || '<p class="mz-note">아직 지난 밤이 없다.</p>'}</div>`;
+  let h = `<h3>기록</h3><h4>지난 밤</h4><div class="mz-hist">${hist || '<p class="mz-note">아직 지난 밤이 없습니다.</p>'}</div>`;
   if (v.mode !== 'story' || !MZST) return h;
   const fired = (v.story && v.story.fired) || {}, evs = (MZST.events || []).filter(e => fired[e.id] != null && fired[e.id] !== false);
   if (evs.length) h += `<h4>지나간 장면</h4><div class="mz-reads">${evs.map(e => { const vr = typeof fired[e.id] === 'number' ? fired[e.id] : null, sc = (vr != null && e.variants && e.variants[vr] ? e.variants[vr].scenes : e.scenes)[0] || {}; return `<button data-m="reread" data-id="${e.id}" data-v="${vr == null ? '' : vr}">${esc(sc.place || e.id)}</button>`; }).join('')}</div>`;
@@ -11088,7 +11118,7 @@ function mzLogHtml2(v) {
 function mzGoalsHtml(v) {
   if (!MZST || !MZST.endings2) return '<h3>목표</h3>'; const seen = mzEndsSeen(), E = MZST.endings2, sc = v.score, gr = E.grades ? E.grades[sc.grade] : null;
   return `<h3>목표</h3><p class="mz-sub">남은 밤 ${v.left != null ? v.left : '-'} · 알 ${v.egg.hp}/${v.egg.max} · 위엄 ${v.lux} · 경계 ${v.alert.n}</p>`
-    + `<p class="mz-note">마지막 밤에 탑의 주인이 온다. 그 밤을 넘기면, 아래에서 위부터 처음 맞는 결말이 온다.</p>`
+    + `<p class="mz-note">마지막 밤에 탑의 주인이 옵니다. 그 밤을 넘기면 아래 목록에서 위부터 조건이 맞는 첫 결말을 봅니다.</p>`
     + `<div class="mz-goals">${E.order.map(id => { const q = E.list[id], ok = seen.includes(id); return `<p class="${ok ? 'seen' : ''}"><b>${ok ? esc(q.title) : '아직 보지 못한 결말'}</b><span>${esc(q.cond)}</span>${ok ? '<em>봄</em>' : ''}</p>`; }).join('')}</div>`
     + `<p class="mz-sub">지금 점수 ${sc.total}${gr ? ' · ' + esc(gr.name) : ''}</p>`;
 }
@@ -11096,7 +11126,7 @@ const MZPARTN = { gold: '진액', food: '먹이', lux: '위엄', alert: '경계'
 function mzScoreHtml(v, sc) { const gr = MZST && MZST.endings2 && MZST.endings2.grades ? MZST.endings2.grades[sc.grade] : null; return `<div class="mz-score"><div><b>${sc.nights}</b><small>밤</small></div><div><b>${sc.raids}</b><small>맞은 침입</small></div><div><b>${sc.kills}</b><small>죽인 수</small></div></div><p class="mz-best">점수 ${sc.total}${gr ? ' · ' + esc(gr.name) : ''}</p>${gr ? `<p class="mz-nar">${esc(gr.line)}</p>` : ''}<p class="mz-sub">${Object.keys(sc.parts || {}).filter(k => sc.parts[k]).map(k => (MZPARTN[k] || k) + ' ' + Math.round(sc.parts[k])).join(' · ')}</p>`; }
 function mzGrowHtml(v) {
   const G = v.grow, names = G.names || {}, SRC = { eat: '먹은 것', chore: '일과', feed: '먹인 권속', night: '땅 위·속삭임' };
-  return `<h3>자람</h3><p class="mz-sub">본체 Lv ${v.level}${v.level >= v.maxLv ? '' : ' · 먹이 ' + mzNum1(v.xp) + '/' + v.xpNeed} · 먹은 것 ${mzNum1(G.eaten)}</p><p class="mz-note">${G.next ? '한 성향이 ' + G.next + '에 닿으면 그 모습으로 깨어난다.' : '본체는 다 깨어났다.'}${G.next && G.sure && G.sure.night ? ' 늦어도 ' + G.sure.night + '번째 밤에는 가장 높은 성향으로 깨어난다.' : ''}</p>`
+  return `<h3>자람</h3><p class="mz-sub">본체 Lv ${v.level}${v.level >= v.maxLv ? '' : ' · 먹이 ' + mzNum1(v.xp) + '/' + v.xpNeed} · 먹은 것 ${mzNum1(G.eaten)}</p><p class="mz-note">${G.next ? '한 성향이 ' + G.next + '에 닿으면 그 모습으로 깨어납니다.' : '본체는 다 깨어났습니다.'}${G.next && G.sure && G.sure.night ? ' 늦어도 ' + G.sure.night + '번째 밤에는 가장 높은 성향으로 깨어납니다.' : ''}</p>`
     + `<div class="mz-aspl">${Object.keys(G.asp).map(a => `<p style="--c:${MZASPC[a] || '#fff'}"><b>${esc(names[a] || a)} ${mzNum1(G.asp[a])}</b><small>${Object.keys(SRC).filter(k => G.src[a] && G.src[a][k]).map(k => SRC[k] + ' ' + mzNum1(G.src[a][k])).join(' · ') || '아직 없다'}</small></p>`).join('')}</div>`;
 }
 function mzOverHtml(v) {
@@ -11113,18 +11143,18 @@ function mzOverHtml(v) {
 function mzCellHtml(v, s) {
   const g = v.grid[s.cell], z = v.zones.find(q => q.id === g.zone) || { id: '', name: '굴', layoutName: '', list: [] }, cur = z.list.find(q => q.current), us = g.units || [];
   let h = '';
-  if (g.use === 'kin') h = `<h3>${esc(g.roomInfo ? g.roomInfo.name : '권속 방')} ${us.length}/${g.max}</h3>${g.roomInfo ? `<p class="mz-note">${esc(g.roomInfo.more || g.roomInfo.short || '')}</p>` : ''}${us.map(u => mzUnitRow(u, true)).join('') || '<p class="mz-note">비어 있다. 대기석의 권속을 끌어 놓거나, 권속을 누른 뒤 이 방을 누른다.</p>'}`;
+  if (g.use === 'kin') h = `<h3>${esc(g.roomInfo ? g.roomInfo.name : '권속 방')} ${us.length}/${g.max}</h3>${g.roomInfo ? `<p class="mz-note">${esc(g.roomInfo.more || g.roomInfo.short || '')}</p>` : ''}${us.map(u => mzUnitRow(u, true)).join('') || '<p class="mz-note">비어 있습니다. 대기석의 권속을 끌어다 놓거나, 권속을 누른 뒤 이 방을 누르세요.</p>'}`;
   else if (g.use === 'trap' && g.trapInfo) h = `<h3>${esc(g.trapInfo.name)}</h3><p class="mz-sub">${esc(g.trapInfo.short)}</p><p class="mz-note">${esc(g.trapInfo.more)}</p>`;
   else if (g.fac) h = `<h3>${esc(g.facName || '시설')}</h3><p class="mz-note">${esc(cur ? cur.desc : '')}</p>`;
-  else if (g.dug) h = '<h3>통로</h3><p class="mz-note">지나가는 길이다. 권속은 권속 방에만 선다.</p>';
-  else h = '<h3>살벽</h3><p class="mz-note">길이 없는 곳이다.</p>';
+  else if (g.dug) h = '<h3>통로</h3><p class="mz-note">지나가는 길입니다. 권속은 권속 방에만 세울 수 있습니다.</p>';
+  else h = '<h3>살벽</h3><p class="mz-note">길이 없는 곳입니다.</p>';
   return h + `<div class="mz-acts2"><button data-m="zone" data-z="${z.id}" data-c="${s.cell}">${esc(z.name)} · ${esc(z.layoutName)}</button></div>`;
 }
 function mzCoreHtml(v) {
   const C = v.core, sk = LAIR.skillInfo ? LAIR.skillInfo(C.skill, C.skillLv) : null, z = v.zones.find(q => q.kind === 'core');
   return `<div class="mz-shead"><img src="${mzBossUrl(C.form, C.realStep, 64)}" alt=""><div><h3>${esc(mzFormName(C.form, C.realStep, C.mixed))}</h3><p class="mz-tags">본체 Lv ${v.level} · 앞에 선 권속 ${C.units.length}/${C.max}</p></div></div>`
     + (sk ? `<div class="mz-skill"><b>${esc(sk.name)}</b><span>${esc(sk.short || '')}</span><p>${esc(sk.more || '')}</p></div>` : '')
-    + `<p class="mz-note">일행이 여기까지 오면 본체와 앞에 선 권속이 함께 싸운다. 여기서 죽은 자는 먹이를 두 배로 친다.</p>${C.units.map(u => mzUnitRow(u, true)).join('')}`
+    + `<p class="mz-note">침입자가 여기까지 오면 본체와 앞에 선 권속이 함께 싸웁니다. 여기서 죽은 자는 먹이를 두 배로 칩니다.</p>${C.units.map(u => mzUnitRow(u, true)).join('')}`
     + (z ? `<div class="mz-acts2"><button data-m="zone" data-z="${z.id}" data-c="">${esc(z.name)} · ${esc(z.layoutName)}</button></div>` : '');
 }
 function mzSheet(s) {
@@ -11135,8 +11165,8 @@ function mzSheet(s) {
   if (k === 'zone') h = mzZoneHtml(v, s);
   else if (k === 'cell') h = mzCellHtml(v, s);
   else if (k === 'core') h = mzCoreHtml(v);
-  else if (k === 'egg') h = `<h3>「위대한 것」의 알</h3><p class="mz-sub">알 ${v.egg.hp}/${v.egg.max}</p><p class="mz-note">알에 닿은 자는 알을 깎고 진액을 빼앗는다. 알이 깨지면 판이 끝난다. 쉬면 조금 찬다.</p>`;
-  else if (k === 'unit') { const u = v.units.find(q => q.uid === s.uid); h = u ? mzOwnUnitHtml(v, u) : '<h3>권속</h3><p class="mz-note">없는 권속이다.</p>'; }
+  else if (k === 'egg') h = `<h3>「위대한 것」의 알</h3><p class="mz-sub">알 ${v.egg.hp}/${v.egg.max}</p><p class="mz-note">알까지 온 침입자는 알을 깎고 진액을 빼앗아 갑니다. 알이 깨지면 판이 끝납니다. 쉬면 조금 회복합니다.</p>`;
+  else if (k === 'unit') { const u = v.units.find(q => q.uid === s.uid); h = u ? mzOwnUnitHtml(v, u) : '<h3>권속</h3><p class="mz-note">없는 권속입니다.</p>'; }
   else if (k === 'births') h = mzBirthsHtml(v);
   else if (k === 'birth') h = mzBirthHtml(v, s.i);
   else if (k === 'strike') h = mzStrikeHtml(v, s);
@@ -11154,7 +11184,7 @@ function mzSheet(s) {
   else if (k === 'signs') h = mzSignsHtml(v);
   else if (k === 'rumor') h = mzRumorHtml(v, s);
   else if (k === 'note') h = `<h3>${esc(s.title || '')}</h3>${s.text ? `<p class="mz-nar">${esc(s.text)}</p>` : ''}${s.line ? `<p class="mz-sum"><span class="g">${esc(s.line)}</span></p>` : ''}${s.foot ? `<p class="mz-note">${esc(s.foot)}</p>` : ''}<div class="mz-acts2"><button class="pri" data-m="noteok">닫기</button></div>`;
-  else if (k === 'retry') h = `<h3 class="lose">알이 깨졌다</h3><p class="mz-nar">이 막의 첫 밤으로 돌아간다. 굴과 권속은 그 밤의 것으로 되돌아온다.</p><div class="mz-acts2"><button class="pri" data-m="retry">이 막을 다시</button><button data-m="home">처음으로</button></div>`;
+  else if (k === 'retry') h = `<h3 class="lose">알이 깨졌다</h3><p class="mz-nar">이 막의 첫 밤으로 돌아갑니다. 굴과 권속도 그 밤의 상태로 돌아갑니다.</p><div class="mz-acts2"><button class="pri" data-m="retry">이 막을 다시</button><button data-m="home">처음으로</button></div>`;
   else if (k === 'over') h = mzOverHtml(v);
   else if (k === 'menu') { const cur = mzSpeed(); h = `<h3>메뉴</h3>${mzSignOn(v) ? `<p class="mz-setrow"><span>난이도</span><span class="mz-diffn">${esc(v.difficultyName || '')}</span></p>` : ''}${mzSetRows('data-m')}<p class="mz-setrow"><span>빠르기</span><span class="mz-spd">${MZSPD.map(q => `<button data-m="spd" data-v="${q[0]}" class="${cur === q[0] ? 'on' : ''}">${q[1]}</button>`).join('')}</span></p><div class="mz-acts2"><button data-m="help">도움말</button><button data-m="home">처음으로</button><button class="pri" data-m="close">돌아간다</button></div>`; }
   const modal = mzModalSheet(k);
@@ -11184,46 +11214,46 @@ function mzTestHtml(v, s) {
   const ok = t.have >= t.need;
   return `<div class="mz-test" style="--c:${col}"><p><b>${esc(t.aspName)} ${mzNum1(t.have)} / ${mzNum1(t.need)}</b><em class="${ok ? 'ok' : 'no'}">${ok ? '지금대로면 넘긴다' : '모자란다 ' + mzNum1(t.short)}</em></p>`
     + `<p class="p">넘기면 · ${(s.passLines || []).map(esc).join(' · ')}</p><p class="f">모자라면 · ${(s.failLines || []).map(esc).join(' · ')}</p>`
-    + `<p class="mz-note">이 밤의 명령이 끝날 때 잰다.${!ok && c ? ' 「기른다 · ' + esc(c.name) + '」를 고르면 ' + esc(t.aspName) + ' +' + pts + '.' : ''}</p></div>`;
+    + `<p class="mz-note">오늘 밤 명령을 마칠 때 잽니다.${!ok && c ? ' 「기른다 · ' + esc(c.name) + '」를 고르면 ' + esc(t.aspName) + '이 ' + pts + ' 오릅니다.' : ''}</p></div>`;
 }
 // 소문 하나: 남은 밤, 못 끄면, 끄는 길 (값으로 끄는 것은 그 자리에서)
 function mzRumorBody(v, r) {
   return `<div class="mz-test"><p><b>남은 밤 ${r.left}</b><em class="no">못 끄면 터진다</em></p><p class="f">못 끄면 · ${r.fail.map(esc).join(' · ')}</p>`
     + r.how.map(q => (q.pay != null ? `<p class="how"><span>${esc(q.text)}</span><button data-m="quench" data-id="${r.id}"${q.can ? '' : ' disabled'}>진액 ${q.pay}</button></p>` : `<p class="how"><span>끄는 길 · ${esc(q.text)}${q.can ? '' : ' (지금은 못 고른다)'}</span></p>`)).join('')
-    + `<p class="mz-note">끄는 명령을 고른 밤에 꺼진다.</p></div>`;
+    + `<p class="mz-note">끄는 명령을 고른 밤에 꺼집니다.</p></div>`;
 }
 function mzSignCardHtml(v, s, flip) {
   let h = `<div class="mz-card k-${s.kind}${flip ? ' flip' : ''}"><p class="mz-chead">${mzSigil(s.from)}<span>${esc(mzFromName(s))}</span><em>${esc(s.kindName || MZSIGK[s.kind] || '')}</em></p>${s.hush ? '<p class="mz-hush">위가 조용하다</p>' : ''}<h3>${esc(s.name)}</h3><p class="mz-nar">${esc(s.text || '')}</p><p class="mz-cfx">${esc(s.short || '')}</p>`;
   if (s.test) h += mzTestHtml(v, s);
-  else if (s.kind === 'dream' && s.dream) h += `<div class="mz-test"><p><b>권능</b><em class="${s.dream.state === 'taken' ? 'ok' : s.dream.state === 'refused' ? 'no' : ''}">${s.dream.state === 'taken' ? '받았다' : s.dream.state === 'refused' ? '물렸다' : ''}</em></p>${s.dream.lines.map(l => `<p class="p">${esc(l)}</p>`).join('')}<p class="f">빚 +${s.dream.debt} · 지금 빚 ${v.debts}</p>${s.dream.state === 'offer' ? '<p class="mz-note">권능은 판 끝까지 간다. 빚은 「셈」의 패가 뒤집히는 밤에 하나마다 거둬 간다. 고르지 않고 밤이 가면 물린 것으로 친다.</p>' : ''}</div>`;
+  else if (s.kind === 'dream' && s.dream) h += `<div class="mz-test"><p><b>권능</b><em class="${s.dream.state === 'taken' ? 'ok' : s.dream.state === 'refused' ? 'no' : ''}">${s.dream.state === 'taken' ? '받았다' : s.dream.state === 'refused' ? '물렸다' : ''}</em></p>${s.dream.lines.map(l => `<p class="p">${esc(l)}</p>`).join('')}<p class="f">빚 +${s.dream.debt} · 지금 빚 ${v.debts}</p>${s.dream.state === 'offer' ? '<p class="mz-note">받은 힘은 판이 끝날 때까지 갑니다. 빚은 「셈」의 패가 뒤집히는 밤에 하나마다 값을 치릅니다. 고르지 않고 밤을 넘기면 받지 않은 것으로 칩니다.</p>' : ''}</div>`;
   else if (s.kind === 'reckon') h += `<div class="mz-test"><p><b>${s.debts ? '거둬 간 빚 ' + s.debts : '빚이 없었다'}</b></p>${(s.lines || []).map(l => `<p class="${s.debts ? 'f' : 'p'}">${esc(l)}</p>`).join('')}</div>`;
   else if (s.kind === 'rumor') { const r = (v.rumors || []).find(q => q.id === s.id); if (r) h += mzRumorBody(v, r); }
   return h + '</div>';
 }
 // 밤이 넘어간 뒤의 패 한 장 (k 'sign'), 둥지 방에서 다시 펴 본 것 (k 'signv')
 function mzSignHtml(v, s) {
-  const M = MZ.M, g = v.sign, peek = s.kind === 'signv'; if (!g) return '<h3>밤의 징조</h3><p class="mz-note">아직 뒤집힌 패가 없다.</p>';
+  const M = MZ.M, g = v.sign, peek = s.kind === 'signv'; if (!g) return '<h3>밤의 징조</h3><p class="mz-note">아직 뒤집힌 패가 없습니다.</p>';
   const mo = typeof motionOk !== 'function' || motionOk();
   let h = `<p class="mz-sub mz-shd">밤 ${g.night} · 밤의 징조</p>`;
   if (!peek) (v.burst || []).forEach(b => { h += `<div class="mz-burst"><p><b>소문이 터졌다 · ${esc(b.name)}</b></p><p>${(b.lines || []).map(esc).join(' · ')}</p></div>`; });
   h += mzSignCardHtml(v, g, !peek && mo);
-  if (!peek && !M.ui.signFirst) h += '<p class="mz-note">밤이 넘어갈 때마다 패 한 장이 뒤집히고 그 밤에 든다. 둥지 방의 「징조」에서 남은 패와 빚을 본다.</p>';
+  if (!peek && !M.ui.signFirst) h += '<p class="mz-note">밤이 바뀔 때마다 패가 한 장 뒤집히고 그 밤 동안 듭니다. 둥지 방의 「징조」에서 남은 패와 빚을 볼 수 있습니다.</p>';
   if (g.dream && g.dream.can) h += `<div class="mz-acts2"><button data-m="dream" data-v="0">물린다</button><button class="pri" data-m="dream" data-v="1">받는다 · 빚 +${g.dream.debt}</button></div>`;
   else if (!peek) h += '<div class="mz-acts2"><button class="pri" data-m="signok">닫기</button></div>';
   return h;
 }
-function mzRumorHtml(v, s) { const r = (v.rumors || []).find(q => q.id === s.id); if (!r) return '<h3>소문</h3><p class="mz-note">이 소문은 꺼졌다.</p>'; return `<p class="mz-chead">${mzSigil(r.from)}<span>${esc(mzFromName(r))}</span><em>소문</em></p><h3>${esc(r.name)}</h3><p class="mz-nar">${esc(r.text || '')}</p><p class="mz-cfx">${esc(r.short || '')}</p>${mzRumorBody(v, r)}`; }
+function mzRumorHtml(v, s) { const r = (v.rumors || []).find(q => q.id === s.id); if (!r) return '<h3>소문</h3><p class="mz-note">이 소문은 꺼졌습니다.</p>'; return `<p class="mz-chead">${mzSigil(r.from)}<span>${esc(mzFromName(r))}</span><em>소문</em></p><h3>${esc(r.name)}</h3><p class="mz-nar">${esc(r.text || '')}</p><p class="mz-cfx">${esc(r.short || '')}</p>${mzRumorBody(v, r)}`; }
 // 「징조」 보기: 이 밤의 패, 도는 소문, 받은 권능, 빚, 이 막에 남은 패, 지난 패
 function mzSignsHtml(v) {
   const L = v.deck.left || {}, kinds = Object.keys(MZSIGK).filter(k => L[k]), P = v.press || { tier: 1, n: 0, t2: 0, t3: 0 }, g = v.sign, SG = MAZE.SIGN;
   let h = `<h3>징조</h3><p class="mz-sub">${esc(v.difficultyName || '')} · 빚 ${v.debts} · 큰 것들의 눈길 ${P.tier}단계</p>`;
-  if (v.night < v.deck.start) h += `<p class="mz-note">패는 ${v.deck.start}번째 밤부터 뒤집힌다.</p>`;
+  if (v.night < v.deck.start) h += `<p class="mz-note">패는 ${v.deck.start}번째 밤부터 뒤집힙니다.</p>`;
   if (g) h += `<h4>이 밤의 패</h4><button class="mz-signrow k-${g.kind}" data-m="signv">${mzSigil(g.from)}<span><b>${esc(g.name)}</b><small>${esc(g.short || '')}</small></span><em>${esc(g.kindName || '')}</em></button>`;
   if ((v.rumors || []).length) h += `<h4>도는 소문</h4>${v.rumors.map(r => `<button class="mz-signrow k-rumor" data-m="rumor" data-id="${r.id}">${mzSigil(r.from)}<span><b>${esc(r.name)}</b><small>${esc(r.short || '')}</small></span><em>남은 밤 ${r.left}</em></button>`).join('')}`;
-  h += `<h4>받은 권능 ${(v.boons || []).length}</h4>${(v.boons || []).map(b => `<p class="mz-boon"><b>${esc(b.name)}</b><span>${(b.lines || []).map(esc).join(' · ')}</span><small>밤 ${b.night}</small></p>`).join('') || '<p class="mz-note">받은 꿈이 없다.</p>'}`;
-  h += `<h4>빚 ${v.debts}</h4><p class="mz-note">「셈」의 패가 뒤집히는 밤에 빚 하나마다 거둬 간다. 꿈을 받거나 속삭임의 줄기를 끝내면 는다.</p>`;
+  h += `<h4>받은 권능 ${(v.boons || []).length}</h4>${(v.boons || []).map(b => `<p class="mz-boon"><b>${esc(b.name)}</b><span>${(b.lines || []).map(esc).join(' · ')}</span><small>밤 ${b.night}</small></p>`).join('') || '<p class="mz-note">받은 꿈이 없습니다.</p>'}`;
+  h += `<h4>빚 ${v.debts}</h4><p class="mz-note">「셈」의 패가 뒤집히는 밤에 빚 하나마다 값을 치릅니다. 꿈을 받거나 한 사람에게 다섯 번 속삭이면 늘어납니다.</p>`;
   h += `<h4>이 막에 남은 패</h4><p class="mz-decks">${kinds.map(k => `<span class="k-${k}">${MZSIGK[k]} ${L[k]}</span>`).join('') || '<span>남은 패가 없다</span>'}</p>`;
-  h += `<p class="mz-note">위엄, 본체 레벨, 성향, 빚이 쌓일수록 센 패가 나온다 (지금 ${mzNum1(P.n)} · 2단계 ${P.t2} · 3단계 ${P.t3}).${v.quiet > 0 ? ' 위가 조용해서 「조용한 굴의 징조」가 섞인다. 경계가 오르면 준다.' : ''}</p>`;
+  h += `<p class="mz-note">위엄, 본체 레벨, 성향, 빚이 쌓일수록 센 패가 나온다 (지금 ${mzNum1(P.n)} · 2단계 ${P.t2} · 3단계 ${P.t3}).${v.quiet > 0 ? ' 굴 위가 조용해서 「조용한 굴의 징조」가 섞입니다. 경계가 오르면 줄어듭니다.' : ''}</p>`;
   const log = (v.signLog || []).slice(-7).reverse(); if (log.length) h += `<h4>지난 패</h4><div class="mz-hist">${log.map(q => { const c = SG.get(q.id) || {}; return `<p><span>밤 ${q.night}</span><b>${esc(c.name || q.id)}</b><small>${MZSIGR[q.result] || ''}</small></p>`; }).join('')}</div>`;
   return h;
 }
@@ -11267,7 +11297,7 @@ function mzDiffLine(mode, d) {
 }
 function mzAskDiff(mode) {
   const m = $('modal'), D = MAZE.SIGN.DECK;
-  m.innerHTML = `<div class="sh-box mz-ask mz-diff" role="dialog" aria-modal="true"><div class="sh-head"><h2>${mode === 'story' ? '이야기' : '자유'} · 난이도</h2><button class="sh-x" data-z="mclose" aria-label="닫기">✕</button></div><div class="sh-body"><p>밤마다 뒤집히는 패의 구성이 달라진다. 침입과 굴의 수치는 같다.</p>${D.DIFFS.map(d => `<button class="btn${d === 'normal' ? ' pri' : ''}" data-z="diff" data-v="${d}" data-mode="${mode}"><b>${D.DIFFN[d]}</b><small>${esc(mzDiffLine(mode, d))}</small></button>`).join('')}</div></div>`;
+  m.innerHTML = `<div class="sh-box mz-ask mz-diff" role="dialog" aria-modal="true"><div class="sh-head"><h2>${mode === 'story' ? '이야기' : '자유'} · 난이도</h2><button class="sh-x" data-z="mclose" aria-label="닫기">✕</button></div><div class="sh-body"><p>밤마다 뒤집히는 패의 구성이 달라집니다. 침입자와 굴의 수치는 같습니다.</p>${D.DIFFS.map(d => `<button class="btn${d === 'normal' ? ' pri' : ''}" data-z="diff" data-v="${d}" data-mode="${mode}"><b>${D.DIFFN[d]}</b><small>${esc(mzDiffLine(mode, d))}</small></button>`).join('')}</div></div>`;
   m.hidden = false;
 }
 
