@@ -10435,8 +10435,8 @@ function mzSide(v) {
   const raid = MZ.scr === 'raid'; $('mz-bench').hidden = raid; $('mz-strip').hidden = raid; $('mz-raid').hidden = !raid;
   if (raid) { $('mz-next').hidden = true; $('mz-uinfo').hidden = true; mzRaidPanel(); return; }
   const c = v.counts, ph = v.phase, sel = MZ.sel && MZ.sel.uid, did = v.cmd ? v.cmd.did : 0;
-  $('mz-strip').innerHTML = `<span aria-label="권속 방 ${c.rooms}, 함정 ${c.traps}, 다른 방 ${c.others}, 위엄 ${c.lux}, 세운 권속 ${v.placed}/${v.cap}">방 ${c.rooms} · 함정 ${c.traps} · 다른 방 ${c.others} · 위엄 ${c.lux} · 세움 ${v.placed}/${v.cap}</span>${ph === 'ready' ? '<button data-m="tonest">둥지 방</button>' : ''}`;
-  const main = ph === 'build' ? `<button class="mz-mainb pri" data-m="done">${did ? '마친다' : '물린다'}</button>` : ph === 'birth' ? '<button class="mz-mainb" data-m="births">알자리</button>' : ph === 'ready' ? '<button class="mz-mainb pri" data-m="raid">맞는다</button>' : '<button class="mz-mainb" data-m="tonest">둥지 방</button>';
+  $('mz-strip').innerHTML = `<span aria-label="권속 방 ${c.rooms}, 함정 ${c.traps}, 다른 방 ${c.others}, 위엄 ${c.lux}, 세운 권속 ${v.placed}/${v.cap}">${ph === 'birth' ? '권속 방 ' + c.rooms + ' · 세움 ' + v.placed + '/' + v.cap : '방 ' + c.rooms + ' · 함정 ' + c.traps + ' · 다른 방 ' + c.others + ' · 위엄 ' + c.lux + ' · 세움 ' + v.placed + '/' + v.cap}</span>${ph === 'ready' ? '<button data-m="tonest">둥지 방</button>' : ph === 'birth' ? '<button class="pri" data-m="births">더 낳는다</button>' : ''}`;
+  const main = ph === 'build' ? `<button class="mz-mainb pri" data-m="done">${did ? '마친다' : '다른 명령'}</button>` : ph === 'birth' ? `<button class="mz-mainb pri" data-m="done">${did ? '마친다' : '다른 명령'}</button>` : ph === 'ready' ? '<button class="mz-mainb pri" data-m="raid">맞는다</button>' : '<button class="mz-mainb" data-m="tonest">둥지 방</button>';
   $('mz-bench').innerHTML = v.bench.map((u, i) => (u ? `<div class="mz-slot has${sel === u.uid ? ' on' : ''}${MZ.pops[u.uid] > MZ.t ? ' pop' : ''}" data-bench="${i}" data-u="${u.uid}" role="button" aria-label="${esc(u.name)} 레벨 ${u.lv}"><img src="${mzIcon(u.kind, u.star, 36)}" alt="">${mzStars(u.star)}<em>${u.lv}</em></div>` : `<div class="mz-slot" data-bench="${i}"></div>`)).join('') + main;
   // 오는 자들의 표 (지도 왼쪽 위)와 고른 권속의 「자세히」
   const nx = mzComing(v), nb = $('mz-next');
@@ -10483,7 +10483,7 @@ function mzCmd(id) {
   mzSheet({ kind: id });
 }
 // 고치기·낳기를 끝낸다. 한 것이 없으면 물린 것으로 친다 (밤이 가지 않는다)
-function mzDone() { const M = MZ.M, r = MAZE.done(M); if (!r.ok) return mzToast(r.msg); mzSay('click'); MZ.zone = null; if (r.back) { MZ.scr = 'nest'; MZ.sel = null; if (MZ.sheet) mzSheetClose(); mzDraw(); return mzToast('물렸다. 밤은 가지 않았다'); } mzAfterCmd(); }
+function mzDone() { const M = MZ.M, r = MAZE.done(M); if (!r.ok) return mzToast(r.msg); mzSay('click'); MZ.zone = null; if (r.back) { MZ.scr = 'nest'; MZ.sel = null; if (MZ.sheet) mzSheetClose(); mzDraw(); return mzToast('아무것도 안 했다. 다른 명령을 고른다'); } mzAfterCmd(); }
 
 // ---- 장면: 읽기 화면은 MZSCENE (src/mazescene.js) ----
 const mzSceneApi = () => MZSCENE;
@@ -10722,9 +10722,9 @@ function mzOwnUnitHtml(v, u) {
 }
 function mzBirthsHtml(v) {
   const free = v.bench.filter(x => !x).length, did = v.cmd ? v.cmd.did : 0;
-  return `<h3>알자리</h3><p class="mz-sub">진액 ${v.gold} · 낳은 수 ${v.born} · 대기석 빈 자리 ${free}${v.grow.freeBirth ? ' · 값 없이 ' + v.grow.freeBirth : ''}</p>`
+  return `<h3>권속을 낳는다</h3><p class="mz-sub">알자리에 밴 알 · 진액 ${v.gold} · 낳은 수 ${v.born} · 대기석 빈 자리 ${free}${v.grow.freeBirth ? ' · 값 없이 ' + v.grow.freeBirth : ''}</p>`
     + `<div class="mz-brows">${v.births.map(b => `<button class="mz-brow${b.sold ? ' sold' : ''}${b.lock ? ' lock' : ''}${b.rare ? ' rare' : ''}${!b.sold && !b.lock && !b.can ? ' off' : ''}" data-m="brow" data-i="${b.i}" aria-label="${esc(b.name)}${b.lock ? ', 잠김' : b.sold ? ', 낳았다' : ', 값 ' + b.price}"><img src="${mzIcon(b.kind, 1, 36)}" alt=""><span><b>${esc(b.name)}</b><small>${b.lock ? esc(b.lock) : '체력 ' + b.hp + ' · 공격 ' + b.atk + ' · ' + esc(b.roleName)}</small></span><em>${b.sold ? '낳았다' : b.lock ? '잠김' : b.free ? '0' : b.price}</em></button>`).join('')}</div>`
-    + `<div class="mz-acts2 stick"><button data-m="tomap">굴 보기</button><button class="pri" data-m="done">${did ? '마친다' : '물린다'}</button></div>`;
+    + `<div class="mz-acts2 stick"><button data-m="tomap">굴 보기</button><button class="pri" data-m="done">${did ? '마친다' : '다른 명령'}</button></div>`;
 }
 function mzBirthHtml(v, i) {
   const b = v.births.find(q => q.i === i); if (!b) return '<h3>알자리</h3>'; const price = b.free ? 0 : b.price, why = b.sold ? '이미 낳았다' : b.lock || b.why || (v.phase !== 'birth' ? '권속을 낳는 밤이 아니다' : null);
