@@ -1745,9 +1745,12 @@ function sfxRich(kind, t, vol) {
 }
 function sfx(kind) {
   if (!META.sound) return;
+  // 사람이 한 번도 누르지 않았으면 내지 않는다 (브라우저 규칙: 그 전에 만든 오디오는 막힌다)
+  if (typeof MUS !== 'undefined' && !MUS.armed) return;
   try {
     AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === 'suspended') AC.resume();
-    const vol = sfxVol(); if (vol <= 0) return; if (sfxRich(kind, AC.currentTime, vol)) return;
+    const vol = sfxVol(); if (vol <= 0) return; if (typeof window !== 'undefined' && window.__zz) window.__zz.played[kind] = (window.__zz.played[kind] || 0) + 1;
+    if (typeof zzPlay === 'function' && zzPlay(AC, kind, vol)) return; if (sfxRich(kind, AC.currentTime, vol)) return;
     const seq = { hit: [[150, .05, 'square']], trap: [[320, .05, 'sawtooth'], [110, .09, 'sawtooth']], coin: [[880, .05, 'square'], [1320, .08, 'square']], up: [[523, .07, 'square'], [659, .07, 'square'], [784, .07, 'square'], [1047, .14, 'square']], down: [[392, .09, 'square'], [311, .09, 'square'], [233, .18, 'square']], die: [[200, .06, 'triangle'], [90, .12, 'triangle']], evo: [[392, .1, 'square'], [523, .1, 'square'], [659, .1, 'square'], [784, .1, 'square'], [1047, .3, 'square']], step: [[90, .03, 'triangle']], click: [[660, .03, 'square']], talk: [[440, .02, 'square']], mad: [[700, .05, 'sine'], [520, .05, 'sine'], [760, .1, 'sine']], spell: [[220, .08, 'sine'], [440, .08, 'sine'], [880, .2, 'sine']], dig: [[120, .04, 'sawtooth'], [80, .06, 'sawtooth']], slide: [[300, .05, 'triangle'], [200, .08, 'triangle']] }[kind];
     if (!seq) return;
     let t = AC.currentTime;
@@ -1868,13 +1871,16 @@ const MTRACK = {
       if (r() < 0.05) musTone(c, T, 'sine', mtof([72, 75, 77, 79, 82][Math.floor(r() * 5)]), t, 0.01, 0.025, 0.35, 0.5);
       if (k % 48 === 24 && r() < 0.6) musPad(c, T, [53, 60], t, 2, 0.015, 3, 'sine', 600);
     } },
+  // 둥지 방 · 굴 지도: 32박(16초)을 한 마디 묶음으로 되풀이한다. 느린 심장 소리, 넷 도는 화음, 판마다 정해지는 다섯 음의 동기
   day: { beat: () => 0.5,
-    init(c, T) { musDrone(c, T, [36, 43], 'sawtooth', 230, 0.03, 0.045); },
+    init(c, T) { musDrone(c, T, [38, 45], 'sawtooth', 230, 0.03, 0.04); const r = T.rng, shapes = [[0, 1, 3, 1, -1], [0, 2, 1, 0, -2], [3, 1, 0, 1, 0], [0, -1, 1, 3, 2]]; T.motif = shapes[Math.floor(r() * shapes.length)]; },
     step(c, T, t, k) {
-      const r = T.rng; if (r() < 0.07) musBell(c, T, scaleAt(72, Math.floor(r() * 8)), t, 0.026, 0.85);
-      if (r() < 0.045) musDrip(c, T, 86 + Math.floor(r() * 10), t, 0.025);
-      if (k % 32 === 16) musPad(c, T, r() < 0.5 ? [48, 54, 63] : [48, 51, 55], t, 3, 0.016, 5, 'triangle', 700);
-      if (r() < 0.007) musNoise(c, T, t, 'bandpass', 1200, 3, 1.2, 0.015, 2, 0.9, 2600);
+      const r = T.rng, ph = k % 32, bar = Math.floor(k / 32);
+      if (k % 4 === 0) { musThump(c, T, t, 0.13, 72, 38); musThump(c, T, t + 0.2, 0.07, 64, 36); }
+      if (k % 8 === 0) { const ch = [[50, 53, 57], [51, 55, 58], [48, 51, 55], [50, 53, 57]][(k / 8) % 4]; musPad(c, T, ch, t, 2.2, 0.014, 4.2, 'triangle', 700); }
+      const at = [4, 5, 6, 8, 10].indexOf(ph); if (at >= 0 && bar % 2 === 1) { const m = T.motif[at] + (at === 4 && bar % 4 === 3 ? -1 : 0); musBell(c, T, scaleAt(74, m + 7) - 12, t, at === 4 ? 0.026 : 0.02, 0.85); }
+      if (r() < 0.035) musDrip(c, T, 86 + Math.floor(r() * 10), t + r() * 0.2, 0.02);
+      if (ph === 24 && bar % 4 === 2) musSwell(c, T, [62, 63], t, 3, 0.012);
     } },
   night: { beat: k => 60 / Math.min(124, 92 + k * 0.5),
     init(c, T) { musDrone(c, T, [38, 39], 'sawtooth', 380, 0.2, 0.04); },
@@ -1904,13 +1910,17 @@ const MTRACK = {
       if (k === 8) musNoise(c, T, t, 'bandpass', 900, 3, 1, 0.02, 2, 0.9, 400);
     } },
 };
+// 침입: 16박 마디. 북(1·3박), 여덟 음 베이스 되풀이, 둘째 마디부터 쉿, 넷째부터 덜컥. 32박마다 낮은 동기와 부풂
+const MNBASS = [38, 38, 50, 38, 39, 38, 51, 39], MNLEAD = [[62, 63, 65, 63], [62, 63, 60, 58]];
 function musNight(c, T, t, k, boss) {
-  const r = T.rng; musThump(c, T, t, boss ? 0.32 : 0.24, boss ? 120 : 100, 40);
-  if (k % 2 === 0) { const o = [38, 39, 38, boss ? 45 : 44][(k / 2) % 4]; musTone(c, T, 'sawtooth', mtof(o), t, 0.01, boss ? 0.04 : 0.03, 0.35, 0.1); }
-  if (k >= (boss ? 0 : 32)) musNoise(c, T, t + (60 / 220), 'highpass', 7000, 0.7, 0.002, boss ? 0.03 : 0.018, 0.05, 0.1);
-  if (boss && (k % 4 === 0 || k % 8 === 3)) { musThump(c, T, t, 0.22, 170, 70); musNoise(c, T, t, 'bandpass', 300, 1, 0.002, 0.04, 0.12, 0.2); }
-  if (k % (boss ? 12 : 16) === 8 && r() < 0.85) musSwell(c, T, [62, 63, 68].map(m => m - (r() < 0.5 ? 12 : 0)), t, boss ? 3 : 4, boss ? 0.028 : 0.022);
-  if (k % 32 === 28) musNoise(c, T, t, 'bandpass', 400, 2, 1.8, 0.02, 0.2, 0.5, 3000);
+  const r = T.rng, ph = k % 16, up = boss ? 7 : 0;
+  if (ph % 4 === 0) musThump(c, T, t, boss ? 0.3 : 0.24, boss ? 120 : 100, 40); if (ph === 6 || (boss && ph === 14)) musThump(c, T, t, 0.12, 90, 38);
+  if (k % 2 === 0) { const o = MNBASS[(k / 2) % 8] + (Math.floor(k / 64) % 2 ? up : 0); musTone(c, T, 'sawtooth', mtof(o), t, 0.01, boss ? 0.04 : 0.03, 0.32, 0.1); }
+  if (k >= 16 && k % 2 === 1) musNoise(c, T, t, 'highpass', 7000, 0.7, 0.002, boss ? 0.026 : 0.016, 0.05, 0.1);
+  if (k >= 48 && ph % 8 === 4) musNoise(c, T, t, 'bandpass', 900, 1.2, 0.002, boss ? 0.05 : 0.035, 0.14, 0.25);
+  if (k % 32 >= 16 && k % 32 < 24 && k % 2 === 0) { const L = MNLEAD[Math.floor(k / 32) % 2], n = L[((k % 32) - 16) / 2]; musTone(c, T, 'triangle', mtof(n + (boss ? 0 : -12)), t, 0.02, 0.02, 0.5, 0.5); }
+  if (k % 32 === 24 && r() < 0.9) musSwell(c, T, [62, 63, 68].map(m => m - (r() < 0.5 ? 12 : 0)), t, boss ? 3 : 4, boss ? 0.026 : 0.02);
+  if (boss && ph === 12) musNoise(c, T, t, 'bandpass', 300, 1, 0.002, 0.04, 0.12, 0.2);
 }
 
 // 곡 하나: 출구를 받고, tick(언제까지) 로 앞을 내다보며 박을 깔아 둔다
@@ -1964,6 +1974,117 @@ async function musRender(name, secs) {
   return { peak, rms: Math.sqrt(sum / n) };
 }
 if (typeof window !== 'undefined') window.__music = { get want() { return MUS.want; }, get cur() { return MUS.cur; }, get armed() { return MUS.armed; }, get on() { return musOn(); }, get ctx() { return AC ? AC.state : null; }, render: musRender, tracks: Object.keys(MTRACK) };
+// ---------- 효과음 (ZzFX 방식) ----------
+// 표본을 짓는 셈(zzGen)은 ZzFX 1.4.0 에서 옮겼다. MIT License, Copyright (c) 2019 Frank Force, https://github.com/KilledByAPixel/ZzFX
+// 바꾼 것: 오디오 문맥을 미리 만들지 않는다(첫 누름 전에는 소리를 내지 않는다), 주사위를 쓰지 않는다(같은 소리는 같은 표본), 표본율을 받는다.
+// 소리 하나 = 조각 여럿 [늦춤(초), 크기 배수, ZzFX 값 …]. 지은 표본은 문맥마다 한 번만 짓고 넣어 둔다.
+// 소리 하나 = 조각 여럿. 조각은 zp(늦춤 초, 크기 배수, { 이름: 값 }) 으로 적는다. 이름은 ZzFX 값의 줄임:
+//   v 크기, f 높이(Hz), a 오름, s 버팀, r 사라짐, sh 모양(0 sin 1 tri 2 saw 3 tan 4 잡음 5 네모), c 모양 굽기, sl 미끄럼, dsl, pj 뛰기, pjt 뛰는 때, rep 되풀이,
+//   n 잡음, m 흔들기, bc 깨뜨리기, dl 메아리, sv 버티는 크기, d 내림, tr 떨림, flt 거름(+ 높은 쪽만 남김, − 낮은 쪽만 남김)
+const ZZN = ['v', 'rnd', 'f', 'a', 's', 'r', 'sh', 'c', 'sl', 'dsl', 'pj', 'pjt', 'rep', 'n', 'm', 'bc', 'dl', 'sv', 'd', 'tr', 'flt'], ZZD = { v: 1, f: 220, r: 0.1, c: 1, sv: 1 };
+const zp = (at, mul, o) => [at, mul].concat(ZZN.map(k => (o[k] != null ? o[k] : ZZD[k] || 0)));
+function zzGen(rate, volume = 1, randomness = 0, frequency = 220, attack = 0, sustain = 0, release = 0.1, shape = 0, shapeCurve = 1, slide = 0, deltaSlide = 0, pitchJump = 0, pitchJumpTime = 0, repeatTime = 0, noise = 0, modulation = 0, bitCrush = 0, delay = 0, sustainVolume = 1, decay = 0, tremolo = 0, filter = 0) {
+  const PI2 = Math.PI * 2, abs = Math.abs, sign = v => (v < 0 ? -1 : 1), sr = rate;
+  let startSlide = slide *= 500 * PI2 / sr / sr, startFrequency = frequency *= (1 + randomness * 0) * PI2 / sr;
+  let modOffset = 0, repeat = 0, crush = 0, jump = 1, length, t = 0, i = 0, s = 0, f;
+  const quality = 2, w = PI2 * abs(filter) * 2 / sr, cos = Math.cos(w), alpha = Math.sin(w) / 2 / quality, a0 = 1 + alpha, a1 = -2 * cos / a0, a2 = (1 - alpha) / a0;
+  const b0 = (1 + sign(filter) * cos) / 2 / a0, b1 = -(sign(filter) + cos) / a0, b2 = b0; let x2 = 0, x1 = 0, y2 = 0, y1 = 0;
+  attack = attack * sr || 9; decay *= sr; sustain *= sr; release *= sr; delay *= sr; deltaSlide *= 500 * PI2 / sr ** 3; modulation *= PI2 / sr; pitchJump *= PI2 / sr; pitchJumpTime *= sr; repeatTime = repeatTime * sr | 0;
+  length = attack + decay + sustain + release + delay | 0; const b = new Float32Array(Math.max(1, length));
+  for (; i < length; b[i++] = s * volume) {
+    if (!(++crush % (bitCrush * 100 | 0))) {
+      s = shape ? shape > 1 ? shape > 2 ? shape > 3 ? shape > 4 ? (t / PI2 % 1 < shapeCurve / 2) * 2 - 1 : Math.sin(t ** 3) : Math.max(Math.min(Math.tan(t), 1), -1) : 1 - (2 * t / PI2 % 2 + 2) % 2 : 1 - 4 * abs(Math.round(t / PI2) - t / PI2) : Math.sin(t);
+      s = (repeatTime ? 1 - tremolo + tremolo * Math.sin(PI2 * i / repeatTime) : 1) * (shape > 4 ? s : sign(s) * abs(s) ** shapeCurve)
+        * (i < attack ? i / attack : i < attack + decay ? 1 - ((i - attack) / decay) * (1 - sustainVolume) : i < attack + decay + sustain ? sustainVolume : i < length - delay ? (length - i - delay) / release * sustainVolume : 0);
+      s = delay ? s / 2 + (delay > i ? 0 : (i < length - delay ? 1 : (length - i) / delay) * b[i - delay | 0] / 2 / (volume || 1)) : s;
+      if (filter) s = y1 = b2 * x2 + b1 * (x2 = x1) + b0 * (x1 = s) - a2 * y2 - a1 * (y2 = y1);
+    }
+    f = (frequency += slide += deltaSlide) * Math.cos(modulation * modOffset++);
+    t += f + f * noise * (i * i * PI2 % 2 - 1);
+    if (jump && ++jump > pitchJumpTime) { frequency += pitchJump; startFrequency += pitchJump; jump = 0; }
+    if (repeatTime && !(++repeat % repeatTime)) { frequency = startFrequency; slide = startSlide; jump = jump || 1; }
+  }
+  return b;
+}
+
+// 소리 목록. 굴 짓기의 소리는 살 속의 굴에 맞춰 낮고 젖은 쪽으로 잡았다
+const ZZ = {
+  // 누름: 짧고 젖은 똑
+  click: [zp(0, 1.6, { v: 0.35, f: 900, s: 0.004, r: 0.035, sh: 1, sl: -12, flt: -3000 })],
+  // 진액: 물방울 하나가 떨어져 튄다
+  coin: [zp(0, 1.2, { v: 0.55, f: 420, a: 0.002, s: 0.02, r: 0.1, sl: 30 }), zp(0.07, 0.6, { v: 0.4, f: 780, a: 0.002, s: 0.01, r: 0.08, sl: 20 })],
+  // 놓기: 살덩이가 바닥에 붙는다
+  thud: [zp(0, 1, { v: 0.9, f: 90, s: 0.03, r: 0.22, sl: -4, n: 0.3, flt: -500 })],
+  // 잘됐다: 낮은 데서 올라가는 셋
+  up: [zp(0, 1, { v: 0.4, f: 294, a: 0.01, s: 0.06, r: 0.18, sh: 1 }), zp(0.09, 1, { v: 0.4, f: 349, a: 0.01, s: 0.06, r: 0.2, sh: 1 }), zp(0.18, 1, { v: 0.45, f: 440, a: 0.01, s: 0.1, r: 0.35, sh: 1, dl: 0.12 })],
+  // 잘못됐다: 내려앉는 둘
+  down: [zp(0, 1, { v: 0.45, f: 233, a: 0.01, s: 0.1, r: 0.25, sh: 2, sl: -1, flt: -900 }), zp(0.16, 1, { v: 0.5, f: 175, a: 0.01, s: 0.14, r: 0.45, sh: 2, sl: -2, flt: -700 })],
+  // 쓰러짐: 질척한 무너짐
+  die: [zp(0, 1, { v: 0.6, f: 140, s: 0.05, r: 0.3, sh: 2, sl: -6, n: 0.5, flt: -800 })],
+  // 때림: 짧은 둔탁함
+  hit: [zp(0, 1.3, { v: 0.5, f: 200, s: 0.01, r: 0.08, sh: 4, sl: -3, n: 0.4, flt: -1800 })],
+  // 미침: 떨리며 흔들리는 높은 소리
+  mad: [zp(0, 1.4, { v: 0.5, f: 520, a: 0.06, s: 0.25, r: 0.4, sl: -0.5, m: 9, rep: 0.09, tr: 0.6, dl: 0.12, sv: 0.8 })],
+  // 발소리가 들린다: 낮은 종 한 번
+  night: [zp(0, 1, { v: 0.8, f: 73, a: 0.01, s: 0.5, r: 1.3, d: 0.1, sv: 0.6, dl: 0.22 }), zp(0.02, 0.4, { v: 0.3, f: 219, a: 0.005, s: 0.2, r: 1, dl: 0.3 })],
+  // 미끄러짐: 숨소리 같은 쉿
+  slide: [zp(0, 1, { v: 0.3, f: 400, a: 0.03, s: 0.06, r: 0.16, sh: 4, sl: -6, n: 0.3, flt: -2200 })],
+  // 새로 붙인 것 ↓
+  // 고요한 패: 종이 한 장 넘기듯 아주 작게
+  flip: [zp(0, 1.3, { v: 0.15, f: 1400, a: 0.004, r: 0.05, sh: 4, sl: -25, flt: 1200 })],
+  // 징조 패: 낮게 내려앉는 둘(반음)
+  omen: [zp(0, 1, { v: 0.7, f: 110, a: 0.005, s: 0.15, r: 0.7, sh: 1, d: 0.08, sv: 0.7, dl: 0.18, flt: -700 }), zp(0.22, 1, { v: 0.65, f: 104, a: 0.005, s: 0.2, r: 0.9, sh: 1, d: 0.08, sv: 0.7, dl: 0.2, flt: -600 })],
+  // 셈의 패: 무겁게 울리는 낮은 쇠
+  reckon: [zp(0, 1, { v: 0.8, f: 55, a: 0.01, s: 0.35, r: 1.2, sh: 2, sl: -0.3, m: 0.3, d: 0.1, sv: 0.8, dl: 0.25, flt: -420 }), zp(0, 0.6, { v: 0.35, f: 165, a: 0.01, s: 0.2, r: 0.9, sh: 1, dl: 0.3 })],
+  // 꿈을 받는다: 흔들리며 올라가는 맑은 소리
+  dream: [zp(0, 1.6, { v: 0.3, f: 660, a: 0.08, s: 0.35, r: 0.7, sl: 3, rep: 0.1, tr: 0.35, dl: 0.17 }), zp(0.12, 1.12, { v: 0.22, f: 990, a: 0.05, s: 0.2, r: 0.6, sl: 2, rep: 0.1, tr: 0.35, dl: 0.17 })],
+  // 소문이 터졌다: 부서지는 소리
+  burst: [zp(0, 1, { v: 0.6, f: 90, s: 0.12, r: 0.55, sh: 4, sl: -1, n: 1.4, bc: 0.15, flt: -1300 }), zp(0.05, 0.6, { v: 0.6, f: 60, s: 0.1, r: 0.5, sl: -2, flt: -300 })],
+  // 권속을 낳는다: 젖은 막이 터지며 올라오는 소리
+  birth: [zp(0, 1, { v: 0.6, f: 120, a: 0.02, s: 0.06, r: 0.22, c: 2, sl: 9, n: 0.4, flt: -900 }), zp(0.14, 1, { v: 0.35, f: 560, a: 0.002, s: 0.02, r: 0.1, sl: 30 })],
+  // 모양을 놓는다: 살벽이 밀려와 자리 잡는다
+  place: [zp(0, 1, { v: 0.9, f: 62, s: 0.12, r: 0.5, sl: -2, n: 1, flt: -320 }), zp(0.08, 0.5, { v: 0.4, f: 300, a: 0.02, s: 0.05, r: 0.25, sh: 4, sl: -4, n: 0.4, flt: -1400 })],
+  // 본체 레벨이 올랐다: 낮은 데서 넷이 오른다
+  level: [zp(0, 1, { v: 0.4, f: 147, a: 0.01, s: 0.08, r: 0.25, sh: 1 }), zp(0.1, 1, { v: 0.4, f: 220, a: 0.01, s: 0.08, r: 0.25, sh: 1 }), zp(0.2, 1, { v: 0.42, f: 294, a: 0.01, s: 0.08, r: 0.3, sh: 1 }), zp(0.3, 1, { v: 0.45, f: 440, a: 0.01, s: 0.2, r: 0.6, sh: 1, dl: 0.15 })],
+  // 권속의 별이 올랐다: 반짝이는 둘
+  star: [zp(0, 1.5, { v: 0.3, f: 880, a: 0.002, s: 0.04, r: 0.3, dl: 0.12 }), zp(0.1, 1.5, { v: 0.3, f: 1320, a: 0.002, s: 0.05, r: 0.45, dl: 0.14 })],
+  // 깨어남: 길게 차오르는 낮은 울음
+  awaken: [zp(0, 1, { v: 0.6, f: 49, a: 0.6, s: 0.8, r: 1.2, sh: 2, sl: 0.4, m: 0.2, rep: 0.2, tr: 0.3, d: 0.25, sv: 0.9, flt: -380 }), zp(0.4, 0.6, { v: 0.4, f: 98, a: 0.5, s: 0.6, r: 1.2, sh: 1, sl: 0.6, sv: 0.9, dl: 0.25 })],
+  // 결말 카드: 멀리서 한 번 울리는 큰 종
+  ending: [zp(0, 1.8, { v: 0.7, f: 98, a: 0.005, s: 0.6, r: 2, d: 0.1, sv: 0.6, dl: 0.3 }), zp(0, 0.9, { v: 0.3, f: 271, a: 0.005, s: 0.3, r: 1.6, d: 0.1, sv: 0.6, dl: 0.3 }), zp(0, 0.54, { v: 0.2, f: 529, a: 0.003, s: 0.1, r: 1, dl: 0.3 })],
+};
+// 같은 소리가 겹칠 때: 이만큼(초) 안에 또 오면 버리고, 그다음 구간 안이면 반으로 줄인다
+const ZZGAP = { skip: 0.06, soft: 0.25 }, ZZMAXV = 6, ZZV = 0.25;
+const ZZST = { last: {}, live: 0 };
+function zzBus(ctx) {
+  if (ctx.__sbus) return ctx.__sbus;
+  const g = ctx.createGain(), comp = ctx.createDynamicsCompressor(); comp.threshold.value = -10; comp.knee.value = 4; comp.ratio.value = 10; comp.attack.value = 0.002; comp.release.value = 0.15;
+  g.gain.value = 1; g.connect(comp); comp.connect(ctx.destination); return (ctx.__sbus = { g, comp });
+}
+// 지은 표본 (문맥의 표본율마다)
+function zzBuf(ctx, kind, k) {
+  const cache = ctx.__zz || (ctx.__zz = {}), key = kind + ':' + k; if (cache[key]) return cache[key];
+  const p = ZZ[kind][k], d = zzGen(ctx.sampleRate, ...p.slice(2)), b = ctx.createBuffer(1, d.length, ctx.sampleRate); b.getChannelData(0).set(d); return (cache[key] = b);
+}
+// 소리를 낸다. 있는 소리면 true. 크기 = 설정의 효과음 크기 x 배수. 높이를 아주 조금씩 흔들어 같은 소리가 덜 기계 같게 한다
+function zzPlay(ctx, kind, vol, dest, at) {
+  const P = ZZ[kind]; if (!P) return false; const now = at != null ? at : ctx.currentTime, last = ZZST.last[kind];
+  let mul = 1; if (at == null && last != null && now - last >= 0 && now - last < ZZGAP.skip) return true; if (at == null && last != null && now - last >= 0 && now - last < ZZGAP.soft) mul = 0.5;
+  if (at == null && ZZST.live >= ZZMAXV) return true; ZZST.last[kind] = now;
+  const out = dest || zzBus(ctx).g, wob = 1 + ((Math.floor(now * 997) % 7) - 3) * 0.006;
+  P.forEach((q, k) => { const src = ctx.createBufferSource(), g = ctx.createGain(); src.buffer = zzBuf(ctx, kind, k); src.playbackRate.value = wob; g.gain.value = vol * ZZV * q[1] * mul; src.connect(g); g.connect(out);
+    ZZST.live++; src.onended = () => { ZZST.live = Math.max(0, ZZST.live - 1); try { g.disconnect(); } catch (e) { /* 이미 떨어짐 */ } }; src.start(now + q[0]); });
+  return true;
+}
+// 시험용: 소리 하나를 소리 없이 그려 보고 길이·가장 큰 값·평균 세기를 돌려준다 (효과음 크기 1, 누르개 거친 뒤)
+async function zzRender(kind) {
+  const OC = window.OfflineAudioContext || window.webkitOfflineAudioContext, rate = 44100, P = ZZ[kind]; if (!P) return null;
+  const len = P.reduce((m, q) => Math.max(m, q[0] + zzGen(rate, ...q.slice(2)).length / rate), 0), ctx = new OC(1, Math.ceil(rate * (len + 0.05)), rate);
+  zzPlay(ctx, kind, 1, null, 0); const buf = await ctx.startRendering(), d = buf.getChannelData(0); let peak = 0, sum = 0, clip = 0;
+  for (let i = 0; i < d.length; i++) { const a = Math.abs(d[i]); if (a > peak) peak = a; if (a >= 0.999) clip++; sum += d[i] * d[i]; }
+  return { kind, secs: +len.toFixed(2), peak: +peak.toFixed(3), rms: +Math.sqrt(sum / d.length).toFixed(4), clip };
+}
+if (typeof window !== 'undefined') window.__zz = { kinds: Object.keys(ZZ), render: zzRender, played: {}, say: k => sfx(k), live: () => ZZST.live, hit: (k, n) => { for (let i = 0; i < n; i++) zzPlay(AC, k, 1); return ZZST.live; }, musicSet: on => musicSet(on), get meta() { return META; } };
 // 옛 것의 둥지 — 둥지 전투(롤토체스 방식)의 그림. 전부 새 디자인.
 // 정지 그림이 아니다: 유닛은 조각(몸통·머리·팔다리·촉수·껍데기·주머니·무기)으로 나뉘고, 조각마다 축이 있어 프레임마다 옮기고 돌리고 늘인다.
 // 조각은 조각 도구(Sculpt, monsters.js)로 그린다. 돌릴 때 번지지 않게 점 단위로 다시 찍어 프레임을 만들고, 만든 프레임은 간직한다.
