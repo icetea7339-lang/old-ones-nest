@@ -1750,7 +1750,8 @@ function sfx(kind) {
   try {
     AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === 'suspended') AC.resume();
     const vol = sfxVol(); if (vol <= 0) return; if (typeof window !== 'undefined' && window.__zz) window.__zz.played[kind] = (window.__zz.played[kind] || 0) + 1;
-    if (typeof zzPlay === 'function' && zzPlay(AC, kind, vol)) return; if (sfxRich(kind, AC.currentTime, vol)) return;
+    // 소리는 모두 zzfx.js 의 목록에서 낸다. 목록에 없는 소리는 내지 않는다 (옛 삑 소리로 돌아가지 않게)
+    if (typeof zzPlay === 'function') { zzPlay(AC, kind, vol); return; } if (sfxRich(kind, AC.currentTime, vol)) return;
     const seq = { hit: [[150, .05, 'square']], trap: [[320, .05, 'sawtooth'], [110, .09, 'sawtooth']], coin: [[880, .05, 'square'], [1320, .08, 'square']], up: [[523, .07, 'square'], [659, .07, 'square'], [784, .07, 'square'], [1047, .14, 'square']], down: [[392, .09, 'square'], [311, .09, 'square'], [233, .18, 'square']], die: [[200, .06, 'triangle'], [90, .12, 'triangle']], evo: [[392, .1, 'square'], [523, .1, 'square'], [659, .1, 'square'], [784, .1, 'square'], [1047, .3, 'square']], step: [[90, .03, 'triangle']], click: [[660, .03, 'square']], talk: [[440, .02, 'square']], mad: [[700, .05, 'sine'], [520, .05, 'sine'], [760, .1, 'sine']], spell: [[220, .08, 'sine'], [440, .08, 'sine'], [880, .2, 'sine']], dig: [[120, .04, 'sawtooth'], [80, .06, 'sawtooth']], slide: [[300, .05, 'triangle'], [200, .08, 'triangle']] }[kind];
     if (!seq) return;
     let t = AC.currentTime;
@@ -2007,6 +2008,32 @@ function zzGen(rate, volume = 1, randomness = 0, frequency = 220, attack = 0, su
   return b;
 }
 
+
+// ---------- 젖은 소리 (2026-11-25 사용자: "삑삑 소리가 거슬린다, 살점 찌걱이는 소리나 책장 넘기는 소리가 낫다") ----------
+// 높이가 있는 소리(삑)는 쓰지 않는다. 모두 잡음을 걸러 짓는다. 조각을 zr(늦춤, 크기 배수, 짓는 셈) 으로 적는다. 짓는 셈은 (표본율) → Float32Array
+const zr = (at, mul, fn) => [at, mul, fn];
+function zrRng(seed) { let s = seed >>> 0; return () => { s = (Math.imul(s, 1664525) + 1013904223) >>> 0; return s / 4294967296 * 2 - 1; }; }
+// 한 극 거름 (낮은 쪽만: lp, 높은 쪽만: hp). 차단 주파수를 시간마다 바꿀 수 있다
+function zrLP(x, rate, fc) { const y = new Float32Array(x.length); let v = 0; for (let i = 0; i < x.length; i++) { const f = typeof fc === 'function' ? fc(i / rate) : fc, a = 1 - Math.exp(-2 * Math.PI * f / rate); v += a * (x[i] - v); y[i] = v; } return y; }
+function zrHP(x, rate, fc) { const lo = zrLP(x, rate, fc), y = new Float32Array(x.length); for (let i = 0; i < x.length; i++) y[i] = x[i] - lo[i]; return y; }
+function zrNoise(n, seed) { const r = zrRng(seed), d = new Float32Array(n); for (let i = 0; i < n; i++) d[i] = r(); return d; }
+function zrNorm(d, peak) { let m = 0; for (let i = 0; i < d.length; i++) m = Math.max(m, Math.abs(d[i])); if (m > 0) for (let i = 0; i < d.length; i++) d[i] *= peak / m; return d; }
+// 책장 넘김: 들리는 사각거림(높은 잡음이 점점 낮아짐) 뒤에 종이가 닿는 짧은 탁
+function zrPage(len, seed) { return rate => { const n = Math.floor(rate * len), w = zrNoise(n, seed); let d = zrHP(zrLP(w, rate, t => 5200 - 3800 * Math.min(1, t / len)), rate, 700);
+  for (let i = 0; i < n; i++) { const t = i / rate / len, env = t < 0.55 ? Math.sin(Math.PI * t / 0.55) * 0.45 * (0.7 + 0.3 * Math.sin(t * 40)) : 0, slap = t >= 0.55 ? Math.exp(-(t - 0.55) * 26) : 0; d[i] *= env + slap; } return zrNorm(d, 0.5); }; }
+// 살점 찌걱: 낮게 거른 잡음에 젖은 거품(짧게 울리는 낮은 톡)이 몇 번 터진다. pitch 로 살의 크기를 바꾼다
+function zrSquelch(len, pitch, pops, seed) { return rate => { const n = Math.floor(rate * len), r = zrRng(seed + 7), base = zrLP(zrNoise(n, seed), rate, t => 900 * pitch * (1 - 0.6 * t / len)), d = new Float32Array(n);
+  for (let i = 0; i < n; i++) { const t = i / rate; d[i] = base[i] * Math.pow(1 - t / len, 1.6) * (0.6 + 0.4 * Math.abs(Math.sin(t * 31 * pitch))); }
+  for (let k = 0; k < pops; k++) { const at = Math.floor((0.03 + Math.abs(r()) * 0.7) * n), f = (180 + Math.abs(r()) * 260) * pitch, dec = 0.012 + Math.abs(r()) * 0.02, amp = 0.5 + Math.abs(r()) * 0.6;
+    for (let i = at, ph = 0; i < n && i < at + rate * dec * 5; i++) { const t = (i - at) / rate; ph += 2 * Math.PI * f * (1 - t * 6) / rate; d[i] += Math.sin(ph) * Math.exp(-t / dec) * amp * 0.35; } }
+  return zrNorm(zrLP(d, rate, 2400 * pitch), 0.6); }; }
+// 둔탁한 쿵: 아주 낮게 거른 잡음 (높이가 들리지 않게)
+function zrThump(len, fc, seed) { return rate => { const n = Math.floor(rate * len), d = zrLP(zrLP(zrNoise(n, seed), rate, fc), rate, fc); for (let i = 0; i < n; i++) { const t = i / rate; d[i] *= Math.min(1, t / 0.004) * Math.exp(-t / (len * 0.28)); } return zrNorm(d, 0.75); }; }
+// 낮은 울림: 땅 밑에서 무언가 몸을 뒤척인다 (부풀었다 잦아든다)
+function zrRumble(len, fc, seed) { return rate => { const n = Math.floor(rate * len), d = zrLP(zrLP(zrNoise(n, seed), rate, fc), rate, fc * 0.8); for (let i = 0; i < n; i++) { const t = i / rate / len; d[i] *= Math.sin(Math.PI * Math.min(1, t * 1.6)) ** 1.5 * (t < 0.62 ? 1 : Math.max(0, 1 - (t - 0.62) / 0.38)); } return zrNorm(d, 0.7); }; }
+// 숨/속삭임: 가운데 높이만 남긴 잡음이 천천히 일렁인다
+function zrBreath(len, fc, seed) { return rate => { const n = Math.floor(rate * len), d = zrHP(zrLP(zrNoise(n, seed), rate, fc * 1.6), rate, fc * 0.5); for (let i = 0; i < n; i++) { const t = i / rate; d[i] *= Math.sin(Math.PI * t / len) * (0.55 + 0.45 * Math.sin(t * 7.3)); } return zrNorm(d, 0.35); }; }
+
 // 소리 목록. 굴 짓기의 소리는 살 속의 굴에 맞춰 낮고 젖은 쪽으로 잡았다
 const ZZ = {
   // 누름: 짧고 젖은 똑
@@ -2053,6 +2080,28 @@ const ZZ = {
   // 결말 카드: 멀리서 한 번 울리는 큰 종
   ending: [zp(0, 1.8, { v: 0.7, f: 98, a: 0.005, s: 0.6, r: 2, d: 0.1, sv: 0.6, dl: 0.3 }), zp(0, 0.9, { v: 0.3, f: 271, a: 0.005, s: 0.3, r: 1.6, d: 0.1, sv: 0.6, dl: 0.3 }), zp(0, 0.54, { v: 0.2, f: 529, a: 0.003, s: 0.1, r: 1, dl: 0.3 })],
 };
+
+// 젖은 소리로 바꾼다. 빈 배열 = 소리 없음 (누름·진액·레벨 같은 화면 소리는 내지 않는다)
+Object.assign(ZZ, {
+  click: [], coin: [], up: [], level: [], star: [], down: [], ending: [], dream: [], talk: [], step: [], card: [],
+  flip: [zr(0, 0.6, zrPage(0.24, 11))],
+  omen: [zr(0, 1, zrPage(0.3, 12)), zr(0.12, 1, zrRumble(1.4, 70, 13))],
+  reckon: [zr(0, 1, zrPage(0.3, 14)), zr(0.1, 1.2, zrRumble(1.8, 55, 15)), zr(0.5, 0.8, zrThump(0.5, 90, 16))],
+  burst: [zr(0, 1.1, zrSquelch(0.6, 0.7, 6, 17)), zr(0, 0.9, zrThump(0.4, 110, 18))],
+  birth: [zr(0, 1, zrSquelch(0.42, 1, 4, 19))],
+  place: [zr(0, 1, zrThump(0.32, 120, 20)), zr(0.05, 0.6, zrSquelch(0.35, 0.8, 3, 21))],
+  thud: [zr(0, 0.9, zrThump(0.26, 140, 22))],
+  hit: [zr(0, 0.8, zrSquelch(0.12, 1.3, 1, 23))],
+  die: [zr(0, 1, zrSquelch(0.5, 0.75, 5, 24)), zr(0, 0.7, zrThump(0.3, 100, 25))],
+  slide: [zr(0, 0.7, zrSquelch(0.3, 1.1, 2, 26))],
+  mad: [zr(0, 0.9, zrBreath(1.1, 900, 27))],
+  night: [zr(0, 1, zrRumble(2, 60, 28)), zr(0.25, 0.7, zrThump(0.6, 80, 29))],
+  awaken: [zr(0, 1.2, zrRumble(3, 50, 30)), zr(0.8, 0.8, zrSquelch(1.2, 0.6, 8, 31))],
+  spell: [zr(0, 0.5, zrBreath(0.35, 1400, 32))],
+  combo: [zr(0, 0.8, zrSquelch(0.3, 1, 3, 33))], molt: [zr(0, 1, zrSquelch(0.9, 0.6, 7, 34))], evo: [zr(0, 1, zrSquelch(0.7, 0.7, 6, 35))],
+  trap: [zr(0, 0.9, zrThump(0.25, 160, 36))], dig: [zr(0, 0.8, zrThump(0.2, 180, 37))],
+});
+
 // 같은 소리가 겹칠 때: 이만큼(초) 안에 또 오면 버리고, 그다음 구간 안이면 반으로 줄인다
 const ZZGAP = { skip: 0.06, soft: 0.25 }, ZZMAXV = 6, ZZV = 0.25;
 const ZZST = { last: {}, live: 0 };
@@ -2064,7 +2113,7 @@ function zzBus(ctx) {
 // 지은 표본 (문맥의 표본율마다)
 function zzBuf(ctx, kind, k) {
   const cache = ctx.__zz || (ctx.__zz = {}), key = kind + ':' + k; if (cache[key]) return cache[key];
-  const p = ZZ[kind][k], d = zzGen(ctx.sampleRate, ...p.slice(2)), b = ctx.createBuffer(1, d.length, ctx.sampleRate); b.getChannelData(0).set(d); return (cache[key] = b);
+  const p = ZZ[kind][k], d = typeof p[2] === 'function' ? p[2](ctx.sampleRate) : zzGen(ctx.sampleRate, ...p.slice(2)), b = ctx.createBuffer(1, d.length, ctx.sampleRate); b.getChannelData(0).set(d); return (cache[key] = b);
 }
 // 소리를 낸다. 있는 소리면 true. 크기 = 설정의 효과음 크기 x 배수. 높이를 아주 조금씩 흔들어 같은 소리가 덜 기계 같게 한다
 function zzPlay(ctx, kind, vol, dest, at) {
@@ -2079,7 +2128,7 @@ function zzPlay(ctx, kind, vol, dest, at) {
 // 시험용: 소리 하나를 소리 없이 그려 보고 길이·가장 큰 값·평균 세기를 돌려준다 (효과음 크기 1, 누르개 거친 뒤)
 async function zzRender(kind) {
   const OC = window.OfflineAudioContext || window.webkitOfflineAudioContext, rate = 44100, P = ZZ[kind]; if (!P) return null;
-  const len = P.reduce((m, q) => Math.max(m, q[0] + zzGen(rate, ...q.slice(2)).length / rate), 0), ctx = new OC(1, Math.ceil(rate * (len + 0.05)), rate);
+  const len = P.reduce((m, q) => Math.max(m, q[0] + (typeof q[2] === 'function' ? q[2](rate) : zzGen(rate, ...q.slice(2))).length / rate), 0.01), ctx = new OC(1, Math.ceil(rate * (len + 0.05)), rate);
   zzPlay(ctx, kind, 1, null, 0); const buf = await ctx.startRendering(), d = buf.getChannelData(0); let peak = 0, sum = 0, clip = 0;
   for (let i = 0; i < d.length; i++) { const a = Math.abs(d[i]); if (a > peak) peak = a; if (a >= 0.999) clip++; sum += d[i] * d[i]; }
   return { kind, secs: +len.toFixed(2), peak: +peak.toFixed(3), rms: +Math.sqrt(sum / d.length).toFixed(4), clip };
