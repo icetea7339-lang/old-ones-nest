@@ -537,7 +537,7 @@ canvas.px, .sh-ic, .sh-cv { image-rendering: pixelated; }
 #mz-coach span { display: flex; justify-content: flex-end; gap: 6px; }
 #mz #mz-coach button { pointer-events: auto; min-height: 32px; font-size: calc(13px * var(--mzf, 1)); background: #1a1626; color: #f3ecd8; border-color: #1a1626; }
 #mz #mz-coach button[data-m="tutoff"] { background: none; color: #5a5468; border-color: #b8b0a0; }
-#mz-toast { position: fixed; z-index: 47; left: 50%; top: calc(64px + env(safe-area-inset-top, 0px)); transform: translateX(-50%); padding: 6px 12px; background: #0b0a14e6; border: 1px solid var(--line); border-radius: 8px; font-size: calc(14px * var(--mzf, 1)); max-width: min(360px, calc(100vw - 16px)); width: max-content; text-align: center; pointer-events: none; }
+#mz-toast { position: fixed; z-index: 47; left: 50%; top: calc(118px + env(safe-area-inset-top, 0px)); transform: translateX(-50%); padding: 6px 12px; background: #0b0a14e6; border: 1px solid var(--line); border-radius: 8px; font-size: calc(14px * var(--mzf, 1)); max-width: min(360px, calc(100vw - 16px)); width: max-content; text-align: center; pointer-events: none; }
 #mz-drag { position: fixed; z-index: 48; width: 52px; height: 52px; opacity: .9; pointer-events: none; }
 #mz.wide #mz-main { flex-direction: row; justify-content: center; align-items: flex-start; gap: 20px; padding-top: 8px; }
 #mz.wide #mz-side { width: 440px; flex: 0 0 440px; gap: 8px; }
@@ -2532,8 +2532,8 @@ const MAZE = (() => {
     // 권속의 자람: need = 레벨마다 드는 경험, star = 그 레벨에서 2성·3성, pow = 레벨마다 배수 (그 성 안에서), fight = 싸움에서 살아남으면, kill = 죽이면,
     //   eat = 같은 종류를 먹으면 (+ 먹힌 것의 경험 x keep), perkAt = 보조 능력이 붙는 레벨, perk = 그 배수
     kin: { maxLv: 10, need: [3, 5, 8, 10, 13, 16, 20, 24, 30], star: [1, 4, 8], pow: 0.1, fight: 1.5, kill: 1.5, eat: 7, keep: 0.8, perkAt: 3, perk: 0.1 },
-    // 땅 위를 친다: 세기마다 얻는 몫과 경계 배수. raze = 쓸어버리면 그곳은 shut 밤 동안 닫힌다. lvUp = 쓸어버리는 데 더 드는 본체 레벨
-    strike: { weak: { gold: 0.5, food: 0, alert: 0.5, pts: 1 }, strong: { gold: 1, food: 1, alert: 1, pts: 2 }, raze: { gold: 0.6, food: 2, alert: 2, pts: 3 }, shut: 8, lvUp: 1 },
+    // 땅 위를 친다: 세기마다 얻는 몫과 경계 배수. kin = 굴에 세운 권속마다 얻는 경험 (데리고 나가 싸운 셈). raze = 쓸어버리면 그곳은 shut 밤 동안 닫힌다. lvUp = 쓸어버리는 데 더 드는 본체 레벨
+    strike: { weak: { gold: 0.5, food: 0, alert: 0.5, pts: 1, kin: 1 }, strong: { gold: 1, food: 1, alert: 1, pts: 2, kin: 4 }, raze: { gold: 0.6, food: 2, alert: 2, pts: 3, kin: 7 }, shut: 8, lvUp: 1 },
     // 속삭임: max = 줄기 길이, half = 이만큼 속삭이면 그 사람은 미친 채 온다, pts = 성향 값
     whisper: { max: 5, half: 3, pts: 2 },
     // 기르기 (grow_spec.md)
@@ -3165,10 +3165,11 @@ const MAZE = (() => {
     if (M.shut[place]) return '쓸어버린 곳이다. ' + M.shut[place] + '번째 밤에 다시 연다'; const lv = power === 'weak' ? 0 : T.lv + (power === 'raze' ? MK.strike.lvUp : 0); if (M.level < lv) return '본체 레벨 ' + lv + '부터 할 수 있다'; return null;
   }
   // 그 세기로 치면 얻는 것 (보기용)
-  function strikeGain(M, place, power) { const T = STRIKE[place], P = MK.strike[power]; return { gold: Math.round(T.gold * P.gold), food: Math.round(T.food * P.food), alert: place === 'hut' && power === 'weak' ? -1 : Math.max(1, Math.round(T.alert * P.alert)), asp: T.asp, pts: P.pts }; }
+  function strikeGain(M, place, power) { const T = STRIKE[place], P = MK.strike[power]; return { gold: Math.round(T.gold * P.gold), food: Math.round(T.food * P.food), alert: place === 'hut' && power === 'weak' ? -1 : Math.max(1, Math.round(T.alert * P.alert)), asp: T.asp, pts: P.pts, kinXp: P.kin || 0 }; }
   function strike(M, place, power) {
     power = power || 'strong'; const e = commandWhy(M, 'strike') || strikeWhy(M, place, power); if (e) return fail(e); const g = strikeGain(M, place, power);
     M.gold += g.gold; M.xp += g.food; M.grow.eaten += g.food; addAsp(M, g.asp, g.pts, 'night'); M.alert = clamp(M.alert + g.alert, 0, MK.alert.max); M.strikes++; M.struck[place] = (M.struck[place] || 0) + 1; M.sure = M.night; M.avenge = place;
+    if (g.kinXp) { let n = 0; boardUids(M).forEach(uid => { if (M.unit[uid]) { kinGain(M, uid, g.kinXp); n++; } }); g.kin = n; }
     if (power === 'raze') { M.shut[place] = M.night + MK.strike.shut; M.flags['razed_' + place] = true; }
     if (place === 'workshop' && power !== 'weak') M.flags.forge = true; if (place === 'tower' && power !== 'weak') M.flags.towerDown = true;
     const up = levelUp(M), next = proceed(M, 'strike', { place, power }, Object.assign({ up }, g)); return ok({ place, power, gains: g, up, alert: M.alert, next });
@@ -9180,7 +9181,7 @@ const MAZESTORY = (() => {
       { id: 'rest', name: '쉰다', from: 'c1', desc: '알과 본체가 회복하고 진액이 조금 고인다. 경계가 조금 내린다.', first: '발소리가 들리는 밤에 쉬면 회복한 채로 침입을 맞는다.' },
       { id: 'raise', name: '기른다', from: 'c2', desc: '일과 하나로 본체의 성향을 올린다.', first: '성향이 문턱을 넘으면 본체가 그 갈래로 깨어난다.' },
       { id: 'whisper', name: '속삭인다', from: 'c2', desc: '잠든 사람 하나의 꿈에 말을 건다.', first: '같은 사람에게 거듭 속삭이면 그 사람의 일이 달라지고 결말이 갈린다.' },
-      { id: 'strike', name: '땅 위를 친다', from: 'c3', desc: '지상의 한 곳을 친다. 진액과 먹이를 얻고 경계가 오른다.', first: '친 다음에는 반드시 침입이 온다. 다 쓸어버리면 얻는 것이 줄고 경계만 크게 오른다.' }
+      { id: 'strike', name: '땅 위를 친다', from: 'c3', desc: '지상의 한 곳을 친다. 진액과 먹이를 얻고 세운 권속이 자란다. 경계가 오른다.', first: '친 다음에는 반드시 침입이 온다. 다 쓸어버리면 얻는 것이 줄고 경계만 크게 오른다.' }
     ]
   };
 
@@ -10384,7 +10385,7 @@ const mzWhoName = id => ((MZST && MZST.whispers && MZST.whispers[id]) || { name:
 function mzDawnText(v) {
   const d = v.dawn; if (!d) return ''; const g = d.gains || {}, bits = [];
   if (d.cmd === 'birth') bits.push('권속 ' + (g.did || 0) + '을 낳았다'); else if (d.cmd === 'build') bits.push('굴을 ' + (g.did || 0) + '곳 고쳤다');
-  else if (d.cmd === 'strike') { const a = d.arg || {}; bits.push(mzJosa(mzPlaceName(a.place), '을', '를') + ' 쳤다'); if (g.gold) bits.push('진액 +' + g.gold); if (g.food) bits.push('먹이 +' + g.food); if (g.alert) bits.push('경계 ' + mzSigned(g.alert)); }
+  else if (d.cmd === 'strike') { const a = d.arg || {}; bits.push(mzJosa(mzPlaceName(a.place), '을', '를') + ' 쳤다'); if (g.gold) bits.push('진액 +' + g.gold); if (g.food) bits.push('먹이 +' + g.food); if (g.alert) bits.push('경계 ' + mzSigned(g.alert)); if (g.kinXp && g.kin) bits.push('권속 ' + g.kin + '마리 경험 +' + mzNum1(g.kinXp)); }
   else if (d.cmd === 'whisper') bits.push(mzWhoName(d.arg) + '에게 속삭였다' + (g.n ? ' (' + g.n + '/5)' : ''));
   else if (d.cmd === 'raise') { const c = (v.grow.chores || []).find(q => q.id === d.arg); bits.push((c ? c.name : '길렀다') + (g.asp ? ' · ' + ((v.grow.names || {})[g.asp] || g.asp) + ' +' + mzNum1(g.pts || 0) : '')); if (g.gold) bits.push('진액 +' + g.gold); }
   else if (d.cmd === 'rest') { bits.push('쉬었다'); if (g.gold) bits.push('진액 +' + g.gold); if (g.egg) bits.push('알 +' + g.egg); if (g.alert) bits.push('경계 ' + mzSigned(g.alert)); }
@@ -10405,11 +10406,12 @@ function mzNest(v) {
   $('mzn-dawn').textContent = mzDawnText(v); mzNestSign(v);
   // 처음 열린 명령의 안내 한 줄
   const ui = M.ui, used = ui.cmdUsed || {}, cmds = v.commands.filter(c => c.open), fresh = cmds.find(c => !used[c.id]), first = $('mzn-first');
-  const tn = v.tonight || { cost: {} }, hint = ready ? '' : tn.twice ? '긴 밤이다. 이 밤은 명령을 한 번 더 고른다.' : !ui.turnSeen && MZST && MZST.commands ? MZST.commands.turn : fresh ? mzCmdInfo(fresh.id).name + ': ' + mzCmdInfo(fresh.id).first : '';
+  const bld = cmds.find(c => c.id === 'build'), noRoom = !!(bld && bld.can && !v.grid.some(g => g && g.use === 'kin'));
+  const tn = v.tonight || { cost: {} }, hint = ready ? '' : tn.twice ? '긴 밤이다. 이 밤은 명령을 한 번 더 고른다.' : !ui.turnSeen && MZST && MZST.commands ? MZST.commands.turn : noRoom ? '권속 방이 없다. 지금은 본체 방에서만 싸운다. 「굴을 고친다」로 길 위에 방을 놓으면 권속이 거기서 막는다.' : fresh ? mzCmdInfo(fresh.id).name + ': ' + mzCmdInfo(fresh.id).first : '';
   first.hidden = !hint; first.textContent = hint || '';
   $('mzn-cmds').className = ready ? 'ready' : ''; $('mzn-cmds').innerHTML = ready
     ? `<button data-m="coming">오는 자들<small>${esc(v.coming ? v.coming.band : '')}</small></button><button class="pri" data-m="raid">맞는다</button>`
-    : cmds.map(c => { const I = mzCmdInfo(c.id), n = c.id === 'whisper' ? v.whispers.filter(w => w.met && !w.done).length : 0; return `<button data-m="cmd" data-id="${c.id}" class="${c.can ? '' : 'off'}${!used[c.id] ? ' new' : ''}" aria-disabled="${!c.can}" aria-label="${esc(I.name + '. ' + I.desc)}"><b>${esc(I.name)}</b>${c.can ? (n ? `<small>닿는 사람 ${n}</small>` : '') + (tn.cost && tn.cost[c.id] ? `<small class="cost">이 밤 값 ${mzSigned(tn.cost[c.id])}</small>` : '') + (c.id === 'whisper' && tn.whisper2 ? '<small class="cost">이 밤 얻는 것 두 배</small>' : '') : `<small>${esc(c.why || '')}</small>`}</button>`; }).join('');
+    : cmds.map(c => { const I = mzCmdInfo(c.id), n = c.id === 'whisper' ? v.whispers.filter(w => w.met && !w.done).length : 0; return `<button data-m="cmd" data-id="${c.id}" class="${c.can ? '' : 'off'}${!used[c.id] ? ' new' : ''}" aria-disabled="${!c.can}" aria-label="${esc(I.name + '. ' + I.desc)}"><b>${esc(I.name)}</b>${c.can ? (n ? `<small>닿는 사람 ${n}</small>` : '') + (c.id === 'build' && noRoom ? '<small class="cost">권속 방 0</small>' : '') + (tn.cost && tn.cost[c.id] ? `<small class="cost">이 밤 값 ${mzSigned(tn.cost[c.id])}</small>` : '') + (c.id === 'whisper' && tn.whisper2 ? '<small class="cost">이 밤 얻는 것 두 배</small>' : '') : `<small>${esc(c.why || '')}</small>`}</button>`; }).join('');
   $('mzn-views').innerHTML = `<button data-m="tomap">굴</button><button data-m="kin">권속 ${v.units.length}</button><button data-m="log">기록</button>${v.mode === 'story' ? '<button data-m="goals">목표</button>' : '<button data-m="scorev">점수</button>'}${mzSignOn(v) ? `<button data-m="signs" aria-label="징조. 빚 ${v.debts}">징조${v.debts ? `<small>빚 ${v.debts}</small>` : ''}</button>` : ''}`; $('mzn-views').className = mzSignOn(v) ? 'five' : '';
 }
 // 둥지 방의 그림: 살벽과 젖은 바닥, 가운데 숨 쉬는 본체. 발소리가 들리는 밤에는 위에서 불빛이 샌다
@@ -10472,7 +10474,7 @@ function mzGo() {
 // 밤이 가는 명령 뒤: 둥지 방으로 돌아와 다음 일을 연다
 function mzAfterCmd() { const M = MZ.M; M.ui.turnSeen = 1; MZ.scr = 'nest'; MZ.sel = null; MZ.pend = null; if (MZ.sheet) mzSheetClose(); mzSave(); mzGo(); }
 const MZPOW = { weak: '약하게', strong: '세게', raze: '쓸어버린다' };
-function mzGainText(g, v) { const n = (v && v.grow && v.grow.names) || {}, b = []; if (g.gold) b.push('진액 ' + mzSigned(g.gold)); if (g.food) b.push('먹이 +' + g.food); if (g.egg) b.push('알 ' + mzSigned(g.egg)); if (g.alert) b.push('경계 ' + mzSigned(g.alert)); if (g.asp && g.pts) b.push((n[g.asp] || g.asp) + ' +' + mzNum1(g.pts)); return b.join(' · '); }
+function mzGainText(g, v) { const n = (v && v.grow && v.grow.names) || {}, b = []; if (g.gold) b.push('진액 ' + mzSigned(g.gold)); if (g.food) b.push('먹이 +' + g.food); if (g.egg) b.push('알 ' + mzSigned(g.egg)); if (g.alert) b.push('경계 ' + mzSigned(g.alert)); if (g.asp && g.pts) b.push((n[g.asp] || g.asp) + ' +' + mzNum1(g.pts)); if (g.kinXp) b.push('세운 권속 경험 +' + mzNum1(g.kinXp)); return b.join(' · '); }
 function mzCmd(id) {
   const M = MZ.M, v = MZ.v || mzView(), c = v.commands.find(q => q.id === id); if (!c || !c.open) return; if (!c.can) return mzToast(c.why || '지금은 할 수 없다');
   M.ui.cmdUsed = M.ui.cmdUsed || {}; M.ui.cmdUsed[id] = 1; M.ui.turnSeen = 1; mzSay('click');
