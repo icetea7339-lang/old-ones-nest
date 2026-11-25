@@ -550,8 +550,6 @@ canvas.px, .sh-ic, .sh-cv { image-rendering: pixelated; }
 #title #mz-tcv { display: block; width: min(92vw, 560px, calc(46vh * 1.6)); height: auto; image-rendering: pixelated; border-radius: 10px; background: #06040a; }
 #title:has(#mz-tcv) { justify-content: flex-start; padding-top: calc(env(safe-area-inset-top, 0px) + 18px); }
 #title #mz-tcv + h1 { margin-top: -4px; }
-#title .mz-tline { margin: -6px 0 0; min-height: 2.6em; max-width: min(92vw, 520px); text-align: center; font-size: calc(14px * var(--mzf, 1)); line-height: 1.35; color: #c9bfb4; transition: opacity .3s ease; }
-#title .mz-tline:empty { display: none; }
 .mz-lab.lost { border-color: #e0c890; color: #fff3d8; } .mz-lab.scout { border-color: #ff8a70; color: #ffe0d0; font-size: calc(13px * var(--mzf, 1)); }
 #mz-sheet .mz-party div.scout { box-shadow: inset 0 0 0 1px #e8f0ff88; }
 #mz-sheet .mz-rew { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
@@ -963,7 +961,6 @@ html.mzbig { --mzf: 1.16; }
 </head><body style="margin:0">
 <div id="title" class="screen">
   <h1>옛 것의 둥지</h1>
-  <p id="mz-tline" class="mz-tline"></p>
   <nav id="menu"></nav>
   <p id="nojs">버튼이 보이지 않나요? 지금 보는 화면은 파일 미리보기라서 게임이 실행되지 않습니다. 보낸 사람에게 인터넷 주소(링크)를 받아 사파리나 크롬에서 열어 주세요.</p>
 </div>
@@ -2715,6 +2712,8 @@ const MAZE = (() => {
     // 자유: 끝없는 밤. every = 이만큼의 밤마다 침입, stage = 이만큼의 밤마다 다음 무리, late = 이 밤부터 밤마다 체력이 grow 배씩 불어난다 (공격과 정신은 그 제곱근), boss = 이만큼의 밤마다 우두머리
     free: { hpMul: 2.8, atkMul: 2.8, sanMul: 0.4, every: 2, stage: 6, late: 30, grow: 0.04, boss: 10, lvEvery: 8, lvBase: 5, regen: 1 },
     // 점수: 등급은 score / cap 의 몫
+    // 처형 장면: 후보(처형·치명타·함정으로 사람이 죽은 밤)가 있을 때 띄울 확률. 처음 한 번과 이름 있는 인물은 늘, 연달아 두 밤은 안 띄운다
+    feast: { p: 0.35 },
     score: { gold: 1, food: 3, lux: 8, alert: 6, kin: 4, captive: 5, egg: 10, cap: 3000 },
   };
 
@@ -10495,7 +10494,307 @@ const MZVIGN = (() => {
         return { dark: seg(t, 6.4, 6.9), sfx: [[0.6, 'night'], [6.2, 'hit']] };
       } },
   };
-  const IDS = Object.keys(SCENES);
+
+  // ── 처형 장면 21개: 죽이는 쪽 일곱 갈래(심연·번식·성운·황혼·기아·본체·함정) × 셋 ──
+  // 사람과 죽이는 쪽을 크게(사람 2배) 잡는다. 사람은 오른쪽(왼쪽을 본다), 죽이는 쪽은 왼쪽. 끝 프레임에서 멈춘다.
+  // o = { gore, kind(죽는 사람), killer: { kind, star, br } | null, form, step (본체) }
+  const XS = 2, VX = 108, KX = 44, LIQ = { abyss: '#1f6c7a', brood: '#8c9a2a', nebula: '#6c40aa', dusk: '#3a3336', hunger: '#aa2a2c' };
+  const XDEF = { abyss: 'maw', brood: 'brood', nebula: 'heap', dusk: 'hood', hunger: 'gnaw' };
+  const layers = [];
+  function lay(n) { if (!layers[n]) layers[n] = mk(W, H); const b = layers[n].getContext('2d'); b.setTransform(1, 0, 0, 1, 0, 0); b.globalCompositeOperation = 'source-over'; b.globalAlpha = 1; b.filter = 'none'; b.clearRect(0, 0, W, H); b.imageSmoothingEnabled = false; return b; }
+  const lc = n => layers[n];
+  // 죽는 사람을 층 b 에 그린다 (2배, 왼쪽을 본다)
+  function vic(b, o, anim, at, x, y, sc) { const hu = unitH(o.kind || 'militia'); o._vx = x == null ? VX : x; o._vy = y == null ? GY : y; if (hu) hu.draw(b, o._vx, o._vy, anim, at, { scale: sc || XS, flip: true }); return hu; }
+  // 죽이는 쪽: 권속(종류·별·갈래) 또는 본체
+  function kil(a, o, grp, anim, at, x, sc) {
+    const k = o.killer && o.killer.kind && o.killer.kind !== 'core' ? o.killer : grp && XDEF[grp] ? { kind: XDEF[grp], star: 2 } : null;
+    if (k) { let h = null; try { h = LAIRART.unit(k.kind, k.star || 1, k.br || undefined); } catch (e) { h = null; } if (h) h.draw(a, x == null ? KX : x, GY + 2, anim, at, { scale: sc || 1.35 }); return; }
+    const h = bossH(o.form || 'abyss', o.step == null ? 2 : o.step); if (h) h.draw(a, x == null ? KX : x, GY + 2, anim, at, { scale: sc || 0.62 });
+  }
+  const headY = o => GY + headOf(o.kind || 'militia').dy * XS;
+  // 사람 층의 불투명한 테두리
+  function bbox(b) { const d = b.getImageData(0, 0, W, H).data; let x0 = W, x1 = -1, y0 = H, y1 = -1; for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (d[(y * W + x) * 4 + 3] > 40) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; } return x1 < 0 ? null : { x0, x1, y0, y1 }; }
+  const hx = (x, y, s) => hash(x * 131 + y * 977 + (s || 0) * 7919);
+  const mixC = (r, g, bb, hex, k) => { const R = parseInt(hex.slice(1, 3), 16), G = parseInt(hex.slice(3, 5), 16), B = parseInt(hex.slice(5, 7), 16); return [r + (R - r) * k, g + (G - g) * k, bb + (B - bb) * k]; };
+  // 녹아내림: 열마다 다른 깊이로 흘러내려 바닥에 고인다. col 쪽으로 물든다
+  function melt(b, u, col, seed, floorY) {
+    if (u <= 0) return; const src = b.getImageData(0, 0, W, H), d = src.data, out = b.createImageData(W, H), q = out.data, fy = floorY == null ? GY : floorY;
+    for (let x = 0; x < W; x++) { const dx = u * (10 + 26 * hx(x, 1, seed)); for (let y = H - 1; y >= 0; y--) { const i = (y * W + x) * 4; if (d[i + 3] < 40) continue;
+      let ny = Math.round(y + dx * (0.35 + 0.65 * (1 - y / H))), nx = x; if (ny >= fy) { ny = fy - Math.floor(hx(x, y, seed + 3) * 3 * u); nx = x + Math.round((hx(y, x, seed) - 0.5) * 10 * u); }
+      if (nx < 0 || nx >= W || ny < 0 || ny >= H) continue; const j = (ny * W + nx) * 4, c = mixC(d[i], d[i + 1], d[i + 2], col, Math.min(0.85, u * 0.9)); q[j] = c[0]; q[j + 1] = c[1]; q[j + 2] = c[2]; q[j + 3] = Math.round(d[i + 3] * (u > 0.85 ? 1 - (u - 0.85) * 3 : 1)); } }
+    b.putImageData(out, 0, 0);
+  }
+  // 구멍: 시선이 파먹는다 (구멍 가장자리가 빛난다)
+  function holes(b, u, seed, glow) {
+    if (u <= 0) return; const im = b.getImageData(0, 0, W, H), d = im.data, cut = new Uint8Array(W * H);
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const i = (y * W + x) * 4; if (d[i + 3] < 40) continue; const cell = hx(Math.floor(x / 3), Math.floor(y / 3), seed); if (cell < u * 0.85) { cut[y * W + x] = 1; } }
+    for (let y = 1; y < H - 1; y++) for (let x = 1; x < W - 1; x++) { const i = (y * W + x) * 4; if (cut[y * W + x]) { d[i + 3] = 0; continue; } if (d[i + 3] > 40 && (cut[y * W + x - 1] || cut[y * W + x + 1] || cut[(y - 1) * W + x] || cut[(y + 1) * W + x])) { const c = mixC(d[i], d[i + 1], d[i + 2], glow, 0.8); d[i] = c[0]; d[i + 1] = c[1]; d[i + 2] = c[2]; } }
+    b.putImageData(im, 0, 0);
+  }
+  // 점으로 흩어져 한 곳(tx, ty)으로 빨려 간다
+  function suck(b, a, u, tx, ty, seed, col) {
+    if (u <= 0) return; const im = b.getImageData(0, 0, W, H), d = im.data;
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const i = (y * W + x) * 4; if (d[i + 3] < 40) continue; const st = hx(x, y, seed) * 0.7, k = seg(u, st, st + 0.3); if (k <= 0) continue; d[i + 3] = 0; if (k >= 1) continue; const e = ease(k), px = x + (tx - x) * e + Math.sin((x + y) * 0.7 + k * 9) * 3 * (1 - e), py = y + (ty - y) * e; a.fillStyle = k > 0.5 ? col : 'rgb(' + d[i] + ',' + d[i + 1] + ',' + d[i + 2] + ')'; a.fillRect(Math.round(px), Math.round(py), 1, 1); }
+    b.putImageData(im, 0, 0);
+  }
+  // 재가 되어 무너진다 (잿빛으로 바래며 아래로 흩어짐)
+  function ash(b, u, seed) {
+    if (u <= 0) return; const src = b.getImageData(0, 0, W, H), d = src.data, out = b.createImageData(W, H), q = out.data;
+    for (let y = H - 1; y >= 0; y--) for (let x = 0; x < W; x++) { const i = (y * W + x) * 4; if (d[i + 3] < 40) continue; const st = (1 - y / H) * 0.6 + hx(x, y, seed) * 0.3, k = seg(u, st, st + 0.35); let ny = Math.round(y + k * k * (GY - y + 2)), nx = Math.round(x + (hx(y, x, seed) - 0.5) * 8 * k); ny = Math.min(GY + 1, ny);
+      if (nx < 0 || nx >= W) continue; const j = (ny * W + nx) * 4, gr = (d[i] + d[i + 1] + d[i + 2]) / 3, s = Math.min(1, u * 1.4); q[j] = d[i] + (gr * 0.8 - d[i]) * s; q[j + 1] = d[i + 1] + (gr * 0.8 - d[i + 1]) * s; q[j + 2] = d[i + 2] + (gr * 0.8 - d[i + 2]) * s; q[j + 3] = 255; }
+    b.putImageData(out, 0, 0);
+  }
+  // 띠로 잘라 흩는다 (뜯겨 나감)
+  function chunks(a, b, u, seed, gore) {
+    const bb = bbox(b); if (!bb) return; const n = 5, hgt = Math.max(1, Math.ceil((bb.y1 - bb.y0 + 1) / n));
+    for (let k = 0; k < n; k++) { const y0 = bb.y0 + k * hgt, vx = (hx(k, 2, seed) - 0.5) * 70, vy = -20 - hx(k, 5, seed) * 30, tt = u * 1.1, ox = vx * tt, oy = Math.min(GY - y0 - hgt, vy * tt + 60 * tt * tt);
+      a.save(); a.translate(Math.round(ox), Math.round(oy)); a.drawImage(lc(1), 0, y0, W, hgt, 0, y0, W, hgt); a.restore();
+      if (gore && u > 0.05) for (let j = 0; j < 4; j++) { const ph = (u * 3 + j * 0.27 + k * 0.13) % 1; a.fillStyle = j % 2 ? '#8a0e1c' : '#c8303c'; a.fillRect(Math.round((bb.x0 + bb.x1) / 2 + ox * 0.6 + (hx(j, k, seed) - 0.5) * 20), Math.round(y0 + oy + ph * 20), 1, 2); } }
+  }
+  // 물: 바닥에서 차오른 물이 사람을 잠근다 (수면은 흔들린다)
+  function water(a, b, level, t, col) { if (level >= GY + 2) return; for (let x = 0; x < W; x++) { const yy = Math.round(level + Math.sin(x * 0.35 + t * 5) * 1.2); b.clearRect(x, yy, 1, H - yy); } a.drawImage(lc(1), 0, 0); a.globalAlpha = 0.78; a.fillStyle = col; for (let x = 0; x < W; x++) { const yy = Math.round(level + Math.sin(x * 0.35 + t * 5) * 1.2); a.fillRect(x, yy, 1, H - yy); } a.globalAlpha = 1; a.fillStyle = '#9ce0d8'; for (let x = 0; x < W; x += 2) a.fillRect(x, Math.round(level + Math.sin(x * 0.35 + t * 5) * 1.2), 1, 1); return true; }
+  // 피를 흩뿌린다 (잔혹한 장면일 때만)
+  function spray(a, x, y, u, seed, n) { for (let k = 0; k < (n || 10); k++) { const ang = -Math.PI * (0.15 + 0.7 * hx(k, 1, seed)), r = u * (6 + hx(k, 3, seed) * 22), px = x + Math.cos(ang) * r * (hx(k, 9, seed) < 0.5 ? -1 : 1), py = y + Math.sin(ang) * r + u * u * 18; a.fillStyle = k % 3 ? '#8a0e1c' : '#c8303c'; a.fillRect(Math.round(px), Math.round(Math.min(GY, py)), 1, 1); } }
+  // 눈: 몸 위에 하나씩 돋아 깜빡인다
+  function eyes(a, b, n, t, seed) { const im = b.getImageData(0, 0, W, H), d = im.data, pts = []; for (let y = 0; y < H; y += 2) for (let x = 0; x < W; x += 2) if (d[(y * W + x) * 4 + 3] > 40 && hx(x, y, seed) < 0.06) pts.push([x, y]); for (let k = 0; k < Math.min(n, pts.length); k++) { const p = pts[Math.floor(hx(k, 4, seed) * pts.length)], bl = (Math.floor(t * FPS) + k * 7) % 23 === 0; a.fillStyle = '#efe8f8'; a.fillRect(p[0] - 1, p[1], 3, 2); if (!bl) { a.fillStyle = k % 2 ? '#1a0a2a' : '#6c40aa'; a.fillRect(p[0], p[1], 1, 2); } } }
+  // 턱: 위아래 턱이 닫힌다 (cx, cy 가운데, u 0 열림 → 1 닫힘)
+  function jaws(a, cx, cy, wd, ht, u, col, edge, tooth) {
+    const g = Math.round(ht * 0.9 * (1 - u)), hw = wd / 2;
+    [-1, 1].forEach(sg => { a.fillStyle = edge; a.beginPath(); a.ellipse(cx, cy + sg * (g + 2), hw + 2, ht * 0.75 + 2, 0, sg < 0 ? Math.PI : 0, sg < 0 ? Math.PI * 2 : Math.PI); a.fill();
+      a.fillStyle = col; a.beginPath(); a.ellipse(cx, cy + sg * (g + 2), hw, ht * 0.75, 0, sg < 0 ? Math.PI : 0, sg < 0 ? Math.PI * 2 : Math.PI); a.fill();
+      a.fillStyle = 'rgba(255,170,170,0.25)'; a.beginPath(); a.ellipse(cx - hw * 0.3, cy + sg * (g + 2 + ht * 0.3), hw * 0.4, ht * 0.15, 0, 0, 6.2832); a.fill();
+      a.fillStyle = tooth; for (let x = -hw + 3; x < hw - 2; x += 3) { const th = 2 + Math.floor(hx(Math.round(x), sg + 5, 77) * 4), yy = cy + sg * (g + 2); a.fillRect(Math.round(cx + x), sg < 0 ? Math.round(yy) : Math.round(yy - th), 1, th); if (th > 3) a.fillRect(Math.round(cx + x) + 1, sg < 0 ? Math.round(yy) : Math.round(yy - th + 1), 1, th - 1); } }); }
+
+
+  // ── 고어 도우미 (잔혹한 장면 켬일 때만 부른다): 검붉은 피, 분홍 내장, 흰 뼈 ──
+  const BLOOD = ['#5a0410', '#8a0e1c', '#c8202e', '#e0303a'], GUT = ['#e88aa0', '#c8607a', '#f0b0c0', '#9a3a52'], BONE = ['#f4ecdc', '#d8ccb4', '#b0a48c'];
+  // 머리가 터진다: 뇌 조각(분홍), 뼈 조각(흰), 피 분수. u 0 → 1 (터진 뒤 흩어짐), (x, y) 머리 자리
+  function headBurst(a, x, y, u, seed) {
+    if (u <= 0) return; const n = 34;
+    for (let k = 0; k < n; k++) { const ang = -Math.PI * hx(k, 1, seed) - 0.15, sp = 14 + hx(k, 2, seed) * 34, px = x + Math.cos(ang) * sp * u * (hx(k, 7, seed) < 0.5 ? -1 : 1), py = Math.min(GY, y + Math.sin(ang) * sp * u + 46 * u * u), c = k % 5 === 0 ? BONE[k % 3] : k % 3 === 0 ? GUT[k % 4] : BLOOD[k % 4], sz = k % 4 === 0 ? 2 : 1;
+      a.fillStyle = c; a.fillRect(Math.round(px), Math.round(py), sz, sz); }
+    const f = seg(u, 0, 0.7); for (let k = 0; k < 10; k++) { const ph = (f * 2 + k / 10) % 1; a.fillStyle = BLOOD[2 + (k % 2)]; a.fillRect(Math.round(x - 2 + Math.sin(k * 3) * ph * 6), Math.round(y + 2 - ph * 16 * (1 - ph) * 2), 1, 2); }
+  }
+  // 터진 머리 자리: 목 위가 없고 목에서 피가 흐른다
+  function stump(a, x, y, t) { a.fillStyle = BLOOD[1]; a.fillRect(Math.round(x - 3), Math.round(y), 6, 3); a.fillStyle = BONE[1]; a.fillRect(Math.round(x - 1), Math.round(y), 2, 1); for (let k = 0; k < 2; k++) { const ph = (t * 1.6 + k / 2) % 1; a.fillStyle = BLOOD[2]; a.fillRect(Math.round(x - 1 + k * 2), Math.round(y + 3 + ph * 6), 1, 2); } }
+  // 내장: 배에서 쏟아져 바닥을 끈다. (x, y) 배 자리, (tx, ty) 끝, u 길이 비율
+  function guts(a, x, y, tx, ty, u, t, seed) {
+    if (u <= 0) return; const n = Math.round(30 * u);
+    for (let i = 0; i <= n; i++) { const s = i / 30, q = 1 - s, cx = (x + tx) / 2 + Math.sin(t * 3 + seed) * 4, cy = Math.max(y, ty) + 6, px = q * q * x + 2 * q * s * cx + s * s * tx + Math.sin(i * 0.9 + t * 4) * 1.5, py = q * q * y + 2 * q * s * cy + s * s * ty;
+      a.fillStyle = '#5a1828'; a.fillRect(Math.round(px) - 1, Math.round(py) - 1, 3, 3); a.fillStyle = GUT[i % 3]; a.fillRect(Math.round(px), Math.round(py) - 1, 2, 2); if (i % 5 === 2) { a.fillStyle = GUT[2]; a.fillRect(Math.round(px), Math.round(py) - 1, 1, 1); } }
+    a.fillStyle = BLOOD[1]; a.fillRect(Math.round(x - 3), Math.round(y - 1), 6, 3);
+  }
+  // 팔다리가 뜯겨 굴러간다 (살 덩어리 + 뼈 끝)
+  function limb(a, x0, y0, u, dir, seed) {
+    if (u <= 0) return; const px = x0 + dir * (10 + 40 * u), py = Math.min(GY - 2, y0 - 22 * u + 46 * u * u), rot = u * 9 * dir;
+    a.save(); a.translate(Math.round(px), Math.round(py)); a.rotate(rot); a.fillStyle = '#c8907a'; a.fillRect(-5, -2, 10, 4); a.fillStyle = BLOOD[2]; a.fillRect(4, -2, 2, 4); a.fillStyle = BONE[0]; a.fillRect(6, -1, 2, 2); a.restore();
+    for (let k = 0; k < 5; k++) { const ph = hx(k, 3, seed); a.fillStyle = BLOOD[k % 3 + 1]; a.fillRect(Math.round(x0 + dir * (10 + 40 * u * ph)), Math.round(Math.min(GY, y0 + (GY - y0) * ph)), 1, 1); }
+  }
+  // 살점이 튄다 (갈림)
+  function bits(a, x, y, t, seed, n) { for (let k = 0; k < (n || 14); k++) { const ph = (t * 2.2 + hx(k, 1, seed)) % 1, ang = -Math.PI * (0.1 + 0.8 * hx(k, 2, seed)), sp = 10 + 26 * hx(k, 3, seed), px = x + Math.cos(ang) * sp * ph, py = y + Math.sin(ang) * sp * ph + 40 * ph * ph; if (py > GY + 1) continue; a.fillStyle = k % 4 === 0 ? GUT[k % 3] : k % 6 === 1 ? BONE[0] : BLOOD[k % 4]; a.fillRect(Math.round(px), Math.round(py), k % 3 === 0 ? 2 : 1, 1); } }
+  // 해골: 녹은 살 밑으로 드러난다 (u 0 → 1)
+  function skull(a, x, y, u) { if (u <= 0) return; a.globalAlpha = Math.min(1, u * 1.3); a.fillStyle = BONE[0]; a.fillRect(Math.round(x - 4), Math.round(y - 5), 8, 7); a.fillRect(Math.round(x - 3), Math.round(y + 2), 6, 2); a.fillStyle = '#1a0a08'; a.fillRect(Math.round(x - 3), Math.round(y - 2), 2, 2); a.fillRect(Math.round(x + 1), Math.round(y - 2), 2, 2); a.fillRect(Math.round(x), Math.round(y + 1), 1, 1); a.fillStyle = BONE[2]; for (let k = 0; k < 3; k++) a.fillRect(Math.round(x - 2 + k * 2), Math.round(y + 3), 1, 1); a.globalAlpha = 1; }
+  // 갈비뼈 (배가 녹거나 뜯긴 자리)
+  function ribs(a, x, y, u) { if (u <= 0) return; a.globalAlpha = Math.min(1, u * 1.3); a.fillStyle = BONE[1]; for (let k = 0; k < 4; k++) a.fillRect(Math.round(x - 5), Math.round(y + k * 3), 10, 1); a.fillRect(Math.round(x), Math.round(y - 1), 1, 12); a.globalAlpha = 1; }
+  // 끌린 피 자국
+  function trail(a, x0, x1, y) { const a0 = Math.min(x0, x1), w = Math.abs(x1 - x0); if (w < 1) return; a.fillStyle = BLOOD[0]; a.fillRect(Math.round(a0), y - 1, Math.round(w), 3); a.fillStyle = BLOOD[1]; for (let x = a0; x < a0 + w; x += 3) a.fillRect(Math.round(x), y - 1 + (Math.floor(x) % 2), 2, 1); }
+  // 큰 피 웅덩이 (끝 프레임에도 남는다)
+  function bigPool(a, x, y, r) { if (r <= 0) return; pool(a, x, y, r); a.fillStyle = BLOOD[2]; a.beginPath(); a.ellipse(Math.round(x + r * 0.25), Math.round(y), Math.max(1, r * 0.3), Math.max(1, r * 0.08), 0, 0, 6.2832); a.fill(); }
+  // 터지는 순간: 섬광과 흔들림 (render 가 받아 그린다). 여러 순간 중 하나라도 맞으면
+  function pops(t, ats) { for (const at of ats) { const d = t - at; if (d >= 0 && d < 0.25) return { flash: d < 0.09 ? 0.55 : 0.22, shake: d < 0.17 ? 3 : 1 }; } return null; }
+
+  const XSC = {
+    // ─ 심연 ─
+    abyss_melt: { grp: 'abyss', look: '녹아내림', bg: 'burrow6', len: 4600, key: 3200, draw(a, t, o) {
+      kil(a, o, 'abyss', t < 1 ? 'idle' : 'cast', t * 1000); const b = lay(1); vic(b, o, t < 0.9 ? 'hit' : 'mad', t * 1000); const u = ease(seg(t, 0.9, 4.2)); melt(b, u, o.gore ? LIQ.abyss : '#101418', 11, GY + 1); a.drawImage(lc(1), 0, 0);
+      if (o.gore) { pool(a, VX, GY + 1, 4 + 14 * u); if (u > 0.2 && u < 0.9) spray(a, VX - 2, headY(o) + 10, seg(t, 1.2, 2), 5, 6); } else { a.fillStyle = '#0a0c10'; a.beginPath(); a.ellipse(VX, GY + 1, 4 + 14 * u, 2, 0, 0, 6.2832); a.fill(); }
+      tentacle(a, { x: KX + 14, y: GY - 16 }, { x: VX - 6, y: headY(o) + 14 }, { x: 0, y: -16 }, ease(seg(t, 0.2, 0.9)) * (1 - seg(t, 3.6, 4.2)), 1.8, o.gore ? LIQ.abyss : '#1a1c22', '#03101a', []);
+      return { dark: o.gore ? 0 : seg(t, 2, 2.4) * 0.5, sfx: [[0.9, 'burst'], [2.2, 'die']] }; } },
+    abyss_drown: { grp: 'abyss', look: '물에 삼켜짐', bg: 'burrow6', len: 4600, key: 3000, draw(a, t, o) {
+      kil(a, o, 'abyss', 'idle', t * 1000, 30, 1.1); const b = lay(1), up = ease(seg(t, 0.4, 3.6)), lvl = GY + 2 - up * 74; vic(b, o, t < 1.6 ? 'hit' : 'mad', t * 1000, VX, GY - Math.round(seg(t, 2.6, 4) * 6));
+      if (o.gore) { for (let k = 0; k < 6 && t > 1.2; k++) { const ph = (t * 1.4 + k / 6) % 1; a.fillStyle = '#9ce0d8'; a.fillRect(Math.round(VX - 6 + k * 2 + Math.sin(t * 6 + k) * 2), Math.round(lvl - ph * 10), 1, 1); } }
+      water(a, b, lvl, t, o.gore ? LIQ.abyss : '#0e1216'); if (o.gore && t > 2.4) { const cu = seg(t, 2.4, 4.4); for (let k = 0; k < 90 * cu; k++) { const px = VX + (hx(k, 1, 207) - 0.5) * 50 * (0.4 + cu), py = lvl + 4 + hx(k, 2, 207) * (GY - lvl - 4); a.fillStyle = k % 3 ? 'rgba(150,12,30,0.55)' : 'rgba(220,40,60,0.5)'; a.fillRect(Math.round(px), Math.round(py), 2, 2); } }
+      return { dark: o.gore ? 0 : seg(t, 3, 3.6) * 0.6, sfx: [[0.4, 'night'], [2.6, 'slide']] }; } },
+    abyss_sink: { grp: 'abyss', look: '끌려 들어가 잠김', bg: 'burrow6', len: 4800, key: 3300, draw(a, t, o) {
+      const pond = 40; a.fillStyle = '#03101a'; a.beginPath(); a.ellipse(pond, GY + 1, 22, 4, 0, 0, 6.2832); a.fill(); a.fillStyle = o.gore ? LIQ.abyss : '#12161a'; a.beginPath(); a.ellipse(pond, GY, 19, 3, 0, 0, 6.2832); a.fill();
+      const fall = 1.1, pull = ease(seg(t, 1.6, 3.2)), sink = seg(t, 3.0, 4.3), x = VX - (VX - pond) * pull, b = lay(1); vic(b, o, t < fall ? 'idle' : 'die', t < fall ? t * 1000 : dieAt((t - fall) * 1000), x, GY + Math.round(sink * 30));
+      if (sink > 0) b.clearRect(0, GY + 1, W, H); a.drawImage(lc(1), 0, 0);
+      tentacle(a, { x: pond + 6, y: GY }, { x: t < 1.6 ? VX + 4 : x + 4, y: GY - 2 }, { x: 0, y: 8 }, ease(seg(t, 0.5, 1.1)) * (1 - sink), 2, o.gore ? FLESH : '#1a1c22', FLESH_D, []);
+      if (o.gore && t > fall) a.fillStyle = '#5a0812', a.fillRect(Math.round(x), GY - 1, Math.max(0, Math.round(VX - x)), 2); if (sink > 0) for (let k = 0; k < 5; k++) { const ph = (t * 2 + k / 5) % 1; a.fillStyle = '#9ce0d8'; a.fillRect(pond - 6 + k * 3, Math.round(GY - ph * 8), 1, 1); }
+      return { dark: o.gore ? 0 : seg(t, 1.5, 1.8) * 0.6 * (1 - sink), sfx: [[1.1, 'thud'], [1.6, 'slide'], [3, 'burst']] }; } },
+    // ─ 번식 ─
+    brood_eggs: { grp: 'brood', look: '알 심김', bg: 'burrow1', len: 4600, key: 3600, draw(a, t, o) {
+      kil(a, o, 'brood', t < 0.8 ? 'idle' : 'attack', t * 1000); const fall = 3.2, b = lay(1); vic(b, o, t < fall ? (t < 0.9 ? 'idle' : 'hit') : 'die', t < fall ? t * 1000 : dieAt((t - fall) * 1000)); a.drawImage(lc(1), 0, 0);
+      const bb = bbox(b); if (bb) { const n = Math.floor(seg(t, 0.9, 3.6) * 9); for (let k = 0; k < n; k++) { const ex = bb.x0 + 2 + Math.floor(hx(k, 1, 21) * (bb.x1 - bb.x0 - 4)), ey = bb.y0 + 6 + Math.floor(hx(k, 2, 21) * (bb.y1 - bb.y0 - 8)), sw = 1 + seg(t, 1 + k * 0.25, 3.8) * 2 + (Math.floor(t * FPS + k) % 6 === 0 ? 0.5 : 0); a.fillStyle = o.gore ? '#d2e070' : '#2a2c20'; a.beginPath(); a.ellipse(ex, ey, sw, sw * 1.2, 0, 0, 6.2832); a.fill(); a.fillStyle = o.gore ? '#58641a' : '#141610'; a.fillRect(ex, ey, 1, 1); if (o.gore) drip(a, ex, ey + sw, 1 + sw); } }
+      return { dark: o.gore ? 0 : seg(t, 2.6, 3) * 0.5, sfx: [[0.9, 'hit'], [2, 'birth'], [fall, 'thud']] }; } },
+    brood_hatch: { grp: 'brood', look: '배에서 부화', bg: 'burrow1', len: 5000, key: 3800, draw(a, t, o) {
+      const fall = 0.8, burst = 2.8, b = lay(1); vic(b, o, t < fall ? 'hit' : 'die', t < fall ? t * 1000 : dieAt((t - fall) * 1000)); a.drawImage(lc(1), 0, 0);
+      const bl = bellyOf(o.kind || 'militia'), bx = VX + bl.dx * XS * -1, by = GY + bl.dy * XS;
+      if (t >= fall && t < burst) { const u = seg(t, fall + 0.3, burst), wob = Math.sin(t * 11) * u * 1.5; a.fillStyle = o.gore ? '#9a6a5a' : '#2a2228'; a.beginPath(); a.ellipse(bx, by - u * 5, 4 + u * 9 + wob, 2 + u * 7, 0, 0, 6.2832); a.fill(); }
+      if (t >= burst) { const u = seg(t, burst, burst + 0.6); if (o.gore) { spray(a, bx, by - 4, u, 31, 18); pool(a, bx, GY + 1, 6 + 10 * u); } else { a.fillStyle = '#0a0608'; a.beginPath(); a.ellipse(bx, by, 6 + 5 * u, 3 + u, 0, 0, 6.2832); a.fill(); }
+        ['biter', 'brood', 'biter', 'gnaw'].forEach((kk, k) => { const h2 = unitH(kk), s = seg(t, burst + 0.2 + k * 0.35, 4.9); if (!h2 || s <= 0) return; const dir = k % 2 ? 1 : -1; h2.draw(a, bx + dir * (4 + s * (20 + k * 8)), GY + 1, 'move', t * 1000 + k * 170, { scale: 0.9, flip: dir < 0 }); }); }
+      kil(a, o, 'brood', 'idle', t * 1000, 28, 1.1);
+      return { dark: o.gore ? 0 : seg(t, burst - 0.1, burst) * (1 - seg(t, burst + 0.3, burst + 0.9)), sfx: [[fall, 'thud'], [1.6, 'slide'], [burst, 'burst'], [burst + 0.4, 'birth']] }; } },
+    brood_swarm: { grp: 'brood', look: '새끼 떼에 덮임', bg: 'burrow1', len: 4800, key: 3400, draw(a, t, o) {
+      const fall = 2.4, b = lay(1); vic(b, o, t < fall ? (t < 1 ? 'idle' : 'hit') : 'die', t < fall ? t * 1000 : dieAt((t - fall) * 1000), VX, GY - (t < fall ? 0 : 0)); a.drawImage(lc(1), 0, 0); const bb = bbox(b);
+      const n = Math.floor(seg(t, 0.2, 3.8) * 16);
+      for (let k = 0; k < n; k++) { const h2 = unitH(k % 3 ? 'biter' : 'brood'), st = 0.2 + k * 0.22, s = seg(t, st, st + 0.9); if (!h2) continue; const sx = k % 2 ? -10 : W + 10, tx = bb ? bb.x0 + 2 + hx(k, 1, 41) * Math.max(1, bb.x1 - bb.x0 - 4) : VX, ty = bb ? bb.y0 + 4 + hx(k, 2, 41) * Math.max(1, bb.y1 - bb.y0 - 6) : GY - 10;
+        h2.draw(a, sx + (tx - sx) * ease(s), (s < 1 ? GY + 1 : ty + 6) - (s < 1 ? 0 : Math.abs(Math.sin(t * 9 + k)) * 1.5), s < 1 ? 'move' : 'attack', t * 1000 + k * 90, { scale: 0.65, flip: sx > W / 2 }); }
+      if (o.gore && t > 1.4) { spray(a, VX - 2, GY - 22, seg(t, 1.4, 2.2), 43, 8); pool(a, VX, GY + 1, 3 + 12 * seg(t, 2, 4.2)); }
+      kil(a, o, 'brood', 'idle', t * 1000, 26, 1.1);
+      return { dark: o.gore ? 0 : seg(t, 3, 3.6) * 0.55, sfx: [[0.4, 'slide'], [1.4, 'hit'], [fall, 'thud'], [3, 'burst']] }; } },
+    // ─ 성운 ─
+    nebula_eyes: { grp: 'nebula', look: '눈이 몸에 돋음', bg: 'eggroom', len: 4600, key: 3300, draw(a, t, o) {
+      kil(a, o, 'nebula', 'cast', t * 1000); const fall = 3.4, b = lay(1); vic(b, o, t < fall ? 'mad' : 'die', t < fall ? t * 1000 : dieAt((t - fall) * 1000)); a.drawImage(lc(1), 0, 0);
+      eyes(a, b, Math.floor(seg(t, 0.6, 3.2) * 14), t, 51); if (o.gore && t > 1.6) for (let k = 0; k < 3; k++) { const ph = (t * 1.3 + k / 3) % 1; drip(a, VX - 4 + k * 4, headY(o) + 8 + ph * 20, 2 + ph * 2); }
+      return { dark: o.gore ? 0 : seg(t, 2.6, 3.2) * 0.5, sfx: [[0.6, 'mad'], [2, 'mad'], [fall, 'thud']] }; } },
+    nebula_hollow: { grp: 'nebula', look: '시선에 파먹힘', bg: 'eggroom', len: 4800, key: 3400, draw(a, t, o) {
+      kil(a, o, 'nebula', 'cast', t * 1000); const b = lay(1); vic(b, o, t < 0.8 ? 'idle' : 'hit', t * 1000); const u = ease(seg(t, 0.8, 4.2)); holes(b, u, 61, o.gore ? '#b490ea' : '#3a3440'); a.drawImage(lc(1), 0, 0);
+      if (t > 0.6 && u < 1) { a.strokeStyle = o.gore ? 'rgba(180,144,234,0.7)' : 'rgba(60,56,70,0.7)'; a.lineWidth = 1; for (let k = 0; k < 3; k++) { a.beginPath(); a.moveTo(KX + 6, GY - 30 + k * 3); a.lineTo(VX - 4 + k * 3, headY(o) + 10 + k * 10); a.stroke(); } }
+      if (o.gore && u > 0.2) spray(a, VX, headY(o) + 18, seg(t, 1.2, 2.8), 63, 10);
+      return { dark: o.gore ? 0 : seg(t, 2.8, 3.4) * 0.5, sfx: [[0.8, 'mad'], [2.2, 'die']] }; } },
+    nebula_stars: { grp: 'nebula', look: '별빛으로 빨려 감', bg: 'eggroom', len: 5000, key: 3200, draw(a, t, o) {
+      kil(a, o, 'nebula', 'cast', t * 1000, 34, 1.1); const b = lay(1); vic(b, o, t < 0.9 ? 'idle' : 'mad', t * 1000, VX, GY - Math.round(seg(t, 0.9, 2) * 4)); const tx = 120, ty = 6, u = seg(t, 1.2, 4.6);
+      const g = a.createRadialGradient(tx, ty, 0, tx, ty, 10 + 10 * u); g.addColorStop(0, 'rgba(255,255,255,0.9)'); g.addColorStop(1, 'rgba(108,64,170,0)'); a.fillStyle = g; a.fillRect(0, 0, W, 40);
+      suck(b, a, u, tx, ty, 71, o.gore ? '#e8d8ff' : '#8a8494'); a.drawImage(lc(1), 0, 0);
+      if (o.gore && u > 0.1 && u < 0.8) spray(a, VX, headY(o) + 16, seg(t, 1.4, 2.4), 73, 6);
+      return { dark: 0, sfx: [[0.9, 'mad'], [1.4, 'night']] }; } },
+    // ─ 황혼 ─
+    dusk_strangle: { grp: 'dusk', look: '제 손으로 목 조름', bg: 'eggdoor', len: 4600, key: 3000, draw(a, t, o) {
+      kil(a, o, 'dusk', 'cast', t * 1000); const fall = 3.4, b = lay(1); vic(b, o, t < fall ? 'mad' : 'die', t < fall ? t * 1000 : dieAt((t - fall) * 1000)); a.drawImage(lc(1), 0, 0);
+      if (t < fall) { const hy = headY(o) + 9, u = seg(t, 0.8, 1.6), sq = Math.sin(t * 20) * seg(t, 1.6, 3.2); a.fillStyle = o.gore ? '#c8907a' : '#141016'; a.fillRect(Math.round(VX - 6 - 4 * (1 - u)), Math.round(hy + 6 * (1 - u)), 4, 3); a.fillRect(Math.round(VX + 2 + 4 * (1 - u) + sq), Math.round(hy + 6 * (1 - u)), 4, 3);
+        if (o.gore && t > 1.8) { a.fillStyle = 'rgba(90,20,90,' + (0.3 + 0.4 * seg(t, 1.8, 3.2)).toFixed(2) + ')'; a.beginPath(); a.ellipse(VX - 1, headY(o) + 2, 6, 6, 0, 0, 6.2832); a.fill(); } }
+      for (let k = 0; k < 6; k++) { const ph = (t * 0.7 + k / 6) % 1; a.fillStyle = 'rgba(255,176,72,' + (0.7 * (1 - ph)).toFixed(2) + ')'; a.fillRect(Math.round(KX + 12 + ph * (VX - KX - 20)), Math.round(GY - 34 - Math.sin(ph * 6 + k) * 6), 2, 1); }
+      return { dark: o.gore ? 0 : seg(t, 2.4, 3) * 0.5, sfx: [[0.8, 'mad'], [fall, 'thud']] }; } },
+    dusk_pray: { grp: 'dusk', look: '기도하며 무너짐', bg: 'eggdoor', len: 5000, key: 3600, draw(a, t, o) {
+      kil(a, o, 'dusk', 'cast', t * 1000, 30, 1.1); const b = lay(1), kn = seg(t, 0.6, 1.4); b.save(); b.translate(VX, GY); b.scale(1, 1 - 0.25 * kn); b.translate(-VX, -GY); vic(b, o, 'idle', 0); b.restore(); ash(b, ease(seg(t, 2, 4.6)), 81); a.drawImage(lc(1), 0, 0);
+      for (let k = 0; k < 8; k++) { const ph = (t * 0.5 + k / 8) % 1, r = 18 + ph * 10; a.fillStyle = 'rgba(255,176,72,' + (0.6 * (1 - ph)).toFixed(2) + ')'; a.fillRect(Math.round(VX + Math.cos(k + t) * r), Math.round(headY(o) + 6 + Math.sin(k * 2 + t) * r * 0.5), 1, 2); }
+      if (o.gore && t > 2.2) pool(a, VX, GY + 1, 3 + 8 * seg(t, 2.2, 4.6));
+      return { dark: seg(t, 4.5, 5) * 0.3, sfx: [[0.6, 'mad'], [2, 'burst']] }; } },
+    dusk_hood: { grp: 'dusk', look: '두건 속으로 끌려감', bg: 'eggdoor', len: 4600, key: 3200, draw(a, t, o) {
+      const b = lay(1), pull = ease(seg(t, 1.6, 3.4)); vic(b, o, t < 1 ? 'idle' : 'mad', t * 1000, VX - pull * 34, GY - Math.round(pull * 8)); a.drawImage(lc(1), 0, 0);
+      const hw = 30 + 34 * ease(seg(t, 0.2, 1.6)), hh = 40 + 40 * ease(seg(t, 0.2, 1.6)), cx = KX + 18 + pull * 20;
+      a.fillStyle = '#060505'; a.beginPath(); a.moveTo(cx - hw / 2, GY + 2); a.quadraticCurveTo(cx - hw / 2, GY - hh, cx, GY - hh - 8); a.quadraticCurveTo(cx + hw / 2, GY - hh, cx + hw / 2 - 6 * pull, GY + 2); a.fill();
+      a.fillStyle = '#ffb048'; a.fillRect(Math.round(cx - 4), Math.round(GY - hh + 12), 2, 2); a.fillRect(Math.round(cx + 3), Math.round(GY - hh + 12), 2, 2);
+      const cover = seg(t, 2.4, 3.6); if (cover > 0) { a.fillStyle = '#060505'; a.beginPath(); a.ellipse(cx + 10, GY - 30, 10 + cover * 30, 20 + cover * 30, 0, 0, 6.2832); a.fill(); }
+      if (o.gore && t > 3.4) pool(a, cx + 14, GY + 1, 2 + 8 * seg(t, 3.4, 4.4));
+      return { dark: seg(t, 3.8, 4.4) * 0.5, sfx: [[0.3, 'night'], [1.6, 'slide'], [3, 'die']] }; } },
+    // ─ 기아 ─
+    hunger_grind: { grp: 'hunger', look: '다리부터 갈림', bg: 'burrow6', len: 4800, key: 3200, draw(a, t, o) {
+      const b = lay(1), u = ease(seg(t, 0.8, 4.2)), down = Math.round(u * 46); vic(b, o, t < 0.8 ? 'idle' : 'hit', t * 1000, VX, GY + down); b.clearRect(0, GY - 2, W, H); a.drawImage(lc(1), 0, 0);
+      kil(a, o, 'hunger', 'attack', t * 1000, VX - 30, 1.15);
+      if (t > 0.8 && u < 1) { if (o.gore) { spray(a, VX, GY - 4, (t * 1.7) % 1, 91 + Math.floor(t * 6), 12); pool(a, VX - 6, GY + 1, 4 + 14 * u); for (let k = 0; k < 3; k++) { a.fillStyle = '#f0e6d0'; a.fillRect(Math.round(VX - 8 + hx(k, Math.floor(t * 6), 93) * 16), Math.round(GY - 6 - hx(k, 7, Math.floor(t * 6)) * 8), 1, 1); } } else { a.fillStyle = '#0a0608'; a.fillRect(VX - 12, GY - 4, 24, 5); } }
+      return { dark: o.gore ? 0 : seg(t, 1, 1.3) * 0.55, sfx: [[0.8, 'hit'], [1.4, 'die'], [2.2, 'hit'], [3, 'die']] }; } },
+    hunger_tear: { grp: 'hunger', look: '뜯겨 나감', bg: 'burrow6', len: 4400, key: 2600, draw(a, t, o) {
+      kil(a, o, 'hunger', t < 1.4 ? 'move' : 'attack', t * 1000, 36 + ease(seg(t, 0, 1.4)) * 40, 1.25); const b = lay(1); vic(b, o, t < 1.5 ? 'idle' : 'hit', t * 1000);
+      if (t < 1.6) a.drawImage(lc(1), 0, 0); else { chunks(a, b, seg(t, 1.6, 3.6), 101, o.gore); if (o.gore) pool(a, VX, GY + 1, 4 + 14 * seg(t, 1.6, 4)); }
+      return { dark: o.gore ? 0 : seg(t, 1.5, 1.7) * 0.6 * (1 - seg(t, 2.6, 3)), sfx: [[1.5, 'burst'], [1.8, 'die'], [2.6, 'thud']] }; } },
+    hunger_swallow: { grp: 'hunger', look: '통째로 삼켜짐', bg: 'burrow6', len: 4600, key: 3100, draw(a, t, o) {
+      const close = ease(seg(t, 1.2, 2.2)), lift = seg(t, 2.2, 3.6), b = lay(1); vic(b, o, t < 1.2 ? 'idle' : 'mad', t * 1000, VX, GY - Math.round(lift * 4));
+      const cy = headY(o) + 18, wd = 50, ht = 20; if (close > 0.6) { b.clearRect(VX - wd / 2, cy - 40, wd, 80); } a.drawImage(lc(1), 0, 0);
+      kil(a, o, 'hunger', 'attack', t * 1000, 26, 1.1); if (t > 0.2) tentacle(a, { x: 40, y: GY - 22 }, { x: VX - wd / 2 + 4, y: cy }, { x: 0, y: -10 }, ease(seg(t, 0.2, 0.6)), 4.5, o.gore ? '#8a1e2a' : '#141012', '#160204', close >= 1 ? [((t * 1.2) % 1)] : []);
+      if (t > 0.4) jaws(a, VX, cy + Math.round(Math.sin(t * 8) * seg(t, 2.4, 3.8)), wd, 20, close, o.gore ? '#8a1e2a' : '#141012', '#160204', o.gore ? '#f0e6d0' : '#3a3438');
+      if (o.gore && close > 0.6) { spray(a, VX, cy, seg(t, 2.2, 3), 111, 14); pool(a, VX, GY + 1, 4 + 10 * seg(t, 2.2, 4)); }
+      return { dark: o.gore ? 0 : seg(t, 2, 2.3) * 0.6, sfx: [[1.2, 'hit'], [2.2, 'burst'], [3, 'slide']] }; } },
+    // ─ 본체 ─
+    core_brain: { grp: 'core', look: '뇌 빨기', bg: 'eggroom', len: 4800, key: 3000, draw(a, t, o) {
+      kil(a, o, null, 'idle', t * 1000, 36, 0.62); const b = lay(1), fall = 3.8; vic(b, o, t < 1 ? 'idle' : t < fall ? 'mad' : 'die', t < fall ? t * 1000 : dieAt((t - fall) * 1000), VX, GY + (t >= 1 && t < fall && Math.floor(t * FPS) % 2 ? 1 : 0)); a.drawImage(lc(1), 0, 0);
+      const hd = headOf(o.kind || 'militia'), head = { x: VX - hd.dx * XS, y: GY + hd.dy * XS + 3 }, reach = ease(seg(t, 0.3, 1)) * (1 - ease(seg(t, fall, 4.4))), u = seg(t, 1.1, 3.6);
+      if (u > 0 && t < fall) { a.fillStyle = o.gore ? 'rgba(40,4,10,' + (0.3 + 0.55 * u).toFixed(2) + ')' : 'rgba(0,0,0,' + (0.3 + 0.5 * u).toFixed(2) + ')'; a.beginPath(); a.ellipse(head.x, head.y, Math.max(2, hd.w - u * 3), Math.max(2, 6 - u * 2.5), 0, 0, 6.2832); a.fill(); }
+      if (reach > 0) { const pulses = u > 0 && t < fall ? [0, 1, 2].map(k => 1 - (((t - 1.1) / 0.4 + k / 3) % 1)) : []; tentacle(a, { x: 52, y: GY - 40 }, head, { x: 8, y: -26 }, reach, 2.6, o.gore ? FLESH : '#2a2030', o.gore ? FLESH_D : '#0c0810', pulses); }
+      if (o.gore && t > 1 && t < fall) for (let k = 0; k < 4; k++) { const ph = ((t - 1) * 1.7 + k * 0.25) % 1; drip(a, head.x - 3 + k * 2, head.y + 4 + ph * (GY - head.y - 6), 2 + ph * 2); }
+      return { dark: o.gore ? 0 : seg(t, 1, 1.2) * 0.65 * (1 - seg(t, 3.6, 4)), sfx: [[1, 'burst'], [2, 'die'], [fall, 'thud']] }; } },
+    core_merge: { grp: 'core', look: '녹아 섞임', bg: 'eggroom', len: 5000, key: 3400, draw(a, t, o) {
+      kil(a, o, null, 'idle', t * 1000, 34, 0.62); const b = lay(1), pull = ease(seg(t, 1, 3.4)); vic(b, o, t < 0.8 ? 'idle' : 'hit', t * 1000, VX - pull * 30); melt(b, ease(seg(t, 1.2, 4.4)), o.gore ? FLESH : '#141016', 121, GY + 1); a.drawImage(lc(1), 0, 0);
+      const fl = seg(t, 0.4, 2.4); a.fillStyle = o.gore ? FLESH : '#141016'; a.beginPath(); a.ellipse(56 + fl * 20, GY, 10 + fl * 26, 3 + fl * 3, 0, 0, 6.2832); a.fill(); if (o.gore) { a.fillStyle = FLESH_L; for (let k = 0; k < 8; k++) a.fillRect(Math.round(50 + fl * 20 + hx(k, 1, 123) * fl * 44), Math.round(GY - 1 - hx(k, 3, 123) * 3), 1, 1); }
+      return { dark: o.gore ? 0 : seg(t, 2.6, 3.2) * 0.5, sfx: [[1, 'slide'], [2.4, 'die'], [3.6, 'burst']] }; } },
+    core_swallow: { grp: 'core', look: '통째로 삼킴', bg: 'eggroom', len: 4800, key: 3300, draw(a, t, o) {
+      kil(a, o, null, t < 1 ? 'idle' : 'cast', t * 1000, 30, 0.62); const lift = ease(seg(t, 1, 2.6)), into = ease(seg(t, 2.6, 3.8)), b = lay(1), x = VX - into * 58, y = GY - lift * 26 - into * 6; vic(b, o, t < 1 ? 'idle' : 'mad', t * 1000, x, y);
+      const mx = 46, my = GY - 30, mw = 10 + 14 * ease(seg(t, 0.6, 1.6)) * (1 - seg(t, 3.6, 4.2)); if (into > 0) b.clearRect(0, 0, mx + 6, H); a.drawImage(lc(1), 0, 0);
+      a.fillStyle = '#160204'; a.beginPath(); a.ellipse(mx, my, mw * 0.5, mw, 0, 0, 6.2832); a.fill(); a.fillStyle = o.gore ? '#f0e6d0' : '#3a3438'; for (let k = 0; k < 6; k++) a.fillRect(Math.round(mx - mw * 0.4 + (k % 2)), Math.round(my - mw + k * mw / 3), 2, 1);
+      for (let k = 0; k < 3 && lift > 0; k++) tentacle(a, { x: mx + 2, y: my - 6 + k * 6 }, { x: x - 2, y: y - 20 + k * 8 }, { x: 4, y: -8 }, Math.min(1, lift * 2) * (1 - into), 1.6, o.gore ? FLESH : '#241c2a', FLESH_D, []);
+      if (o.gore && into > 0.4) spray(a, mx + 6, my, seg(t, 3.2, 4), 131, 10);
+      return { dark: o.gore ? 0 : seg(t, 3.2, 3.6) * 0.6, sfx: [[0.6, 'night'], [1, 'slide'], [3.4, 'burst']] }; } },
+    // ─ 함정 ─
+    trap_jaw: { grp: 'trap', look: '쇠 턱', bg: 'crevice', len: 4400, key: 2600, draw(a, t, o) {
+      const snap = 1.2, walk = ease(seg(t, 0, snap)), x = 150 - (150 - VX) * walk, fall = 1.5, b = lay(1); vic(b, o, t < snap ? 'move' : t < fall ? 'hit' : 'die', t < fall ? t * 1000 : dieAt((t - fall) * 1000), x); a.drawImage(lc(1), 0, 0);
+      const jc = seg(t, snap - 0.06, snap); a.fillStyle = '#2a2a30'; a.fillRect(VX - 14, GY - 1, 28, 2); jaws(a, VX, GY - 4, 22, 4, jc, '#4a4a52', '#121216', '#9a9aa4');
+      if (o.gore && t > snap) { spray(a, VX, GY - 6, seg(t, snap, snap + 0.8), 141, 12); pool(a, VX, GY + 1, 3 + 12 * seg(t, snap, 3.6)); }
+      return { dark: o.gore ? 0 : seg(t, snap, snap + 0.1) * 0.6 * (1 - seg(t, 2.2, 2.8)), sfx: [[snap, 'trap'], [fall, 'thud']] }; } },
+    trap_spike: { grp: 'trap', look: '가시', bg: 'crevice', len: 4200, key: 2400, draw(a, t, o) {
+      const hit = 1.2, walk = ease(seg(t, 0, hit)), x = 150 - (150 - VX) * walk, up = ease(seg(t, hit - 0.05, hit + 0.15)), b = lay(1); vic(b, o, t < hit ? 'move' : 'hit', t < hit ? t * 1000 : 130, x, GY - Math.round(up * 10)); a.drawImage(lc(1), 0, 0);
+      for (let k = 0; k < 5; k++) { const sx = VX - 10 + k * 5, sh = (14 + (k % 2) * 8) * up; a.fillStyle = o.gore && k % 2 ? '#7a0a12' : '#6a6a74'; a.beginPath(); a.moveTo(sx - 2, GY + 1); a.lineTo(sx, GY + 1 - sh); a.lineTo(sx + 2, GY + 1); a.fill(); }
+      if (o.gore && t > hit) { for (let k = 0; k < 6; k++) { const ph = ((t - hit) * 1.2 + k / 6) % 1; drip(a, VX - 9 + k * 4, GY - 20 + ph * 18, 2); } pool(a, VX, GY + 1, 3 + 12 * seg(t, hit, 3.4)); }
+      return { dark: o.gore ? 0 : seg(t, hit, hit + 0.1) * 0.65 * (1 - seg(t, 2.2, 2.8)), sfx: [[hit, 'trap'], [hit + 0.2, 'die']] }; } },
+    trap_hook: { grp: 'trap', look: '갈고리', bg: 'crevice', len: 4600, key: 3000, draw(a, t, o) {
+      const hook = 1.2, walk = ease(seg(t, 0, hook)), x = 150 - (150 - VX) * walk, rise = ease(seg(t, hook + 0.4, 3.8)), b = lay(1); vic(b, o, t < hook ? 'move' : 'hit', t < hook ? t * 1000 : 130, x, GY - Math.round(rise * 90)); a.drawImage(lc(1), 0, 0);
+      const hy = t < hook ? -4 + 30 * seg(t, 0.6, hook) : headY(o) + 14 - rise * 90; a.strokeStyle = '#4a4a52'; a.lineWidth = 1; a.beginPath(); a.moveTo(VX, -2); a.lineTo(VX, Math.round(hy)); a.stroke(); a.fillStyle = '#9a9aa4'; a.fillRect(VX - 2, Math.round(hy), 4, 2); a.fillRect(VX + 1, Math.round(hy) - 3, 1, 3);
+      if (o.gore && t > hook) { for (let k = 0; k < 4; k++) { const ph = ((t - hook) * 1.6 + k / 4) % 1; drip(a, VX - 3 + k * 2, Math.round(hy + 4 + ph * (GY - hy - 4)), 2); } pool(a, VX, GY + 1, 2 + 8 * seg(t, hook, 4)); }
+      return { dark: seg(t, 3.6, 4.4) * 0.4, sfx: [[hook, 'trap'], [hook + 0.4, 'slide']] }; } },
+  };
+  // ── 장면마다 덧붙는 고어 (잔혹한 장면 켬일 때만). 사람의 마지막 그림 자리는 o._vx, o._vy (vic 이 적어 둔다) ──
+  const hPos = o => { const hd = headOf(o.kind || 'militia'); return { x: (o._vx == null ? VX : o._vx) - hd.dx * XS, y: (o._vy == null ? GY : o._vy) + hd.dy * XS + 4 }; };
+  const bPos = o => ({ x: (o._vx == null ? VX : o._vx), y: (o._vy == null ? GY : o._vy) - 20 });
+  // 머리를 지운다 (터진 뒤): 배우 층에서 머리 자리를 비운다
+  const noHead = (a, o) => { const h = hPos(o); a.clearRect(Math.round(h.x - 9), Math.round(h.y - 12), 18, 14); return h; };
+  const GX = {
+    abyss_melt(a, t, o) { const h = hPos(o), u = seg(t, 2.2, 3.8); bits(a, h.x, h.y + 10, t, 201, 10); skull(a, h.x, Math.min(GY - 4, h.y + 6 + u * 22), u); ribs(a, VX - 1, Math.min(GY - 12, h.y + 18 + u * 14), seg(t, 2.6, 4)); guts(a, VX - 2, GY - 6, VX - 26, GY, seg(t, 2.4, 4), t, 3); bigPool(a, VX - 4, GY + 1, 8 + 18 * seg(t, 1, 4.2)); return pops(t, [0.9, 2.4]); },
+    abyss_drown(a, t, o) { const b = bPos(o); if (t > 2) { limb(a, b.x, b.y, seg(t, 2, 3.6), -1, 211); guts(a, b.x, GY - 4, b.x + 8, Math.max(20, GY - 50 * seg(t, 2, 4.2)), seg(t, 2, 4), t, 5); } bits(a, b.x, b.y, t, 213, 8);  return pops(t, [2]); },
+    abyss_sink(a, t, o) { const b = bPos(o), x = o._vx == null ? VX : o._vx; if (t > 1.1) { trail(a, x, VX + 6, GY); guts(a, x + 6, GY - 6, Math.min(VX + 10, x + 34), GY, seg(t, 1.2, 3), t, 7); } if (t > 2.8) { headBurst(a, 22, GY - 8, seg(t, 2.8, 3.6), 215); } if (t > 2.6) bigPool(a, 30, GY + 1, 6 + 10 * seg(t, 2.6, 4.4)); bits(a, b.x, b.y + 10, t, 217, 6); return pops(t, [1.1, 2.8]); },
+    brood_eggs(a, t, o) { const b = bPos(o); if (t > 2.6) { for (let k = 0; k < 8; k++) { const st = 2.6 + k * 0.1; if (t > st) spray(a, b.x - 8 + hx(k, 1, 221) * 16, b.y - 10 + hx(k, 2, 221) * 22, seg(t, st, st + 0.6), 223 + k, 6); } } if (t > 3.2) { guts(a, b.x, GY - 8, b.x - 30, GY, seg(t, 3.2, 4.4), t, 9); ribs(a, b.x, GY - 16, seg(t, 3.4, 4.4)); } bigPool(a, b.x, GY + 1, 4 + 16 * seg(t, 2.6, 4.6)); return pops(t, [2.6, 3.2]); },
+    brood_hatch(a, t, o) { const bl = bellyOf(o.kind || 'militia'), bx = VX + bl.dx * XS * -1, by = GY + bl.dy * XS; if (t > 2.8) { guts(a, bx, by - 2, bx - 34, GY, seg(t, 2.8, 4), t, 11); guts(a, bx + 2, by - 2, bx + 26, GY, seg(t, 3, 4.2), t, 13); ribs(a, bx, by - 8, seg(t, 3, 4)); bigPool(a, bx, GY + 1, 10 + 16 * seg(t, 2.8, 5)); } return pops(t, [2.8]); },
+    brood_swarm(a, t, o) { const b = bPos(o), h = hPos(o); bits(a, b.x, b.y, t, 231, 16); limb(a, b.x, b.y, seg(t, 2.4, 3.6), 1, 233); limb(a, b.x, b.y + 8, seg(t, 3, 4.2), -1, 235); if (t > 3.3) { headBurst(a, h.x, h.y, seg(t, 3.3, 4), 237); noHead(a, o); } if (t > 3.8) { skull(a, VX + 18, GY - 4, seg(t, 3.8, 4.6)); ribs(a, VX - 2, GY - 12, seg(t, 3.8, 4.6)); } bigPool(a, VX, GY + 1, 6 + 18 * seg(t, 1.6, 4.6)); return pops(t, [2.4, 3.3]); },
+    nebula_eyes(a, t, o) { const h = hPos(o); if (t > 3) { headBurst(a, h.x, h.y, seg(t, 3, 3.8), 241); if (t > 3.05) { noHead(a, o); stump(a, h.x, h.y + 4, t); } } else if (t > 1.6) { for (let k = 0; k < 4; k++) { const ph = (t * 1.5 + k / 4) % 1; a.fillStyle = BLOOD[2]; a.fillRect(Math.round(h.x - 4 + k * 3), Math.round(h.y + ph * 26), 1, 2); } } bigPool(a, VX, GY + 1, 4 + 14 * seg(t, 2, 4.4)); return pops(t, [3]); },
+    nebula_hollow(a, t, o) { const b = bPos(o); bits(a, b.x, b.y, t, 251, 12); if (t > 2.4) { guts(a, b.x, b.y + 4, b.x - 20, GY, seg(t, 2.4, 4), t, 15); ribs(a, b.x, b.y - 6, seg(t, 2.6, 4)); } if (t > 3.4) { const h = hPos(o); headBurst(a, h.x, h.y, seg(t, 3.4, 4.2), 253); } bigPool(a, VX, GY + 1, 4 + 16 * seg(t, 1.6, 4.6)); return pops(t, [2.4, 3.4]); },
+    nebula_stars(a, t, o) { const h = hPos(o); if (t > 1.4) { headBurst(a, h.x, h.y, seg(t, 1.4, 2.2), 261); for (let k = 0; k < 14; k++) { const ph = (t * 0.8 + k / 14) % 1; a.fillStyle = k % 3 ? BLOOD[2] : GUT[0]; a.fillRect(Math.round(h.x + (120 - h.x) * ph + Math.sin(ph * 12 + k) * 4), Math.round(h.y + (6 - h.y) * ph), 1, 1); } } bigPool(a, VX, GY + 1, 3 + 10 * seg(t, 1.6, 4.6)); return pops(t, [1.4]); },
+    dusk_strangle(a, t, o) { const h = hPos(o); if (t > 2.8) { headBurst(a, h.x, h.y, seg(t, 2.8, 3.6), 271); noHead(a, o); stump(a, h.x, h.y + 4, t); limb(a, h.x, h.y, seg(t, 2.8, 3.8), 1, 273); } else if (t > 1.8) { a.fillStyle = BLOOD[1]; a.fillRect(Math.round(h.x - 3), Math.round(h.y + 7), 6, 2); } bigPool(a, VX, GY + 1, 4 + 16 * seg(t, 2.8, 4.6)); return pops(t, [2.8]); },
+    dusk_pray(a, t, o) { const h = hPos(o); if (t > 1.9 && t < 2.6) { headBurst(a, h.x, h.y + 6, seg(t, 1.9, 2.6), 281); } if (t > 2) { for (let k = 0; k < 6; k++) { const ph = (t * 1.4 + k / 6) % 1; a.fillStyle = k % 2 ? BLOOD[2] : GUT[1]; a.fillRect(Math.round(h.x - 4 + k * 2), Math.round(h.y + 8 + ph * (GY - h.y - 8)), 1, 2); } guts(a, VX, GY - 10, VX + 22, GY, seg(t, 2.6, 4.2), t, 17); } bigPool(a, VX, GY + 1, 4 + 16 * seg(t, 2, 4.8)); return pops(t, [1.9]); },
+    dusk_hood(a, t, o) { const cx = KX + 38; if (t > 3) { spray(a, cx, GY - 30, seg(t, 3, 3.8), 291, 20); limb(a, cx + 4, GY - 24, seg(t, 3.1, 4.2), 1, 293); guts(a, cx + 6, GY - 14, cx + 40, GY, seg(t, 3.2, 4.4), t, 19); } if (t > 3.3) headBurst(a, cx + 2, GY - 40, seg(t, 3.3, 4), 295); bigPool(a, cx + 14, GY + 1, 4 + 14 * seg(t, 3, 4.6)); return pops(t, [3, 3.3]); },
+    hunger_grind(a, t, o) { const u = seg(t, 0.8, 4.2); if (t > 0.8) { bits(a, VX, GY - 6, t, 301, 22); if (u > 0.45) guts(a, VX + 2, GY - 4, VX + 28, GY, seg(t, 2.2, 3.6), t, 21); if (u > 0.85) { const h = hPos(o); headBurst(a, h.x, h.y, seg(t, 3.7, 4.4), 303); } } bigPool(a, VX - 4, GY + 1, 8 + 20 * u); return pops(t, [0.8, 2.2, 3.7]); },
+    hunger_tear(a, t, o) { if (t > 1.6) { const h = hPos(o), b = bPos(o), u = seg(t, 1.6, 3.6); headBurst(a, h.x, h.y, u, 311); guts(a, b.x, b.y + 6, b.x + 30, GY, u, t, 23); limb(a, b.x, b.y, u, -1, 313); limb(a, b.x, b.y + 10, seg(t, 1.8, 3.8), 1, 315); ribs(a, b.x, GY - 10, seg(t, 2.6, 3.6)); } return pops(t, [1.6]); },
+    hunger_swallow(a, t, o) { const cy = headY(o) + 18; if (t > 2.2) { for (let k = 0; k < 6; k++) { const ph = (t * 1.6 + k / 6) % 1; a.fillStyle = BLOOD[k % 2 + 2]; a.fillRect(Math.round(VX - 18 + k * 7), Math.round(cy + 6 + ph * (GY - cy - 6)), 1, 3); } guts(a, VX - 6, cy + 6, VX - 10, GY, seg(t, 2.6, 3.8), t, 25); limb(a, VX, cy, seg(t, 2.8, 4), 1, 321); } bigPool(a, VX, GY + 1, 6 + 16 * seg(t, 2.2, 4.4)); return pops(t, [2.2]); },
+    core_brain(a, t, o) { const h = hPos(o); if (t > 3.4) { headBurst(a, h.x, h.y, seg(t, 3.4, 4.2), 331); noHead(a, o); stump(a, h.x, h.y + 6, t); } bigPool(a, VX, GY + 1, 4 + 16 * seg(t, 1.4, 4.6)); return pops(t, [1, 3.4]); },
+    core_merge(a, t, o) { const h = hPos(o), u = seg(t, 2.4, 4.2); skull(a, h.x, Math.min(GY - 4, h.y + 8 + u * 20), u); ribs(a, (o._vx || VX), GY - 14, seg(t, 2.8, 4.4)); guts(a, (o._vx || VX), GY - 8, 60, GY, seg(t, 2, 4), t, 27); bits(a, (o._vx || VX), GY - 14, t, 333, 8); return pops(t, [2.4]); },
+    core_swallow(a, t, o) { if (t > 3.4) { headBurst(a, 50, GY - 32, seg(t, 3.4, 4.2), 341); limb(a, 50, GY - 30, seg(t, 3.5, 4.5), 1, 343); guts(a, 48, GY - 22, 70, GY, seg(t, 3.6, 4.6), t, 29); } bigPool(a, 56, GY + 1, 4 + 14 * seg(t, 3.4, 4.8)); return pops(t, [3.4]); },
+    trap_jaw(a, t, o) { if (t > 1.2) { limb(a, VX, GY - 6, seg(t, 1.2, 2.4), 1, 351); bits(a, VX, GY - 4, t, 353, 12); a.fillStyle = BONE[0]; a.fillRect(VX - 3, GY - 6, 2, 2); a.fillRect(VX + 2, GY - 6, 2, 2); } bigPool(a, VX, GY + 1, 6 + 18 * seg(t, 1.2, 4)); return pops(t, [1.2]); },
+    trap_spike(a, t, o) { if (t > 1.2) { const b = bPos(o); guts(a, b.x - 4, b.y + 4, b.x - 10, GY - 2, seg(t, 1.4, 3), t, 31); guts(a, b.x + 4, b.y + 6, b.x + 14, GY - 2, seg(t, 1.6, 3.2), t, 33); spray(a, b.x, b.y, seg(t, 1.2, 1.9), 355, 18); for (let k = 0; k < 5; k++) { a.fillStyle = BLOOD[2]; a.fillRect(VX - 10 + k * 5, GY - 14 - (k % 2) * 8, 1, 4); } } bigPool(a, VX, GY + 1, 6 + 18 * seg(t, 1.2, 4)); return pops(t, [1.2]); },
+    trap_hook(a, t, o) { const b = bPos(o); if (t > 1.2) spray(a, VX, (o._vy || GY) - 40, seg(t, 1.2, 1.9), 361, 10); if (t > 3) { const u = seg(t, 3, 4.2); a.fillStyle = '#c8907a'; a.fillRect(VX - 6, Math.round(GY - 10 + 0), 12, 8); a.fillStyle = BLOOD[2]; a.fillRect(VX - 6, GY - 10, 12, 2); guts(a, VX, GY - 10, VX, Math.max(4, b.y + 10), u, t, 35); trail(a, VX - 20 * u, VX + 4, GY); } bigPool(a, VX, GY + 1, 4 + 16 * seg(t, 1.2, 4.4)); return pops(t, [1.2, 3]); },
+  };
+  // 시작 화면 장면들에도 고어를 더한다
+  const GX0 = {
+    brain(a, t, o) { const f = o.fast ? 0.5 : 1, fall = 4.5 * f, hd = headOf(o.kind || 'militia'), h = { x: 112 - hd.dx, y: GY + hd.dy + 2 }; if (t > fall - 0.1) { headBurst(a, h.x, h.y, seg(t, fall - 0.1, fall + 0.7), 401); } if (t > fall) bigPool(a, 108, GY + 1, 4 + 12 * seg(t, fall, fall + 1.4)); return pops(t, [fall - 0.1]); },
+    drag(a, t, o) { const pull0 = 3.0, pull1 = 5.0, x = 100 - (100 - 26 + 8) * ease(seg(t, pull0, pull1)); if (t > 2.15) trail(a, x, 104, GY); if (t > pull0) guts(a, x + 4, GY - 4, Math.min(104, x + 26), GY, seg(t, pull0, pull0 + 1), t, 41); if (t > 4.6) headBurst(a, 30, GY - 10, seg(t, 4.6, 5.4), 403); return pops(t, [2.15, 4.6]); },
+    hatch(a, t, o) { if (t > 3) { const bl = bellyOf(o.kind || 'militia'), bx = 80 + bl.dx, by = GY + bl.dy; guts(a, bx, by, bx - 22, GY, seg(t, 3, 4), t, 43); guts(a, bx, by, bx + 18, GY, seg(t, 3.2, 4.2), t, 45); bigPool(a, bx, GY + 1, 6 + 10 * seg(t, 3, 5)); } return pops(t, [3]); },
+    chapel(a, t, o) { if (t > 6.2) { const hd = headOf('priest'); headBurst(a, 96 - hd.dx, GY + hd.dy + 2, seg(t, 6.2, 6.9), 405); } return pops(t, [6.2]); },
+  };
+
+  // 갈래 → 장면 셋
+  // 고어 덧붙이기: 바탕 장면을 그린 뒤 잔혹한 장면 켬이면 그 장면의 고어와 터지는 순간(섬광·흔들림)을 얹는다
+  const withGore = (S, fx) => { const base = S.draw; S.draw = (a, t, o) => { const r = base(a, t, o) || { dark: 0, sfx: [] }; if (o.gore && fx) { const p = fx(a, t, o); if (p) { r.flash = p.flash; r.shake = p.shake; } } return r; }; };
+  Object.keys(GX0).forEach(id => { if (SCENES[id]) withGore(SCENES[id], GX0[id]); });
+  const XGRP = {}; Object.keys(XSC).forEach(id => { const g = XSC[id].grp; (XGRP[g] = XGRP[g] || []).push(id); withGore(XSC[id], GX[id]); SCENES[id] = XSC[id]; });
+  // 글(MZLAST) 의 낱말로 같은 갈래의 장면을 고른다. 맞는 낱말이 없으면 씨앗으로
+  const XWORD = {
+    abyss_melt: /녹|흘러내|문드러/, abyss_drown: /물이 차|잠겼|물에|숨이 막|폐에 물/, abyss_sink: /끌려|당겨|물 밑|가라앉/,
+    brood_eggs: /알이|알을|알갱이|심었|심겼/, brood_hatch: /배가|배꼽|부화|찢어졌|첫 울음/, brood_swarm: /새끼|떼|작은 발|기어/,
+    nebula_eyes: /눈이 (떴|돋)|눈꺼풀 안|눈알/, nebula_hollow: /구멍|파먹|파였|시선/, nebula_stars: /별|빨려|늘어났/,
+    dusk_strangle: /목을|조르|손가락이|제 손/, dusk_pray: /기도|무릎|노래|흥얼/, dusk_hood: /두건|그늘|어둠 속으로|끌려/,
+    hunger_grind: /갈려|발가락|오도독|정강이/, hunger_tear: /뜯|찢|팔이 없|떨어져 나/, hunger_swallow: /삼켜|목구멍|통째|입이 몸통/,
+    core_brain: /뇌|정수리|머리|생각을/, core_merge: /녹|섞|살이 덮/, core_swallow: /삼켜|입에 물|통째|입 안/,
+    trap_jaw: /쇠 턱|턱이 닫|발목/, trap_spike: /가시|꿰|찔/, trap_hook: /갈고리|사슬|매달|들려/,
+  };
+  const ASP_GRP = { abyss: 'abyss', brood: 'brood', nebula: 'nebula', dusk: 'dusk', hunger: 'hunger' };
+  // 죽은 자리·죽인 것·글로 처형 장면 하나를 고른다
+  function execScene(ctx, lines, seed) {
+    const k = ctx.killer || {}; let grp = ctx.place === 'trap' ? 'trap' : k.body ? 'core' : k.kind && LAIR.KIN && LAIR.KIN[k.kind] ? ASP_GRP[k.asp || LAIR.KIN[k.kind].asp] || null : null;
+    if (!grp) grp = ctx.place === 'core' ? 'core' : ctx.place === 'lost' ? 'dusk' : 'hunger';
+    const ids = XGRP[grp] || XGRP.core, text = (lines || []).join(' ');
+    for (const id of ids) if (XWORD[id] && XWORD[id].test(text)) return id;
+    return ids[Math.floor(hash((seed || 0) + (ctx.night || 0) * 31) * ids.length) % ids.length];
+  }
+
+  // 첫 화면에서 도는 장면 (그림만, 글 없음): 처음 다섯 + 잘 보이는 처형 장면 넷
+  const IDS = Object.keys(SCENES), TIDS = ['brain', 'hunger_grind', 'drag', 'abyss_melt', 'watch', 'nebula_hollow', 'hatch', 'dusk_hood', 'chapel'];
 
   // 배경 (장면마다 한 번 그려 둔다)
   const bgCache = {};
@@ -10523,30 +10822,31 @@ const MZVIGN = (() => {
     try { r = S.draw(a, t, o) || r; } catch (e) { /* 그 장의 배우 없이 */ }
     if (!o.gore) { a.save(); a.globalCompositeOperation = 'source-atop'; a.fillStyle = 'rgba(8,6,12,0.82)'; a.fillRect(0, 0, W, H); a.restore(); }
     x.save(); if (!o.gore) x.filter = 'grayscale(1) brightness(1.15)';
+    const sh = r.shake && moOn() ? r.shake * K : 0; if (sh) x.translate(Math.round((hash(t * 97) - 0.5) * 2 * sh), Math.round((hash(t * 131 + 7) - 0.5) * 2 * sh));
     x.drawImage(bgOf(id, o.gore), 0, 0); x.drawImage(actor.c, 0, 0, DW, DH); x.restore();
+    if (r.flash > 0) { x.fillStyle = 'rgba(255,236,226,' + clamp(r.flash, 0, 1).toFixed(2) + ')'; x.fillRect(0, 0, DW, DH); }
     if (r.dark > 0) { x.fillStyle = 'rgba(0,0,0,' + clamp(r.dark, 0, 1).toFixed(3) + ')'; x.fillRect(0, 0, DW, DH); }
     // 가장자리 어둡게
     const g = x.createRadialGradient(DW / 2, DH * 0.55, DH * 0.3, DW / 2, DH / 2, DW * 0.62); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,0.65)'); x.fillStyle = g; x.fillRect(0, 0, DW, DH);
-    return { t, sfx: r.sfx || [] };
+    return { t, sfx: r.sfx || [], flash: r.flash || 0, shake: r.shake || 0 };
   }
 
   // ── 첫 화면: 장면을 하나씩 돌린다 (장면 사이 짧은 암전) ──
   const TL = { raf: 0, cv: null, line: null, i: 0, t0: 0, fade: 450, frames: [] };
   function title(cv, lineEl) {
-    stop(); TL.cv = cv; TL.line = lineEl; TL.i = Math.floor(Math.random() * IDS.length); TL.t0 = performance.now(); TL.lastF = -1; TL.frames = [];
-    const show = () => { const S = SCENES[IDS[TL.i]]; if (TL.line) TL.line.textContent = S.line; };
+    stop(); TL.cv = cv; TL.line = null; void lineEl; TL.i = Math.floor(Math.random() * TIDS.length); TL.t0 = performance.now(); TL.lastF = -1; TL.frames = [];
+    const show = () => {};
     show();
     const loop = now => {
       TL.raf = requestAnimationFrame(loop);
       if (!TL.cv || !TL.cv.isConnected || TL.cv.offsetParent === null) return;
-      const id = IDS[TL.i], S = SCENES[id], mo = moOn(), hold = mo ? S.len : 8000, el = now - TL.t0;
-      if (el >= hold + TL.fade) { TL.i = (TL.i + 1) % IDS.length; TL.t0 = now; TL.lastF = -1; show(); return; }
+      const id = TIDS[TL.i], S = SCENES[id], mo = moOn(), hold = mo ? S.len + 900 : 8000, el = now - TL.t0;
+      if (el >= hold + TL.fade) { TL.i = (TL.i + 1) % TIDS.length; TL.t0 = now; TL.lastF = -1; show(); return; }
       const ms = mo ? Math.min(el, S.len - 1) : S.key, f = mo ? Math.floor(ms / 1000 * FPS) : -2, fadeOut = el > hold ? (el - hold) / TL.fade : 0, fadeIn = el < TL.fade ? 1 - el / TL.fade : 0, fk = f + ':' + Math.round(Math.max(fadeOut, fadeIn) * 6);
       if (fk === TL.lastF) return; TL.lastF = fk;
       render(TL.cv, id, ms);
       const d = Math.max(fadeOut, fadeIn); if (d > 0) { const x = TL.cv.getContext('2d'); x.fillStyle = 'rgba(0,0,0,' + Math.min(1, d).toFixed(2) + ')'; x.fillRect(0, 0, DW, DH); }
       if (TL.frames.length < 400) TL.frames.push(now);
-      if (TL.line) TL.line.style.opacity = d > 0 ? String(1 - Math.min(1, d)) : '';
     };
     TL.raf = requestAnimationFrame(loop);
   }
@@ -10557,25 +10857,35 @@ const MZVIGN = (() => {
   const isBeast = kind => BEAST.has(kind) || !!(typeof LAIR !== 'undefined' && LAIR.INV && LAIR.INV[kind] && LAIR.INV[kind].beast);
   const rankOf = kind => { const d = (typeof LAIR !== 'undefined' && LAIR.INV && LAIR.INV[kind]) || {}; return /^c_/.test(kind) ? 3 : d.boss || d.elite ? 2 : 1; };
   const invName = kind => { const d = typeof LAIR !== 'undefined' && LAIR.INV && LAIR.INV[kind]; return d ? d.name : '사람'; };
-  // 침입 결과(steps)에서 사람이 죽은 자리와 죽인 것을 찾는다. 가장 눈에 띄는 하나: 이름 있는 인물 > 정예·우두머리 > 그 밖 (같으면 늦게 죽은 쪽)
+  // 침입 결과(steps)에서 처형 장면의 후보를 찾는다. 후보 = 싸움에서 사람이 처형되었거나(권속·본체의 마지막 타격, 삼킴 빼고)
+  //   치명타를 맞고 죽은 사람, 그리고 함정에 죽은 사람. 가장 눈에 띄는 하나: 이름 있는 인물 > 정예·우두머리 > 그 밖 (같으면 늦게 죽은 쪽)
+  //   싸움 기록(fight.timeline)이 없는 단계는 후보가 아니다. 길을 잃고 죽은 사람도 아니다
   function pickDeath(res, M) {
     if (!res || !res.steps) return null; const dead = [];
     res.steps.forEach(s => {
-      if (s.type === 'fight' && s.before && s.after) {
-        const kin = (s.after.kin || []).filter(k => k.alive), kin0 = s.before.kin || [], top = (kin.length ? kin : kin0).slice().sort((p, q) => (q.star || 1) - (p.star || 1) || (q.lv || 1) - (p.lv || 1))[0];
-        s.after.inv.forEach((q, i) => { const b = s.before.inv[i]; if (!b || !b.alive || q.alive || q.caught) return;
-          const core = s.cell === 'core' || s.core, U = M && top && M.unit ? M.unit[top.uid] : null;
-          const killer = core ? { body: true, form: M && M.body ? M.body.form : 'drop', step: M && M.body ? M.body.step || 0 : 0 } : top ? { kind: top.kind, star: top.star || 1, br: U && U.br ? U.br : undefined, asp: LAIR.KIN[top.kind] ? LAIR.KIN[top.kind].asp : null, name: typeof LAIR.evoName === 'function' ? LAIR.evoName(top.kind, top.star || 1, U && U.br) : (LAIR.KIN[top.kind] || {}).name } : { body: true };
-          dead.push({ kind: q.kind, place: core ? 'core' : 'kin', killer }); });
+      const f = s.fight; if (s.type === 'fight' && f && f.timeline && f.units) {
+        const U = {}; f.units.forEach(u => { U[u.id] = u; }); const crit = {};
+        f.timeline.forEach(e => { if (e.type === 'hit' && e.crit && U[e.u] && U[e.u].side === 'inv') crit[e.u] = 1; });
+        f.timeline.forEach(e => { if (e.type !== 'die') return; const v = U[e.u], by = U[e.by]; if (!v || v.side !== 'inv' || !by || by.side !== 'nest' || by.mad || !(by.core || (LAIR.KIN && LAIR.KIN[by.kind]))) return; const exec = e.how !== 'swallow';
+          if (!exec && !crit[e.u]) return; const core = !!by.core;
+          const killer = core ? { body: true, form: M && M.body ? M.body.form : 'drop', step: M && M.body ? M.body.step || 0 : 0 } : { kind: by.kind, star: by.star || 1, br: by.br || undefined, asp: LAIR.KIN && LAIR.KIN[by.kind] ? LAIR.KIN[by.kind].asp : null, name: by.name };
+          dead.push({ kind: v.kind, place: core ? 'core' : 'kin', killer, exec, crit: !!crit[e.u] }); });
       } else if (s.type === 'trap' && s.before && s.after) {
-        s.after.forEach((q, i) => { const b = s.before[i]; if (b && b.alive && !q.alive && !q.caught) dead.push({ kind: q.kind, place: 'trap', killer: { trap: s.id } }); });
+        s.after.forEach((q, i) => { const b = s.before[i]; if (b && b.alive && !q.alive && !q.caught) dead.push({ kind: q.kind, place: 'trap', killer: { trap: s.id }, exec: true }); });
       }
     });
-    ((res.result && res.result.ledger && res.result.ledger.ate) || []).forEach(e => { if (e.stray) dead.push({ kind: e.kind, place: 'lost', killer: { lost: true } }); });
     const men = dead.filter(d => d.kind && !isBeast(d.kind)); if (!men.length) return null;
     let best = men[0]; men.forEach(d => { if (rankOf(d.kind) >= rankOf(best.kind)) best = d; });
-    return { victim: { kind: best.kind, name: invName(best.kind) }, killer: best.killer, place: best.place, night: M ? M.night : 0, mode: M ? M.mode : null, count: men.length };
+    return { victim: { kind: best.kind, name: invName(best.kind) }, killer: best.killer, place: best.place, exec: !!best.exec, crit: !!best.crit, night: M ? M.night : 0, mode: M ? M.mode : null, count: men.length };
   }
+  // 띄울지: 이름 있는 인물은 늘, 판에서 처음 후보가 생긴 밤도 늘. 바로 앞 밤에 띄웠으면 쉰다. 그 밖은 확률 p (판 씨앗·밤으로 정해져 다시 해도 같다)
+  const feastP = () => { try { const F = MAZE.MK.feast; return F && F.p != null ? F.p : 0.35; } catch (e) { return 0.35; } };
+  function roll(ctx, M) {
+    if (!ctx) return false; const ui = M ? (M.ui = M.ui || {}) : {}, n = ctx.night || (M && M.night) || 0;
+    if (/^c_/.test(ctx.victim.kind)) return true; if (!ui.feastSeen) return true; if (ui.feastLast != null && n - ui.feastLast < 2) return false;
+    return hash(((M && M.seed) || 0) % 100000 * 7 + n * 131 + 17) < feastP();
+  }
+  function mark(ctx, M) { if (!M) return; const ui = M.ui = M.ui || {}; ui.feastSeen = 1; ui.feastLast = ctx.night || M.night || 0; }
   const FE = { el: null, raf: 0, done: null, lines: [], li: 0, auto: 0 };
   // 글 자료(MZLAST)에 넘기는 꼴로 바꾼다: place 'kin' → 'room', 'lost' → 정체 모를 것('room' + 죽인 이 없음). 최근 쓴 글 id 는 판 저장(M.ui.lastIds)에 열여섯 개까지
   function lastLines(ctx) {
@@ -10595,12 +10905,12 @@ const MZVIGN = (() => {
     FE.lines = Array.isArray(lines) && lines.length ? lines.slice(0, 10) : [head + (more > 0 ? ' 그 밤 죽은 사람 ' + (more + 1) + '명.' : '')]; FE.li = 0; FE.auto = !(Array.isArray(lines) && lines.length);
     let el = FE.el; if (!el) { el = document.createElement('div'); el.id = 'mzv'; el.innerHTML = '<canvas width="' + DW + '" height="' + DH + '" role="img" aria-label="사람이 죽는 장면"></canvas><div class="mzv-lines" aria-live="polite"></div><p class="mzv-tap"></p>'; document.body.appendChild(el); FE.el = el; el.addEventListener('click', () => next()); }
     el.hidden = false; FE.done = onDone || null; FE.ctx = ctx; showLine();
-    const cv = el.querySelector('canvas'), sid = ctx.place === 'trap' || ctx.place === 'lost' ? 'drag' : 'brain', S = SCENES[sid], len = sid === 'brain' ? S.len * 0.5 : S.len, t0 = performance.now(), mo = moOn(), k = ctx.killer || {};
-    const o = { kind, fast: sid === 'brain', form: k.form, step: k.step, killer: k.kind ? k : null }; let lastF = -1; const fired = {};
+    const k = ctx.killer || {}, Mm = (typeof MZ !== 'undefined' && MZ.M) || null, cv = el.querySelector('canvas'), sid = ctx.scene && SCENES[ctx.scene] ? ctx.scene : execScene(ctx, lines, Mm ? Mm.seed : 0), S = SCENES[sid], len = S.len, t0 = performance.now(), mo = moOn();
+    const o = { kind, form: k.form, step: k.step, killer: k.kind ? k : null }; let lastF = -1; const fired = {};
     FE.scene = sid; FE.t0 = t0; FE.len = len;
     if (FE.raf) cancelAnimationFrame(FE.raf);
     const step = now => {
-      FE.raf = requestAnimationFrame(step); const ms = mo ? Math.min(now - t0, len - 1) : (sid === 'brain' ? S.key * 0.5 : S.key), f = Math.floor(ms / 1000 * FPS);
+      FE.raf = requestAnimationFrame(step); const ms = mo ? Math.min(now - t0, len - 1) : S.key, f = Math.floor(ms / 1000 * FPS);
       if (f !== lastF) { lastF = f; const r = render(cv, sid, ms, o); (r ? r.sfx : []).forEach(q => { const key = q[1] + q[0]; if (!fired[key] && ms / 1000 >= q[0]) { fired[key] = 1; say(q[1]); } }); }
       if (FE.auto && now - t0 > len + 1400) finish();
     };
@@ -10615,7 +10925,7 @@ const MZVIGN = (() => {
   function finish() { if (FE.raf) cancelAnimationFrame(FE.raf); FE.raf = 0; if (FE.el) FE.el.hidden = true; const d = FE.done; FE.done = null; if (d) d(); }
   const active = () => !!(FE.el && !FE.el.hidden);
 
-  return { IDS, SCENES, W, H, DW, DH, FPS, render, title, stop, feast, pickDeath, isBeast, next, finish, active, frames: () => TL.frames.slice(), get cur() { return IDS[TL.i]; }, get feastState() { return FE.el && !FE.el.hidden ? { scene: FE.scene, li: FE.li, n: FE.lines.length, lines: FE.lines.slice(), victim: FE.ctx && FE.ctx.victim, place: FE.ctx && FE.ctx.place } : null; } };
+  return { IDS, TIDS, XGRP, SCENES, W, H, DW, DH, FPS, render, title, stop, feast, pickDeath, roll, mark, execScene, feastP, isBeast, next, finish, active, frames: () => TL.frames.slice(), get cur() { return TIDS[TL.i]; }, get feastState() { return FE.el && !FE.el.hidden ? { scene: FE.scene, li: FE.li, n: FE.lines.length, lines: FE.lines.slice(), victim: FE.ctx && FE.ctx.victim, place: FE.ctx && FE.ctx.place } : null; } };
 })();
 if (typeof window !== 'undefined') window.__mzvign = MZVIGN;
 // 굴 짓기 — 장면 읽기 (MZSCENE). 화면 가득 그림, 아래 대사 상자와 이름 칸, 말하는 이의 큰 초상.
@@ -11704,13 +12014,13 @@ function mzTitleFit() {
 if (typeof window !== 'undefined') window.addEventListener('resize', () => mzTitleFit());
 function mzTitleScene() {
   const t = $('title'); let cv = $('mz-tcv'); if (!cv) { cv = document.createElement('canvas'); cv.id = 'mz-tcv'; cv.className = 'px vign'; cv.width = MZVIGN.DW; cv.height = MZVIGN.DH; cv.setAttribute('role', 'img'); cv.setAttribute('aria-label', '굴 안에서 일어난 일'); t.insertBefore(cv, t.firstChild); }
-  MZVIGN.title(cv, $('mz-tline'));
+  MZVIGN.title(cv, null);
 }
 // 침입 뒤 사람이 죽은 밤이면 포식 장면을 한 번 (짐승만 죽은 밤은 없음). 띄웠으면 true, 다 보면 then()
 function mzFeast(P, then) {
   const t = mzTestOpt(); if (META.mzFeast === false || (t && t.feast === false) || !P || !P.res || typeof MZVIGN === 'undefined') return false;
-  let ctx = null; try { ctx = MZVIGN.pickDeath(P.res, MZ.M); } catch (e) { ctx = null; } if (!ctx) return false;
-  return MZVIGN.feast(ctx, then);
+  let ctx = null; try { ctx = MZVIGN.pickDeath(P.res, MZ.M); } catch (e) { ctx = null; } if (!ctx || !MZVIGN.roll(ctx, MZ.M)) return false;
+  MZVIGN.mark(ctx, MZ.M); return MZVIGN.feast(ctx, then);
 }
 if (typeof window !== 'undefined') window.__mzFeastTest = (P, then) => mzFeast(P, then);
 const mzK = () => MAZE.MK;
