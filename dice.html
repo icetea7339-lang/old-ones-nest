@@ -7989,10 +7989,10 @@ if (typeof window !== 'undefined') window.__mzvign = MZVIGN;
 // 원거리: 종류마다 다른 것이 날아간다(시선 줄기 · 그림자 손 · 먹물 덩이 · 포자 구름 · 알 · 눈알 · 소리 고리 · 빛 기둥 · 화살 · 볼트 · 마법 구슬 · 빛 · 약병 · 사슬).
 //   끝은 매 장마다 대상이 지금 그려진 자리를 따라간다 (쏜 뒤에 대상이 움직여도 몸에 맞는다).
 // 기술: LAIRART.fx 의 기술 그림 + 화면 흔들림(움직임 켬일 때만) · 번쩍임 · 기술 이름 띠.
-// 빠르기: 보기 속도만 바꾼다(DPACE). 기본 1.8배, 아무도 때리지 않는 틈은 2.6배 더, 남은 적이 둘 이하(우두머리 · 정예 없음)면 1.35배 더.
+// 빠르기: 보기 속도만 바꾼다(DPACE). 기본 1.35배(2026-11-26 사용자: 너무 빠르다, 살짝 늦게), 아무도 때리지 않는 틈은 2.6배 더, 남은 적이 둘 이하(우두머리 · 정예 없음)면 1.35배 더.
 // 피 입자는 140개(움직임 끔 70개), 얼룩 48개, 기술 그림 24개까지만. 움직임 끔: 흔들림 없음, 밀림 절반, 입자 0.6배, 흔적 · 고리 · 얼룩은 0.6배 짧게.
 const DXA = 0.46, DXHIT = 0.22, DXREL = 0.19;
-const DPACE = { base: 1.8, lull: 2.6, gap: 0.55, few: 1.35, intro: 0.75, pad: 0.25, leak: 1.0 };
+const DPACE = { base: 1.35, lull: 2.6, gap: 0.55, few: 1.35, intro: 0.75, pad: 0.25, leak: 1.0 };
 const DXBUSY = { attack: 1, hit: 1, cast: 1, skillfx: 1, die: 1, spawn: 1, mad: 1, heal: 1 };
 // 근접 종류: 몸이 붙는 것(full)과 몸은 조금 쏠리고 팔 · 턱 · 혀가 늘어나는 것(part)
 const DXMEL = { shell: 'ram', biter: 'jaw', gnaw: 'jaw', famine: 'jaw', maw: 'jaw', gulp: 'tongue', tangle: 'tentacle', heap: 'eyes', mask: 'finger', hollow: 'scythe', bell: 'bell',
