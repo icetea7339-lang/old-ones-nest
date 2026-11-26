@@ -863,7 +863,9 @@ b.nv { color: #8fe8a0; font-weight: 700; white-space: nowrap; }
 .dg-codds { display: block; font-size: calc(11px * var(--df)); line-height: 1.25; color: #d8ccbc; margin-top: 2px; }
 .dg-cface.rare img { box-shadow: 0 0 0 2px #ffcf4a; }
 /* 무리 효과 표 (전장 왼쪽 위) */
-#dg-grp { position: absolute; left: 4px; top: 4px; z-index: 4; max-width: 72%; padding: 3px 6px; background: rgba(10, 8, 18, .78); border: 1px solid #3a3150; border-radius: 7px; pointer-events: none; }
+#dg-grp { flex: none; display: flex; flex-wrap: wrap; justify-content: center; gap: 0 10px; padding: 1px 8px; pointer-events: none; }
+#dg-grp[hidden] { display: none; }
+#dg-grp .gp { white-space: nowrap; }
 #dg-grp .gp { margin: 0; font-size: calc(11px * var(--df)); line-height: 1.3; color: var(--mute); overflow-wrap: anywhere; }
 #dg-grp .gp.on { color: #f0e6d0; } #dg-grp .gp.on b { color: var(--c); } #dg-grp .gp.bad { color: #ff8a90; font-weight: 700; }
 #dg[data-phase="fight"] #dg-grp, #dg[data-phase="leak"] #dg-grp { display: none; }
@@ -877,6 +879,11 @@ b.nv { color: #8fe8a0; font-weight: 700; white-space: nowrap; }
 .cx-st > span { font-size: calc(10px * var(--df)); line-height: 1.15; overflow-wrap: anywhere; }
 .cx-st .cx-u img { width: 24px; height: 24px; }
 .dg-rarei .dg-uhead { display: flex; gap: 10px; align-items: center; }
+
+/* 확정한 뒤(놓기 · 싸움)에는 주사위 판을 접는다: 고정 칸 한 줄만 남기고 전장에 자리를 준다 */
+#dg-tray.off #dg-dice { aspect-ratio: 192 / 19; overflow: hidden; margin-bottom: 0; }
+#dg-tray.off #dg-tcv { height: auto; aspect-ratio: 192 / 70; }
+#dg-tray.off .dg-ledge, #dg-tray.off #dg-dbtn { display: none; }
 </style>
 </head><body style="margin:0">
 <div id="title" class="screen">
@@ -10160,7 +10167,8 @@ function dTitleArt() {
 function dMount() {
   let g = $('dg'); if (g) return g; g = document.createElement('div'); g.id = 'dg'; g.hidden = true;
   g.innerHTML = `<header id="dg-top"></header><nav id="dg-myth" aria-label="위대한 옛것과 지역"></nav>
-<div id="dg-fieldwrap"><canvas id="dg-cv" class="px" width="${DFW}" height="${DFH}" role="img" aria-label="쳐들어가는 싸움터. 권속은 왼쪽에서 들어가고, 오른쪽에서 사람들이 그 지역을 지킨다."></canvas><div id="dg-fctl" hidden></div><p id="dg-say" aria-live="polite"></p><div id="dg-peek" hidden></div><p id="dg-fprev" hidden></p><div id="dg-grp" hidden aria-label="무리 효과"></div></div>
+<div id="dg-fieldwrap"><canvas id="dg-cv" class="px" width="${DFW}" height="${DFH}" role="img" aria-label="쳐들어가는 싸움터. 권속은 왼쪽에서 들어가고, 오른쪽에서 사람들이 그 지역을 지킨다."></canvas><div id="dg-fctl" hidden></div><p id="dg-say" aria-live="polite"></p><div id="dg-peek" hidden></div><p id="dg-fprev" hidden></p></div>
+<div id="dg-grp" hidden aria-label="무리 효과"></div>
 <section id="dg-mid"><div id="dg-bench" aria-label="대기 칸"></div><button id="dg-feed" class="dg-feed" data-d="feedhint" aria-label="버린다: 권속을 끌어다 놓으면 진액이 된다">버린다<small>진액</small></button></section>
 <section id="dg-tray"><div id="dg-dice"><canvas id="dg-tcv" width="${TW * TS}" height="${TH * TS}" role="img" aria-label="주사위 판. 위는 붙잡은 자리, 아래는 바닥, 오른쪽은 주사위통 (누르고 있으면 흔들린다)."></canvas><span class="dg-ledge" aria-hidden="true">붙잡은 자리</span><div id="dg-dbtn"></div><span id="dg-hfx" aria-hidden="true"></span></div><div id="dg-sets" aria-live="polite"></div><div id="dg-btns"></div></section>
 <div id="dg-spot" hidden aria-hidden="true"></div><div id="dg-tip" hidden role="note"></div><img id="dg-ghost" alt="" hidden><div id="dg-drop" hidden role="dialog" aria-label="합치기 · 먹이기"></div>
@@ -10377,10 +10385,10 @@ function dShakeEnd() {
   dThrow(S.kind === 'throw' ? () => DICE.throwDice(R) : () => DICE.reroll(R), { shook: dur });
 }
 function dTrShakeTick(dt, now) {
-  const T = TR, c = T.cup; T.shT += dt * 1000; const k = T.shT / 1000, w = 2 * Math.PI * 9, up = Math.min(1, T.shT / 90);
-  c.x = TCUP.x + Math.sin(k * w) * 2.2; c.y = TCUP.y - up * 6 - Math.abs(Math.sin(k * w + 0.7)) * 3; c.a = Math.sin(k * w + 0.6) * 0.26;
+  const T = TR, c = T.cup; T.shT += dt * 1000; const k = T.shT / 1000, w = 2 * Math.PI * 3, up = Math.min(1, T.shT / 160);
+  c.x = TCUP.x + Math.sin(k * w) * 3.4; c.y = TCUP.y - up * 6 - Math.abs(Math.sin(k * w + 0.7)) * 4; c.a = Math.sin(k * w + 0.6) * 0.34;
   // 달그락: 소리 길이(0.48초)마다 · 진동도 그 박자로
-  const beat = Math.floor(T.shT / 470); if (beat >= T.shSaid) { T.shSaid = beat + 1; dSay('dcup'); dVib([16, 40, 16, 40, 16]); }
+  const beat = Math.floor(T.shT / 470); if (beat >= T.shSaid) { T.shSaid = beat + 1; dSay('dcup'); dVib([18, 148, 18, 148, 18]); }
   if (T.boost) dSmoke(c);
   if (DG.shake && now - DG.shake.t0 > ((DG.test && DG.test.shakeMax) || DSHAKE_MAX)) { DG.dbg.shakeAuto = (DG.dbg.shakeAuto || 0) + 1; dShakeEnd(); }
 }
@@ -10505,23 +10513,20 @@ function dBtns(v) {
 function dRender() {
   if (DG.scr !== 'game' || !DG.R) return; const v = DICE.view(DG.R); DG.v = v;
   dTop(v); dBench(v); dTraySync(); $('dg-dbtn').innerHTML = dDiceHtml(v); $('dg-dice').dataset.n = v.dice.length; $('dg-sets').innerHTML = dSetsLine(v); $('dg-btns').innerHTML = dBtns(v);
-  $('dg-tray').classList.toggle('off', v.phase !== 'roll'); $('dg').dataset.phase = DG.ui; dGroupHtml(v);
+  $('dg-tray').classList.toggle('off', v.phase !== 'roll'); $('dg').dataset.phase = DG.ui; dGroupHtml(v); dFit();
   const say = $('dg-say'); say.textContent = dSayLine(v); dCodexScan();
 }
-// 무리 효과 표 (전장 왼쪽 위, 싸우기 전): 걸린 것 「기아 4 · 공격 +25%」, 걸리지 않은 것은 다음 문턱 「심연 1 · 2마리면 체력 +12%」, 빈 줄이 있으면 붉게 한 줄
+// 무리 효과 줄 (전장 아래 한 줄, 놓는 동안에만 · 전장을 가리지 않는다): 걸린 것 「기아 4 · 공격 +25%」, 다음 문턱 「심연 1/2」, 빈 줄이 있으면 붉게
 function dGroupHtml(v) {
-  const el = $('dg-grp'); if (!el) return; const show = (v.phase === 'roll' || v.phase === 'place') && DG.ui !== 'fight' && DG.ui !== 'leak' && v.placed > 0; el.hidden = !show; if (!show) return;
-  const on = v.groups.filter(g => g.tier), near = v.groups.filter(g => !g.tier).slice(0, Math.max(0, 2 - on.length)), L0 = v.lanes;
-  el.innerHTML = on.map(g => `<p class="gp on" style="--c:${ASPC[g.asp]}">${dChip(g.asp)}<b>${dEsc(g.name)} ${g.n}</b> · ${dNumHi(g.eff)}</p>`).join('')
-    + near.map(g => `<p class="gp" style="--c:${ASPC[g.asp]}">${dChip(g.asp)}${dEsc(g.name)} ${g.n} · ${g.next}마리면 ${dNumHi(g.nextEff)}</p>`).join('')
-    + (L0 && L0.open.length ? `<p class="gp bad">빈 줄 ${L0.open.length} · 새는 적 생명 −${L0.loss}</p>` : '');
+  const el = $('dg-grp'); if (!el) return; const show = v.phase === 'place' && DG.ui !== 'fight' && DG.ui !== 'leak' && v.placed > 0; el.hidden = !show; if (!show) return;
+  const L0 = v.lanes, open = !!(L0 && L0.open.length), on = v.groups.filter(g => g.tier), near = v.groups.filter(g => !g.tier).slice(0, Math.max(0, 2 - on.length));
+  el.innerHTML = (open ? `<p class="gp bad">빈 줄 ${L0.open.length} · 생명 −${L0.loss}</p>` : '')
+    + on.map(g => `<p class="gp on" style="--c:${ASPC[g.asp]}">${dChip(g.asp)}<b>${dEsc(g.name)} ${g.n}</b> · ${dNumHi(g.eff)}</p>`).join('')
+    + near.map(g => `<p class="gp" style="--c:${ASPC[g.asp]}">${dChip(g.asp)}${dEsc(g.name)} ${g.n}/${g.next}</p>`).join('');
 }
 function dSayLine(v) {
   if (DG.ui === 'fight' || DG.ui === 'leak') return '';
-  if (DG.bossLine && DG.bossLine.round === v.round && v.phase === 'roll') return DG.bossLine.text;
-  if (v.phase === 'roll' && v.torchNote) return v.region.name + '의 사람들이 그대의 주사위 면 하나를 횃불로 바꿔 놓았다. 횃불은 숫자가 없어 족보를 깬다.';
-  if (v.phase === 'roll' && !(v.roll && v.roll.n)) { const n = v.node, rw = n && n.reward; return n ? n.kind + ' · ' + n.title + ' — 지키는 자 ' + v.foes.length + (rw ? '\n이기면 ' + rw.title + (rw.name ? ' 「' + rw.name + '」' : '') + (rw.type === 'relic' && rw.short ? ' · ' + rw.short : '') + (rw.extra ? ' · ' + rw.extra : '') : '') : ''; }
-  if (v.phase === 'place') return !v.placed ? '대기 칸의 권속을 왼쪽 칸으로 끌어 놓아라.' : v.lanes && v.lanes.open.length ? '붉은 빈 줄에 권속을 놓아라. 비워 두면 그 줄의 적이 굴로 샌다.' : '같은 별 권속 위에 둘을 차례로 놓으면 셋이 합쳐진다. 머릿수가 많으면 무리 효과가 걸린다.';
+  if (v.phase === 'roll' && v.torchNote && !(v.roll && v.roll.n)) return v.region.name + '의 사람들이 주사위 면 하나를 횃불로 바꿔 놓았습니다. 횃불은 숫자가 없어 족보를 깹니다.';
   return '';
 }
 
