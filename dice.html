@@ -2553,7 +2553,7 @@ const DICE = (() => {
 
   // ───────── 수치 ─────────
   const K = {
-    rounds: 20, life: 12, gold: 4, rerolls: 2, cap: 6, capMax: 9, bench: 6, faces: 6, hand: 5,
+    rounds: 20, life: 12, gold: 4, rerolls: 1, cap: 6, capMax: 9, bench: 6, faces: 6, hand: 5,
     // 주머니: 처음 8개 · 14개까지 · 5개 아래로는 줄지 않는다 · 라운드마다 다섯을 꺼낸다 (주사위 핥는 혀 · 리스크로 ±)
     bag: { start: 8, max: 14, min: 5, draw: 5 },
     // 이긴 싸움의 보상 나눔 (나머지는 진액). add = 주사위 더하기(색 고르기) · remove = 빼기 · refine = 다듬기(특수 주사위)
@@ -2701,8 +2701,8 @@ const DICE = (() => {
     five: { name: '다섯 같은 수', rank: 8, cond: '같은 수 다섯' },
   };
   const HAND_IDS = Object.keys(HANDS);
-  // 대략 확률(%): 평범한 주사위 다섯 · 가장 많은 수를 붙잡고(봇과 같은 정책: 투페어도 한 짝 · 짝 없는 넷 이음만 스트레이트) 다시 굴리기 2번 · 4만 번 모의 (tests/dicerules.js 가 다시 재어 맞는지 본다)
-  const HANDP = { junk: 0, pair: 10, two: 11, three: 29, small: 3, full: 20, large: 3, four: 20, five: 4 };
+  // 대략 확률(%): 평범한 주사위 다섯 · 가장 많은 수를 붙잡고(봇과 같은 정책: 투페어도 한 짝 · 짝 없는 넷 이음만 스트레이트) 다시 굴리기 1번 · 20만 번 모의
+  const HANDP = { junk: 0, pair: 17, two: 20, three: 28, small: 7, full: 13, large: 4, four: 11, five: 1 };
   //   받는 것: u = [[묶음, 별, 수]] (그 묶음의 색 성향 · 섞이면 혼종 확률), run = 이은 수의 색 가운데 많은 것부터 그 수만큼 1성, buff = 이번 싸움 강화 { atk, mana, foe },
   //   hyb = 풀하우스의 두 묶음 색이 다르면 혼종이 대신 나올 확률, myth = 섞인 색이 레시피 두 성향이면 신화 확률 (myth0 = 한 색일 때), rare = 덤으로 희귀 1성이 올 확률, gold = 진액
   const HANDGET = {
@@ -2933,7 +2933,7 @@ const DICE = (() => {
   const kor = n => ['', '하나', '둘', '셋', '넷'][n] || String(n);
   // 단계(1 · 2 · 3)마다의 세기. 리스크 이름 → 값. 균형은 여기서만 맞춘다
   const RV = {
-    drown: { n: [1, 1, 2], best: [0, 1, 1] }, deaf: { v: [1, 1, 2], r: [3, 4, 4] }, pull: { n: [1, 1, 2], life: [0, 2, 2] }, damp: { v: [0.2, 0.25, 0.3], r: [3, 3, 4] },
+    drown: { n: [1, 1, 2], best: [0, 1, 1] }, deaf: { v: [1, 1, 1], r: [3, 4, 6] }, pull: { n: [1, 1, 2], life: [0, 2, 2] }, damp: { v: [0.2, 0.25, 0.3], r: [3, 3, 4] },
     torch: { n: [3, 4, 5] }, recarve: { d: [2, 3, 4] }, elite: { n: [2, 3, 4] }, unstar: { r: [2, 3, 4] },
     flesh: { n: [4, 5, 6] }, egg: { lose: [1, 2, 9] }, blank: { n: [2, 3, 4] }, shrink: { n: [3, 4, 5] },
     curse: { v: [0.25, 0.35, 0.5], r: [3, 3, 4] }, mad: { n: [1, 1, 2] }, lock: { n: [1, 2, 2], r: [3, 4, 5] }, extra: { r: [3, 4, 4] },
