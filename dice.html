@@ -683,6 +683,13 @@ html.dbig { --df: 1.15; }
 #dg-rite .rt-rules { list-style: none; padding: 6px 8px; display: flex; flex-direction: column; gap: 3px; width: 100%; background: rgba(14, 10, 24, .88); border-radius: 8px; text-align: left; }
 #dg-rite .rt-rules li { font-size: calc(13px * var(--df)); line-height: 1.4; color: #e8dccf; }
 #dg-rite .rt-tap { color: #8f8580; font-size: calc(12px * var(--df)); }
+#dg-rite .rt-box { max-height: 66vh; }
+#dg-rite .rt-rules li.rt-sec { margin-top: 2px; color: #a89ab8; font-size: calc(11px * var(--df)); font-weight: 700; letter-spacing: .06em; }
+#dg-rite .rt-rules li.rt-sec:first-child { margin-top: 0; }
+#dg-rite .rt-rules li.rt-note { color: #a89ab8; font-size: calc(12px * var(--df)); }
+.eff-g b { color: #8fe8a0; } .eff-b b { color: #ff8a80; }
+.mm-effs { list-style: none; padding: 0 !important; display: flex; flex-direction: column; gap: 4px; }
+.mm-effs li { line-height: 1.4; }
 
 /* 합치기 연출: 등급 · 새로 발견 */
 #dg-evo { --gc: #c9c0ae; }
@@ -694,16 +701,31 @@ html.dbig { --df: 1.15; }
 #dg-evo.gr-m .ev-name { background: linear-gradient(90deg, transparent, rgba(60, 26, 6, .94) 15%, rgba(60, 26, 6, .94) 85%, transparent); }
 
 /* 도감 */
-.cx-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 5px; }
-.cx-u { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 4px 2px; background: var(--ink); border: 1px solid var(--line); border-radius: 7px; text-align: center; }
-.cx-u img { width: 32px; height: 32px; image-rendering: pixelated; }
-.cx-u small { font-size: calc(11px * var(--df)); line-height: 1.2; overflow-wrap: anywhere; }
-.cx-u i { font-style: normal; font-size: 9px; color: #ffd040; }
+/* 도감: 한 줄에 한 종류 (1~4성 │ 혼종 2~4성) · 못 본 칸은 형상만 */
+.cx-help { font-size: calc(12px * var(--df)); }
+.cx-ah { margin: 10px 0 2px; font-size: calc(13px * var(--df)); }
+.cx-row { margin: 0 0 4px; }
+.cx-k { margin: 0 0 1px; font-size: calc(12px * var(--df)); color: #d8ccbc; }
+.cx-cells { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)) 5px repeat(3, minmax(0, 1fr)); gap: 3px; }
+.cx-sep { align-self: stretch; width: 1px; justify-self: center; background: var(--line); }
+.cx-u { min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 0; padding: 3px 0 2px; background: var(--ink); border: 1px solid var(--line); border-radius: 6px; color: var(--text); font: inherit; cursor: pointer; }
+.cx-u img { width: 32px; height: 32px; max-width: 100%; image-rendering: pixelated; }
+.cx-u i { font-style: normal; font-size: 9px; line-height: 1.1; color: #ffd040; }
 .cx-u.g-r { border-color: #5ab4ff; } .cx-u.g-m { border-color: #ff9a3a; }
-.cx-r { display: flex; align-items: center; gap: 8px; margin: 2px 0; font-size: calc(13px * var(--df)); line-height: 1.35; }
+.cx-u.hy { border-style: dashed; }
+.cx-u.unk { background: #0c0a12; border-color: #2a2438; } .cx-u.unk i { color: #5a5070; }
+.cx-r { display: flex; align-items: center; gap: 8px; width: 100%; margin: 2px 0; padding: 3px 4px; background: none; border: 1px solid transparent; border-radius: 6px; color: var(--text); font: inherit; font-size: calc(13px * var(--df)); line-height: 1.35; text-align: left; cursor: pointer; }
+.cx-r:hover, .cx-u:hover { border-color: #8a7aa8; }
 .cx-r img { flex: none; width: 24px; height: 24px; image-rendering: pixelated; }
 .cx-r small { color: var(--mute); }
 .cx-r.unk { color: #6a6080; }
+.dg-uhead img.cx-big { flex: none; width: 96px; height: 96px; image-rendering: pixelated; background: var(--ink); border: 1px solid var(--line); border-radius: 8px; }
+.cx-big.g-r { border-color: #5ab4ff; } .cx-big.g-m { border-color: #ff9a3a; } .cx-big.unk { background: #0c0a12; }
+.cx-at { margin: 4px 0 0; color: var(--mute); font-size: calc(12px * var(--df)); }
+.cx-hint { margin: 4px 0 0; color: #c8b0ff; font-size: calc(14px * var(--df)); font-style: italic; }
+.cx-mats { margin: 6px 0 0; font-size: calc(13px * var(--df)); line-height: 1.6; }
+.cx-mats img { width: 20px; height: 20px; image-rendering: pixelated; vertical-align: -5px; margin: 0 2px 0 4px; }
+.cx-mats small { color: var(--mute); }
 .cx-q { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; background: #1a1428; border-radius: 5px; color: #6a6080; font-weight: 900; }
 </style>
 </head><body style="margin:0">
@@ -2298,7 +2320,8 @@ if (typeof module !== 'undefined') module.exports = DFUSE;
 // 한 라운드 = 네 걸음: 갈래 고르기(카드 둘) → 던지기(붙잡기 · 다시 굴리기) → 놓기 → 싸우기. 상점 · 제단 · 사건 갈래는 던지지 않고 그 자리에서 끝난다.
 // 싸움에서 지면(권속이 다 쓰러지거나 시간이 다 되도록 지키는 자가 남으면) 남은 지키는 자의 무게만큼 생명이 깎인다 (보통 1 · 정예 2 · 우두머리 4).
 // 위대한 옛것 다섯의 신화 단계: 무작위(씨앗) 라운드에 하나가 떠올라 3~5라운드 머문다. 머무는 동안 신화 효과가 판의 규칙 하나를 바꾸고 퀘스트 하나가 걸린다.
-//   깨면 축복, 기한 안에 못 깨면 센 패널티. 사라지면 1~3라운드 쉬었다가 다른 것이 떠오른다. 떠오를 때마다 단계가 오른다 (1 → 2 → 3).
+//   신화 효과는 규칙에 걸리되 떠 있는 동안 화면에는 설명하지 않는다 (이름 · 남은 라운드 · 퀘스트만). 효과의 이름과 설명은 결과 장면(깸 · 못 깸)에 붙인다.
+//   깨면 축복, 기한 안에 못 깨면 리스크: 그 존재의 결대로 넷 가운데 무작위 하나 (씨앗으로 정한다, 모두 스물). 사라지면 1~3라운드 쉬었다가 다른 것이 떠오른다. 떠오를 때마다 단계가 오른다 (1 → 2 → 3).
 // 같은 판 씨앗과 같은 손놀림이면 늘 같다: 던지기 · 갈래 · 사건 · 싸움은 모두 (씨앗, 라운드, 횟수)로 정해지는 난수를 쓴다.
 const DICE = (() => {
   'use strict';
@@ -2313,6 +2336,8 @@ const DICE = (() => {
   const pickOf = (r, arr) => arr[Math.floor(r() * arr.length)];
   const between = (r, a, b) => a + Math.floor(r() * (b - a + 1));
   const pct = v => Math.round(v * 100);
+  // 받침이 있으면 a, 없으면 b (이/가 · 을/를)
+  const dJo = (w, a, b) => { const c = String(w).charCodeAt(String(w).length - 1); return w == null ? b : (c >= 0xAC00 && c <= 0xD7A3 && (c - 0xAC00) % 28 ? a : b); };
 
   // ───────── 수치 ─────────
   const K = {
@@ -2454,53 +2479,174 @@ const DICE = (() => {
   const BEING_ASP = { deep: 'abyss', stars: 'nebula', mother: 'brood', hood: 'dusk', belly: 'hunger' };
   const BEING_IDS = ['deep', 'stars', 'mother', 'hood', 'belly'];
   const BEINGS = {}; BEING_IDS.forEach(id => { const b = MO && MO.BEINGS && MO.BEINGS[id]; BEINGS[id] = { id, name: b ? b.name : BEING_NAME[id], asp: b ? b.asp : BEING_ASP[id], line: b ? b.line : '' }; });
-  // 단계(1~3)마다의 값. 효과 · 퀘스트 · 축복 · 패널티
+  // 단계(1~3)마다의 값. 효과 · 퀘스트 · 축복. 효과(effs)는 결과 장면에서만 이름과 설명을 보인다. 못 깨면 아래 리스크 표
   const MYTH = {
     deep: {
       eff: { wet: [0.25, 0.3, 0.35], hp: [0.2, 0.3, 0.4] },
-      effText: s => ['사람들이 싸움 처음 6초 동안 ' + pct(MYTH.deep.eff.wet[s - 1]) + '% 느려진다', '심연 권속 체력 +' + pct(MYTH.deep.eff.hp[s - 1]) + '%', '대신 다시 굴리기 −1'],
+      effs: s => [{ good: true, name: '물의 먹먹함', text: '사람들이 싸움 처음 6초 동안 ' + pct(MYTH.deep.eff.wet[s - 1]) + '% 느려지고, 심연 권속 체력 +' + pct(MYTH.deep.eff.hp[s - 1]) + '%' }, { good: false, name: '귀를 댄 물', text: '다시 굴리기 −1' }],
       quest: { k: 'flawless', need: [1, 1, 2], step: 1 }, questText: n => '권속을 하나도 잃지 않고 싸움에서 ' + n + '번 이겨라',
-      blessText: s => '아무 면 하나를 「' + (s >= 2 ? 3 : 2) + '성 심연」 면으로 바꾼다', penText: s => '가장 좋은 주사위 하나를 물 밑으로 빼앗긴다' + (s >= 3 ? ' · 생명 −3' : ''),
+      blessName: '젖은 면',
+      blessText: s => '아무 면 하나를 「' + (s >= 2 ? 3 : 2) + '성 심연」 면으로 바꾼다',
       rise: '— 에다 볼크의 일지에서. 「그 밤 물레골의 우물이란 우물이 한 뼘씩 차올랐으니, 나는 깊이를 알 수 없는 물 밑에서 무엇인가 이쪽 발소리에 귀를 대고 있다는 생각을 끝내 떨치지 못하였다.」',
       done: '깊은 데서 듣는 것은 들을 것을 다 들었다는 듯 물 밑으로 가라앉았고, 그 자리에 젖은 면 하나가 떠올랐다.',
       fail: '물이 빠진 자리에서 주사위 하나가 보이지 않았다. 그것이 어디로 끌려 내려갔는지, 기록하는 나는 묻지 않기로 하였다.',
     },
     stars: {
       eff: { torch: [1, 2, 2] },
-      effText: s => ['다시 굴리기 +1', '대신 떠 있는 동안 주사위 면 ' + MYTH.stars.eff.torch[s - 1] + '개가 횃불이 된다'],
+      effs: s => [{ good: true, name: '세는 눈길', text: '다시 굴리기 +1' }, { good: false, name: '별빛 횃불', text: '떠 있는 동안 주사위 면 ' + MYTH.stars.eff.torch[s - 1] + '개가 횃불이 된다' }],
       quest: { k: 'sets', need: [1, 1, 2], step: 1 }, questText: n => '같은 권속 면 셋 이상을 한 번에 던져 확정하기를 ' + n + '번',
-      blessText: s => '아무 면 하나를 「' + (s >= 2 ? 3 : 2) + '성 성운」 면으로 바꾼다', penText: s => '주사위 면 ' + [2, 3, 4][s - 1] + '개가 영영 횃불이 된다',
+      blessName: '별빛 눌어붙은 면',
+      blessText: s => '아무 면 하나를 「' + (s >= 2 ? 3 : 2) + '성 성운」 면으로 바꾼다',
       rise: '— 「물 아래의 장부」 한 쪽에서. 천장 너머 비유클리드의 하늘에서 무엇인가 주사위의 눈을 하나하나 세기 시작하였으니, 그 셈은 사람의 산술과 조금도 닮지 않았다.',
       done: '별을 세는 것은 셈이 맞았다는 듯 눈을 감았고, 주사위 면 하나에 식지 않는 별빛이 눌어붙었다.',
       fail: '셈이 맞지 않았다. 별을 세는 것이 모자란 만큼을 덜어 가고, 남긴 자리마다 꺼지지 않는 횃불이 그려져 있었다.',
     },
     mother: {
       eff: { dice: [2, 3, 4], hp: [0.15, 0.25, 0.35] },
-      effText: s => ['주사위 ' + MYTH.mother.eff.dice[s - 1] + '개의 빈 면 하나가 번식 권속 면이 된다 (떠 있는 동안)', '대신 지키는 자 체력 +' + pct(MYTH.mother.eff.hp[s - 1]) + '%'],
+      effs: s => [{ good: true, name: '때 아닌 새끼', text: '떠 있는 동안 주사위 ' + MYTH.mother.eff.dice[s - 1] + '개의 빈 면 하나가 번식 권속 면이 된다' }, { good: false, name: '어미의 젖', text: '지키는 자 체력 +' + pct(MYTH.mother.eff.hp[s - 1]) + '%' }],
       quest: { k: 'brood', need: [4, 6, 8], step: 2 }, questText: n => '번식 권속 면을 모두 ' + n + '개 던져 확정하라',
-      blessText: s => '유물 「어미의 젖줄」: ' + RELIC['b_mother' + s].short, penText: s => '생명 −' + [3, 4, 5][s - 1],
+      blessName: '어미의 젖줄',
+      blessText: s => '유물 「어미의 젖줄」: ' + RELIC['b_mother' + s].short,
       rise: '— 미렐 수녀의 고해 기록에서. 「알을 낳은 것을 낳은, 이름조차 불경한 어미가 언덕 아래에서 몸을 뒤척였고, 그 밤 마을의 모든 짐승이 때 아닌 새끼를 쳤습니다.」',
       done: '어미의 어미는 제 새끼들의 수를 헤아리고는 흡족한 듯 언덕 아래로 가라앉았으며, 굴의 벽이 한 뼘 넓어졌다.',
       fail: '어미의 어미는 준 것을 도로 거두어 갔다. 살덩이 한 겹이 뜯겨 나가던 그 소리를, 나는 지금도 꿈에서 듣는다.',
     },
     hood: {
       eff: { san: [0.2, 0.3, 0.4], atk: [0.2, 0.3, 0.4] },
-      effText: s => ['사람들의 정신 −' + pct(MYTH.hood.eff.san[s - 1]) + '% (더 쉽게 미친다)', '황혼 권속 공격 +' + pct(MYTH.hood.eff.atk[s - 1]) + '%', '대신 싸움마다 지키는 자가 하나 더 선다'],
+      effs: s => [{ good: true, name: '거꾸로 부른 노래', text: '사람들의 정신 −' + pct(MYTH.hood.eff.san[s - 1]) + '% · 황혼 권속 공격 +' + pct(MYTH.hood.eff.atk[s - 1]) + '%' }, { good: false, name: '노래를 들은 자', text: '싸움마다 지키는 자가 하나 더 선다' }],
       quest: { k: 'kills', need: [9, 13, 17], step: 4 }, questText: n => '사람 ' + n + '명을 쓰러뜨리거나 미치게 하라',
-      blessText: s => '유물 「노래의 마지막 소절」: ' + RELIC['b_hood' + s].short, penText: s => '다음 3라운드 동안 지키는 자 체력·공격 +' + [20, 30, 40][s - 1] + '%',
+      blessName: '노래의 마지막 소절',
+      blessText: s => '유물 「노래의 마지막 소절」: ' + RELIC['b_hood' + s].short,
       rise: '— 기사단의 심문 조서에서. 두건 아래의 것이 고갯길에 서서 신성모독의 노래를 거꾸로 부르니, 그것을 들은 자들의 눈동자가 하나같이 뒤집혔다고 증인은 진술하였다.',
       done: '노래가 끝났다. 두건 아래의 것은 고개를 한 번 끄덕이고 사라졌으며, 그 노래의 마지막 소절이 권속들의 목에 남았다.',
       fail: '두건 아래의 것이 손을 들어 굴 쪽을 가리켰고, 그 손을 본 자들은 횃불과 쇠붙이를 두 배로 챙겨 길목을 막아섰다.',
     },
     belly: {
       eff: { starve: [0.3, 0.4, 0.5] },
-      effText: s => ['처치 진액 두 배', '대신 싸움마다 권속 하나가 굶주린다 (그 싸움 체력·공격 −' + pct(MYTH.belly.eff.starve[s - 1]) + '%)'],
+      effs: s => [{ good: true, name: '두 배의 값', text: '처치 진액 두 배' }, { good: false, name: '빈 배의 허기', text: '싸움마다 권속 하나가 굶주린다 (그 싸움 체력·공격 −' + pct(MYTH.belly.eff.starve[s - 1]) + '%)' }],
       quest: { k: 'feed', need: [3, 4, 5], step: 1 }, questText: n => '권속 ' + n + '마리를 먹여라 (「먹이기」에 끌어다 놓는다)',
-      blessText: s => '유물 「트림처럼 뱉은 것」: ' + RELIC['b_belly' + s].short, penText: s => '가장 센 권속 ' + (s >= 3 ? '둘이' : '하나가') + ' 먹힌다',
+      blessName: '트림처럼 뱉은 것',
+      blessText: s => '유물 「트림처럼 뱉은 것」: ' + RELIC['b_belly' + s].short,
       rise: '— 연금술사 이셀의 장부에서. 「진액 값이 하룻밤 사이에 두 배가 되었다. 사람들은 한 번도 채워진 적 없는 배가 고갯마루에서 입을 벌렸다고 수군거린다.」',
       done: '비어 있는 배는 잠시나마 채워졌다. 그것이 트림처럼 뱉어 낸 것은 기분 나쁘게 따뜻한 무엇이었다.',
       fail: '비어 있는 배는 기다려 주지 않았다. 권속 가운데 가장 살진 것이 소리 없이 그 안으로 사라졌다.',
     },
+  };
+
+
+  // 효과 설명 한 줄씩 (안내서 · 시험용)
+  BEING_IDS.forEach(id => { MYTH[id].effText = s => MYTH[id].effs(s).map(e => e.name + ' — ' + e.text); });
+
+  // ───────── 리스크: 퀘스트를 못 깨면 그 존재의 결대로 무작위 하나 (존재마다 넷, 모두 스물) ─────────
+  //   id · name(짧은 이름) · lore(기록 한 줄) · short(s)(단계별 세기) · can(R, s)(걸 수 있는지) · go(R, s, r)(건다 → 결과 한 줄)
+  //   잠깐 걸리는 것은 R.hex 에 남는다: { k, until(라운드) | n(싸움 수), v, ids }. k = reroll · damp · elite · curse · extra · lock · nogold · starve
+  const allUnits = R => Object.keys(R.units).map(x => R.units[x]);
+  const killUnit = (R, u) => { take(R, u.uid); delete R.units[u.uid]; };
+  const hpOf = u => L.KIN[u.kind].hp * L.STARM[Math.min(3, u.star)] * FU.GRADE[u.grade || 'c'].mul * (u.star >= 4 ? FU.STAR4 : 1) * (1 + (u.fhp || 0));
+  const dieScore = d => d.faces.reduce((a, f) => { const q = kinOf(f); return a + (q ? L.KIN[q].cost * starOf(f) * starOf(f) : f === 'egg' || f === 'eye' ? 1 : 0); }, 0);
+  const hexOn = (R, k) => (R.hex || []).filter(h => h.k === k && (h.n != null ? h.n > 0 : R.round <= h.until));
+  const addHex = (R, h) => { (R.hex = R.hex || []).push(h); return h; };
+  const lockable = R => R.relics.filter(id => { const e = RELIC[id]; return !e.cap && !e.life && !hexOn(R, 'lock').some(h => h.ids.includes(id)); });
+  const starFaces = R => { const out = []; R.dice.forEach((d, i) => d.faces.forEach((f, j) => { if (kinOf(f) && starOf(f) > 1) out.push([i, j]); })); return out; };
+  const kinFaces = R => { const out = []; R.dice.forEach((d, i) => d.faces.forEach((f, j) => { if (kinOf(f)) out.push([i, j]); })); return out; };
+  const shuffle = (r, a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); const t = a[i]; a[i] = a[j]; a[j] = t; } return a; };
+  const nm = s => '「' + s + '」';
+  const kor = n => ['', '하나', '둘', '셋', '넷'][n] || String(n);
+  // 단계(1 · 2 · 3)마다의 세기. 리스크 이름 → 값. 균형은 여기서만 맞춘다
+  const RV = {
+    drown: { n: [1, 1, 2], best: [0, 1, 1] }, deaf: { v: [1, 1, 2], r: [3, 4, 4] }, pull: { n: [1, 1, 2], life: [0, 2, 2] }, damp: { v: [0.2, 0.25, 0.3], r: [3, 3, 4] },
+    torch: { n: [3, 4, 5] }, recarve: { d: [1, 1, 2], f: [3, 4, 4] }, elite: { n: [2, 3, 4] }, unstar: { n: [2, 3, 4] },
+    flesh: { n: [4, 5, 6] }, egg: { lose: [1, 2, 9] }, blank: { n: [3, 4, 5] }, shrink: { n: [3, 4, 5] },
+    curse: { v: [0.25, 0.35, 0.5], r: [3, 3, 4] }, mad: { n: [1, 1, 2] }, lock: { n: [1, 2, 2], r: [3, 4, 5] }, extra: { r: [3, 4, 4] },
+    eat: { n: [1, 1, 2], spare: [1, 0, 0] }, gold: { p: [1 / 2, 2 / 3, 1], min: [3, 4, 5] }, famine: { r: [3, 3, 4], all: [0, 1, 1] }, starve: { v: [0.35, 0.45, 0.55], r: [3, 3, 4] },
+  };
+  const rv = (id, k, s) => RV[id][k][s - 1];
+  const RISK = {
+    deep: [
+      { id: 'drown', name: '물에 잠긴 주사위', short: s => (rv('drown', 'best', s) ? '가장 좋은 주사위 ' : '무작위 주사위 ') + kor(rv('drown', 'n', s)) + dJo(kor(rv('drown', 'n', s)), '이', '가') + ' 물에 잠겨 사라진다',
+        lore: '— 에다 볼크의 일지에서. 「우물물이 빠지고 난 자리에 주사위가 보이지 않았으니, 그것이 어떤 깊이로 끌려 내려갔는지 나는 끝내 묻지 않기로 하였다.」',
+        can: R => R.dice.length > K.diceMin,
+        go: (R, s, r) => { const n = Math.min(rv('drown', 'n', s), R.dice.length - K.diceMin), lost = []; for (let k = 0; k < n; k++) { let bi = 0; if (!rv('drown', 'best', s)) bi = Math.floor(r() * R.dice.length); else R.dice.forEach((d, i) => { if (dieScore(d) > dieScore(R.dice[bi])) bi = i; }); lost.push(R.dice.splice(bi, 1)[0].name); } return lost.map(nm).join(', ') + dJo(lost[lost.length - 1], '이', '가') + ' 물 밑으로 사라졌다'; } },
+      { id: 'deaf', name: '먹먹해진 손', short: s => '다음 ' + rv('deaf', 'r', s) + '라운드 동안 다시 굴리기 −' + rv('deaf', 'v', s),
+        lore: '— 「물 아래의 장부」 한 쪽에서. 깊은 데서 듣는 것이 귀를 기울이자 주사위 구르는 소리가 물속처럼 먹먹해졌으니, 손은 두 번째 던지기를 기억하지 못하였다.',
+        can: () => true, go: (R, s) => { const h = addHex(R, { k: 'reroll', v: rv('deaf', 'v', s), until: R.round + rv('deaf', 'r', s) }); return '다음 ' + (h.until - R.round) + '라운드 동안 다시 굴리기 −' + h.v; } },
+      { id: 'pull', name: '끌려 들어간 것', short: s => '체력이 가장 높은 권속 ' + kor(rv('pull', 'n', s)) + dJo(kor(rv('pull', 'n', s)), '이', '가') + ' 물 밑으로 끌려 들어간다' + (rv('pull', 'life', s) ? ' · 생명 −' + rv('pull', 'life', s) : ''),
+        lore: '— 늙은 바스코의 구술을 받아 적은 것에서. 「가장 덩치 큰 놈이 우물가에 섰다가 무엇인가에 발목을 잡혔지. 물은 한 번도 출렁이지 않았네.」',
+        can: R => allUnits(R).length > 0,
+        go: (R, s) => { const out = []; for (let k = 0; k < rv('pull', 'n', s); k++) { const u = allUnits(R).sort((a, b) => hpOf(b) - hpOf(a) || a.uid - b.uid)[0]; if (!u) break; out.push(unitName(u)); killUnit(R, u); } const lf = rv('pull', 'life', s); R.life -= lf;
+          return out.map(nm).join(', ') + dJo(out[out.length - 1], '이', '가') + ' 물 밑으로 끌려 들어갔다' + (lf ? ' · 생명 −' + lf : ''); } },
+      { id: 'damp', name: '스며든 물', short: s => '다음 ' + rv('damp', 'r', s) + '라운드 동안 권속 체력 −' + pct(rv('damp', 'v', s)) + '%',
+        lore: '— 이름 모를 자의 연대기에서. 그 밤부터 굴의 벽마다 짠물이 배어 나왔으니, 권속들의 살은 물에 불어 쉬이 찢어졌다.',
+        can: () => true, go: (R, s) => { const h = addHex(R, { k: 'damp', v: rv('damp', 'v', s), until: R.round + rv('damp', 'r', s) }); return '다음 ' + (h.until - R.round) + '라운드 동안 권속 체력 −' + pct(h.v) + '%'; } },
+    ],
+    stars: [
+      { id: 'torch', name: '꺼지지 않는 횃불', short: s => '주사위 면 ' + rv('torch', 'n', s) + '개가 영영 횃불이 된다',
+        lore: '— 「물 아래의 장부」 한 쪽에서. 셈이 맞지 않았으니, 별을 세는 것이 덜어 간 자리마다 꺼지지 않는 횃불이 그려져 있었다.',
+        can: () => true, go: (R, s, r) => { const n = addTorch(R, rv('torch', 'n', s), r); return '면 ' + n + '개가 횃불이 되었다'; } },
+      { id: 'recarve', name: '다시 새긴 면', short: s => '가장 좋은 주사위 ' + kor(rv('recarve', 'd', s)) + '의 면 ' + rv('recarve', 'f', s) + '개씩이 빈 면이나 가장 값싼 권속 면으로 다시 새겨진다',
+        lore: '— 기록관의 장부 귀퉁이에서. 아침에 보니 주사위의 눈이 밤사이 저절로 다시 새겨져 있었는데, 그 칼자국은 사람의 손이 낸 것이 아니었다.',
+        can: R => R.dice.some(d => d.faces.some(f => kinOf(f))),
+        go: (R, s, r) => { const order = R.dice.map((d, i) => i).sort((a, b) => dieScore(R.dice[b]) - dieScore(R.dice[a])).slice(0, rv('recarve', 'd', s)), cheap = L.KIN_IDS.filter(k => L.KIN[k].cost === 1), out = [];
+          order.forEach(i => { const d = R.dice[i], js = shuffle(r, d.faces.map((f, j) => j).filter(j => kinOf(d.faces[j]) || d.faces[j] === 'egg' || d.faces[j] === 'eye')).slice(0, rv('recarve', 'f', s)); js.forEach(j => { d.faces[j] = r() < 0.5 ? 'blank' : pickOf(r, cheap); }); R.temp = R.temp.filter(t => t.die !== d.id); if (js.length) out.push(nm(d.name) + '의 면 ' + js.length + '개'); });
+          return (out.length ? out.join(', ') : '면 0개') + '가 다시 새겨졌다'; } },
+      { id: 'elite', name: '미리 센 자들', short: s => '다음 싸움 ' + rv('elite', 'n', s) + '번, 지키는 자에 정예가 하나 더 선다',
+        lore: '— 토브 카인의 쪽지에서. 「누군가 우리 쪽 수를 미리 세어 간 모양이다. 이튿날부터 길목마다 기사가 한 사람씩 더 서 있었다.」',
+        can: () => true, go: (R, s) => { const h = addHex(R, { k: 'elite', n: rv('elite', 'n', s) }); return '다음 싸움 ' + h.n + '번, 정예가 하나 더 선다'; } },
+      { id: 'unstar', name: '덜어 낸 별', short: s => '주사위의 별 면 ' + rv('unstar', 'n', s) + '개가 1성 면으로 깎인다',
+        lore: '— 「물 아래의 장부」 한 쪽에서. 별을 세는 것은 셈이 모자란 만큼을 주사위에서 덜어 갔으니, 새겨 둔 별이 하나씩 꺼져 갔다.',
+        can: R => starFaces(R).length > 0,
+        go: (R, s, r) => { const sp = shuffle(r, starFaces(R)).slice(0, rv('unstar', 'n', s)); sp.forEach(([i, j]) => { R.dice[i].faces[j] = kinOf(R.dice[i].faces[j]); }); return '별 면 ' + sp.length + '개가 1성 면으로 깎였다'; } },
+    ],
+    mother: [
+      { id: 'flesh', name: '거두어 간 살', short: s => '생명 −' + rv('flesh', 'n', s),
+        lore: '— 이름 모를 자의 연대기에서. 어미의 어미는 준 것을 도로 거두어 갔으니, 본체의 살덩이 한 겹이 뜯겨 나가던 그 소리를 나는 지금도 꿈에서 듣는다.',
+        can: () => true, go: (R, s) => { const n = rv('flesh', 'n', s); R.life -= n; return '생명 −' + n; } },
+      { id: 'egg', name: '알로 돌아간 것', short: s => '별이 가장 높은 권속이 ' + (rv('egg', 'lose', s) >= 9 ? '알로 돌아가 1성이 된다' : '별 ' + kor(rv('egg', 'lose', s)) + dJo(kor(rv('egg', 'lose', s)), '을', '를') + ' 잃는다'),
+        lore: '— 미렐 수녀의 고해 기록에서. 「다 자란 것이 어미의 부름에 다시 껍데기 속으로 기어들어 가는 것을, 저는 제 눈으로 보았습니다.」',
+        can: R => allUnits(R).some(u => u.star >= 2),
+        go: (R, s) => { const u = allUnits(R).filter(x => x.star >= 2).sort((a, b) => b.star - a.star || strength(b) - strength(a) || a.uid - b.uid)[0], n0 = unitName(u), s0 = u.star; u.star = Math.max(1, u.star - rv('egg', 'lose', s)); u.fed = Math.min(u.fed || 0, FU.feedCap(u));
+          return nm(n0) + dJo(n0, '이', '가') + ' ' + (u.star === 1 ? '알로 돌아가 1성이 되었다' : '별을 잃었다') + ' (' + s0 + '성 → ' + u.star + '성)'; } },
+      { id: 'blank', name: '거둔 면', short: s => '권속 면 ' + rv('blank', 'n', s) + '개가 빈 면이 된다',
+        lore: '— 촌장의 편지에서. 그 밤 마을의 알이란 알은 모두 속이 비어 있었으니, 어미의 어미가 무엇을 거두어 갔는지 나는 감히 헤아리지 못하겠다.',
+        can: R => kinFaces(R).length > 0,
+        go: (R, s, r) => { const sp = shuffle(r, kinFaces(R)).slice(0, rv('blank', 'n', s)); sp.forEach(([i, j]) => { R.dice[i].faces[j] = 'blank'; R.temp = R.temp.filter(t => !(t.die === R.dice[i].id && t.face === j)); }); return '권속 면 ' + sp.length + '개가 빈 면이 되었다'; } },
+      { id: 'shrink', name: '줄어든 몸', short: s => '생명 최대 −' + rv('shrink', 'n', s),
+        lore: '— 연금술사 이셀의 장부에서. 「굴에서 흘러나오는 진액이 하룻밤 사이에 묽어졌다. 무엇인가 그 몸을 한 겹 덜어 간 것이 틀림없다.」',
+        can: R => R.lifeMax > 6, go: (R, s) => { const n = Math.min(rv('shrink', 'n', s), R.lifeMax - 4); R.lifeMax -= n; R.life = Math.min(R.life, R.lifeMax); return '생명 최대 −' + n + ' (' + R.life + '/' + R.lifeMax + ')'; } },
+    ],
+    hood: [
+      { id: 'curse', name: '길목을 막은 자들', short: s => '다음 ' + rv('curse', 'r', s) + '라운드 동안 지키는 자 체력·공격 +' + pct(rv('curse', 'v', s)) + '%',
+        lore: '— 기사단의 심문 조서에서. 두건 아래의 것이 손을 들어 굴 쪽을 가리켰고, 그 손을 본 자들은 횃불과 쇠붙이를 두 배로 챙겨 길목을 막아섰다.',
+        can: () => true, go: (R, s) => { const h = addHex(R, { k: 'curse', v: rv('curse', 'v', s), until: R.round + rv('curse', 'r', s) }); return '다음 ' + (h.until - R.round) + '라운드 동안 지키는 자 체력·공격 +' + pct(h.v) + '%'; } },
+      { id: 'mad', name: '미쳐 떠난 것', short: s => '2성 이상 권속 가운데 무작위 ' + kor(rv('mad', 'n', s)) + dJo(kor(rv('mad', 'n', s)), '이', '가') + ' 노래를 따라 미쳐 떠난다',
+        lore: '— 기사단의 심문 조서에서. 증인은 굴의 것 하나가 거꾸로 된 노래를 따라 고갯마루를 넘어갔으며, 다시는 돌아오지 않았다고 진술하였다.',
+        can: R => allUnits(R).length > 0,
+        go: (R, s, r) => { const out = []; for (let k = 0; k < rv('mad', 'n', s); k++) { let pool = allUnits(R); if (pool.some(u => u.star >= 2)) pool = pool.filter(u => u.star >= 2); if (!pool.length) break; const u = pickOf(r, pool.sort((a, b) => a.uid - b.uid)); out.push(unitName(u)); killUnit(R, u); }
+          return out.map(nm).join(', ') + dJo(out[out.length - 1], '이', '가') + ' 미쳐 떠났다'; } },
+      { id: 'lock', name: '잠긴 유물', short: s => '유물 ' + kor(rv('lock', 'n', s)) + dJo(kor(rv('lock', 'n', s)), '이', '가') + ' 다음 ' + rv('lock', 'r', s) + '라운드 동안 잠긴다 (힘이 없다)',
+        lore: '— 「물 아래의 장부」 한 쪽에서. 두건 아래의 것이 노래의 한 소절을 빼먹자, 굴에 모아 둔 것들이 하나둘 입을 다물었다.',
+        can: R => lockable(R).length > 0,
+        go: (R, s, r) => { const ids = shuffle(r, lockable(R)).slice(0, rv('lock', 'n', s)), h = addHex(R, { k: 'lock', ids, until: R.round + rv('lock', 'r', s) }); return '유물 ' + ids.map(id => nm(RELIC[id].name)).join(', ') + dJo(RELIC[ids[ids.length - 1]].name, '이', '가') + ' 다음 ' + (h.until - R.round) + '라운드 동안 잠겼다'; } },
+      { id: 'extra', name: '하나 더 선 자', short: s => '다음 ' + rv('extra', 'r', s) + '라운드 동안 싸움마다 지키는 자가 하나 더 선다',
+        lore: '— 기사단의 심문 조서에서. 노래를 들은 마을마다 자원하는 자가 하나씩 늘었으니, 그들의 눈동자는 하나같이 뒤집혀 있었다.',
+        can: () => true, go: (R, s) => { const h = addHex(R, { k: 'extra', until: R.round + rv('extra', 'r', s) }); return '다음 ' + (h.until - R.round) + '라운드 동안 싸움마다 지키는 자가 하나 더 선다'; } },
+    ],
+    belly: [
+      { id: 'eat', name: '먹힌 것', short: s => '가장 센 권속 ' + kor(rv('eat', 'n', s)) + dJo(kor(rv('eat', 'n', s)), '이', '가') + ' 먹힌다' + (rv('eat', 'spare', s) ? ' (4성 · 신화는 빼고)' : ''),
+        lore: '— 이름 모를 자의 연대기에서. 비어 있는 배는 기다려 주지 않았으니, 권속 가운데 가장 살진 것이 소리 없이 그 안으로 사라졌다.',
+        can: R => allUnits(R).length > 0,
+        go: (R, s) => { const out = []; for (let k = 0; k < rv('eat', 'n', s); k++) { let pool = allUnits(R); if (rv('eat', 'spare', s) && pool.some(u => u.star < 4 && !u.myth)) pool = pool.filter(u => u.star < 4 && !u.myth); if (!pool.length) break; const u = pool.sort((a, b) => strength(b) - strength(a) || a.uid - b.uid)[0]; out.push(unitName(u)); killUnit(R, u); }
+          return out.map(nm).join(', ') + dJo(out[out.length - 1], '이', '가') + ' 먹혔다'; } },
+      { id: 'gold', name: '빼앗긴 진액', short: s => '진액 ' + ['절반', '3분의 2', '모두'][s - 1] + dJo(['절반', '3분의 2', '모두'][s - 1], '을', '를') + ' 빼앗긴다 (적어도 ' + rv('gold', 'min', s) + ')',
+        lore: '— 연금술사 이셀의 장부에서. 「창고의 진액 항아리가 밤사이 바닥까지 비었다. 마개는 그대로였고, 항아리 안쪽에 이빨 자국이 나 있었다.」',
+        can: R => R.gold >= 3, go: (R, s) => { const n = Math.min(R.gold, Math.max(rv('gold', 'min', s), Math.ceil(R.gold * rv('gold', 'p', s)))); R.gold -= n; return '진액 −' + n + ' (남은 진액 ' + R.gold + ')'; } },
+      { id: 'famine', name: '주린 길', short: s => '다음 ' + rv('famine', 'r', s) + '라운드 동안 처치 진액 0' + (rv('famine', 'all', s) ? ' · 이겨도 진액 0' : ''),
+        lore: '— 늙은 바스코의 구술을 받아 적은 것에서. 「그 뒤로 쓰러진 자들의 몸에서는 피 한 방울 나지 않았네. 무엇인가 먼저 다 마셔 버린 것이지.」',
+        can: () => true, go: (R, s) => { const h = addHex(R, { k: 'nogold', v: rv('famine', 'all', s) ? 2 : 1, until: R.round + rv('famine', 'r', s) }); return '다음 ' + (h.until - R.round) + '라운드 동안 처치 진액 0' + (h.v >= 2 ? ' · 이겨도 진액 0' : ''); } },
+      { id: 'starve', name: '굶주림', short: s => '다음 ' + rv('starve', 'r', s) + '라운드 동안 싸움마다 권속 하나가 굶주린다 (체력·공격 −' + pct(rv('starve', 'v', s)) + '%)',
+        lore: '— 이름 모를 자의 연대기에서. 그 배가 다녀간 뒤로 굴의 것들은 아무리 먹어도 배가 꺼져 있었으니, 굶주림이 그들 사이를 차례로 옮겨 다녔다.',
+        can: () => true, go: (R, s) => { const h = addHex(R, { k: 'starve', v: rv('starve', 'v', s), until: R.round + rv('starve', 'r', s) }); return '다음 ' + (h.until - R.round) + '라운드 동안 싸움마다 권속 하나가 굶주린다 (−' + pct(h.v) + '%)'; } },
+    ],
   };
 
   // ───────── 사건 (짧은 기록 + 둘 중 하나) ─────────
@@ -2530,15 +2676,18 @@ const DICE = (() => {
     const r = rng(seed, 0x5eed), order = BEING_IDS.slice(); for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); const t = order[i]; order[i] = order[j]; order[j] = t; }
     const R = { v: 2, seed, round: 1, phase: 'route', over: null, life: K.life, lifeMax: K.life, gold: K.gold, kills: 0, cap: K.cap, nextUid: 1, units: {}, board: {}, bench: new Array(K.bench).fill(null),
       dice: START.map(([name, faces], i) => ({ id: i + 1, name, faces: faces.slice() })), nextDie: START.length + 1, relics: [], plus: { reroll: 0 }, roll: null, hist: [], torch: 0, daily: !!opts.daily, last: null,
-      route: null, node: null, shop: null, altar: null, event: null, out: null, pend: [], retry: 0, fed: 0, nextFight: null, curse: null, starve: null,
+      route: null, node: null, shop: null, altar: null, event: null, out: null, pend: [], retry: 0, fed: 0, nextFight: null, hex: [], starve: null,
       myth: null, mythNext: between(r, K.myth.first[0], K.myth.first[1]), mythOrder: order, mythCount: 0, mythLog: [], mythEv: [], temp: [], won: 0, lost: 0, found: [], fusions: 0, mythics: 0, fedUnits: 0 };
     startRound(R); return R;
   }
-  const mod = (R, k) => R.relics.reduce((a, id) => a + (RELIC[id][k] || 0), 0);
+  // 잠긴 유물(두건 아래의 것의 리스크)은 힘이 없다
+  const locked = (R, id) => hexOn(R, 'lock').some(h => h.ids.includes(id));
+  const liveRelics = R => R.relics.filter(id => !locked(R, id));
+  const mod = (R, k) => liveRelics(R).reduce((a, id) => a + (RELIC[id][k] || 0), 0);
   const capOf = R => clamp(R.cap + mod(R, 'cap'), 1, K.capMax);
   const mythOn = (R, id) => !!(R.myth && R.myth.id === id);
   const stg = R => (R.myth ? R.myth.stage : 1);
-  const rerollsOf = R => Math.max(0, K.rerolls + mod(R, 'reroll') + R.plus.reroll + (mythOn(R, 'stars') ? 1 : 0) - (mythOn(R, 'deep') ? 1 : 0));
+  const rerollsOf = R => Math.max(0, K.rerolls + mod(R, 'reroll') + R.plus.reroll + (mythOn(R, 'stars') ? 1 : 0) - (mythOn(R, 'deep') ? 1 : 0) - hexOn(R, 'reroll').reduce((a, h) => a + h.v, 0));
   const benchFree = R => R.bench.indexOf(null);
   const boardUids = R => Object.keys(R.board).map(c => R.board[c]);
   const valueOf = u => Math.pow(2, u.star - 1) * FU.GRADE[u.grade || 'c'].mul;
@@ -2548,6 +2697,8 @@ const DICE = (() => {
 
   function startRound(R) {
     R.node = null; R.route = null; R.shop = null; R.altar = null; R.event = null; R.out = null; R.roll = null; R.torch = 0; R.aspBonus = {}; R.starve = null;
+    // 기한이 지난 리스크는 걷어 낸다
+    R.hex = (R.hex || []).filter(h => (h.n != null ? h.n > 0 : R.round <= h.until));
     // 지역에 들어서면 사람들이 횃불 면 하나를 섞어 넣는다
     if (K.torchAt.includes(R.round) && !R.retry) { const n = addTorch(R, 1, rng(R.seed, R.round, 77)); if (n) R.torchNote = { round: R.round }; }
     mythRise(R);
@@ -2577,35 +2728,25 @@ const DICE = (() => {
     R.mythEv.push({ type: 'rise', id, stage, until: R.myth.until, round: R.round });
   }
   function revertTemp(R) { R.temp.forEach(t => { const d = R.dice.find(x => x.id === t.die); if (d && d.faces[t.face] === t.to) d.faces[t.face] = t.was; }); R.temp = []; }
-  function mythEnd(R, okd) {
-    const m = R.myth; if (!m) return; revertTemp(R); R.mythLog.push({ id: m.id, stage: m.stage, ok: okd, round: R.round });
+  function mythEnd(R, okd, riskId) {
+    const m = R.myth; if (!m) return; revertTemp(R); R.mythLog.push({ id: m.id, stage: m.stage, ok: okd, round: R.round, risk: riskId || null });
     R.myth = null; R.mythNext = R.round + 1 + between(rng(R.seed, R.round, 0x9a9), K.myth.gap[0], K.myth.gap[1]);
   }
   // 퀘스트가 나아간다 (k 가 맞을 때만). 다 채우면 곧바로 축복을 받고 옛것은 가라앉는다
   function questAdd(R, k, n) {
     const m = R.myth; if (!m || m.q.k !== k || !(n > 0)) return; m.q.have = Math.min(m.q.need, m.q.have + n);
-    if (m.q.have >= m.q.need) { const b = bless(R, m.id, m.stage); R.mythEv.push({ type: 'done', id: m.id, stage: m.stage, bless: b }); mythEnd(R, true); }
+    if (m.q.have >= m.q.need) { const b = bless(R, m.id, m.stage); R.mythEv.push({ type: 'done', id: m.id, stage: m.stage, bless: b, effs: MYTH[m.id].effs(m.stage) }); mythEnd(R, true); }
   }
   function bless(R, id, s) {
-    if (id === 'deep' || id === 'stars') { const asp = BEING_ASP[id], to = topKin(R.round, asp) + '*' + (s >= 2 ? 3 : 2); R.pend.push({ to, why: 'bless', id }); return { face: to, text: MYTH[id].blessText(s) }; }
-    const rid = 'b_' + id + s; grantRelic(R, rid); return { relic: rid, text: MYTH[id].blessText(s) };
+    if (id === 'deep' || id === 'stars') { const asp = BEING_ASP[id], to = topKin(R.round, asp) + '*' + (s >= 2 ? 3 : 2); R.pend.push({ to, why: 'bless', id }); return { face: to, name: MYTH[id].blessName, text: MYTH[id].blessText(s) }; }
+    const rid = 'b_' + id + s; grantRelic(R, rid); return { relic: rid, name: '유물 「' + RELIC[rid].name + '」', text: RELIC[rid].short };
   }
-  function penalty(R, id, s) {
-    const out = { text: MYTH[id].penText(s), lines: [] }, r = rng(R.seed, R.round, 0xbad);
-    if (id === 'deep') {
-      if (R.dice.length > K.diceMin) { const score = d => d.faces.reduce((a, f) => { const q = kinOf(f); return a + (q ? L.KIN[q].cost * starOf(f) * starOf(f) : f === 'egg' || f === 'eye' ? 1 : 0); }, 0); let bi = 0; R.dice.forEach((d, i) => { if (score(d) > score(R.dice[bi])) bi = i; }); const d = R.dice.splice(bi, 1)[0]; out.lost = d.name; out.lines.push('「' + d.name + '」를 잃었다'); }
-      else out.lines.push('주사위가 ' + K.diceMin + '개뿐이라 빼앗기지 않았다');
-      if (s >= 3) { R.life -= 3; out.life = -3; }
-    } else if (id === 'stars') { const n = addTorch(R, [2, 3, 4][s - 1], r); out.torch = n; out.lines.push('면 ' + n + '개가 횃불이 되었다'); }
-    else if (id === 'mother') { const n = [3, 4, 5][s - 1]; R.life -= n; out.life = -n; }
-    else if (id === 'hood') { const v = [0.2, 0.3, 0.4][s - 1]; R.curse = { until: R.round + 3, hp: v, atk: v }; out.curse = v; }
-    else if (id === 'belly') {
-      const n = s >= 3 ? 2 : 1; out.eaten = [];
-      for (let k = 0; k < n; k++) { const all = Object.keys(R.units).map(x => R.units[x]); if (!all.length) break; const u = all.sort((a, b) => strength(b) - strength(a))[0]; out.eaten.push(unitName(u)); take(R, u.uid); delete R.units[u.uid]; }
-      out.lines.push(out.eaten.length ? out.eaten.join(', ') + ' 먹힘' : '먹을 권속이 없었다');
-    }
+  // 리스크: 그 존재의 넷 가운데 지금 걸 수 있는 것에서 씨앗으로 하나 (force = 시험용 id). 결과 한 줄을 돌려준다
+  function riskPick(R, id, s) { const can = RISK[id].filter(x => x.can(R, s)); return pickOf(rng(R.seed, R.round, 0xbad, R.mythCount, s), can.length ? can : RISK[id]); }
+  function risk(R, id, s, force) {
+    const x = (force && RISK[id].find(q => q.id === force)) || riskPick(R, id, s), line = x.go(R, s, rng(R.seed, R.round, 0xbad1, R.mythCount));
     if (R.life <= 0) { R.life = 0; R.phase = 'over'; R.over = 'lose'; }
-    return out;
+    return { id: x.id, name: x.name, lore: x.lore, line, text: x.name + ' — ' + line };
   }
   const ackMyth = R => R.mythEv.shift() || null;
   // 시험용: 지금 라운드에 옛것 하나를 띄운다
@@ -2864,13 +3005,15 @@ const DICE = (() => {
   }
   function kinPow(R, u) {
     const gm = FU.GRADE[u.grade || 'c'].mul * (u.star >= 4 ? FU.STAR4 : 1); let hp = gm * (1 + (u.fhp || 0)), atk = gm * (1 + (u.fatk || 0)); const a = L.KIN[u.kind].asp;
-    R.relics.forEach(id => { const k = RELIC[id].kin; if (k && k.asp === a) { hp *= 1 + (k.hp || 0); atk *= 1 + (k.atk || 0); } });
+    liveRelics(R).forEach(id => { const k = RELIC[id].kin; if (k && k.asp === a) { hp *= 1 + (k.hp || 0); atk *= 1 + (k.atk || 0); } });
     const m = R.myth; if (m) { const s = m.stage - 1; if (m.id === 'deep' && a === 'abyss') hp *= 1 + MYTH.deep.eff.hp[s]; if (m.id === 'hood' && a === 'dusk') atk *= 1 + MYTH.hood.eff.atk[s]; }
     if (R.starve && R.starve.uid === u.uid) { hp *= 1 - R.starve.v; atk *= 1 - R.starve.v; }
+    // 리스크 「스며든 물」: 권속 체력 −
+    hexOn(R, 'damp').forEach(h => { hp *= 1 - h.v; });
     return { hp, atk };
   }
   function boonsOf(R) {
-    const bo = {}; R.relics.forEach(id => { const b = RELIC[id].bo; if (b) Object.keys(b).forEach(k => { bo[k] = (bo[k] || 0) + b[k]; }); });
+    const bo = {}; liveRelics(R).forEach(id => { const b = RELIC[id].bo; if (b) Object.keys(b).forEach(k => { bo[k] = (bo[k] || 0) + b[k]; }); });
     // 신화 권속의 힘 · 4성의 힘 (세운 권속만, 같은 것은 한 번)
     const seen = {}; boardUids(R).forEach(id => { const u = R.units[id]; if (!u) return; const add = (key, b) => { if (seen[key]) return; seen[key] = 1; Object.keys(b).forEach(k => { bo[k] = (bo[k] || 0) + b[k]; }); };
       if (u.myth && FU.RECIPE[u.myth]) add('m:' + u.myth, FU.RECIPE[u.myth].bo); if (u.star >= 4) add('a:' + L.KIN[u.kind].asp, FU.AURA4[L.KIN[u.kind].asp].bo); });
@@ -2878,16 +3021,18 @@ const DICE = (() => {
     if (bo.sanfrenzy) bo.sanfrenzy = Math.min(0.7, bo.sanfrenzy); if (bo.wetall) bo.wetall = Math.min(0.6, bo.wetall); if (bo.laststand) bo.laststand = Math.min(2, bo.laststand); if (bo.eggsac) bo.eggsac = Math.min(2, bo.eggsac); if (bo.stunstart) bo.stunstart = Math.min(2.5, bo.stunstart);
     return bo;
   }
-  // 이 싸움의 지키는 자 (두건 아래의 것이 떠 있으면 하나 더)
+  // 이 싸움의 지키는 자 (두건 아래의 것이 떠 있으면 하나 더 · 리스크: 정예가 하나 더 · 지키는 자가 하나 더)
   function foesOf(R) {
-    const n = R.node; if (!n || !n.foes) return []; const f = n.foes.slice();
+    const n = R.node; if (!n || !n.foes) return []; const f = n.foes.slice(), g0 = regionOf(R.round);
+    if (hexOn(R, 'elite').length) f.push({ kind: g0.elite, w: K.weight.elite, extra: true });
+    if (hexOn(R, 'extra').length) { const q = rng(R.seed, R.round, 0x400e, R.retry), fr = g0.pool.filter(isFront); const k = pickOf(q, fr.length ? fr : g0.pool); f.push({ kind: k, w: weightOfKind(k), extra: true }); }
     if (mythOn(R, 'hood')) { const g = regionOf(R.round), q = rng(R.seed, R.round, 0x400d, R.retry), fr = g.pool.filter(isFront); const k = pickOf(q, fr.length ? fr : g.pool); f.push({ kind: k, w: weightOfKind(k), extra: true }); }
     return f;
   }
   function foeMul(R) {
     let hp = 1, atk = 1; const m = R.myth;
     if (m && m.id === 'mother') hp *= 1 + MYTH.mother.eff.hp[m.stage - 1];
-    if (R.curse && R.round <= R.curse.until) { hp *= 1 + R.curse.hp; atk *= 1 + R.curse.atk; }
+    hexOn(R, 'curse').forEach(h => { hp *= 1 + h.v; atk *= 1 + h.v; });
     if (R.nextFight) hp *= 1 + (R.nextFight.hp || 0);
     hp *= 1 + K.torchHp * (R.torch || 0);
     return { hp, atk };
@@ -2904,14 +3049,16 @@ const DICE = (() => {
     if (R.phase !== 'place') return fail(R.phase === 'roll' ? '먼저 주사위를 확정하라' : '지금은 싸울 때가 아니다');
     if (!boardUids(R).length) return fail('세운 권속이 없다');
     // 비어 있는 배: 싸움마다 권속 하나가 굶주린다
-    if (mythOn(R, 'belly')) { const ids = boardUids(R), q = rng(R.seed, R.round, 0xbe11, R.retry); R.starve = { uid: ids[Math.floor(q() * ids.length)], v: MYTH.belly.eff.starve[R.myth.stage - 1] }; }
+    //   리스크 「굶주림」도 같다 (둘이면 센 쪽)
+    const sv = Math.max(mythOn(R, 'belly') ? MYTH.belly.eff.starve[R.myth.stage - 1] : 0, ...hexOn(R, 'starve').map(h => h.v));
+    if (sv > 0) { const ids = boardUids(R), q = rng(R.seed, R.round, 0xbe11, R.retry); R.starve = { uid: ids[Math.floor(q() * ids.length)], v: sv }; }
     const S = setupOf(R), f = L.simulate(S), node = R.node;
     const W = {}; S.inv.forEach(o => { W[o.kind] = Math.max(W[o.kind] || 0, o.w); });
     const left = f.final.filter(x => x.home === 'inv' && !x.summon && x.alive && !x.mad), kills = f.final.filter(x => x.home === 'inv' && !x.summon && (!x.alive || x.mad)).length;
     const kinLost = f.final.filter(x => x.home === 'nest' && !x.summon && !x.core && !x.alive).length, kinAlive = f.final.filter(x => x.home === 'nest' && !x.summon && !x.core && x.alive).length;
     const win = left.length === 0, leftList = left.map(x => ({ kind: x.kind, name: (L.INV[x.kind] || {}).name, w: W[x.kind] || weightOfKind(x.kind) })), loss = win ? 0 : leftList.reduce((a, x) => a + x.w, 0);
     const lifeBefore = R.life; R.life = Math.max(0, R.life - loss);
-    const kg = (K.killGold + mod(R, 'killGold')) * kills * (mythOn(R, 'belly') ? 2 : 1), wg = win ? K.winGold : 0, ig = mod(R, 'interest') ? Math.min(3, Math.floor(R.gold / 10)) : 0;
+    const ng = hexOn(R, 'nogold').reduce((a, h) => Math.max(a, h.v), 0), kg = ng ? 0 : (K.killGold + mod(R, 'killGold')) * kills * (mythOn(R, 'belly') ? 2 : 1), wg = win && ng < 2 ? K.winGold : 0, ig = mod(R, 'interest') ? Math.min(3, Math.floor(R.gold / 10)) : 0;
     let regen = 0; if (win && mod(R, 'regen') && R.life < R.lifeMax) { regen = 1; R.life++; }
     const gold = kg + wg + ig; R.gold += gold; R.kills += kills; if (win) R.won++; else R.lost++;
     f.breakdown.forEach(b => { if (b.side !== 'nest' || b.summon || !/^k\d+$/.test(b.id)) return; const u = R.units[+b.id.slice(1)]; if (u) { u.dmg += Math.round(b.dmg); u.kills += b.kills; u.fights++; } });
@@ -2920,6 +3067,7 @@ const DICE = (() => {
     const starve = R.starve ? { uid: R.starve.uid, v: R.starve.v, name: R.units[R.starve.uid] ? unitName(R.units[R.starve.uid]) : '' } : null;
     const res = { round: R.round, region: regionOf(R.round).name, type: node.type, name: routeTitle(node), boss: node.type === 'boss', win, kills, loss, leftList, kinLost, kinAlive, lifeBefore, life: R.life, gold, goldParts: { kill: kg, win: wg, interest: ig }, regen, time: f.time, torch: R.torch, reward: got, starve, timeout: !win && kinAlive > 0, retry: R.retry };
     R.hist.push({ round: R.round, type: node.type, win, loss, life: R.life, kills }); R.last = res; R.nextFight = null;
+    hexOn(R, 'elite').forEach(h => { h.n--; });
     // 퀘스트: 아무도 잃지 않고 이김 (깊은 데) · 처치 (두건)
     if (win && kinLost === 0) questAdd(R, 'flawless', 1);
     questAdd(R, 'kills', kills);
@@ -2958,8 +3106,8 @@ const DICE = (() => {
   // ───────── 다음 라운드 ─────────
   function next(R) {
     if (R.phase !== 'done') return fail('지금은 넘어갈 수 없다'); if (R.pend.length) return fail('먼저 바꿀 면을 골라라');
-      // 옛것의 기한이 지났으면 패널티
-    if (R.myth && R.myth.until <= R.round) { const m = R.myth, p = penalty(R, m.id, m.stage); R.mythEv.push({ type: 'fail', id: m.id, stage: m.stage, pen: p }); mythEnd(R, false); if (R.phase === 'over') return ok({ over: true }); }
+    // 옛것의 기한이 지났으면 리스크 (R.forceRisk = 시험용으로 고른 리스크 id)
+    if (R.myth && R.myth.until <= R.round) { const m = R.myth, p = risk(R, m.id, m.stage, R.forceRisk); R.mythEv.push({ type: 'fail', id: m.id, stage: m.stage, risk: p, effs: MYTH[m.id].effs(m.stage) }); mythEnd(R, false, p.id); if (R.phase === 'over') return ok({ over: true }); }
     if (R.round >= K.rounds) { R.retry++; startRound(R); return ok({ round: R.round, retry: R.retry }); }
     R.round++; R.retry = 0; startRound(R); return ok({ round: R.round });
   }
@@ -2998,8 +3146,11 @@ const DICE = (() => {
   function mythInfo(R, m) {
     m = m || R.myth; if (!m) return null; const B = BEINGS[m.id], M = MYTH[m.id];
     return { id: m.id, name: B.name, asp: B.asp, aspName: ASPN[B.asp], stage: m.stage, from: m.from, until: m.until, left: Math.max(0, m.until - R.round + 1), quest: { k: m.q.k, need: m.q.need, have: m.q.have, text: M.questText(m.q.need) },
-      eff: M.effText(m.stage), bless: M.blessText(m.stage), pen: M.penText(m.stage), rise: M.rise, done: M.done, fail: M.fail, line: B.line };
+      effs: M.effs(m.stage), rise: M.rise, done: M.done, line: B.line };
   }
+  // 걸려 있는 리스크 (짧은 이름 · 남은 라운드 또는 싸움 수)
+  const HEXN = { reroll: h => '다시 굴리기 −' + h.v, damp: h => '권속 체력 −' + pct(h.v) + '%', elite: () => '정예 +1', curse: h => '지키는 자 +' + pct(h.v) + '%', extra: () => '지키는 자 +1', lock: h => '유물 ' + h.ids.length + '개 잠김', nogold: h => (h.v >= 2 ? '진액 0' : '처치 진액 0'), starve: () => '굶주림' };
+  function hexView(R) { return ['reroll', 'damp', 'elite', 'curse', 'extra', 'lock', 'nogold', 'starve'].reduce((a, k) => a.concat(hexOn(R, k)), []).map(h => ({ k: h.k, text: HEXN[h.k](h), left: h.n != null ? h.n : h.until - R.round + 1, unit: h.n != null ? '싸움' : '라운드', ids: h.ids || null })); }
   function shopInfo(R) {
     const S = R.shop; if (!S) return null;
     return { being: S.being, name: S.being ? BEINGS[S.being].name : null, items: S.items.map((c, i) => Object.assign(itemInfo(R, c), { price: c.price, sold: S.bought.includes(i), can: R.gold >= c.price && !S.bought.includes(i) })) };
@@ -3029,19 +3180,20 @@ const DICE = (() => {
       board: Object.keys(R.board).map(c => Object.assign({ cell: +c }, unitInfo(R, R.board[c]))), bench: R.bench.map(id => (id ? unitInfo(R, id) : null)), syn: synOf(R),
       relics: R.relics.map(relicInfo), route: R.route ? R.route.map(c => routeInfo(R, c)) : null, node: R.node ? routeInfo(R, R.node) : null, foes: foeView(R),
       myth: mythInfo(R), mythEv: R.mythEv.slice(), mythLog: R.mythLog.slice(), shop: shopInfo(R), altar: altarInfo(R), event: eventInfo(R), out: R.out, pend: R.pend.map(p => Object.assign({ why: p.why }, faceInfo(p.to))),
-      last: R.last, hist: R.hist.slice(), curse: R.curse && R.round <= R.curse.until ? R.curse : null, nextFight: R.nextFight, torchNote: R.torchNote && R.torchNote.round === R.round ? R.torchNote : null };
+      last: R.last, hist: R.hist.slice(), hex: hexView(R), nextFight: R.nextFight, torchNote: R.torchNote && R.torchNote.round === R.round ? R.torchNote : null };
   }
   const SAVE_V = 2;
   function save(R) { return JSON.stringify(Object.assign({ sv: SAVE_V }, R)); }
   function load(s) {
     try { const o = typeof s === 'string' ? JSON.parse(s) : s; if (!o || o.sv !== SAVE_V || !Array.isArray(o.dice) || !o.units || !o.board || !Array.isArray(o.bench) || !Array.isArray(o.pend)) return null;
-      if (!['route', 'roll', 'place', 'shop', 'altar', 'event', 'done', 'over'].includes(o.phase)) return null; delete o.sv; return o; } catch (e) { return null; }
+      if (!['route', 'roll', 'place', 'shop', 'altar', 'event', 'done', 'over'].includes(o.phase)) return null; delete o.sv;
+      o.hex = Array.isArray(o.hex) ? o.hex : []; if (o.curse) { o.hex.push({ k: 'curse', v: o.curse.hp, until: o.curse.until }); delete o.curse; } return o; } catch (e) { return null; }
   }
   // 옛 1판 저장인지 (이어 할 수 없다고 알린다)
   const oldSave = s => { try { const o = typeof s === 'string' ? JSON.parse(s) : s; return !!(o && o.sv && o.sv !== SAVE_V); } catch (e) { return false; } };
   const dailySeed = d => { d = d || new Date(); return hash(d.getFullYear(), d.getMonth() + 1, d.getDate(), 0xd1ce) || 7; };
 
-  return { K, REGIONS, RELIC, RELIC_IDS, RELIC_POOL, START, SPECIAL, INVD, BEINGS, BEING_IDS, MYTH, EVENTS, newRun, route, throwDice, toggleHold, setHeld, reroll, buyReroll, buyCost, confirm, setsOf, yieldOf, faceInfo, kinOf, starOf, move, merge, autoPlace, fight, setupOf, synOf,
+  return { K, REGIONS, RELIC, RELIC_IDS, RELIC_POOL, START, SPECIAL, INVD, BEINGS, BEING_IDS, MYTH, RISK, RV, EVENTS, risk, riskPick, hexView, liveRelics, newRun, route, throwDice, toggleHold, setHeld, reroll, buyReroll, buyCost, confirm, setsOf, yieldOf, faceInfo, kinOf, starOf, move, merge, autoPlace, fight, setupOf, synOf,
     shopBuy, shopLeave, altarPick, eventPick, pendFace, next, fuse, feedTo, fusePreview, dropOptions, unitName, newUnit, addUnit, FU, ackMyth, forceRise, questAdd, view, unitInfo, routeInfo, mythInfo, relicInfo, save, load, oldSave, dailySeed, capOf, rerollsOf, valueOf, feedOf, curFaces, isBoss, regionOf, regionIx, scaleOf, lineup, kinPool, makeDie, makeRoute, makeShop, where, hash, ROWS, weightOfKind, offerCost, strength };
 })();
 if (typeof module !== 'undefined') module.exports = DICE;
@@ -9139,7 +9291,7 @@ function dxShakeOff(F) { const s = F.fxShake; if (!s || !dMo()) return [0, 0]; c
 // 한 라운드 = 네 걸음: 갈래 고르기(카드 둘) → 던지기(붙잡기 · 다시 굴리기) → 놓기(끌어 놓기 · 합치기 · 먹이기) → 싸우기. 상점 · 제단 · 사건 갈래는 창 하나로 끝난다.
 // 세로 폰 화면: 맨 위 띠(진액 · 생명 · 권속 · 라운드와 지역) → 옛것 띠(떠 있는 위대한 옛것 · 남은 라운드 · 퀘스트, 없으면 지역 길) → 전장(캔버스 384x244~360)
 //   → 대기 칸(6) · 버린다 → 주사위 판(주사위 5~8, 다시 굴리기 수, 단추).
-// 전장: 권속은 왼쪽에서 그 지역으로 쳐들어가고, 지키는 자는 오른쪽에 서 있다. 배경은 그 지역의 그림(MZPICS.bg).
+// 전장: 권속은 왼쪽에서 그 지역으로 쳐들어가고, 지키는 자는 오른쪽에 서 있다. 배경 그림(MZPICS.bg)은 잠시 끄고 어두운 바닥만 그린다 (DICE_BG).
 // 엔진의 칸(줄 r, 칸 c)을 옆으로 눕혀 그린다: 엔진 줄 5 = 화면 맨 왼쪽(우리 뒷줄), 줄 0 = 맨 오른쪽(지키는 자의 뒷줄). 엔진 칸 c = 화면 위에서 c 번째 줄.
 // 차례(dFlow): 옛것 장면(떠오름 · 퀘스트 깸 · 못 깸) → 고를 면(보상 · 축복) → 사건 · 제단의 결과 → 다음 라운드 → 갈래 / 상점 / 제단 / 사건 창 → 던지기 · 놓기.
 // 저장: localStorage 'nestdice.run' (판 중간 이어 하기, 1판 저장은 이어 하지 못한다고 알린다) · 'nestdice.codex' (판 사이에 남는 권속 도감).
@@ -9224,10 +9376,11 @@ function dOldSaved() { try { const s = localStorage.getItem(DKEY); return !!(s &
 function dDropSave() { try { localStorage.removeItem(DKEY); } catch (e) { /* 그대로 */ } }
 // 권속 도감: 만나 본 권속(종류 · 별 · 등급 · 신화)과 찾은 레시피. 판이 끝나도 남는다
 let DCODEX = null;
-function dCodex() { if (DCODEX) return DCODEX; let o = {}; try { o = JSON.parse(localStorage.getItem(DCX) || '{}') || {}; } catch (e) { o = {}; } DCODEX = { units: o.units || {}, recipes: o.recipes || {} }; return DCODEX; }
+//   값은 { r: 몇 번째 판, d: 라운드 } (옛 도감의 1 은 때를 모른다)
+function dCodex() { if (DCODEX) return DCODEX; let o = {}; try { o = JSON.parse(localStorage.getItem(DCX) || '{}') || {}; } catch (e) { o = {}; } DCODEX = { units: o.units || {}, recipes: o.recipes || {}, runs: +o.runs || 0 }; return DCODEX; }
 function dCodexSave() { try { localStorage.setItem(DCX, JSON.stringify(dCodex())); } catch (e) { /* 저장 없이 */ } }
 const dCodexKey = u => u.kind + ':' + u.star + ':' + (u.grade || 'c') + ':' + (u.br === 'b' ? 'b' : 'a') + ':' + (u.myth || '');
-function dCodexScan() { const R = DG.R, C = dCodex(); if (!R) return; let ch = false; Object.keys(R.units).forEach(id => { const k = dCodexKey(R.units[id]); if (!C.units[k]) { C.units[k] = 1; ch = true; } }); R.found.forEach(r => { if (!C.recipes[r]) { C.recipes[r] = 1; ch = true; } }); if (ch) dCodexSave(); }
+function dCodexScan() { const R = DG.R, C = dCodex(); if (!R) return; let ch = false; const at = () => ({ r: R.runNo || 0, d: R.round }); Object.keys(R.units).forEach(id => { const k = dCodexKey(R.units[id]); if (!C.units[k]) { C.units[k] = at(); ch = true; } }); R.found.forEach(r => { if (!C.recipes[r]) { C.recipes[r] = at(); ch = true; } }); if (ch) dCodexSave(); }
 const dKnown = rid => !!dCodex().recipes[rid];
 
 // ───────── 첫 화면 ─────────
@@ -9265,7 +9418,7 @@ function dStart(R) {
   DG.R = R; DG.scr = 'game'; DG.ui = R.phase; DG.F = null; DG.sel = null; DG.showV = null; DG.roll = null; TR.dice = []; TR.mode = 'idle';
   $('title').hidden = true; const g = dMount(); g.hidden = false; dBigApply(); dSave(); dRender(); dLoop(); dRoundMusic(); dFlow();
 }
-function dNew(seed, daily) { dDropSave(); dStart(DICE.newRun(seed, { daily })); }
+function dNew(seed, daily) { dDropSave(); const R = DICE.newRun(seed, { daily }), C = dCodex(); C.runs++; R.runNo = C.runs; dCodexSave(); dStart(R); }
 const dRoundMusic = () => dMusic(DG.R && DICE.isBoss(DG.R.round) ? 'boss' : 'day');
 function dStop() { if (DG.raf) cancelAnimationFrame(DG.raf); DG.raf = 0; }
 
@@ -9276,7 +9429,7 @@ function dTop(v) {
     + `<span class="dg-st kin" title="세운 권속 / 최대"><b>${v.placed}/${v.cap}</b><small>권속</small></span><span class="dg-st rd" title="라운드"><b>${v.round}/20</b><small>${dEsc(v.region.name)}</small></span><button class="dg-menu" data-d="menu" aria-label="메뉴">≡</button>`;
   const m = v.myth, el = $('dg-myth');
   if (m) el.innerHTML = `<button class="dg-mline" data-d="mythinfo" style="--c:${ASPC[m.asp]}"><img src="${dSig(m.id, 32)}" alt=""><b>${dEsc(m.name)}</b><span>· 남은 ${m.left}라운드 · 퀘스트 ${m.quest.have}/${m.quest.need}</span></button>`;
-  else { const g = v.region, left = g.to - v.round; el.innerHTML = `<p class="dg-rline"><span class="dg-rdots">${DICE.REGIONS.map((x, i) => `<i class="${i < g.ix ? 'past' : i === g.ix ? 'now' : ''}"></i>`).join('')}</span>지역 ${g.ix + 1}/6 · ${v.bossRound ? `<b>우두머리 ${dEsc(g.boss)}</b>` : '우두머리까지 ' + left + '라운드'}${v.curse ? ' · <b class="bad">지키는 자 +' + Math.round(v.curse.hp * 100) + '%</b>' : ''}</p>`; }
+  else { const g = v.region, left = g.to - v.round; el.innerHTML = `<p class="dg-rline"><span class="dg-rdots">${DICE.REGIONS.map((x, i) => `<i class="${i < g.ix ? 'past' : i === g.ix ? 'now' : ''}"></i>`).join('')}</span>지역 ${g.ix + 1}/6 · ${v.bossRound ? `<b>우두머리 ${dEsc(g.boss)}</b>` : '우두머리까지 ' + left + '라운드'}${v.hex && v.hex.length ? ' · <b class="bad">' + dEsc(v.hex[0].text) + (v.hex.length > 1 ? ' 외 ' + (v.hex.length - 1) : '') + '</b>' : ''}</p>`; }
 }
 
 // ───────── 대기 칸 ─────────
@@ -9810,7 +9963,20 @@ function dFit() {
 }
 function dLoop() { dStop(); DG.last = performance.now(); const step = now => { DG.raf = requestAnimationFrame(step); const dt = Math.min(0.1, (now - DG.last) / 1000); DG.last = now; DG.now = now; if (DG.scr !== 'game') return; dTickFight(dt); dDraw(now); dTrayTick(dt, now); dTrayDraw(); dPeekTick(); }; DG.raf = requestAnimationFrame(step); dFit(); }
 function dArt(kind) { const d = LAIR.INV[kind] || LAIR.KIN[kind] || LAIR.SUMMON[kind] || {}; return d.art || kind; }
-function dBgDraw(x) { const v = DG.v || DICE.view(DG.R), bg = v.region.bg, key = bg + (v.bossRound ? '@3' : ''), img = MZPICS.bg(bg); if (!MZPICS.draw(x, img, key, DFW, DFH, 0.5)) { x.fillStyle = '#100c18'; x.fillRect(0, 0, DFW, DFH); } x.fillStyle = 'rgba(6,4,12,0.18)'; x.fillRect(0, 0, DFW, DFH); }
+// 전장 배경: 지역 그림(MZPICS.bg)은 권속 크기와 맞지 않아 잠시 끈다 (2026-11-26). DICE_BG = true 로 되돌린다. 끄면 어둡고 단순한 바닥만
+const DICE_BG = false;
+function dBgDraw(x) {
+  if (DICE_BG) { const v = DG.v || DICE.view(DG.R), bg = v.region.bg, key = bg + (v.bossRound ? '@3' : ''), img = MZPICS.bg(bg); if (!MZPICS.draw(x, img, key, DFW, DFH, 0.5)) { x.fillStyle = '#100c18'; x.fillRect(0, 0, DFW, DFH); } x.fillStyle = 'rgba(6,4,12,0.18)'; x.fillRect(0, 0, DFW, DFH); return; }
+  dFloorDraw(x);
+}
+// 단순한 바닥: 위아래로 어두워지는 바탕 · 줄 여섯이 놓인 옅은 바닥 띠 · 줄마다 아주 옅은 금 · 가장자리 그림자
+function dFloorDraw(x) {
+  const g = x.createLinearGradient(0, 0, 0, DFH); g.addColorStop(0, '#08070d'); g.addColorStop(0.5, '#110e19'); g.addColorStop(1, '#08070d'); x.fillStyle = g; x.fillRect(0, 0, DFW, DFH);
+  const y0 = DLY - 4, y1 = DLY + 6 * DLH + 4; x.fillStyle = 'rgba(150,130,180,0.035)'; x.fillRect(0, y0, DFW, y1 - y0);
+  x.fillStyle = 'rgba(150,130,180,0.05)'; for (let c = 1; c < 6; c++) x.fillRect(0, DLY + c * DLH, DFW, 1);
+  x.fillStyle = 'rgba(150,130,180,0.08)'; x.fillRect(0, y0, DFW, 1); x.fillRect(0, y1, DFW, 1);
+  const s = x.createLinearGradient(0, 0, DFW, 0); s.addColorStop(0, 'rgba(0,0,0,0.35)'); s.addColorStop(0.12, 'rgba(0,0,0,0)'); s.addColorStop(0.88, 'rgba(0,0,0,0)'); s.addColorStop(1, 'rgba(0,0,0,0.35)'); x.fillStyle = s; x.fillRect(0, 0, DFW, DFH);
+}
 function dSprite(kind, star, br) { try { const h = LAIRART.unit(dArt(kind), LAIR.INV[kind] ? 1 : Math.min(3, star || 1), br === 'b' ? 'b' : undefined); return h; } catch (e) { return null; } }
 // 전장의 권속 (싸움 중이면 엔진 유닛의 id 'k<uid>' 로 판의 권속을 찾는다)
 const dKinOf = u => { const R = DG.R; if (!R) return null; if (u.uid != null) return R.units[u.uid] || null; const m = /^k(\d+)$/.exec(u.id || ''); return m ? R.units[+m[1]] || null : null; };
@@ -10053,27 +10219,32 @@ function dFaceModal(mode, i) {
   dShow(dBox('dg-facepick', why + ': 바꿀 면을 골라라', `<p class="sh-sub"><img class="rw-face" src="${dFaceImg(to, 24)}" alt=""> 누른 면이 「${dEsc(to.name)}」 면이 된다.</p>
 ${R.dice.map((d, di) => `<div class="dg-frow"><span>${dEsc(d.name)}</span><div>${d.faces.map((f, fi) => { const x = DICE.faceInfo(f); return `<button class="dg-fbtn${x.t === 'torch' ? ' torch' : x.t === 'blank' ? ' empty' : ''}" data-d="faceto" data-m="${mode}" data-i="${i}" data-die="${di}" data-face="${fi}" aria-label="${dEsc(d.name)} ${fi + 1}번 면: ${dEsc(x.name)}"><img src="${dFaceImg(x, 28)}" alt=""></button>`; }).join('')}</div></div>`).join('')}`, '', mode === 'shop' ? '<button class="sh-x" data-d="flow" aria-label="뒤로">✕</button>' : ''));
 }
+// 옛것 띠(표식)를 누르면: 지금 걸려 있는 신화 효과의 이름과 설명 · 퀘스트. 결과(축복 · 리스크)는 미리 말하지 않는다
+const dEffLi = e => `<li class="${e.good ? 'eff-g' : 'eff-b'}"><b>${dEsc(e.name)}</b> ${dEsc(e.text)}</li>`;
 function dMythModal() {
-  const m = DICE.view(DG.R).myth; if (!m) return;
+  const v = DICE.view(DG.R), m = v.myth; if (!m) return;
   dShow(dBox('dg-mythm', `<img class="mm-sig" src="${dSig(m.id, 32)}" alt="">${dEsc(m.name)}`, `<p class="sh-sub">신화 단계 ${m.stage} · 라운드 ${m.from}~${m.until} · 남은 ${m.left}라운드</p><p class="dg-lore">${dEsc(m.line)}</p>
-<h3>신화 효과</h3><ul>${m.eff.map(t => `<li>${dEsc(t)}</li>`).join('')}</ul><h3>퀘스트 ${m.quest.have}/${m.quest.need}</h3><p>${dEsc(m.quest.text)}</p><p><b class="good">깨면</b> ${dEsc(m.bless)}</p><p><b class="bad">못 깨면</b> ${dEsc(m.pen)}</p>`, '<button class="btn sm" data-d="mclose">닫기</button>', '<button class="sh-x" data-d="mclose" aria-label="닫기">✕</button>'));
+<h3>걸려 있는 것</h3><ul class="mm-effs">${m.effs.map(dEffLi).join('')}</ul><h3>퀘스트 ${m.quest.have}/${m.quest.need}</h3><p>${dEsc(m.quest.text)}</p><p class="mute">기한 안에 이루면 축복을 받고, 이루지 못하면 그 존재의 결대로 무엇인가를 치른다.</p>`, '<button class="btn sm" data-d="mclose">닫기</button>', '<button class="sh-x" data-d="mclose" aria-label="닫기">✕</button>'));
 }
 
 // ───────── 위대한 옛것 장면: 떠오름 · 퀘스트 깸 · 못 깸 ─────────
 // 떠오름: 화면이 어두워지고 아래에서 표식이 떠올라 빛나며, 이름과 기록 한 줄 · 효과 · 퀘스트가 차례로. 깸: 표식이 환하게 터지며 가라앉는다. 못 깸: 표식이 붉게 금 가고 화면이 흔들린다.
 const RT = { cur: null, raf: 0, last: 0 };
 const RTT = { rise: { name: 1100, lore: 1350, rules: 1700, end: 2300 }, done: { name: 500, lore: 700, rules: 1000, end: 1600 }, fail: { name: 500, lore: 700, rules: 1000, end: 1600 } };
+// 떠오름: 기록 · 퀘스트만 (효과는 표식을 누르면). 깸 · 못 깸: 기록 한 줄 → 걸려 있던 것(효과 둘) → 받은 것 · 치른 것 한 줄
 function dRiteText(ev) {
-  const M = DICE.MYTH[ev.id], B = DICE.BEINGS[ev.id], s = ev.stage;
-  if (ev.type === 'rise') return { tag: '신화 단계 ' + s + ' · 위대한 옛것이 떠오른다', lore: M.rise, rules: M.effText(s).map(t => '효과 · ' + t).concat(['퀘스트 · ' + M.questText(M.quest.need[s - 1]) + ' (' + (ev.until - ev.round + 1) + '라운드 안에)', '깨면 · ' + M.blessText(s), '못 깨면 · ' + M.penText(s)]), name: B.name };
-  if (ev.type === 'done') return { tag: '퀘스트를 이루었다 · 축복', lore: M.done, rules: [ev.bless.text], name: B.name };
-  return { tag: '퀘스트를 이루지 못했다 · 대가', lore: M.fail, rules: [ev.pen.text].concat(ev.pen.lines || []), name: B.name };
+  const M = DICE.MYTH[ev.id], B = DICE.BEINGS[ev.id], s = ev.stage, sec = t => ({ sec: t }), effs = (ev.effs || M.effs(s)).map(e => ({ eff: e }));
+  if (ev.type === 'rise') return { tag: '신화 단계 ' + s + ' · 위대한 옛것이 떠오른다', lore: M.rise, rules: [{ html: '<b>퀘스트</b> ' + dEsc(M.questText(M.quest.need[s - 1])) + ' (' + (ev.until - ev.round + 1) + '라운드 안에)' }, { note: '위 띠의 표식을 누르면 지금 걸려 있는 것을 볼 수 있다.' }], name: B.name };
+  if (ev.type === 'done') { const b = ev.bless || {}; return { tag: '퀘스트를 이루었다 · 축복', lore: M.done, rules: [sec('걸려 있던 것')].concat(effs, [sec('받은 것'), { html: '<b class="good">' + dEsc(b.name || M.blessName) + '</b> ' + dEsc(b.text || '') }]), name: B.name }; }
+  const k = ev.risk || { name: '대가', lore: M.fail, line: ev.pen ? ev.pen.text : '' };
+  return { tag: '퀘스트를 이루지 못했다 · 리스크', lore: k.lore, rules: [sec('걸려 있던 것')].concat(effs, [sec('치른 것'), { html: '<b class="bad">' + dEsc(k.name) + '</b> ' + dEsc(k.line) }]), name: B.name };
 }
+const dRuleLi = r => (r.sec ? `<li class="rt-sec">${dEsc(r.sec)}</li>` : r.eff ? dEffLi(r.eff) : r.note ? `<li class="rt-note">${dEsc(r.note)}</li>` : `<li>${r.html}</li>`);
 function dRite(ev) {
   const el = $('dg-rite'); if (!el || RT.cur === ev) return; $('modal').hidden = true; const T = dRiteText(ev), B = DICE.BEINGS[ev.id];
   RT.cur = ev; ev.t = 0; ev.fx = { said: {}, motes: [] }; DG.dbg.rites.push(ev.type + ':' + ev.id + ':' + ev.stage);
   el.className = 'rt-' + ev.type; el.style.setProperty('--asp', ASPC[B.asp]); el.hidden = false;
-  el.querySelector('.rt-tag').textContent = T.tag; el.querySelector('.rt-name').textContent = T.name; el.querySelector('.rt-lore').textContent = T.lore; el.querySelector('.rt-rules').innerHTML = T.rules.map(t => `<li>${dEsc(t)}</li>`).join('');
+  el.querySelector('.rt-tag').textContent = T.tag; el.querySelector('.rt-name').textContent = T.name; el.querySelector('.rt-lore').textContent = T.lore; el.querySelector('.rt-rules').innerHTML = T.rules.map(dRuleLi).join('');
   const cv = $('dg-rcv'); cv.width = Math.ceil(innerWidth / 3); cv.height = Math.ceil(innerHeight / 3);
   if (!dMo()) ev.t = RTT[ev.type].end;
   RT.last = performance.now(); if (!RT.raf) RT.raf = requestAnimationFrame(dRiteFrame); dTip();
@@ -10119,12 +10290,85 @@ function dOverModal() {
   dShow(dBox('dg-over', win ? '탑이 무너졌다' : '본체가 쓰러졌다', `<p class="dg-lorep">${lore}</p><p class="dg-stats big"><span>다다른 곳 <b>라운드 ${R.round}/20 · ${dEsc(DICE.regionOf(R.round).name)}</b></span><span>처치 <b>${R.kills}</b></span><span>신화 단계 깸 <b>${ok}/${R.mythLog.length}</b></span><span>합치기 <b>${R.fusions}</b> · 신화 권속 <b>${R.mythics}</b></span></p>
 ${top ? `<p class="dg-top1"><img src="${dUnitImg(top, 40)}" alt=""><span>가장 많이 싸운 권속<br><b>${dEsc(DICE.unitName(top))}</b> ${top.star}성 · 준 피해 ${top.dmg}</span></p>` : ''}${dRankHtml()}`, `<button class="btn sm" data-d="title">첫 화면</button><button class="btn sm" data-d="codex">도감</button><button id="dg-again" class="btn pri" data-d="new">새 판</button>`));
 }
+// 권속 도감: 한 줄에 한 종류 (1~4성, 그리고 다른 성향과 섞인 혼종 2~4성) · 신화 레시피 스물넷. 못 찾은 칸은 그림자(형상)만, 이름은 「???」
+//   누르면 설명 창: 큰 그림 · 이름 · 등급과 별 · 네 능력치(그 형태의 기본값, 유물 없이) · 특성 · 기술(4성 · 신화는 그 힘) · 기록 한두 줄 · (신화) 재료 · 처음 본 판과 라운드
+const DKLORE = {
+  shell: '— 늙은 바스코의 구술에서. 「따개비가 들러붙은 그 등딱지는 창끝을 받아도 울리지 않았네. 그 안에 무엇이 웅크리고 있는지 아는 자는 없었지.」',
+  biter: '— 촌장의 편지에서. 양 우리의 울타리마다 작은 이빨 자국이 줄지어 나 있었으니, 그 수를 세다가 나는 셈을 그만두었다.',
+  gazer: '— 「물 아래의 장부」 한 쪽에서. 그것은 하늘이 아니라 하늘 너머의 무엇과 눈을 맞추고 있었으니, 그 시선 끝에 선 자는 까닭 없이 무릎이 꺾였다.',
+  hood: '— 기사단의 심문 조서에서. 증인은 두건 아래를 보았다고 하였으나, 무엇을 보았느냐는 물음에는 끝내 입을 열지 못하였다.',
+  gnaw: '— 이름 모를 자의 연대기에서. 그것은 배가 고파서 먹는 것이 아니라, 먹는 동안에만 존재하는 것처럼 보였다.',
+  tangle: '— 에다 볼크의 일지에서. 「젖은 밧줄 더미인 줄 알았던 것이 내 발목을 감았다. 그 매듭은 어떤 뱃사람도 묶어 본 적 없는 모양이었다.」',
+  brood: '— 미렐 수녀의 고해 기록에서. 「그것은 제 몸보다 큰 알을 품고 있었고, 알 속에서 무엇인가 기도문을 거꾸로 외는 소리가 났습니다.」',
+  heap: '— 토브 카인의 쪽지에서. 「무더기 속의 눈이 한꺼번에 깜박였다. 그 뒤로 나는 덫을 놓을 때마다 누가 보고 있는 것만 같다.」',
+  mask: '— 기사단의 심문 조서에서. 가면 아래에는 또 하나의 얼굴이 있었고, 그 얼굴은 심문관 자신의 것이었다고 기록은 전한다.',
+  maw: '— 「물 아래의 장부」 한 쪽에서. 바닥에서 솟은 이빨의 고리는 닫히는 법을 모르니, 그 깊이를 재려고 내린 추는 줄째로 돌아오지 않았다.',
+  mother: '— 연금술사 이셀의 장부에서. 「그것이 숨을 내쉴 때마다 공방의 병마다 곰팡이가 피었다. 표본으로 쓰려던 포자가 내 폐 속에서 먼저 싹텄다.」',
+  famine: '— 늙은 바스코의 구술에서. 「소 한 마리를 통째로 넘기고도 그놈은 고개를 들어 다음 것을 찾았네. 목구멍이 끝나는 데가 없는 것 같았지.」',
+  gulp: '— 촌장의 편지에서. 부풀 대로 부푼 그 배 속에서 사람 목소리가 들려왔으니, 그 가운데 하나는 지난봄에 사라진 대장장이의 것이었다.',
+  orbit: '— 에다 볼크의 일지에서. 「눈알들이 무엇인가의 둘레를 돌고 있었다. 그 가운데는 비어 있었는데, 나는 그 빈자리가 나를 본다고 느꼈다.」',
+  bell: '— 미렐 수녀의 고해 기록에서. 「그 종은 추가 없는데도 울렸습니다. 울릴 때마다 예배당의 누군가가 제 이름을 잊었습니다.」',
+  ink: '— 「물 아래의 장부」 한 쪽에서. 먹물이 번진 자리마다 글자가 떠올랐으니, 그것은 사람의 손으로 쓴 적 없는 기록이었다.',
+  hollow: '— 이름 모를 자의 연대기에서. 그것의 속은 비어 있었고, 그 비어 있음이 낫처럼 휘어 산 것들을 거두어 갔다.',
+  preach: '— 기사단의 심문 조서에서. 그것이 설교단에 오르자 회중은 아멘 대신 발음할 수 없는 자음들을 따라 외었다고 증인은 진술하였다.',
+  rift: '— 「물 아래의 장부」 한 쪽에서. 탑 위의 하늘에 금이 갔고 그 틈으로 비유클리드의 별빛이 쏟아졌으니, 그 빛에 닿은 돌은 모서리가 하나씩 늘었다.',
+  queen: '— 이름 모를 자의 연대기에서. 굴의 모든 것은 그 여왕에게서 나왔고, 죽은 것들조차 그 여왕이 부르면 다시 숨을 쉬었다.',
+};
+// 혼종(짝 성향의 피) · 4성(그 성향)의 덧붙이는 한 줄
+const DKHY = { abyss: '그 몸에는 깊은 물의 피가 섞여, 늘 짠물이 배어 나온다.', nebula: '그 몸에는 별빛의 피가 섞여, 어둠 속에서도 희미하게 빛난다.', brood: '그 몸에는 알의 피가 섞여, 살갗 밑에서 무엇인가 늘 꿈틀거린다.', dusk: '그 몸에는 상복의 피가 섞여, 가까이 선 자의 귀에 곡소리가 들린다.', hunger: '그 몸에는 허기의 피가 섞여, 쉬지 않고 이빨을 간다.' };
+const DK4 = { abyss: '네 번 합쳐진 그것 앞에서 사람들은 물에 잠긴 듯 숨을 쉬지 못하였다.', nebula: '네 번 합쳐진 그것은 싸움이 시작되기도 전에 이미 끝을 본다.', brood: '네 번 합쳐진 그것은 쓰러지면서도 새끼를 낳는다.', dusk: '네 번 합쳐진 그것이 부르는 찬가는 처음부터 끝까지 거꾸로다.', hunger: '네 번 합쳐진 그것은 문 것의 피로 제 상처를 메운다.' };
+// 그림자(형상): 권속 그림을 검게 칠하고 둘레에 옅은 윤곽만 남긴다
+function dShade(kind, star, px, br) {
+  const k = 'h:' + kind + ':' + star + ':' + px + ':' + (br || ''); if (DURL[k] != null) return DURL[k];
+  try { const c0 = LAIRART.icon(kind, Math.min(3, star || 1), px, br === 'b' ? 'b' : undefined), a = document.createElement('canvas'); a.width = a.height = px; const ax = a.getContext('2d');
+    const tint = col => { const t = document.createElement('canvas'); t.width = t.height = px; const tx = t.getContext('2d'); tx.drawImage(c0, 0, 0, px, px); tx.globalCompositeOperation = 'source-in'; tx.fillStyle = col; tx.fillRect(0, 0, px, px); return t; };
+    const rim = tint('#4a4060'), u = Math.max(1, Math.round(px / 32)); [[-u, 0], [u, 0], [0, -u], [0, u]].forEach(([dx, dy]) => ax.drawImage(rim, dx, dy)); ax.drawImage(tint('#07050c'), 0, 0);
+    DURL[k] = a.toDataURL(); } catch (e) { DURL[k] = ''; }
+  return DURL[k];
+}
+// 찾은 것: 'kind:star:br' → { grade, at } · 신화 'myth' → { star, at }
+function dCxGot() {
+  const C = dCodex(), u = {}, m = {}, at = v => (v && typeof v === 'object' ? v : null);
+  Object.keys(C.units).forEach(key => { const [kind, star, grade, br, myth] = key.split(':'); if (!LAIR.KIN[kind]) return; const st = +star, v = at(C.units[key]);
+    if (myth) { const o = m[myth] = m[myth] || { star: st, at: v }; o.star = Math.max(o.star, st); if (!o.at) o.at = v; return; }
+    const k = kind + ':' + st + ':' + (br === 'b' ? 'b' : 'a'), o = u[k] = u[k] || { grade, at: v }; if (DFUSE.GRADE_ORD[grade] > DFUSE.GRADE_ORD[o.grade]) o.grade = grade; if (!o.at) o.at = v; });
+  Object.keys(C.recipes).forEach(id => { if (!m[id]) m[id] = { star: 3, at: at(C.recipes[id]) }; else if (!m[id].at) m[id].at = at(C.recipes[id]); });
+  return { u, m };
+}
+const DCXFORMS = [[1, 'a'], [2, 'a'], [3, 'a'], [4, 'a'], [2, 'b'], [3, 'b'], [4, 'b']];
 function dCodexModal() {
-  const C = dCodex(), keys = Object.keys(C.units).map(k => { const [kind, star, grade, br, myth] = k.split(':'); return { kind, star: +star, grade, br, myth: myth || null }; }).filter(u => LAIR.KIN[u.kind]).sort((a, b) => DFUSE.GRADE_ORD[b.grade] - DFUSE.GRADE_ORD[a.grade] || b.star - a.star || LAIR.KIN[b.kind].cost - LAIR.KIN[a.kind].cost);
-  const nR = DFUSE.RECIPES.filter(x => C.recipes[x.id]).length;
-  const units = keys.length ? `<div class="cx-grid">${keys.slice(0, 80).map(u => `<span class="cx-u g-${u.grade}"><img src="${dIcon(u.kind, u.star, 32, u.br)}" alt=""><small>${dEsc(DFUSE.nameOf(u))}</small><i>${dStar(u.star)}</i></span>`).join('')}</div>` : '<p class="mute">아직 만난 권속이 없다.</p>';
-  const rx = DFUSE.RECIPES.map(x => C.recipes[x.id] ? `<p class="cx-r"><img src="${dIcon(x.base, 3, 24, x.br)}" alt=""><span><b class="g-m">${dEsc(x.name)}</b> = ${dEsc(LAIR.KIN[x.a].name)} + ${dEsc(LAIR.KIN[x.b].name)} (둘 다 2성부터)<br><small>${dEsc(x.short)}</small></span></p>` : `<p class="cx-r unk"><span class="cx-q">?</span><span>??? = ??? + ???</span></p>`).join('');
-  dShow(dBox('dg-codex', '권속 도감', `<p class="sh-sub">판이 끝나도 남는다. 만난 권속 <b>${keys.length}</b> · 신화 레시피 <b>${nR}/${DFUSE.RECIPES.length}</b></p><h3>만난 권속</h3>${units}<h3>신화 레시피</h3><p class="mute">특별한 두 권속을 합치면 신화 등급 권속이 된다. 처음에는 숨겨져 있고, 한 번 만들면 여기에 남는다. 그 결의 위대한 옛것이 떠 있으면 1성끼리도 된다.</p>${rx}`, `<button class="btn sm" data-d="${DG.scr === 'game' ? 'menu' : 'mclose'}">닫기</button>`));
+  const G = dCxGot(), nU = Object.keys(G.u).length, total = LAIR.KIN_IDS.length * DCXFORMS.length, nR = DFUSE.RECIPES.filter(x => G.m[x.id]).length;
+  const rows = LAIR.ASPS.map(a => `<h4 class="cx-ah" style="color:${ASPC[a]}">${dEsc(LAIR.ASPN[a])}</h4>` + DFUSE.LADDER[a].map(kind => {
+    const any = DCXFORMS.some(([st, br]) => G.u[kind + ':' + st + ':' + br]);
+    const cells = DCXFORMS.map(([st, br], i) => { const g = G.u[kind + ':' + st + ':' + br], key = kind + ':' + st + ':' + br;
+      return `${i === 4 ? '<span class="cx-sep" aria-hidden="true"></span>' : ''}<button class="cx-u ${g ? 'g-' + g.grade : 'unk'}${br === 'b' ? ' hy' : ''}" data-d="cxu" data-k="${key}" aria-label="${g ? dEsc(DFUSE.nameOf({ kind, star: st, br, grade: g.grade, myth: null })) : '???'} ${st}성"><img src="${g ? dIcon(kind, st, 32, br) : dShade(kind, st, 32, br)}" alt=""><i>${st}★</i></button>`; }).join('');
+    return `<div class="cx-row"><p class="cx-k">${any ? dEsc(LAIR.KIN[kind].name) : '???'}</p><div class="cx-cells">${cells}</div></div>`; }).join('')).join('');
+  const rx = DFUSE.RECIPES.map(x => G.m[x.id] ? `<button class="cx-r" data-d="cxr" data-k="${x.id}"><img src="${dIcon(x.base, 3, 24, x.br)}" alt=""><span><b class="g-m">${dEsc(x.name)}</b> = ${dEsc(LAIR.KIN[x.a].name)} + ${dEsc(LAIR.KIN[x.b].name)}<br><small>${dEsc(x.short)}</small></span></button>`
+    : `<button class="cx-r unk" data-d="cxr" data-k="${x.id}"><img src="${dShade(x.base, 3, 24, x.br)}" alt=""><span>??? = ??? + ???</span></button>`).join('');
+  dShow(dBox('dg-codex', '권속 도감', `<p class="sh-sub">판이 끝나도 남는다. 본 형태 <b>${nU}/${total}</b> · 신화 레시피 <b>${nR}/${DFUSE.RECIPES.length}</b></p><p class="mute cx-help">한 줄에 한 종류: 1~4성 │ 다른 성향과 섞인 혼종 2~4성. 아직 못 본 것은 형상만 보인다. 누르면 자세히.</p>${rows}<h3>신화 레시피</h3><p class="mute">특별한 두 권속을 합치면 신화 등급 권속이 된다. 한 번 만들면 여기에 남는다. 그 결의 위대한 옛것이 떠 있으면 1성끼리도 된다.</p>${rx}`, `<button class="btn sm" data-d="${DG.scr === 'game' ? 'menu' : 'mclose'}">닫기</button>`));
+  const m = $('modal'), sb = m.querySelector('.sh-body'); if (sb && DG.cxScroll) sb.scrollTop = DG.cxScroll; DG.cxScroll = 0;
+}
+// 그 형태의 기본 능력치 (유물 · 먹이기 없이)
+function dStatBase(o) { const fake = { relics: [], myth: null, starve: null, hex: [], round: 1, units: { 0: Object.assign({ uid: 0, br: 'a', grade: 'c', myth: null, fed: 0, fhp: 0, fatk: 0, dmg: 0, kills: 0, fights: 0 }, o) }, board: {}, bench: [] }; return DICE.unitInfo(fake, 0); }
+const dCxAt = at => (at && at.r ? `<p class="cx-at">처음 본 때: ${at.r}번째 판 · 라운드 ${at.d}</p>` : '');
+function dCxBox(title, col, body) { const sb = $('modal').querySelector('.sh-body'); DG.cxScroll = sb ? sb.scrollTop : 0; dShow(dBox('dg-unit dg-cxd', `<span style="color:${col}">${title}</span>`, body, '<button class="btn sm" data-d="codex">도감으로</button>', '<button class="sh-x" data-d="codex" aria-label="도감으로">✕</button>')); }
+function dCxUnit(key) {
+  const [kind, s, br] = key.split(':'), star = +s, G = dCxGot(), g = G.u[key], d = LAIR.KIN[kind]; if (!d) return; dSay('click');
+  if (!g) { const how = star === 1 ? '주사위에서 나온다.' : star === 4 ? '3성 둘을 합치면 나온다.' : br === 'b' ? '성향이 다른 둘을 합치면 섞여 나온다.' : '같은 것, 또는 같은 성향끼리 합치면 나온다.';
+    return dCxBox('???', '#8a809a', `<div class="dg-uhead"><img class="cx-big unk" src="${dShade(kind, star, 96, br)}" alt="검은 형상"><div><p class="dg-ustar s${star}">${dStar(star)}<span>${star}성</span></p><p class="dg-asp" style="color:${ASPC[d.asp]}">${dEsc(LAIR.ASPN[d.asp])}${br === 'b' ? ' · 혼종' : ''}</p></div></div><p class="dg-lore">아직 이 형상을 본 자가 없다.</p><p class="mute">${how}</p>`); }
+  const u = dStatBase({ kind, star, br, grade: g.grade }), pair = br === 'b' && LAIR.KEVOB[kind] ? LAIR.KEVOB[kind].pair : null;
+  const lore = DKLORE[kind] + (pair ? ' ' + DKHY[pair] : '') + (star >= 4 ? ' ' + DK4[d.asp] : '');
+  dCxBox(dEsc(u.name), u.gradeCol, `<div class="dg-uhead"><img class="cx-big g-${u.grade}" src="${dIcon(kind, star, 96, br)}" alt=""><div><p class="dg-ustar s${star}">${dStar(star)}<span>${star}성</span><small> · <b style="color:${u.gradeCol}">${u.gradeName}</b></small></p><p class="dg-asp" style="color:${ASPC[d.asp]}">${dEsc(u.aspName)}${pair ? ' · ' + LAIR.ASPN[pair] + '의 피' : ''} · ${dEsc(u.roleName)}</p></div></div>
+${dStatRows(dStat4(u))}<p class="dg-tline">${dTraitLine(kind, Math.min(3, star), br === 'b' ? 'b' : undefined)}</p><p class="dg-tline">${dSkillLine(kind, Math.min(3, star), br === 'b' ? 'b' : undefined)}</p>${u.aura ? `<p class="dg-tline"><b class="up">4성의 힘 「${dEsc(u.aura.name)}」</b> ${dEsc(u.aura.short)}</p>` : ''}<p class="dg-lore">${dEsc(lore)}</p>${dCxAt(g.at)}`);
+}
+function dCxRecipe(id) {
+  const x = DFUSE.RECIPE[id]; if (!x) return; const G = dCxGot(), g = G.m[id], A = LAIR.KIN[x.a], B = LAIR.KIN[x.b]; dSay('click');
+  if (!g) { const a = LAIR.ASPN[A.asp], b = LAIR.ASPN[B.asp], hint = dJo(a, '과', '와') + ' ' + dJo(b, '이', '가') + (A.asp === B.asp ? ' 겹치면 …' : ' 섞이면 …');
+    return dCxBox('???', '#8a809a', `<div class="dg-uhead"><img class="cx-big unk" src="${dShade(x.base, 3, 96, x.br)}" alt="검은 형상"><div><p class="dg-asp g-m">신화 레시피</p><p>??? = ??? + ???</p></div></div><p class="dg-lore">아직 이 형상을 본 자가 없다.</p><p class="cx-hint">${dEsc(hint)}</p>`); }
+  const star = Math.max(2, Math.min(4, g.star || 3)), u = dStatBase({ kind: x.base, star, br: x.br, grade: 'm', myth: id });
+  dCxBox(dEsc(u.name), u.gradeCol, `<div class="dg-uhead"><img class="cx-big g-m" src="${dIcon(x.base, star, 96, x.br)}" alt=""><div><p class="dg-ustar s${star}">${dStar(star)}<span>${star}성</span><small> · <b style="color:${u.gradeCol}">신화</b></small></p><p class="dg-asp" style="color:${ASPC[u.asp]}">${dEsc(u.aspName)} · ${dEsc(u.roleName)}</p></div></div>
+${dStatRows(dStat4(u))}<p class="dg-tline">${dTraitLine(x.base, Math.min(3, star), x.br === 'b' ? 'b' : undefined)}</p><p class="dg-tline">${dSkillLine(x.base, Math.min(3, star), x.br === 'b' ? 'b' : undefined)}</p><p class="dg-tline"><b class="g-m">신화의 힘</b> ${dEsc(x.short)}</p>
+<p class="cx-mats"><b>재료</b> <img src="${dIcon(x.a, 2, 24)}" alt="">${dEsc(A.name)} + <img src="${dIcon(x.b, 2, 24)}" alt="">${dEsc(B.name)} <small>(둘 다 2성부터 · 그 결의 옛것이 떠 있으면 1성부터)</small></p><p class="dg-lore">${dEsc(x.lore)}</p>${dCxAt(g.at)}`);
 }
 
 // ───────── 메뉴 · 설정 · 안내서 ─────────
@@ -10144,7 +10388,7 @@ function dHelp() {
 <h3>한 라운드의 네 걸음</h3><ol><li>갈래 고르기: 다음에 갈 곳 둘 가운데 하나를 고른다. 싸움 갈래에는 이기면 받는 보상이 적혀 있다.</li><li>던지기: 「던진다」. 주사위를 누르면 붙잡히고, 「다시 굴린다」는 붙잡지 않은 것만 다시 던진다 (라운드마다 ${DICE.K.rerolls}번, 진액으로 더 산다). 「확정」하면 나온 면대로 권속이 대기 칸에 온다.</li><li>놓기: 권속을 끌어 왼쪽 칸에 세운다. 오른쪽 칸이 앞줄이다.</li><li>싸우기: 「싸운다」. 권속이 저절로 쳐들어간다.</li></ol>
 <h3>갈래</h3><p>싸움 · 정예(세고 보상이 크다: 유물 + 진액) · 우두머리 · 상점 · 제단(퀘스트를 앞당기거나 쉰다) · 사건(기록 한 장과 둘 가운데 하나).</p>
 <h3>생명</h3><p>맨 위 ♥ 는 본체의 생명이다 (처음 ${DICE.K.life}). 싸움에서 지면(권속이 다 쓰러지거나, 시간이 다 되도록 지키는 자가 남으면) 남은 지키는 자의 무게만큼 깎인다: 보통 1 · 정예 2 · 우두머리 4. 0이 되면 판이 끝난다. 탑 꼭대기에서 지면 생명이 남는 동안 다시 오른다.</p>
-<h3>위대한 옛것</h3><p>판 안에서 정해지지 않은 라운드에 위대한 옛것 하나가 떠올라 3~5라운드 머문다. 머무는 동안 신화 효과가 규칙 하나를 바꾸고, 퀘스트 하나가 걸린다. 깨면 축복을 받고, 기한 안에 못 깨면 센 대가를 치른다. 떠오를 때마다 신화 단계가 1 → 2 → 3 으로 오른다. 위 띠 아래 줄을 누르면 자세히 본다. 상점의 진열은 지금 떠 있는 옛것의 결을 따른다.</p>
+<h3>위대한 옛것</h3><p>판 안에서 정해지지 않은 라운드에 위대한 옛것 하나가 떠올라 3~5라운드 머문다. 머무는 동안 신화 효과(좋은 것 하나 · 나쁜 것 하나)가 규칙을 바꾸고, 퀘스트 하나가 걸린다. 위 띠 아래 줄의 표식을 누르면 지금 걸려 있는 효과를 본다. 깨면 축복을 받고, 기한 안에 못 깨면 그 존재의 결대로 무작위 리스크 하나를 치른다 (주사위를 잃거나, 권속이 먹히거나, 몇 라운드 동안 불리해지는 것 따위). 떠오를 때마다 신화 단계가 1 → 2 → 3 으로 오르고, 리스크도 세진다. 상점의 진열은 지금 떠 있는 옛것의 결을 따른다.</p>
 <h3>합치기</h3><p>권속을 끌어 다른 권속 위에 놓으면 합쳐진다. 종류가 달라도 된다. 결과의 별 = 둘 가운데 낮은 별 + 1 (4성까지). 별 차이가 둘 이상이면 합치지 못한다. 끌고 있는 동안 결과가 작게 뜬다.</p><ul><li>같은 종류: 그 종류의 다음 별.</li><li>같은 성향 · 다른 종류: 그 성향에서 한 급 위의 종류 (희귀).</li><li>다른 성향: 두 피가 섞인 혼종 (희귀).</li><li>특별한 두 권속: 신화 등급 (레시피, 처음엔 「???」). 도감에 남는다.</li></ul><p>등급: 일반 · <b class="g-r">희귀</b>(능력치 ×1.15) · <b class="g-m">신화</b>(×1.35). 4성은 3성보다 ×1.6이고, 그 성향의 「4성의 힘」이 싸움 전체에 걸린다.</p>
 <h3>먹이기 · 버리기</h3><p>별이 낮은 권속을 별이 높은 권속 위에 놓고 「먹인다」를 고르면, 먹은 쪽의 체력 · 공격이 영구히 오른다 (먹인 것의 별 x 4%, 희귀 1.5배, 신화 2배). 별마다 3번까지 먹는다. 「버린다」 칸에 끌어다 놓으면 진액이 된다.</p>
 <h3>같은 면의 모음</h3><table class="dg-tbl"><tr><th>같은 권속 면</th><th>나오는 것</th></tr>${[1, 2, 3, 4, 5].map(n => { const q = y(n, false); return `<tr><td>${n}${n === 5 ? ' 이상' : ''}</td><td>${q.star}성${q.gold ? ' · 진액 +' + q.gold : ''}${n === 5 ? ' (6이면 진액 +4)' : ''}</td></tr>`; }).join('')}</table>
@@ -10183,6 +10427,8 @@ document.addEventListener('click', e => {
   if (d === 'cont') { const S = dSaved(); return S ? dStart(S) : dNew((Date.now() | 0)); }
   if (d === 'help') return dHelp();
   if (d === 'codex') return dCodexModal();
+  if (d === 'cxu') return dCxUnit(b.dataset.k);
+  if (d === 'cxr') return dCxRecipe(b.dataset.k);
   if (d === 'set') return dSetModal(DG.scr === 'game' ? 'menu' : null);
   if (d === 'tog') { dSetToggle(b.dataset.v); return dSetModal(b.dataset.back || null); }
   if (d === 'mclose') { $('modal').hidden = true; if (DG.scr === 'game' && R && !['roll', 'place'].includes(R.phase) && !DG.peekModal) return dFlow(); dTip(); return; }
@@ -10245,7 +10491,7 @@ window.__dice = {
     DG.ui = R.phase; DG.bossLine = DICE.isBoss(r) && DBOSS[r] ? { round: r, text: DBOSS[r] } : null; dRender(); dFlow(); },
   give: (kind, star, cell, o) => { const R = DG.R, u = DICE.newUnit(R, kind, star, o); R.units[u.uid] = u; if (cell == null) { R.bench[R.bench.indexOf(null)] = u.uid; } else { if (R.board[cell] != null) delete R.units[R.board[cell]]; R.board[cell] = u.uid; } if (R.phase === 'roll') { R.phase = 'place'; DG.ui = 'place'; if (R.roll) R.roll.n = R.roll.n || 1; } dRender(); return u.uid; },
   rise: (id, stage) => { DICE.forceRise(DG.R, id, stage); dSave(); dRender(); dFlow(); return DG.R.myth; },
-  get fight() { return DG.F ? { t: DG.F.t, i: DG.F.i, n: DG.F.f.timeline.length } : null; }, codex: () => dCodex(), DICE, DFUSE,
+  get fight() { return DG.F ? { t: DG.F.t, i: DG.F.i, n: DG.F.f.timeline.length } : null; }, codex: () => dCodex(), DICE, DFUSE, get bg() { return DICE_BG; },
 };
 (function dBoot() {
   try { if (META.diceTut == null) META.diceTut = 0; } catch (e) { /* 그대로 */ }
