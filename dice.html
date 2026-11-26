@@ -468,23 +468,16 @@ html.dbig { --df: 1.15; }
 
 /* 주사위 판 */
 #dg-tray { flex: none; display: flex; flex-direction: column; gap: 4px; padding: 6px 6px 2px; margin: 0 6px; background: linear-gradient(#1a1626, #120f1c); border: 1px solid #3a3150; border-radius: 12px; }
-#dg-dice { margin-bottom: 4px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
-#dg-dice[data-n="6"], #dg-dice[data-n="7"], #dg-dice[data-n="8"] { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-.dg-die { position: relative; display: flex; align-items: center; justify-content: center; aspect-ratio: 1; max-height: 62px; padding: 0; background: #e9e1cf; border: 2px solid #b8ab90; border-bottom-width: 4px; border-radius: 10px; cursor: pointer; transition: transform .08s; }
-.dg-die img { width: 78%; height: 78%; image-rendering: pixelated; pointer-events: none; }
-.dg-die.empty { background: #cfc6b2; }
-.dg-die.torch { background: #f0c890; border-color: #c06020; }
-.dg-die.blankd { background: #3a3448; border-color: #2a2438; }
-.dg-q { color: #8a80a0; font-size: 20px; font-weight: 700; }
-.dg-die.held { background: #fff4c8; border-color: var(--coin); transform: translateY(2px); box-shadow: 0 0 0 2px #0b0a14, 0 0 0 4px var(--coin); }
-.dg-die.lit.k { box-shadow: 0 0 10px 2px rgba(255, 220, 110, .85); }
-.dg-die.lit.a { box-shadow: 0 0 8px 1px rgba(140, 200, 255, .8); }
-.dg-die.held.lit { box-shadow: 0 0 0 2px #0b0a14, 0 0 0 4px var(--coin), 0 0 12px 3px rgba(255, 220, 110, .8); }
-.dg-die.spin { animation: dg-spin .17s steps(2) infinite; }
-.dg-die.dim { opacity: .55; cursor: default; }
-.dg-hold { position: absolute; left: 50%; bottom: -4px; transform: translateX(-50%); padding: 0 4px; background: var(--coin); color: #1a1408; border-radius: 4px; font-size: 9px; font-weight: 700; line-height: 1.4; white-space: nowrap; pointer-events: none; }
-@keyframes dg-spin { 0% { transform: rotate(-8deg) translateY(-3px); } 100% { transform: rotate(7deg) translateY(1px); } }
-@media (prefers-reduced-motion: reduce) { .dg-die.spin { animation: none; } }
+#dg-dice { position: relative; width: 100%; max-width: 440px; margin: 0 auto 2px; aspect-ratio: 192 / 70; touch-action: manipulation; }
+#dg-tcv { display: block; width: 100%; height: 100%; image-rendering: pixelated; border-radius: 8px; }
+#dg-dbtn { position: absolute; inset: 0; pointer-events: none; }
+.dg-ledge { position: absolute; right: 3%; top: 4%; height: 22%; display: flex; align-items: center; color: #8a7a9a; font-size: calc(11px * var(--df)); line-height: 1; letter-spacing: .02em; pointer-events: none; white-space: nowrap; }
+/* 주사위 단추: 캔버스에 그린 주사위 위에 겹친 투명한 단추 (누르기 · 길게 누르기 · 읽어 주기) */
+.dg-die { position: absolute; padding: 0; margin: 0; background: transparent; border: 0; border-radius: 4px; cursor: pointer; pointer-events: auto; -webkit-tap-highlight-color: transparent; }
+.dg-die:focus-visible { outline: 2px solid var(--coin); outline-offset: 1px; }
+.dg-die.incup, .dg-die.spin { pointer-events: none; }
+.dg-die.incup { visibility: hidden; }
+.dg-die.dim { cursor: default; }
 #dg-sets { min-height: 1.4em; font-size: calc(12px * var(--df)); line-height: 1.4; color: var(--mute); text-align: center; }
 #dg-sets b { color: var(--text); } #dg-sets b.bad { color: #ff9a80; }
 #dg-btns { display: flex; gap: 6px; }
@@ -493,7 +486,6 @@ html.dbig { --df: 1.15; }
 #dg-btns .btn.buy { flex: 0 1 auto; }
 #dg-btns .btn.big { font-size: calc(18px * var(--df)); }
 #dg-btns .btn:disabled { opacity: .45; }
-#dg-tray.off #dg-dice { opacity: .8; }
 #dg-ghost { position: fixed; left: 0; top: 0; width: 56px; height: 56px; z-index: 90; pointer-events: none; image-rendering: pixelated; filter: drop-shadow(0 4px 4px #000); }
 
 /* 길잡이 */
@@ -566,6 +558,51 @@ html.dbig { --df: 1.15; }
 @keyframes mzv-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { #mzv .mzv-lines p.now { animation: none; } }
 @media (min-width: 700px) { #dg { border-left: 1px solid #1e1a2c; border-right: 1px solid #1e1a2c; } }
+
+/* 능력치 넷 (정보 창 · 싸움 중 작은 창) */
+.dg-st4 { display: flex; flex-direction: column; gap: 4px; margin: 6px 0; }
+.dg-st4 p { display: grid; grid-template-columns: 5.4em minmax(0, 1fr) 6.6em; align-items: center; gap: 8px; margin: 0; font-size: calc(13px * var(--df)); line-height: 1.25; }
+.dg-st4 span { color: var(--mute); white-space: nowrap; }
+.dg-st4 i { position: relative; display: block; height: 7px; background: #241e36; border-radius: 4px; overflow: hidden; }
+.dg-st4 i b, .dg-st4 i u { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 4px; }
+.dg-st4 i b { background: #4a4468; }
+.dg-st4 p[data-k="hp"] i b { background: #7a3a48; } .dg-st4 i u { background: #ff6070; }
+.dg-st4 p:not([data-k="hp"]) i b { background: linear-gradient(90deg, #3ad8b0, #e8c030); }
+.dg-st4 em { text-align: right; font-style: normal; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.dg-tline { margin: 3px 0; font-size: calc(13px * var(--df)); line-height: 1.45; }
+.dg-tline .up { color: #ffd040; }
+.dg-tnote { font-size: calc(12px * var(--df)); }
+.dg-asp { margin: 0; font-size: calc(13px * var(--df)); }
+.dg-ustar small { color: var(--mute); font-size: calc(12px * var(--df)); }
+#dg-peek { position: absolute; left: 6px; top: 6px; z-index: 6; width: min(250px, 66%); padding: 6px 8px; background: rgba(12, 9, 22, .93); border: 1px solid #3a3150; border-radius: 9px; box-shadow: 0 4px 12px rgba(0, 0, 0, .5); }
+#dg-peek.right { left: auto; right: 6px; }
+#dg-peek .pk-head { display: flex; align-items: center; gap: 6px; }
+#dg-peek .pk-head img { width: 32px; height: 32px; image-rendering: pixelated; background: var(--ink); border-radius: 6px; flex: none; }
+#dg-peek .pk-head p { flex: 1 1 auto; min-width: 0; margin: 0; font-size: calc(13px * var(--df)); line-height: 1.25; }
+#dg-peek .sh-x { flex: none; width: 32px; height: 32px; }
+#dg-peek .dg-st4 { margin: 4px 0 2px; gap: 2px; }
+#dg-peek .dg-st4 p, #dg-peek .dg-tline { font-size: calc(12px * var(--df)); }
+#dg-peek .dg-ustar { font-size: calc(12px * var(--df)); }
+
+/* 진화 · 합치기 연출 */
+#dg-evo { position: fixed; inset: 0; z-index: 95; cursor: pointer; --asp: #c85a6a; }
+#dg-evo canvas { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+#dg-evo .ev-box { position: absolute; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 14px); transform: translateX(-50%); max-height: 54vh; width: min(92vw, 420px); display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; pointer-events: none; }
+#dg-evo .ev-box > * { opacity: 0; transform: translateY(6px); transition: opacity .25s, transform .25s; margin: 0; }
+#dg-evo.s-name .ev-tag, #dg-evo.s-name .ev-name, #dg-evo.s-trait .ev-trait, #dg-evo.s-stats .ev-stats, #dg-evo.s-end .ev-tap { opacity: 1; transform: none; }
+#dg-evo .ev-tag { color: var(--asp); font-size: calc(13px * var(--df)); font-weight: 700; letter-spacing: .04em; }
+#dg-evo .ev-name { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: center; gap: 2px 8px; padding: 6px 14px; background: linear-gradient(90deg, transparent, rgba(30, 12, 22, .92) 15%, rgba(30, 12, 22, .92) 85%, transparent); font-size: calc(15px * var(--df)); line-height: 1.3; }
+#dg-evo .ev-old { color: #a89a9a; } #dg-evo .ev-name i { font-style: normal; color: var(--asp); }
+#dg-evo .ev-new { color: #ffe8a8; font-size: calc(21px * var(--df)); text-shadow: 0 0 8px var(--asp); }
+#dg-evo.tier-big .ev-new { font-size: calc(24px * var(--df)); }
+#dg-evo .ev-trait p { margin: 2px 0; color: #e8dccf; font-size: calc(13px * var(--df)); line-height: 1.45; }
+#dg-evo .ev-trait b { color: #ffd890; }
+#dg-evo .ev-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 168px), 1fr)); gap: 4px 10px; width: 100%; }
+#dg-evo .ev-stats p { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: center; gap: 0 5px; min-width: 0; margin: 0; padding: 3px 4px; background: rgba(20, 14, 30, .85); border-radius: 6px; font-size: calc(13px * var(--df)); }
+#dg-evo .ev-stats p > * { white-space: nowrap; }
+#dg-evo .ev-stats span { color: var(--mute); } #dg-evo .ev-stats em { font-style: normal; color: #a89a9a; } #dg-evo .ev-stats i { font-style: normal; color: #6a6080; }
+#dg-evo .ev-stats b { font-variant-numeric: tabular-nums; color: #e8e0d0; } #dg-evo .ev-stats p.up b { color: #8fe8a0; }
+#dg-evo .ev-tap { color: #8f8580; font-size: calc(12px * var(--df)); }
 </style>
 </head><body style="margin:0">
 <div id="title" class="screen">
@@ -1924,7 +1961,7 @@ const DICE = (() => {
     r_first: { name: '첫 피', bo: { firstblood: 0.2 }, short: '첫 처치 때 모든 권속 공격 +20%', lore: '굴은 첫 피 냄새를 오래 기억한다.' },
     r_stand: { name: '썩지 않는 심장', bo: { laststand: 1 }, short: '물결마다 처음 쓰러지는 권속 하나가 체력 절반으로 일어선다', lore: '멎어도 다시 뛰는 심장. 누구의 것이었는지는 묻지 않는다.' },
     r_sac: { name: '알주머니 띠', bo: { eggsac: 1 }, short: '권속이 쓰러지면 새끼 1', lore: '권속들의 배에 알이 한 줄씩 붙었다.' },
-    r_mist: { name: '굴 안개', bo: { wetall: 0.3 }, short: '사람들이 6초 동안 젖어 30% 느려진다', lore: '입구에서 안쪽으로 흐르는 안개. 마시면 폐가 무거워진다.' },
+    r_mist: { name: '굴 안개', bo: { wetall: 0.3 }, short: '처음 6초 동안 사람들의 공격 속도와 걸음 −30%', lore: '입구에서 안쪽으로 흐르는 안개. 마시면 폐가 무거워진다.' },
     r_gaze: { name: '굳히는 눈길', bo: { stunstart: 1.5 }, short: '사람들이 처음 1.5초 얼어붙는다', lore: '입구에 들어선 자는 먼저 무엇인가와 눈이 마주친다.' },
     r_choir: { name: '부르는 소리', bo: { manaFast: 0.3 }, short: '권속의 기술이 30% 빨리 찬다', lore: '굴 깊은 데서 낮은 소리가 박자를 맞춘다.' },
     r_hoard: { name: '진액 웅덩이', interest: 1, short: '물결이 끝날 때 진액 10마다 +1 (3까지)', lore: '고여 있는 진액은 저절로 불어난다.' },
@@ -7941,7 +7978,7 @@ if (typeof window !== 'undefined') window.__mzvign = MZVIGN;
 //   → 대기 칸(6) · 먹이기 → 주사위 판(주사위 5~8, 다시 굴리기 수, 단추).
 // 엔진의 칸(줄 r, 칸 c)을 옆으로 눕혀 그린다: 엔진 줄 5 = 화면 맨 왼쪽(굴 안쪽), 줄 0 = 맨 오른쪽(사람의 뒷줄). 엔진 칸 c = 화면 위에서 c 번째 줄.
 // 저장: localStorage 'nestdice.run' (판 중간 이어 하기). 설정은 META (base.js) 의 sound · music · shake · gore 와 diceFeast · diceBig · diceSpeed · diceTut.
-const DG = { R: null, scr: 'title', ui: 'idle', sel: null, drag: null, F: null, raf: 0, last: 0, now: 0, roll: null, showV: null, dbg: { fights: 0, feasts: 0, throws: 0, drops: 0, merges: 0, picks: 0 }, test: null, tip: null };
+const DG = { R: null, scr: 'title', ui: 'idle', sel: null, drag: null, F: null, raf: 0, last: 0, now: 0, roll: null, showV: null, dbg: { fights: 0, feasts: 0, throws: 0, drops: 0, merges: 0, picks: 0, evos: 0, evoLast: null, face: { n: 0, ok: 0, bad: 0, behind: 0, behindOk: 0, kinBehind: 0, list: [] } }, test: null, tip: null };
 const DFW = 384, DX0 = 36, DCW = 58;
 // 전장 높이는 화면에 맞춰 244~360 사이에서 늘어난다 (줄 여섯은 가운데보다 조금 아래)
 let DFH = 244, DLY = 28, DLH = 35;
@@ -7954,6 +7991,16 @@ const dEsc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&a
 const dJo = (w, a, b) => { const c = String(w).charCodeAt(String(w).length - 1); return w + (c >= 0xAC00 && c <= 0xD7A3 && (c - 0xAC00) % 28 ? a : b); };
 const dStar = n => '★'.repeat(n);
 const ASPC = { abyss: '#3ac0d8', nebula: '#b08fff', brood: '#8fd05f', dusk: '#f0a04a', hunger: '#ff5f57' };
+// 주사위 판과 진화의 소리: 잡음으로만 짓는다 (삑 없음). 공유 파일 zzfx.js 를 바꾸지 않으려고 이 판에서만 목록(ZZ)에 덧붙인다
+// 통 속 달그락: 흔드는 박자(초당 9번)에 몰리는 짧은 잡음 덩이 스무 남짓 + 가죽 통의 둔한 울림
+function dzRattle(len, seed) { return rate => { const n = Math.floor(rate * len), r = zrRng(seed), w = zrNoise(n, seed + 1), d = new Float32Array(n);
+  for (let k = 0; k < 26; k++) { const beat = Math.floor(Math.abs(r()) * Math.floor(len * 18)), at = Math.floor((beat + 0.1 + Math.abs(r()) * 0.4) / (len * 18) * n), amp = 0.4 + Math.abs(r()) * 0.6, dec = 0.003 + Math.abs(r()) * 0.004;
+    for (let i = at; i < n && i < at + rate * dec * 6; i++) d[i] += w[i] * Math.exp(-(i - at) / rate / dec) * amp; }
+  const body = zrLP(zrNoise(n, seed + 2), rate, 260); for (let i = 0; i < n; i++) { const t = i / rate; d[i] = d[i] * 0.9 + body[i] * 0.5 * (0.5 + 0.5 * Math.sin(t * 2 * Math.PI * 9)) * Math.min(1, (len - t) / 0.08); }
+  return zrNorm(zrHP(zrLP(d, rate, 5200), rate, 380), 0.55); }; }
+// 바닥에 닿는 딸깍: 아주 짧은 잡음
+function dzClack(len, seed) { return rate => { const n = Math.floor(rate * len), w = zrNoise(n, seed), d = new Float32Array(n); for (let i = 0; i < n; i++) { const t = i / rate; d[i] = w[i] * (Math.exp(-t / 0.004) + 0.35 * Math.exp(-t / 0.018)); } return zrNorm(zrHP(zrLP(d, rate, 4200), rate, 600), 0.5); }; }
+try { if (typeof ZZ !== 'undefined') Object.assign(ZZ, { dcup: [zr(0, 0.9, dzRattle(0.48, 51))], dclack: [zr(0, 0.55, dzClack(0.06, 52))], dswell: [zr(0, 1, zrRumble(1.2, 65, 53)), zr(0.3, 0.6, zrSquelch(0.8, 0.5, 5, 54))] }); } catch (e) { /* 소리 없이 */ }
 
 // ───────── 그림 조각 ─────────
 const DURL = {};
@@ -7997,10 +8044,11 @@ function dTitleArt() {
 function dMount() {
   let g = $('dg'); if (g) return g; g = document.createElement('div'); g.id = 'dg'; g.hidden = true;
   g.innerHTML = `<header id="dg-top"></header><nav id="dg-waves" aria-label="물결"></nav>
-<div id="dg-fieldwrap"><canvas id="dg-cv" class="px" width="${DFW}" height="${DFH}" role="img" aria-label="굴 입구의 싸움터. 왼쪽 끝이 알, 오른쪽에서 사람들이 온다."></canvas><div id="dg-fctl" hidden></div><p id="dg-say" aria-live="polite"></p></div>
+<div id="dg-fieldwrap"><canvas id="dg-cv" class="px" width="${DFW}" height="${DFH}" role="img" aria-label="굴 입구의 싸움터. 왼쪽 끝이 알, 오른쪽에서 사람들이 온다."></canvas><div id="dg-fctl" hidden></div><p id="dg-say" aria-live="polite"></p><div id="dg-peek" hidden></div></div>
 <section id="dg-mid"><div id="dg-bench" aria-label="대기 칸"></div><button id="dg-feed" class="dg-feed" data-d="feedhint" aria-label="먹이기: 권속을 끌어다 놓으면 진액이 된다">먹이기</button></section>
-<section id="dg-tray"><div id="dg-dice"></div><p id="dg-sets"></p><div id="dg-btns"></div></section>
-<div id="dg-tip" hidden></div><img id="dg-ghost" alt="" hidden>`;
+<section id="dg-tray"><div id="dg-dice"><canvas id="dg-tcv" width="${TW * TS}" height="${TH * TS}" role="img" aria-label="주사위 판. 위는 붙잡은 자리, 아래는 바닥, 오른쪽은 주사위통."></canvas><span class="dg-ledge" aria-hidden="true">붙잡은 자리</span><div id="dg-dbtn"></div></div><p id="dg-sets"></p><div id="dg-btns"></div></section>
+<div id="dg-tip" hidden></div><img id="dg-ghost" alt="" hidden>
+<div id="dg-evo" hidden role="dialog" aria-modal="true" aria-label="진화"><canvas id="dg-ecv"></canvas><div class="ev-box"><p class="ev-tag"></p><h2 class="ev-name"><span class="ev-old"></span><i>→</i><b class="ev-new"></b></h2><div class="ev-trait"></div><div class="ev-stats"></div><p class="ev-tap">누르면 넘어간다</p></div></div>`;
   document.body.appendChild(g); dBind(g); return g;
 }
 function dStart(R) {
@@ -8027,16 +8075,200 @@ function dBench(v) {
   $('dg-bench').innerHTML = v.bench.map((u, i) => u ? `<button class="dg-slot has${DG.sel === u.uid ? ' sel' : ''}" data-b="${i}" data-uid="${u.uid}" aria-label="${dEsc(u.name)} ${u.star}성"><img src="${dUnitImg(u, 40)}" alt=""><span class="dg-stars s${u.star}">${dStar(u.star)}</span>${u.copies > 1 ? `<span class="dg-cp">${u.copies}/3</span>` : ''}</button>` : `<span class="dg-slot" data-b="${i}"></span>`).join('');
 }
 
-// ───────── 주사위 판 ─────────
+// ───────── 주사위 판 (캔버스 하나: 위 = 붙잡은 자리, 아래 = 가죽 바닥, 오른쪽 = 주사위통) ─────────
+// 나오는 면은 규칙(DICE, 판 씨앗)이 먼저 정하고, 여기서는 그 면으로 멈추도록 굴러가는 모습만 보인다 (움직임은 결정적이지 않다).
+// 차례: (다시 굴릴 때) 바닥의 주사위를 통에 쓸어 담음 → 통이 흔들리며 달그락 → 통을 기울여 쏟음 → 포물선으로 튀어나와 바닥에서 튀고 구르며 벽에 꺾임 → 멈춤 → 한 줄로 정렬 → 모음이 빛남.
+// 좌표는 192 x 70 낱칸(한 칸 = 캔버스 2점). 주사위 하나의 자리(x, y)는 윗면 가운데의 바닥 높이, z 는 바닥에서 뜬 높이.
+// 주사위 단추(.dg-die)는 캔버스 위에 겹친 투명한 단추로 멈춘 자리에 놓인다 (누르면 붙잡기, 길게 누르면 여섯 면).
+const TW = 192, TH = 70, TS = 2, TFL = { x0: 4, x1: 188, y0: 25, y1: 67 }, TROW = { x0: 6, x1: 156, y: 46 }, TCUP = { x: 174, y: 50 }, TLEDGE = { y: 8.5, s: 13, x0: 5 };
+const TG = 560, TFR = 150;
+const TR = { dice: [], mode: 'idle', t: 0, cup: { x: TCUP.x, y: TCUP.y, a: 0 }, done: null, frames: [], bg: null, cupCv: null, clackAt: 0, sF: 18, log: [] };
+const trDep = s => Math.round(s * 0.28);
+const trR = v => Math.round(v * TS) / TS;
+const trEase = k => (k <= 0 ? 0 : k >= 1 ? 1 : 1 - Math.pow(1 - k, 3));
+function dTrNew(i) { return { i, x: TCUP.x, y: TCUP.y, z: 0, vx: 0, vy: 0, vz: 0, ang: 0, va: 0, cur: 0, nxt: 1, phi: 0, dir: -1, fin: 0, st: 'cup', s: 18, anim: null, settle: false, bn: 0, go: false, relT: 0 }; }
+// 면 그림 (캔버스, 실제 점 크기 px)
+const DCV = {};
+function dFaceCv(f, px) {
+  const k = (f.t === 'kin' ? 'k:' + f.kind : 's:' + f.t) + ':' + px; if (DCV[k] !== undefined) return DCV[k]; let c = null;
+  try { if (f.t === 'kin') c = LAIRART.icon(f.kind, 1, px); else { const a = document.createElement('canvas'); a.width = a.height = 16; dSymDraw(a.getContext('2d'), f.t); c = document.createElement('canvas'); c.width = c.height = px; const x = c.getContext('2d'); x.imageSmoothingEnabled = false; x.drawImage(a, 0, 0, px, px); } } catch (e) { c = null; }
+  return (DCV[k] = c);
+}
+// 판 바닥 (한 번만 그린다)
+function dTrBg() {
+  if (TR.bg) return TR.bg; const c = document.createElement('canvas'); c.width = TW * TS; c.height = TH * TS; const x = c.getContext('2d'); x.scale(TS, TS);
+  const R = (col, X, Y, w, h) => { x.fillStyle = col; x.fillRect(X, Y, w, h); };
+  let s = 0x9e37; const rn = () => { s = (s * 1103515245 + 12345) & 0x7fffffff; return s / 0x7fffffff; };
+  R('#0d0a13', 0, 0, TW, TH);
+  // 붙잡은 자리: 뼈를 깎은 선반
+  R('#2b2335', 1, 1, TW - 2, 19); R('#382e46', 1, 1, TW - 2, 1); R('#1a1422', 1, 17, TW - 2, 3); R('#4a3e5a', 1, 20, TW - 2, 1);
+  for (let X = 21; X < 140; X += 16) R('#241c2e', X, 3, 1, 13);
+  // 바닥 테두리 (뼈) · 가죽 바닥
+  R('#2a2018', 0, 22, TW, TH - 22); R('#d4c6a4', 1, 22, TW - 2, 3); R('#a8987a', 1, 24, TW - 2, 1); R('#d4c6a4', 1, 22, 3, TH - 23); R('#d4c6a4', TW - 4, 22, 3, TH - 23); R('#b8a888', 1, TH - 3, TW - 2, 2);
+  R('#3a1d22', 4, 25, TW - 8, TH - 28);
+  for (let k = 0; k < 560; k++) { const X = 4 + Math.floor(rn() * (TW - 8)), Y = 25 + Math.floor(rn() * (TH - 28)); R(rn() < 0.5 ? '#45252b' : '#2e161b', X, Y, 1, 1); }
+  x.fillStyle = 'rgba(0,0,0,0.3)'; x.fillRect(4, 25, TW - 8, 3); x.fillRect(4, 25, 3, TH - 28); x.fillStyle = 'rgba(0,0,0,0.15)'; x.fillRect(4, 28, TW - 8, 2); x.fillRect(TW - 7, 25, 3, TH - 28);
+  for (let X = 9; X < TW - 9; X += 5) { R('#7a5a40', X, 26, 2, 1); R('#6a4a34', X, TH - 5, 2, 1); }
+  for (let Y = 30; Y < TH - 6; Y += 5) { R('#7a5a40', 5, Y, 1, 2); R('#7a5a40', TW - 6, Y, 1, 2); }
+  for (let X = 14; X < TW; X += 22) R('#8a7a60', X, 22, 1, 3);
+  return (TR.bg = c);
+}
+// 주사위통: 위가 조금 넓은 가죽 통, 뼈 테와 뼈 띠, 가운데에 눈 무늬 (28 x 32 낱칸)
+function dTrCup() {
+  if (TR.cupCv) return TR.cupCv; const c = document.createElement('canvas'); c.width = 28 * TS; c.height = 32 * TS; const x = c.getContext('2d'); x.scale(TS, TS);
+  const R = (col, X, Y, w, h) => { x.fillStyle = col; x.fillRect(X, Y, w, h); };
+  for (let y = 4; y < 31; y++) { const hw = Math.round(13 - (y - 4) * 0.12), X0 = 14 - hw; R('#1c0f0a', X0 - 1, y, hw * 2 + 2, 1); R('#5a3020', X0, y, hw * 2, 1); R('#7a4630', X0 + 2, y, 3, 1); R('#3e2016', X0 + hw * 2 - 4, y, 4, 1); }
+  for (let X = 3; X < 25; X += 3) { R('#c8a070', X, 9, 2, 1); R('#c8a070', X + 1, 24, 2, 1); }
+  R('#1c0f0a', 2, 26, 24, 6); R('#d8ccb0', 3, 27, 22, 3); R('#a89878', 3, 29, 22, 1); R('#fff4dc', 4, 27, 6, 1);
+  R('#1c0f0a', 9, 13, 10, 7); R('#e8dcc0', 10, 14, 8, 5); R('#d8b040', 12, 14, 4, 5); R('#0a0606', 13, 15, 2, 3); R('#1c0f0a', 10, 14, 1, 1); R('#1c0f0a', 17, 14, 1, 1); R('#1c0f0a', 10, 18, 1, 1); R('#1c0f0a', 17, 18, 1, 1);
+  R('#1c0f0a', 0, 0, 28, 6); R('#e6dac0', 1, 1, 26, 4); R('#fff6e0', 2, 1, 8, 1); R('#b8a888', 1, 4, 26, 1); R('#140a08', 3, 2, 22, 2);
+  return (TR.cupCv = c);
+}
+// 자리: 붙잡은 것은 선반에, 나머지는 바닥에 한 줄로 (주사위 순서대로). 여덟이면 조금 작게 해서 겹치지 않는다
+function dTrSlots() {
+  const R = DG.R, ro = R.roll, n = R.dice.length, held = [], row = [], out = {};
+  for (let i = 0; i < n; i++) (ro && ro.n > 0 && ro.held[i] ? held : row).push(i);
+  const sF = n <= 6 ? 18 : 16, gF = n <= 6 ? 4 : 3, m = row.length, tot = m * sF + (m - 1) * gF, x0 = (TROW.x0 + TROW.x1) / 2 - tot / 2 + sF / 2;
+  row.forEach((i, k) => { out[i] = { x: x0 + k * (sF + gF), y: TROW.y, s: sF, where: 'row' }; });
+  held.forEach((i, k) => { out[i] = { x: TLEDGE.x0 + TLEDGE.s / 2 + k * (TLEDGE.s + 3), y: TLEDGE.y, s: TLEDGE.s, where: 'ledge' }; });
+  return out;
+}
+// 단추 자리 (캔버스에 대한 %)
+function dTrBox(i, slots) { const s = slots[i]; if (!s) return { l: 0, t: 0, w: 0, h: 0 }; const dep = trDep(s.s), p = v => Math.round(v * 1000) / 1000; return { l: p((s.x - s.s / 2 - 1) / TW * 100), t: p((s.y - s.s / 2 - 1) / TH * 100), w: p((s.s + 2) / TW * 100), h: p((s.s + dep + 2) / TH * 100) }; }
+// 옮김: 자리에서 자리로 (z 는 깡충)
+function dTrGo(d, to, dur, o) {
+  o = o || {}; if (!dMo()) { d.x = to.x; d.y = to.y; d.s = to.s; d.z = 0; d.anim = null; if (o.cup) d.st = 'cup'; return; }
+  d.anim = { x0: d.x, y0: d.y, s0: d.s, x1: to.x, y1: to.y, s1: to.s, t0: performance.now() + (o.delay || 0), dur, hop: o.hop == null ? 4 : o.hop, cup: !!o.cup };
+}
+function dTrAnims(now) {
+  TR.dice.forEach(d => { const a = d.anim; if (!a) return; const k = Math.max(0, Math.min(1, (now - a.t0) / a.dur)), e = trEase(k);
+    d.x = a.x0 + (a.x1 - a.x0) * e; d.y = a.y0 + (a.y1 - a.y0) * e; d.s = Math.round(a.s0 + (a.s1 - a.s0) * e); d.z = Math.sin(Math.PI * k) * a.hop;
+    if (k >= 1) { d.x = a.x1; d.y = a.y1; d.s = a.s1; d.z = 0; d.anim = null; if (a.cup) d.st = 'cup'; } });
+}
+// 판의 그림을 규칙 상태에 맞춘다 (구르는 중이 아닐 때)
+function dTraySync() {
+  const R = DG.R; if (!R) return; const ro = R.roll, n = R.dice.length; while (TR.dice.length < n) TR.dice.push(dTrNew(TR.dice.length)); TR.dice.length = n;
+  if (DG.ui === 'rolling') return; const out = !!(ro && ro.n > 0), slots = dTrSlots();
+  TR.dice.forEach((d, i) => {
+    if (!out) { d.go = false; if (d.st === 'cup' || (d.anim && d.anim.cup)) return; if (d.st === 'rest' && dMo()) { dTrGo(d, { x: TCUP.x, y: TCUP.y - 6, s: 10 }, 220, { hop: 10, delay: i * 30, cup: true }); } else { d.st = 'cup'; d.anim = null; } return; }
+    d.fin = ro.faces[i]; const s = slots[i];
+    if (d.st === 'cup' || d.st === 'fly' || d.st === 'still') { d.cur = d.fin; d.phi = 0; d.ang = 0; d.z = 0; d.x = s.x; d.y = s.y; d.s = s.s; d.st = 'rest'; d.anim = null; return; }
+    d.cur = d.fin; d.phi = 0; const a = d.anim, tx = a ? a.x1 : d.x, ty = a ? a.y1 : d.y, ts = a ? a.s1 : d.s;
+    if (Math.abs(tx - s.x) > 0.4 || Math.abs(ty - s.y) > 0.4 || ts !== s.s) { d.anim = null; dTrGo(d, s, 200, { hop: s.where === 'ledge' || d.y < 20 ? 7 : 3 }); }
+  });
+  if (TR.mode !== 'roll') TR.mode = out ? 'rest' : 'idle';
+}
+function dTrNext(d) { let j = Math.floor(Math.random() * 5); if (j >= d.cur) j++; return j; }
+// 던지기를 시작한다. fin = 규칙이 정한 면 (주사위마다 면 번호), held = 붙잡은 것
+function dTrThrow(fin, held, done) {
+  const T = TR, R = DG.R; T.mode = 'roll'; T.t = 0; T.done = done; T.aligning = false; T.skip = false; T.frames = []; T.sF = R.dice.length <= 6 ? 18 : 16; T.alignEnd = 0;
+  const go = []; T.dice.forEach((d, i) => { d.fin = fin[i]; d.go = !held[i]; if (d.go) go.push(d); });
+  let k = 0; go.forEach(d => { if (d.st !== 'cup') dTrGo(d, { x: TCUP.x, y: TCUP.y - 6, s: 10 }, 200, { hop: 10, delay: (k++) * 35, cup: true }); });
+  T.s0 = k ? 230 + k * 35 : 0; T.s1 = T.s0 + 460; go.forEach((d, j) => { d.relT = T.s1 + 110 + j * 40; d.launched = false; });
+  T.back = T.s1 + 110 + go.length * 40 + 220; T.cupBack = T.back + 320; T.rattled = false; T.poured = false;
+  T.log.push({ n: go.length, held: held.filter(Boolean).length });
+}
+function dTrLaunch(d) {
+  const c = TR.cup, mx = c.x + 14 * Math.sin(c.a), my = c.y - 14 * Math.cos(c.a), gy = 36 + Math.random() * 17;
+  d.anim = null; d.st = 'fly'; d.launched = true; d.s = TR.sF; d.x = mx - 3; d.y = gy; d.z = Math.max(2, gy - my); d.vx = -(70 + Math.random() * 150); d.vy = (Math.random() - 0.5) * 80; d.vz = 25 + Math.random() * 50;
+  d.va = (Math.random() < 0.5 ? -1 : 1) * (7 + Math.random() * 8); d.ang = Math.random() * 0.6 - 0.3; d.cur = Math.floor(Math.random() * 6); d.nxt = dTrNext(d); d.phi = 0; d.dir = -1; d.settle = false; d.bn = 0;
+}
+function dTrClack(v) { const now = performance.now(); if (now - TR.clackAt < 45 || v < 18) return; TR.clackAt = now; dSay('dclack'); }
+function dTrPhys(d, dt) {
+  const s = d.s, dep = trDep(s), X0 = TFL.x0 + s / 2 + 1, X1 = TFL.x1 - s / 2 - 1, Y0 = TFL.y0 + s / 2 + 1, Y1 = TFL.y1 - s / 2 - dep - 1;
+  d.vz -= TG * dt; d.x += d.vx * dt; d.y += d.vy * dt; d.z += d.vz * dt;
+  if (d.z <= 0) { d.z = 0; if (d.vz < -30) { dTrClack(-d.vz); d.vz = -d.vz * 0.4; d.vx *= 0.8; d.vy *= 0.8; d.va *= 0.6; d.bn++; } else d.vz = 0; }
+  if (d.x < X0) { d.x = X0; dTrClack(Math.abs(d.vx)); d.vx = Math.abs(d.vx) * 0.55; d.va = -d.va * 0.8; d.wall = (d.wall || 0) + 1; } else if (d.x > X1) { d.x = X1; dTrClack(Math.abs(d.vx)); d.vx = -Math.abs(d.vx) * 0.55; d.wall = (d.wall || 0) + 1; }
+  if (d.y < Y0) { d.y = Y0; d.vy = Math.abs(d.vy) * 0.5; } else if (d.y > Y1) { d.y = Y1; d.vy = -Math.abs(d.vy) * 0.5; }
+  const ground = d.z === 0 && d.vz === 0; let sp = Math.hypot(d.vx, d.vy);
+  if (ground) { const dec = TFR * dt; if (sp <= dec) { d.vx = 0; d.vy = 0; } else { d.vx -= d.vx / sp * dec; d.vy -= d.vy / sp * dec; } d.ang *= Math.exp(-14 * dt); d.va = 0; sp = Math.hypot(d.vx, d.vy); } else d.ang += d.va * dt;
+  if (Math.abs(d.vx) > 3) d.dir = d.vx > 0 ? 1 : -1;
+  // 면이 바뀐다: 구른 거리(공중에서는 도는 빠르기)만큼 네 귀퉁이를 넘는다. 멎을 때가 되면 정해진 면으로 넘어가 멈춘다
+  if (!d.settle && ground && sp < 22) { d.settle = true; if (d.cur !== d.fin && d.phi < 0.05) d.nxt = d.fin; }
+  if (d.settle) {
+    if (d.cur === d.fin) { d.phi = Math.max(0, d.phi - dt * 6); }
+    else { d.phi += dt * 7; if (d.phi >= 1) { d.cur = d.nxt; d.phi = 0; d.nxt = d.cur !== d.fin ? d.fin : dTrNext(d); dTrClack(20); } }
+  } else { d.phi += (ground ? sp / (s * 1.1) : Math.abs(d.va) * 0.32) * dt; if (d.phi >= 1) { d.phi -= 1; d.cur = d.nxt; d.nxt = dTrNext(d); } }
+  if (d.settle && ground && d.cur === d.fin && d.phi === 0 && Math.abs(d.ang) < 0.03 && sp < 1) { d.ang = 0; d.vx = 0; d.vy = 0; d.st = 'still'; }
+}
+// 주사위끼리 부딪힘 (바닥 깊이는 화면에서 눌려 보이므로 세로를 1.6배로 본다)
+function dTrCollide() {
+  const L = TR.dice.filter(d => d.go && (d.st === 'fly' || d.st === 'still'));
+  for (let a = 0; a < L.length; a++) for (let b = a + 1; b < L.length; b++) {
+    const A = L[a], B = L[b]; if (Math.abs(A.z - B.z) > 10) continue; let dx = B.x - A.x, dy = (B.y - A.y) * 1.6; const dist = Math.hypot(dx, dy) || 0.01, min = (A.s + B.s) / 2 * 0.95; if (dist >= min) continue;
+    dx /= dist; dy /= dist; const push = (min - dist) / 2; A.x -= dx * push; A.y -= dy * push / 1.6; B.x += dx * push; B.y += dy * push / 1.6;
+    const rv = (B.vx - A.vx) * dx + (B.vy - A.vy) * dy; if (rv < 0) { const j = -rv * 0.9 / 2; A.vx -= j * dx; A.vy -= j * dy; B.vx += j * dx; B.vy += j * dy; dTrClack(-rv);
+      [A, B].forEach(q => { if (q.st === 'still' && Math.hypot(q.vx, q.vy) > 6) { q.st = 'fly'; q.settle = false; } }); }
+  }
+}
+function dTrayTick(dt, now) {
+  dTrAnims(now); const T = TR; if (T.mode !== 'roll') return; T.frames.push(now);
+  const t = (T.t += dt * 1000), c = T.cup, w = 2 * Math.PI * 9;
+  if (T.skip) { T.dice.forEach(d => { if (!d.go) return; if (d.st === 'cup' || d.anim) { d.anim = null; d.st = 'still'; d.x = 30 + d.i * 14; d.y = TROW.y; } if (d.st === 'fly') d.st = 'still'; d.s = T.sF; d.cur = d.fin; d.phi = 0; d.ang = 0; d.z = 0; }); c.x = TCUP.x; c.y = TCUP.y; c.a = 0; T.cupBack = 0; T.skip = false; T.t = Math.max(t, T.s1 + 210); }
+  // 통: 들어 올려 흔들고 → 왼쪽으로 기울여 쏟고 → 제자리로
+  if (t < T.s0) { c.x = TCUP.x; c.y = TCUP.y; c.a = 0; }
+  else if (t < T.s1) { const k = (t - T.s0) / 1000, up = Math.min(1, (t - T.s0) / 90); if (!T.rattled) { T.rattled = true; dSay('dcup'); } c.x = TCUP.x + Math.sin(k * w) * 1.8; c.y = TCUP.y - up * 5 - Math.abs(Math.sin(k * w + 0.7)) * 2.5; c.a = Math.sin(k * w + 0.6) * 0.22; }
+  else if (t < T.s1 + 200) { const k = trEase((t - T.s1) / 200); if (!T.poured) { T.poured = true; dSay('slide'); } c.x = TCUP.x + (166 - TCUP.x) * k; c.y = TCUP.y - 5 + (30 - TCUP.y + 5) * k; c.a = -1.95 * k; }
+  else if (t < T.back) { c.x = 166 + Math.sin(t / 40) * 0.6; c.y = 30; c.a = -1.95 + Math.sin(t / 55) * 0.06; }
+  else if (t < T.cupBack) { const k = trEase((t - T.back) / (T.cupBack - T.back)); c.x = 166 + (TCUP.x - 166) * k; c.y = 30 + (TCUP.y - 30) * k; c.a = -1.95 * (1 - k); }
+  else { c.x = TCUP.x; c.y = TCUP.y; c.a = 0; }
+  T.dice.forEach(d => { if (d.go && !d.launched && t >= d.relT) dTrLaunch(d); });
+  const n = Math.max(1, Math.ceil(dt / (1 / 120))), h = dt / n;
+  for (let q = 0; q < n; q++) { T.dice.forEach(d => { if (d.go && d.st === 'fly') dTrPhys(d, h); }); dTrCollide(); }
+  if (!T.aligning && t > T.s1 + 2300) T.dice.forEach(d => { if (d.go && d.st === 'fly') { d.cur = d.fin; d.phi = 0; d.ang = 0; d.z = 0; d.vx = d.vy = d.vz = 0; d.st = 'still'; } });
+  const moving = T.dice.some(d => d.go && (d.st === 'fly' || !d.launched));
+  if (!moving && !T.aligning) { T.aligning = true; const sl = dTrSlots(); let k = 0; T.dice.forEach(d => { if (!d.go) return; d.st = 'rest'; dTrGo(d, sl[d.i], 230, { hop: 3, delay: (k++) * 22 }); }); T.alignEnd = t + 240 + k * 22; }
+  if (T.aligning && t >= T.alignEnd && t >= T.cupBack) { T.mode = 'rest'; c.x = TCUP.x; c.y = TCUP.y; c.a = 0; const f = T.done; T.done = null; if (f) f(); }
+}
+// 멈춘 뒤: 모음이 맞은 주사위가 차례로 한 번 뛴다
+function dTrPop(lit) { if (!dMo()) return; let k = 0; TR.dice.forEach(d => { if (lit[d.i] && d.st === 'rest' && !d.anim) dTrGo(d, { x: d.x, y: d.y, s: d.s }, 260, { hop: 5, delay: (k++) * 70 }); }); }
+function dLit(v) {
+  const lit = {}, ro = v && v.roll, sets = ro && ro.sets; if (!sets || DG.ui === 'rolling') return lit;
+  sets.kin.forEach(s => { if (s.n >= 2) s.dice.forEach(i => { lit[i] = 'k'; }); }); sets.asp.forEach(a => a.dice.forEach(i => { if (!lit[i]) lit[i] = 'a'; })); return lit;
+}
+// 정육면체 하나: 윗면(면 그림) + 앞면(조금 어둡게) + 윤곽. phi > 0 이면 구르는 중: 다음 면이 굴러오는 쪽에서 밀려 올라온다
+function dTrCube(x, s, dep, f, nf, phi, dir, held) {
+  const R = (c, X, Y, w, h) => { x.fillStyle = c; x.fillRect(X, Y, w, h); }, torch = f && f.t === 'torch';
+  const bone = torch ? ['#f2cc94', '#c89858', '#9a6230'] : held ? ['#fff4c8', '#d8c48a', '#a8935a'] : ['#efe6d2', '#c9bc9e', '#a3937a'];
+  R(held ? '#e8c030' : '#241a12', 1, 0, s - 2, s + dep); R(held ? '#e8c030' : '#241a12', 0, 1, s, s + dep - 2);
+  R(bone[1], 1, s - 1, s - 2, dep); R(bone[2], 1, s + dep - 2, s - 2, 1); R('rgba(0,0,0,0.12)', s - 4, s - 1, 3, dep - 1);
+  R(bone[0], 1, 1, s - 2, s - 2); R('#fffaf0', 2, 1, s - 4, 1); R('#fffaf0', 1, 2, 1, s - 4); R(bone[1], s - 2, 2, 1, s - 4); R(bone[1], 2, s - 2, s - 4, 1);
+  const ip = s >= 16 ? 2 : 1.5, iw = s - ip * 2, px = Math.round(iw * TS), A = f && dFaceCv(f, px);
+  if (phi > 0.02 && nf) {
+    const B = dFaceCv(nf, px), wi = Math.round(iw * phi * TS) / TS, wo = iw - wi, inL = dir > 0;
+    if (inL) { if (B && wi > 0.5) x.drawImage(B, ip, ip, wi, iw); if (A && wo > 0.5) x.drawImage(A, ip + wi, ip, wo, iw); R('rgba(60,40,20,0.55)', ip + wi - 0.5, 1, 1, s - 2); }
+    else { if (A && wo > 0.5) x.drawImage(A, ip, ip, wo, iw); if (B && wi > 0.5) x.drawImage(B, ip + wo, ip, wi, iw); R('rgba(60,40,20,0.55)', ip + wo - 0.5, 1, 1, s - 2); }
+    R('rgba(255,255,255,0.18)', inL ? 1 : s - 1 - Math.max(1, wi), 1, Math.max(1, Math.min(wi, s - 2)), 1);
+  } else if (A) x.drawImage(A, ip, ip, iw, iw);
+}
+function dTrDie(x, d, face, nface, o) {
+  const s = d.s, dep = trDep(s), cx = trR(d.x), gy = trR(d.y), z = Math.max(0, d.z), top = trR(gy - s / 2 - z);
+  const sw = Math.max(6, s + 2 - z * 0.3), sa = Math.max(0.1, 0.45 - z * 0.012);
+  x.fillStyle = 'rgba(0,0,0,' + sa.toFixed(3) + ')'; x.fillRect(trR(cx - sw / 2 + 2), gy + s / 2 + dep - 2, trR(sw), 2); x.fillRect(trR(cx - sw / 2 + 3), gy + s / 2 + dep, trR(sw - 2), 1);
+  x.save(); if (o && o.alpha != null) x.globalAlpha = o.alpha; x.translate(cx, top + (s + dep) / 2); if (d.ang) x.rotate(d.ang); x.translate(-s / 2, -(s + dep) / 2);
+  dTrCube(x, s, dep, face, nface, d.phi, d.dir, o && o.held); x.restore();
+  if (o && o.lit) { const now = DG.now || 0, pa = 0.55 + 0.45 * Math.sin(now / 170 + d.i), col = o.lit === 'k' ? '255,214,90' : '140,200,255'; x.strokeStyle = 'rgba(' + col + ',' + pa.toFixed(2) + ')'; x.lineWidth = 1; x.strokeRect(cx - s / 2 - 1.5, top - 1.5, s + 3, s + dep + 3);
+    x.fillStyle = 'rgba(' + col + ',' + (pa * 0.9).toFixed(2) + ')'; const k = Math.floor(now / 90 + d.i * 3) % (2 * (s + dep + 4)), per = s + 3; const X = k < per ? cx - s / 2 - 2 + k : cx + s / 2 + 1 - (k - per) % per; x.fillRect(Math.min(cx + s / 2 + 1, Math.max(cx - s / 2 - 2, X)), k < per ? top - 2 : top + s + dep + 1, 1, 1); }
+}
+function dTrayDraw() {
+  const cv = $('dg-tcv'); if (!cv || !DG.R) return; const x = cv.getContext('2d'), R = DG.R, v = DG.v, T = TR; x.setTransform(1, 0, 0, 1, 0, 0); x.imageSmoothingEnabled = false; x.drawImage(dTrBg(), 0, 0); x.setTransform(TS, 0, 0, TS, 0, 0); x.imageSmoothingEnabled = false;
+  const lit = T.mode === 'rest' ? dLit(v) : {}, dim = R.phase !== 'roll' ? 0.62 : null, faceOf = (d, j) => R.dice[d.i] && v && v.dice[d.i] ? v.dice[d.i].faces[j] : null;
+  const ro = R.roll, inCup = T.dice.filter(d => d.st === 'cup' && !d.anim).length, c = T.cup;
+  // 통 그림자 · 통
+  if (Math.abs(c.a) < 0.4) { x.fillStyle = 'rgba(0,0,0,0.4)'; x.fillRect(trR(c.x - 12 + 2), TCUP.y + 15, 24, 2); }
+  x.save(); x.translate(trR(c.x), trR(c.y)); x.rotate(c.a); x.drawImage(dTrCup(), -14, -16, 28, 32);
+  if (inCup && Math.abs(c.a) < 0.3) { const pk = [[-7, -15, '#efe6d2'], [1, -15.5, '#e0d4bc'], [6, -14.5, '#efe6d2']].slice(0, Math.min(3, inCup)); pk.forEach(([X, Y, col]) => { x.fillStyle = '#241a12'; x.fillRect(X - 0.5, Y - 0.5, 5, 3); x.fillStyle = col; x.fillRect(X, Y, 4, 2); }); }
+  x.restore();
+  // 주사위: 선반 위 → 바닥 (깊이 순서)
+  const vis = T.dice.filter(d => d.st !== 'cup' || d.anim).sort((a, b) => (a.y - b.y) || (a.x - b.x));
+  vis.forEach(d => { const held = !!(ro && ro.n > 0 && ro.held[d.i]) && d.y < 22; dTrDie(x, d, faceOf(d, d.cur), d.phi > 0.02 ? faceOf(d, d.nxt) : null, { alpha: dim, held, lit: lit[d.i] }); });
+}
 function dDiceHtml(v) {
-  const ro = v.roll, sets = ro && ro.sets, lit = {}, rolling = DG.ui === 'rolling';
-  if (sets && !rolling) { sets.kin.forEach(s => { if (s.n >= 2) s.dice.forEach(i => { lit[i] = 'k'; }); }); sets.asp.forEach(a => a.dice.forEach(i => { if (!lit[i]) lit[i] = 'a'; })); }
-  const pick = v.phase === 'roll' && ro && ro.n > 0 && !rolling;
+  const ro = v.roll, lit = dLit(v), rolling = DG.ui === 'rolling', pick = v.phase === 'roll' && ro && ro.n > 0 && !rolling, slots = dTrSlots();
   return v.dice.map((d, i) => {
-    const showF = DG.roll && DG.roll.faces[i] != null ? d.faces[DG.roll.faces[i]] : d.face != null ? d.faces[d.face] : null, held = ro && ro.held[i] && ro.n > 0, spin = rolling && !held;
-    const cls = 'dg-die' + (held ? ' held' : '') + (lit[i] ? ' lit ' + lit[i] : '') + (spin ? ' spin' : '') + (!showF ? ' blankd' : showF.t === 'blank' ? ' empty' : '') + (showF && showF.t === 'torch' ? ' torch' : '') + (v.phase !== 'roll' ? ' dim' : '');
-    const img = showF ? `<img src="${dFaceImg(showF, 44)}" alt="">` : '<span class="dg-q">?</span>';
-    return `<button class="${cls}" data-die="${i}" ${pick ? '' : 'aria-disabled="true"'} aria-pressed="${!!held}" aria-label="${dEsc(d.name)}${showF ? ': ' + dEsc(showF.name) : ''}${held ? ' (붙잡음)' : ''}">${img}${held ? '<span class="dg-hold">붙잡음</span>' : ''}</button>`;
+    const out = !!(ro && ro.n > 0), f = out && d.face != null ? d.faces[d.face] : null, held = !!(out && ro.held[i]), spin = rolling && !held, b = dTrBox(i, slots);
+    const cls = 'dg-die' + (held ? ' held' : '') + (lit[i] ? ' lit ' + lit[i] : '') + (spin ? ' spin' : '') + (!out ? ' incup' : '') + (f && f.t === 'blank' ? ' empty' : '') + (f && f.t === 'torch' ? ' torch' : '') + (v.phase !== 'roll' ? ' dim' : '');
+    return `<button class="${cls}" data-die="${i}" style="left:${b.l}%;top:${b.t}%;width:${b.w}%;height:${b.h}%" ${pick ? '' : 'aria-disabled="true"'} aria-pressed="${held}" aria-label="${dEsc(d.name)}${f ? ': ' + dEsc(f.name) : ''}${held ? ' (붙잡음)' : ''}"></button>`;
   }).join('');
 }
 function dSetsLine(v) {
@@ -8060,7 +8292,7 @@ function dBtns(v) {
 }
 function dRender() {
   if (DG.scr !== 'game' || !DG.R) return; const v = DICE.view(DG.R); DG.v = v;
-  dTop(v); dBench(v); $('dg-dice').innerHTML = dDiceHtml(v); $('dg-dice').dataset.n = v.dice.length; $('dg-sets').innerHTML = dSetsLine(v); $('dg-btns').innerHTML = dBtns(v);
+  dTop(v); dBench(v); dTraySync(); $('dg-dbtn').innerHTML = dDiceHtml(v); $('dg-dice').dataset.n = v.dice.length; $('dg-sets').innerHTML = dSetsLine(v); $('dg-btns').innerHTML = dBtns(v);
   $('dg-tray').classList.toggle('off', v.phase !== 'roll'); $('dg').dataset.phase = DG.ui;
   const say = $('dg-say'); say.textContent = dSayLine(v);
 }
@@ -8072,23 +8304,21 @@ function dSayLine(v) {
 }
 
 // ───────── 던지기 ─────────
-const DROLL_MS = 620, DFPS = 12;
 function dThrow(fn) {
-  if (DG.ui === 'rolling') return; const R = DG.R, before = R.roll.held.slice(), r = fn(); if (!r.ok) return dToast(r.msg);
-  DG.dbg.throws++; dSay('dice'); dSave();
-  if (!dMo()) { DG.roll = null; DG.ui = 'roll'; dRender(); dAfterThrow(r); return; }
-  DG.ui = 'rolling'; const end = R.roll.faces.slice(), t0 = performance.now(), n = R.dice.length; let k = 0;
-  DG.roll = { faces: end.map((f, i) => (before[i] ? f : (f + 1) % 6)) }; dRender();
-  const tick = () => { const t = performance.now() - t0; if (DG.scr !== 'game') return; if (t >= DROLL_MS) { DG.roll = null; DG.ui = 'roll'; dRender(); dAfterThrow(r); return; } k++;
-    DG.roll.faces = end.map((f, i) => (before[i] ? f : (f + 1 + ((k * 7 + i * 3) % 5)) % R.dice[i].faces.length)); const el = $('dg-dice'); if (el) el.innerHTML = dDiceHtml(DG.v); setTimeout(tick, 1000 / DFPS); };
-  void n; setTimeout(tick, 1000 / DFPS);
+  if (DG.ui === 'rolling') return; const R = DG.R; dTraySync(); const r = fn(); if (!r.ok) return dToast(r.msg);
+  DG.dbg.throws++; dSave(); const fin = R.roll.faces.slice(), held = R.roll.held.slice();
+  if (!dMo()) { TR.dice.forEach((d, i) => { if (!held[i]) { d.st = 'cup'; d.anim = null; } }); TR.mode = 'rest'; dSay('dclack'); DG.ui = 'roll'; dRender(); dAfterThrow(r); return; }
+  DG.ui = 'rolling'; dTrThrow(fin, held, () => { DG.ui = 'roll'; dRender(); dAfterThrow(r); dTrPop(dLit(DG.v)); }); dRender(); dTip();
 }
 function dAfterThrow(r) { if (r.eyes) { dToast('위대한 것의 눈이 떴다. 다시 굴리기 +1'); dSay('omen'); } const s = DG.v.roll && DG.v.roll.sets; if (s && s.kin.some(k => k.n >= 3)) dSay('combo'); dTip(); }
-function dHold(i) { const R = DG.R; if (R.phase !== 'roll' || !R.roll.n || DG.ui === 'rolling') return; const r = DICE.toggleHold(R, i); if (!r.ok) return; dSay('click'); dSave(); dRender(); dTip(); }
+function dHold(i) { const R = DG.R; if (R.phase !== 'roll' || !R.roll.n || DG.ui === 'rolling') return; const r = DICE.toggleHold(R, i); if (!r.ok) return; dSay('dclack'); dSave(); dRender(); dTip(); }
 function dConfirm() {
-  const r = DICE.confirm(DG.R); if (!r.ok) return dToast(r.msg); dSay('place'); DG.ui = 'place';
+  const R = DG.R, r = DICE.confirm(R); if (!r.ok) return dToast(r.msg); dSay('place'); DG.ui = 'place';
   const got = r.got.map(g => g.type === 'gold' ? dEsc(LAIR.KIN[g.kind].name) + ' (자리 없어 진액 +' + g.gold + ')' : dEsc(LAIR.KIN[g.kind].name) + ' ' + g.star + '성').join(', ');
   dSave(); dRender(); dToast(got ? '나온 권속: ' + got : '아무것도 나오지 않았다.' + (r.heal ? ' 알 체력 +' + r.heal : '')); dTip();
+  // 같은 면 셋 · 다섯으로 2성 · 3성이 바로 나오면 짧은 연출
+  const ev = r.got.filter(g => g.type === 'unit' && g.star >= 2 && R.units[g.uid]).map(g => dEvoEv(R.units[g.uid], 1, null, dStatOf(g.kind, 1, null, 1), 'dice', g.n));
+  if (ev.length) dEvoQueue(ev);
 }
 function dDieFaces(i) {
   const d = DG.v.dice[i]; if (!d) return; const m = $('modal');
@@ -8100,9 +8330,11 @@ function dDieFaces(i) {
 const dCellXY = cell => { const r = Math.floor(cell / 6), c = cell % 6; return { x: DX0 + (5 - r) * DCW + DCW / 2, y: DLY + c * DLH + DLH - 5 }; };
 function dCvPoint(cx, cy) { const cv = $('dg-cv'), b = cv.getBoundingClientRect(); return { x: (cx - b.left) * DFW / b.width, y: (cy - b.top) * DFH / b.height }; }
 function dCellAt(cx, cy, any) { const p = dCvPoint(cx, cy), sc = Math.floor((p.x - DX0) / DCW), lane = Math.floor((p.y - DLY) / DLH); if (sc < 0 || sc > 5 || lane < 0 || lane > 5) return -1; const r = 5 - sc; if (!any && r < 3) return -1; return r * 6 + lane; }
-const dCanMove = () => DG.R && DG.scr === 'game' && (DG.R.phase === 'roll' || DG.R.phase === 'place') && DG.ui !== 'rolling' && DG.ui !== 'fight' && DG.ui !== 'leak' && $('modal').hidden;
+const dCanMove = () => DG.R && DG.scr === 'game' && !EV.cur && (DG.R.phase === 'roll' || DG.R.phase === 'place') && DG.ui !== 'rolling' && DG.ui !== 'fight' && DG.ui !== 'leak' && $('modal').hidden;
 function dBind(g) {
   g.addEventListener('pointerdown', e => {
+    if (DG.ui === 'rolling' && e.target.closest('#dg-dice')) { TR.skip = true; return; }
+    if ((DG.ui === 'fight' || DG.ui === 'leak') && e.target.id === 'dg-cv') { dPeekAt(e.clientX, e.clientY); return; }
     if (!dCanMove()) return; let uid = null, src = null;
     const sl = e.target.closest('.dg-slot.has'); if (sl) { uid = +sl.dataset.uid; src = sl; }
     else if (e.target.id === 'dg-cv') { const c = dCellAt(e.clientX, e.clientY); if (c >= 0 && DG.R.board[c] != null) { uid = DG.R.board[c]; src = e.target; } }
@@ -8118,6 +8350,7 @@ function dBind(g) {
   window.addEventListener('pointerup', e => { const d = DG.drag; if (!d) return; DG.drag = null; $('dg-ghost').hidden = true; DG.dragHover = null; if (!d.moved) return dTapUnit(d.uid); dDrop(d.uid, dDropAt(e.clientX, e.clientY)); });
   window.addEventListener('pointercancel', () => { DG.drag = null; const gh = $('dg-ghost'); if (gh) gh.hidden = true; });
   window.addEventListener('resize', dFit);
+  $('dg-evo').addEventListener('click', e => { e.stopPropagation(); dEvoTap(); });
   g.addEventListener('click', e => { const die = e.target.closest('.dg-die'); if (die) { if (DG.lpFired) { DG.lpFired = false; return; } return dHold(+die.dataset.die); } });
 }
 function dDropAt(x, y) {
@@ -8126,24 +8359,192 @@ function dDropAt(x, y) {
   const s = el.closest('.dg-slot'); if (s) return { bench: +s.dataset.b }; if (el.closest('#dg-feed')) return { feed: true }; return null;
 }
 function dDrop(uid, to) {
-  if (!to) return; const before = DG.R.units[uid] ? DG.R.units[uid].star : 0, r = DICE.move(DG.R, uid, to); if (!r.ok) { dSay('down'); return dToast(r.msg); }
-  DG.dbg.drops++; if (r.fed) { dSay('coin'); dToast('먹였다. 진액 +' + r.gold); } else if (r.merged) { DG.dbg.merges++; dSay(r.up ? 'star' : 'combo'); dToast(r.up ? '별이 올랐다: ' + DICE.unitInfo(DG.R, r.uid).name + ' ' + r.star + '성' + (r.gold ? ' · 진액 +' + r.gold : '') : '겹쳐 쌓였다 (' + r.copies + '/3)'); if (r.up) DG.pop = { uid: r.uid, at: performance.now() }; } else dSay('thud');
-  void before; DG.sel = null; dSave(); dRender(); dTip();
+  if (!to) return; const snap = dSnap(), r = DICE.move(DG.R, uid, to); if (!r.ok) { dSay('down'); return dToast(r.msg); }
+  DG.dbg.drops++; if (r.fed) { dSay('coin'); dToast('먹였다. 진액 +' + r.gold); } else if (r.merged) { DG.dbg.merges++; dSay('combo'); if (!r.up) dToast('겹쳐 쌓였다 (' + r.copies + '/3)'); else if (r.gold) dToast('넘친 것은 진액 +' + r.gold); if (r.up) DG.pop = { uid: r.uid, at: performance.now() }; } else dSay('thud');
+  DG.sel = null; dSave(); dRender(); dTip(); dEvoQueue(dEvoDiff(snap));
+}
+// ───────── 능력치 넷: 체력 · 공격 · 공격 속도 · 닿는 거리 ─────────
+// 체력·공격 = 규칙의 값 (별 배수 x 쌓임 x 유물 x 특성, 체력은 싸움의 체력 배수까지), 공격 속도 = 1초에 때리는 수 (엔진의 걸음 배수까지), 닿는 거리 = 칸.
+// 방어·정신·마나 같은 세부는 규칙 안에서만 쓰고 화면에는 내지 않는다. 막대는 고정된 잣대에 견준다.
+const DST4 = [['hp', '체력', 4000], ['atk', '공격', 320], ['as', '공격 속도', 0.8], ['range', '닿는 거리', 4]];
+const dStat4 = u => ({ hp: Math.round(u.hp), atk: Math.round(u.atk), as: Math.round(u.as * LAIR.K.pace.as * 100) / 100, range: u.range });
+const dStatTxt = (k, v) => (k === 'as' ? (+v).toFixed(2) + '/초' : k === 'range' ? Math.round(v) + '칸' : String(Math.round(v)));
+function dStatOf(kind, star, br, copies) { const R = DG.R, fake = { relics: R ? R.relics : [], units: { 0: { uid: 0, kind, star, copies: copies || 1, br: br || null, dmg: 0, kills: 0, fights: 0 } }, board: {}, bench: [] }; return dStat4(DICE.unitInfo(fake, 0)); }
+function dStatRows(st, cur) {
+  return `<div class="dg-st4">${DST4.map(([k, n, max]) => { const v = st[k], w = Math.max(4, Math.min(100, Math.round(v / max * 100))), now = k === 'hp' && cur != null ? Math.max(0, Math.round(cur)) : null;
+    return `<p data-k="${k}"><span>${n}</span><i><b style="width:${w}%"></b>${now != null ? `<u style="width:${Math.max(0, Math.min(100, Math.round(now / Math.max(1, v) * w)))}%"></u>` : ''}</i><em>${now != null ? now + '/' : ''}${dStatTxt(k, v)}</em></p>`; }).join('')}</div>`;
+}
+// 특성 한 줄 · 기술 한 줄
+function dTraitLine(kind, star, br) {
+  const e = LAIR.evoOf(kind, br); if (!e) return '';
+  return star >= 2 ? `<b>특성 「${dEsc(e.t2.name)}」</b> ${dEsc(e.t2.short)}` : `<span class="mute">2성이 되면 특성 「${dEsc(e.t2.name)}」: ${dEsc(e.t2.short)}</span>`;
+}
+// 설명의 첫 문장만
+const dFirst = t => { t = String(t || ''); const i = t.indexOf('다. '); return i >= 0 ? t.slice(0, i + 2) : t; };
+function dSkillLine(kind, star, br) {
+  const d = LAIR.KIN[kind], sk = d && LAIR.SK[d.skill]; if (!sk) return ''; const e = LAIR.evoOf(kind, br), one = dFirst(sk.more);
+  return `<b>기술 「${dEsc(sk.name)}」</b> ${dEsc(one)}${star >= 3 && e ? ` <span class="up">3성: ${dEsc(e.t3.short)}</span>` : ''}`;
 }
 function dTapUnit(uid) { const u = DICE.unitInfo(DG.R, uid); if (!u) return; dSay('click'); dUnitModal(u); }
 function dUnitModal(u) {
-  const m = $('modal'), t2 = u.t2 ? `<p><b>${dEsc(u.t2.name)}</b> ${dEsc(u.t2.short)}</p>` : '', t3 = u.t3 ? `<p><b>${dEsc(u.t3.name)}</b> ${dEsc(u.t3.short)}</p>` : '';
-  const canFeed = DG.R && (DG.R.phase === 'roll' || DG.R.phase === 'place') && DG.R.units[u.uid];
+  const m = $('modal'), canFeed = DG.R && (DG.R.phase === 'roll' || DG.R.phase === 'place') && DG.R.units[u.uid];
   m.innerHTML = `<div class="sh-box dg-box dg-unit" role="dialog" aria-modal="true"><div class="sh-head"><h2>${dEsc(u.name)}</h2><button class="sh-x" data-d="mclose" aria-label="닫기">✕</button></div><div class="sh-body">
-<div class="dg-uhead"><img src="${dUnitImg(u, 64)}" alt=""><div><p class="dg-ustar s${u.star}">${dStar(u.star)}<span>${u.star}성</span>${u.star < 3 ? ` · 쌓임 ${u.copies}/3` : ''}</p><p class="mute">${dEsc(u.aspName)} · ${dEsc(u.clsName)} · ${dEsc(u.roleName)}</p></div></div>
-<p class="dg-stats"><span>체력 <b>${u.hp}</b></span><span>공격 <b>${u.atk}</b></span><span>${dEsc(u.reach)}</span></p>
-<p><b>기술 「${dEsc(u.skill.name)}」</b> ${dEsc(u.skill.short)}</p><p class="mute">${dEsc(u.skill.more)}</p>${t2}${t3}
-${u.star < 3 ? `<p class="mute">같은 ${u.star}성 ${dEsc(dJo(LAIR.KIN[u.kind].name, '을', '를'))} 겹쳐 셋이 쌓이면 ${u.star + 1}성이 된다.</p>` : ''}
-${u.fights ? `<p class="mute">싸운 물결 ${u.fights} · 준 피해 ${u.dmg} · 처치 ${u.kills}</p>` : ''}</div>
+<div class="dg-uhead"><img src="${dUnitImg(u, 64)}" alt=""><div><p class="dg-ustar s${u.star}">${dStar(u.star)}<span>${u.star}성</span>${u.star < 3 ? `<small> · 쌓임 ${u.copies}/3</small>` : ''}</p><p class="dg-asp" style="color:${ASPC[u.asp]}">${dEsc(u.aspName)}</p></div></div>
+${dStatRows(dStat4(u))}<p class="dg-tline">${dTraitLine(u.kind, u.star, u.br)}</p><p class="dg-tline">${dSkillLine(u.kind, u.star, u.br)}</p>
+${u.star < 3 ? `<p class="mute dg-tnote">같은 ${u.star}성 ${dEsc(dJo(LAIR.KIN[u.kind].name, '을', '를'))} 겹쳐 셋이 쌓이면 ${u.star + 1}성이 된다.</p>` : ''}</div>
 <div class="sh-btns">${canFeed ? `<button class="btn sm warn" data-d="feed" data-uid="${u.uid}">먹인다 · 진액 +${DICE.feedOf(DG.R.units[u.uid])}</button>` : ''}<button class="btn sm" data-d="mclose">닫기</button></div></div>`;
   m.hidden = false;
 }
-function dAuto() { const r = DICE.autoPlace(DG.R); dSay('thud'); dSave(); dRender(); if (!r.did) dToast('더 놓을 것이 없다.'); dTip(); }
+// 싸움 중에 누르면: 멈추지 않는 작은 창 (지금 체력이 따라 줄어든다)
+function dPeekInfo(F, u) {
+  if (u.home === 'nest' || (LAIR.KIN[u.kind] && !LAIR.INV[u.kind])) {
+    const uid = /^k\d+$/.test(u.id) ? +u.id.slice(1) : null, R = DG.R, ru = uid != null && R.units[uid] ? DICE.unitInfo(R, uid) : null;
+    if (ru) return { name: ru.name, star: ru.star, img: dUnitImg(ru, 40), st: dStat4(ru), mhp: u.mhp, line: dSkillLine(ru.kind, ru.star, ru.br), side: 'nest' };
+    const s = LAIR.SUMMON[u.kind] || LAIR.KIN[u.kind] || {}; return { name: s.name || '새끼', star: 0, img: dIcon(s.art || u.kind, 1, 40), st: { hp: u.mhp, atk: Math.round((s.atk || 20) * (u.star ? LAIR.STARM[u.star] : 1)), as: Math.round((s.as || 1) * LAIR.K.pace.as * 100) / 100, range: s.range || 1 }, mhp: u.mhp, line: '', side: 'nest' };
+  }
+  const d = LAIR.INV[u.kind] || {}, sc = F.S ? F.S.scale : { atk: 1 }, sk = LAIR.SK[d.skill];
+  return { name: d.name || u.kind, star: 0, img: dIcon(d.art || u.kind, 1, 40), st: { hp: u.mhp, atk: Math.round((d.atk || 0) * sc.atk), as: Math.round((d.as || 1) * LAIR.K.pace.as * 100) / 100, range: d.range || 1 }, mhp: u.mhp, line: sk && sk.name ? `<b>기술 「${dEsc(sk.name)}」</b> ${dEsc(dFirst(sk.more))}` : '', side: 'inv', tag: d.tag || '' };
+}
+function dPeekShow(u) {
+  const F = DG.F, el = $('dg-peek'); if (!F || !el) return; const p = dPeekInfo(F, u); DG.peek = { id: u.id, p };
+  el.innerHTML = `<div class="pk-head"><img src="${p.img}" alt=""><p><b>${dEsc(p.name)}</b>${p.star ? ` <span class="dg-ustar s${p.star}">${dStar(p.star)}</span>` : p.side === 'inv' ? ` <small class="bad">${dEsc(p.tag || '사람')}</small>` : ''}</p><button class="sh-x" data-d="peekx" aria-label="닫기">✕</button></div>${dStatRows(p.st, u.hp)}${p.line ? `<p class="dg-tline">${p.line}</p>` : ''}`;
+  el.hidden = false; el.classList.toggle('right', u.x < DFW / 2); DG.peekT = 0;
+}
+function dPeekTick() {
+  const el = $('dg-peek'), F = DG.F, pk = DG.peek; if (!el || el.hidden || !pk) return; if (!F) { el.hidden = true; DG.peek = null; return; }
+  const u = F.byId[pk.id]; if (!u) return; const now = performance.now(); if (now - (DG.peekT || 0) < 150) return; DG.peekT = now;
+  const row = el.querySelector('[data-k="hp"]'); if (!row) return; const v = pk.p.st.hp, cur = u.alive === false ? 0 : Math.max(0, Math.round(u.hp)), w = Math.max(4, Math.min(100, Math.round(v / 4000 * 100)));
+  const bar = row.querySelector('u'); if (bar) bar.style.width = Math.max(0, Math.min(100, Math.round(cur / Math.max(1, v) * w))) + '%'; row.querySelector('em').textContent = cur + '/' + dStatTxt('hp', v);
+}
+function dPeekAt(cx, cy) {
+  const F = DG.F; if (!F) return false; const p = dCvPoint(cx, cy); let best = null, bd = 26;
+  F.units.forEach(u => { if (u.gone || u.alive === false) return; const d = Math.hypot(u.x - p.x, (u.y - 14) - p.y); if (d < bd) { bd = d; best = u; } });
+  if (!best) { const el = $('dg-peek'); if (el) el.hidden = true; DG.peek = null; return false; } dSay('click'); dPeekShow(best); return true;
+}
+
+// ───────── 방향: 걷는 동안은 가는 쪽, 때리는 동안은 대상 쪽, 그 밖에는 마지막으로 싸운 상대 쪽 (사람도 같다) ─────────
+// 그림은 오른쪽을 보고 그려져 있다: 왼쪽을 보려면 뒤집는다 (flip). 1 = 오른쪽, -1 = 왼쪽.
+function dFaceOf(F, u) {
+  const tg = u.tgId != null ? F.byId[u.tgId] : null, live = tg && tg.alive !== false && !tg.gone, striking = (u.anim === 'attack' || u.anim === 'cast') && u.animEnd != null && F.t <= u.animEnd;
+  if (striking && live) { const dx = tg.x - u.x; if (Math.abs(dx) > 2) return (u.face = dx > 0 ? 1 : -1); }
+  if (u.mv) { const dx = u.mv.x1 - u.mv.x0; if (Math.abs(dx) > 0.5) return (u.face = dx > 0 ? 1 : -1); }
+  if (live) { const dx = tg.x - u.x; if (Math.abs(dx) > 2) return (u.face = dx > 0 ? 1 : -1); }
+  return u.face || (u.home === 'inv' && !u.mad ? -1 : 1);
+}
+// 시험용 기록: 때리는 순간마다 공격자가 대상 쪽을 보는지 (뒤로 파고든 경우를 따로 센다)
+function dFaceAudit(F, u, tg) {
+  const dx = tg.x - u.x; if (Math.abs(dx) <= 3 || F.skipping) return; const f = dFaceOf(F, u), ok = f === (dx > 0 ? 1 : -1), fwd = u.home === 'inv' ? -1 : 1, behind = (dx > 0 ? 1 : -1) !== fwd, A = DG.dbg.face;
+  A.n++; if (ok) A.ok++; else { A.bad++; if (A.list.length < 8) A.list.push(u.kind + '→' + tg.kind); } if (behind) { A.behind++; if (ok) A.behindOk++; if (u.home === 'nest') A.kinBehind++; }
+  if (behind && ok && DG.test && DG.test.pauseBehind && (DG.test.pauseBehind === 'any' || u.home === 'nest')) { F.pauseAt = F.t + 0.16; F.pauseWho = { u: u.id, kind: u.kind, tg: tg.id, face: f, dx: Math.round(dx) }; DG.test.pauseBehind = false; }
+}
+function dAuto() { const snap = dSnap(), r = DICE.autoPlace(DG.R); dSay('thud'); dSave(); dRender(); if (!r.did) dToast('더 놓을 것이 없다.'); dTip(); dEvoQueue(dEvoDiff(snap)); }
+// 별이 오른 권속 찾기: 움직이기 전의 별 · 갈래 · 능력치를 적어 두었다가 견준다
+function dSnap() { const R = DG.R, o = {}; Object.keys(R.units).forEach(id => { const u = R.units[id]; o[id] = { star: u.star, br: u.br, st: dStat4(DICE.unitInfo(R, +id)) }; }); return o; }
+function dEvoDiff(snap) { const R = DG.R, out = []; Object.keys(R.units).forEach(id => { const u = R.units[id], b = snap[id]; if (b && u.star > b.star) out.push(dEvoEv(u, b.star, b.br, b.st, 'merge', 3)); }); return out; }
+
+// ───────── 진화 · 합치기 연출 ─────────
+// 셋이 겹쳐 별이 오를 때 (2성 이름 · 3성 · 혼종 갈래), 그리고 같은 면 셋 · 다섯으로 2성 · 3성이 바로 나올 때.
+// 차례: 화면이 어두워짐 → 옛 모습 셋(주사위면 그 면들)이 빨려 들어가 하나로 뭉침 → 살덩이가 부풀고 금이 가며 → 터져 새 모습이 나옴(번쩍임 · 살점 · 흔들림)
+//   → 큰 별이 하나씩 박힘 → 새 이름 띠와 새로 생긴 특성 · 기술 한 줄 → 능력치 넷이 올라가는 숫자 → 누르면 끝 (끝나기 전에 누르면 끝 장면으로 건너뛴다).
+// 길이: 2성 1.7초, 3성 · 혼종 2.9초 (더 크게), 주사위에서 바로 나온 것 1.15초 (저절로 닫힌다). 움직임을 끄면 흔들림만 뺀다.
+const EVT = {
+  two: { dark: 160, g0: 160, g1: 560, s1: 880, burst: 880, stars: 980, star: 170, banner: 1050, st0: 1200, st1: 1650, end: 1700, gibs: 26, shake: 3, size: 1.5, blob: 13 },
+  big: { dark: 240, g0: 240, g1: 900, s1: 1600, burst: 1600, stars: 1760, star: 230, banner: 1900, st0: 2150, st1: 2850, end: 2900, gibs: 56, shake: 7, size: 1.9, blob: 19 },
+  dice: { dark: 100, g0: 100, g1: 420, s1: 620, burst: 620, stars: 700, star: 140, banner: 720, st0: 760, st1: 1100, end: 1150, gibs: 18, shake: 2, size: 1.4, blob: 10, auto: 1750 },
+};
+const EV = { q: [], cur: null, raf: 0, last: 0 };
+// 사건 하나: 무엇이 무엇으로 (옛 별 · 갈래 → 새 별 · 갈래), 능력치 앞뒤, 새로 생긴 특성 · 기술
+function dEvoEv(u, oldStar, oldBr, before, from, n) {
+  const R = DG.R, after = dStat4(DICE.unitInfo(R, u.uid)), e = LAIR.evoOf(u.kind, u.br), hyb = u.br === 'b' && LAIR.KEVOB[u.kind], lines = [];
+  if (e && u.star >= 2 && oldStar < 2) lines.push(`<b>새 특성 「${dEsc(e.t2.name)}」</b> ${dEsc(e.t2.short)}`);
+  if (e && u.star >= 3) lines.push(`<b>기술이 자란다 「${dEsc(e.t3.name)}」</b> ${dEsc(e.t3.short)}`);
+  const tag = (hyb ? '혼종 갈래 · ' + LAIR.ASPN[LAIR.KEVOB[u.kind].pair] + '의 피가 섞였다 · ' : '') + u.star + '성' + (from === 'dice' ? ' · 같은 면 ' + n + '개' : ' · 셋이 하나로');
+  return { uid: u.uid, kind: u.kind, art: LAIR.KIN[u.kind].art || u.kind, star: u.star, br: u.br === 'b' ? 'b' : undefined, oldStar, oldBr: oldBr === 'b' ? 'b' : undefined, from, n: from === 'dice' ? Math.min(5, n || 3) : 3,
+    before, after, name0: LAIR.evoName(u.kind, oldStar, oldBr), name1: LAIR.evoName(u.kind, u.star, u.br), lines, tag, hyb: !!hyb, asp: LAIR.KIN[u.kind].asp, tier: from === 'dice' ? 'dice' : (u.star >= 3 || hyb ? 'big' : 'two') };
+}
+function dEvoQueue(list) { list.forEach(e => EV.q.push(e)); if (!EV.cur) dEvoNext(); }
+function dEvoNext() {
+  const el = $('dg-evo'), e = EV.q.shift(); if (el) el.style.transform = '';
+  if (!e) { EV.cur = null; if (el) { el.hidden = true; el.className = ''; } if (EV.raf) cancelAnimationFrame(EV.raf); EV.raf = 0; dTip(); return; }
+  const ts = $('toast'); if (ts) ts.hidden = true; e.T = EVT[e.tier]; e.t = 0; e.fx = { gibs: [], ring: 0, said: {} }; EV.cur = e; DG.dbg.evos++; DG.dbg.evoLast = { tier: e.tier, name0: e.name0, name1: e.name1, star: e.star, hyb: e.hyb };
+  const cv = $('dg-ecv'); cv.width = Math.ceil(innerWidth / 3); cv.height = Math.ceil(innerHeight / 3);
+  el.className = 'tier-' + e.tier + (e.hyb ? ' hyb' : ''); el.hidden = false; el.style.setProperty('--asp', ASPC[e.asp] || '#c85a6a');
+  el.querySelector('.ev-tag').textContent = e.tag; el.querySelector('.ev-old').textContent = e.name0; el.querySelector('.ev-new').textContent = e.name1;
+  el.querySelector('.ev-trait').innerHTML = e.lines.map(l => `<p>${l}</p>`).join('');
+  el.querySelector('.ev-stats').innerHTML = e.tier === 'dice' ? '' : DST4.map(([k, nm]) => `<p data-k="${k}"><span>${nm}</span><em>${dStatTxt(k, e.before[k])}</em><i>→</i><b>${dStatTxt(k, e.before[k])}</b></p>`).join('');
+  el.querySelector('.ev-tap').textContent = e.tier === 'dice' ? '누르면 건너뛴다' : '누르면 넘어간다';
+  EV.last = performance.now(); if (!EV.raf) EV.raf = requestAnimationFrame(dEvoFrame);
+}
+function dEvoTap() {
+  const e = EV.cur; if (!e) return; const T = e.T;
+  if (e.t < T.end) { e.t = T.end; e.fx.gibs = []; e.fx.flash = 0; dEvoText(e); return; }
+  dEvoNext();
+}
+function dEvoFrame(now) {
+  const e = EV.cur; if (!e) { EV.raf = 0; return; } EV.raf = requestAnimationFrame(dEvoFrame);
+  const dt = Math.max(0, Math.min(0.05, (now - EV.last) / 1000)); EV.last = Math.max(EV.last, now); const T = e.T, t0 = e.t; e.t += dt * 1000; const t = e.t, say = (k, at) => { if (t0 < at && t >= at && !e.fx.said[k + at]) { e.fx.said[k + at] = 1; dSay(k); } };
+  say('slide', T.g0); say(e.tier === 'big' ? 'dswell' : 'molt', T.g1); if (e.tier === 'big') say('molt', T.g1 + 200); say('burst', T.burst); say('birth', T.burst + 90);
+  for (let i = 0; i < e.star; i++) say('thud', T.stars + i * T.star); say('evo', T.banner);
+  if (t0 < T.burst && t >= T.burst) dEvoBurst(e);
+  dEvoDraw(e, dt); dEvoText(e);
+  if (T.auto && t >= T.auto) dEvoNext();
+}
+function dEvoBurst(e) {
+  const cv = $('dg-ecv'), W = cv.width, H = cv.height, cx = W / 2, cy = Math.round(H * 0.34), gore = META.gore !== false, n = e.T.gibs;
+  const cols = gore ? ['#8a2438', '#c85a6a', '#3a0a16', '#f0a0a8', '#5a1424', ASPC[e.asp]] : [ASPC[e.asp], '#e8e0d0', '#8a80a0'];
+  for (let i = 0; i < n; i++) { const a = Math.random() * Math.PI * 2, sp = 40 + Math.random() * (e.tier === 'big' ? 170 : 110); e.fx.gibs.push({ x: cx, y: cy, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 50, s: 1 + Math.floor(Math.random() * (e.tier === 'big' ? 3 : 2)), c: cols[i % cols.length], life: 0.9 + Math.random() * 0.7 }); }
+  e.fx.flash = 1; e.fx.ring = 0.001;
+  if (dMo()) { const el = $('dg-evo'), amp = e.T.shake, t0 = performance.now(), dur = e.tier === 'big' ? 520 : 320; const sh = () => { const k = (performance.now() - t0) / dur; if (k >= 1 || EV.cur !== e) { el.style.transform = ''; return; } const a = amp * (1 - k); el.style.transform = `translate(${Math.round((Math.random() * 2 - 1) * a)}px, ${Math.round((Math.random() * 2 - 1) * a)}px)`; requestAnimationFrame(sh); }; sh(); }
+}
+// 점으로 찍은 별 (9 x 9)
+const DSTARP = ['....#....', '....#....', '...###...', '#########', '.#######.', '..#####..', '..##.##..', '.##...##.', '.#.....#.'];
+function dEvoStar(x, X, Y, k) { DSTARP.forEach((row, j) => { for (let i = 0; i < 9; i++) if (row[i] === '#') { x.fillStyle = '#3a2808'; x.fillRect(X + (i - 4) * k - 1, Y + (j - 4) * k - 1, k + 2, k + 2); } }); DSTARP.forEach((row, j) => { for (let i = 0; i < 9; i++) if (row[i] === '#') { x.fillStyle = j < 4 ? '#fff0a0' : '#ffd040'; x.fillRect(X + (i - 4) * k, Y + (j - 4) * k, k, k); } }); }
+function dEvoBlob(x, cx, cy, r, q, t, e) {
+  const gore = META.gore !== false, C = gore ? ['#2a0610', '#6a1a2c', '#a8324a', '#d86a7a'] : ['#1a1428', '#3a3058', '#6a5a90', '#a090c8'];
+  for (let y = -r; y <= r; y++) { const wob = Math.sin(y * 0.7 + t / 70) * q * 1.6, hw = Math.round(Math.sqrt(Math.max(0, r * r - y * y)) + wob); x.fillStyle = C[0]; x.fillRect(cx - hw - 1, cy + y, hw * 2 + 2, 1); x.fillStyle = C[1]; x.fillRect(cx - hw, cy + y, hw * 2, 1); if (y < r * 0.3) { x.fillStyle = C[2]; x.fillRect(cx - Math.round(hw * 0.7), cy + y, Math.round(hw * 1.1), 1); } if (y < -r * 0.3) { x.fillStyle = C[3]; x.fillRect(cx - Math.round(hw * 0.5), cy + y, Math.round(hw * 0.5), 1); } }
+  // 핏줄 (성향 빛)
+  x.fillStyle = ASPC[e.asp]; for (let k = 0; k < 5; k++) { const a = k * 1.26 + t / 900; for (let s = 2; s < r * 0.8; s += 1) { const px = cx + Math.round(Math.cos(a + Math.sin(s * 0.4) * 0.3) * s), py = cy + Math.round(Math.sin(a + Math.sin(s * 0.4) * 0.3) * s); if ((s + k) % 3) x.fillRect(px, py, 1, 1); } }
+  // 갈라짐: 금이 늘어나며 빛이 샌다
+  const nc = Math.floor(q * 9); x.fillStyle = '#ffe8a8'; for (let k = 0; k < nc; k++) { const a = k * 2.399 + 0.5, L = r * (0.4 + 0.6 * Math.min(1, q * 1.4 - k * 0.08)); let px = cx, py = cy; for (let s = 0; s < L; s++) { px += Math.cos(a + Math.sin(s * 0.9 + k) * 0.6); py += Math.sin(a + Math.sin(s * 0.9 + k) * 0.6); x.fillRect(Math.round(px), Math.round(py), 1, 1); } }
+}
+function dEvoDraw(e, dt) {
+  const cv = $('dg-ecv'), x = cv.getContext('2d'), W = cv.width, H = cv.height, t = e.t, T = e.T, cx = Math.round(W / 2), cy = Math.round(H * 0.34); x.imageSmoothingEnabled = false; x.clearRect(0, 0, W, H);
+  x.fillStyle = 'rgba(5,3,10,' + (Math.min(1, t / T.dark) * 0.9).toFixed(3) + ')'; x.fillRect(0, 0, W, H);
+  const glow = Math.max(0, Math.min(1, t / T.g1)) * (t < T.burst ? 0.35 : 0.5), gr = x.createRadialGradient(cx, cy, 2, cx, cy, Math.max(W, H) * 0.5); gr.addColorStop(0, (ASPC[e.asp] || '#c85a6a') + Math.round(glow * 255).toString(16).padStart(2, '0')); gr.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = gr; x.fillRect(0, 0, W, H);
+  const r0 = Math.min(W, H) * 0.36;
+  if (t < T.burst) {
+    // 빨려 들어감
+    const p = Math.max(0, Math.min(1, (t - T.g0) / (T.g1 - T.g0))), ep = p * p * p, n = e.n;
+    if (p < 1) for (let k = 0; k < n; k++) {
+      const a = -Math.PI / 2 + k * 2 * Math.PI / n + ep * 2.6, r = r0 * (1 - ep), X = cx + Math.cos(a) * r, Y = cy + Math.sin(a) * r * 0.8, sc = (e.from === 'dice' ? 1.2 : Math.min(1.2, H * 0.2 / 40)) * (1 - 0.65 * ep);
+      for (let j = 1; j <= 4; j++) { const aj = a - j * 0.12 * (0.3 + ep), rj = r0 * (1 - Math.max(0, (p - j * 0.03)) ** 3); x.fillStyle = (ASPC[e.asp] || '#fff') + '88'; x.fillRect(Math.round(cx + Math.cos(aj) * rj), Math.round(cy + Math.sin(aj) * rj * 0.8), 2, 2); }
+      if (e.from === 'dice') { const f = LAIRART.icon(e.kind, 1, 32); x.fillStyle = '#241a12'; x.fillRect(Math.round(X - 9 * sc), Math.round(Y - 9 * sc), Math.round(18 * sc), Math.round(20 * sc)); x.fillStyle = '#efe6d2'; x.fillRect(Math.round(X - 8 * sc), Math.round(Y - 8 * sc), Math.round(16 * sc), Math.round(16 * sc)); x.drawImage(f, Math.round(X - 7 * sc), Math.round(Y - 7 * sc), Math.round(14 * sc), Math.round(14 * sc)); }
+      else { try { LAIRART.unit(e.art, e.oldStar, e.oldBr).draw(x, X, Y + 14 * sc, 'move', t + k * 90, { scale: sc, flip: Math.cos(a) > 0 }); } catch (er) { /* 그림 없이 */ } }
+    }
+    // 뭉친 살덩이가 부푼다
+    if (t >= T.g1 - 60) { const q = Math.max(0, Math.min(1, (t - T.g1) / (T.s1 - T.g1))), r = Math.round(4 + T.blob * (0.35 + 0.65 * q) + Math.sin(t / 45) * 1.5 * q); dEvoBlob(x, cx, cy, r, q, t, e); }
+  } else {
+    let size = 36, h = null; try { h = LAIRART.unit(e.art, e.star, e.br); size = h.size || 36; } catch (er) { h = null; }
+    const k = Math.min(1, (t - T.burst) / 280), back = 1 + 0.55 * (1 - k) * Math.cos(k * Math.PI * 1.5), base = Math.min(T.size, H * (e.tier === 'big' ? 0.34 : 0.28) / size, W * 0.62 / size), sc = base * back;
+    // 고리 · 새 모습
+    if (e.fx.ring) { const rr = (t - T.burst) * 0.22; if (rr < Math.max(W, H)) { x.strokeStyle = 'rgba(255,232,168,' + Math.max(0, 0.9 - rr / 140).toFixed(2) + ')'; x.lineWidth = 2; x.beginPath(); x.arc(cx, cy, rr, 0, 6.29); x.stroke(); } }
+    if (h) h.draw(x, cx, cy + Math.round(size * 0.45 * sc), t - T.burst < 700 ? 'cast' : 'idle', t - T.burst, { scale: sc });
+    // 별이 하나씩 박힌다 (크게 찍혔다가 제 크기로)
+    const fin = e.tier === 'big' ? 3 : e.tier === 'dice' ? 1 : 2, Y = Math.max(8 + fin * 5, Math.round(cy + size * 0.45 * base - size * base - 6 - fin * 4));
+    for (let i = 0; i < e.star; i++) { const ti = T.stars + i * T.star; if (t < ti) continue; const q = Math.min(1, (t - ti) / 130), X = cx + Math.round((i - (e.star - 1) / 2) * (fin * 9 + 6));
+      dEvoStar(x, X, Y, fin + Math.round((1 - q) * 3));
+      if (q >= 1 && t - ti < 360) { const d = (t - ti - 130) / 230; x.fillStyle = 'rgba(255,224,140,' + Math.max(0, 0.8 - d).toFixed(2) + ')'; for (let j = 0; j < 8; j++) { const a = j * 0.785; x.fillRect(Math.round(X + Math.cos(a) * (8 + d * 14)), Math.round(Y + Math.sin(a) * (8 + d * 14)), 1, 1); } } }
+    // 살점
+    e.fx.gibs = e.fx.gibs.filter(g => (g.life -= dt) > 0); e.fx.gibs.forEach(g => { g.vy += 260 * dt; g.x += g.vx * dt; g.y += g.vy * dt; x.fillStyle = g.c; x.fillRect(Math.round(g.x), Math.round(g.y), g.s, g.s); });
+    if (e.fx.flash > 0) { x.fillStyle = 'rgba(255,248,224,' + e.fx.flash.toFixed(2) + ')'; x.fillRect(0, 0, W, H); e.fx.flash = Math.max(0, e.fx.flash - dt / (e.tier === 'big' ? 0.3 : 0.2)); }
+  }
+}
+// 글: 이름 띠 → 특성 · 기술 → 능력치 숫자가 올라간다 → 누르라는 말
+function dEvoText(e) {
+  const el = $('dg-evo'), T = e.T, t = e.t; el.classList.toggle('s-name', t >= T.banner); el.classList.toggle('s-trait', t >= T.banner + 160); el.classList.toggle('s-stats', t >= T.st0 - 80); el.classList.toggle('s-end', t >= T.end);
+  if (e.tier === 'dice') return; const k = Math.max(0, Math.min(1, (t - T.st0) / (T.st1 - T.st0)));
+  DST4.forEach(([key]) => { const p = el.querySelector('.ev-stats [data-k="' + key + '"]'); if (!p) return; const a = e.before[key], b = e.after[key], v = a + (b - a) * k; p.querySelector('b').textContent = dStatTxt(key, key === 'as' ? Math.round(v * 100) / 100 : v); p.classList.toggle('up', b > a && k > 0); });
+}
 
 // ───────── 전장 그리기 ─────────
 const DBG = w => (w <= 5 ? 'mouth' : w <= 10 ? 'burrow1' : w <= 15 ? 'burrow6' : w < 20 ? 'eggroom' : 'sealed');
@@ -8152,7 +8553,7 @@ function dFit() {
   const nh = Math.max(244, Math.min(360, Math.round(DFW * H / W))); if (nh !== DFH) { DFH = nh; cv.height = nh; DLH = Math.max(35, Math.min(46, Math.floor((DFH - 40) / 6))); DLY = Math.round((DFH - 6 * DLH) / 2) + 8; }
   const k = Math.min(W / DFW, H / DFH); cv.style.width = Math.floor(DFW * k) + 'px'; cv.style.height = Math.floor(DFH * k) + 'px';
 }
-function dLoop() { dStop(); DG.last = performance.now(); const step = now => { DG.raf = requestAnimationFrame(step); const dt = Math.min(0.1, (now - DG.last) / 1000); DG.last = now; DG.now = now; if (DG.scr !== 'game') return; dTickFight(dt); dDraw(now); }; DG.raf = requestAnimationFrame(step); dFit(); }
+function dLoop() { dStop(); DG.last = performance.now(); const step = now => { DG.raf = requestAnimationFrame(step); const dt = Math.min(0.1, (now - DG.last) / 1000); DG.last = now; DG.now = now; if (DG.scr !== 'game') return; dTickFight(dt); dDraw(now); dTrayTick(dt, now); dTrayDraw(); dPeekTick(); }; DG.raf = requestAnimationFrame(step); dFit(); }
 function dBgDraw(x, w) { const key = DBG(w), img = MZPICS.bg(key); if (!MZPICS.draw(x, img, key, DFW, DFH, 0.5)) { x.fillStyle = '#100c18'; x.fillRect(0, 0, DFW, DFH); } x.fillStyle = 'rgba(6,4,12,0.18)'; x.fillRect(0, 0, DFW, DFH); }
 function dEgg(x, now, hurt) { const crack = DG.R ? Math.min(4, Math.floor((1 - DG.R.egg / DG.R.eggMax) * 5)) : 0; try { const c = LAIRART.mazeEgg(30, crack, now / 1400), s = hurt ? Math.sin(now / 30) * 2 : 0; x.drawImage(c, Math.round(-4 + s), Math.round(DFH / 2 - c.height / 2)); } catch (e) { x.fillStyle = '#8a2438'; x.fillRect(6, DFH / 2 - 20, 22, 40); } }
 function dArt(kind) { const d = LAIR.INV[kind] || LAIR.KIN[kind] || LAIR.SUMMON[kind] || {}; return d.art || kind; }
@@ -8174,7 +8575,7 @@ function dDraw(now) {
   list.sort((a, b) => a.y - b.y);
   list.forEach(u => {
     const h = dSprite(u.kind, u.star, u.br); if (!h) return; const t = F ? (F.t - (u.at || 0)) * 1000 : now - (u.at || 0), big = LAIR.INV[u.kind] && LAIR.INV[u.kind].boss;
-    const sc = (big ? 1.05 : DLH >= 40 ? 0.92 : 0.8) * (u.summon ? 0.8 : 1), o = { scale: sc, flip: (u.home || u.side) === 'inv' ? !u.mad : false, mad: !!u.mad, flash: u.flash && F && F.t < u.flash, alpha: u.ghost ? 0.62 : u.alive === false ? Math.max(0, 1 - (F.t - u.dieT) / 0.9) : null };
+    const sc = (big ? 1.05 : DLH >= 40 ? 0.92 : 0.8) * (u.summon ? 0.8 : 1), o = { scale: sc, flip: F ? dFaceOf(F, u) < 0 : (u.home || u.side) === 'inv' ? !u.mad : false, mad: !!u.mad, flash: u.flash && F && F.t < u.flash, alpha: u.ghost ? 0.62 : u.alive === false ? Math.max(0, 1 - (F.t - u.dieT) / 0.9) : null };
     let anim = u.anim || 'idle'; if (u.alive === false) anim = 'die'; else if (F && u.animEnd != null && F.t > u.animEnd) anim = u.moving ? 'move' : 'idle';
     h.draw(x, u.x, u.y, anim, Math.max(0, F && u.animT != null ? (F.t - u.animT) * 1000 : t), o);
     if (u.alive !== false && !u.ghost) {
@@ -8194,16 +8595,16 @@ function dDraw(now) {
 const DINTRO = 0.9, DLEAK = 1.3;
 function dFight() {
   const R = DG.R, v0 = DICE.view(R), r = DICE.fight(R); if (!r.ok) return dToast(r.msg);
-  DG.dbg.fights++; DG.showV = v0; DG.res = r.res; const f = r.f; dSave();
+  DG.dbg.fights++; DG.showV = v0; DG.res = r.res; const f = r.f; dSave(); DG.peek = null; $('dg-peek').hidden = true;
   const units = f.units.map(u => { const p = dCellXY(u.cell); return { id: u.id, side: u.side, home: u.side, kind: u.kind, star: u.star, br: u.br, x: u.side === 'inv' ? p.x + 170 : p.x, y: p.y, tx: p.x, ty: p.y, hp: u.mhp, mhp: u.mhp, alive: true, anim: u.side === 'inv' ? 'move' : 'idle', animT: 0, animEnd: u.side === 'inv' ? DINTRO : null, moving: false, mv: u.side === 'inv' ? { x0: p.x + 170, y0: p.y, x1: p.x, y1: p.y, t0: 0, t1: DINTRO } : null, summon: false }; });
-  DG.F = { f, t: 0, i: 0, units, byId: {}, shots: [], nums: [], tags: [], end: f.time + DINTRO + 0.4, leak: null, done: false, hitSay: 0 };
+  DG.F = { f, S: r.S, t: 0, i: 0, units, byId: {}, shots: [], nums: [], tags: [], end: f.time + DINTRO + 0.4, leak: null, done: false, hitSay: 0 };
   units.forEach(u => { DG.F.byId[u.id] = u; });
   DG.ui = 'fight'; $('modal').hidden = true; dMusic(DICE.isBoss(R.wave) ? 'boss' : 'night'); dSay('night'); dRender(); dTip();
 }
 function dTickFight(dt) {
-  const F = DG.F; if (!F || F.done) return; F.t += dt * dSpeed();
+  const F = DG.F; if (!F || F.done || F.pause) return; F.t += dt * dSpeed(); if (F.pauseAt != null && F.t >= F.pauseAt) { F.t = F.pauseAt; F.pauseAt = null; F.pause = true; }
   const T = F.t - DINTRO, tl = F.f.timeline;
-  while (F.i < tl.length && tl[F.i].t <= T) { dEvent(F, tl[F.i]); F.i++; }
+  while (F.i < tl.length && tl[F.i].t <= T && F.pauseAt == null && !F.pause) { dEvent(F, tl[F.i]); F.i++; }
   F.units.forEach(u => { const m = u.mv; if (!m) return; const k = Math.min(1, (F.t - m.t0) / Math.max(0.01, m.t1 - m.t0)); u.x = m.x0 + (m.x1 - m.x0) * k; u.y = m.y0 + (m.y1 - m.y0) * k; if (k >= 1) { u.mv = null; u.moving = false; } });
   F.nums = F.nums.filter(n => F.t - n.t0 < 0.9); F.tags = F.tags.filter(n => F.t - n.t0 < 1.1); F.shots = F.shots.filter(s => F.t - s.t0 < s.dur + 0.05);
   if (F.t >= F.end && !F.leak) dLeakStart(F);
@@ -8212,14 +8613,15 @@ function dTickFight(dt) {
 function dEvent(F, e) {
   const u = F.byId[e.u], tt = F.t;
   if (e.type === 'move' && u) { const p = dCellXY(e.to); u.mv = { x0: u.x, y0: u.y, x1: p.x, y1: p.y, t0: tt, t1: tt + Math.max(0.15, e.dur || 0.3) }; u.moving = true; u.anim = 'move'; u.animT = tt; u.animEnd = tt + (e.dur || 0.3); }
-  else if (e.type === 'attack' && u) { u.anim = 'attack'; u.animT = tt; u.animEnd = tt + 0.46; const tg = F.byId[e.tg]; if (e.r && tg) F.shots.push({ x0: u.x, y0: u.y, x1: tg.x, y1: tg.y, t0: tt + 0.15, dur: 0.25, col: u.side === 'inv' && !u.mad ? '#ffcf6a' : '#b0f0ff' }); }
+  else if (e.type === 'attack' && u) { u.anim = 'attack'; u.animT = tt; u.animEnd = tt + 0.46; const tg = F.byId[e.tg]; if (tg) { u.tgId = tg.id; dFaceAudit(F, u, tg); } if (e.r && tg) F.shots.push({ x0: u.x, y0: u.y, x1: tg.x, y1: tg.y, t0: tt + 0.15, dur: 0.25, col: u.side === 'inv' && !u.mad ? '#ffcf6a' : '#b0f0ff' }); }
   else if (e.type === 'hit' && u) { u.hp = e.hp; if (e.dmg > 0) { F.nums.push({ x: u.x + (Math.random() * 8 - 4), y: u.y - 30, text: Math.round(e.dmg), kind: e.crit ? 'crit' : 'dmg', t0: tt }); u.flash = tt + 0.1; if (u.anim !== 'attack' && u.anim !== 'cast') { u.anim = 'hit'; u.animT = tt; u.animEnd = tt + 0.26; } } if (e.san > 0 && !(e.dmg > 0)) F.nums.push({ x: u.x, y: u.y - 30, text: Math.round(e.san), kind: 'san', t0: tt }); if (tt - F.hitSay > 0.18) { F.hitSay = tt; dSay('hit'); } }
   else if (e.type === 'heal' && u) { u.hp = e.hp; if (e.amt >= 5) F.nums.push({ x: u.x, y: u.y - 30, text: Math.round(e.amt), kind: 'heal', t0: tt }); }
   else if (e.type === 'die' && u) { u.alive = false; u.dieT = tt; u.anim = 'die'; u.animT = tt; u.animEnd = null; u.mv = null; dSay('die'); u.goneAt = tt + 0.9; }
   else if (e.type === 'spawn') { const p = dCellXY(e.cell), n = { id: e.u, side: e.side, home: e.side, kind: e.kind, star: 1, x: p.x, y: p.y, hp: e.mhp, mhp: e.mhp, alive: true, anim: 'idle', animT: tt, summon: true }; F.units.push(n); F.byId[e.u] = n; }
   else if (e.type === 'mad' && u) { u.mad = true; u.side = 'nest'; F.tags.push({ x: u.x, y: u.y, text: '미침', col: '#f070e8', t0: tt }); dSay('mad'); }
-  else if (e.type === 'cleanse' && u) { u.mad = false; u.side = 'inv'; }
-  else if (e.type === 'cast' && u) { u.anim = 'cast'; u.animT = tt; u.animEnd = tt + 0.72; const s = LAIR.SK[e.sk]; if (s && s.name) F.tags.push({ x: u.x, y: u.y, text: s.name, col: u.side === 'inv' && !u.mad ? '#ffcf6a' : '#8fe8d8', t0: tt }); }
+  else if (e.type === 'cleanse' && u) { u.mad = false; u.side = 'inv'; u.tgId = null; }
+  else if (e.type === 'skillfx' && u && e.tgs && e.tgs.length) { const tg = F.byId[e.tgs[0]]; if (tg && tg !== u && tg.home !== u.home) u.tgId = tg.id; }
+  else if (e.type === 'cast' && u) { u.anim = 'cast'; u.animT = tt; u.animEnd = tt + 0.72; const tg = e.tg != null ? F.byId[e.tg] : null; if (tg && tg !== u) u.tgId = tg.id; const s = LAIR.SK[e.sk]; if (s && s.name) F.tags.push({ x: u.x, y: u.y, text: s.name, col: u.side === 'inv' && !u.mad ? '#ffcf6a' : '#8fe8d8', t0: tt }); }
   F.units.forEach(q => { if (q.alive === false && q.goneAt != null && F.t > q.goneAt) q.gone = true; });
 }
 function dLeakStart(F) {
@@ -8228,9 +8630,9 @@ function dLeakStart(F) {
   left.forEach((u, i) => { u.mv = { x0: u.x, y0: u.y, x1: 20, y1: DFH / 2 + (i % 3 - 1) * 14, t0: F.t, t1: F.t + DLEAK * 0.85 }; u.anim = 'move'; u.animT = F.t; u.moving = true; u.animEnd = F.t + DLEAK; u.flip = true; });
   if (left.length) { DG.ui = 'leak'; setTimeout(() => { if (DG.F !== F) return; F.leakHit = performance.now(); F.leakN = DG.res ? DG.res.leak : 0; dSay('down'); left.forEach(u => { u.gone = true; }); }, DLEAK * 850 / dSpeed()); }
 }
-function dSkip() { const F = DG.F; if (!F) return; while (F.i < F.f.timeline.length) { dEvent(F, F.f.timeline[F.i]); F.i++; } F.units.forEach(u => { u.mv = null; if (u.alive === false) u.gone = true; }); F.t = Math.max(F.t, F.end); if (!F.leak) dLeakStart(F); F.t = F.leak.t1 + 0.5; dFightDone(); }
+function dSkip() { const F = DG.F; if (!F) return; F.pause = false; F.pauseAt = null; F.skipping = true; while (F.i < F.f.timeline.length) { dEvent(F, F.f.timeline[F.i]); F.i++; } F.units.forEach(u => { u.mv = null; if (u.alive === false) u.gone = true; }); F.t = Math.max(F.t, F.end); if (!F.leak) dLeakStart(F); F.t = F.leak.t1 + 0.5; dFightDone(); }
 function dFightDone() {
-  const F = DG.F; if (!F || F.done) return; F.done = true; const res = DG.res, R = DG.R;
+  const F = DG.F; if (!F || F.done) return; F.done = true; F.pause = false; const res = DG.res, R = DG.R; DG.peek = null; $('dg-peek').hidden = true;
   const go = () => { DG.F = null; DG.showV = null; DG.ui = R.phase; dRender(); if (R.phase === 'over') { dMusic(R.over === 'win' ? 'win' : 'lose'); dOverModal(); } else { dMusic('day'); dPickModal(); } };
   const ctx = dFeastPick(F.f, res);
   if (ctx && dFeastRoll(ctx)) { DG.dbg.feasts++; R.feastLast = R.wave; R.feastSeen = 1; dSave(); try { if (!MZVIGN.feast(ctx, go)) go(); } catch (e) { go(); } } else go();
@@ -8323,7 +8725,8 @@ function dHelp() {
   const m = $('modal'), y = DICE.yieldOf;
   m.innerHTML = `<div class="sh-box dg-box dg-help" role="dialog" aria-modal="true"><div class="sh-head"><h2>안내서</h2><button class="sh-x" data-d="${DG.scr === 'game' ? 'mclose' : 'mclose'}" aria-label="닫기">✕</button></div><div class="sh-body">
 <p>굴 어귀로 사람들이 물결을 지어 몰려온다. 그대는 주사위를 굴려 권속을 불러내고, 굴 입구에 세워 그들을 막아야 한다. 물결 20을 버티면 이긴다.</p>
-<h3>한 물결의 차례</h3><ol><li>「던진다」: 주사위가 모두 구른다.</li><li>주사위를 누르면 붙잡힌다. 「다시 굴린다」는 붙잡지 않은 것만 다시 굴린다 (물결마다 ${DICE.K.rerolls}번, 진액으로 더 산다).</li><li>「확정」: 나온 면대로 권속이 대기 칸에 온다.</li><li>권속을 끌어 굴 입구 칸(왼쪽 세 칸)에 놓는다. 오른쪽 칸이 앞줄이다.</li><li>「싸운다」: 저절로 싸운다. 살아남아 굴 끝에 닿은 사람마다 알 체력이 깎인다 (보통 1 · 정예 2 · 우두머리 4).</li><li>셋 가운데 하나를 고른다: 새 주사위 / 면 바꾸기 / 유물.</li></ol>
+<h3>한 물결의 차례</h3><ol><li>「던진다」: 통을 흔들어 주사위를 판에 쏟는다. 구르는 동안 판을 누르면 바로 멈춘다.</li><li>주사위를 누르면 위의 「붙잡은 자리」로 옮겨진다. 「다시 굴린다」는 붙잡지 않은 것만 통에 쓸어 담아 다시 던진다 (물결마다 ${DICE.K.rerolls}번, 진액으로 더 산다).</li><li>「확정」: 나온 면대로 권속이 대기 칸에 온다.</li><li>권속을 끌어 굴 입구 칸(왼쪽 세 칸)에 놓는다. 오른쪽 칸이 앞줄이다.</li><li>「싸운다」: 저절로 싸운다. 살아남아 굴 끝에 닿은 사람마다 알 체력이 깎인다 (보통 1 · 정예 2 · 우두머리 4).</li><li>셋 가운데 하나를 고른다: 새 주사위 / 면 바꾸기 / 유물.</li></ol>
+<h3>능력치</h3><p>권속과 사람의 능력치는 넷이다: 체력 · 공격 · 공격 속도(1초에 때리는 수) · 닿는 거리(칸). 권속을 누르면 정보 창이 뜨고, 싸우는 중에 누르면 싸움을 멈추지 않는 작은 창이 뜬다.</p>
 <h3>같은 면의 모음</h3><table class="dg-tbl"><tr><th>같은 권속 면</th><th>나오는 것</th></tr>${[1, 2, 3, 4, 5].map(n => { const q = y(n, false); return `<tr><td>${n}${n === 5 ? ' 이상' : ''}</td><td>${q.star}성${q.copies > 1 ? ' 둘 쌓임' : ''}${q.gold ? ' · 진액 +' + q.gold : ''}${n === 5 ? ' (6이면 진액 +3)' : ''}</td></tr>`; }).join('')}</table>
 <p>서로 다른 같은 성향의 권속 면이 셋 이상이면 그 성향의 힘이 이번 물결에 한 단 오른다 (다섯이면 두 단).</p>
 <h3>겹치기와 별</h3><p>같은 종류·같은 별의 권속을 겹치면 쌓인다. 셋이 쌓이면 별이 하나 오른다 (3성까지). 쌓인 것 하나마다 체력·공격 +20%. 2성부터는 진화한 이름과 특성을 얻고, 짝 성향의 권속이 굴에 둘 이상 있으면 혼종 갈래로 자란다.</p>
@@ -8376,6 +8779,7 @@ document.addEventListener('click', e => {
   if (d === 'speed') { const s = dSpeed(), n = s === 1 ? 2 : s === 2 ? 4 : 1; META.diceSpeed = n; try { saveMeta(); } catch (er) { /* 저장 없이 */ } return dRender(); }
   if (d === 'skip') return dSkip();
   if (d === 'feed') { const uid = +b.dataset.uid; $('modal').hidden = true; return dDrop(uid, { feed: true }); }
+  if (d === 'peekx') { $('dg-peek').hidden = true; DG.peek = null; return; }
   if (d === 'feedhint') return dToast('권속을 여기로 끌어다 놓으면 진액이 된다.');
   if (d === 'card' || d === 'shop') return dTakeCard(d, +b.dataset.i);
   if (d === 'faceto') return dTakeCard(b.dataset.k, +b.dataset.i, { die: +b.dataset.die, face: +b.dataset.face });
@@ -8385,14 +8789,20 @@ document.addEventListener('click', e => {
   if (d === 'rank') { DG.rankOn = !DG.rankOn; return dPickModal(DG.rankOn ? 'rank' : null); }
   if (d === 'overopen') return dOverModal();
 });
-document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('modal').hidden && DG.R && DG.R.phase !== 'pick' && DG.R.phase !== 'over') { $('modal').hidden = true; } });
+document.addEventListener('keydown', e => { if (EV.cur && (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); dEvoTap(); return; } if (e.key === 'Escape' && !$('modal').hidden && DG.R && DG.R.phase !== 'pick' && DG.R.phase !== 'over') { $('modal').hidden = true; } });
 
 // ───────── 시작 ─────────
 // 시험용 손잡이
 window.__dice = {
   get R() { return DG.R; }, get ui() { return DG.ui; }, get scr() { return DG.scr; }, get dbg() { return DG.dbg; }, view: () => (DG.R ? DICE.view(DG.R) : null), get tip() { return DG.tip; },
   start: (seed, o) => { DG.test = o || null; dNew(seed | 0); }, skip: () => dSkip(), cellXY: c => { const p = dCellXY(c), cv = $('dg-cv'), b = cv.getBoundingClientRect(); return { x: b.left + p.x * b.width / DFW, y: b.top + (p.y - 12) * b.height / DFH }; },
-  set test(o) { DG.test = o; }, opt: (k, v) => { META[k] = v; return META[k]; },
+  set test(o) { DG.test = o; }, render: () => dRender(), opt: (k, v) => { META[k] = v; return META[k]; },
+  // 시험용: 주사위 판 (주사위마다 상태 · 보이는 면 · 정해진 면 · 자리), 던지기 동안의 프레임 간격, 진화 연출, 싸움 속 유닛 자리, 방향 기록
+  tray: () => ({ mode: TR.mode, dice: TR.dice.map(d => ({ i: d.i, st: d.st, cur: d.cur, fin: d.fin, x: Math.round(d.x * 10) / 10, y: Math.round(d.y * 10) / 10, z: Math.round(d.z * 10) / 10, s: d.s, go: d.go, phi: d.phi, anim: !!d.anim, bn: d.bn, wall: d.wall || 0 })), cup: { x: TR.cup.x, y: TR.cup.y, a: TR.cup.a } }),
+  trayStats: () => { const f = TR.frames, g = []; for (let i = 1; i < f.length; i++) g.push(f[i] - f[i - 1]); const m = g.reduce((a, b) => a + b, 0) / Math.max(1, g.length), sd = Math.sqrt(g.reduce((a, b) => a + (b - m) * (b - m), 0) / Math.max(1, g.length)); return { n: f.length, ms: f.length ? f[f.length - 1] - f[0] : 0, mean: m, sd, max: g.length ? Math.max(...g) : 0 }; },
+  get evo() { const e = EV.cur; return e ? { tier: e.tier, t: e.t, end: e.T.end, name0: e.name0, name1: e.name1, star: e.star, hyb: e.hyb, q: EV.q.length } : null; },
+  fightUnits: () => (DG.F ? DG.F.units.filter(u => !u.gone && u.alive !== false).map(u => { const cv = $('dg-cv'), b = cv.getBoundingClientRect(); return { id: u.id, kind: u.kind, home: u.home, sx: b.left + u.x * b.width / DFW, sy: b.top + (u.y - 14) * b.height / DFH }; }) : []),
+  get paused() { return DG.F ? { pause: !!DG.F.pause, who: DG.F.pauseWho || null } : null; }, resume: () => { if (DG.F) { DG.F.pause = false; DG.F.pauseAt = null; } },
   // 시험용: 물결 w 로 건너뛴다 / 권속을 굴 입구에 바로 세운다
   jump: w => { const R = DG.R; R.wave = w - 1; R.phase = 'pick'; R.offer = { cards: [], shop: [], bought: [], picked: true }; $('modal').hidden = true; dNext(); },
   give: (kind, star, cell) => { const R = DG.R, u = { uid: R.nextUid++, kind, star, copies: 1, br: null, dmg: 0, kills: 0, fights: 0 }; R.units[u.uid] = u; if (R.board[cell] != null) delete R.units[R.board[cell]]; R.board[cell] = u.uid; if (R.phase === 'roll') { R.phase = 'place'; DG.ui = 'place'; } dRender(); return u.uid; }, get fight() { return DG.F ? { t: DG.F.t, i: DG.F.i, n: DG.F.f.timeline.length } : null }, DICE,
