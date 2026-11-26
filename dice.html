@@ -537,7 +537,7 @@ html.dbig { --df: 1.15; }
 .dg-face img { width: 40px; height: 40px; image-rendering: pixelated; }
 .dg-face small { font-size: calc(12px * var(--df)); text-align: center; }
 .dg-six.sm { display: flex; flex-wrap: wrap; gap: 2px; justify-content: center; }
-.dg-six.sm img { width: 24px; height: 24px; background: #e9e1cf; border-radius: 4px; image-rendering: pixelated; }
+.dg-six.sm img { width: 24px; height: 24px; background: #1d1715; box-shadow: inset 0 0 0 1px #3a302a; border-radius: 4px; image-rendering: pixelated; }
 .dg-uhead { display: flex; gap: 10px; align-items: center; }
 .dg-uhead img { width: 64px; height: 64px; image-rendering: pixelated; background: var(--ink); border-radius: 8px; flex: none; }
 .dg-ustar { color: #ffd040; font-size: calc(15px * var(--df)); }
@@ -566,12 +566,12 @@ html.dbig { --df: 1.15; }
 .dg-cs { color: #d8d0c0; }
 .dg-lore { color: #a89a8a; font-size: calc(11px * var(--df)); font-style: italic; }
 .dg-price { margin-top: auto; padding: 1px 8px; background: #10301c; border: 1px solid #2a7a50; border-radius: 6px; color: var(--dgold); }
-.dg-cface img { width: 40px; height: 40px; background: #e9e1cf; border-radius: 6px; image-rendering: pixelated; }
+.dg-cface img { width: 40px; height: 40px; background: #1d1715; box-shadow: inset 0 0 0 1px #3a302a; border-radius: 6px; image-rendering: pixelated; }
 .dg-frow { display: flex; flex-direction: column; gap: 3px; }
 .dg-frow > span { font-size: calc(12px * var(--df)); color: var(--mute); }
 .dg-frow > div { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px; }
-.dg-fbtn { display: flex; align-items: center; justify-content: center; aspect-ratio: 1; max-height: 48px; padding: 0; background: #e9e1cf; border: 2px solid #b8ab90; border-radius: 6px; cursor: pointer; }
-.dg-fbtn.torch { background: #f0c890; border-color: #c06020; }
+.dg-fbtn { display: flex; align-items: center; justify-content: center; aspect-ratio: 1; max-height: 48px; padding: 0; background: #1d1715; box-shadow: inset 0 0 0 1px #3a302a; border: 2px solid #3e342c; border-radius: 6px; cursor: pointer; }
+.dg-fbtn.torch { background: #3a2010; border-color: #8a4a18; }
 .dg-fbtn img { width: 75%; height: 75%; image-rendering: pixelated; pointer-events: none; }
 .dg-rank { display: flex; flex-direction: column; gap: 3px; }
 .dg-rank p:not(.sh-sub) { display: grid; grid-template-columns: 24px minmax(0, 7em) 1fr auto; align-items: center; gap: 6px; font-size: calc(12px * var(--df)); }
@@ -676,7 +676,7 @@ html.dbig { --df: 1.15; }
 .rc-rw { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; margin-top: 2px; padding: 3px 6px; background: #10301c; border: 1px solid #2a7a50; border-radius: 6px; color: var(--dgold); }
 .rc-rw i { font-style: normal; color: #a8e0c8; }
 .rc-rw .dg-six.sm img { width: 16px; height: 16px; }
-.rw-face { width: 20px; height: 20px; background: #e9e1cf; border-radius: 4px; image-rendering: pixelated; vertical-align: middle; }
+.rw-face { width: 20px; height: 20px; background: #1d1715; box-shadow: inset 0 0 0 1px #3a302a; border-radius: 4px; image-rendering: pixelated; vertical-align: middle; }
 .dg-rcard.t-elite { border-color: #b06a40; background: #2a1c24; }
 .dg-rcard.t-boss { border-color: #ff6070; background: #2c1420; }
 .dg-rcard.t-shop { border-color: #6a8ad0; }
@@ -9556,17 +9556,19 @@ function dSig(id, px) { const k = 'g:' + id + ':' + px; if (DURL[k]) return DURL
 // 숫자 면: 눈(점)의 색 = 성향 (1 심연 · 2 성운 · 3 번식 · 4 황혼 · 5 기아), 6 은 금빛 눈 (아무거나). 점은 둥글게 깎은 네모, 어두운 테두리
 const DPIP = { 1: [[1, 1]], 2: [[0, 0], [2, 2]], 3: [[0, 0], [1, 1], [2, 2]], 4: [[0, 0], [2, 0], [0, 2], [2, 2]], 5: [[0, 0], [2, 0], [1, 1], [0, 2], [2, 2]], 6: [[0, 0], [2, 0], [0, 1], [2, 1], [0, 2], [2, 2]] };
 const dMix = (hex, k) => { const n = parseInt(hex.slice(1), 16), f = c => Math.round(c * (1 - k)); return 'rgb(' + f(n >> 16) + ',' + f((n >> 8) & 255) + ',' + f(n & 255) + ')'; };
-const dNumCol = v => (v === 6 ? '#ffd040' : ASPC[DICE.NUM_ASP[v]] || '#e8e0d0');
+// 주사위 눈 색: 성향 색을 어둡고 탁하게 (밝으면 장난감 같다는 말에 따라 2026-11-26)
+const DPIPC = { abyss: '#1d7f90', nebula: '#6e52b0', brood: '#4f8a32', dusk: '#a8642a', hunger: '#a82e2a' };
+const dNumCol = v => (v === 6 ? '#a8862a' : DPIPC[DICE.NUM_ASP[v]] || '#8a8070');
 function dPipDraw(x, v, px, X0, Y0) {
-  X0 = X0 || 0; Y0 = Y0 || 0; const col = dNumCol(v), r = Math.max(2, Math.round(px * (v === 1 ? 0.17 : 0.12))), g = [0.24, 0.5, 0.76], ol = v === 6 ? '#5a3a08' : '#140c18';
+  X0 = X0 || 0; Y0 = Y0 || 0; const col = dNumCol(v), r = Math.max(2, Math.round(px * (v === 1 ? 0.17 : 0.12))), g = [0.24, 0.5, 0.76], ol = '#07050a';
   (DPIP[v] || []).forEach(([i, j]) => { const cx = Math.round(X0 + g[i] * px), cy = Math.round(Y0 + g[j] * px), w = r * 2;
     x.fillStyle = ol; x.fillRect(cx - r - 1, cy - r, w + 2, w); x.fillRect(cx - r, cy - r - 1, w, w + 2);
     x.fillStyle = col; x.fillRect(cx - r, cy - r + 1, w, w - 2); x.fillRect(cx - r + 1, cy - r, w - 2, w);
-    x.fillStyle = v === 6 ? '#fffbe8' : 'rgba(255,255,255,0.55)'; x.fillRect(cx - r + 1, cy - r + 1, Math.max(1, Math.round(r / 2)), Math.max(1, Math.round(r / 2))); });
+    x.fillStyle = v === 6 ? 'rgba(255,236,170,0.45)' : 'rgba(255,255,255,0.18)'; x.fillRect(cx - r + 1, cy - r + 1, Math.max(1, Math.round(r / 2)), Math.max(1, Math.round(r / 2))); });
 }
 // 숫자 면 그림 (창 · 카드용): 뼈 빛 네모 위에 눈
 function dNumImg(v, px) { const k = 'n:' + v + ':' + px; if (DURL[k]) return DURL[k]; try { const c = document.createElement('canvas'); c.width = c.height = px; const x = c.getContext('2d'), u = Math.max(1, Math.round(px / 16));
-  x.fillStyle = '#241a12'; x.fillRect(u, 0, px - 2 * u, px); x.fillRect(0, u, px, px - 2 * u); x.fillStyle = '#efe6d2'; x.fillRect(u, u, px - 2 * u, px - 2 * u); x.fillStyle = '#fffaf0'; x.fillRect(2 * u, u, px - 4 * u, u);
+  x.fillStyle = '#060406'; x.fillRect(u, 0, px - 2 * u, px); x.fillRect(0, u, px, px - 2 * u); x.fillStyle = '#2b2320'; x.fillRect(u, u, px - 2 * u, px - 2 * u); x.fillStyle = '#463a33'; x.fillRect(2 * u, u, px - 4 * u, u);
   dPipDraw(x, v, px - 2 * u, u, u); DURL[k] = c.toDataURL(); } catch (e) { DURL[k] = ''; } return DURL[k]; }
 const dFaceImg = (f, px) => (f.t === 'num' ? dNumImg(f.v, px) : f.t === 'kin' ? dIcon(f.kind, f.star || 1, px) : dSym(f.t, px));
 const dUnitImg = (u, px) => dIcon(u.kind, u.star, px, u.br);
@@ -9859,17 +9861,17 @@ function dLit(v) {
 // 정육면체 하나: 윗면(면 그림) + 앞면(조금 어둡게) + 윤곽. phi > 0 이면 구르는 중: 다음 면이 굴러오는 쪽에서 밀려 올라온다
 function dTrCube(x, s, dep, f, nf, phi, dir, held, lean) {
   const R = (c, X, Y, w, h) => { x.fillStyle = c; x.fillRect(X, Y, w, h); }, torch = f && f.t === 'torch';
-  const bone = torch ? ['#f2cc94', '#c89858', '#9a6230'] : held ? ['#fff4c8', '#d8c48a', '#a8935a'] : ['#efe6d2', '#c9bc9e', '#a3937a'];
+  const bone = torch ? ['#5a3216', '#3e200c', '#2a1406'] : held ? ['#4a3c2a', '#33281a', '#221a10'] : ['#2b2320', '#1d1715', '#120e0c'];
   // 몸통 테두리: 붙잡으면 금빛, 한 성향으로 기운 주사위면 그 색을 살짝
-  const rim = held ? '#e8c030' : lean ? dMix(ASPC[lean], 0.25) : '#241a12';
+  const rim = held ? '#b8902a' : lean ? dMix(ASPC[lean], 0.45) : '#060406';
   R(rim, 1, 0, s - 2, s + dep); R(rim, 0, 1, s, s + dep - 2);
   R(bone[1], 1, s - 1, s - 2, dep); R(bone[2], 1, s + dep - 2, s - 2, 1); R('rgba(0,0,0,0.12)', s - 4, s - 1, 3, dep - 1);
-  R(bone[0], 1, 1, s - 2, s - 2); R('#fffaf0', 2, 1, s - 4, 1); R('#fffaf0', 1, 2, 1, s - 4); R(bone[1], s - 2, 2, 1, s - 4); R(bone[1], 2, s - 2, s - 4, 1);
+  R(bone[0], 1, 1, s - 2, s - 2); R('#463a33', 2, 1, s - 4, 1); R('#3a302a', 1, 2, 1, s - 4); R(bone[1], s - 2, 2, 1, s - 4); R(bone[1], 2, s - 2, s - 4, 1);
   const ip = s >= 16 ? 2 : 1.5, iw = s - ip * 2, px = Math.round(iw * TS), A = f && dFaceCv(f, px);
   if (phi > 0.02 && nf) {
     const B = dFaceCv(nf, px), wi = Math.round(iw * phi * TS) / TS, wo = iw - wi, inL = dir > 0;
-    if (inL) { if (B && wi > 0.5) x.drawImage(B, ip, ip, wi, iw); if (A && wo > 0.5) x.drawImage(A, ip + wi, ip, wo, iw); R('rgba(60,40,20,0.55)', ip + wi - 0.5, 1, 1, s - 2); }
-    else { if (A && wo > 0.5) x.drawImage(A, ip, ip, wo, iw); if (B && wi > 0.5) x.drawImage(B, ip + wo, ip, wi, iw); R('rgba(60,40,20,0.55)', ip + wo - 0.5, 1, 1, s - 2); }
+    if (inL) { if (B && wi > 0.5) x.drawImage(B, ip, ip, wi, iw); if (A && wo > 0.5) x.drawImage(A, ip + wi, ip, wo, iw); R('rgba(0,0,0,0.6)', ip + wi - 0.5, 1, 1, s - 2); }
+    else { if (A && wo > 0.5) x.drawImage(A, ip, ip, wo, iw); if (B && wi > 0.5) x.drawImage(B, ip + wo, ip, wi, iw); R('rgba(0,0,0,0.6)', ip + wo - 0.5, 1, 1, s - 2); }
     R('rgba(255,255,255,0.18)', inL ? 1 : s - 1 - Math.max(1, wi), 1, Math.max(1, Math.min(wi, s - 2)), 1);
   } else if (A) x.drawImage(A, ip, ip, iw, iw);
 }
@@ -9889,7 +9891,7 @@ function dTrayDraw() {
   // 통 그림자 · 통
   if (Math.abs(c.a) < 0.4) { x.fillStyle = 'rgba(0,0,0,0.4)'; x.fillRect(trR(c.x - 12 + 2), TCUP.y + 15, 24, 2); }
   x.save(); x.translate(trR(c.x), trR(c.y)); x.rotate(c.a); x.drawImage(dTrCup(), -14, -16, 28, 32);
-  if (inCup && Math.abs(c.a) < 0.3) { const pk = [[-7, -15, '#efe6d2'], [1, -15.5, '#e0d4bc'], [6, -14.5, '#efe6d2']].slice(0, Math.min(3, inCup)); pk.forEach(([X, Y, col]) => { x.fillStyle = '#241a12'; x.fillRect(X - 0.5, Y - 0.5, 5, 3); x.fillStyle = col; x.fillRect(X, Y, 4, 2); }); }
+  if (inCup && Math.abs(c.a) < 0.3) { const pk = [[-7, -15, '#3a302a'], [1, -15.5, '#2b2320'], [6, -14.5, '#3a302a']].slice(0, Math.min(3, inCup)); pk.forEach(([X, Y, col]) => { x.fillStyle = '#241a12'; x.fillRect(X - 0.5, Y - 0.5, 5, 3); x.fillStyle = col; x.fillRect(X, Y, 4, 2); }); }
   x.restore();
   // 주사위: 선반 위 → 바닥 (깊이 순서)
   const vis = T.dice.filter(d => d.st !== 'cup' || d.anim).sort((a, b) => (a.y - b.y) || (a.x - b.x));
@@ -10237,7 +10239,7 @@ function dEvoDraw(e, dt) {
       const m = e.mats[k % e.mats.length], a = -Math.PI / 2 + k * 2 * Math.PI / n + ep * 2.6, r = r0 * (1 - ep), X = cx + Math.cos(a) * r, Y = cy + Math.sin(a) * r * 0.8, sc = (e.from === 'dice' ? 1.2 : Math.min(1.2, H * 0.2 / 40)) * (1 - 0.65 * ep);
       const mc = ASPC[LAIR.KIN[m.kind].asp] || '#fff';
       for (let j = 1; j <= 4; j++) { const aj = a - j * 0.12 * (0.3 + ep), rj = r0 * (1 - Math.max(0, (p - j * 0.03)) ** 3); x.fillStyle = mc + '88'; x.fillRect(Math.round(cx + Math.cos(aj) * rj), Math.round(cy + Math.sin(aj) * rj * 0.8), 2, 2); }
-      if (e.from === 'dice') { const f = LAIRART.icon(m.kind, 1, 32); x.fillStyle = '#241a12'; x.fillRect(Math.round(X - 9 * sc), Math.round(Y - 9 * sc), Math.round(18 * sc), Math.round(20 * sc)); x.fillStyle = '#efe6d2'; x.fillRect(Math.round(X - 8 * sc), Math.round(Y - 8 * sc), Math.round(16 * sc), Math.round(16 * sc)); x.drawImage(f, Math.round(X - 7 * sc), Math.round(Y - 7 * sc), Math.round(14 * sc), Math.round(14 * sc)); }
+      if (e.from === 'dice') { const f = LAIRART.icon(m.kind, 1, 32); x.fillStyle = '#241a12'; x.fillRect(Math.round(X - 9 * sc), Math.round(Y - 9 * sc), Math.round(18 * sc), Math.round(20 * sc)); x.fillStyle = '#2b2320'; x.fillRect(Math.round(X - 8 * sc), Math.round(Y - 8 * sc), Math.round(16 * sc), Math.round(16 * sc)); x.drawImage(f, Math.round(X - 7 * sc), Math.round(Y - 7 * sc), Math.round(14 * sc), Math.round(14 * sc)); }
       else { try { LAIRART.unit(m.art, m.star, m.br).draw(x, X, Y + 14 * sc, 'move', t + k * 90, { scale: sc, flip: Math.cos(a) > 0 }); } catch (er) { /* 그림 없이 */ } }
     }
     if (t >= T.g1 - 60) { const q = Math.max(0, Math.min(1, (t - T.g1) / (T.s1 - T.g1))), r = Math.round(4 + T.blob * (0.35 + 0.65 * q) + Math.sin(t / 45) * 1.5 * q); dEvoBlob(x, cx, cy, r, q, t, e); }
@@ -10280,8 +10282,7 @@ function dBgDraw(x) {
 function dFloorDraw(x) {
   const g = x.createLinearGradient(0, 0, 0, DFH); g.addColorStop(0, '#08070d'); g.addColorStop(0.5, '#110e19'); g.addColorStop(1, '#08070d'); x.fillStyle = g; x.fillRect(0, 0, DFW, DFH);
   const y0 = DLY - 4, y1 = DLY + 6 * DLH + 4; x.fillStyle = 'rgba(150,130,180,0.035)'; x.fillRect(0, y0, DFW, y1 - y0);
-  x.fillStyle = 'rgba(150,130,180,0.05)'; for (let c = 1; c < 6; c++) x.fillRect(0, DLY + c * DLH, DFW, 1);
-  x.fillStyle = 'rgba(150,130,180,0.08)'; x.fillRect(0, y0, DFW, 1); x.fillRect(0, y1, DFW, 1);
+    x.fillStyle = 'rgba(150,130,180,0.08)'; x.fillRect(0, y0, DFW, 1); x.fillRect(0, y1, DFW, 1);
   const s = x.createLinearGradient(0, 0, DFW, 0); s.addColorStop(0, 'rgba(0,0,0,0.35)'); s.addColorStop(0.12, 'rgba(0,0,0,0)'); s.addColorStop(0.88, 'rgba(0,0,0,0)'); s.addColorStop(1, 'rgba(0,0,0,0.35)'); x.fillStyle = s; x.fillRect(0, 0, DFW, DFH);
 }
 function dSprite(kind, star, br) { try { const h = LAIRART.unit(dArt(kind), LAIR.INV[kind] ? 1 : Math.min(3, star || 1), br === 'b' ? 'b' : undefined); return h; } catch (e) { return null; } }
@@ -10293,8 +10294,9 @@ function dDraw(now) {
   if (F) { F.frames.push(now); if (F.frames.length > 4000) F.frames.shift(); }
   x.save(); if (sh[0] || sh[1]) { x.fillStyle = '#05040a'; x.fillRect(0, 0, DFW, DFH); x.translate(sh[0], sh[1]); } dBgDraw(x);
   // 우리 쪽 칸 (세 칸 x 여섯 줄, 왼쪽)
-  if (!F) { for (let r = 3; r <= 5; r++) for (let c = 0; c < 6; c++) { const X = DX0 + (5 - r) * DCW, Y = DLY + c * DLH; x.fillStyle = placing ? 'rgba(80,200,180,0.10)' : 'rgba(80,200,180,0.04)'; x.fillRect(X + 2, Y + 2, DCW - 4, DLH - 4); x.strokeStyle = placing ? 'rgba(120,230,210,0.22)' : 'rgba(120,230,210,0.10)'; x.strokeRect(X + 2.5, Y + 2.5, DCW - 5, DLH - 5); }
-    const h = DG.dragHover; if (h && h.cell != null) { const p = Math.floor(h.cell / 6), c = h.cell % 6; x.strokeStyle = R.board[h.cell] != null ? '#ff9a3a' : '#e8c030'; x.lineWidth = 2; x.strokeRect(DX0 + (5 - p) * DCW + 3, DLY + c * DLH + 3, DCW - 6, DLH - 6); x.lineWidth = 1; } }
+  // 격자 칸은 그리지 않는다 (2026-11-26 사용자: 격자만 안 보이게). 끌어 놓는 동안에만 놓일 자리에 바닥 빛
+  if (!F) { const h = DG.dragHover; if (h && h.cell != null) { const p = Math.floor(h.cell / 6), c = h.cell % 6, cx = DX0 + (5 - p) * DCW + DCW / 2, cy = DLY + c * DLH + DLH * 0.78, col = R.board[h.cell] != null ? '255,154,58' : '232,192,48';
+      const g = x.createRadialGradient(cx, cy, 1, cx, cy, DCW * 0.55); g.addColorStop(0, 'rgba(' + col + ',0.45)'); g.addColorStop(1, 'rgba(' + col + ',0)'); x.save(); x.translate(cx, cy); x.scale(1, 0.42); x.translate(-cx, -cy); x.fillStyle = g; x.beginPath(); x.arc(cx, cy, DCW * 0.55, 0, 6.3); x.fill(); x.restore(); } }
   if (F) { dxLayout(F); dxDrawUnder(x, F); }
   const list = [];
   if (F) F.units.forEach(u => { if (u.gone) return; list.push(u); });
