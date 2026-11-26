@@ -868,6 +868,60 @@ html.mzbig { --mzf: 1.16; }
 #mz-sheet .mzsf-mem { color: #b490ea; } #mz-sheet .mzsf-who { color: #ffcf8a; } #mz-sheet .mzsf-know { color: #d8d0c4; }
 #mzn-stage { position: relative; }
 #mz #mzn-surf { position: absolute; right: 8px; top: 6px; min-height: 28px; padding: 0 10px; border-radius: 14px; border: 1px solid #ffcf6a66; background: #0b0812cc; color: #ffcf8a; font-size: calc(12px * var(--mzf, 1)); z-index: 2; }
+/* 주사위 습격 (src/mazediceui.js): 위는 그곳 그림과 맞선 것들, 아래는 주사위 판 */
+#mzw { position: absolute; inset: 0; z-index: 4; display: flex; flex-direction: column; gap: 6px; padding: calc(env(safe-area-inset-top, 0px) + 6px) 10px calc(env(safe-area-inset-bottom, 0px) + 8px); background: #06040a; overflow-y: auto; overflow-x: hidden; box-sizing: border-box; }
+#mzw[hidden] { display: none; }
+#mzw .mzw-top { position: relative; flex: 0 0 auto; width: 100%; max-width: 560px; margin: 0 auto; aspect-ratio: 240 / 112; border: 1px solid #3a2a40; border-radius: 6px; overflow: hidden; }
+#mzw .mzw-top canvas { display: block; width: 100%; height: 100%; image-rendering: pixelated; }
+#mzw .mzw-hud { position: absolute; left: 6px; top: 4px; right: 6px; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; font-size: 13px; text-shadow: 0 1px 2px #000; }
+#mzw .mzw-hud b { color: #ffcf6a; }
+#mzw .mzw-hp { position: absolute; left: 6px; right: 6px; bottom: 4px; display: flex; align-items: center; gap: 6px; font-size: 12px; text-shadow: 0 1px 2px #000; }
+#mzw .mzw-hp i { flex: 1; height: 6px; background: #0008; border: 1px solid #5a3a40; border-radius: 3px; overflow: hidden; }
+#mzw .mzw-hp u { display: block; height: 100%; background: #c84a5a; text-decoration: none; transition: width .3s; }
+#mzw .mzw-hp u.low { background: #ff7a30; }
+#mzw .mzw-gain { margin: 0; text-align: center; font-size: 13px; color: #d8d0e8; }
+#mzw .mzw-board { display: grid; grid-template-columns: repeat(auto-fill, minmax(58px, 1fr)); gap: 6px; width: 100%; max-width: 560px; margin: 0 auto; }
+#mzw .mzw-empty { grid-column: 1 / -1; text-align: center; color: #8a80a0; margin: 18px 0; }
+#mzw .mzw-d { position: relative; display: flex; flex-direction: column; align-items: center; gap: 1px; min-width: 0; min-height: 66px; padding: 5px 2px 3px; background: #e8e0cc; color: #1a1420; border: 2px solid #5a4a3a; border-radius: 9px; box-shadow: inset 0 -3px 0 #b8ac90; }
+#mzw .mzw-d img { width: 36px; height: 36px; image-rendering: pixelated; }
+#mzw .mzw-d small { max-width: 100%; font-size: 10px; line-height: 1.15; text-align: center; overflow-wrap: anywhere; }
+#mzw .mzw-d.t-kin { background: #d8e0e8; }
+#mzw .mzw-d.t-torch { background: #3a2018; color: #ffd8a0; border-color: #c86a30; box-shadow: inset 0 -3px 0 #2a1008; }
+#mzw .mzw-d.blank { opacity: .75; }
+#mzw .mzw-d.roll { transform: rotate(var(--r, 20deg)); transition: transform 80ms; }
+#mzw .mzw-d.stop { animation: mzw-land 160ms ease-out; }
+@keyframes mzw-land { 0% { transform: translateY(-4px) scale(1.06); } 100% { transform: none; } }
+#mzw .mzw-d.hit { border-color: #ffd040; box-shadow: 0 0 0 2px #ffd04088, inset 0 -3px 0 #b8ac90; }
+#mzw .mzw-d.hit.p-tooth { border-color: #e05a5a; box-shadow: 0 0 10px #e05a5a, inset 0 -3px 0 #b8ac90; }
+#mzw .mzw-d.hit.p-tent { border-color: #4ab0d8; box-shadow: 0 0 10px #4ab0d8, inset 0 -3px 0 #b8ac90; }
+#mzw .mzw-d.hit.p-eye { border-color: #a88af0; box-shadow: 0 0 10px #a88af0, inset 0 -3px 0 #b8ac90; }
+#mzw .mzw-d.hit.p-voice { border-color: #e0905a; box-shadow: 0 0 10px #e0905a, inset 0 -3px 0 #b8ac90; }
+#mzw .mzw-d.hit.p-sac { border-color: #8ad050; box-shadow: 0 0 10px #8ad050, inset 0 -3px 0 #b8ac90; }
+#mzw .mzw-d.held::after { content: '붙잡음'; position: absolute; top: -7px; left: 50%; transform: translateX(-50%); padding: 0 5px; font-size: 9px; line-height: 14px; background: #ffd040; color: #1a1420; border-radius: 7px; white-space: nowrap; }
+#mzw .mzw-d.held { outline: 2px dashed #ffd040; outline-offset: 1px; }
+#mzw .mzw-note { min-height: 34px; text-align: center; font-size: 12px; color: #e8dcc8; }
+#mzw .mzw-note p { margin: 1px 0; }
+#mzw .mzw-acts { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+#mzw .mzw-acts button { min-height: 40px; padding: 0 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+#mzw .mzw-acts button small { font-size: 10px; opacity: .8; }
+#mzw .mzw-acts button.off { opacity: .4; }
+#mzw .mzw-tip { margin: 0; text-align: center; font-size: 12px; color: #a8a0b8; min-height: 16px; }
+#mzw .mzw-wait { display: block; height: 3px; width: 100%; max-width: 560px; margin: 0 auto; background: #ffffff14; border-radius: 2px; overflow: hidden; }
+#mzw .mzw-wait u { display: block; height: 100%; width: 0; background: #ffd040aa; text-decoration: none; }
+#mzw .mz-spd { display: flex; gap: 4px; justify-content: center; flex-wrap: wrap; }
+#mz .k-wres .mzw-res p { display: flex; justify-content: space-between; gap: 10px; margin: 3px 0; font-size: 13px; }
+#mz .k-wres .mzw-res span { color: #a8a0b8; flex: 0 0 auto; }
+#mz .k-wres .mzw-res b { text-align: right; font-weight: 600; overflow-wrap: anywhere; }
+#mz .mzsf-waves { margin: 6px 0; font-size: 12px; }
+#mz .mzsf-waves .mzsf-wt { margin: 0 0 3px; color: #ffcf6a; }
+#mz .mzsf-waves ol { margin: 0; padding-left: 20px; }
+#mz .mzsf-waves li { margin: 2px 0; }
+#mz .mzsf-waves li span { margin: 0 6px; color: #d8d0e8; }
+#mz .mzsf-waves li small { color: #a8a0b8; }
+@media (prefers-reduced-motion: reduce) { #mzw .mzw-d.roll, #mzw .mzw-d.stop { transform: none; animation: none; } }
+#mz-sheet .mz-pows.one { grid-template-columns: 1fr; }
+#mzw .mzw-d .mzw-own { position: absolute; right: 2px; top: 2px; width: 18px; height: 18px; border-radius: 9px; background: #1a1420; display: flex; align-items: center; justify-content: center; }
+#mzw .mzw-d .mzw-own img { width: 16px; height: 16px; }
 /* 장면 읽기 (src/mazescene.js, #mzs). 그림이 화면 가득, 아래 대사 상자와 이름 칸, 말하는 이의 큰 초상 */
 #mzs { position: fixed; inset: 0; z-index: 80; overflow: hidden; background: #050308; color: var(--text); font-family: var(--body); font-size: 16px; line-height: 1.6; cursor: pointer; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent;
   --sat: env(safe-area-inset-top, 0px); --sab2: env(safe-area-inset-bottom, 0px); --bp: 176px; --ah: 78vh; }
@@ -1092,6 +1146,12 @@ const LAIR = (function () {
     c_vasco: { name: '늙은 바스코', tag: '조사자', role: 'support', hp: 700, san: 260, atk: 35, as: 0.6, range: 2, df: 20, mana: 80, skill: 'c_lamp', elite: true, tier: 3, art: 'bard', cast: 'vasco' },
   };
   const INV_IDS = Object.keys(INV);
+  // 굴 짓기의 바퀴 습격에만 나오는 것 (양 떼 · 양치기). 셀 수 없는 칸으로 붙여 INV_IDS 와 둥지 전투의 목록·도감은 그대로 둔다
+  const INVX = {
+    sheep: { name: '양', tag: '먹이', role: 'melee', hp: 260, san: 20, atk: 4, as: 0.5, range: 1, df: 0, mana: 0, speed: 0.9, skill: null, tier: 1, prey: true, will: 1 },
+    shepherd: { name: '양치기', tag: '앞줄', role: 'melee', hp: 400, san: 70, atk: 38, as: 0.7, range: 1, df: 10, mana: 60, skill: 'pike', tier: 1, art: 'militia', will: 1 },
+  };
+  Object.keys(INVX).forEach(k => Object.defineProperty(INV, k, { value: INVX[k], enumerable: false }));
   // 의지: 공포 판정에서 굴리는 주사위 수 (1~4)
   const WILL = { militia: 1, torch: 1, hound: 1, knight: 2, archer: 1, priest: 3, mage: 2, rogue: 2, bard: 2, inquis: 3, paladin: 4, seeker: 4, crossbow: 2, banner: 2, tracker: 2, templar: 3, exorcist: 4, alchemist: 2, seekerm: 3, c_eda: 3, c_rowen: 3, c_mirel: 4, c_tov: 2, c_isel: 2, c_vasco: 4 };
   INV_IDS.forEach(k => { INV[k].will = WILL[k] || 1; });
@@ -1578,7 +1638,7 @@ const LAIR = (function () {
     // ───── 세우기 ─────
     const lv = S.level || 3, cd = K.core, form = FORM[S.form] ? S.form : 'drop';
     const core = add({ id: 'core', side: 'nest', kind: 'core', core: true, cell: CORE[0], cells: CORE.slice(), def: { name: FORM[form].name, hp: sc ? cd.hp * sc.hp : cd.hp * (1 + cd.lvHp * (lv - 3)) * (1 + cd.rdHp * (round - 1)), atk: sc ? cd.atk * sc.atk : cd.atk * (1 + 0.15 * (round - 1)), as: cd.as, range: cd.range + ((sc && sc.range) || 0), df: cd.df, mana: cd.mana - ((sc && sc.manaCut) || 0), skill: (sc && sc.skill && SK[sc.skill]) ? sc.skill : FORM[form].skill, asp: form === 'drop' ? null : form } });
-    core.form = form; core.engage = true; if (S.noCore) { core.alive = false; core.cells.forEach(c => { if (occ[c] === core) occ[c] = null; }); } core.t2 = !!(sc && sc.t2);
+    core.form = form; core.engage = true; if (sc && sc.hp0 != null) core.hp = Math.max(1, Math.round(core.mhp * clamp(sc.hp0, 0.01, 1))); if (S.noCore) { core.alive = false; core.cells.forEach(c => { if (occ[c] === core) occ[c] = null; }); } core.t2 = !!(sc && sc.t2);
     (S.nest || []).forEach(n => { const d = KIN[n.kind]; if (!d || occ[n.cell]) return; const u = add({ id: 'k' + n.uid, side: 'nest', kind: n.kind, star: n.star, cell: n.cell, def: d, mul: STARM[n.star || 1] * (n.pow || 1), hmul: STARM[n.star || 1] * (n.hpow || n.pow || 1) }); if (n.evo) evoOn(u, n.evo, n.hp == null, n.br); if (n.hp != null) u.hp = Math.max(1, Math.min(u.mhp, Math.round(n.hp))); if (n.leap) u.leap = true; });
     const sl = S.scale || null, rm = sl ? sl.atk : K.roundAtk[round - 1] || 1, rh = sl ? sl.hp : K.roundHp[round - 1] || 1, sm = (sl ? sl.san : K.roundSan[round - 1] || 1) * (1 - (bo.sanfrenzy || 0));
     (S.inv || []).forEach(n => { const d = INV[n.kind]; if (!d || occ[n.cell]) return; add({ id: 'e' + (++eid), side: 'inv', kind: n.kind, cell: n.cell, will: n.will, cast: n.cast, def: n.poss ? Object.assign({}, d, { name: '홀린 ' + d.name, san: 0, noMad: true }) : d, mul: rm * (n.mul || 1), hmul: rh * (n.mul || 1), smul: sm }); const u = U[U.length - 1]; u.src = S.inv.indexOf(n); if (n.noLeap) u.leap = false; if (n.hp != null) u.hp = Math.max(1, Math.min(u.mhp, Math.round(n.hp))); if (n.san != null && u.msan) u.san = Math.max(0, Math.min(u.msan, Math.round(n.san))); });
@@ -2679,6 +2739,8 @@ const MAZE = (() => {
   const L = typeof LAIR !== 'undefined' ? LAIR : require('./lair.js');
   const ML = typeof MAZELAYOUTS !== 'undefined' ? MAZELAYOUTS : require('./mazelayouts.js');
   const MO = typeof MAZEOMENS !== 'undefined' ? MAZEOMENS : require('./mazeomens.js');
+  // 주사위 습격 (src/mazedice.js): 부를 때 찾는다 (node 에서는 서로 부르는 꼴이라 늦게 require)
+  const WH = () => (typeof MAZEDICE !== 'undefined' ? MAZEDICE : require('./mazedice.js'));
   const V = 5, COLS = 5, ROWS = 6, N = COLS * ROWS, ENT = 2, EXIT = (ROWS - 1) * COLS + 2, CORE = 'core', EGG = 'egg';
   const rc = i => [Math.floor(i / COLS), i % COLS], idx = (r, c) => r * COLS + c, inb = (r, c) => r >= 0 && r < ROWS && c >= 0 && c < COLS;
   const clamp = (x, a, b) => Math.max(a, Math.min(b, x)), r1 = x => Math.round(x * 10) / 10;
@@ -2712,12 +2774,20 @@ const MAZE = (() => {
     loot: { t1: 1, t2: 2, t3: 3, elite: 4, seeker: 6, boss: 12, win: 2, steal: 2, cage: 2 },
     // 알자리: eggs = 밤마다 배는 알 수, eggsBrood = 번식이 이만큼이면 알 하나 더, topShare = 가장 높은 성향 쪽에서 고르는 몫, tierW · rareW = 급마다 · 드문 것의 무게(열린 위 급이 더 자주)
     // price = 권속 값 (급 1~5), rows = 급마다 줄 수, vary = 태어날 때 능력치 편차 (2% 단위), open = 급이 열리는 조건 (낳은 횟수 또는 쓴 진액 누계), rare = 희귀한 것이 열리는 성향 값 (급마다), eat = 본체에게 먹일 때 돌려받는 몫
-    birth: { price: [2, 4, 6, 8, 10], rows: [2, 1, 1, 1, 1], eggs: 5, eggsBrood: 10, topShare: 0.5, tierW: [0.5, 1, 1.3, 1.5, 1.5], rareW: 1, vary: 8, open: { 2: { births: 3, spent: 8 }, 3: { births: 7, spent: 22 } }, rare: { 2: 6, 3: 8, 4: 12, 5: 16 }, eat: 0.5 },
+    birth: { price: [2, 4, 6, 8, 10], rows: [2, 1, 1, 1, 1], eggs: 4, eggsBrood: 10, topShare: 0.5, tierW: [0.5, 1, 1.3, 1.5, 1.5], rareW: 1, vary: 8, open: { 2: { births: 3, spent: 8 }, 3: { births: 7, spent: 22 } }, rare: { 2: 6, 3: 8, 4: 12, 5: 16 }, eat: 0.5 },
     // 권속의 자람: need = 레벨마다 드는 경험, star = 그 레벨에서 2성·3성, pow = 레벨마다 배수 (그 성 안에서), fight = 싸움에서 살아남으면, kill = 죽이면,
     //   eat = 같은 종류를 먹으면 (+ 먹힌 것의 경험 x keep), perkAt = 보조 능력이 붙는 레벨, perk = 그 배수
     kin: { maxLv: 10, need: [3, 5, 8, 10, 13, 16, 20, 24, 30], star: [1, 4, 8], evoTax: [1, 1, 0.95], pow: 0.1, fight: 1.5, kill: 1.5, eat: 7, keep: 0.8, perkAt: 3, perk: 0.1 },
     // 땅 위를 친다: 세기마다 얻는 몫과 경계 배수. kin = 굴에 세운 권속마다 얻는 경험 (데리고 나가 싸운 셈). raze = 쓸어버리면 그곳은 shut 밤 동안 닫힌다. lvUp = 쓸어버리는 데 더 드는 본체 레벨
     strike: { weak: { gold: 0.5, food: 0, alert: 0.5, pts: 1, kin: 1 }, strong: { gold: 1, food: 1, alert: 1, pts: 2, kin: 4 }, raze: { gold: 0.6, food: 2, alert: 2, pts: 3, kin: 7 }, shut: 8, lvUp: 1 },
+    // 주사위 습격 (mazedice.js): max = 우리 쪽 주사위 수의 상한 (본체 부위 다섯 + 굴에 세운 권속), torchAt = 경계 급이 이것을 넘는 만큼 횃불 주사위 (torchMax 까지, 그곳의 기억 단계 2·3 이면 1·2 줄어듦),
+    //   reroll = 한 번 다시 굴리는 값, autoGold = 저절로 다시 굴릴 때 남아 있어야 하는 진액, retreat = 물결을 넘긴 뒤 본체 체력이 이 아래면 저절로 물러남, chase = 쫓겨 오면 잃는 몫, wound = 쫓겨 온 밤의 복수 침입에서 본체 체력 배수,
+    //   body = 땅 위 본체의 체력·공격 배수, lvHp · lvAtk = 본체 레벨 3 위로 하나마다, act = 막마다 지키는 것들이 세지는 몫, each = 면 하나의 효과, set = 같은 면 셋 모음의 효과 (lvMul = 셋·넷·다섯 넘음의 배수), pts = 모음의 성향 값,
+    //   sheepFood = 양 한 마리의 먹이, eatPts = 먹은 것의 성향 배수, eggs = 알이 배는 셈 (양 sheep 마리마다 · 다른 먹이 food 마다 · 습격에 max 까지 · 알자리에 bank 까지 쌓임), eatEgg = 굴 안에서 침입자를 먹었을 때 알이 밸 확률, famShare = 습격 알 가운데 이미 가진 종류의 몫,
+    //   kinXp · kinWave = 주사위에 오른 권속 모두가 얻는 덤 경험 (습격마다 · 넘긴 물결마다)
+    dice: { max: 9, torchAt: 1, torchMax: 3, reroll: 2, autoGold: 10, retreat: 0.5, chase: 0.5, wound: 0.6, body: 3, lvHp: 0.08, lvAtk: 0.06, act: 0.12,
+      each: { tooth: 0.06, tent: 0.05, eye: 0.05, voice: 0.04, sac: 0.04, torch: 0.08 }, set: { tooth: 0.35, tent: 1.2, eye: 0.3, sac: 0.2 }, lvMul: [0, 1, 1.5, 2.2], pts: { set: 1.5, kind: 1 },
+      sheepFood: 1, eatPts: 0.5, eggs: { sheep: 2, food: 3, max: 5, bank: 6 }, eatEgg: 0.5, famShare: 0.5, kinXp: 2, kinWave: 2 },
     // 속삭임: max = 줄기 길이, half = 이만큼 속삭이면 그 사람은 미친 채 온다, pts = 성향 값
     whisper: { max: 5, half: 3, pts: 2 },
     // 기르기 (grow_spec.md)
@@ -2776,16 +2846,19 @@ const MAZE = (() => {
   // 막 일곱 (이야기): from = 시작하는 밤, opens = 그 막에 열리는 명령. 침입 정의: id, name, units, hp·atk = 침입자 배수 (모드 배수를 곱함), san, add (경계가 높을 때 붙는 자)
   const RD = (id, name, units, hp, atk, extra) => Object.assign({ id, name, units, hp, atk }, extra || {});
   const ACTS = [
-    { id: 'c0', from: 1, opens: ['birth'], raids: [RD('c0_beast', '굴의 짐승', ['hound'], 0.5, 0.4)] },
+    { id: 'c0', from: 1, opens: ['birth', 'strike'], raids: [RD('c0_beast', '굴의 짐승', ['hound'], 0.5, 0.4)] },
     { id: 'c1', from: 3, opens: ['build', 'rest'], raids: [RD('c1_torch', '횃불 든 자들', ['militia', 'torch'], 0.81, 0.63), RD('c1_mob', '마을 사람들', ['militia', 'militia', 'torch'], 0.9, 0.72), RD('c1_hounds', '개를 앞세운 마을', ['hound', 'militia', 'torch', 'hound'], 0.9, 0.77)] },
     { id: 'c2', from: 8, opens: ['raise', 'whisper'], raids: [RD('c2_party', '모험가 일행', ['knight', 'archer', 'priest'], 0.75, 0.56, { san: 0.9 }), RD('c2_rogue', '도적이 낀 일행', ['knight', 'archer', 'rogue'], 0.79, 0.6, { san: 0.9 }), RD('c2_eda', '기록관과 기사', ['c_rowen', 'archer', 'priest', 'c_eda'], 0.75, 0.6, { san: 0.9, add: 'archer' })] },
-    { id: 'c3', from: 13, opens: ['strike'], raids: [RD('c3_hired', '고용된 석궁병', ['crossbow', 'crossbow', 'alchemist'], 1.2, 1.1, { san: 1.15 }), RD('c3_tappers', '깔때기를 든 자들', ['knight', 'alchemist', 'crossbow'], 1.3, 1.15, { san: 1.15 }), RD('c3_isel', '연금술사의 행렬', ['c_isel', 'alchemist', 'crossbow', 'crossbow'], 1.4, 1.2, { san: 1.15, add: 'crossbow' })] },
+    { id: 'c3', from: 13, opens: [], raids: [RD('c3_hired', '고용된 석궁병', ['crossbow', 'crossbow', 'alchemist'], 1.2, 1.1, { san: 1.15 }), RD('c3_tappers', '깔때기를 든 자들', ['knight', 'alchemist', 'crossbow'], 1.3, 1.15, { san: 1.15 }), RD('c3_isel', '연금술사의 행렬', ['c_isel', 'alchemist', 'crossbow', 'crossbow'], 1.4, 1.2, { san: 1.15, add: 'crossbow' })] },
     { id: 'c4', from: 18, opens: [], raids: [RD('c4_tracker', '추적자', ['tracker', 'hound', 'crossbow'], 1.7, 1.35, { san: 1.2 }), RD('c4_pack', '사냥개 무리', ['tracker', 'hound', 'hound', 'archer'], 1.75, 1.4, { san: 1.2 }), RD('c4_trap', '덫 사냥꾼의 무리', ['tracker', 'crossbow', 'crossbow', 'knight'], 1.85, 1.45, { san: 1.2 }), RD('c4_tov', '토브 카인', ['c_tov', 'tracker', 'hound', 'crossbow'], 1.9, 1.5, { san: 1.2, add: 'hound' })] },
     { id: 'c5', from: 24, opens: [], raids: [RD('c5_priests', '사제들', ['templar', 'priest', 'exorcist'], 1.5, 1.3, { san: 0.9 }), RD('c5_paladin', '성기사', ['paladin', 'templar', 'priest'], 1.5, 1.3, { san: 0.9 }), RD('c5_inquis', '심문관', ['inquis', 'templar', 'exorcist', 'priest'], 1.55, 1.35, { san: 0.9 }), RD('c5_mirel', '미렐 수녀와 성기사단', ['paladin', 'c_mirel', 'templar', 'exorcist'], 1.6, 1.4, { san: 0.9, add: 'templar' })] },
     { id: 'c6', from: 31, opens: [], raids: [RD('c6_thralls', '홀린 자들', ['c_rowen', 'inquis', 'templar', 'banner'], 1.5, 1.4, { alt: { units: ['c_isel', 'alchemist', 'alchemist', 'crossbow'] } }), RD('c6_eda', '기록관이 섞인 행렬', ['paladin', 'c_eda', 'tracker', 'templar'], 1.55, 1.4), RD('c6_enoch', '책을 쫓는 자', ['seeker', 'paladin', 'inquis'], 1.4, 1.3, { boss: true })] },
   ];
   const NIGHTS = 36;
   const RAID_DEF = {}; ACTS.forEach((A, i) => A.raids.forEach(d => { RAID_DEF[d.id] = Object.assign({ act: i }, d); }));
+  // 복수하러 오는 자들 (주사위 습격 2026-11-26): 친 곳의 사람들이 다음 밤에 온다. 세기는 그 막의 첫 침입의 avenge 배. 양 우리는 양치기의 개들 (c0_beast)
+  const AVENGE = { village: ['militia', 'torch', 'hound'], chapel: ['templar', 'priest'], archive: ['knight', 'archer'], workshop: ['crossbow', 'alchemist'], tower: ['inquis', 'mage'] }, AVN = { village: '마을의 복수', chapel: '예배당의 복수', archive: '기록관의 복수', workshop: '공방의 복수', tower: '탑의 복수' };
+  ACTS.forEach((A, i) => Object.keys(AVENGE).forEach(p => { const d0 = A.raids[0], id = 'av_' + p + '_' + i; RAID_DEF[id] = Object.assign(RD(id, AVN[p], AVENGE[p].slice(), d0.hp * 0.85, d0.atk * 0.85, d0.san ? { san: d0.san } : null), { act: i, avenge: p }); }));
   // 이야기의 정해진 침입: 막마다 그 막의 침입들이 고르게 놓이고, 막의 마지막 밤에 마지막 침입이 온다
   const SCRIPT = (() => { const o = {}; ACTS.forEach((A, i) => { const to = i + 1 < ACTS.length ? ACTS[i + 1].from - 1 : NIGHTS, len = to - A.from + 1, k = A.raids.length; A.raids.forEach((d, j) => { o[A.from + Math.round((j + 1) * len / k) - 1] = d.id; }); }); return o; })();
   const COMMANDS = ['birth', 'build', 'strike', 'whisper', 'raise', 'rest'];
@@ -2923,7 +2996,7 @@ const MAZE = (() => {
       gold: MK.gold, level: MK.level, xp: 0, egg: MK.egg, eggMax: MK.egg, alert: 0, heat: 0, drift: 0,
       pick: Object.assign(ML.defaults(), { core: 'core_2' }), rooms: {}, grid: [], builds: 0, spent: 0,
       unit: {}, board: {}, bench: [], nextUid: 1, rows: [], born: 0, bornSpent: 0, freeBirth: 0,
-      strikes: 0, struck: {}, shut: {}, known: { hut: 1 }, memQ: [], memSeen: { 'hut:1': 1 }, whisper: {}, flags: {}, fired: {}, raidLog: [], raidN: 0, extraN: 0, sure: false, avenge: null, boon: {},
+      strikes: 0, struck: {}, shut: {}, wr: null, wrLast: null, wound: null, eggBank: [], eggN: 0, eggsMade: 0, known: { hut: 1 }, memQ: [], memSeen: { 'hut:1': 1 }, whisper: {}, flags: {}, fired: {}, raidLog: [], raidN: 0, extraN: 0, sure: false, avenge: null, boon: {},
       captives: 0, kills: 0, cmd: null, omen: null, dawn: null, last: null, hist: [], grow: newGrow(), body: null, awaken: null, awakened: 0, snap: null, retries: 0, score: null };
     for (let i = 0; i < MK.bench; i++) M.bench.push(null);
     restamp(M); return M;
@@ -3115,44 +3188,49 @@ const MAZE = (() => {
     if (s0 < 2 && u.star >= 2 && !u.br) { why = brCheck(M, u.kind); u.br = why.br; }
     return { up, starUp: u.star - s0, br: brOf(u), why };
   }
-  // 알자리 목록: 줄마다 한 개체 (같은 종류도 능력치가 조금씩 다르다). 밤마다 새로 낳아 둔다. 잠김은 볼 때 셈한다
-  //   밤마다 알 eggs 개(번식이 eggsBrood 이상이면 하나 더, 「알을 품는다」를 고른 다음 밤에도 하나 더). 첫 알은 늘 가장 싼 급(열린 것 가운데),
-  //   둘째 알은 이미 가진 권속과 같은 종류(가진 것이 있으면: 같은 종류를 먹여 키우는 길), 나머지는 topShare 몫으로 본체의 가장 높은 성향 쪽,
-  //   나머지는 열린 것 가운데에서 tierW 무게로. 다시 뽑기는 없다
+  // 알자리 목록: 줄마다 한 개체 (같은 종류도 능력치가 조금씩 다르다). 잠김은 볼 때 셈한다
+  //   밤마다 새로 배는 알은 eggs 개뿐(가장 싼 급, 열린 것 가운데: 막힘 방지). 번식이 eggsBrood 이상이면, 「알을 품는다」를 고른 다음 밤이면 하나씩 더(topShare 몫으로 본체의 가장 높은 성향 쪽, 나머지는 tierW 무게로).
+  //   나머지 알은 습격에서 밴다(M.eggBank: 낳을 때까지 남는다, 2026-11-26 주사위 습격). 다시 뽑기는 없다
   function rollRows(M) {
     const B = MK.birth, R = () => L.rnd(M.rs), vary = () => (Math.floor(R() * 5) - 2) * (B.vary / 2);
     const open = L.KIN_IDS.filter(k => !birthLock(M, k)), cheap = open.filter(k => L.KIN[k].cost === 1 && !L.KIN[k].gen), top = topAsp(M);
     const w = k => (B.tierW[L.KIN[k].cost - 1] || 0.3) * (L.KIN[k].gen ? B.rareW : 1);
     const draw = list => { if (!list.length) return null; const tot = list.reduce((a, k) => a + w(k), 0); let r = R() * tot; for (const k of list) { r -= w(k); if (r <= 0) return k; } return list[list.length - 1]; };
-    const fam = Array.from(new Set(owned(M).map(u => u.kind))).filter(k => open.includes(k)), n = B.eggs + ((M.grow.asp.brood || 0) >= B.eggsBrood ? 1 : 0) + (M.eggPlus || 0), rows = [];
+    const n = B.eggs + ((M.grow.asp.brood || 0) >= B.eggsBrood ? 1 : 0) + (M.eggPlus || 0), rows = [];
     for (let i = 0; i < n; i++) {
       let kind = null;
       if (i === 0) kind = cheap.length ? cheap[Math.floor(R() * cheap.length)] : null;
-      else if (i === 1 && fam.length) kind = fam[Math.floor(R() * fam.length)];
       else { const mine = top ? open.filter(k => L.KIN[k].asp === top) : []; kind = draw(mine.length && R() < B.topShare ? mine : open); }
       if (kind) rows.push({ kind, hpv: vary(), atkv: vary(), sold: false });
     }
+    (M.eggBank || []).forEach(e => rows.push({ kind: e.kind, hpv: e.hpv, atkv: e.atkv, sold: false, bank: e.id, from: e.from || null }));
     M.eggPlus = 0; M.rows = rows;
+  }
+  // 습격·굴 안의 먹이에서 밴 알을 알자리에 둔다 (bank 개까지, 넘치면 가장 오래된 것이 썩는다). 지금 알자리 목록에도 곧바로 붙는다
+  function bankEgg(M, kind, o) {
+    if (!L.KIN[kind]) return null; M.eggBank = M.eggBank || []; M.eggN = (M.eggN || 0) + 1; const e = Object.assign({ id: M.eggN, kind, hpv: 0, atkv: 0, night: M.night, from: null }, o || {});
+    M.eggBank.push(e); M.eggsMade = (M.eggsMade || 0) + 1; while (M.eggBank.length > MK.dice.eggs.bank) { const old = M.eggBank.shift(); M.rows = M.rows.filter(r => r.bank !== old.id || r.sold); }
+    M.rows.push({ kind: e.kind, hpv: e.hpv, atkv: e.atkv, sold: false, bank: e.id, from: e.from }); return e;
   }
   const priceOf = kind => MK.birth.price[L.KIN[kind].cost - 1];
   // 그 종류가 목록에서 잠겨 있는 까닭 (열렸으면 null)
-  function birthLock(M, kind) {
+  function birthLock(M, kind, row) {
     const d = L.KIN[kind], B = MK.birth;
-    if (d.gen) { if (M.body && M.body.step && bodyOf(M).kin.includes(kind)) return null; const need = B.rare[d.cost] || 99; return (M.grow.asp[d.asp] || 0) >= need ? null : ASPN[d.asp] + '이 ' + need + '에 닿으면 열린다'; }
-    const o = B.open[d.cost]; if (!o) return null; return M.born >= o.births || M.bornSpent >= o.spent ? null : '권속을 ' + o.births + '번 낳거나 알자리에 진액을 ' + o.spent + ' 쓰면 열린다';
+    if (d.gen && !(row && row.bank)) { if (M.body && M.body.step && bodyOf(M).kin.includes(kind)) return null; const need = B.rare[d.cost] || 99; return (M.grow.asp[d.asp] || 0) >= need ? null : ASPN[d.asp] + '이 ' + need + '에 닿으면 열린다'; }
+    if (row && row.bank) return null; const o = B.open[d.cost]; if (!o) return null; return M.born >= o.births || M.bornSpent >= o.spent ? null : '권속을 ' + o.births + '번 낳거나 알자리에 진액을 ' + o.spent + ' 쓰면 열린다';
   }
   const birthFree = (M, kind) => M.freeBirth > 0 && priceOf(kind) <= 4;
   function birthWhy(M, i) {
-    const r = M.rows[i]; if (!r) return '없는 줄이다'; if (r.sold) return '이미 낳았다'; const lk = birthLock(M, r.kind); if (lk) return lk;
+    const r = M.rows[i]; if (!r) return '없는 줄이다'; if (r.sold) return '이미 낳았다'; const lk = birthLock(M, r.kind, r); if (lk) return lk;
     if (!birthFree(M, r.kind) && M.gold < birthPrice(M, r.kind)) return '진액이 모자라니, 이 의식은 이루어질 수 없으리라'; if (M.bench.indexOf(null) < 0) return '대기석이 가득 찼으니, 더는 깨어난 것을 둘 자리가 없다'; return null;
   }
   // 낳기 (명령 「권속을 낳는다」 안에서만)
   function birth(M, i) {
     if (M.phase !== 'birth') return fail('오늘은 권속을 낳는 밤이 아니니, 알자리는 잠잠하리라'); const e = birthWhy(M, i); if (e) return fail(e); const r = M.rows[i], free = birthFree(M, r.kind), cost = free ? 0 : birthPrice(M, r.kind);
-    if (free) M.freeBirth--; M.gold -= cost; M.bornSpent += cost; M.born++; r.sold = true; const uid = newUnit(M, r.kind, { hpv: r.hpv, atkv: r.atkv }); M.bench[M.bench.indexOf(null)] = uid; M.cmd.did++;
+    if (free) M.freeBirth--; M.gold -= cost; M.bornSpent += cost; M.born++; r.sold = true; if (r.bank) M.eggBank = (M.eggBank || []).filter(e => e.id !== r.bank); const uid = newUnit(M, r.kind, { hpv: r.hpv, atkv: r.atkv }); M.bench[M.bench.indexOf(null)] = uid; M.cmd.did++;
     return ok({ uid, kind: r.kind, cost, free });
   }
-  const canTend = M => M.phase !== 'over' && !M.awaken;
+  const canTend = M => M.phase !== 'over' && M.phase !== 'dice' && !M.awaken;
   // 본체에게 먹인다 (명령 아님): 진액을 조금 돌려받고, 하룻밤에 feedMax 번까지는 먹이와 그 권속의 성향도 오른다
   function eatKin(M, uid) {
     if (!canTend(M)) return fail('지금은 그 일을 행할 때가 아니다'); const u = M.unit[uid]; if (!u) return fail('없는 권속이다'); const v = eatValue(u), asp = L.KIN[u.kind].asp; removeUnit(M, uid); M.gold += v;
@@ -3198,6 +3276,8 @@ const MAZE = (() => {
     else if (M.night > 1 && M.night % F.every === 0) { kind = M.night >= F.late && M.night % F.boss === 0 ? 'last' : 'base'; id = kind === 'last' ? 'c6_enoch' : freeDef(M).id; }
     if (!kind && M.sure) kind = 'sure';
     if (!kind) { M.heat = r1(M.heat + M.alert / A.heat); if (M.heat >= 1) { M.heat = r1(M.heat - 1); kind = 'heat'; } }
+    // 양 우리를 친 다음 밤의 복수는 양치기의 개들뿐 (주사위 습격 2026-11-26: 첫 밤부터 칠 수 있으니 이른 막의 복수가 무리 하나가 되지 않게)
+    if (kind === 'sure' && !id && M.avenge === 'hut') id = 'c0_beast'; else if (kind === 'sure' && !id && AVENGE[M.avenge]) id = 'av_' + M.avenge + '_' + actIx(M);
     if ((kind === 'sure' || kind === 'heat') && !id) id = extraDef(M).id;
     return { steps: !!kind, kind, id, avenge: M.avenge || null };
   }
@@ -3263,7 +3343,7 @@ const MAZE = (() => {
     const nest = kin.map(u => { const pw = kinPow(M.unit[u.uid]); return { uid: u.uid, kind: u.kind, star: u.star, evo: u.star, br: brOf(u), hp: u.hp, pow: pw.atk, hpow: pw.hp * def, leap: L.KIN[u.kind].cls === 'hunter', cell: place(front(L.KIN[u.kind].role) ? 3 : 4, KIN_COLS, used) }; });
     const rooms = g.room ? [{ id: g.room, cells: [18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29] }] : [];
     const S = { seed: seedOf(M, k), nest, inv, rooms, level: M.level, round: 1, form: isCore ? bodyOf(M).form : 'drop', syn: roomSyn(kin.map(u => u.kind)), scale: D.scale, hpMul: MK.hpMul, sanMul: MK.sanMul, clock: MK.clock, keep: true };
-    if (isCore) { const B = bodyOf(M), C0 = MK.coreFight, dr = M.boon.drink ? MK.grow.drinkCore : 1; S.core = { lv: B.lv, hp: B.hp * dr, atk: B.atk, manaCut: C0.manaCut, range: C0.range, t2: B.t2, skill: B.form === 'drop' ? C0.dropSkill : null }; } else S.noCore = true;
+    if (isCore) { const B = bodyOf(M), C0 = MK.coreFight, dr = (M.boon.drink ? MK.grow.drinkCore : 1) * (M.wound ? MK.dice.wound : 1); S.core = { lv: B.lv, hp: B.hp * dr, atk: B.atk, manaCut: C0.manaCut, range: C0.range, t2: B.t2, skill: B.form === 'drop' ? C0.dropSkill : null }; } else S.noCore = true;
     signFight(M, S, kin, isCore);
     return { f: L.simulate(S), inv };
   }
@@ -3333,13 +3413,13 @@ const MAZE = (() => {
     // 권속의 경험: 쓰러지지 않은 권속만 이 침입의 경험을 얻는다
     const grew = [], downed = [];
     Object.keys(fought).forEach(id => { const uid = +id, u = M.unit[uid]; if (!u) return; if (kinHp[uid] && !kinHp[uid].alive) { downed.push({ uid, kind: u.kind, lost: gained[uid] || 0 }); return; } const lv0 = u.lv, s0 = u.star, r = kinGain(M, uid, gained[uid] || 0); grew.push({ uid, kind: u.kind, xp: gained[uid] || 0, lv0, lv: u.lv, star0: s0, star: u.star, up: r.up, starUp: r.starUp, br: brOf(u), why: r.why || null, name0: L.evoName(u.kind, s0, brOf(u)), name: L.evoName(u.kind, u.star, brOf(u)) }); });
-    const up = levelUp(M), risen = riseOf(M, madDead, caught);
+    const up = levelUp(M), risen = riseOf(M, madDead, caught), egged = eatEggOf(M, ate), wounded = !!M.wound; M.wound = null;
     // 경계: 침입을 맞을 때마다 소문이 돈다
     M.drift = r1(M.drift + MK.alert.drift); if (M.drift >= 1) { M.drift = r1(M.drift - 1); M.alert = clamp(M.alert + 1, 0, MK.alert.max); }
     M.raidN++; M.raidLog.push(D.id); if (D.base !== D.id) M.raidLog.push(D.base + '+'); if (D.kind === 'sure' || D.kind === 'heat') M.extraN++;
     if (D.notes.includes('forge')) M.flags.forge = false; if (M.sure !== M.night) { M.sure = false; M.avenge = null; } M.boon = {}; signRaidDone(M);
     const ledger = { night: M.night, id: D.id, name: D.name, band: D.band, grade: D.grade, win, grew, downed, ate, food: ate.reduce((a, x) => a + x.food, 0), aspGain: ate.reduce((o, x) => { if (x.asp) o[x.asp] = r1((o[x.asp] || 0) + x.pts); return o; }, {}),
-      captured: caught, captives: M.captives, risen, up, level: M.level, killed: dead, mads, strays: strays.length, left: party.filter(p => p.left).length,
+      captured: caught, captives: M.captives, risen, egged, wounded, up, level: M.level, killed: dead, mads, strays: strays.length, left: party.filter(p => p.left).length,
       gold: { before: gold0, loot: G.loot, win: G.win, room: G.room, vein: G.vein, cage: G.cage, bait: G.bait, stolen: G.stolen, after: M.gold }, egg: { before: egg0, lost: eggLost, after: M.egg }, alert: { before: alert0, after: M.alert } };
     const result = { win, eggLost, gold: income, survivors: reached.length, mads, breaks: W.brokeList.length, avoided: P.avoided && W.mode === 'scout', walked: walked.length, lost: W.mode !== 'scout' && P.scout, warps: W.warps, lured: W.lured, confused: W.confusedAt, ate, food: ledger.food, aspGain: ledger.aspGain, risen, up, ledger };
     M.hist.push({ night: M.night, raid: D.id, name: D.name, grade: D.grade, win, eggLost, path: walked.length, fights: steps.filter(s => s.type === 'fight').length, traps: steps.filter(s => s.type === 'trap').length, mads, killed: dead });
@@ -3349,6 +3429,12 @@ const MAZE = (() => {
     else if (M.mode === 'story' && M.night >= NIGHTS) next = finish(M, true, '예언의 밤이 지났다');
     else { wakeCheck(M, wakeDue(M)); advance(M); }
     return ok({ steps, result, path: P, next, raidId: D.id, raid: D });
+  }
+  // 굴 안에서 사람을 먹으면 가끔 알이 밴다 (한 침입에 하나): 이미 가진 권속과 같은 종류, 없으면 먹은 자의 성향 쪽 1성
+  function eatEggOf(M, ate) {
+    const n = ate.length; if (!n) return null; const p = 1 - Math.pow(1 - MK.dice.eatEgg, n); if (!(L.rnd(M.rs) < p)) return null;
+    const fam = Array.from(new Set(owned(M).map(u => u.kind))), x = ate[Math.floor(L.rnd(M.rs) * ate.length)], kind = fam.length ? fam[Math.floor(L.rnd(M.rs) * fam.length)] : RISE_KIN[x.asp || topAsp(M) || 'hunger'] || 'gnaw';
+    const e = bankEgg(M, kind, { from: 'nest' }); return e ? { kind, from: x.kind } : null;
   }
   // 일어선 자: 미쳐 죽은 자 (미친 채 굴에 남은 자, 붙잡힌 자도 몫을 보탠다) 하나마다 rise 몫 (riseMax 까지), 한 침입에 하나. 그 사람의 성향의 1성 권속이 대기석에 선다
   function riseOf(M, madDead, caught) {
@@ -3383,11 +3469,11 @@ const MAZE = (() => {
     if (!opensOf(M)[id]) return '아직은 그 일을 행할 때가 아니다'; return signBan(M, id);
   }
   // 한 밤의 명령. build · birth 는 그 안에서 여러 번 고치고 낳은 뒤 done 으로 끝낸다 (아무것도 하지 않았으면 back 으로 물릴 수 있다).
-  //   strike: arg = { place, power }  whisper: arg = 사람  raise: arg = 일과  rest: arg 없음
+  //   strike: arg = { place } — 주사위 습격을 연다 (phase 'dice'. 물결마다 diceThrow → (diceReroll) → diceFight, 물러나기는 diceLeave, 끝나면 밤이 간다)  whisper: arg = 사람  raise: arg = 일과  rest: arg 없음
   function command(M, id, arg) {
     const e = commandWhy(M, id); if (e) return fail(e);
     if (id === 'build' || id === 'birth') { M.phase = id; M.cmd = { id, did: 0 }; return ok({ id, phase: id }); }
-    if (id === 'strike') return strike(M, arg && arg.place, arg && arg.power);
+    if (id === 'strike') return WH().start(M, arg && arg.place);
     if (id === 'whisper') return whisper(M, arg);
     if (id === 'raise') return raise(M, arg);
     return rest(M);
@@ -3399,22 +3485,8 @@ const MAZE = (() => {
   }
   // 아무것도 하지 않았으면 명령을 물린다 (밤은 가지 않는다)
   function back(M) { if (M.phase !== 'build' && M.phase !== 'birth') return fail('물릴 명령이 없다'); if (M.cmd.did) return fail('이미 손을 댔다'); M.phase = 'night'; M.cmd = null; return ok({ back: true }); }
-  // 땅 위를 친다
-  function strikeWhy(M, place, power) {
-    const T = STRIKE[place]; if (!T) return '없는 곳이다'; if (!POWERS.includes(power)) return '없는 세기이다'; if (!((M.known || {})[place] >= 1)) return '그대는 아직 그곳을 모른다. 그곳 사람을 먹어야 기억이 들어오리라'; if (M.strikes < T.need) return '그곳까지 손을 뻗기에는 아직 이르다. 땅 위를 ' + (T.need - M.strikes) + '번 더 쳐야 하리라';
-    if (M.shut[place]) return '쓸어버린 곳이다. ' + M.shut[place] + '번째 밤에 다시 열린다'; const lv = power === 'weak' ? 0 : T.lv + (power === 'raze' ? MK.strike.lvUp : 0); if (M.level < lv) return '본체 레벨 ' + lv + '부터 할 수 있다'; return null;
-  }
-  // 그 세기로 치면 얻는 것 (보기용)
-  function strikeGain(M, place, power) { const T = STRIKE[place], P = MK.strike[power], deep = memLv(((M && M.known) || {})[place] || 0) >= MEM_LV.length, al = place === 'hut' && power === 'weak' ? -1 : Math.max(1, Math.round(T.alert * P.alert) - (deep ? 1 : 0)); return { gold: Math.round(T.gold * P.gold) + (deep ? 2 : 0), food: Math.round(T.food * P.food), alert: al, asp: T.asp, pts: P.pts, kinXp: P.kin || 0, deep }; }
-  function strike(M, place, power) {
-    power = power || 'strong'; const e = commandWhy(M, 'strike') || strikeWhy(M, place, power); if (e) return fail(e); const g = strikeGain(M, place, power);
-    M.gold += g.gold; M.xp += g.food; M.grow.eaten += g.food; addAsp(M, g.asp, g.pts, 'night'); M.alert = clamp(M.alert + g.alert, 0, MK.alert.max); M.strikes++; M.struck[place] = (M.struck[place] || 0) + 1; M.sure = M.night; M.avenge = place;
-    if (g.kinXp) { let n = 0; boardUids(M).forEach(uid => { if (M.unit[uid]) { kinGain(M, uid, g.kinXp); n++; } }); g.kin = n; }
-    if (power !== 'weak') knowAdd(M, place, 1, 'raid');
-    if (power === 'raze') { M.shut[place] = M.night + MK.strike.shut; M.flags['razed_' + place] = true; }
-    if (place === 'workshop' && power !== 'weak') M.flags.forge = true; if (place === 'tower' && power !== 'weak') M.flags.towerDown = true;
-    const up = levelUp(M), next = proceed(M, 'strike', { place, power }, Object.assign({ up }, g)); return ok({ place, power, gains: g, up, alert: M.alert, next });
-  }
+  // 땅 위를 친다: 주사위 습격 (src/mazedice.js). 세기는 없다 (옛 호출의 세기 인자는 받고 버린다)
+  function strikeWhy(M, place) { return WH().why(M, place); }
   // 속삭인다
   function whisperWhy(M, who) {
     const W = WHO[who]; if (!W) return '없는 사람이다'; if (M.mode !== 'story') return '속삭일 사람이 없다'; if (M.night < W.night) return W.night + '번째 밤부터 닿는다'; if (W.afterRaid && !M.raidLog.includes(W.afterRaid)) return '아직 만나지 못했다';
@@ -3513,7 +3585,7 @@ const MAZE = (() => {
   const parse = json => { try { return typeof json === 'string' ? JSON.parse(json) : json; } catch (e) { return null; } };
   // 옛 판의 저장인가 (불러올 수 없다. 화면은 「옛 저장」이라고 알린다)
   function isOld(json) { const M = parse(json); return !!(M && typeof M === 'object' && M.v != null && M.v !== V); }
-  function load(json) { const M = parse(json); if (!M || M.v !== V || !M.pick || !M.unit || !M.board || !Array.isArray(M.bench) || !M.rs || !M.grow || !M.omen) return null; if (!ML.ZONE_IDS.every(z => ML.get(M.pick[z]))) return null; restamp(M); sgFill(M); knowMigrate(M); return M; }
+  function load(json) { const M = parse(json); if (!M || M.v !== V || !M.pick || !M.unit || !M.board || !Array.isArray(M.bench) || !M.rs || !M.grow || !M.omen) return null; if (!ML.ZONE_IDS.every(z => ML.get(M.pick[z]))) return null; restamp(M); sgFill(M); knowMigrate(M); if (!Array.isArray(M.eggBank)) M.eggBank = []; if (M.phase === 'dice' && !M.wr) M.phase = 'night'; return M; }
 
   // ───────── 화면이 읽는 것 ─────────
   const trapInfo = id => (TRAP[id] ? { id, name: TRAP[id].name, short: TRAP[id].short, more: TRAP[id].more, fx: TRAP[id].fx, maze: !!(TRAP[id].lure || TRAP[id].maw || TRAP[id].confuse) } : null);
@@ -3538,8 +3610,8 @@ const MAZE = (() => {
       next: star < 3 ? { lv: K.star[star], star: star + 1, name: L.evoName(kind, star + 1, nb), what: star === 1 ? { kind: 't2', name: N.t2.name, short: N.t2.short } : { kind: 't3', name: E.t3.name, short: E.t3.short } } : null };
   }
   function rowView(M, r, i) {
-    const info = L.unitInfo(r.kind, 1), hp = Math.round(info.hp * (1 + r.hpv / 100)), atk = Math.round(info.atk * (1 + r.atkv / 100)), lock = birthLock(M, r.kind), why = M.phase === 'birth' ? birthWhy(M, i) : lock || (r.sold ? '이미 낳았다' : null), free = birthFree(M, r.kind);
-    return Object.assign({ i }, info, roleOf(info), { evo: evoView(r.kind, 1, null, M), hp, atk, short: `체력 ${hp} · 공격 ${atk}`, hpv: r.hpv, atkv: r.atkv, price: free ? 0 : birthPrice(M, r.kind), basePrice: priceOf(r.kind), free, rare: !!L.KIN[r.kind].gen, sold: r.sold, lock, can: M.phase === 'birth' && !why, why });
+    const info = L.unitInfo(r.kind, 1), hp = Math.round(info.hp * (1 + r.hpv / 100)), atk = Math.round(info.atk * (1 + r.atkv / 100)), lock = birthLock(M, r.kind, r), why = M.phase === 'birth' ? birthWhy(M, i) : lock || (r.sold ? '이미 낳았다' : null), free = birthFree(M, r.kind);
+    return Object.assign({ i }, info, roleOf(info), { evo: evoView(r.kind, 1, null, M), hp, atk, short: `체력 ${hp} · 공격 ${atk}`, hpv: r.hpv, atkv: r.atkv, price: free ? 0 : birthPrice(M, r.kind), basePrice: priceOf(r.kind), free, rare: !!L.KIN[r.kind].gen, sold: r.sold, bank: !!r.bank, from: r.from || null, lock, can: M.phase === 'birth' && !why, why });
   }
   function partyView(M, D) { const sc = D.scale; return D.units.map((kind, i) => { const info = L.invInfo(kind, 1, { hp: sc.hp * MK.hpMul / L.K.hpMul, atk: sc.atk, san: sc.san * MK.sanMul / L.K.sanMul }); return Object.assign(info, roleOf(info), { avoid: AVOIDERS.includes(kind), scout: SCOUTS.includes(kind), breaker: BREAKERS.includes(kind), egg: eggDmg(kind), mad: D.mad.includes(i), loot: lootOf(M, kind, D.grade), cat: victimCat(kind) }); }); }
   // 오는 자들의 셈 (침입 직전 화면): 종류별 수 · 등급 · 가진 재주
@@ -3588,7 +3660,8 @@ const MAZE = (() => {
       // 권속
       bench: M.bench.map(uid => (uid != null ? unitView(M, uid) : null)), units: owned(M).map(u => unitView(M, u.uid)), births: M.rows.map((r, i) => rowView(M, r, i)), born: M.born, bornSpent: M.bornSpent, birthOpen: MK.birth.open,
       // 땅 위 · 속삭임
-      strikes: { n: M.strikes, list: STRIKE_IDS.map(id => { const T = STRIKE[id], mem = (M.known || {})[id] || 0, lv = memLv(mem); return { id, need: T.need, lv: T.lv, asp: T.asp, struck: M.struck[id] || 0, shut: M.shut[id] || null, open: mem >= 1, mem, memLv: lv, memNext: MEM_LV[lv] || null, deep: lv >= MEM_LV.length, who: whoAt(M, id), powers: POWERS.map(p => { const why = strikeWhy(M, id, p); return Object.assign({ id: p, can: !why && !commandWhy(M, 'strike'), why }, strikeGain(M, id, p)); }) }; }) },
+      strikes: { n: M.strikes, list: STRIKE_IDS.map(id => { const T = STRIKE[id], mem = (M.known || {})[id] || 0, lv = memLv(mem); return { id, need: T.need, lv: T.lv, asp: T.asp, struck: M.struck[id] || 0, shut: M.shut[id] || null, open: mem >= 1, mem, memLv: lv, memNext: MEM_LV[lv] || null, deep: lv >= MEM_LV.length, who: whoAt(M, id), why: strikeWhy(M, id), can: !strikeWhy(M, id) && !commandWhy(M, 'strike'), dice: WH().preview(M, id) }; }) },
+      dice: M.wr ? WH().view(M) : null, wrLast: M.wrLast || null, eggBank: (M.eggBank || []).map(e => Object.assign({}, e)), wound: !!M.wound,
       whispers: WHO_IDS.map(id => { const W = WHO[id], why = whisperWhy(M, id), n = M.whisper[id] || 0; return { id, n, max: MK.whisper.max, half: MK.whisper.half, asp: W.asp, unit: W.unit, met: M.mode === 'story' && M.night >= W.night && (!W.afterRaid || M.raidLog.includes(W.afterRaid)), can: !why && !commandWhy(M, 'whisper'), why, until: WHISPER_UNTIL, result: W.result, done: flagOn(M, W.result), boon: RESULT[W.result] }; }),
       // 기르기 · 깨어남 · 이야기
       surface: { tier: gradeOf(M), known: STRIKE_IDS.filter(id => ((M.known || {})[id] || 0) >= 1).length }, memories: (M.memQ || []).slice(), grow: growView(M), awaken: M.awaken ? awakenView(M) : null, awakened: M.awakened || 0, story: M.mode === 'story' ? storyView(M) : null, events: dueEvents(M), ending: M.over && M.over.ending || null, endingAsp: M.over && M.over.endingAsp || null,
@@ -3754,13 +3827,248 @@ const MAZE = (() => {
   function view(M) { const v = view0(M), s = signView(M); v.drip += signDrip(M); return Object.assign(v, s); }
 
   return { V, COLS, ROWS, N, ENT, EXIT, CORE, EGG, MK, ACTS, CHAPTERS: ACTS, WHISPER_UNTIL, NIGHTS, SCRIPT, RAID_DEF, COMMANDS, STRIKE, STRIKE_IDS, POWERS, WHO, WHO_IDS, RESULT, PERK, TRAP, TRAP_IDS, FORMS, FORM_IDS, CHORES, CHORE_IDS, VICTIM_ASP, ROOM_ASP, RISE_KIN, AVOIDERS, BREAKERS, SCOUTS, ASPN,
+    _: { addAsp, proceed, owned, boardUids, levelUp, brOf, victimCat, signOut, birthLock, bankEgg },
+    diceStart: (M, place) => command(M, 'strike', { place }), diceThrow: M => WH().throwDice(M), diceReroll: (M, held) => WH().reroll(M, held), diceAuto: M => WH().autoRoll(M), diceFight: M => WH().fight(M), diceSpin: (M, o) => WH().spin(M, o), diceLeave: M => WH().leave(M), diceView: M => WH().view(M), diceRun: (M, o) => WH().runAll(M, o), bankEgg,
     rc, idx, useStory, newRun, newDaily, dateSeed, newStory, view, save, load, isOld,
     dream, quench, darkMulOf, signView, signKeep, pressOf, signNight, signApply, sgFill, birthPrice, quietOf, SIGN: MO,
-    command, commandWhy, done, back, setLayout, layoutWhy, setRoom, roomWhy, birth, birthWhy, birthLock, rollRows, priceOf, strike, strikeWhy, strikeGain, KNOW, WHO_AT, MEM_LV, memLv, knowAdd, eatOne, knowMigrate, memDone, whoAt, whisper, whisperWhy, raise, chore, rest, raid, retry,
+    command, commandWhy, done, back, setLayout, layoutWhy, setRoom, roomWhy, birth, birthWhy, birthLock, rollRows, priceOf, strikeWhy, KNOW, WHO_AT, MEM_LV, memLv, knowAdd, eatOne, knowMigrate, memDone, whoAt, whisper, whisperWhy, raise, chore, rest, raid, retry,
     evoView, brCheck, move, placeWhy, roomCap, eatKin, feedKin, eatValue, feedXp, whereOf, kinPow, kinGain, kinNeed, kinTotal, newUnit, awaken, bodyOf, topAsp, growView,
     omenOf, raidOf, nextRaid, partyOf, pathOf, walker, scoutPath, roomSyn, gradeOf, opensOf, actIx, luxOf, fxOf, wallsOf, restamp, dueEvents, eventDone, whenOk, needOk, endingOf, endingAspOf, scoreOf, trapInfo, unitView, maxLvOf, advance };
 })();
 if (typeof module !== 'undefined') module.exports = MAZE;
+// 주사위 습격 규칙 (2026-11-26, scratchpad/wheel_spec.md + 조정: 바퀴 대신 주사위). DOM 없음. maze.js 의 「땅 위를 친다」가 이것을 부른다.
+// 한 번의 습격 = 물결 여럿. 물결마다 주사위를 한 번 던지고(판 씨앗 · 습격 번호 · 물결로 정해짐), 한 번 다시 굴릴 수 있다(진액). 나온 면의 같은 면 모음이
+//   그 물결의 공격을 정하고, 싸움 엔진(LAIR.simulate)이 본체 + 올라온 권속 vs 그곳을 지키는 것들을 싸운다. 이기면 다음 물결,
+//   본체 체력이 retreat 아래면 저절로 물러나고, 0 이면 쫓겨 온다. 상태는 M.wr 한 칸 (phase 'dice' 동안). 끝나면 얻은 것을 셈하고 proceed 로 밤을 넘긴다.
+// 주사위: 본체 부위 다섯(촉수·알주머니·눈·입속 목소리·이빨. 면 = 그 부위 3 · 다음 부위 둘 1씩 · 빈 면 1) + 굴에 세운 권속마다 하나(면 = 그 권속 3 · 그 성향의 부위 2 · 빈 면 1),
+//   우리 쪽은 dice.max 개까지. 마을 쪽은 경계 급이 높을수록 횃불 주사위(면 = 횃불 2 · 빈 면 4)가 섞인다.
+// 면: 'tooth' 'tent' 'eye' 'voice' 'sac' (부위) · 'k<uid>' (권속) · 'torch' (횃불) · 'blank'
+const MAZEDICE = (() => {
+  'use strict';
+  const L = typeof LAIR !== 'undefined' ? LAIR : require('./lair.js');
+  const MZ = () => (typeof MAZE !== 'undefined' ? MAZE : require('./maze.js'));
+  const clamp = (x, a, b) => Math.max(a, Math.min(b, x)), r1 = x => Math.round(x * 10) / 10;
+  const fail = msg => ({ ok: false, msg }), ok = o => Object.assign({ ok: true }, o || {});
+
+  // ───────── 부위 ─────────
+  // line = 같은 면 셋 이상 모였을 때 (넷이면 1.5배쯤, 다섯 넘으면 크게 터짐), each = 면 하나
+  const PARTS = {
+    tent: { asp: 'abyss', name: '촉수', skill: 'drag', line: '끌어당겨 묶기 · 지키는 것들이 처음에 묶임', each: '본체 체력 +5%' },
+    sac: { asp: 'brood', name: '알주머니', skill: 'spawning', line: '산란 · 본체 체력이 아묾 · 알이 더 밴다', each: '본체 체력 4% 아묾' },
+    eye: { asp: 'nebula', name: '눈', skill: 'eyeabove', line: '내려다보는 눈 · 지키는 것들 정신 깎임', each: '지키는 것들 정신 −5%' },
+    voice: { asp: 'dusk', name: '입속 목소리', skill: 'chorus', line: '합창 · 지키는 것들이 미친 채 싸움', each: '지키는 것들 공격 −4%' },
+    tooth: { asp: 'hunger', name: '이빨', skill: 'rend', line: '물어뜯기 · 본체 공격이 오름', each: '본체 공격 +6%' },
+  };
+  const PART_IDS = Object.keys(PARTS), ASP_PART = {}; PART_IDS.forEach(p => { ASP_PART[PARTS[p].asp] = p; });
+  const TORCH = { name: '횃불', each: '지키는 것들 공격 +8% · 우리 쪽 가장 큰 모음에서 면 하나가 깨짐' };
+  const LV_NAME = ['', '모음', '큰 모음', '크게 터짐'];
+
+  // ───────── 장소마다의 물결 ─────────
+  // units = 지키는 것들, hp·atk = 배수 (모드 배수·경계 급·막을 곱한다), gold = 넘기면 얻는 진액, alert = 넘기면 오르는 경계 (마지막 물결만: 쓸어버리면 마을이 크게 놀란다)
+  const WV = (name, units, hp, atk, gold, alert) => ({ name, units, hp, atk, gold, alert });
+  const WAVES = {
+    hut: [WV('양 떼', ['sheep', 'sheep', 'sheep'], 0.5, 0.4, 2, 0), WV('양치기 개', ['hound', 'hound', 'sheep'], 0.42, 0.34, 3, 0), WV('양치기', ['shepherd', 'hound', 'sheep', 'sheep'], 0.5, 0.42, 5, 1)],
+    village: [WV('외양간', ['sheep', 'sheep', 'hound', 'sheep'], 0.4, 0.34, 3, 0), WV('민병', ['militia', 'torch'], 0.4, 0.34, 5, 0), WV('횃불꾼', ['militia', 'torch', 'torch', 'hound'], 0.43, 0.38, 5, 0), WV('마을의 정예', ['knight', 'militia', 'archer'], 0.45, 0.39, 6, 1)],
+    chapel: [WV('종지기와 사제', ['bard', 'priest'], 0.45, 0.39, 5, 0), WV('성전사', ['templar', 'priest'], 0.48, 0.41, 5, 0), WV('구마사', ['templar', 'exorcist', 'priest'], 0.5, 0.43, 6, 0), WV('성기사', ['paladin', 'templar', 'exorcist'], 0.52, 0.45, 8, 1)],
+    archive: [WV('여관 손님', ['bard', 'archer'], 0.48, 0.41, 5, 0), WV('기록을 지키는 기사', ['knight', 'archer', 'mage'], 0.5, 0.43, 6, 0), WV('학회의 마법사들', ['knight', 'mage', 'mage', 'archer'], 0.53, 0.45, 6, 0), WV('심문관', ['inquis', 'mage', 'archer', 'knight'], 0.55, 0.46, 8, 1)],
+    workshop: [WV('공방 일꾼', ['alchemist', 'crossbow'], 0.5, 0.43, 5, 0), WV('고용된 석궁병', ['crossbow', 'crossbow', 'alchemist'], 0.53, 0.45, 6, 0), WV('깔때기를 든 자들', ['knight', 'alchemist', 'crossbow', 'crossbow'], 0.56, 0.47, 8, 0), WV('덫 사냥꾼', ['tracker', 'alchemist', 'crossbow', 'knight'], 0.58, 0.49, 10, 1)],
+    tower: [WV('탑의 문지기', ['mage', 'mage'], 0.53, 0.45, 6, 0), WV('심문관', ['inquis', 'mage'], 0.56, 0.47, 6, 0), WV('탑의 기사', ['inquis', 'templar', 'mage'], 0.59, 0.49, 8, 0), WV('성기사', ['paladin', 'inquis', 'mage', 'exorcist'], 0.61, 0.51, 10, 0), WV('탑 꼭대기', ['paladin', 'inquis', 'inquis', 'mage'], 0.63, 0.52, 11, 1)],
+  };
+  // 먹은 것의 성향: 사람은 maze.js 의 VICTIM_ASP, 없으면 그곳의 성향. 양은 번식 (살이 오른 먹이)
+  const PREY_ASP = { sheep: 'brood' };
+
+
+  // ───────── 작은 결정적 주사위 ─────────
+  const hash = (...a) => { let h = 0x811c9dc5; a.forEach(x => { h = Math.imul(h ^ (x | 0), 0x01000193); h ^= h >>> 13; }); return h >>> 0; };
+  const rngOf = (...a) => { const S = { s: hash(...a) | 0 }; return () => L.rnd(S); };
+
+  // ───────── 주사위 ─────────
+  // 바퀴 대신 주사위에 오르는 권속: 굴에 세운 권속 가운데 센 것부터 (본체 주사위와 합쳐 dice.max 개까지)
+  function diceKin(M) {
+    const Z = MZ(), I = Z._, D = Z.MK.dice;
+    return I.boardUids(M).filter(uid => M.unit[uid] && !I.signOut(M, uid)).map(uid => M.unit[uid]).sort((a, b) => b.star - a.star || b.lv - a.lv || L.KIN[b.kind].cost - L.KIN[a.kind].cost || a.uid - b.uid).slice(0, Math.max(0, D.max - PART_IDS.length)).map(u => u.uid);
+  }
+  // 횃불 주사위 수: 경계 급이 torchAt 을 넘는 만큼 (그곳의 기억 단계 2·3 이면 1·2 줄어듦), torchMax 까지
+  function torchN(M, place) { const Z = MZ(), D = Z.MK.dice, g = Z.gradeOf(M), mem = Z.memLv(((M.known || {})[place]) || 0); return clamp(g - D.torchAt - Math.max(0, mem - 1), 0, D.torchMax); }
+  // 던질 주사위들: [{ id, t: 'part'|'kin'|'torch', of (부위 또는 uid), faces [6] }]. 깨어난 모습의 부위 주사위는 단계마다 빈 면·곁 면이 제 면으로 바뀐다
+  function diceOf(M, place, kinList) {
+    const Z = MZ(), B = Z.bodyOf(M), fasp = B.form !== 'drop' && Z.FORMS[B.form] ? Z.FORMS[B.form].asp : null, out = [];
+    PART_IDS.forEach((p, i) => { const f = [p, p, p, PART_IDS[(i + 1) % 5], PART_IDS[(i + 2) % 5], 'blank']; if (fasp === PARTS[p].asp) { if (B.step >= 1) f[5] = p; if (B.step >= 2) f[4] = p; } out.push({ id: 'p' + i, t: 'part', of: p, faces: f }); });
+    (kinList || diceKin(M)).forEach(uid => { const u = M.unit[uid]; if (!u) return; const ap = ASP_PART[L.KIN[u.kind].asp]; out.push({ id: 'k' + uid, t: 'kin', of: uid, faces: ['k' + uid, 'k' + uid, 'k' + uid, ap, ap, 'blank'] }); });
+    for (let i = 0; i < torchN(M, place); i++) out.push({ id: 't' + i, t: 'torch', of: 'torch', faces: ['torch', 'torch', 'blank', 'blank', 'blank', 'blank'] });
+    return out;
+  }
+  function faceInfo(M, s) {
+    if (PARTS[s]) return { face: s, t: 'part', id: s, asp: PARTS[s].asp, name: PARTS[s].name };
+    if (s === 'torch') return { face: s, t: 'torch', id: 'torch', name: TORCH.name };
+    if (/^k\d+$/.test(s)) { const uid = +s.slice(1), u = M.unit[uid], kind = u ? u.kind : null; return { face: s, t: 'kin', uid, kind, star: u ? u.star : 1, br: u && u.star >= 2 ? (u.br === 'b' ? 'b' : 'a') : null, asp: kind ? L.KIN[kind].asp : null, name: kind ? L.evoName(kind, u.star, u.br) : '사라진 권속' }; }
+    return { face: 'blank', t: 'blank', name: '빈 면' };
+  }
+  // 같은 면 모음: 성향마다 (부위 면 + 그 성향 권속 면). 횃불 면 하나마다 가장 큰 모음에서 하나가 깨진다. 같은 권속 종류 면 셋 이상은 그 종류의 모음(진화)
+  const lvOf = n => (n >= 5 ? 3 : n >= 4 ? 2 : n >= 3 ? 1 : 0);
+  function setsOf(M, faces) {
+    const cnt = {}, kinds = {}, at = {}; let torch = 0;
+    faces.forEach((s, i) => { const x = faceInfo(M, s); if (x.t === 'torch') { torch++; return; } if (!x.asp) return; cnt[x.asp] = (cnt[x.asp] || 0) + 1; (at[x.asp] = at[x.asp] || []).push(i); if (x.t === 'kin' && x.kind) (kinds[x.kind] = kinds[x.kind] || []).push(i); });
+    const broke = {}; for (let k = 0; k < torch; k++) { let b = null; Object.keys(cnt).forEach(a => { if (cnt[a] > 0 && (b == null || cnt[a] > cnt[b])) b = a; }); if (!b) break; cnt[b]--; broke[b] = (broke[b] || 0) + 1; at[b].pop(); }
+    const sets = []; Object.keys(cnt).forEach(a => { const lv = lvOf(cnt[a]); if (lv) sets.push({ type: 'asp', asp: a, part: ASP_PART[a], n: cnt[a], lv, dice: at[a].slice() }); });
+    Object.keys(kinds).forEach(k => { if (kinds[k].length >= 3) sets.push({ type: 'kind', kind: k, asp: L.KIN[k].asp, n: kinds[k].length, lv: 1, dice: kinds[k].slice() }); });
+    sets.sort((a, b) => b.n - a.n || (a.type === 'asp' ? -1 : 1)); return { sets, torch, broke };
+  }
+  // 나온 면과 모음 → 그 물결의 효과
+  function fxOf(M, faces) {
+    const D = MZ().MK.dice, E = D.each, S = setsOf(M, faces), fx = { atk: 1, hp: 1, invAtk: 1, invHp: 1, invSan: 1, stun: 0, mad: 0, heal: 0, skill: null, syn: {}, evo: {}, join: [], eggs: 0, pts: {}, alert: 0, notes: [], sets: S.sets, torch: S.torch };
+    faces.forEach(s => { const x = faceInfo(M, s);
+      if (x.t === 'part') { if (x.id === 'tooth') fx.atk += E.tooth; if (x.id === 'tent') fx.hp += E.tent; if (x.id === 'eye') fx.invSan *= 1 - E.eye; if (x.id === 'voice') fx.invAtk *= 1 - E.voice; if (x.id === 'sac') fx.heal += E.sac; }
+      if (x.t === 'torch') fx.invAtk += E.torch;
+      if (x.t === 'kin' && x.kind && !fx.join.includes(x.uid)) fx.join.push(x.uid); });
+    let best = null;
+    S.sets.forEach(st => {
+      if (st.type === 'kind') { fx.evo[st.kind] = 1; fx.pts[st.asp] = r1((fx.pts[st.asp] || 0) + D.pts.kind); fx.notes.push(L.KIN[st.kind].name + ' ' + st.n + ' · 이 물결 동안 한 단계 진화'); return; }
+      const p = st.part, lv = st.lv, k = D.lvMul[lv]; if (!best) best = st;
+      fx.pts[st.asp] = r1((fx.pts[st.asp] || 0) + D.pts.set * k); fx.syn[st.asp] = Math.min(2, lv);
+      if (p === 'tooth') fx.atk += D.set.tooth * k; if (p === 'tent') fx.stun = Math.max(fx.stun, D.set.tent * k); if (p === 'eye') fx.invSan *= Math.max(0.2, 1 - D.set.eye * k); if (p === 'voice') fx.mad += lv; if (p === 'sac') { fx.heal += D.set.sac * k; fx.eggs += lv; }
+      fx.notes.push(PARTS[p].name + ' ' + st.n + ' · ' + LV_NAME[lv] + ' · ' + PARTS[p].line);
+    });
+    if (S.torch) fx.notes.push('횃불 ' + S.torch + ' · 지키는 것들 공격 +' + Math.round(E.torch * 100 * S.torch) + '%' + (Object.keys(S.broke).length ? ' · 모음이 깨짐' : ''));
+    fx.skill = best ? PARTS[best.part].skill : null; fx.skillPart = best ? best.part : null; fx.atk = Math.round(fx.atk * 100) / 100; return fx;
+  }
+
+  // ───────── 시작 ─────────
+  function why(M, place) {
+    const Z = MZ(), T = Z.STRIKE[place]; if (!T) return '없는 곳이다';
+    if (!((M.known || {})[place] >= 1)) return '그대는 아직 그곳을 모른다. 그곳 사람을 먹어야 기억이 들어오리라';
+    if (M.shut[place]) return '쓸어버린 곳이다. ' + M.shut[place] + '번째 밤에 다시 열린다';
+    if (M.level < T.lv) return '본체 레벨 ' + T.lv + '부터 칠 수 있다'; return null;
+  }
+  function start(M, place) {
+    const Z = MZ(), e = Z.commandWhy(M, 'strike') || why(M, place); if (e) return fail(e);
+    M.phase = 'dice'; M.cmd = null;
+    M.wr = { place, wave: 0, n: WAVES[place].length, hp: 1, kin: {}, xp: {}, on: diceKin(M), roll: null, cleared: 0, end: null, at: M.strikes, rerolls: 0,
+      g: { gold: 0, food: 0, sheep: 0, other: 0, ate: [], pts: {}, eat: {}, lines: {}, sacEggs: 0, alert: 0, kills: 0, spent: 0 } };
+    return ok({ place, dice: view(M) });
+  }
+  // ───────── 던지기 · 다시 굴리기 ─────────
+  const rollFace = (d, R) => d.faces[Math.floor(R() * 6)];
+  // 이 물결의 주사위를 던진다 (싸우기 전, 한 번)
+  function throwDice(M) {
+    const wr = M.wr; if (!wr || M.phase !== 'dice') return fail('습격 중이 아니다'); if (wr.end) return fail('습격은 이미 끝났다'); if (wr.roll) return fail('이미 던졌다');
+    const kinList = diceKin(M).filter(uid => !(wr.kin[uid] && !wr.kin[uid].alive)), dice = diceOf(M, wr.place, kinList), R = rngOf(M.seed, wr.at, wr.wave, 0x0d1);
+    wr.roll = { dice, faces: dice.map(d => rollFace(d, R)), held: [], again: false, kinList }; return ok(rollView(M));
+  }
+  const rerollCost = M => MZ().MK.dice.reroll;
+  function rerollWhy(M) { const wr = M.wr; if (!wr || !wr.roll) return '던진 주사위가 없다'; if (wr.roll.again) return '이 물결에서는 이미 다시 굴렸다'; if (M.gold < rerollCost(M)) return '진액이 모자라니, 이 의식은 이루어질 수 없으리라'; return null; }
+  // 붙잡은 주사위(held = 번호 배열)를 남기고 나머지를 다시 던진다. 횃불 주사위는 붙잡을 수 없다 (늘 다시 구른다)
+  function reroll(M, held) {
+    const e = rerollWhy(M); if (e) return fail(e); const wr = M.wr, r = wr.roll, c = rerollCost(M), R = rngOf(M.seed, wr.at, wr.wave, 0x0d2), keep = new Set((held || []).filter(i => r.dice[i] && r.dice[i].t !== 'torch'));
+    M.gold -= c; wr.g.spent += c; wr.rerolls++; r.held = [...keep]; r.before = r.faces.slice(); r.faces = r.dice.map((d, i) => (keep.has(i) ? r.faces[i] : rollFace(d, R))); r.again = true; return ok(Object.assign(rollView(M), { cost: c }));
+  }
+  // 저절로: 가장 큰 모음(성향)을 이루는 주사위와 권속 면을 붙잡는다. 그 모음이 다섯에 못 미치고 진액이 auto 이상이면 다시 굴린다
+  function autoHeld(M) {
+    const r = M.wr && M.wr.roll; if (!r) return []; const S = setsOf(M, r.faces), cnt = {}; r.faces.forEach(s => { const x = faceInfo(M, s); if (x.asp) cnt[x.asp] = (cnt[x.asp] || 0) + 1; });
+    let a = null; Object.keys(cnt).forEach(k => { if (a == null || cnt[k] > cnt[a]) a = k; }); void S;
+    return r.faces.map((s, i) => { const x = faceInfo(M, s); return (x.asp && x.asp === a) || x.t === 'kin' ? i : -1; }).filter(i => i >= 0);
+  }
+  function autoWants(M) { const D = MZ().MK.dice, r = M.wr && M.wr.roll; if (!r || r.again || M.gold < Math.max(rerollCost(M), D.autoGold)) return false; const best = setsOf(M, r.faces).sets.filter(s => s.type === 'asp')[0]; return !best || best.n < 5; }
+  function autoRoll(M) { if (!autoWants(M)) return null; const r = reroll(M, autoHeld(M)); return r.ok ? r : null; }
+  function rollView(M) { const r = M.wr.roll, fx = fxOf(M, r.faces); return { dice: r.dice.map((d, i) => ({ i, id: d.id, t: d.t, of: d.of, faces: d.faces.map(f => faceInfo(M, f)), face: faceInfo(M, r.faces[i]), held: r.held.includes(i) })), faces: r.faces.slice(), sets: fx.sets, notes: fx.notes, join: fx.join, again: r.again, cost: rerollCost(M), why: rerollWhy(M) }; }
+
+  // ───────── 물결 하나: 던진 면으로 싸운다 ─────────
+  function fight(M) {
+    const Z = MZ(), I = Z._, MK = Z.MK, D = MK.dice, wr = M.wr; if (!wr || M.phase !== 'dice') return fail('습격 중이 아니다'); if (wr.end) return fail('습격은 이미 끝났다'); if (!wr.roll) return fail('먼저 주사위를 던지라');
+    const def = WAVES[wr.place][wr.wave], roll = wr.roll, kinList = roll.kinList, faces = roll.faces, fx = fxOf(M, faces); wr.roll = null;
+    const S0 = M.mode === 'story' ? MK.story : MK.free, A = MK.alert, g = Z.gradeOf(M), act = Z.actIx(M), B = Z.bodyOf(M), C0 = MK.coreFight, lvk = Math.max(0, M.level - 3);
+    const late = M.mode !== 'story' && M.night > MK.free.late ? Math.pow(1 + MK.free.grow, M.night - MK.free.late) : 1;
+    const scale = { hp: def.hp * S0.hpMul * (1 + A.hp * (g - 1)) * (1 + D.act * act) * fx.invHp * late, atk: def.atk * S0.atkMul * (1 + A.atk * (g - 1)) * (1 + D.act * act) * fx.invAtk * Math.sqrt(late), san: S0.sanMul * fx.invSan };
+    const used = {}, place = (row, cols) => { for (const c of cols.concat([0, 1, 2, 3, 4, 5])) { const x = L.idx(row, c); if (!used[x]) { used[x] = 1; return x; } } return -1; }, COLS = [2, 3, 1, 4, 0, 5];
+    const front = role => role === 'tank' || role === 'melee' || role === 'dive';
+    const inv = def.units.map(kind => ({ kind, cell: place(front(L.INV[kind].role) ? 1 : 0, COLS), st: fx.stun ? [{ n: 'stun', dur: fx.stun, v: 1 }] : [], noLeap: false }));
+    if (fx.mad) inv.filter(x => !L.INV[x.kind].prey && !L.INV[x.kind].noMad).sort((a, b) => (L.INV[a.kind].will || 1) - (L.INV[b.kind].will || 1)).slice(0, fx.mad).forEach(c => { c.mad = true; });
+    const join = fx.join.filter(uid => kinList.includes(uid) && M.unit[uid]), before = { hp: wr.hp, kin: {} };
+    const nest = join.map(uid => { const u = M.unit[uid], up = fx.evo[u.kind] ? 1 : 0, star = clamp(u.star + up, 1, 3), br = u.star >= 2 ? I.brOf(u) : star >= 2 ? Z.brCheck(M, u.kind).br : null, pw = Z.kinPow(u), st = wr.kin[uid]; before.kin[uid] = st ? st.hp / st.mhp : 1;
+      return { uid, kind: u.kind, star, evo: star, br, hp: st ? st.hp : null, pow: pw.atk, hpow: pw.hp, leap: L.KIN[u.kind].cls === 'hunter', cell: place(front(L.KIN[u.kind].role) ? 3 : 4, COLS), up }; });
+    const syn = Object.assign({}, Z.roomSyn(nest.map(n => n.kind))); Object.keys(fx.syn).forEach(a => { if (nest.some(n => L.KIN[n.kind].asp === a)) syn[a] = Math.max(syn[a] || 0, fx.syn[a]); });
+    const hp0 = clamp(wr.hp + fx.heal, 0.05, 1);
+    const S = { seed: hash(M.seed, wr.at, wr.wave, 0x51) | 0, nest, inv, rooms: [], level: M.level, round: 1, form: B.form, syn, scale, hpMul: MK.hpMul, sanMul: MK.sanMul, clock: MK.clock, keep: true,
+      core: { lv: B.lv, hp: B.hp * D.body * (1 + D.lvHp * lvk) * fx.hp, atk: B.atk * D.body * (1 + D.lvAtk * lvk) * fx.atk, manaCut: C0.manaCut, range: C0.range, t2: B.t2, skill: fx.skill || (B.form === 'drop' ? 'slam' : null), hp0 } };
+    const f = L.simulate(S), core = f.final.find(x => x.core), alive = !!(core && core.alive && core.hp > 0);
+    wr.hp = alive ? clamp(core.hp / core.mhp, 0, 1) : 0;
+    f.final.forEach(x => { if (x.home === 'nest' && x.uid != null && !x.core) { wr.kin[x.uid] = { hp: x.hp, mhp: x.mhp, alive: x.alive }; wr.xp[x.uid] = r1((wr.xp[x.uid] || 0) + (x.alive ? MK.kin.fight : 0) + (x.kills || 0) * MK.kin.kill); } });
+    // 먹는다: 쓰러진 지키는 것들 (본체가 살아 있을 때만 끌고 내려간다)
+    const G = wr.g, ate = [], victims = f.final.filter(x => x.home === 'inv' && x.src != null && !x.alive);
+    if (alive) victims.forEach(x => { const kind = inv[x.src] ? inv[x.src].kind : x.kind, cat = I.victimCat(kind), prey = !!L.INV[kind].prey, food = prey ? D.sheepFood : (MK.grow.food[cat] || 1), a = PREY_ASP[kind] || Z.VICTIM_ASP[kind] || Z.STRIKE[wr.place].asp, pts = r1((prey ? MK.grow.pts.t1 : MK.grow.pts[cat] || 1) * D.eatPts);
+      G.food = r1(G.food + food); if (prey) G.sheep++; else G.other = r1(G.other + food); G.pts[a] = r1((G.pts[a] || 0) + pts); G.eat[a] = r1((G.eat[a] || 0) + pts); G.kills++; G.ate.push(kind); ate.push({ kind, food, asp: a, pts });
+      if (!prey) (Z.KNOW[kind] || []).forEach(p => Z.knowAdd(M, p, 1, kind)); });
+    const won = alive && f.result === 'win';
+    let gold = 0; if (won) { gold = Math.round(def.gold * (1 + A.gold * (g - 1))); G.gold += gold; G.alert += def.alert; wr.cleared++; }
+    if (alive) { Object.keys(fx.pts).forEach(a => { G.pts[a] = r1((G.pts[a] || 0) + fx.pts[a]); G.lines[a] = (G.lines[a] || 0) + 1; }); G.sacEggs += fx.eggs; }
+    const step = { wave: wr.wave, name: def.name, units: def.units.slice(), dice: roll.dice.map((d, i) => ({ i, id: d.id, t: d.t, of: d.of, face: faceInfo(M, faces[i]), held: roll.held.includes(i) })), faces: faces.slice(), again: roll.again, sets: fx.sets, notes: fx.notes.slice(), skill: S.core.skill, join, evo: Object.keys(fx.evo), fight: f, before, after: { hp: wr.hp, kin: Object.assign({}, wr.kin) }, won, alive, ate, gold };
+    let end = null;
+    if (!alive) end = 'chased'; else if (!won) end = 'repelled'; else if (wr.wave + 1 >= wr.n) end = 'sweep'; else if (wr.hp < D.retreat) end = 'auto';
+    if (!end) wr.wave++;
+    step.end = end; if (end) { const r = finish(M, end); step.result = r.result; step.next = r.next; }
+    return ok(step);
+  }
+  // 봇·넘기기: 던지고 (저절로 다시 굴리기가 켜져 있으면 그 규칙대로) 싸운다
+  function spin(M, opt) { const t = throwDice(M); if (!t.ok) return t; if (!opt || opt.auto !== false) autoRoll(M); return fight(M); }
+  // 물러난다 (아직 던지지 않았거나 던진 뒤 싸우기 전)
+  function leave(M) { const wr = M.wr; if (!wr || M.phase !== 'dice') return fail('습격 중이 아니다'); if (wr.end) return fail('습격은 이미 끝났다'); wr.roll = null; const r = finish(M, 'retreat'); return ok(r); }
+
+  // ───────── 끝: 얻은 것을 셈한다 ─────────
+  // 알: 양 sheep 마리마다 · 다른 먹이 food 마다 하나, 알주머니 줄마다 하나 (넘긴 물결이 있으면 적어도 하나, max 까지).
+  //   종류는 줄을 가장 많이 맞춘 성향 쪽 (없으면 가장 많이 먹은 성향, 그것도 없으면 그곳의 성향), 급은 넘긴 물결 수까지 (드문 것은 열린 뒤에만). famShare 몫은 이미 가진 그 성향 권속과 같은 종류 (먹여 키울 것)
+  function eggsOf(M, wr) {
+    const Z = MZ(), I = Z._, W = Z.MK.dice, E = W.eggs, G = wr.g;
+    let n = Math.floor(G.sheep / E.sheep) + Math.floor(G.other / E.food) + G.sacEggs; if (wr.cleared >= 1) n = Math.max(1, n); n = Math.min(E.max, n); if (!n) return [];
+    const top = o => { let b = null; Object.keys(o).forEach(a => { if (o[a] > 0 && (b == null || o[a] > o[b])) b = a; }); return b; };
+    const asp = top(G.lines) || top(G.eat) || Z.STRIKE[wr.place].asp, tierCap = clamp(wr.cleared, 1, 4), R = rngOf(M.seed, wr.at, 0xe99);
+    const list = L.KIN_IDS.filter(k => L.KIN[k].asp === asp && L.KIN[k].cost <= tierCap && !(L.KIN[k].gen && I.birthLock(M, k)));
+    const pool = list.length ? list : L.KIN_IDS.filter(k => L.KIN[k].asp === asp && L.KIN[k].cost === 1), out = [], fam = Array.from(new Set(I.owned(M).map(u => u.kind))).filter(k => pool.includes(k));
+    for (let i = 0; i < n; i++) { if (fam.length && R() < W.famShare) { out.push({ kind: fam[Math.floor(R() * fam.length)], hpv: 0, atkv: 0 }); continue; } const tot = pool.reduce((a, k) => a + L.KIN[k].cost, 0); let x = R() * tot, kind = pool[0]; for (const k of pool) { x -= L.KIN[k].cost; if (x < 0) { kind = k; break; } } out.push({ kind, hpv: (Math.floor(R() * 5) - 2) * (Z.MK.birth.vary / 2), atkv: (Math.floor(R() * 5) - 2) * (Z.MK.birth.vary / 2) }); }
+    return out;
+  }
+  function finish(M, end) {
+    const Z = MZ(), I = Z._, MK = Z.MK, W = MK.dice, wr = M.wr, G = wr.g, place = wr.place, chased = end === 'chased', k = chased ? 1 - W.chase : 1;
+    wr.end = end; const g0 = M.gold, a0 = M.alert, lv0 = M.level;
+    const gold = Math.floor(G.gold * k), food = chased ? Math.floor(G.food * k) : Math.round(G.food), eggs0 = eggsOf(M, wr), eggs = eggs0.slice(0, chased ? Math.floor(eggs0.length * k) : eggs0.length), asp = {};
+    M.gold += gold; M.xp += food; M.grow.eaten += food;
+    Object.keys(G.pts).forEach(a => { const v = r1(G.pts[a] * k); if (!v) return; const e = Math.min(v, r1((G.eat[a] || 0) * k)); if (e) I.addAsp(M, a, e, 'eat'); if (v - e > 0) I.addAsp(M, a, r1(v - e), 'night'); asp[a] = v; });
+    M.alert = clamp(M.alert + G.alert, 0, MK.alert.max);
+    eggs.forEach(e => I.bankEgg(M, e.kind, { hpv: e.hpv, atkv: e.atkv, from: place }));
+    // 권속: 쓰러지지 않고 돌아온 것만 경험을 얻는다
+    const grew = [], downed = [];
+    // 바퀴에 오른 권속은 모두 땅 위에 따라 올라간 셈: 덤 경험 kinXp + 넘긴 물결마다 kinWave (싸움에 나왔으면 그 싸움의 경험도)
+    wr.on.forEach(uid => { if (M.unit[uid]) wr.xp[uid] = r1((wr.xp[uid] || 0)); });
+    Object.keys(wr.xp).forEach(id => { const uid = +id, u = M.unit[uid]; if (!u) return; const st = wr.kin[uid]; if (st && !st.alive) { downed.push({ uid, kind: u.kind }); return; }
+      const bonus = W.kinXp + W.kinWave * wr.cleared, lv1 = u.lv, s0 = u.star, r = Z.kinGain(M, uid, wr.xp[uid] + bonus); grew.push({ uid, kind: u.kind, xp: r1(wr.xp[uid] + bonus), lv0: lv1, lv: u.lv, star0: s0, star: u.star, up: r.up, starUp: r.starUp, br: I.brOf(u), why: r.why || null, name0: L.evoName(u.kind, s0, I.brOf(u)), name: L.evoName(u.kind, u.star, I.brOf(u)) }); });
+    M.strikes++; M.struck[place] = (M.struck[place] || 0) + 1; M.sure = M.night; M.avenge = place;
+    if (wr.cleared >= 2) Z.knowAdd(M, place, 1, 'raid');
+    if (end === 'sweep') { M.shut[place] = M.night + MK.strike.shut; M.flags['razed_' + place] = true; }
+    if (wr.cleared >= 2 && place === 'workshop') M.flags.forge = true; if (wr.cleared >= 2 && place === 'tower') M.flags.towerDown = true;
+    if (chased) M.wound = M.night;
+    const up = I.levelUp(M);
+    const result = { place, end, cleared: wr.cleared, waves: wr.n, gold, food, eggs: eggs.map(e => e.kind), eggsLost: eggs0.length - eggs.length, goldLost: G.gold - gold, foodLost: r1(G.food - food), asp, alert: M.alert - a0, up, level: M.level, level0: lv0, grew, downed, ate: G.ate.slice(), kills: G.kills, wound: chased, power: end === 'sweep' ? 'raze' : wr.cleared >= 2 ? 'strong' : 'weak' };
+    M.wrLast = Object.assign({ night: M.night }, result); M.wr = null; M.phase = 'night';
+    const next = I.proceed(M, 'strike', { place, waves: wr.cleared, end }, { gold, food, alert: result.alert, eggs: result.eggs.length, up });
+    return { result, next };
+  }
+
+  // ───────── 화면이 읽는 것 ─────────
+  function preview(M, place) {
+    const Z = MZ(), A = Z.MK.alert, g = Z.gradeOf(M), dice = diceOf(M, place);
+    return { place, why: why(M, place), waves: WAVES[place].map((w, i) => ({ i, name: w.name, units: w.units.slice(), names: w.units.map(k => L.INV[k].name), gold: Math.round(w.gold * (1 + A.gold * (g - 1))), alert: w.alert })),
+      torch: torchN(M, place), kin: diceKin(M).length, dice: dice.map(d => ({ id: d.id, t: d.t, of: d.of, faces: d.faces.slice() })) };
+  }
+  function view(M) {
+    const wr = M.wr; if (!wr) return null; const Z = MZ(), G = wr.g, D = Z.MK.dice, kinList = diceKin(M);
+    return { place: wr.place, wave: wr.wave, n: wr.n, hp: wr.hp, cleared: wr.cleared, end: wr.end, retreat: D.retreat, waves: preview(M, wr.place).waves, next: WAVES[wr.place][wr.wave] ? { name: WAVES[wr.place][wr.wave].name, units: WAVES[wr.place][wr.wave].units.slice() } : null,
+      kin: kinList.map(uid => { const u = M.unit[uid], st = wr.kin[uid]; return { uid, kind: u.kind, star: u.star, br: u.star >= 2 ? (u.br === 'b' ? 'b' : 'a') : null, hp: st ? st.hp / Math.max(1, st.mhp) : 1, alive: !st || st.alive }; }),
+      gains: { gold: G.gold, food: r1(G.food), sheep: G.sheep, kills: G.kills, ate: G.ate.slice(), eggs: eggsOf(M, wr).map(e => e.kind), pts: Object.assign({}, G.pts), alert: G.alert, spent: G.spent },
+      roll: wr.roll ? rollView(M) : null, cost: rerollCost(M), torch: torchN(M, wr.place) };
+  }
+  function runAll(M, opt) { const steps = []; for (let i = 0; i < 12 && M.phase === 'dice' && M.wr; i++) { const r = M.wr.roll ? fight(M) : spin(M, opt); if (!r.ok) break; steps.push(r); if (r.end) break; } return steps; }
+  return { PARTS, PART_IDS, TORCH, LV_NAME, WAVES, PREY_ASP, diceOf, diceKin, torchN, faceInfo, setsOf, fxOf, lvOf, why, start, throwDice, reroll, rerollWhy, rerollCost, autoHeld, autoWants, autoRoll, fight, spin, leave, finish, eggsOf, preview, view, rollView, runAll, hash };
+})();
+if (typeof module !== 'undefined') module.exports = MAZEDICE;
 </script>
 <script>(function () {
 'use strict';
@@ -4129,6 +4437,8 @@ function zrBreath(len, fc, seed) { return rate => { const n = Math.floor(rate * 
 const ZZ = {
   // 누름: 짧고 젖은 똑
   click: [zp(0, 1.6, { v: 0.35, f: 900, s: 0.004, r: 0.035, sh: 1, sl: -12, flt: -3000 })],
+  // 주사위: 뼈 조각 몇 개가 바닥에 구르다 멎는다 (잡음만)
+  dice: [zp(0, 1, { v: 0.4, f: 700, s: 0.004, r: 0.03, sh: 4, flt: 900 }), zp(0.07, 0.8, { v: 0.35, f: 600, s: 0.004, r: 0.03, sh: 4, flt: 1100 }), zp(0.15, 0.7, { v: 0.3, f: 500, s: 0.003, r: 0.04, sh: 4, flt: 800 }), zp(0.26, 0.6, { v: 0.25, f: 450, s: 0.003, r: 0.05, sh: 4, flt: 700 })],
   // 진액: 물방울 하나가 떨어져 튄다
   coin: [zp(0, 1.2, { v: 0.55, f: 420, a: 0.002, s: 0.02, r: 0.1, sl: 30 }), zp(0.07, 0.6, { v: 0.4, f: 780, a: 0.002, s: 0.01, r: 0.08, sl: 20 })],
   // 놓기: 살덩이가 바닥에 붙는다
@@ -4726,6 +5036,14 @@ const LAIRART = (() => {
     R.part('head', { px: 31, py: 29, z: 5, role: 'head', parent: 'body', strike: 0.3 }, D => { D.L([[30, 29.6], [33, 27.6]], 3, 2.6, p); D.B(35, 27.6, 3.6, 3.2, p); D.G([[36.6, 27], [42.6, 28], [42, 30.4], [36.6, 30.6]], p); D.G([[32.6, 25.4], [33, 20.6], [35.6, 24.6]], dk); D.px(35.6, 26.8, '#ffb030'); D.px(42.4, 28.2, INK); D.fangs(38.6, 41, 30.4, 1, 1.4, 1.6); D.rect(30.6, 28, 1.6, 4.6, P.red[1]); D.px(31.2, 32.6, P.gold[1]); });
     R.part('jawp', { px: 36.6, py: 30.4, z: 3, parent: 'head', jaw: 0.5 }, D => { D.G([[36.4, 30.4], [41.4, 31.4], [40.6, 33], [36.6, 32.6]], dk); D.L([[38, 31.6], [40.4, 32]], 0.5, 0.5, ['#0000', '#d8506a', '#d8506a', '#d8506a'], null); });
     R.part('rope', { px: 31, py: 32, z: 3, role: 'sway', amp: 1.2, ph: 1, parent: 'body' }, D => D.L([[31, 32.6], [29, 37], [30, 40.6]], 0.6, 0.5, P.tan));
+  } };
+  // 양: 굴 짓기의 바퀴 습격에서 먹이로만 나온다 (싸우지 못한다). 지저분한 털 뭉치, 검은 얼굴, 가는 다리
+  DEF.sheep = { side: 'inv', build(R) {
+    const w = ['#2a2420', '#bdb4a2', '#e6dfcf', '#8a806e', '#fffaf0'], f = ['#0c0a0a', '#2a2626', '#4a4442', '#181414', '#e8e0d0'], dw = dkp(w);
+    R.die = 'fall'; R.shw = 12; R.eyes = [['head', 34.6, 30.2]];
+    for (const [k, x, ph, pal] of [[0, 17, Math.PI, f], [1, 28, 0.4, f], [2, 19.4, 0, f], [3, 30.4, Math.PI + 0.4, f]]) R.part('leg' + k, { px: x, py: 38, z: k < 2 ? 1 : 4, role: 'leg', ph, amp: 0.8 }, D => { D.L([[x, 37], [x, 44.4]], 1.1, 1, pal); D.rect(x - 0.4, 44, 1.8, 1, pal[1]); });
+    R.part('body', { px: 23, py: 38, z: 2, role: 'body' }, D => { D.B(23.4, 34.4, 9.6, 5.6, w); for (const [x, y, r] of [[16.6, 33, 2.6], [20, 30.2, 2.8], [24.4, 29.6, 3], [28.6, 30.4, 2.6], [31.4, 33.4, 2.4], [18.4, 37.6, 2.4], [26, 38.6, 2.6]]) D.B(x, y, r, r * 0.9, w); for (const [x, y] of [[19, 33], [23, 32], [27, 34], [22, 37]]) D.px(x, y, dw[2]); D.px(24.4, 28.6, w[4]); D.px(20, 29.2, w[4]); });
+    R.part('head', { px: 33, py: 31, z: 5, role: 'head', parent: 'body', strike: 0.15 }, D => { D.B(35, 31.4, 3.4, 3, f); D.G([[36.4, 30], [40.4, 31], [40, 33.6], [36.4, 34]], f); D.G([[32.6, 29], [31, 27.6], [33.4, 28.4]], f); D.B(33.6, 28.4, 2.2, 1.6, w); D.px(34.6, 30.2, '#d8c870'); D.px(39.6, 31.6, '#000'); });
   } };
   // 책을 쫓는 자: 긴 외투, 등불, 손에 붙은 책. 별 단계 = 미쳐 가는 정도
   DEF.seeker = { side: 'inv', size: () => 64, build(R, st) {
@@ -9171,10 +9489,10 @@ const MAZESTORY = (() => {
   const nights = {
     total: 36,
     acts: [
-      { id: 'c0', title: '낙하', from: 1, opens: ['birth'] },
+      { id: 'c0', title: '낙하', from: 1, opens: ['birth', 'strike'] },
       { id: 'c1', title: '떨어진 밤', from: 3, opens: ['build', 'rest'] },
       { id: 'c2', title: '기록관의 편지', from: 8, opens: ['raise', 'whisper'] },
-      { id: 'c3', title: '연금술사의 값', from: 13, opens: ['strike'] },
+      { id: 'c3', title: '연금술사의 값', from: 13, opens: [] },
       { id: 'c4', title: '사냥꾼', from: 18, opens: [] },
       { id: 'c5', title: '봉인하러 온 자들', from: 24, opens: [] },
       { id: 'c6', title: '예언', from: 31, opens: [] }
@@ -9835,7 +10153,7 @@ const MAZESTORY = (() => {
       { id: 'rest', name: '쉰다', from: 'c1', desc: '굴은 깊은 잠에 든다. 알과 본체가 조금 아물고 진액이 고이며, 마을의 경계도 조금 누그러진다.', first: '발소리가 들리는 밤에 쉬면, 아문 몸으로 침입을 맞게 되리라.' },
       { id: 'raise', name: '기른다', from: 'c2', desc: '일과 하나를 골라 본체의 성향을 기른다.', first: '한 성향이 정해진 값을 넘는 날, 본체는 그 모습으로 깨어나리라. 그 모습은 그대가 고를 수 없다.' },
       { id: 'whisper', name: '속삭인다', from: 'c2', desc: '잠든 사람 하나의 꿈속으로 스며들어 말을 건다.', first: '같은 이에게 거듭 속삭이면 그의 생각이 서서히 비틀리고, 이야기의 결말 또한 달라지리라.' },
-      { id: 'strike', name: '땅 위를 친다', from: 'c3', desc: '권속을 땅 위로 보내 마을의 한 곳을 습격한다. 진액과 먹이를 얻고 굴에 세운 권속이 자라나, 마을의 경계는 높아진다.', first: '습격한 다음 밤, 마을 사람들은 반드시 복수하러 내려오리라. 쓸어버리면 얻는 것은 줄고 경계는 크게 오른다.' }
+      { id: 'strike', name: '땅 위를 친다', from: 'c0', desc: '본체가 몸소 땅 위로 올라가 아는 곳 하나를 습격한다. 물결마다 주사위를 던지고, 같은 면이 모이면 그 공격이 세진다. 먹은 것에서 알이 배고 성향이 오른다.', first: '첫 밤에는 언덕 아래 양치기의 우리부터 치라. 습격한 다음 밤, 마을 사람들은 반드시 복수하러 내려오리라.' }
     ]
   };
 
@@ -12675,7 +12993,7 @@ function mzLedgerHtml(L, more) {
 //   mzSurfDraw(v, s)        창이 들어간 뒤 지도와 장소 그림을 캔버스에 그린다
 //   mzSurfLights(x, W, H, v) 둥지 방 그림 위쪽에 굴 입구 너머 마을 불빛 (불빛 수 = 경계 급)
 //   mzMemScenes(m)          기억 하나(maze.js memQ 의 한 칸) → 장면 읽기 화면에 넘길 장면 배열
-//   mzRaidCtx(M, place, power) 공격 장면(MZVIGN.raidUp)에 넘길 것
+//   mzRaidCtx(M, place, power) 공격 장면(MZVIGN.raidUp)에 넘길 것 (주사위 습격의 올라가는 장면은 mazediceui.js 의 mzwRaidCtx)
 // 장소는 지도 위 자리(MZSURF_AT, 320×180 그림 칸 기준)와 받은 배경 그림 열쇠(MZSURF_PIC)를 갖는다.
 const MZSURF_W = 320, MZSURF_H = 180;
 const MZSURF_AT = { hut: [58, 128], village: [150, 132], chapel: [206, 112], archive: [118, 110], workshop: [182, 150], tower: [276, 58] };
@@ -12735,18 +13053,19 @@ function mzSurfHtml(v, s, view) {
   let h = `<h3>땅 위</h3><p class="mz-sub">${view ? '굴 위 물레골의 밤이다. 그대가 아는 것은 먹은 자들이 남긴 기억뿐이니, 모르는 곳은 안개에 가려 있다.' : '마을의 한 곳을 골라 습격하라. 그대가 아는 곳만 칠 수 있다.'} 아는 곳 ${known}/6 · 습격 ${v.strikes.n}번 · 경계 ${v.alert.n}</p>`;
   h += `<div class="mzsf-map"><canvas id="mzsf-cv" class="px" width="${MZSURF_W}" height="${MZSURF_H}" role="img" aria-label="위에서 내려다본 물레골의 밤"></canvas>${mzSurfPins(v, s)}</div>`;
   const p = s.place ? v.strikes.list.find(q => q.id === s.place) : null;
-  if (!p) return h + `<p class="mz-note">지도의 곳을 누르면 그곳에 대해 아는 것이 보인다.${view ? '' : ' 치는 세기는 그다음에 고른다.'}</p>`;
+  if (!p) return h + `<p class="mz-note">지도의 곳을 누르면 그곳에 대해 아는 것이 보인다.${view ? '' : ' 칠 곳을 고르면 그곳의 물결이 보인다.'}</p>`;
   const Mm = mzSurfMem(p.id), T = (MZST && MZST.strikes.find(q => q.id === p.id)) || { name: p.id, desc: '' };
   if (!p.open) return h + `<div class="mzsf-panel fog"><b>안개에 가린 곳</b><p>그대는 아직 이곳을 모른다. 이곳 사람을 먹거나 이곳에 사는 이에게 속삭이면 기억이 들어오리라.</p></div>`;
   const lines = Mm ? Mm.know.slice(0, Math.max(1, p.memLv)) : [T.desc];
   h += `<div class="mzsf-panel"><canvas id="mzsf-pic" class="px" width="240" height="120" aria-hidden="true"></canvas><div><b>${esc(T.name)}</b>`
-    + `<p class="mzsf-mem">기억 ${p.mem}${p.memNext ? ' · 기억 ' + p.memNext + '에 이르면 더 알게 된다' : ' · 약한 데를 안다: 칠 때 진액 +2, 경계 −1'}</p>`
+    + `<p class="mzsf-mem">기억 ${p.mem}${p.memNext ? ' · 기억 ' + p.memNext + '에 이르면 더 알게 된다' : ' · 약한 데를 안다: 마을의 횃불 주사위가 둘 준다'}</p>`
     + lines.map(t => `<p class="mzsf-know">${esc(t)}</p>`).join('')
     + (p.who && p.who.length ? `<p class="mzsf-who">지금 그곳에 있는 이: ${esc(p.who.join(', '))}</p>` : '')
     + (p.struck ? `<p class="mzsf-who">습격 ${p.struck}번${p.shut ? ' · ' + p.shut + '번째 밤까지 닫힘' : ''}</p>` : '') + '</div></div>';
+  h += mzSurfWaves(p);
   if (view) return h + `<p class="mz-note">치려면 둥지 방에서 「땅 위를 친다」 명령을 고르라.</p>`;
-  h += `<div class="mz-pows">${p.powers.map(q => `<button data-m="spow" data-p="${q.id}" class="${q.can ? '' : 'off'}${pd && pd.act === 'strike' && pd.power === q.id ? ' pick' : ''}" aria-disabled="${!q.can}"><b>${MZPOW[q.id]}</b><small>${esc(mzGainText(q, v))}</small>${q.can ? '' : `<small class="mz-why">${esc(q.why || '')}</small>`}</button>`).join('')}</div>`;
-  if (pd && pd.act === 'strike') { const q = p.powers.find(x => x.id === pd.power); if (q) h += mzConfirmHtml(`<b>${esc(T.name)} · ${MZPOW[q.id]}</b><p>${esc(mzGainText(q, v))} (${esc(names[q.asp] || q.asp)})</p><p>습격한 다음 밤에는 반드시 복수하러 오리라.${q.id === 'raze' ? ' 쓸어버린 곳은 여덟 밤 동안 다시 칠 수 없다.' : ''}</p>${q.can ? '' : `<p class="mz-why">${esc(q.why || '')}</p>`}`, '친다', !q.can); }
+  h += `<div class="mz-pows one"><button data-m="sgo" class="${p.can ? '' : 'off'}${pd && pd.act === 'strike' ? ' pick' : ''}" aria-disabled="${!p.can}"><b>습격한다</b><small>주사위를 던지며 물결을 하나씩 넘는다</small>${p.can ? '' : `<small class="mz-why">${esc(p.why || '')}</small>`}</button></div>`;
+  if (pd && pd.act === 'strike' && pd.place === p.id) h += mzConfirmHtml(`<b>${esc(T.name)} · 습격</b><p>물결마다 주사위를 던진다. 같은 면이 셋 넘게 모이면 그 공격이 세진다. 이기면 다음 물결, 본체 체력이 ${Math.round(MAZE.MK.dice.retreat * 100)}% 아래면 저절로 물러난다. 본체가 쓰러지면 쫓겨 와 얻은 것의 절반을 잃는다.</p><p>습격한 다음 밤에는 반드시 복수하러 오리라.</p>${p.can ? '' : `<p class="mz-why">${esc(p.why || '')}</p>`}`, '친다', !p.can);
   return h;
 }
 function mzSurfDraw(v, s) {
@@ -12757,6 +13076,12 @@ function mzSurfDraw(v, s) {
     else if (!im && typeof LAIRART !== 'undefined' && LAIRART.storyArt) { try { x.drawImage(LAIRART.storyArt(key, pc.width, pc.height, 0), 0, 0); } catch (e) { /* 그림 없이 */ } } }
 }
 
+// 그곳의 물결 (주사위 습격, src/mazedice.js): 물결마다 지키는 것들과 넘기면 얻는 진액. 횃불 주사위 수
+function mzSurfWaves(p) {
+  const P = p.dice; if (!P) return ''; const kin = P.kin, torch = P.torch;
+  return `<div class="mzsf-waves"><p class="mzsf-wt">물결 ${P.waves.length} · 주사위 ${5 + kin}개(본체 부위 5${kin ? ' · 권속 ' + kin : ''})${torch ? ' · 횃불 주사위 ' + torch + '개가 섞인다' : ''}</p><ol>${P.waves.map(w => `<li><b>${esc(w.name)}</b><span>${esc(mzSurfUnits(w.names))}</span><small>진액 +${w.gold}${w.alert ? ' · 경계 +' + w.alert : ''}</small></li>`).join('')}</ol></div>`;
+}
+const mzSurfUnits = names => { const by = {}; names.forEach(n => { by[n] = (by[n] || 0) + 1; }); return Object.keys(by).map(n => n + (by[n] > 1 ? ' ' + by[n] : '')).join(' · '); };
 // ---- 둥지 방: 굴 입구 너머 마을 불빛 ----
 function mzSurfLights(x, W, H, v) {
   const T = (v && v.surface && v.surface.tier) || 1, cx = Math.round(W * 0.78), cy = Math.round(H * 0.1), w = Math.max(18, Math.round(W * 0.16));
@@ -12781,6 +13106,212 @@ function mzRaidCtx(M, place, power) {
   const folk = mzSurfFolk(place), victims = []; for (let i = 0; i < (power === 'weak' ? 1 : power === 'strong' ? 3 : 5); i++) victims.push(folk[i % folk.length]);
   return { place, power, kin, victims, night: M.night };
 }
+// 굴 짓기 — 주사위 습격 화면 (2026-11-26, scratchpad/wheel_spec.md 5절 + 조정: 바퀴 대신 주사위). 규칙은 src/mazedice.js (MAZE.diceThrow · diceReroll · diceFight · diceLeave).
+//   위: 그곳 그림(MZPICS.bg) 위에 본체·올라온 권속 vs 지키는 것들. 아래: 주사위 판(본체 부위 다섯 + 굴에 세운 권속 + 횃불), 같은 면 모음이 빛난다. 물결 번호, 얻은 것, 본체 체력.
+//   흐름(물결마다): 던진다(주사위가 굴러 멎음, 움직임을 끄면 곧바로) → 잠깐 고른다(주사위를 눌러 붙잡고 「다시 굴린다」 한 번, 진액) → 싸움(lairReplay 그대로) → 다음 물결.
+//   아무것도 누르지 않아도 끝까지 간다: 고르는 시간이 다 되면 설정 「주사위 저절로 다시 굴림」대로(가장 큰 모음을 붙잡고 진액이 넉넉하면 한 번) 굴리고 싸운다. 본체 체력이 30% 아래면 저절로 물러난다.
+//   끝나면 처형 장면·쓸어버린 장면 고리 → 결과 창(mzSheet 'wres').
+// 면 그림: 권속 면은 LAIRART.icon(mzIcon), 본체 부위·빈 면·횃불은 여기서 그리는 16칸 도트(mzwSymUrl).
+const MZW = { on: false, roll: null, step: null, steps: [], phase: 'idle', timer: 0, wait: 0, skip: false, res: null, paused: false, held: new Set(), anim: 0 };
+const MZWPLACE = { hut: 'sky', village: 'hall', chapel: 'chapel', archive: 'inn', workshop: 'workshop', tower: 'tower' };
+const MZWPICK = 2200, MZWFPS = 12, MZWTUMBLE = 560, MZWGAP = 70;
+
+// ---- 면 그림 (16칸) ----
+const MZWSYM = {};
+function mzwSymDraw(x, s) {
+  const R = (c, X, Y, w, h) => { x.fillStyle = c; x.fillRect(X, Y, w || 1, h || 1); };
+  if (s === 'tooth') { R('#3a0a10', 2, 3, 12, 4); R('#7a1a24', 2, 3, 12, 2); for (let i = 0; i < 4; i++) { R('#f2ead8', 3 + i * 3, 6, 2, 5 - (i % 2) * 2); R('#fffaf0', 3 + i * 3, 6, 1, 2); } R('#3a0a10', 2, 12, 12, 2); for (let i = 0; i < 3; i++) R('#e8dcc0', 4 + i * 3, 10 + (i % 2), 2, 2); }
+  else if (s === 'tent') { const c = ['#1a3a4a', '#2a6a80', '#4ab0d8', '#9ae0f0']; [[3, 13], [4, 12], [5, 11], [6, 10], [6, 9], [7, 8], [8, 7], [9, 7], [10, 6], [11, 5], [11, 4], [10, 3], [9, 3], [8, 4]].forEach(([X, Y], i) => { R(c[1], X, Y, 2, 2); R(c[2], X, Y, 1, 1); if (i % 3 === 0) R(c[3], X + 1, Y + 1, 1, 1); }); R(c[0], 2, 14, 4, 1); }
+  else if (s === 'eye') { R('#2a1e3a', 2, 5, 12, 6); R('#e8e0f0', 3, 6, 10, 4); R('#e8e0f0', 4, 5, 8, 6); R('#a88af0', 6, 5, 4, 6); R('#6040b0', 7, 6, 2, 4); R('#05030a', 7, 7, 2, 2); R('#ffffff', 9, 6, 1, 1); R('#2a1e3a', 4, 4, 8, 1); R('#2a1e3a', 4, 11, 8, 1); }
+  else if (s === 'voice') { R('#4a1e14', 4, 5, 8, 7); R('#2a0a08', 5, 6, 6, 5); R('#c84a3a', 6, 9, 4, 2); R('#f2ead8', 5, 6, 1, 1); R('#f2ead8', 10, 6, 1, 1); for (let i = 0; i < 3; i++) { R('#e0905a', 1, 4 + i * 3, 2, 1); R('#e0905a', 13, 4 + i * 3, 2, 1); } R('#ffc890', 0, 7, 1, 1); R('#ffc890', 15, 7, 1, 1); }
+  else if (s === 'sac') { [[4, 9, 4], [9, 8, 4], [6, 4, 4], [11, 3, 3]].forEach(([X, Y, d]) => { R('#3a5a18', X - 1, Y - 1, d + 2, d + 2); R('#8ad050', X, Y, d, d); R('#c8f090', X, Y, 1, 1); R('#2a3a10', X + 1, Y + 1, 1, 1); }); R('#5a3a20', 3, 14, 10, 1); }
+  else if (s === 'torch') { R('#5a3a20', 7, 7, 2, 8); R('#3a2414', 7, 13, 2, 2); R('#ff8a30', 6, 3, 4, 4); R('#ffcf6a', 7, 2, 2, 4); R('#fff3c0', 7, 4, 1, 2); R('#c84a20', 5, 5, 1, 2); R('#c84a20', 10, 5, 1, 2); }
+  else { R('#1c1622', 6, 6, 4, 4); R('#0a080e', 7, 7, 2, 2); }
+}
+function mzwSymUrl(s, px) {
+  const k = s + ':' + px; if (MZWSYM[k]) return MZWSYM[k];
+  try { const a = document.createElement('canvas'); a.width = 16; a.height = 16; mzwSymDraw(a.getContext('2d'), s); const c = document.createElement('canvas'); c.width = px; c.height = px; const x = c.getContext('2d'); x.imageSmoothingEnabled = false; x.drawImage(a, 0, 0, px, px); MZWSYM[k] = c.toDataURL(); } catch (e) { MZWSYM[k] = ''; }
+  return MZWSYM[k];
+}
+function mzwFaceImg(info, px) { if (info.t === 'kin' && info.kind) return mzIcon(info.kind, info.star || 1, px, info.br); return mzwSymUrl(info.t === 'blank' ? 'blank' : info.id, px); }
+const mzwFaceName = info => (info.t === 'kin' ? info.name : info.name || '빈 면');
+// 권속 주사위가 제 면이 아닌 면을 냈을 때 누구의 주사위인지 귀퉁이에 작게
+const mzwOwn = d => { if (d.t !== 'kin' || d.face.t === 'kin') return ''; const u = MZ.M.unit[d.of]; return u ? `<i class="mzw-own"><img src="${mzIcon(u.kind, u.star, 16, u.br)}" alt=""></i>` : ''; };
+const mzwDieName = d => (d.t === 'part' ? MAZEDICE.PARTS[d.of].name + ' 주사위' : d.t === 'torch' ? '횃불 주사위' : ((MZ.M.unit[d.of] && LAIR.KIN[MZ.M.unit[d.of].kind].name) || '권속') + ' 주사위');
+
+// ---- 열기 ----
+// 규칙에서 습격이 열린 뒤(phase 'dice') 부른다. 새로 고쳐도 mzGo 가 다시 연다
+function mzDiceOpen(fromStart) {
+  const M = MZ.M; if (!M || !M.wr) return; MZ.scr = 'dice'; MZ.sel = null; if (MZ.sheet) mzSheetClose();
+  let el = $('mzw'); if (!el) { el = document.createElement('div'); el.id = 'mzw'; $('mz').appendChild(el); }
+  el.hidden = false; Object.assign(MZW, { on: true, evoSeen: false, hp: null, roll: null, step: null, steps: [], phase: 'idle', skip: false, res: null, paused: false, held: new Set() }); mzMusic('night');
+  const v = mzView(); if (v.dice && v.dice.roll) { MZW.roll = v.dice.roll; MZW.phase = 'pick'; }
+  mzwRender(); MZ.dbg.dice = (MZ.dbg.dice || 0) + 1;
+  const go = () => { if (!MZW.on) return; if (MZW.phase === 'pick') mzwPickWait(MZWPICK); else mzwSchedule(fromStart ? 500 : 300, mzwThrow); };
+  const t = mzTestOpt(), sceneOn = fromStart && META.mzFeast !== false && !(t && t.feast === false) && typeof MZVIGN !== 'undefined' && typeof MZVIGN.raidUp === 'function';
+  if (sceneOn) { let done = false; MZ.dbg.raidUp = (MZ.dbg.raidUp || 0) + 1; try { MZVIGN.raidUp(mzwRaidCtx(M, 'weak'), () => { if (!done) { done = true; go(); } }); return; } catch (e) { if (!done) { done = true; go(); } return; } }
+  go();
+}
+function mzwRaidCtx(M, power) { const W = M.wr || {}, place = W.place || (M.wrLast && M.wrLast.place) || 'hut', v = MZ.v || mzView(), dv = v.dice, kin = (dv ? dv.kin : []).slice(0, 2).map(u => ({ kind: u.kind, star: u.star, br: u.br || null })), folk = typeof mzSurfFolk === 'function' ? mzSurfFolk(place) : ['militia'], victims = []; for (let i = 0; i < (power === 'raze' ? 5 : 1); i++) victims.push(folk[i % folk.length]); return { place, power, kin, victims, night: M.night }; }
+function mzwClose() { MZW.on = false; clearTimeout(MZW.timer); const el = $('mzw'); if (el) { el.hidden = true; el.innerHTML = ''; } mzUnder(false); }
+function mzwSchedule(ms, fn) { clearTimeout(MZW.timer); MZW.wait = performance.now() + ms; MZW.timer = setTimeout(() => { if (!MZW.on || MZW.paused) return; fn(); }, ms); }
+const mzwAutoOn = () => META.mzDiceAuto !== false;
+
+// ---- 그리기 ----
+function mzwRender() {
+  const el = $('mzw'), M = MZ.M; if (!el || !M) return; const v = mzView(), W = v.dice, st = MZW.step, R = MZW.res, rl = MZW.roll;
+  const place = W ? W.place : R ? R.place : 'hut', name = mzPlaceName(place), n = W ? W.n : R ? R.waves : 0, wave = W ? W.wave : R ? R.cleared : 0;
+  const hp = W ? (MZW.hp = W.hp) : R && R.end === 'chased' ? 0 : MZW.hp != null ? MZW.hp : st ? st.after.hp : 0, g = W ? W.gains : null, cur = W && W.next ? W.next.name : st ? st.name : '', spd = mzSpeed();
+  const show = rl || (st ? { dice: st.dice, sets: st.sets, notes: st.notes, again: st.again } : null), lit = {};
+  if (show && MZW.phase !== 'throw') show.sets.forEach(s => s.dice.forEach(i => { lit[i] = s.type === 'kind' ? 'kind' : s.part; }));
+  const pick = MZW.phase === 'pick', canRe = pick && rl && !rl.again && !rl.why;
+  const dice = show ? show.dice.map(d => { const held = pick ? MZW.held.has(d.i) : d.held, cls = 'mzw-d t-' + d.t + (lit[d.i] ? ' hit p-' + lit[d.i] : '') + (held ? ' held' : '') + (d.face.t === 'blank' ? ' blank' : '');
+    return `<button class="${cls}" data-m="whold" data-i="${d.i}" aria-label="${esc(mzwDieName(d) + ': ' + mzwFaceName(d.face))}${held ? ', 붙잡음' : ''}" aria-pressed="${held}"><img src="${mzwFaceImg(d.face, 36)}" alt=""><small>${esc(mzwFaceName(d.face))}</small>${mzwOwn(d)}</button>`; }).join('') : '';
+  const notes = show && MZW.phase !== 'throw' ? (show.notes.length ? show.notes : ['같은 면이 셋 모이지 않았다. 나온 면만큼만 힘이 붙는다']) : [];
+  const gl = g ? `진액 +${g.gold} · 먹이 +${mzNum1(g.food)} · 알 ${g.eggs.length}${g.kills ? ' · 먹은 것 ' + g.kills : ''}` : R ? `진액 +${R.gold} · 먹이 +${mzNum1(R.food)} · 알 ${R.eggs.length}` : '';
+  const tip = pick ? (rl && rl.again ? '다시 굴렸다. 곧 싸운다' : canRe ? '남길 주사위를 눌러 붙잡고 「다시 굴린다」' : rl && rl.why ? rl.why : '') : MZW.phase === 'fight' ? '싸우는 중' : MZW.phase === 'throw' ? '주사위가 구른다' : '';
+  el.innerHTML = `<div class="mzw-top"><canvas id="mzw-cv" class="px" width="240" height="112" role="img" aria-label="${esc(name)}의 밤. 본체와 권속이 지키는 것들과 맞선다"></canvas>`
+    + `<div class="mzw-hud"><b>${esc(name)}</b><span>물결 ${Math.min(n, wave + 1)}/${n}${cur ? ' · ' + esc(cur) : ''}</span></div>`
+    + `<div class="mzw-hp" aria-label="본체 체력 ${Math.round(hp * 100)}%"><span>본체</span><i><u style="width:${Math.round(hp * 100)}%" class="${hp < (W ? W.retreat : 0.3) ? 'low' : ''}"></u></i><em>${Math.round(hp * 100)}%</em></div></div>`
+    + `<p class="mzw-gain">${esc(gl)}</p>`
+    + `<div class="mzw-board${MZW.phase === 'throw' ? ' rolling' : ''}">${dice || '<p class="mzw-empty">주사위를 던지려 한다</p>'}</div>`
+    + `<div class="mzw-note" aria-live="polite">${notes.map(t => `<p>${esc(t)}</p>`).join('')}</div>`
+    + `<div class="mzw-acts"><button data-m="wreroll" class="${canRe ? '' : 'off'}" aria-disabled="${!canRe}">다시 굴린다<small>진액 ${W ? W.cost : 2}</small></button><button data-m="wfight" class="pri${pick ? '' : ' off'}" aria-disabled="${!pick}">싸운다</button><button data-m="wleave" class="${pick || MZW.phase === 'wait' ? '' : 'off'}" aria-disabled="${!(pick || MZW.phase === 'wait')}">물러난다</button></div>`
+    + `<p class="mzw-tip">${esc(tip)}</p><i class="mzw-wait"><u></u></i>`
+    + `<div class="mz-spd">${MZSPD.map(q => `<button data-m="wspd" data-v="${q[0]}" class="${spd === q[0] && !MZW.paused ? 'on' : ''}" aria-pressed="${spd === q[0] && !MZW.paused}">${q[1]}</button>`).join('')}<button data-m="wpause" class="${MZW.paused ? 'on' : ''}" aria-pressed="${MZW.paused}">멈춤</button><button data-m="wskip">넘기기</button></div>`;
+  mzwDrawTop(v); mzwTick(); mzUnder(true);
+}
+// 고르는 시간의 띠
+function mzwTick() { const u = document.querySelector('#mzw .mzw-wait u'); if (!u) return; if (MZW.phase !== 'pick' || MZW.paused) { u.style.transition = 'none'; u.style.width = '0'; return; } const left = Math.max(0, MZW.wait - performance.now()), tot = Math.max(1, MZW.waitTot || left); u.style.transition = 'none'; u.style.width = Math.round(100 * (1 - left / tot)) + '%'; void u.offsetWidth; u.style.transition = 'width ' + Math.round(left) + 'ms linear'; u.style.width = '100%'; }
+// 위: 그곳 그림 + 본체·권속(왼쪽 아래) vs 지키는 것들(오른쪽). 지난 물결에 먹힌 것은 흐리게
+function mzwDrawTop(v) {
+  const cv = $('mzw-cv'); if (!cv) return; const x = cv.getContext('2d'), W = cv.width, H = cv.height, dv = v.dice, st = MZW.step, place = dv ? dv.place : MZW.res ? MZW.res.place : 'hut', key = MZWPLACE[place] || 'sky'; x.imageSmoothingEnabled = false;
+  x.fillStyle = '#07050c'; x.fillRect(0, 0, W, H);
+  try { const P = typeof MZPICS !== 'undefined' ? MZPICS : null, im = P ? P.bg(key + '@1') : null; if (im && !P.draw(x, im, key + '@1', W, H, 0.55) && !im.complete) im.onload = () => { if (MZW.on) mzwDrawTop(MZ.v || mzView()); }; else if (!im && LAIRART.storyArt) x.drawImage(LAIRART.storyArt(key, W, H, 0), 0, 0); } catch (e) { /* 그림 없이 */ }
+  const gr = x.createLinearGradient(0, 0, 0, H); gr.addColorStop(0, 'rgba(5,3,10,.25)'); gr.addColorStop(1, 'rgba(5,3,10,.75)'); x.fillStyle = gr; x.fillRect(0, 0, W, H);
+  try { const C = v.core, stp = Math.min(2, C.step || 0), h = typeof lrBossH === 'function' ? lrBossH(stp ? C.form : 'drop', stp) : LAIRART.boss(C.form, stp), fr = h.frame('idle', performance.now()), sz = Math.min(64, Math.round(H * 0.62)); x.globalAlpha = (dv ? dv.hp : 1) > 0 ? 1 : 0.35; x.drawImage(fr, 6, H - sz - 2, sz, sz); x.globalAlpha = 1; } catch (e) { /* 그림 없이 */ }
+  const kin = dv ? dv.kin : [], join = MZW.roll ? MZW.roll.join : st ? st.join : [];
+  kin.slice(0, 6).forEach((u, i) => { const on = join.includes(u.uid); try { const c = mzIconCv(u.kind, u.star, 22, u.br); x.globalAlpha = !u.alive ? 0.25 : on ? 1 : 0.45; x.drawImage(c, 62 + (i % 3) * 20, H - 26 - Math.floor(i / 3) * 18, 22, 22); } catch (e) { /* 그림 없이 */ } }); x.globalAlpha = 1;
+  const units = dv && dv.next && MZW.phase !== 'shown' ? dv.next.units : st ? st.units : [], dead = st && MZW.phase === 'shown' ? st.ate.map(a => a.kind) : [], gone = {};
+  units.forEach((k, i) => { let d = false; if (dead.includes(k) && (gone[k] || 0) < dead.filter(q => q === k).length) { gone[k] = (gone[k] || 0) + 1; d = true; } try { const c = mzIconCv(k, 1, 26); x.globalAlpha = d ? 0.25 : 1; x.save(); x.translate(W - 8 - (i % 3) * 26, H - 30 - Math.floor(i / 3) * 22); x.scale(-1, 1); x.drawImage(c, 0, 0, 26, 26); x.restore(); } catch (e) { /* 그림 없이 */ } }); x.globalAlpha = 1;
+}
+
+// ---- 던지기 ----
+// 주사위가 굴러 멎는다: 초당 12장 안팎으로 면이 바뀌고, 왼쪽부터 차례로 멎는다. 붙잡은 주사위는 그대로
+function mzwTumble(roll, keep, then) {
+  const mo = typeof motionOk !== 'function' || motionOk(), sp = mzSpeed(); MZW.roll = roll; MZW.phase = 'throw'; mzwRender();
+  if (!mo) { MZW.phase = 'pick'; MZ.dbg.diceStop = (MZ.dbg.diceStop || 0) + 1; return then(); }
+  mzSay('dice'); const t0 = performance.now(), id = ++MZW.anim, stopAt = i => (MZWTUMBLE + i * MZWGAP) / sp, stopped = {};
+  const frame = () => {
+    if (!MZW.on || MZW.anim !== id) return; const now = performance.now() - t0, els = document.querySelectorAll('#mzw .mzw-d'); let left = 0;
+    roll.dice.forEach((d, i) => { const b = els[i]; if (!b || keep.has(i)) return; if (now >= stopAt(i)) { if (!stopped[i]) { stopped[i] = 1; b.classList.remove('roll'); b.classList.add('stop'); b.innerHTML = `<img src="${mzwFaceImg(d.face, 36)}" alt=""><small>${esc(mzwFaceName(d.face))}</small>`; } return; }
+      left++; const f = d.faces[Math.floor(Math.random() * 6)]; b.classList.add('roll'); b.style.setProperty('--r', (Math.floor(Math.random() * 4) * 90 - 135) + 'deg'); b.innerHTML = `<img src="${mzwFaceImg(f, 36)}" alt="">`; });
+    if (!left) { MZ.dbg.diceStop = (MZ.dbg.diceStop || 0) + 1; setTimeout(() => { if (MZW.anim === id && MZW.on) { MZW.phase = 'pick'; then(); } }, 90 / sp); return; }
+    setTimeout(frame, 1000 / MZWFPS);
+  };
+  frame();
+}
+function mzwThrow() {
+  const M = MZ.M; if (!MZW.on || !M || !M.wr || MZW.phase === 'throw' || MZW.phase === 'fight') return;
+  const r = MAZE.diceThrow(M); if (!r.ok) { if (M.wr && M.wr.roll) { MZW.roll = MAZE.diceView(M).roll; return mzwPickWait(MZWPICK); } return mzToast(r.msg); }
+  MZW.held = new Set(); MZW.step = null; mzSave(); MZ.dbg.throws = (MZ.dbg.throws || 0) + 1;
+  if (MZW.skip) return mzwGoFight(true);
+  mzwTumble(r, new Set(), () => { mzwShowSets(r); mzwPickWait(MZWPICK); });
+}
+function mzwShowSets(r) { MZ.dbg.sets = (MZ.dbg.sets || 0) + r.sets.length; MZ.dbg.lastSets = r.sets.map(s => (s.part || s.kind) + s.n); mzwRender(); if (r.sets.length) mzSay(r.sets.some(s => s.lv >= 3) ? 'combo' : 'star'); }
+// 고르는 시간: 다 되면 저절로 (설정대로 다시 굴리고) 싸운다
+function mzwPickWait(ms) { MZW.phase = 'pick'; MZW.waitTot = ms / mzSpeed(); mzwRender(); mzwSchedule(ms / mzSpeed(), mzwAuto); mzwTick(); }
+function mzwAuto() {
+  const M = MZ.M; if (!MZW.on || MZW.phase !== 'pick' || !M.wr || !M.wr.roll) return;
+  if (!M.wr.roll.again && MZW.held.size) return mzwReroll();
+  if (!M.wr.roll.again && mzwAutoOn() && MAZEDICE.autoWants(M)) { MZW.held = new Set(MAZEDICE.autoHeld(M)); MZ.dbg.autoRe = (MZ.dbg.autoRe || 0) + 1; return mzwReroll(); }
+  mzwGoFight(false);
+}
+function mzwReroll() {
+  const M = MZ.M; if (MZW.phase !== 'pick') return; const keep = new Set(MZW.held), r = MAZE.diceReroll(M, [...keep]); if (!r.ok) return mzToast(r.msg);
+  clearTimeout(MZW.timer); MZ.dbg.reroll = (MZ.dbg.reroll || 0) + 1; mzSave(); mzwTumble(r, keep, () => { mzwShowSets(r); mzwPickWait(MZWPICK * 0.5); });
+}
+function mzwGoFight(quick) {
+  const M = MZ.M; clearTimeout(MZW.timer); const r = MAZE.diceFight(M); if (!r.ok) return mzToast(r.msg);
+  MZW.step = r; MZW.steps.push(r); MZW.roll = null; mzSave(); if (quick || MZW.skip) return mzwAfterFight(r, true); mzwFight(r);
+}
+// 싸움: 둥지 전투의 재생 화면을 그대로 연다
+function mzwFight(r) {
+  MZW.phase = 'fight'; mzwRender(); mzSay('thud');
+  const v = MZ.v || mzView(), kin = r.join.map(uid => { const u = MZ.M.unit[uid]; return u ? LAIR.KIN[u.kind].name : null; }).filter(Boolean), vs = '본체' + (kin.length ? ' · ' + (kin.length > 2 ? kin.slice(0, 2).join(' · ') + ' 외 ' + (kin.length - 2) : kin.join(' · ')) : '') + ' vs ' + r.name;
+  MZ.dbg.wvs = vs; const fin = () => { mzwAfterFight(r, false); };
+  if (typeof lairReplay !== 'function') return fin();
+  mzUnder(true); lairReplay(r.fight, { name: '물결 ' + (r.wave + 1) + ' · ' + r.name, sub: vs, form: r.fight.form, step: Math.min(2, (v.core && v.core.step) || 0), speed: mzSpeed(), speeds: MZSPD, onSpeed: x => { mzSpeedSet(x); if (MZW.on) mzwRender(); }, skip: mzwSkip, done: fin });
+}
+function mzwAfterFight(r, quick) {
+  if (!MZW.on) return; MZW.phase = 'shown';
+  if (r.ate.length && !quick) { mzSay('coin'); const by = {}; r.ate.forEach(a => { by[a.kind] = (by[a.kind] || 0) + 1; }); mzToast('먹었다 · ' + Object.keys(by).map(k => LAIR.INV[k].name + (by[k] > 1 ? ' ' + by[k] : '')).join(', ') + (r.gold ? ' · 진액 +' + r.gold : ''), 1600); }
+  if (r.end) return mzwEnd(r, quick);
+  if (MZW.skip) return mzwThrow();
+  MZW.phase = 'wait'; mzwRender(); mzwSchedule(700 / mzSpeed(), mzwThrow);
+}
+// 넘기기: 남은 물결을 곧바로 셈하고 결과로 (다시 굴리기는 설정대로 저절로)
+function mzwSkip() {
+  if (!MZW.on) return; MZW.skip = true; MZW.anim++; clearTimeout(MZW.timer);
+  if (typeof LU !== 'undefined' && LU.replay) { LU.replay.done = null; lrReplayEnd(); }
+  const M = MZ.M; if (MZW.step && MZW.step.end) return mzwEnd(MZW.step, true);
+  if (M.wr) { const rest = MAZE.diceRun(M, { auto: mzwAutoOn() }); rest.forEach(s => MZW.steps.push(s)); MZW.step = rest[rest.length - 1] || MZW.step; MZW.roll = null; }
+  if (MZW.step && MZW.step.end) return mzwEnd(MZW.step, true);
+}
+// 물러난다 (고르는 동안이나 물결 사이)
+function mzwLeave() {
+  const M = MZ.M; if (!M.wr || !(MZW.phase === 'pick' || MZW.phase === 'wait')) return mzToast('싸우는 동안에는 물러날 수 없다'); clearTimeout(MZW.timer); MZW.anim++; const r = MAZE.diceLeave(M); if (!r.ok) return mzToast(r.msg);
+  mzSay('down'); MZ.dbg.leave = (MZ.dbg.leave || 0) + 1; MZW.roll = null; mzwEnd({ end: 'retreat', result: r.result, next: r.next }, false);
+}
+// 주사위를 누르면 붙잡거나 놓는다 (고르는 동안, 다시 굴리기 전에만). 누르면 고르는 시간이 다시 찬다
+function mzwHold(i) {
+  const M = MZ.M, rl = M.wr && M.wr.roll; if (MZW.phase !== 'pick' || !rl) return; if (rl.again) return mzToast('이 물결에서는 이미 다시 굴렸다'); const d = rl.dice[i]; if (!d) return; if (d.t === 'torch') return mzToast('횃불 주사위는 붙잡을 수 없다');
+  if (MZW.held.has(i)) MZW.held.delete(i); else MZW.held.add(i); mzSay('click'); MZ.dbg.held = [...MZW.held]; mzwPickWait(MZWPICK * 1.6);
+}
+// 끝: 처형 장면(사람이 죽었으면, 확률) · 쓸어버린 장면 → 결과 창
+function mzwEnd(r, quick) {
+  MZW.phase = 'end'; clearTimeout(MZW.timer); MZW.res = r.result; MZ.dbg.wend = r.end; mzSay(r.end === 'sweep' ? 'up' : r.end === 'chased' ? 'die' : 'down'); mzSave(); mzwRender(); void quick;
+  const M = MZ.M, t = mzTestOpt(), on = META.mzFeast !== false && !(t && t.feast === false) && typeof MZVIGN !== 'undefined';
+  const show = () => { mzMusic('day'); mzSheet({ kind: 'wres' }); };
+  const feast = then => { if (!on) return then(); let ctx = null; try { ctx = MZVIGN.pickDeath({ steps: MZW.steps.map(s => ({ type: 'fight', fight: s.fight })) }, M); } catch (e) { ctx = null; } if (!ctx || !MZVIGN.roll(ctx, M)) return then(); MZVIGN.mark(ctx, M); MZ.dbg.wfeast = (MZ.dbg.wfeast || 0) + 1; if (!MZVIGN.feast(ctx, then)) then(); };
+  const sweep = then => { if (!on || r.end !== 'sweep' || typeof MZVIGN.raidUp !== 'function') return then(); let done = false; MZ.dbg.raidUp = (MZ.dbg.raidUp || 0) + 1; try { MZVIGN.raidUp(mzwRaidCtx(M, 'raze'), () => { if (!done) { done = true; then(); } }); } catch (e) { if (!done) { done = true; then(); } } };
+  feast(() => sweep(show));
+}
+// 결과 창
+const MZWEND = { sweep: '쓸어버렸다', auto: '본체가 지쳐 물러났다', retreat: '물러났다', repelled: '밀려났다', chased: '쫓겨 돌아왔다' };
+function mzWresHtml(v) {
+  const R = MZW.res || v.wrLast; if (!R) return '<h3>땅 위</h3><div class="mz-acts2"><button class="pri" data-m="wdone">닫기</button></div>';
+  const T = (MZST && MZST.strikes.find(s => s.id === R.place)) || { name: R.place, outcomes: {} }, names = (v.grow && v.grow.names) || {}, rows = [];
+  rows.push(['넘긴 물결', R.cleared + ' / ' + R.waves]); rows.push(['얻은 것', '진액 +' + R.gold + ' · 먹이 +' + mzNum1(R.food) + (R.up ? ' · 본체 Lv ' + R.level : '')]);
+  const asp = Object.keys(R.asp || {}).filter(a => R.asp[a] > 0); rows.push(['오른 성향', asp.length ? asp.map(a => (names[a] || a) + ' +' + mzNum1(R.asp[a])).join(' · ') : '없다']);
+  rows.push(['밴 알', R.eggs.length ? R.eggs.map(k => LAIR.KIN[k].name).join(', ') + ' · 알자리에 남는다' : '없다']); rows.push(['오른 경계', R.alert > 0 ? '+' + R.alert + ' · 경계 ' + v.alert.n : '오르지 않았다']);
+  if (R.grew && R.grew.length) rows.push(['권속', R.grew.map(g => g.name + (g.up ? ' Lv ' + g.lv : '') + (g.starUp ? ' ' + '★'.repeat(g.star) : '')).join(', ')]);
+  // 마을 서기가 남긴 백면 주사위 (판 씨앗과 밤으로 정해진다): 그 밤 마을이 정신을 붙든 정도. 셈에는 들지 않는 기록의 맛
+  const d100 = 1 + (MAZEDICE.hash(MZ.M.seed, R.place.length, v.night, 0x64) % 100);
+  rows.push(['마을의 정신 판정', '백면 주사위 ' + d100 + (d100 <= 30 ? ' · 넘겼다' : ' · 무너졌다')]);
+  const lost = R.wound ? `<p class="mz-why">본체가 쓰러져 쫓겨 왔다. 얻은 것의 절반(진액 ${R.goldLost} · 먹이 ${mzNum1(R.foodLost)} · 알 ${R.eggsLost})을 잃었고, 다음 침입에서 본체는 체력 ${Math.round(MAZE.MK.dice.wound * 100)}%로 싸운다.</p>` : '';
+  const txt = (T.outcomes || {})[R.power] || '';
+  return `<h3>${esc(T.name)} · ${MZWEND[R.end] || ''}</h3>${txt ? `<p class="mz-nar">${esc(txt)}</p>` : ''}<div class="mzw-res">${rows.map(([a, b]) => `<p><span>${esc(a)}</span><b>${esc(b)}</b></p>`).join('')}</div>${lost}`
+    + `<p class="mz-note">다음 밤에는 복수하러 온다.${R.end === 'sweep' ? ' 쓸어버린 곳은 ' + MAZE.MK.strike.shut + '밤 동안 다시 칠 수 없다.' : ''}</p><div class="mz-acts2"><button class="pri" data-m="wdone">닫기</button></div>`;
+}
+// 결과 창을 닫는다: 진화한 권속이 있으면 진화 창, 아니면 둥지 방으로 (다음 일: 복수 침입 등)
+function mzwDone() {
+  const R = MZW.res, ups = R ? (R.grew || []).filter(g => g.starUp > 0 && MZ.M.unit[g.uid]) : [];
+  if (ups.length && !MZW.evoSeen && !(MZ.sheet && MZ.sheet.kind === 'evo')) { MZW.evoSeen = true; MZ.evoAfter = 'dice'; mzSay('birth'); return mzSheet({ kind: 'evo', list: ups }); }
+  mzwClose(); MZ.M.ui.cmdUsed = MZ.M.ui.cmdUsed || {}; MZ.M.ui.cmdUsed.strike = 1; MZ.scr = 'nest'; mzAfterCmd();
+}
+// 누르기 (mzClick 이 'w' 로 시작하는 것을 넘긴다)
+function mzDiceClick(a, b) {
+  if (a === 'wdone') return mzwDone();
+  if (a === 'wleave') return mzwLeave();
+  if (a === 'whold') return mzwHold(+b.dataset.i);
+  if (a === 'wreroll') { if (MZW.phase !== 'pick') return; const rl = MZ.M.wr && MZ.M.wr.roll; if (rl && (rl.again || MAZE.MK.dice.reroll > MZ.M.gold)) return mzToast(rl.again ? '이 물결에서는 이미 다시 굴렸다' : '진액이 모자라니, 이 의식은 이루어질 수 없으리라'); return mzwReroll(); }
+  if (a === 'wfight') { if (MZW.phase !== 'pick') return; mzSay('click'); return mzwGoFight(false); }
+  if (a === 'wskip') { mzSay('click'); return mzwSkip(); }
+  if (a === 'wspd') { MZW.paused = false; mzSpeedSet(+b.dataset.v); mzSay('click'); if (MZW.phase === 'pick') mzwPickWait(MZWPICK); else if (MZW.phase === 'wait') mzwSchedule(700 / mzSpeed(), mzwThrow); return mzwRender(); }
+  if (a === 'wpause') { MZW.paused = !MZW.paused; mzSay('click'); clearTimeout(MZW.timer); if (!MZW.paused) { if (MZW.phase === 'pick') mzwPickWait(MZWPICK); else if (MZW.phase === 'wait' || MZW.phase === 'idle') mzwSchedule(400, mzwThrow); } return mzwRender(); }
+}
+if (typeof window !== 'undefined') window.__mzdice = { get st() { return { on: MZW.on, phase: MZW.phase, steps: MZW.steps.length, end: MZW.step ? MZW.step.end : null, res: MZW.res, paused: MZW.paused, held: [...MZW.held], roll: MZW.roll }; }, throwNow: () => mzwThrow(), skip: () => mzwSkip(), symUrl: (s, px) => mzwSymUrl(s, px || 32) };
 // 굴 짓기 — 길잡이 (2026-11-25 사용자: "게임 안 단어가 불친절해서 게임을 알기 어렵다, 가이드를 추가해야 하지 않을까")
 // 세 가지를 한다. 글은 모두 이 파일에 모은다 (안내 말투: ~한다 / ~하라. scratchpad/style_voice2.md 의 용어표).
 //   1. 용어를 누르면 설명: 위 띠 · 둥지 방 · 지도 아래 줄 · 대기석 빈 칸을 누르면 작은 말풍선(#mz-tip)이 뜬다.
@@ -12827,7 +13358,8 @@ const MZTERMS = {
     now: v => '함정 ' + v.counts.traps },
   others: { name: '다른 방', what: '가짜 알, 핏줄 다발, 고치처럼 저마다 하는 일이 있는 칸이다.', how: '그런 칸이 있는 모양을 놓으면 생긴다. 칸을 누르면 하는 일을 볼 수 있다.',
     now: v => '다른 방 ' + v.counts.others },
-  births: { name: '알자리', what: '본체가 알을 배어 두는 자리이다. 「권속을 낳는다」를 고르면 여기서 골라 낳는다.', how: '알은 밤마다 새로 밴다. 하나는 가장 싼 권속, 하나는 이미 가진 것과 같은 종류이고, 나머지는 본체 성향이 높은 쪽 권속이 더 자주 나온다. 많이 낳고 진액을 많이 쓸수록 위 급이 열리고, 드문 권속은 성향이 정해진 값에 닿으면 나온다.' },
+  dice: { name: '주사위', what: '땅 위를 칠 때 물결마다 던진다. 본체 부위 주사위 다섯(촉수·알주머니·눈·입속 목소리·이빨)에, 굴에 세운 권속마다 그 권속의 주사위가 하나씩 더해진다.', how: '같은 면이 셋 모이면 그 공격이 세지고, 넷이면 더, 다섯이 넘으면 크게 터진다. 권속 주사위가 제 면을 내면 그 권속이 땅 위로 올라와 싸운다. 던진 뒤 한 번, 주사위를 붙잡고 나머지를 다시 굴릴 수 있다(진액). 경계가 높으면 마을의 횃불 주사위가 섞여 모음을 깬다.' },
+  births: { name: '알자리', what: '본체가 알을 배어 두는 자리이다. 「권속을 낳는다」를 고르면 여기서 골라 낳는다.', how: '밤마다 새로 배는 알은 ' + (typeof MAZE !== 'undefined' ? MAZE.MK.birth.eggs : 4) + '개이다(하나는 가장 싼 권속, 나머지는 본체 성향이 높은 쪽이 더 자주). 나머지 알은 땅 위 습격에서 먹은 것에서 배고, 낳을 때까지 남는다. 굴 안에서 침입자를 먹어도 가끔 밴다.', },
   cmd: { name: '명령', what: '한 밤에 하나 고른다: 권속을 낳는다, 굴을 고친다, 땅 위를 친다, 속삭인다, 기른다, 쉰다.', how: '고른 뒤 아무것도 하지 않았으면 「다른 명령」으로 돌아갈 수 있다. 밤은 넘어가지 않는다.' },
   san: { name: '정신', what: '침입자는 굴의 어둠 속을 한 칸 걸을 때마다 정신이 깎인다.', how: '정신이 바닥난 침입자는 미쳐서 굴 편에 선다. 처음 몇 밤은 어둠이 얕다.' },
   whisper: { name: '속삭임', what: '이야기에서 만난 사람이 잠들면 그 꿈에 말을 거는 명령이다.', how: '한 사람에게 다섯 번 속삭이면 그 사람의 이야기가 매듭지어지고 결말이 갈린다. 서른 번째 밤까지만 닿는다.' },
@@ -12882,8 +13414,10 @@ function mzGuideSheet(kind, el) {
 // ---- 「지금 할 일」 ----
 // 걸음: when(v, M) 이 참이고 done(v, M) 이 거짓인 첫 걸음을 띄운다. nest / map 은 화면마다의 글 (birth·build 는 그 명령 중일 때의 글)
 const MZGSTEPS = [
+  { id: 'strike', done: v => v.strikes.n > 0 || v.born > 0 || v.night > 1, when: v => v.phase === 'night' && !!v.commands.find(c => c.id === 'strike' && c.open && c.can),
+    nest: '첫 밤에는 「땅 위를 친다」를 눌러 언덕 아래 양치기의 우리를 치라. 본체가 몸소 올라가 주사위를 던지며 양을 덮치고, 먹은 것에서 알이 밴다.' },
   { id: 'birth', done: v => v.units.length > 0 || v.born > 0, when: v => v.phase === 'night' || v.phase === 'birth',
-    nest: '그대가 먼저 할 일은 「권속을 낳는다」를 눌러 첫 권속을 깨우는 것이다.', birth: '알자리에 밴 알 가운데 하나를 골라 「낳는다」를 누르라. 그리하면 그것이 깨어나리라.' },
+    nest: '「권속을 낳는다」를 눌러 첫 권속을 깨우라. 습격에서 밴 알도 알자리에 있다.', birth: '알자리에 밴 알 가운데 하나를 골라 「낳는다」를 누르라. 그리하면 그것이 깨어나리라.' },
   { id: 'place', done: v => v.placed > 0, when: v => v.bench.some(Boolean),
     nest: '이제 아래 「굴」을 눌러 굴 지도로 내려가라. 그곳에서 대기석의 권속을 세워야 한다.', map: '대기석의 권속을 끌어 본체 방 앞이나 권속 방에 놓으라. 눌러 고른 뒤 놓을 곳을 눌러도 좋다.' },
   { id: 'raid', done: v => (v.score && v.score.raids) > 0, when: v => v.phase === 'ready' || !!(v.omen && v.omen.steps),
@@ -12934,7 +13468,7 @@ function mzGuideAgain() { mzMetaSet(m => { m.mzGuideDone = false; m.mzGuide = tr
 function mzGuidePages() {
   const first = '<p class="mz-nar">이 기록을 읽는 그대가 누구이든, 물레골 북쪽 언덕의 바위틈에는 결코 다가가지 말기를. 그 아래에서 자라는 것은 인간의 언어로는 담을 수 없는 태고의 무엇이니.</p>'
     + '<p>이 기록 속에서 그대는 굴 밑바닥의 살덩이이다. 마을 사람들은 횃불과 창을 들고 내려와 저 별 사이에서 온 알을 깨뜨리려 하리라. 밤을 넘기며 권속을 기르고 굴을 넓혀, 그 알을 지키라.</p>'
-    + '<ol class="mz-steps"><li><b>명령 하나 고르기.</b> 둥지 방에서 한 밤에 명령을 하나 고른다. 처음에는 「권속을 낳는다」로 권속을 낳으라.</li>'
+    + '<ol class="mz-steps"><li><b>명령 하나 고르기.</b> 둥지 방에서 한 밤에 명령을 하나 고른다. 첫 밤에는 「땅 위를 친다」로 양치기의 우리를 치라. 본체가 몸소 주사위를 던지며 양을 덮치고, 먹은 것에서 알이 밴다. 그다음 「권속을 낳는다」로 그 알을 깨우라.</li>'
     + '<li><b>권속 세우기.</b> 아래 「굴」을 눌러 굴 지도로 가서, 대기석의 권속을 끌어 본체 방 앞이나 권속 방에 세운다. 세우는 것은 명령이 아니어서 언제든 할 수 있다.</li>'
     + '<li><b>침입 맞기.</b> 위 띠의 등불이 켜진 밤에는 명령을 마치는 즉시 침입자가 내려온다. 「맞는다」를 누르고, 굴에서 벌어지는 일을 지켜보라.</li>'
     + '<li><b>밤의 셈.</b> 침입이 끝나면 무엇을 먹고 얻고 잃었는지 장부가 나온다. 싸운 권속은 경험을 얻고, 본체는 먹이를 먹고 자란다.</li>'
@@ -13033,9 +13567,10 @@ function mzHelpPages() {
   return [
     ['밤', `<p class="mz-nar">굴의 시간은 밤으로 센다. 해가 진 뒤의 일만이 이 기록에 남는다.</p><p>한 밤에 명령을 하나 고른다. 권속을 낳는다, 굴을 고친다, 땅 위를 친다, 속삭인다, 기른다, 쉰다 가운데 하나이다. 권속을 굴에 세우거나 옮기는 것은 명령이 아니어서 언제든 할 수 있다.</p><p>위 띠의 등불이 켜진 밤에는 발소리가 들린다. 그 밤 명령을 마치면 침입자가 온다. 마을을 습격한 다음 밤에는 반드시 온다.</p><p>진액은 밤마다 ${K.night.drip}씩 고인다. 쉬면 진액 +${K.night.rest.gold}, 알 +${K.night.rest.egg}, 경계 ${K.night.rest.alert}.</p>`],
     ['굴', '<p class="mz-nar">그 굴의 생김은 결코 자연의 것이 아니었으니, 살로 된 벽이 스스로 길을 열고 닫았다.</p><p>굴은 구역 열하나로 나뉜다. 깊이마다 가운데 길목 하나와 왼쪽·오른쪽 곁굴이 있고, 그 밖에 본체 방과 굴 바깥이 있다. 「굴을 고친다」를 고른 밤에 구역을 누르면 그 자리에 놓을 수 있는 모양이 나온다.</p><p>모양마다 통로, 권속 방, 함정, 시설이 정해져 있다. 깊은 곳일수록 비싸고, 굴을 자주 고치고 진액을 많이 쓸수록 새 모양이 열린다.</p><p>살벽으로 막힌 칸 사이로는 지나갈 수 없다. 다만 무거운 침입자는 살벽 하나를 뚫고 지나간다.</p><p>모양을 바꾸면 그 구역에 서 있을 자리가 없어진 권속은 대기석으로 돌아온다.</p>'],
-    ['권속', `<p class="mz-nar">알자리에서 깨어나는 것들을 나는 권속이라 부른다. 그것들의 생김에 대해서는 차라리 적지 않으련다.</p><p>권속은 알자리에서 골라 낳는다. 알은 밤마다 새로 밴다. 하나는 늘 가장 싼 권속이고, 하나는 이미 가진 권속과 같은 종류이며(같은 종류를 먹이면 크게 자란다), 나머지는 본체의 가장 높은 성향 쪽 권속이 더 자주 나온다. 「기른다 · 알을 품는다」를 고르면 다음 밤에 알이 하나 더 밴다. 같은 종류라도 태어날 때 체력과 공격이 조금씩 다르다. 많이 낳고 진액을 많이 쓸수록 위 급이 열리고, 드문 권속은 본체의 성향이 정해진 값에 닿으면 나온다.</p><p>갓 낳은 권속은 약한 살덩이다. 싸움에서 살아남거나 적을 죽일 때마다 경험이 쌓인다(살아남으면 +${N.fight}, 죽이면 +${N.kill}). 레벨 ${N.star[1]}에 2성, ${N.star[2]}에 3성이 된다. 2성이 되는 순간 본체의 짝 성향이 그 권속의 성향보다 높으면 두 성향이 섞인 혼종으로, 아니면 기본 갈래로 자라고, 한 번 정한 갈래는 바뀌지 않는다. 그리고 레벨 ${N.perkAt}에 보조 능력이 하나 붙는다.</p><p>같은 종류의 권속을 먹이면 먹은 쪽이 경험을 크게 얻는다. 본체에게 먹이면 진액을 조금 돌려받는다. 쓰러진 권속은 죽지 않고, 그 침입에서 얻은 경험만 잃는다.</p><p>굴에 세울 수 있는 권속은 본체 레벨 + 2마리이다.</p>`],
+    ['권속', `<p class="mz-nar">알자리에서 깨어나는 것들을 나는 권속이라 부른다. 그것들의 생김에 대해서는 차라리 적지 않으련다.</p><p>권속은 알자리에서 골라 낳는다. 밤마다 새로 배는 알은 ${K.birth.eggs}개이다. 하나는 늘 가장 싼 권속이고, 나머지는 본체의 가장 높은 성향 쪽 권속이 더 자주 나온다. 그 밖의 알은 땅 위 습격에서 밴다. 먹은 양과 사람이 많을수록, 같은 면을 많이 모을수록 알이 많이 배고, 깊은 물결까지 넘겼으면 위 급 알이 밴다. 이미 가진 권속과 같은 종류가 섞여 배기도 한다(같은 종류를 먹이면 크게 자란다). 습격에서 밴 알은 낳을 때까지 알자리에 남는다(${K.dice.eggs.bank}개까지). 굴 안에서 침입자를 먹어도 가끔 알이 밴다. 「기른다 · 알을 품는다」를 고르면 다음 밤에 알이 하나 더 밴다. 같은 종류라도 태어날 때 체력과 공격이 조금씩 다르다. 많이 낳고 진액을 많이 쓸수록 위 급이 열리고, 드문 권속은 본체의 성향이 정해진 값에 닿으면 나온다.</p><p>갓 낳은 권속은 약한 살덩이다. 싸움에서 살아남거나 적을 죽일 때마다 경험이 쌓인다(살아남으면 +${N.fight}, 죽이면 +${N.kill}). 레벨 ${N.star[1]}에 2성, ${N.star[2]}에 3성이 된다. 2성이 되는 순간 본체의 짝 성향이 그 권속의 성향보다 높으면 두 성향이 섞인 혼종으로, 아니면 기본 갈래로 자라고, 한 번 정한 갈래는 바뀌지 않는다. 그리고 레벨 ${N.perkAt}에 보조 능력이 하나 붙는다.</p><p>같은 종류의 권속을 먹이면 먹은 쪽이 경험을 크게 얻는다. 본체에게 먹이면 진액을 조금 돌려받는다. 쓰러진 권속은 죽지 않고, 그 침입에서 얻은 경험만 잃는다.</p><p>굴에 세울 수 있는 권속은 본체 레벨 + 2마리이다.</p>`],
     ['오는 자들', `<p class="mz-nar">위의 것들은 횃불과 기도와 창을 들고 내려온다. 그들 대부분은 다시 올라가지 못하였다.</p><p>침입자는 입구에서부터 굴을 더듬어 내려온다. 길잡이가 없으면 갈림길마다 헤매고, 막다른 곳에서는 되돌아간다.</p><p>함정을 밟으면 다치고, 권속이 서 있는 방에 닿으면 거기서 싸움이 붙는다. 입은 상처는 다음 방까지 이어진다. 굴의 어둠은 한 칸마다 정신을 깎고, 정신이 바닥난 사람은 미쳐서 굴 편에 선다. 처음 몇 밤은 어둠이 얕아서 침입자가 제정신으로 방까지 온다.</p><p>알까지 온 침입자는 알을 깎고 진액을 빼앗아 간다. 알이 깨지면 판이 끝난다.</p><p>경계는 마을이 굴을 얼마나 알고 대비하는지이다. 마을을 습격하면 오르고 쉬면 내린다. 경계가 ${A.step} 오를 때마다 더 센 침입자가 온다. 대신 죽였을 때 얻는 진액도 많다. 경계 ${A.size[0]}과 ${A.size[1]}부터는 오는 자가 한 명씩 늘어난다.</p>`],
-    ['기르기', `<p class="mz-nar">본체는 먹은 것을 닮아 간다. 그것이 무엇을 닮아 가는지 지켜보는 일은 실로 끔찍하였다.</p><p>본체는 굴에서 죽은 침입자를 먹고 자란다. 본체 방에서 죽은 자는 두 배로 친다. 레벨이 오르면 굴에 권속을 하나 더 세울 수 있다.</p><p>성향은 심연, 성운, 번식, 기아, 황혼 다섯 가지이다. 무엇을 먹었는지, 어떤 일과를 골랐는지, 마을의 어디를 습격했는지에 따라 쌓인다.</p><p>한 성향이 정해진 값에 닿으면 본체는 그 모습으로 깨어난다. 고를 수는 없다. 깨어나면 쓰는 기술이 바뀌고 그 모습에 맞는 권속과 방이 열린다.</p>`],
+    ['기르기', `<p class="mz-nar">본체는 먹은 것을 닮아 간다. 그것이 무엇을 닮아 가는지 지켜보는 일은 실로 끔찍하였다.</p><p>본체는 굴에서 죽은 침입자를 먹고 자란다. 본체 방에서 죽은 자는 두 배로 친다. 레벨이 오르면 굴에 권속을 하나 더 세울 수 있다.</p><p>성향은 심연, 성운, 번식, 기아, 황혼 다섯 가지이다. 무엇을 먹었는지, 어떤 일과를 골랐는지, 땅 위 습격에서 어떤 면을 모으고 무엇을 먹었는지에 따라 쌓인다.</p><p>한 성향이 정해진 값에 닿으면 본체는 그 모습으로 깨어난다. 고를 수는 없다. 깨어나면 쓰는 기술이 바뀌고 그 모습에 맞는 권속과 방이 열린다.</p>`],
+    ['땅 위', `<p class="mz-nar">그것이 처음 언덕 위로 기어오른 밤, 양치기의 우리에서 들려온 소리를 나는 아직도 잊지 못한다.</p><p>「땅 위를 친다」는 첫 밤부터 고를 수 있다. 처음에 아는 곳은 언덕 아래 양치기의 우리뿐이다. 사람을 먹으면 그 사람이 알던 곳이 드러난다. 그곳마다 본체 레벨 조건이 있다.</p><p>습격은 물결 여럿이다. 물결마다 주사위를 던진다. 본체 부위 주사위 다섯(촉수·알주머니·눈·입속 목소리·이빨)에, 굴에 세운 권속마다 그 권속의 주사위가 하나씩 더해진다(모두 ${K.dice.max}개까지). 부위 주사위는 여섯 면 가운데 셋이 그 부위, 둘이 다른 부위, 하나가 빈 면이다. 권속 주사위는 셋이 그 권속, 둘이 그 성향의 부위, 하나가 빈 면이다.</p><p>같은 성향의 면이 셋 모이면 그 공격이 세지고, 넷이면 더 세지고, 다섯이 넘으면 크게 터진다. 이빨은 본체 공격, 촉수는 지키는 것들을 묶고, 눈은 정신을 깎고, 입속 목소리는 지키는 것들을 미치게 하고, 알주머니는 본체를 아물리고 알을 더 배게 한다. 권속 주사위가 제 면을 내면 그 권속이 올라와 같이 싸우고, 같은 종류의 면이 셋 넘으면 그 물결 동안 한 단계 진화한 모습으로 싸운다.</p><p>던진 뒤 한 번, 남길 주사위를 눌러 붙잡고 나머지를 다시 굴릴 수 있다. 진액 ${K.dice.reroll}이 든다. 손대지 않으면 설정 「주사위 저절로 다시 굴림」대로, 가장 큰 모음을 붙잡고 진액이 ${K.dice.autoGold} 넘게 있으면 한 번 다시 굴린다. 경계가 높으면 마을의 횃불 주사위가 섞인다. 횃불 면 하나마다 지키는 것들의 공격이 오르고 우리 쪽 가장 큰 모음에서 면 하나가 깨진다. 그곳의 기억이 깊으면 횃불 주사위가 준다.</p><p>물결을 이기면 다음 물결로 간다. 고르는 동안 「물러난다」를 누르면 지금까지 얻은 것만 갖고 돌아온다. 본체 체력이 ${Math.round(K.dice.retreat * 100)}% 아래로 떨어지면 저절로 물러난다. 본체가 쓰러지면 쫓겨 와 얻은 것의 절반을 잃고, 다음 침입에서 본체는 체력 ${Math.round(K.dice.wound * 100)}%로 싸운다. 마지막 물결까지 넘기면 그곳을 쓸어버린 것이니, ${K.strike.shut}밤 동안 다시 칠 수 없다. 습격한 다음 밤에는 반드시 복수하러 온다.</p>`],
     ['징조', mzSignHelp()],
     ['결말', '<p class="mz-nar">모든 기록에는 끝이 있다. 이 기록의 끝이 어떠할지는 그대의 손에 달렸다.</p><p>이야기는 서른여섯 밤이다. 마지막 밤에 탑의 주인이 온다.</p><p>이야기에서 만난 사람의 꿈에 속삭일 수 있다. 한 사람에게 다섯 번 속삭이면 그 사람의 이야기가 매듭지어지고 굴에 도움이 되는 것이 남는다. 속삭임은 서른 번째 밤까지만 닿는다.</p><p>결말은 알이 남았는지, 누구에게 다섯 번 속삭였는지, 위엄과 경계와 성향에 따라 갈린다. 둥지 방의 「목표」에서 조건을 볼 수 있다.</p><p>자유 판과 오늘의 판에는 끝이 없다. 알이 깨질 때까지 몇 밤을 버텼는지 센다.</p>'],
   ];
@@ -13046,7 +13581,7 @@ function mzHelp(page) {
   m.hidden = false;
 }
 // 설정: 첫 화면과 판 안의 메뉴가 같은 줄들을 쓴다
-const MZSET = [['sound', '효과음'], ['music', '음악'], ['shake', '움직임'], ['gore', '잔혹한 장면'], ['mzFeast', '포식 장면'], ['mazeBig', '큰 글씨'], ['mzGuide', '길잡이']];
+const MZSET = [['sound', '효과음'], ['music', '음악'], ['shake', '움직임'], ['gore', '잔혹한 장면'], ['mzFeast', '포식 장면'], ['mazeBig', '큰 글씨'], ['mzGuide', '길잡이'], ['mzDiceAuto', '주사위 저절로 다시 굴림']];
 const mzSetOn = k => (k === 'mazeBig' ? !!META.mazeBig : META[k] !== false);
 function mzSetToggle(k) { if (k === 'mazeBig') META.mazeBig = !META.mazeBig; else META[k] = META[k] === false; try { saveMeta(); if (k === 'music' && typeof musicSet === 'function') musicSet(META.music); } catch (e) { /* 저장 없이 */ } mzBigApply(); }
 function mzBigApply() { try { document.documentElement.classList.toggle('mzbig', !!(META && META.mazeBig)); } catch (e) { /* 그대로 */ } }
@@ -13133,7 +13668,7 @@ const mzWhoName = id => ((MZST && MZST.whispers && MZST.whispers[id]) || { name:
 function mzDawnText(v) {
   const d = v.dawn; if (!d) return ''; const g = d.gains || {}, bits = [];
   if (d.cmd === 'birth') bits.push('권속 ' + (g.did || 0) + '마리를 낳았다'); else if (d.cmd === 'build') bits.push('굴을 ' + (g.did || 0) + '곳 고쳤다');
-  else if (d.cmd === 'strike') { const a = d.arg || {}; bits.push(mzJosa(mzPlaceName(a.place), '을', '를') + ' 쳤다'); if (g.gold) bits.push('진액 +' + g.gold); if (g.food) bits.push('먹이 +' + g.food); if (g.alert) bits.push('경계 ' + mzSigned(g.alert)); if (g.kinXp && g.kin) bits.push('권속 ' + g.kin + '마리 경험 +' + mzNum1(g.kinXp)); }
+  else if (d.cmd === 'strike') { const a = d.arg || {}; bits.push(mzJosa(mzPlaceName(a.place), '을', '를') + ' 쳤다'); if (a.waves != null) bits.push('물결 ' + a.waves + '개를 넘겼다'); if (g.gold) bits.push('진액 +' + g.gold); if (g.food) bits.push('먹이 +' + g.food); if (g.eggs) bits.push('알 ' + g.eggs + '개가 뱄다'); if (g.alert) bits.push('경계 ' + mzSigned(g.alert)); }
   else if (d.cmd === 'whisper') bits.push(mzWhoName(d.arg) + '에게 속삭였다' + (g.n ? ' (' + g.n + '/5)' : ''));
   else if (d.cmd === 'raise') { const c = (v.grow.chores || []).find(q => q.id === d.arg); bits.push((c ? c.name : '길렀다') + (g.asp ? ' · ' + ((v.grow.names || {})[g.asp] || g.asp) + ' +' + mzNum1(g.pts || 0) : '')); if (g.gold) bits.push('진액 +' + g.gold); }
   else if (d.cmd === 'rest') { bits.push('쉬었다'); if (g.gold) bits.push('진액 +' + g.gold); if (g.egg) bits.push('알 +' + g.egg); if (g.alert) bits.push('경계 ' + mzSigned(g.alert)); }
@@ -13212,6 +13747,8 @@ function mzLoop(now) {
 function mzGo() {
   const M = MZ.M; if (!M || MZ.reading || MZ.scr === 'raid' || MZ.scr === 'title') return; const v = mzView();
   if (M.ui.pend) return mzPendPlay();
+  // 주사위 습격 중 (새로 고쳤거나 창을 닫은 뒤): 습격 화면으로
+  if (v.phase === 'dice') { if (!MZW.on) mzDiceOpen(false); return; }
   if (v.awaken) return mzAwakenPlay(v);
   if (v.events && v.events.length) return mzEventPlay(v, v.events[0]);
   if (v.phase === 'over') return mzOver(v);
@@ -13295,7 +13832,7 @@ function mzOver(v) {
 }
 
 // ---- 누르기 ----
-const mzModalSheet = k => k === 'evo' || k === 'ledger' || k === 'over' || k === 'retry' || k === 'note' || k === 'births' || k === 'sign';
+const mzModalSheet = k => k === 'wres' || k === 'evo' || k === 'ledger' || k === 'over' || k === 'retry' || k === 'note' || k === 'births' || k === 'sign';
 function mzPend(p) { const q = MZ.pend; MZ.pend = q && q.act === p.act && q.key === p.key ? null : p; MZ.pendT = performance.now(); mzSay('click'); if (MZ.sheet) mzSheet(MZ.sheet); }
 function mzClick(e) {
   // 폰에서 손을 떼어 창을 연 바로 뒤에 오는 click 은 창 바깥(어둠)에 떨어진다: 막 연 창은 닫지 않는다
@@ -13316,12 +13853,13 @@ function mzClick(e) {
   if (a === 'uinfo') return mzSheet({ kind: 'unit', uid: +b.dataset.u });
   if (a === 'ldetail') { S.more = !S.more; mzSay('click'); return mzSheet(S); }
   if (a === 'lclose') return mzAfterRaid();
-  if (a === 'evook') { const after = MZ.evoAfter, sh = MZ.sheet || {}; MZ.evoAfter = null; if (after === 'raid') { MZ.sheet = null; mzSheetClose(); MZ.play = null; MZ.paused = false; MZ.scr = 'nest'; MZ.sel = null; $('mz-ov').innerHTML = ''; mzSave(); return mzGo(); } mzSheetClose(); return sh.uid != null ? mzSheet({ kind: 'unit', uid: sh.uid }) : mzDraw(); }
+  if (a === 'evook') { const after = MZ.evoAfter, sh = MZ.sheet || {}; MZ.evoAfter = null; if (after === 'dice') { mzSheetClose(); return mzwDone(); } if (after === 'raid') { MZ.sheet = null; mzSheetClose(); MZ.play = null; MZ.paused = false; MZ.scr = 'nest'; MZ.sel = null; $('mz-ov').innerHTML = ''; mzSave(); return mzGo(); } mzSheetClose(); return sh.uid != null ? mzSheet({ kind: 'unit', uid: sh.uid }) : mzDraw(); }
   if (a === 'again') { const md = mzKindOf(M), df = M.sg && M.sg.diff; mzSheetClose(); mzSaveDel(md); return mzStart(md, df); }
   if (a === 'retry') { const r = MAZE.retry(M); if (!r.ok) return mzToast(r.msg); MZ.M.ui = MZ.M.ui || {}; mzSheetClose(); MZ.scr = 'nest'; mzSave(); return mzGo(); }
   if (a === 'noteok') { mzSheetClose(); return mzAfterCmd(); }
   if (a === 'signok') return mzSignClose();
   if (a === 'dream') return mzDream(b.dataset.v === '1');
+  if (MZ.scr === 'dice' && /^w(done|leave|hold|reroll|fight|skip|spd|pause)$/.test(a)) return mzDiceClick(a, b);
   if (MZ.scr === 'raid' || MZ.reading) return;
   if (a === 'cmd') return mzCmd(b.dataset.id);
   if (a === 'tomap') { mzSay('click'); if (S) mzSheetClose(); MZ.scr = 'map'; MZ.sel = null; mzDraw(); return mzSize(); }
@@ -13345,7 +13883,7 @@ function mzClick(e) {
   if (a === 'birth') { const i = +b.dataset.i, r = MAZE.birth(M, i); if (!r.ok) return mzToast(r.msg); mzSay('birth'); MZ.pops[r.uid] = MZ.t + 900; mzDraw(); mzSheet({ kind: 'births' }); return mzToast(mzJosa(LAIR.KIN[r.kind].name, '을', '를') + ' 낳았다' + (r.free ? '' : ' · 진액 −' + r.cost)); }
   // 땅 위 · 기르기 · 속삭임
   if (a === 'splace') { S.place = S.place === b.dataset.id ? null : b.dataset.id; MZ.pend = null; mzSay('click'); return mzSheet(S); }
-  if (a === 'spow') return mzPend({ act: 'strike', key: S.place + ':' + b.dataset.p, place: S.place, power: b.dataset.p });
+  if (a === 'sgo') return mzPend({ act: 'strike', key: S.place, place: S.place });
   if (a === 'chore') return mzPend({ act: 'raise', key: b.dataset.id, id: b.dataset.id });
   if (a === 'who') return mzPend({ act: 'whisper', key: b.dataset.id, who: b.dataset.id });
   // 권속
@@ -13367,12 +13905,9 @@ function mzConfirm() {
   }
   if (pd.act === 'room') { const r = MAZE.setRoom(M, pd.cell, pd.id); if (!r.ok) { mzToast(r.msg); return mzSheet(MZ.sheet); } mzSay('thud'); mzSheetClose(); MZ.zone = null; mzDraw(); return mzToast(pd.id ? mzJosa(LAIR.ROOM[pd.id].name, '을', '를') + ' 깔았다' + (r.cost ? ' · 진액 −' + r.cost : '') : '방 종류를 걷어 냈다'); }
   if (pd.act === 'strike') {
-    const r = MAZE.command(M, 'strike', { place: pd.place, power: pd.power }); if (!r.ok) { mzToast(r.msg); return mzSheet(MZ.sheet); } M.ui.cmdUsed = M.ui.cmdUsed || {}; M.ui.cmdUsed.strike = 1; mzSay('thud'); mzSave();
-    const T = (MZST && MZST.strikes.find(s => s.id === pd.place)) || { name: pd.place, outcomes: {} }; mzDraw();
-    const note = () => mzSheet({ kind: 'note', title: T.name + ' · ' + MZPOW[pd.power], text: (T.outcomes || {})[pd.power] || '', line: mzGainText(r.gains, v) + (r.up ? ' · 본체 Lv ' + M.level : ''), foot: '다음 밤에는 반드시 복수하러 온다.' });
-    const t = mzTestOpt(), sceneOn = META.mzFeast !== false && !(t && t.feast === false) && typeof MZVIGN !== 'undefined' && typeof MZVIGN.raidUp === 'function';
-    if (sceneOn) { mzSheetClose(); MZ.dbg.raidUp = (MZ.dbg.raidUp || 0) + 1; let done = false; try { MZVIGN.raidUp(mzRaidCtx(M, pd.place, pd.power), () => { if (!done) { done = true; note(); } }); return; } catch (e) { if (!done) { done = true; return note(); } return; } }
-    return note();
+    // 주사위 습격을 연다 (src/mazediceui.js). 올라가는 장면(MZVIGN.raidUp)이 있으면 먼저
+    const r = MAZE.command(M, 'strike', { place: pd.place }); if (!r.ok) { mzToast(r.msg); return mzSheet(MZ.sheet); } M.ui.cmdUsed = M.ui.cmdUsed || {}; M.ui.cmdUsed.strike = 1; mzSay('thud'); mzSave(); mzSheetClose(); mzDraw();
+    return mzDiceOpen(true);
   }
   if (pd.act === 'raise') { const c = v.grow.chores.find(q => q.id === pd.id), r = MAZE.command(M, 'raise', pd.id); if (!r.ok) { mzToast(r.msg); return mzSheet(MZ.sheet); } mzSay('up'); mzAfterCmd(); return mzToast((c ? c.name : '길렀다') + ' · ' + mzGainText(r.gains, v), 2200); }
   if (pd.act === 'whisper') {
@@ -13505,8 +14040,8 @@ function mzOwnUnitHtml(v, u) {
 }
 function mzBirthsHtml(v) {
   const free = v.bench.filter(x => !x).length, did = v.cmd ? v.cmd.did : 0;
-  return `<h3>권속을 낳는다</h3><p class="mz-sub">알은 밤마다 새로 밴다. 본체 성향이 높은 쪽 권속이 더 자주 나온다. 골라서 낳으라.</p><p class="mz-sub">진액 ${v.gold} · 대기석 빈 자리 ${free} · 지금까지 낳은 권속 ${v.born}${v.grow.freeBirth ? ' · 값 없이 낳기 ' + v.grow.freeBirth : ''}</p>`
-    + `<div class="mz-brows">${v.births.map(b => `<button class="mz-brow${b.sold ? ' sold' : ''}${b.lock ? ' lock' : ''}${b.rare ? ' rare' : ''}${!b.sold && !b.lock && !b.can ? ' off' : ''}" data-m="brow" data-i="${b.i}" aria-label="${esc(b.name)}${b.lock ? ', 잠김' : b.sold ? ', 낳았음' : ', 값 ' + b.price}"><img src="${mzIcon(b.kind, 1, 36)}" alt=""><span><b>${esc(b.name)}</b><small>${b.lock ? esc(b.lock) : '체력 ' + b.hp + ' · 공격 ' + b.atk + ' · ' + esc(b.roleName)}</small></span><em>${b.sold ? '낳았다' : b.lock ? '잠김' : b.free ? '0' : b.price}</em></button>`).join('')}</div>`
+  return `<h3>권속을 낳는다</h3><p class="mz-sub">밤마다 새로 배는 알은 ${MAZE.MK.birth.eggs}개이다. 본체 성향이 높은 쪽 권속이 더 자주 나온다. 나머지는 땅 위 습격에서 먹은 것에서 밴 알이고, 낳을 때까지 남는다. 골라서 낳으라.</p><p class="mz-sub">진액 ${v.gold} · 대기석 빈 자리 ${free} · 지금까지 낳은 권속 ${v.born}${v.grow.freeBirth ? ' · 값 없이 낳기 ' + v.grow.freeBirth : ''}</p>`
+    + `<div class="mz-brows">${v.births.map(b => `<button class="mz-brow${b.sold ? ' sold' : ''}${b.lock ? ' lock' : ''}${b.rare ? ' rare' : ''}${!b.sold && !b.lock && !b.can ? ' off' : ''}" data-m="brow" data-i="${b.i}" aria-label="${esc(b.name)}${b.lock ? ', 잠김' : b.sold ? ', 낳았음' : ', 값 ' + b.price}"><img src="${mzIcon(b.kind, 1, 36)}" alt=""><span><b>${esc(b.name)}</b>${b.bank ? `<small class="mz-bank">${b.from === 'nest' ? '굴 안에서 먹은 자에게서 밴 알' : '습격에서 밴 알 · ' + esc(mzPlaceName(b.from))}</small>` : ''}<small>${b.lock ? esc(b.lock) : '체력 ' + b.hp + ' · 공격 ' + b.atk + ' · ' + esc(b.roleName)}</small></span><em>${b.sold ? '낳았다' : b.lock ? '잠김' : b.free ? '0' : b.price}</em></button>`).join('')}</div>`
     + `<div class="mz-acts2 stick"><button data-m="tomap">굴 보기</button><button class="pri" data-m="done">${did ? '마친다' : '다른 명령'}</button></div>`;
 }
 function mzBirthHtml(v, i) {
@@ -13629,6 +14164,7 @@ function mzSheet(s) {
   else if (k === 'sign' || k === 'signv') h = mzSignHtml(v, s);
   else if (k === 'signs') h = mzSignsHtml(v);
   else if (k === 'rumor') h = mzRumorHtml(v, s);
+  else if (k === 'wres') h = mzWresHtml(v);
   else if (k === 'note') h = `<h3>${esc(s.title || '')}</h3>${s.text ? `<p class="mz-nar">${esc(s.text)}</p>` : ''}${s.line ? `<p class="mz-sum"><span class="g">${esc(s.line)}</span></p>` : ''}${s.foot ? `<p class="mz-note">${esc(s.foot)}</p>` : ''}<div class="mz-acts2"><button class="pri" data-m="noteok">닫기</button></div>`;
   else if (k === 'retry') h = `<h3 class="lose">알이 깨졌다</h3><p class="mz-nar">이 막의 첫 밤으로 돌아간다. 굴과 권속도 그 밤의 상태로 돌아간다.</p><div class="mz-acts2"><button class="pri" data-m="retry">이 막을 다시</button><button data-m="home">처음으로</button></div>`;
   else if (k === 'over') h = mzOverHtml(v);

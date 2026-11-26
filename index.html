@@ -664,6 +664,12 @@ const LAIR = (function () {
     c_vasco: { name: '늙은 바스코', tag: '조사자', role: 'support', hp: 700, san: 260, atk: 35, as: 0.6, range: 2, df: 20, mana: 80, skill: 'c_lamp', elite: true, tier: 3, art: 'bard', cast: 'vasco' },
   };
   const INV_IDS = Object.keys(INV);
+  // 굴 짓기의 바퀴 습격에만 나오는 것 (양 떼 · 양치기). 셀 수 없는 칸으로 붙여 INV_IDS 와 둥지 전투의 목록·도감은 그대로 둔다
+  const INVX = {
+    sheep: { name: '양', tag: '먹이', role: 'melee', hp: 260, san: 20, atk: 4, as: 0.5, range: 1, df: 0, mana: 0, speed: 0.9, skill: null, tier: 1, prey: true, will: 1 },
+    shepherd: { name: '양치기', tag: '앞줄', role: 'melee', hp: 400, san: 70, atk: 38, as: 0.7, range: 1, df: 10, mana: 60, skill: 'pike', tier: 1, art: 'militia', will: 1 },
+  };
+  Object.keys(INVX).forEach(k => Object.defineProperty(INV, k, { value: INVX[k], enumerable: false }));
   // 의지: 공포 판정에서 굴리는 주사위 수 (1~4)
   const WILL = { militia: 1, torch: 1, hound: 1, knight: 2, archer: 1, priest: 3, mage: 2, rogue: 2, bard: 2, inquis: 3, paladin: 4, seeker: 4, crossbow: 2, banner: 2, tracker: 2, templar: 3, exorcist: 4, alchemist: 2, seekerm: 3, c_eda: 3, c_rowen: 3, c_mirel: 4, c_tov: 2, c_isel: 2, c_vasco: 4 };
   INV_IDS.forEach(k => { INV[k].will = WILL[k] || 1; });
@@ -1150,7 +1156,7 @@ const LAIR = (function () {
     // ───── 세우기 ─────
     const lv = S.level || 3, cd = K.core, form = FORM[S.form] ? S.form : 'drop';
     const core = add({ id: 'core', side: 'nest', kind: 'core', core: true, cell: CORE[0], cells: CORE.slice(), def: { name: FORM[form].name, hp: sc ? cd.hp * sc.hp : cd.hp * (1 + cd.lvHp * (lv - 3)) * (1 + cd.rdHp * (round - 1)), atk: sc ? cd.atk * sc.atk : cd.atk * (1 + 0.15 * (round - 1)), as: cd.as, range: cd.range + ((sc && sc.range) || 0), df: cd.df, mana: cd.mana - ((sc && sc.manaCut) || 0), skill: (sc && sc.skill && SK[sc.skill]) ? sc.skill : FORM[form].skill, asp: form === 'drop' ? null : form } });
-    core.form = form; core.engage = true; if (S.noCore) { core.alive = false; core.cells.forEach(c => { if (occ[c] === core) occ[c] = null; }); } core.t2 = !!(sc && sc.t2);
+    core.form = form; core.engage = true; if (sc && sc.hp0 != null) core.hp = Math.max(1, Math.round(core.mhp * clamp(sc.hp0, 0.01, 1))); if (S.noCore) { core.alive = false; core.cells.forEach(c => { if (occ[c] === core) occ[c] = null; }); } core.t2 = !!(sc && sc.t2);
     (S.nest || []).forEach(n => { const d = KIN[n.kind]; if (!d || occ[n.cell]) return; const u = add({ id: 'k' + n.uid, side: 'nest', kind: n.kind, star: n.star, cell: n.cell, def: d, mul: STARM[n.star || 1] * (n.pow || 1), hmul: STARM[n.star || 1] * (n.hpow || n.pow || 1) }); if (n.evo) evoOn(u, n.evo, n.hp == null, n.br); if (n.hp != null) u.hp = Math.max(1, Math.min(u.mhp, Math.round(n.hp))); if (n.leap) u.leap = true; });
     const sl = S.scale || null, rm = sl ? sl.atk : K.roundAtk[round - 1] || 1, rh = sl ? sl.hp : K.roundHp[round - 1] || 1, sm = (sl ? sl.san : K.roundSan[round - 1] || 1) * (1 - (bo.sanfrenzy || 0));
     (S.inv || []).forEach(n => { const d = INV[n.kind]; if (!d || occ[n.cell]) return; add({ id: 'e' + (++eid), side: 'inv', kind: n.kind, cell: n.cell, will: n.will, cast: n.cast, def: n.poss ? Object.assign({}, d, { name: '홀린 ' + d.name, san: 0, noMad: true }) : d, mul: rm * (n.mul || 1), hmul: rh * (n.mul || 1), smul: sm }); const u = U[U.length - 1]; u.src = S.inv.indexOf(n); if (n.noLeap) u.leap = false; if (n.hp != null) u.hp = Math.max(1, Math.min(u.mhp, Math.round(n.hp))); if (n.san != null && u.msan) u.san = Math.max(0, Math.min(u.msan, Math.round(n.san))); });
@@ -2145,6 +2151,8 @@ function zrBreath(len, fc, seed) { return rate => { const n = Math.floor(rate * 
 const ZZ = {
   // 누름: 짧고 젖은 똑
   click: [zp(0, 1.6, { v: 0.35, f: 900, s: 0.004, r: 0.035, sh: 1, sl: -12, flt: -3000 })],
+  // 주사위: 뼈 조각 몇 개가 바닥에 구르다 멎는다 (잡음만)
+  dice: [zp(0, 1, { v: 0.4, f: 700, s: 0.004, r: 0.03, sh: 4, flt: 900 }), zp(0.07, 0.8, { v: 0.35, f: 600, s: 0.004, r: 0.03, sh: 4, flt: 1100 }), zp(0.15, 0.7, { v: 0.3, f: 500, s: 0.003, r: 0.04, sh: 4, flt: 800 }), zp(0.26, 0.6, { v: 0.25, f: 450, s: 0.003, r: 0.05, sh: 4, flt: 700 })],
   // 진액: 물방울 하나가 떨어져 튄다
   coin: [zp(0, 1.2, { v: 0.55, f: 420, a: 0.002, s: 0.02, r: 0.1, sl: 30 }), zp(0.07, 0.6, { v: 0.4, f: 780, a: 0.002, s: 0.01, r: 0.08, sl: 20 })],
   // 놓기: 살덩이가 바닥에 붙는다
@@ -2742,6 +2750,14 @@ const LAIRART = (() => {
     R.part('head', { px: 31, py: 29, z: 5, role: 'head', parent: 'body', strike: 0.3 }, D => { D.L([[30, 29.6], [33, 27.6]], 3, 2.6, p); D.B(35, 27.6, 3.6, 3.2, p); D.G([[36.6, 27], [42.6, 28], [42, 30.4], [36.6, 30.6]], p); D.G([[32.6, 25.4], [33, 20.6], [35.6, 24.6]], dk); D.px(35.6, 26.8, '#ffb030'); D.px(42.4, 28.2, INK); D.fangs(38.6, 41, 30.4, 1, 1.4, 1.6); D.rect(30.6, 28, 1.6, 4.6, P.red[1]); D.px(31.2, 32.6, P.gold[1]); });
     R.part('jawp', { px: 36.6, py: 30.4, z: 3, parent: 'head', jaw: 0.5 }, D => { D.G([[36.4, 30.4], [41.4, 31.4], [40.6, 33], [36.6, 32.6]], dk); D.L([[38, 31.6], [40.4, 32]], 0.5, 0.5, ['#0000', '#d8506a', '#d8506a', '#d8506a'], null); });
     R.part('rope', { px: 31, py: 32, z: 3, role: 'sway', amp: 1.2, ph: 1, parent: 'body' }, D => D.L([[31, 32.6], [29, 37], [30, 40.6]], 0.6, 0.5, P.tan));
+  } };
+  // 양: 굴 짓기의 바퀴 습격에서 먹이로만 나온다 (싸우지 못한다). 지저분한 털 뭉치, 검은 얼굴, 가는 다리
+  DEF.sheep = { side: 'inv', build(R) {
+    const w = ['#2a2420', '#bdb4a2', '#e6dfcf', '#8a806e', '#fffaf0'], f = ['#0c0a0a', '#2a2626', '#4a4442', '#181414', '#e8e0d0'], dw = dkp(w);
+    R.die = 'fall'; R.shw = 12; R.eyes = [['head', 34.6, 30.2]];
+    for (const [k, x, ph, pal] of [[0, 17, Math.PI, f], [1, 28, 0.4, f], [2, 19.4, 0, f], [3, 30.4, Math.PI + 0.4, f]]) R.part('leg' + k, { px: x, py: 38, z: k < 2 ? 1 : 4, role: 'leg', ph, amp: 0.8 }, D => { D.L([[x, 37], [x, 44.4]], 1.1, 1, pal); D.rect(x - 0.4, 44, 1.8, 1, pal[1]); });
+    R.part('body', { px: 23, py: 38, z: 2, role: 'body' }, D => { D.B(23.4, 34.4, 9.6, 5.6, w); for (const [x, y, r] of [[16.6, 33, 2.6], [20, 30.2, 2.8], [24.4, 29.6, 3], [28.6, 30.4, 2.6], [31.4, 33.4, 2.4], [18.4, 37.6, 2.4], [26, 38.6, 2.6]]) D.B(x, y, r, r * 0.9, w); for (const [x, y] of [[19, 33], [23, 32], [27, 34], [22, 37]]) D.px(x, y, dw[2]); D.px(24.4, 28.6, w[4]); D.px(20, 29.2, w[4]); });
+    R.part('head', { px: 33, py: 31, z: 5, role: 'head', parent: 'body', strike: 0.15 }, D => { D.B(35, 31.4, 3.4, 3, f); D.G([[36.4, 30], [40.4, 31], [40, 33.6], [36.4, 34]], f); D.G([[32.6, 29], [31, 27.6], [33.4, 28.4]], f); D.B(33.6, 28.4, 2.2, 1.6, w); D.px(34.6, 30.2, '#d8c870'); D.px(39.6, 31.6, '#000'); });
   } };
   // 책을 쫓는 자: 긴 외투, 등불, 손에 붙은 책. 별 단계 = 미쳐 가는 정도
   DEF.seeker = { side: 'inv', size: () => 64, build(R, st) {
