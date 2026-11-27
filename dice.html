@@ -868,7 +868,7 @@ b.nv { color: #8fe8a0; font-weight: 700; white-space: nowrap; }
 #dg-grp .gp { white-space: nowrap; }
 #dg-grp .gp { margin: 0; font-size: calc(11px * var(--df)); line-height: 1.3; color: var(--mute); overflow-wrap: anywhere; }
 #dg-grp .gp.on { color: #f0e6d0; } #dg-grp .gp.on b { color: var(--c); } #dg-grp .gp.bad { color: #ff8a90; font-weight: 700; }
-#dg[data-phase="fight"] #dg-grp, #dg[data-phase="leak"] #dg-grp { display: none; }
+#dg[data-phase="fight"] #dg-grp, #dg[data-phase="leak"] #dg-grp, #dg-grp.empty { visibility: hidden; }
 /* 도감: 희귀 줄 (맨 위 · 금테) */
 .cx-rh { color: #ffcf4a; }
 .cx-row.cx-rare { padding: 4px 5px 5px; margin-bottom: 6px; border: 1px solid #8a6a20; border-radius: 9px; background: linear-gradient(180deg, rgba(255, 207, 74, .08), rgba(255, 207, 74, 0)); box-shadow: inset 0 0 0 1px rgba(255, 207, 74, .15); }
@@ -908,6 +908,39 @@ b.nv { color: #8fe8a0; font-weight: 700; white-space: nowrap; }
 .dg-htabs button.on { border-color: var(--coin); color: var(--coin); }
 .dg-plain { margin: 0 0 10px; font-size: calc(14px * var(--df)); line-height: 1.5; color: #e8e0d0; }
 .dg-rline .rr-w { color: #ffd040; font-weight: 700; }
+
+/* ───────── 전장 크기가 글 때문에 바뀌지 않게 (2026-11-27 사용자: 「아래 글들때문에 화면이 작아지는 버그도있어」) ─────────
+   족보 띠: 윗줄 한 줄(족보 이름 · 족보표 · 주머니) + (던지기 동안) 아랫줄 두 줄 자리. 무리 효과 줄: 접힌 판(놓기 · 싸움)에서 늘 한 줄 자리. 단추 줄: 높이 하나. 단추의 작은 글은 한 줄 */
+#dg-sets { display: block; min-height: 0; }
+#dg-sets .hd-line { display: flex; flex-direction: column; gap: 1px; }
+#dg-sets .hd-a { display: flex; align-items: center; justify-content: space-between; gap: 6px; height: max(32px, 2.2em); }
+#dg-sets .hd-a .hd-1 { flex: 1 1 auto; min-width: 0; white-space: nowrap; }
+#dg-sets .hd-b { height: 2.6em; overflow-y: auto; overscroll-behavior: contain; }
+#dg-sets .hd-b p { margin: 0; }
+#dg-sets .hd-1.hd-draw { flex-wrap: nowrap; }
+#dg-sets .hd-tip.torch { color: #ffb070; }
+#dg-grp { font-size: calc(11px * var(--df)); line-height: 1.3; height: calc(1.3em + 4px); overflow: hidden; align-content: flex-start; align-items: center; }
+#dg-grp .gp.more { color: var(--mute); }
+#dg-btns { height: max(46px, calc(2.6em * var(--df) + 6px)); }
+#dg-btns .btn { min-height: 0; height: 100%; }
+#dg-tray.off #dg-btns { height: 46px; }
+#dg-btns .btn small { white-space: nowrap; }
+/* ───────── 싸움 결과 창 (화면을 다 덮는다 · 「다음」 하나) ───────── */
+#modal:has(.dg-fres) { padding: calc(env(safe-area-inset-top, 0px) + 4px) 4px calc(var(--sab) + 4px); background: rgba(6, 5, 12, .94); }
+.dg-fres { height: 100%; max-height: 100%; }
+.dg-fres .sh-head h2 { color: var(--mute); font-size: calc(14px * var(--df)); font-weight: 700; }
+.dg-fres .sh-body { gap: 6px; }
+.dg-fres .fr-head { text-align: center; padding: 8px 4px 10px; border-radius: 10px; background: rgba(143, 232, 160, .07); border: 1px solid rgba(143, 232, 160, .25); }
+.dg-fres .fr-head.lose { background: rgba(255, 96, 112, .08); border-color: rgba(255, 96, 112, .3); }
+.dg-fres .fr-big { margin: 0; font-size: calc(34px * var(--df)); font-weight: 900; line-height: 1.15; color: #8fe8a0; letter-spacing: .04em; }
+.dg-fres .fr-head.lose .fr-big { color: #ff6070; }
+.dg-fres .fr-sub { margin: 2px 0 0; color: var(--mute); font-size: calc(13px * var(--df)); }
+.dg-fres .fr-items { gap: 10px; margin: 4px 0 0; }
+.dg-fres .dg-item .it-h { font-size: calc(17px * var(--df)); }
+.dg-fres .dg-item .it-b { font-size: calc(14px * var(--df)); }
+.dg-fres .dg-item .it-h .bad { color: #ff6070; }
+.dg-fres .sh-btns { padding: 8px 12px 10px; }
+.dg-fres .sh-btns .btn { flex: 1 1 auto; min-height: 52px; font-size: calc(18px * var(--df)); }
 </style>
 </head><body style="margin:0">
 <div id="title" class="screen">
@@ -3198,7 +3231,7 @@ const DICE = (() => {
       { id: 'egg', name: '알로 돌아간 것', short: s => '별이 가장 높은 권속이 ' + (rv('egg', 'lose', s) >= 9 ? '알로 돌아가 1성이 됩니다' : '별 ' + kor(rv('egg', 'lose', s)) + dJo(kor(rv('egg', 'lose', s)), '을', '를') + ' 잃습니다'),
         lore: '「다 자란 것이 어미의 부름에 다시 껍데기 속으로 기어들어 가는 것을, 저는 제 눈으로 보았습니다.」',
         can: R => allUnits(R).some(u => u.star >= 2),
-        go: (R, s) => { const u = allUnits(R).filter(x => x.star >= 2).sort((a, b) => b.star - a.star || strength(b) - strength(a) || a.uid - b.uid)[0], n0 = unitName(u), s0 = u.star; u.star = Math.max(1, u.star - rv('egg', 'lose', s)); u.fed = Math.min(u.fed || 0, FU.feedCap(u));
+        go: (R, s) => { const u = allUnits(R).filter(x => x.star >= 2).sort((a, b) => b.star - a.star || strength(b) - strength(a) || a.uid - b.uid)[0], n0 = unitName(u), s0 = u.star; if ((u.mats || []).length) ungather(R, u.uid); u.star = Math.max(1, u.star - rv('egg', 'lose', s)); u.fed = Math.min(u.fed || 0, FU.feedCap(u));
           return nm(n0) + dJo(n0, '이', '가') + ' ' + (u.star === 1 ? '알로 돌아가 1성이 되었습니다' : '별을 잃었습니다') + ' (' + s0 + '성 → ' + u.star + '성)'; } },
       { id: 'blank', name: '거둔 면', short: s => '번식 주사위의 면 ' + rv('blank', 'n', s) + '개가 횃불 면이 됩니다 (없으면 아무 주사위)',
         lore: '그 밤 마을의 알이란 알은 모두 속이 비어 있었으니, 어미의 어미가 무엇을 거두어 갔는지 나는 감히 헤아리지 못하겠다.',
@@ -3562,7 +3595,7 @@ const DICE = (() => {
   function put(R, uid, w) { if (w.cell != null) R.board[w.cell] = uid; else R.bench[w.bench] = uid; }
   const upAsp = R => (R.myth ? BEING_ASP[R.myth.id] : null);
   // 합치기 = 같은 별 셋 모으기 (FU.result3). 받는 쪽(dst) 위에 재료(src)를 놓는다: 첫 재료는 받는 쪽 안에 들어가고(u.mats, 「2/3」), 둘째 재료를 놓으면 합쳐진다.
-  //   모으는 동안 재료는 R.units 밖(받는 쪽의 mats)에 있다. 풀면(ungather) 제자리 · 대기 칸 · 빈 칸으로 돌아온다. 싸우러 가면 저절로 풀린다.
+  //   모으는 동안 재료는 R.units 밖(받는 쪽의 mats)에 있다. 풀면(ungather) 제자리 · 대기 칸 · 빈 칸으로 돌아온다. 싸움 · 다음 라운드 · 저장을 지나도 그대로다 (풀기는 정보 창의 단추로만).
   const snapOf = u => ({ kind: u.kind, star: u.star, br: u.br, grade: u.grade, myth: u.myth, stain: u.stain || null });
   // 미리 보기 (놓기 전): 결과의 이름 · 별 · 등급. have = 놓으면 모인 수 (2 면 아직 모으는 중, 3 이면 합쳐진다). 레시피면 recipe (화면이 처음 것은 「???」로 가린다)
   function fusePreview(R, src, dst) {
@@ -3742,8 +3775,9 @@ const DICE = (() => {
   }
   function fight(R) {
     if (R.phase !== 'place') return fail(R.phase === 'roll' ? '먼저 주사위를 확정하세요' : '지금은 싸울 때가 아니다');
-    // 모으는 중인 재료는 싸우러 가기 전에 풀려 돌아온다 (싸움에 재료가 없어지지 않게)
-    const unpacked = ungatherAll(R);
+    // 모으는 중인 재료(2/3)는 싸움에도 받는 쪽 안에 그대로 남는다 (싸움은 권속을 잃지 않으니 재료도 없어지지 않는다).
+    //   고친 버그 (2026-11-27 사용자: 「합쳐진 애들이 다시 분리되는현상이 있어」): 전에는 여기서 저절로 풀려 둘로 갈라졌다. 풀기는 정보 창의 단추로만.
+    const unpacked = 0;
     if (!boardUids(R).length) return fail('세운 권속이 없습니다');
     // 비어 있는 배: 싸움마다 권속 하나가 굶주린다
     //   리스크 「굶주림」도 같다 (둘이면 센 쪽)
@@ -3768,7 +3802,8 @@ const DICE = (() => {
     // (빈 줄로 샌 적에 생명이 다하면 판이 끝나니 보상은 없다)
     let got = null; if (win && node.reward && R.life > 0) got = grantReward(R, node.reward);
     const starve = R.starve ? { uid: R.starve.uid, v: R.starve.v, name: R.units[R.starve.uid] ? unitName(R.units[R.starve.uid]) : '' } : null;
-    const res = { round: R.round, world: worldOf(R).id, region: regionOf(R.round, R).name, type: node.type, name: routeTitle(node), boss: node.type === 'boss', win, kills, prey, loss, leftList, leak: leakL, leakLoss, kinLost, kinAlive, lifeBefore, life: R.life, gold, goldParts: { kill: kg, win: wg, interest: ig }, regen, time: f.time, torch: R.torch, reward: got, starve, timeout: !win && kinAlive > 0, retry: R.retry, unpacked, lick: R.lick, grow };
+    // 결과 요약 (화면의 결과 창이 그대로 쓴다: 승패 · 생명 · 진액 · 받은 보상과 그 설명 · 쓰러진 권속). 규칙 값은 바꾸지 않는다
+    const res = { round: R.round, world: worldOf(R).id, region: regionOf(R.round, R).name, type: node.type, name: routeTitle(node), boss: node.type === 'boss', win, kills, prey, loss, leftList, leak: leakL, leakLoss, kinLost, kinAlive, lifeBefore, life: R.life, gold, goldParts: { kill: kg, win: wg, interest: ig }, regen, time: f.time, torch: R.torch, reward: got, rewardInfo: got ? rewardInfo(R, node.reward) : null, starve, timeout: !win && kinAlive > 0, retry: R.retry, unpacked, lick: R.lick, grow };
     R.hist.push({ round: R.round, type: node.type, win, loss, life: R.life, kills, leak: leakL.length }); R.last = res; R.nextFight = null;
     hexOn(R, 'elite').forEach(h => { h.n--; });
     // 퀘스트: 아무도 잃지 않고 이김 (깊은 데) · 처치 (두건)
@@ -10584,7 +10619,10 @@ function dMount() {
 <div id="dg-evo" hidden role="dialog" aria-modal="true" aria-label="진화"><canvas id="dg-ecv"></canvas><div class="ev-box"><p class="ev-found">새로 발견</p><p class="ev-tag"></p><h2 class="ev-name"><span class="ev-old"></span><i>→</i><b class="ev-new"></b></h2><div class="ev-trait"></div><div class="ev-stats"></div><p class="ev-tap">누르면 넘어갑니다</p></div></div>
 <div id="dg-rite" hidden role="dialog" aria-modal="true" aria-label="위대한 옛것"><canvas id="dg-rcv"></canvas><div class="rt-box"><p class="rt-tag"></p><h2 class="rt-name"></h2><p class="rt-lore"></p><ul class="rt-rules"></ul><p class="rt-tap">누르면 넘어갑니다</p></div></div>`;
   // 말풍선 · 밝힘은 창(#modal) 위에도 떠야 하니 몸(body)에 둔다 (#dg 안에 있으면 창 아래에 깔린다: 덱 걸음이 창 안을 짚는다)
-  document.body.appendChild(g); document.body.appendChild($('dg-tip')); document.body.appendChild($('dg-spot')); dBind(g); return g;
+  document.body.appendChild(g); document.body.appendChild($('dg-tip')); document.body.appendChild($('dg-spot')); dBind(g);
+  // 전장 칸의 크기가 바뀌면(글자 크기를 키우는 브라우저가 뒤늦게 글을 키울 때 등) 캔버스도 곧바로 맞춘다 (캔버스가 칸보다 커서 위아래가 잘리지 않게)
+  try { if (window.ResizeObserver) new ResizeObserver(() => dFit()).observe($('dg-fieldwrap')); } catch (e) { /* 창 크기 바뀜으로만 */ }
+  return g;
 }
 function dStart(R) {
   DG.R = R; DG.scr = 'game'; DG.ui = R.phase; DG.F = null; DG.sel = null; DG.showV = null; DG.roll = null; TR.dice = []; TR.mode = 'idle';
@@ -10899,15 +10937,31 @@ function dDiceHtml(v) {
 // 족보 띠: 던진 뒤 지금의 족보와 받을 것을 크게 (붙잡기를 바꾸거나 다시 굴릴 때마다 갈린다) · 족보표 · 주머니 단추
 //   던지기 전: 이번 라운드에 주머니에서 꺼낸 주사위들의 색 · 한 줄 안내
 const DLEG = () => LAIR.ASPS.map(a => `<span class="dg-leg" style="color:${ASPC[a]}">${dChip(a)}${dEsc(LAIR.ASPN[a])}</span>`).join(' ');
+// 띠의 높이는 늘 같다 (2026-11-27 사용자: 「아래 글들때문에 화면이 작아지는 버그도있어」): 윗줄(족보 이름 · 족보표 · 주머니) 한 줄 + 아랫줄 두 줄 자리.
+//   글이 줄어도 늘어도 전장 크기가 바뀌지 않는다. 아랫줄은 짧게 쓰고, 그래도 넘치면 그 안에서만 밀어 본다 (전장을 밀어내지 않는다).
 function dSetsLine(v) {
   const ro = v.roll, chips = `<span class="hd-chips"><button class="hd-chip" data-d="hands">족보표</button><button class="hd-chip" data-d="mydice">주머니 ${v.bag.length}</button></span>`;
-  if (v.phase !== 'roll' && v.phase !== 'place') return '';
-  if (v.phase === 'place') { const P = DG.lastParts; return `<div class="hd-line done">${P ? `<p class="hd-1">확정 · <b>${dEsc(P.name)}</b></p><p class="hd-2">${dEsc(P.get.join(' · '))}</p>` : ''}${DG.lastLost ? `<p class="hd-3 bad">대기 칸이 가득 차서 ${DG.lastLost.n}마리를 놓쳤습니다 (진액 +${DG.lastLost.gold})</p>` : ''}</div>${chips}`; }
-  if (DG.ui === 'shaking') return `<p class="hd-line pre">흔드는 중 · 떼면 던집니다</p>${chips}`;
-  if (!ro || !ro.n || DG.ui === 'rolling') return `<div class="hd-line pre">${DG.ui === 'rolling' ? '<p>구릅니다…</p>' : `<p class="hd-draw">꺼낸 ${v.dice.length}개 ${v.dice.map(dDieChip).join('')}<small>주머니 ${v.bag.length}개에서</small></p><p class="hd-tip">색 = 권속의 성향 · 같은 수가 모일수록 높은 족보(별)</p>`}</div>${chips}`;
-  // 세 줄: 족보 이름 / 받는 것(짧게) / 덤(희귀 · 남은 주사위 · 강화 · 횃불, 작게). 한 줄에 「·」로 길게 잇지 않는다
+  const band = (cls, a, b) => `<div class="hd-line ${cls}"><div class="hd-a">${a}${chips}</div>${b == null ? '' : `<div class="hd-b">${b}</div>`}</div>`;
+  // 판을 접은 뒤(놓기 · 싸움)에는 윗줄 하나만: 확정한 족보 (받은 권속은 대기 칸에 있다 · 놓친 것은 확정할 때 알림으로)
+  if (v.phase !== 'roll' || DG.ui === 'fight' || DG.ui === 'leak') { const P = DG.lastParts; return band('done', `<p class="hd-1">${P && (v.phase === 'place' || DG.ui === 'fight' || DG.ui === 'leak') ? `확정 · <b>${dEsc(P.name)}</b>${DG.lastLost && v.phase === 'place' ? ` <span class="bad">· ${DG.lastLost.n}마리 놓침</span>` : ''}` : ''}</p>`, null); }
+  // 던지기 전 · 흔드는 중 · 구르는 중: 아랫줄은 같은 안내 (횃불이 섞인 라운드면 그 알림)
+  const tip = v.torchNote ? `<p class="hd-tip torch">${dEsc(v.region.name)}의 사람들이 횃불 면을 하나 섞었습니다 · 횃불은 숫자가 없어 족보를 깹니다</p>` : '<p class="hd-tip">색 = 권속의 성향 · 같은 수가 모일수록 높은 족보(별)</p>';
+  if (DG.ui === 'shaking') return band('pre', '<p class="hd-1">흔드는 중 · 떼면 던집니다</p>', tip);
+  if (!ro || !ro.n || DG.ui === 'rolling') return band('pre', DG.ui === 'rolling' ? '<p class="hd-1">구릅니다…</p>' : `<p class="hd-1 hd-draw">꺼낸 ${v.dice.length}개 ${v.dice.map(dDieChip).join('')}</p>`, tip);
+  // 윗줄: 족보 이름 / 아랫줄: 받는 것(짧게) · 덤(희귀 · 남은 주사위 · 강화 · 횃불, 작게)
   const P = ro.parts || { name: ro.hand.name, get: [], buff: [] };
-  return `<div class="hd-line r${ro.hand.rank}"><p class="hd-1"><b class="hd-n">${dEsc(P.name)}</b></p>${P.get.length ? `<p class="hd-2 hd-get">${dEsc(P.get.join(' · '))}</p>` : ''}${P.buff.length ? `<p class="hd-3">${dNumHi(P.buff.join(' · '))}</p>` : ''}</div>${chips}`;
+  return band('r' + ro.hand.rank, `<p class="hd-1"><b class="hd-n">${dEsc(P.name)}</b></p>`, `${P.get.length ? `<p class="hd-2 hd-get">${dEsc(P.get.join(' · '))}</p>` : ''}${P.buff.length ? `<p class="hd-3">${dNumHi(dBuffShort(P.buff).join(' · '))}</p>` : ''}`);
+}
+// 아랫줄이 두 줄 자리를 넘치면(큰 글씨 등) 더 짧은 말로: 「덤: 희귀 1성 10%」 → 「희귀 덤 10%」 · 「이번 싸움 공격 +35%」 → 「공격 +35%」 · 「적 체력 −15%」 → 「적 −15%」 · 「심연 1성 + 성운 1성」 → 「심연 · 성운 1성」
+function dSetsFit() {
+  const hb = document.querySelector('#dg-sets .hd-b'); if (!hb || hb.dataset.short || hb.scrollHeight <= hb.clientHeight + 1) return; hb.dataset.short = '1';
+  const g = hb.querySelector('.hd-2'), b = hb.querySelector('.hd-3:not(.bad)');
+  if (g) { const ps = g.textContent.split(' · '), k = ps[0].split(' + ').map(x => /^(\S+) (\d성)$/.exec(x)); if (k.length > 1 && k.every(x => x && x[2] === k[0][2])) { ps[0] = k.map(x => x[1]).join(' · ') + ' ' + k[0][2]; g.textContent = ps.join(' · '); } }
+  if (b && hb.scrollHeight > hb.clientHeight + 1) b.innerHTML = dNumHi(b.textContent.replace(/덤: 희귀 1성 ?(\d+%)?/, (m, q) => '희귀 덤' + (q ? ' ' + q : '')).replace(/이번 싸움 공격/, '공격').replace(/적 체력 −/, '적 −').replace(/남은 주사위 /, '남은 ').replace(/ \(적 체력 \+(\d+)%\)/, ' (적 +$1%)'));
+}
+// 덤 줄을 짧게: 「남은 주사위: 번식 +5% 황혼 +5%」 → 「남은 주사위 +5%: 번식 · 황혼」 (모두 같은 몫일 때)
+function dBuffShort(list) {
+  return list.map(s => { const m = /^남은 주사위: (.+)$/.exec(s); if (!m) return s; const ps = m[1].split(/ (?=[^ ]+ \+\d+%)/).map(q => /^(.+) (\+\d+%)$/.exec(q)).filter(Boolean); return ps.length && ps.every(q => q[2] === ps[0][2]) ? '남은 주사위 ' + ps[0][2] + ': ' + ps.map(q => q[1]).join(' · ') : s; });
 }
 const dSetsHtml = () => { if (DG.v) { const el = $('dg-sets'); if (el) el.innerHTML = dSetsLine(DG.v); } };
 const DPHB = { shop: '상점', altar: '제단', event: '사건', done: '다음' };
@@ -10916,7 +10970,7 @@ function dBtns(v) {
   if (u === 'fight' || u === 'leak') return `<button class="btn sm" data-d="speed">빠르기 ${dSpeed()}배</button><button class="btn sm" data-d="skip">건너뛰기</button>`;
   if (v.phase === 'roll') {
     if (!ro.n || (u === 'rolling' && !DG.rerolling)) return `<button id="dg-go" class="btn pri big" data-d="throw" ${u === 'rolling' ? 'disabled' : ''}>흔들기<small>누르고 있다가 떼면 던집니다</small></button>`;
-    return `<button class="btn" data-d="reroll" ${ro.left > 0 && u !== 'rolling' ? '' : 'disabled'}>다시 굴리기<small>${ro.left}번 남음 · 누르고 있다가 떼기</small></button><button class="btn sm buy" data-d="buy" ${ro.canBuy && u !== 'rolling' ? '' : 'disabled'}>+1번<small>진액 ${ro.buy}</small></button><button id="dg-ok" class="btn pri" data-d="confirm" ${u === 'rolling' ? 'disabled' : ''}>확정</button>`;
+    return `<button class="btn" data-d="reroll" ${ro.left > 0 && u !== 'rolling' ? '' : 'disabled'}>다시 굴리기<small>${ro.left}번 남음</small></button><button class="btn sm buy" data-d="buy" ${ro.canBuy && u !== 'rolling' ? '' : 'disabled'}>+1번<small>진액 ${ro.buy}</small></button><button id="dg-ok" class="btn pri" data-d="confirm" ${u === 'rolling' ? 'disabled' : ''}>확정</button>`;
   }
   if (v.phase === 'place') return `<button class="btn sm" data-d="auto">자동 배치</button><button id="dg-fight" class="btn pri" data-d="fight" ${v.placed ? '' : 'disabled'}>싸우기</button>`;
   if (DPHB[v.phase]) return `<button class="btn pri" data-d="flow">${DPHB[v.phase]}</button>`;
@@ -10924,21 +10978,29 @@ function dBtns(v) {
 }
 function dRender() {
   if (DG.scr !== 'game' || !DG.R) return; const v = DICE.view(DG.R); DG.v = v;
-  dTop(v); dBench(v); dTraySync(); $('dg-dbtn').innerHTML = dDiceHtml(v); $('dg-dice').dataset.n = v.dice.length; $('dg-sets').innerHTML = dSetsLine(v); $('dg-btns').innerHTML = dBtns(v);
-  $('dg-tray').classList.toggle('off', v.phase !== 'roll'); $('dg').dataset.phase = DG.ui; dGroupHtml(v); dFit();
+  dTop(v); dBench(v); dTraySync(); $('dg-dbtn').innerHTML = dDiceHtml(v); $('dg-dice').dataset.n = v.dice.length; $('dg-sets').innerHTML = dSetsLine(v); dSetsFit(); requestAnimationFrame(dSetsFit); $('dg-btns').innerHTML = dBtns(v);
+  $('dg-tray').classList.toggle('off', v.phase !== 'roll'); $('dg').dataset.phase = DG.ui; dGroupHtml(v); dFit(); requestAnimationFrame(dFit);
   const say = $('dg-say'); say.textContent = dSayLine(v); dCodexScan();
 }
 // 무리 효과 줄 (전장 아래 한 줄, 놓는 동안에만 · 전장을 가리지 않는다): 걸린 것 「기아 4 · 공격 +25%」, 다음 문턱 「심연 1/2」, 빈 줄이 있으면 붉게
+//   자리는 주사위 판을 접은 뒤(놓기 · 싸움) 늘 한 줄만큼 잡아 둔다 (글이 생기고 없어져도 전장 크기가 그대로). 한 줄에 다 안 들면 뒤의 것부터 「외 n」으로 접는다 (빈 줄 경고는 남긴다)
 function dGroupHtml(v) {
-  const el = $('dg-grp'); if (!el) return; const show = v.phase === 'place' && DG.ui !== 'fight' && DG.ui !== 'leak' && v.placed > 0; el.hidden = !show; if (!show) return;
+  const el = $('dg-grp'); if (!el) return; const keep = v.phase !== 'roll', show = keep && v.phase === 'place' && DG.ui !== 'fight' && DG.ui !== 'leak' && v.placed > 0;
+  el.hidden = !keep; el.classList.toggle('empty', !show); if (!show) { el.innerHTML = ''; return; }
   const L0 = v.lanes, open = !!(L0 && L0.open.length), on = v.groups.filter(g => g.tier), near = v.groups.filter(g => !g.tier).slice(0, Math.max(0, 2 - on.length));
   el.innerHTML = (open ? `<p class="gp bad">빈 줄 ${L0.open.length} · 생명 −${L0.loss}</p>` : '')
     + on.map(g => `<p class="gp on" style="--c:${ASPC[g.asp]}">${dChip(g.asp)}<b>${dEsc(g.name)} ${g.n}</b> · ${dNumHi(g.eff)}</p>`).join('')
     + near.map(g => `<p class="gp" style="--c:${ASPC[g.asp]}">${dChip(g.asp)}${dEsc(g.name)} ${g.n}/${g.next}</p>`).join('');
+  dGroupFit(); requestAnimationFrame(dGroupFit);
+}
+// 한 줄 자리에 넘치면 뒤의 것(빈 줄 경고는 남긴다)부터 접어 「외 n」 하나로
+function dGroupFit() {
+  const el = $('dg-grp'); if (!el || el.hidden || el.classList.contains('empty')) return; const over = () => el.scrollHeight > el.clientHeight + 1;
+  let more = el.querySelector('.gp.more'); for (let g = 0; g < 8 && over(); g++) { const ps = Array.from(el.querySelectorAll('.gp:not(.bad):not(.more)')); if (ps.length <= 1) break; ps[ps.length - 1].remove(); if (!more) { more = document.createElement('p'); more.className = 'gp more'; more.dataset.n = '0'; el.appendChild(more); } more.dataset.n = String(+more.dataset.n + 1); more.textContent = '외 ' + more.dataset.n; }
 }
 function dSayLine(v) {
   if (DG.ui === 'fight' || DG.ui === 'leak') return '';
-  if (v.phase === 'roll' && v.torchNote && !(v.roll && v.roll.n)) return v.region.name + '의 사람들이 주사위 면 하나를 횃불로 바꿔 놓았습니다. 횃불은 숫자가 없어 족보를 깹니다.';
+  // 횃불 알림은 전장 위가 아니라 족보 띠의 아랫줄에 (전장 위에는 싸움 · 놓기만)
   return '';
 }
 
@@ -10958,7 +11020,7 @@ function dConfirm() {
   const got = r.got.filter(g => g.type === 'unit').map(g => { const u = R.units[g.uid], nm = u ? DICE.unitName(u) : LAIR.KIN[g.kind].name; return nm + ' ' + g.star + '성' + (g.how === 'hybrid' ? ' (혼종)' : g.how === 'myth' ? ' (신화)' : ''); }).join(', ');
   // 대기 칸이 차서 못 받은 권속은 진액이 된다: 분명히 알린다 (고친 것: 「풀하우스는 왜 보상이 없나」 — 대기 칸이 차 있으면 조용히 진액이 되었다)
   DG.lastLost = r.lost ? { n: r.lost, gold: r.lostGold } : null;
-  dSave(); dRender(); dToast(r.hand.name + ' · ' + (got ? '온 권속: ' + got : r.lost ? '' : '권속은 오지 않았습니다.') + (r.lost ? (got ? ' · ' : '') + '대기 칸이 가득 차서 ' + r.lost + '마리를 놓쳤습니다 (진액 +' + r.lostGold + ')' : '') + (r.gold ? ' · 진액 +' + r.gold : '') + (r.buff ? ' · 이번 싸움 강화' : ''), r.lost ? 3600 : 0);
+  dSave(); dRender(); const cfm = [got ? '' : r.lost ? '' : '권속은 오지 않았습니다', r.lost ? '대기 칸이 가득 차서 ' + r.lost + '마리를 놓쳤습니다 (진액 +' + r.lostGold + ')' : '', r.gold ? '진액 +' + r.gold : '', r.buff ? '이번 싸움 강화' : ''].filter(Boolean); if (cfm.length) dToast(r.hand.name + ' · ' + cfm.join(' · '), r.lost ? 3600 : 0);
   // 2성 넘게 바로 오면 짧은 연출 (4성 · 신화 · 혼종은 크게)
   const ev = r.got.filter(g => g.type === 'unit' && R.units[g.uid] && (g.star >= 2 || g.how === 'hybrid' || g.how === 'myth' || g.how === 'rare')).map(g => { const n = Math.min(5, Math.max(2, g.star)); return dEvoEv({ u: R.units[g.uid], before: dStatOf(g.kind, 1), from: 'dice', hand: r.hand.name, big: g.star >= 4 || g.how === 'myth' || g.how === 'hybrid' || g.how === 'rare', n, mats: Array.from({ length: n }, () => ({ kind: g.kind, star: 1 })) }); });
   if (ev.length) dEvoQueue(ev); dFlow();
@@ -11382,9 +11444,8 @@ function dDraw(now) {
     F.nums.forEach(n => { const k = (F.t - n.t0) / 0.9; if (k < 0 || k > 1) return; try { LAIRART.num(x, n.x, n.y, n.text, n.kind, k, 1); } catch (e) { /* 숫자 없이 */ } });
     F.tags.forEach(n => { const k = (F.t - n.t0) / 1.1; if (k < 0 || k > 1) return; x.font = 'bold 10px sans-serif'; x.textAlign = 'center'; x.globalAlpha = 1 - k; x.fillStyle = '#0c0812'; x.fillText(n.text, n.x + 1, n.y - 33 - k * 6); x.fillStyle = n.col; x.fillText(n.text, n.x, n.y - 34 - k * 6); x.globalAlpha = 1; });
     if (F.leakHit) { const q = (performance.now() - F.leakHit) / 700; if (q < 1) { x.fillStyle = 'rgba(160,10,30,' + (0.35 * (1 - q)).toFixed(3) + ')'; x.fillRect(0, 0, DFW, DFH); } }
-    if (F.sneak && F.sneak.hit) { const q = (performance.now() - F.sneak.hit) / 1600; if (q < 1) { if (q < 0.4) { x.fillStyle = 'rgba(160,10,30,' + (0.3 * (1 - q / 0.4)).toFixed(3) + ')'; x.fillRect(0, 0, DFW, DFH); } const s2 = '빈 줄로 샌 적 ' + F.sneak.k + ' · 생명 −' + F.sneak.n; x.font = 'bold 12px sans-serif'; x.textAlign = 'left'; x.globalAlpha = Math.min(1, 2.5 * (1 - q)); x.fillStyle = '#0c0812'; x.fillText(s2, 9, 19); x.fillStyle = '#ff6070'; x.fillText(s2, 8, 18); x.globalAlpha = 1; } }
-    if (F.leakN) { const s = '생명 −' + F.leakN; x.font = 'bold 18px sans-serif'; x.textAlign = 'left'; x.fillStyle = '#0c0812'; x.fillText(s, 13, DFH / 2 - 19); x.fillStyle = '#ff6070'; x.fillText(s, 12, DFH / 2 - 20); }
-    if (F.wonAt) { const s = '승리'; x.font = 'bold 18px sans-serif'; x.textAlign = 'center'; x.fillStyle = '#0c0812'; x.fillText(s, DFW / 2 + 1, DFH / 2 - 19); x.fillStyle = '#8fe8a0'; x.fillText(s, DFW / 2, DFH / 2 - 20); }
+    if (F.sneak && F.sneak.hit) { const q = (performance.now() - F.sneak.hit) / 1600; if (q < 1) { if (q < 0.4) { x.fillStyle = 'rgba(160,10,30,' + (0.3 * (1 - q / 0.4)).toFixed(3) + ')'; x.fillRect(0, 0, DFW, DFH); } } }
+    // 싸움 결과 글(빈 줄로 샌 적 · 생명 −n · 승리)은 전장 위에 쓰지 않는다: 싸움이 끝나면 결과 창에 (붉은 번쩍임만 남긴다)
   }
   x.restore(); if (F) dxDrawTop(x, F);
 }
@@ -11415,14 +11476,14 @@ const DINTRO = DPACE.intro, DLEAK = DPACE.leak;
 // 쳐들어감: 권속은 왼쪽 밖에서 걸어 들어오고(0.75초), 지키는 자는 제자리에서 기다린다. 끝에 지키는 자가 남으면 권속(남은 것)은 왼쪽으로 물러나고 생명이 깎인다.
 function dFight() {
   const R = DG.R, v0 = DICE.view(R), r = DICE.fight(R); if (!r.ok) return dToast(r.msg);
-  DG.dbg.fights++; DG.showV = v0; DG.res = r.res; const f = r.f; dSave(); DG.peek = null; $('dg-peek').hidden = true; if (r.res.unpacked) { DG.dbg.unpacked = (DG.dbg.unpacked || 0) + r.res.unpacked; DG.showV = DICE.view(R); }
+  DG.dbg.fights++; DG.showV = v0; DG.res = r.res; r.res.seen = false; const f = r.f; dSave(); DG.peek = null; $('dg-peek').hidden = true; if (r.res.unpacked) { DG.dbg.unpacked = (DG.dbg.unpacked || 0) + r.res.unpacked; DG.showV = DICE.view(R); }
   const units = f.units.map(u => { const p = dCellXY(u.cell), kin = u.side === 'nest', x0 = p.x - 170; return { id: u.id, side: u.side, home: u.side, kind: u.kind, star: u.star, br: u.br, big: !!(u.boss || u.elite), x: kin ? x0 : p.x, y: p.y, tx: p.x, ty: p.y, hp: u.mhp, mhp: u.mhp, alive: true, anim: kin ? 'move' : 'idle', animT: 0, animEnd: kin ? DINTRO : null, moving: kin, mv: kin ? { x0, y0: p.y, x1: p.x, y1: p.y, t0: 0, t1: DINTRO } : null, summon: false, face: kin ? 1 : -1 }; });
   DG.F = { f, S: r.S, t: 0, i: 0, units, byId: {}, nums: [], tags: [], end: f.time + DINTRO + DPACE.pad, leak: null, done: false, hitSay: 0, hitAt: {}, late: [], busy: 0, fxParts: [], fxStains: [], fxMarks: [], fxRings: [], fxShots: [], fxSk: [], frames: [], real0: performance.now() };
   // 빈 줄로 새는 적: 싸움에 들지 않고 처음 1초 남짓 동안 왼쪽 밖(굴)으로 달려 나간다 → 붉은 번쩍임 · 「새어 든 적 · 생명 −n」
   (r.res.leak || []).forEach((o, i) => { const p = dCellXY(o.cell), t1 = DINTRO + 0.55 + i * 0.08; units.push({ id: 'L' + i, side: 'inv', home: 'inv', kind: o.kind, star: 1, x: p.x, y: p.y, hp: 1, mhp: 1, alive: true, anim: 'move', animT: 0, animEnd: t1, moving: true, mv: { x0: p.x, y0: p.y, x1: -40, y1: p.y, t0: 0.15, t1 }, leaker: true, face: -1, goneAt: t1 }); });
   if (r.res.leak && r.res.leak.length) DG.F.sneak = { at: DINTRO + 0.6, n: r.res.leakLoss, k: r.res.leak.length };
   units.forEach(u => { DG.F.byId[u.id] = u; });
-  DG.ui = 'fight'; $('modal').hidden = true; dMusic(R.node && R.node.type === 'boss' ? 'boss' : 'night'); dSay('night'); dRender(); dTip(); if (r.res.unpacked) dToast('모으던 재료 ' + r.res.unpacked + '마리가 풀려 돌아왔습니다.');
+  DG.ui = 'fight'; $('modal').hidden = true; dMusic(R.node && R.node.type === 'boss' ? 'boss' : 'night'); dSay('night'); dRender(); dTip();
 }
 function dInvLeft(F) { let n = 0, big = false; F.units.forEach(u => { if (u.home === 'inv' && u.alive !== false && !u.mad && !u.gone && !u.leaker) { n++; if (u.big) big = true; } }); return [n, big]; }
 function dTickFight(dt) {
@@ -11477,7 +11538,7 @@ function dSkip() { const F = DG.F; if (!F) return; F.pause = false; F.pauseAt = 
 function dFightDone() {
   const F = DG.F; if (!F || F.done) return; F.done = true; F.pause = false; const res = DG.res, R = DG.R; DG.peek = null; $('dg-peek').hidden = true;
   DG.lastF = F; DG.lastFight = { real: (performance.now() - F.real0) / 1000, time: F.f.time, round: res ? res.round : 0, loss: res ? res.loss : 0, win: res ? res.win : false, skipped: !!F.skipping, old: F.f.time + 0.9 + 0.4 + (res && res.loss ? 1.3 : 0.1) + 0.5 };
-  const go = () => { DG.F = null; DG.showV = null; DG.ui = R.phase; dRender(); if (R.phase === 'over') dMusic(R.over === 'win' ? 'win' : 'lose'); else { dMusic('day'); dFightToast(R.last); } dFlow(); };
+  const go = () => { DG.F = null; DG.showV = null; DG.ui = R.phase; dRender(); if (R.phase === 'over') dMusic(R.over === 'win' ? 'win' : 'lose'); else dMusic('day'); dFlow(); };
   const ctx = dFeastPick(F.f, res);
   if (ctx && dFeastRoll(ctx)) { DG.dbg.feasts++; R.feastLast = R.round; R.feastSeen = 1; dSave(); if (!dFeastShow(ctx, go)) go(); } else go();
 }
@@ -11534,6 +11595,8 @@ function dFlow() {
   if (DG.ui === 'fight' || DG.ui === 'leak' || DG.ui === 'rolling' || DG.ui === 'shaking') return;
   if (EV.cur || EV.q.length) { DG.flowAfterEvo = true; return; }
   if (DFE.el && !DFE.el.hidden) return;
+  // 싸움 결과가 먼저 (「다음」을 누르기 전에는 옛것 장면 · 보상 고르기 · 다음 라운드가 뜨지 않는다)
+  if (R.last && R.last.seen === false) return dResultModal();
   if (R.mythEv.length) return dRite(R.mythEv[0]);
   if (R.pend.length) return dPendModal('pend', 0);
   if (R.out) return dOutModal();
@@ -11568,14 +11631,28 @@ function dOnNewRound() {
 const dBox = (cls, title, body, btns, x) => `<div class="sh-box dg-box ${cls}" role="dialog" aria-modal="true"><div class="sh-head"><h2>${title}</h2>${x || ''}</div><div class="sh-body">${body}</div>${btns ? `<div class="sh-btns">${btns}</div>` : ''}</div>`;
 function dShow(html) { const m = $('modal'); m.innerHTML = html; m.hidden = false; dTip(); }
 
-// ───────── 싸움 보상 (이기면 저절로) ─────────
-// 싸우기 전: 전장 아래 두 줄(지키는 자 / 이기면 받는 보상). 이긴 뒤: 알림 한 줄 (면 바꾸기면 면 고르는 창)
-// 싸움이 끝나면: 이겼다 · 처치 · 진액 · 보상 (알림)
-function dFightToast(L0) {
-  if (!L0) return; const parts = [L0.win ? '승리' + (L0.leakLoss ? ' · 빈 줄로 샌 적 생명 −' + L0.leakLoss : '') : '패배 · 생명 −' + L0.loss, '처치 ' + L0.kills, '진액 +' + L0.gold];
-  if (L0.lick) parts.push('혀: 다음 라운드 다시 굴리기 +' + L0.lick.reroll + (L0.lick.draw ? ' · 꺼내는 주사위 +' + L0.lick.draw : '')); if (L0.grow && L0.grow.length) parts.push('삼킨 것 ' + L0.grow[0].n + ' · 체력·공격 +' + Math.round(L0.grow[0].g * 100) + '%');
-  if (L0.reward && L0.reward.lines.length) parts.push('보상: ' + L0.reward.lines.join(' · '));
-  DG.dbg.rewardToast = parts.join(' · '); dToast(DG.dbg.rewardToast, 3600);
+// ───────── 싸움 결과 (2026-11-27 사용자: 「싸우고나서 결과나오고 신화단계가 나오건해야할거같아 / 그리고 화면다가려도 되니까 큰화면으로 결과떠도돼」) ─────────
+// 싸움이 끝나면(처형 장면이 뜨면 그 뒤) 화면을 다 덮는 결과 창 하나: 승패 · 생명(진 싸움 / 빈 줄로 샌 적) · 진액 · 받은 보상과 그 설명 · 쓰러진 권속 · 처치 · 쓴 족보.
+//   보상은 여기서 처음 밝힌다 (싸우기 전에는 보이지 않는다). 「다음」을 누르면 그 뒤의 것이 차례로: 옛것 장면(퀘스트 깸 · 못 깸 · 떠오름) → 보상 고르기 → 다음 라운드(사건 · 제단) · 판 끝.
+//   싸우는 동안에는 전장 위에 결과 글을 쓰지 않는다 (빈 줄로 샌 적 · 생명 · 승리 글은 이 창으로 옮겼다). 판 끝이면 이 창 다음에 판 끝 창 하나만.
+function dResultModal() {
+  const R = DG.R, L0 = R.last; if (!L0) return; const ri = L0.rewardInfo, P = DG.lastParts;
+  const fightLoss = L0.win ? 0 : Math.max(0, (L0.loss || 0) - (L0.leakLoss || 0)), leakN = (L0.leak || []).length, over = R.phase === 'over';
+  const rwLife = Math.max(0, L0.life - (L0.lifeBefore - (L0.loss || 0) + (L0.regen || 0))), neg = n => `<b class="bad">−${n}</b>`, pos = n => `<b class="nv">+${n}</b>`;
+  const life = [fightLoss ? `싸움에 져서 생명 ${neg(fightLoss)} <span class="mute">(남은 적 ${(L0.leftList || []).length}${L0.timeout ? ' · 시간이 다 되었습니다' : ''})</span>` : null, L0.leakLoss ? `빈 줄로 샌 적 ${leakN} · 생명 ${neg(L0.leakLoss)}` : null, L0.regen ? `이겨서 생명 ${pos(L0.regen)}` : null, rwLife ? `보상으로 생명 ${pos(rwLife)}` : null, !fightLoss && !L0.leakLoss ? '잃은 생명이 없습니다' : null];
+  const gp = L0.goldParts || {}, gold = [gp.kill ? '처치 +' + gp.kill : null, gp.win ? '승리 +' + gp.win : null, gp.interest ? '이자 +' + gp.interest : null].filter(Boolean).join(' · ');
+  const items = [dItem(`생명 <b>${L0.lifeBefore}</b> → <b class="${L0.life < L0.lifeBefore ? 'bad' : ''}">${L0.life}</b>`, life.filter(Boolean), { cls: 'fr-life', html: true }),
+    dItem(`진액 <b class="nv">+${L0.gold}</b>`, gold || '받은 진액이 없습니다', { cls: 'fr-gold' })];
+  if (L0.reward) { const pick = ['add', 'remove', 'refine'].includes(L0.reward.type); const more = L0.reward.lines.filter(l => !(ri && ri.name && l.indexOf(ri.name) >= 0) && !(pick && ri && l.indexOf(ri.title) === 0)); items.push(dItem(`보상 · ${dEsc(ri ? ri.title : '받은 것')}${ri && ri.name ? ' 「' + dEsc(ri.name) + '」' : ''}`, [ri && ri.short ? ri.short : null, more.length ? '함께 받음: ' + more.join(', ') : null, pick ? '「다음」을 누르면 고르는 창이 열립니다' : null], { cls: 'fr-rw up', plain: true })); }
+  if (L0.kinLost) items.push(dItem(`쓰러진 권속 <b>${L0.kinLost}</b>`, '다음 라운드에 다시 섭니다', { cls: 'fr-kin' }));
+  if (L0.starve) items.push(dItem('굶주린 권속', L0.starve.name + ' · 이번 싸움 체력·공격 −' + Math.round(L0.starve.v * 100) + '%'));
+  if (L0.lick) items.push(dItem('주사위 핥는 혀', '다음 라운드 다시 굴리기 +' + L0.lick.reroll + (L0.lick.draw ? ' · 꺼내는 주사위 +' + L0.lick.draw : '')));
+  (L0.grow || []).forEach(g => { const u = R.units[g.uid]; items.push(dItem(dEsc(u ? DICE.unitName(u) : '배고픈 살점'), '쓰러진 것 ' + g.n + '을 삼켜 체력·공격 +' + Math.round(g.g * 100) + '%')); });
+  items.push(dItem(`처치 <b>${L0.kills}</b>`, P ? '쓴 족보: ' + P.name : null, { cls: 'fr-k', plain: true }));
+  DG.dbg.result = { win: L0.win, round: L0.round, loss: L0.loss, leakLoss: L0.leakLoss || 0, gold: L0.gold, reward: L0.reward ? L0.reward.type : null, over }; DG.dbg.results = (DG.dbg.results || 0) + 1;
+  const head = `<div class="fr-head ${L0.win ? 'win' : 'lose'}"><p class="fr-big">${L0.win ? '승리' : '패배'}</p><p class="fr-sub">라운드 ${L0.round} · ${dEsc(L0.region || '')}${L0.boss ? ' · 우두머리' : L0.type === 'elite' ? ' · 정예' : ''}${over ? (R.over === 'win' ? ' · 마지막 싸움' : ' · 판이 끝났습니다') : ''}</p></div>`;
+  $('toast').hidden = true; dShow(dBox('dg-fres', '싸움 결과', head + `<div class="dg-items fr-items">${items.join('')}</div>`, `<button id="dg-resok" class="btn pri big" data-d="resnext">다음</button>`));
+  setTimeout(() => { const b = $('dg-resok'); if (b && document.activeElement !== b) try { b.focus({ preventScroll: true }); } catch (e) { /* 그대로 */ } }, 0);
 }
 
 // ───────── 상점 · 제단 · 사건 ─────────
@@ -11893,7 +11970,7 @@ const DTUT = [
   { k: 'merge', at: '#dg-bench', ack: true, text: '같은 별 셋이 있습니다. 한 권속 위에 같은 별 권속 둘을 차례로 끌어 놓으면 셋이 하나로 합쳐집니다 (별 +1).', when: v => v.phase === 'place' && v.placed && dCan3(v) },
   { k: 'fight', at: '#dg-fight', tipAt: '#dg-sets', text: '「싸우기」를 누르면 권속이 저절로 싸웁니다.', when: v => v.phase === 'place' && v.placed },
   { k: 'deck', at: '#modal .dg-addc', ack: true, text: '주머니의 주사위 색 = 나올 권속의 성향, 숫자 = 족보 = 별입니다. 원하는 색 주사위는 모으고 원치 않는 색은 빼세요. 색을 누르면 그 주사위가 주머니에 들어갑니다.', when: v => v.pend.length && v.pend[0].k === 'add' },
-  { k: 'flow', at: '#dg-myth .dg-rline', ack: true, html: () => (DG.dbg.rewardToast ? '<b>지난 싸움 · ' + dEsc(DG.dbg.rewardToast) + '</b><br>' : '') + '이기면 보상이 저절로 옵니다. 라운드는 차례로 이어지고, 이 띠에 정예 · 우두머리 자리가 보입니다. 가끔 사건이 끼어듭니다.', when: v => v.phase === 'roll' && v.round >= 2 },
+  { k: 'flow', at: '#dg-myth .dg-rline', ack: true, text: '싸움이 끝나면 결과 창에 받은 것이 나옵니다. 라운드는 차례로 이어지고, 이 띠에 정예 · 우두머리 자리가 보입니다. 가끔 사건이 끼어듭니다.', when: v => v.phase === 'roll' && v.round >= 2 },
   { k: 'shop', at: '#dg-shopb', ack: true, text: '「상점」은 늘 열려 있습니다. 진액으로 유물 · 색 주사위 · 주사위 빼기 · 다듬기를 삽니다. 진열은 라운드마다 바뀝니다.', when: v => (v.phase === 'roll' || v.phase === 'place') && v.round >= 2 && TUT.seen.flow },
   { k: 'myth', at: '#dg-myth .dg-mline', ack: true, text: '위대한 옛것이 떠올랐습니다. 이 띠를 누르면 퀘스트와 걸려 있는 효과를 봅니다. 기한 안에 퀘스트를 이루면 축복을 받습니다.', when: v => !!v.myth && !RT.cur, last: true },
 ];
@@ -11986,6 +12063,7 @@ document.addEventListener('click', e => {
   if (d === 'dropdo') { const p = DG.dropPend; $('dg-drop').hidden = true; DG.dropPend = null; if (p) dDo(p.uid, Object.assign({}, p.to, { act: b.dataset.act })); return; }
   if (d === 'dropno') { $('dg-drop').hidden = true; DG.dropPend = null; dTip(); return; }
   if (d === 'overopen') return dOverModal();
+  if (d === 'resnext') { const R = DG.R; if (R && R.last) R.last.seen = true; $('modal').hidden = true; dSay('flip'); dSave(); dRender(); return dFlow(); }
 });
 document.addEventListener('keydown', e => {
   const k = e.key === 'Escape' || e.key === 'Enter' || e.key === ' ';
@@ -12013,7 +12091,7 @@ window.__dice = {
   fightStats: () => { const F = DG.F || DG.lastF; if (!F) return null; const f = F.frames, g = []; for (let i = 1; i < f.length; i++) g.push(f[i] - f[i - 1]); const m = g.reduce((a, b) => a + b, 0) / Math.max(1, g.length), sd = Math.sqrt(g.reduce((a, b) => a + (b - m) * (b - m), 0) / Math.max(1, g.length)); return { n: f.length, mean: m, sd, max: g.length ? Math.max(...g) : 0, parts: F.fxParts.length }; },
   get paused() { return DG.F ? { pause: !!DG.F.pause, who: DG.F.pauseWho || null } : null; }, resume: () => { if (DG.F) { DG.F.pause = false; DG.F.pauseAt = null; } },
   // 시험용: 라운드 r 로 건너뛴다 (그 라운드의 싸움으로 곧바로 던지기 · o.type 이 'event' 면 사건 o.ev, 'altar' 면 제단을 끼운다) / 권속을 바로 세운다 / 옛것을 띄운다
-  jump: (r, o) => { const R = DG.R; o = o || {}; R.round = r; R.retry = 0; R.mythEv = []; R.pend = []; R.out = null; R.over = null; R.altar = R.event = null; R.shop = DICE.makeShop(R, 0); R.node = DICE.makeNode(R); $('modal').hidden = true; RT.cur = null; $('dg-rite').hidden = true;
+  jump: (r, o) => { const R = DG.R; o = o || {}; R.round = r; R.retry = 0; R.mythEv = []; R.pend = []; R.out = null; R.over = null; if (R.last) R.last.seen = true; R.altar = R.event = null; R.shop = DICE.makeShop(R, 0); R.node = DICE.makeNode(R); $('modal').hidden = true; RT.cur = null; $('dg-rite').hidden = true;
     if (o.type === 'event' || o.type === 'altar') DICE.setInterlude(R, o.type === 'altar' ? 'altar' : o.ev); else DICE.startFight(R);
     DG.ui = R.phase; DG.bossLine = DICE.isBoss(r) && DBOSS[r] ? { round: r, text: DBOSS[r] } : null; dRender(); dFlow(); },
   give: (kind, star, cell, o) => { const R = DG.R, u = DICE.newUnit(R, kind, star, o); R.units[u.uid] = u; if (cell == null) { R.bench[R.bench.indexOf(null)] = u.uid; } else { if (R.board[cell] != null) delete R.units[R.board[cell]]; R.board[cell] = u.uid; } if (R.phase === 'roll') { R.phase = 'place'; DG.ui = 'place'; if (R.roll) R.roll.n = R.roll.n || 1; } dRender(); return u.uid; },
