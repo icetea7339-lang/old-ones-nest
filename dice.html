@@ -1026,6 +1026,25 @@ b.nv { color: #8fe8a0; font-weight: 700; white-space: nowrap; }
 .cx-row.cx-base .cx-k { color: #d8ccbc; }
 .cx-row.cx-base .cx-k small { color: var(--mute); font-weight: 400; }
 .dg-swap { flex: none; } .dg-swap .sw-l.bad { font-size: calc(12px * var(--df)); color: #ff9a90; }
+/* 7판: 신의 마음 — 옛것 표식의 테 하나 (글 없음) · 청록 = 내 편 · 회색 = 중립 · 붉음 = 노함 */
+.dg-mline img { border-radius: 50%; }
+.dg-mline.md-ally img { box-shadow: 0 0 0 2px #5ad8c8, 0 0 6px 1px rgba(90, 216, 200, .55); }
+.dg-mline.md-none img { box-shadow: 0 0 0 2px #8a8494; }
+.dg-mline.md-foe img { box-shadow: 0 0 0 2px #ff6a5a, 0 0 6px 1px rgba(255, 106, 90, .6); }
+.md-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; border: 2px solid #8a8494; }
+.md-dot.md-ally { border-color: #5ad8c8; } .md-dot.md-foe { border-color: #ff6a5a; }
+/* 결과 창: 신의 개입 한 줄 */
+.dg-fres .fr-god .it-h { display: flex; align-items: center; gap: 8px; }
+.dg-fres .fr-god .fg-sig { width: 24px; height: 24px; image-rendering: pixelated; border-radius: 50%; flex: none; }
+.dg-fres .fr-god.good { border-color: rgba(90, 216, 200, .55); background: rgba(90, 216, 200, .07); }
+.dg-fres .fr-god.good .fg-sig { box-shadow: 0 0 0 2px #5ad8c8; }
+.dg-fres .fr-god.bad { border-color: rgba(255, 106, 90, .55); background: rgba(255, 106, 90, .07); }
+.dg-fres .fr-god.bad .fg-sig { box-shadow: 0 0 0 2px #ff6a5a; }
+.dg-fres .fr-god.none .fg-sig { box-shadow: 0 0 0 2px #8a8494; }
+/* 결과 창: 혼종 · 신화로 물든 줄은 일반 물듦보다 크게 (드문 것) */
+.dg-fres .fr-dye.fr-hyb { border: 2px solid #5ab4ff; background: rgba(90, 180, 255, .09); box-shadow: 0 0 10px rgba(90, 180, 255, .3); }
+.dg-fres .fr-dye.fr-myth { border: 2px solid #ff9a3a; background: rgba(255, 154, 58, .1); box-shadow: 0 0 12px rgba(255, 154, 58, .4); }
+.dg-fres .fr-dye.fr-hyb .it-h, .dg-fres .fr-dye.fr-myth .it-h { font-size: calc(16px * var(--df)); }
 </style>
 </head><body style="margin:0">
 <div id="title" class="screen">
@@ -2838,6 +2857,116 @@ const DWORLD = (() => {
   return { install, WORLDS, IDS, INVW, PACKSW, FOES, byId, next, fresh, clean, isOpen, record, dailyWorld };
 })();
 if (typeof module !== 'undefined') module.exports = DWORLD;
+// 주사위 굴 7판 — 신이 싸움에 끼어든다 (2026-11-27, scratchpad/g54/dice_v7_gods_spec.md 2절). 화면 없이 돈다. 규칙(src/dicerules.js)이 읽는다.
+// 엔진(src/lair.js)은 싸움 도중 바깥에서 피해 · 상태를 넣는 길이 없다 (시계 · 시너지 · 오래된 것은 모두 싸움 시작에 정해진다).
+//   그래서 「신의 눈」을 한쪽 편의 특수 싸움꾼으로 세운다 (설계서 구현 길 2): 판 밖 칸에 숨어(stealth) 맞지도 않고 걷지도 않는다.
+//   스스로 피를 흘리며(bleed) 그 틱마다 마나가 차서, 정해진 때(씨앗으로 3.5~5초)에 엔진의 기술 하나를 한 번 쓰고, 한 틱 뒤에 스러진다.
+//   기술은 엔진의 것을 그대로 쓴다 (먼 데서도 쓰는 기술만): 누구를 치는지는 엔진의 고르기(운), 누구 편을 드는지는 제물(내 행동)이 정한다.
+//   편 = 신의 눈이 서는 쪽: 내 편이면 미친 사람(mad)으로 세워 둥지 쪽에 서고, 적 편이면 사람 쪽에 선다. 싸움 결과는 씨앗에 대해 결정적이다.
+// 신마다: 비어 있는 배(기아) = 거둠(가장 약해진 하나 곁으로 내려와 문다 · 약하면 삼킨다) · 깊은 데서 듣는 것(심연) = 덫(가장 값진 하나를 묶고 피 흘리게)
+//   · 별을 세는 것(성운) = 하늘이 열린다(편든 쪽의 상대 모두 체력 · 정신 · 약해진 사람은 미친다) · 어미의 어미(번식) = 산란(편든 쪽 뒤에 새끼 셋)
+//   · 두건 아래의 것(황혼) = 되살림(편든 쪽의 쓰러진 하나를 일으킨다 · 없으면 큰 새끼)
+// 편 정하기 (제물 눈금 = 그 신의 마음): 이번 등장 동안 ally 만큼 바쳤으면 내 편 · 하나도 바치지 않은 채 싸움이 ignore 번 지나면 적 편 · 그 밖은 중립(전장에서 가장 값진 것이 선 쪽을 친다)
+const DGOD = (() => {
+  'use strict';
+  const L = typeof LAIR !== 'undefined' ? LAIR : require('./lair.js');
+  // on = 끼어들기 (봇이 켬/끔을 견준다) · ally = 이번 등장에 바친 양(눈금)이 이만큼이면 내 편 · ignore = 바치지 않은 싸움이 이만큼 쌓이면 적 편
+  //   tick = 마나가 차는 틱 수(0.5초마다 하나, 씨앗으로 이 안에서) · pow = 신마다 세기 (치는 쪽 권속 · 적의 평균 최대 체력에 대한 공격 값)
+  const K = { on: true, ally: 3, ignore: 2, tick: [6, 9], pow: { belly: 0.7, deep: 0.45, stars: 0, mother: 0, hood: 0 }, aimPow: { ally: 0.6, none: 0.3, foe: 0.5 } };
+  const SKILL = { belly: 'reap', deep: 'c_snare', stars: 'skyrift', mother: 'spawning', hood: 'rebirth' };
+  const IDS = ['deep', 'stars', 'mother', 'hood', 'belly'];
+  const KIND = b => 'g_' + b;
+  // 엔진의 셈 (src/lair.js 와 같게): 틱마다 맞는 피 · 맞을 때 차는 마나 · 기술의 값
+  const TICKD = 1000, BLEEDV = TICKD / (0.5 * L.K.skillMul);
+  // 판 밖 칸: 둥지 쪽(내 편) = 위로 멀리 (-10줄) · 사람 쪽(적 편) = 아래로 멀리 (16줄). 뛰어드는 것이 뒷줄을 고를 때 맨 끝이 되는 쪽
+  const CELL = { nest: -10 * L.COLS, inv: 16 * L.COLS };
+  const isGod = k => typeof k === 'string' && /^g_(deep|stars|mother|hood|belly)$/.test(k);
+  // 편: 'ally' 내 편 · 'none' 중립 · 'foe' 적 편 (R.myth 가 없으면 null)
+  function moodOf(R) {
+    const m = R && R.myth; if (!m) return null;
+    if ((m.gave || 0) >= K.ally) return 'ally';
+    if (!(m.gave > 0) && (m.cold || 0) >= K.ignore) return 'foe';
+    return 'none';
+  }
+  function strongest(S) {
+    const HPM = S.hpMul || L.K.hpMul, sc = S.scale || { hp: 1, atk: 1 }; let best = null;
+    // 가장 센 것 = 최대 체력 x 공격 (싸움 시작 때, 엔진 값)
+    (S.nest || []).forEach(n => { const d = L.KIN[n.kind]; if (!d) return; const m = L.STARM[n.star || 1], v = d.hp * m * (n.hpow || n.pow || 1) * HPM * d.atk * m * (n.pow || 1); if (!best || v > best.v) best = { side: 'nest', v, kind: n.kind }; });
+    (S.inv || []).forEach(n => { const d = L.INV[n.kind]; if (!d || isGod(n.kind)) return; const v = d.hp * sc.hp * (n.mul || 1) * HPM * d.atk * sc.atk * (n.mul || 1); if (!best || v > best.v) best = { side: 'inv', v, kind: n.kind }; });
+    return best;
+  }
+  const avgHp = (S, side) => { const HPM = S.hpMul || L.K.hpMul, sc = S.scale || { hp: 1 }, a = side === 'nest' ? (S.nest || []).map(n => (L.KIN[n.kind] || { hp: 0 }).hp * L.STARM[n.star || 1] * (n.hpow || n.pow || 1) * HPM) : (S.inv || []).filter(n => !isGod(n.kind) && L.INV[n.kind]).map(n => L.INV[n.kind].hp * sc.hp * (n.mul || 1) * HPM); return a.length ? a.reduce((x, y) => x + y, 0) / a.length : 1000; };
+  // 이 싸움의 개입 계획: { being, mood, hit('nest' 내 권속을 친다 | 'inv' 적을 친다), side(신의 눈이 서는 쪽), tick, cast(초), strike(초), kind }
+  //   r = 씨앗 함수 (0~1). 떠 있는 신이 없거나 꺼져 있으면 null
+  function planOf(R, S, r) {
+    if (!K.on || !R || !R.myth || !SKILL[R.myth.id]) return null;
+    const being = R.myth.id, mood = moodOf(R), st = strongest(S);
+    const hit = mood === 'ally' ? 'inv' : mood === 'foe' ? 'nest' : st ? st.side : 'nest';
+    const tick = K.tick[0] + Math.floor(r() * (K.tick[1] - K.tick[0] + 1));
+    return { being, mood, hit, side: hit === 'inv' ? 'nest' : 'inv', tick, cast: tick * 0.5, strike: tick * 0.5 + L.K.castWind, kind: KIND(being), skill: SKILL[being] };
+  }
+  // 신의 눈을 S.inv 끝에 붙인다 (엔진의 적 목록에 셀 수 없는 칸으로 · 싸움마다 그 싸움의 값으로 다시 쓴다). inert = 기술 없이 (봇의 견줌: 끼어들지 않았다면)
+  function install(P, S, inert) {
+    const HPM = S.hpMul || L.K.hpMul, sc = S.scale || { hp: 1, atk: 1 }, die = P.tick + 2, H = TICKD * die, A = (K.pow[P.being] || 0) * avgHp(S, P.hit) * (K.aimPow[P.mood] || 1);
+    const def = { name: '옛것의 눈', tag: '옛것', role: 'ranged', hp: H / (sc.hp * HPM) * 1.02 + 1, san: 0, atk: A / Math.max(0.01, sc.atk), as: 0.01, range: 1, df: 0, mana: inert ? 0 : L.K.manaHit * P.tick, skill: inert ? null : P.skill, tier: 0, art: P.kind, noMad: P.side === 'inv', god: true, will: 0 };
+    Object.defineProperty(L.INV, P.kind, { value: def, enumerable: false, writable: true, configurable: true });
+    S.inv.push({ kind: P.kind, cell: CELL[P.side], w: 0, hp: H, god: 1, st: [{ n: 'stealth', dur: 99 }, { n: 'bleed', dur: 99, v: BLEEDV }], mad: P.side === 'nest' });
+    return S;
+  }
+  // 싸움을 돌린다: 신의 눈을 세워 엔진에 맡기고, 끝을 「진짜 끝」(신의 눈을 빼고 한쪽이 다 쓰러진 때)으로 자른다.
+  //   신의 눈이 쫓겨나면(구마로 제정신이 돌아오면) 그 싸움은 기술 없는 눈으로 다시 돌린다 (끼어들지 못함). 결과에 f.god 를 붙인다
+  function run(S, P, sim, inert) {
+    sim = sim || L.simulate; const S0 = JSON.stringify(S);
+    if (!P) return sim(S);
+    let f = sim(install(P, JSON.parse(S0), inert)), gid = godId(f, P), why = null;
+    if (f.timeline.some(e => e.type === 'cleanse' && e.u === gid)) { why = 'cleanse'; f = sim(install(P, JSON.parse(S0), true)); gid = godId(f, P); }
+    f = trim(f, gid); f.god = readGod(f, P, gid, why); strip(f, gid); return f;
+  }
+  const godId = (f, P) => { const u = f.units.find(x => x.kind === P.kind); return u ? u.id : null; };
+  // 진짜 끝: 신의 눈을 빼고 한쪽 편에 선 것이 하나도 없는 첫 때. 그 뒤의 사건은 버리고 마지막 모습(살았나 · 미쳤나 · 체력 · 처치)을 그때로 다시 센다
+  function trim(f, gid) {
+    const side = {}, alive = {}, home = {}, tl = f.timeline; f.units.forEach(u => { side[u.id] = u.side; alive[u.id] = true; home[u.id] = u.side; });
+    // 처음 모습: 미친 채 선 것 (S.keep 의 mad) 은 시간표의 mad 사건으로 바뀐다
+    const cnt = s => Object.keys(side).filter(id => id !== gid && alive[id] && side[id] === s).length;
+    let end = null;
+    for (let i = 0; i < tl.length; i++) {
+      const e = tl[i];
+      if (e.type === 'spawn') { side[e.u] = e.side; alive[e.u] = true; if (home[e.u] == null) home[e.u] = e.side; }
+      else if (e.type === 'die') alive[e.u] = false;
+      else if (e.type === 'mad') side[e.u] = 'nest';
+      else if (e.type === 'cleanse') side[e.u] = 'inv';
+      else continue;
+      if (e.t > 0 && (cnt('inv') === 0 || cnt('nest') === 0)) { end = e.t; break; }
+    }
+    if (end == null || end >= f.time - 1e-6) return f;
+    const keep = tl.filter(e => e.t <= end + 1e-6 && e.type !== 'win'), A = {}, M = {}, HP = {}, KILL = {};
+    f.units.forEach(u => { A[u.id] = true; M[u.id] = false; HP[u.id] = u.mhp; });
+    keep.forEach(e => { if (e.type === 'die') { A[e.u] = false; HP[e.u] = 0; if (e.by && e.by !== e.u) KILL[e.by] = (KILL[e.by] || 0) + 1; } else if (e.type === 'mad') M[e.u] = true; else if (e.type === 'cleanse') M[e.u] = false; else if ((e.type === 'hit' || e.type === 'heal') && e.hp != null) HP[e.u] = e.hp; else if (e.type === 'spawn') { A[e.u] = true; HP[e.u] = e.hp != null ? e.hp : e.mhp; } });
+    const invLeft = Object.keys(A).filter(id => id !== gid && A[id] && (home[id] === 'inv' ? !M[id] : false)).length, winner = invLeft ? 'inv' : 'nest';
+    keep.push({ t: end, type: 'win', side: winner, survivors: invLeft });
+    const fin = (f.final || []).map(x => (x.id === gid ? x : Object.assign({}, x, { alive: !!A[x.id], mad: !!M[x.id], hp: A[x.id] ? Math.max(0, Math.round(HP[x.id] != null ? HP[x.id] : x.hp)) : 0, side: M[x.id] ? 'nest' : x.home, kills: KILL[x.id] || 0 })));
+    const bd = (f.breakdown || []).map(b => Object.assign({}, b, { alive: !!A[b.id], mad: !!M[b.id], kills: KILL[b.id] || 0 }));
+    return Object.assign({}, f, { timeline: keep, time: Math.round(end * 10) / 10, final: fin, breakdown: bd, winner, result: winner === 'nest' ? 'win' : 'loss', survivors: invLeft, trimmed: Math.round((f.time - end) * 10) / 10 });
+  }
+  // 무슨 일이 있었나: 신의 눈이 쓴 기술(skillfx) · 그 뒤에 이은 맞음 · 쓰러짐 · 새끼 · 되살림
+  function readGod(f, P, gid, why) {
+    const tl = f.timeline, cast = tl.find(e => e.type === 'cast' && e.u === gid), fx = tl.filter(e => e.type === 'skillfx' && e.u === gid), o = { being: P.being, mood: P.mood, hit: P.hit, kind: P.kind, skill: P.skill, id: gid, tick: P.tick, cast: cast ? cast.t : null, strike: fx.length ? fx[0].t : null, struck: false, why, tgs: [], dmg: 0, kills: [], spawns: [], mads: [], revived: null, casts: tl.filter(e => e.type === 'cast' && e.u === gid && !e.again).length };
+    if (!fx.length) { o.why = o.why || (cast ? 'late' : 'none'); return o; }
+    o.struck = true; const t0 = fx[0].t, t1 = t0 + 0.05; o.tgs = (fx[0].tgs || []).slice(); o.fx = fx[0].fx;
+    tl.forEach(e => { if (e.t < t0 - 1e-6 || e.t > t0 + 6) return;
+      if (e.type === 'hit' && e.by === gid && e.u !== gid) { o.dmg += e.dmg || 0; if (o.tgs.indexOf(e.u) < 0) o.tgs.push(e.u); }
+      if (e.type === 'die' && e.by === gid) o.kills.push(e.u);
+      if (e.type === 'mad' && e.by === gid) o.mads.push(e.u);
+      if (e.type === 'spawn' && e.by === gid && e.t <= t1) { if (e.revive) o.revived = e.u; else o.spawns.push(e.u); } });
+    return o;
+  }
+  // 신의 눈은 결과에서 뺀다 (처치 · 남은 적 · 권속 수 · 화면의 유닛 목록). 시간표의 제 사건은 남긴다 (화면이 f.god.id 로 거른다)
+  function strip(f, gid) {
+    if (!gid) return; ['final', 'breakdown', 'units'].forEach(k => { if (Array.isArray(f[k])) f[k] = f[k].filter(x => x.id !== gid); });
+  }
+  return { K, SKILL, IDS, KIND, CELL, isGod, moodOf, strongest, planOf, install, run, trim, readGod };
+})();
+if (typeof module !== 'undefined') module.exports = DGOD;
 // 주사위 굴 6판 (2026-11-27, scratchpad/g53/dice_v6_basic_spec.md) 규칙. 화면 없이 돈다.
 // 찾아가는 습격: 권속이 왼쪽에서 그 지역으로 쳐들어가고, 사람들(처음엔 짐승과 풀)은 오른쪽에서 그곳을 지킨다. 맨 위 ♥ 는 본체의 생명.
 // 길: 라운드 20, 지역 여섯 (양 우리 1~3 · 마을 4~7 · 예배당 8~11 · 기록관의 방 12~14 · 공방 15~17 · 탑 18~20). 지역의 마지막 라운드는 그 지역 우두머리, 그 앞 한 라운드는 정예.
@@ -2859,6 +2988,8 @@ const DICE = (() => {
   const FU = typeof DFUSE !== 'undefined' ? DFUSE : require('./dicefuse.js');
   // 세상 넷 (src/diceworld.js): 지역 이름 · 적 · 규칙 · 난이도
   const WD = typeof DWORLD !== 'undefined' ? DWORLD : require('./diceworld.js');
+  // 7판: 신이 싸움에 끼어든다 (src/dicegod.js): 신의 눈을 특수 싸움꾼으로 세워 엔진에 맡긴다
+  const GOD = typeof DGOD !== 'undefined' ? DGOD : require('./dicegod.js');
   const MO = typeof MAZEOMENS !== 'undefined' ? MAZEOMENS : (() => { try { return require('./mazeomens.js'); } catch (e) { return null; } })();
   const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
   const fail = msg => ({ ok: false, msg }), ok = o => Object.assign({ ok: true }, o || {});
@@ -2878,11 +3009,11 @@ const DICE = (() => {
     // 이긴 싸움의 보상 나눔 (나머지는 진액). add = 기본 주사위 더하기 · remove = 빼기 · refine = 다듬기(특수 주사위). 6판: 더하기 · 빼기를 드물게 (덱을 쉽게 갈아엎지 못하게)
     rewardW: { add: 0.04, remove: 0.04, refine: 0.08, relic: 0.28, unit: 0.32 },
     // 두 색이 낀 묶음의 혼종 확률 (묶음의 첫 권속 하나) · 족보에 안 든 색 주사위 하나마다 그 색 권속 이번 싸움 체력·공격 + · 무거운 주사위가 붙잡은 수로 다시 설 확률
-    hyb2: 0.5, leftBuff: 0.05, heavy: 0.25,
+    hyb2: 0.5, hyb2n: 5, leftBuff: 0.05, heavy: 0.25,
     // 보이는 숫자 (6판 「숫자 줄이기」): 엔진은 그대로 두고 체력 · 공격 · 피해 숫자만 이 값으로 나눠 보인다 (엔진 반올림 때문에 실제로 줄이면 싸움이 달라진다)
     show: 40,
     // 권속이 물드는 일: 색마다 쌓이는 수 (올림) · myth = 떠 있는 옛것의 색은 이만큼 곱해 쌓인다 · again = 이미 색이 있는 권속(혼종으로 가는 길)은 이만큼 길다 · grow = 이 판에서 권속이 물들 때마다 모두 이만큼씩 길어진다
-    dye: { hunger: 6, abyss: 1.5, brood: 4, dusk: 2.5, nebula: 5, myth: 2, again: 1.5, grow: 0.15 },
+    dye: { hunger: 6, abyss: 1.5, brood: 4, dusk: 2.5, nebula: 5, myth: 2, again: 2, grow: 0.15 },
     // 제물 눈금: 처음 need0, 주사위가 물들 때마다 step 씩 길어진다 (판 전체) · 오르는 양 = 바탕 x 별 (기본: 크게 치는 신 2 · 그 밖 1, 그 신의 색 6, 다른 색 2)
     offer: { need0: 5, step: 3, like: 2, plain: 1, same: 6, other: 2, star: [1, 2, 4, 6] },
     // 진액으로 사는 다시 굴리기: 2 → 3 → 4 … (라운드마다 처음 값으로)
@@ -3093,7 +3224,7 @@ const DICE = (() => {
   // 묶음의 성향: 많은 색 (같으면 주머니에 많은 색 · 성향 차례) · 없으면 기본(null), 둘째 색, 두 색이 끼었는지, 낀 색 주사위 수
   function groupInfo(R, dice, idx) {
     const c = groupCols(dice, idx), bc = bagCount(R), ks = Object.keys(c).sort((a, b) => c[b] - c[a] || (bc[b] || 0) - (bc[a] || 0) || ASPS.indexOf(a) - ASPS.indexOf(b)), dyed = idx.filter(i => dice[i] && isDyed(dice[i])).length;
-    return { cols: c, order: ks, major: ks[0] || null, minor: ks[1] || null, mixed: ks.length > 1, dyed, base: idx.length - dyed };
+    return { cols: c, order: ks, major: ks[0] || null, minor: ks[1] || null, mixed: ks.length > 1, dyed, base: idx.length - dyed, two: idx.some(i => dice[i] && !!dice[i].col2) };
   }
   // 지금 꺼낸 주사위들
   const drawn = R => (R.roll && R.roll.pick ? R.roll.pick.map(i => R.dice[i]).filter(Boolean) : []);
@@ -3116,10 +3247,10 @@ const DICE = (() => {
   // 족보로 받을 것 (수만: 어떤 권속인지는 확정할 때 씨앗으로 정한다). units = [{ asp(null = 기본), star, n, g(묶음), minor, hyb }] · hyb 는 묶음의 첫 권속 하나만 굴린다
   function handGets(R, h, dice) {
     dice = dice || drawn(R); const G = HANDGET[h.id] || {}, units = [], gi = h.groups.map(g => groupInfo(R, dice, g.idx)), blend = mod(R, 'blend'), first = {};
-    const hybOf = (I, k) => { if (!I.mixed || first[k]) return 0; first[k] = 1; return Math.min(0.9, K.hyb2 + blend); };
-    (G.u || []).forEach(([k, star, n]) => { const I = gi[k]; if (!I) return; units.push({ asp: I.major, star, n, g: k, minor: I.minor, hyb: hybOf(I, k) }); });
+    const hybOf = (I, k) => { if (!I.mixed || first[k]) return 0; if (I.two) { first[k] = 1; return 1; } if (I.dyed + I.base < K.hyb2n) return 0; first[k] = 1; return Math.min(0.9, K.hyb2 + blend); };
+    (G.u || []).forEach(([k, star, n]) => { const I = gi[k]; if (!I) return; units.push({ asp: I.major, star, n, g: k, minor: I.minor, hyb: hybOf(I, k), two: I.two }); });
     if (G.any) { const I = groupInfo(R, dice, h.left); units.push({ asp: I.major, star: 1, n: G.any, g: -1, hyb: 0, any: true }); }
-    if (G.run && gi[0]) { const I = gi[0]; for (let k = 0; k < G.run; k++) units.push({ asp: I.major, star: 1, n: 1, g: 0, run: true, minor: I.minor, hyb: hybOf(I, 0) }); }
+    if (G.run && gi[0]) { const I = gi[0]; for (let k = 0; k < G.run; k++) units.push({ asp: I.major, star: 1, n: 1, g: 0, run: true, minor: I.minor, hyb: hybOf(I, 0), two: I.two }); }
     // 색 눈금 유물: 그 색 족보면 별 +1 · 쌍둥이 태반: 원페어 · 투페어의 1성 하나가 2성으로
     units.forEach(u => { if (u.asp && liveRelics(R).some(id => RELIC[id].colStar === u.asp)) u.star = Math.min(FU.MAXSTAR, u.star + 1); });
     if (mod(R, 'twin') > 0 && (h.id === 'pair' || h.id === 'two') && units[0] && units[0].n > 1) { units[0].n--; units.splice(1, 0, Object.assign({}, units[0], { star: Math.min(FU.MAXSTAR, units[0].star + 1), n: 1, hyb: 0 })); }
@@ -3128,7 +3259,7 @@ const DICE = (() => {
     // 신화: 낀 두 색(또는 두 묶음 색)이 레시피 두 성향이면. 다섯 같은 수가 한 색이면 myth0 · 희귀 권속이 둘 이상 있으면 1.5배
     let myth = 0, mythAsp = null; const g0 = gi[0];
     if (G.myth && g0 && g0.major) { if (h.id === 'full' && cross && recipeAsp(gi[0].major, gi[1].major).length) { myth = G.myth; mythAsp = [gi[0].major, gi[1].major]; }
-      else if (h.id !== 'full' && g0.mixed && recipeAsp(g0.major, g0.minor).length) { myth = G.myth; mythAsp = [g0.major, g0.minor]; }
+      else if (h.id !== 'full' && g0.mixed && g0.two && recipeAsp(g0.major, g0.minor).length) { myth = G.myth; mythAsp = [g0.major, g0.minor]; }
       else if (G.myth0 && !g0.mixed) { myth = G.myth0; mythAsp = [g0.major, g0.major]; } }
     if (myth && rareCount(R) >= 2) myth = Math.min(0.9, myth * 1.5);
     // 족보에 안 든 색 주사위: 그 색 권속 이번 싸움 체력·공격 + (하나마다) · 기본 주사위는 덤 없음
@@ -3430,7 +3561,7 @@ const DICE = (() => {
       myth: null, mythNext: between(r, K.myth.first[0], K.myth.first[1]), mythOrder: order, mythCount: 0, mythLog: [], mythEv: [], temp: [], won: 0, lost: 0, found: [], fusions: 0, mythics: 0, fedUnits: 0, hands: {}, gotUnits: 0, buff: null,
       deck: { add: 0, remove: 0, refine: 0, dye: 0 }, rares: 0, rare4: 0, leaks: 0,
       // 6판: 신마다의 제물 눈금 (떠나도 남는다 · 다음 단계(신의 개입)가 읽는다) · 물든 주사위 수(눈금 길이) · 바친 수 · 권속이 물든 기록 · 겪은 조건(도감)
-      god: { deep: 0, stars: 0, mother: 0, hood: 0, belly: 0 }, godN: { deep: 0, stars: 0, mother: 0, hood: 0, belly: 0 }, dyes: 0, offers: 0, dyeLog: [], seenCond: [], hybrids: 0, colHands: 0, maxStar: 0 };
+      god: { deep: 0, stars: 0, mother: 0, hood: 0, belly: 0 }, godN: { deep: 0, stars: 0, mother: 0, hood: 0, belly: 0 }, dyes: 0, offers: 0, dyeLog: [], seenCond: [], hybrids: 0, colHands: 0, maxStar: 0, godLog: [], godHits: 0 };
     startRound(R); return R;
   }
   // 잠긴 유물(두건 아래의 것의 리스크)은 힘이 없다
@@ -3680,10 +3811,10 @@ const DICE = (() => {
     const specs = []; g.units.forEach(u => { for (let k = 0; k < u.n; k++) specs.push(Object.assign({}, u, { hyb: k ? 0 : u.hyb })); });
     // 신화: 첫 묶음의 첫 권속이 레시피의 신화로 (두 성향 쪽)
     if (g.myth && specs.length && r() < g.myth) { const rx = recipeAsp(g.mythAsp[0], g.mythAsp[1]), x = rx.length ? pickOf(r, rx) : null;
-      if (x) { const s0 = specs.shift(); got.push(Object.assign({ hand: h.id, how: 'myth' }, addUnit(R, x.base, Math.min(3, s0.star), Object.assign({ br: x.br, grade: 'm', myth: x.id }, hiOf(s0.star))))); extra.myth = x.id; R.mythics++; } }
+      if (x) { const s0 = specs.shift(); got.push(Object.assign({ hand: h.id, how: 'myth' }, addUnit(R, x.base, Math.min(3, s0.star), Object.assign({ br: x.br, grade: 'm', myth: x.id }, hiOf(s0.star))))); extra.myth = x.id; R.mythics++; byAdd(R, 'mythBy', g.mythAsp[0] === g.mythAsp[1] ? 'one' : 'hand'); } }
     // 풀하우스의 두 색 혼종: 첫 권속 하나가 두 성향의 혼종으로
-    if (g.hyb && specs.length && g.groups[1] && r() < g.hyb) { const s0 = specs.shift(), k = FU.hybridOf(g.groups[0].major, g.groups[1].major); got.push(Object.assign({ hand: h.id, how: 'hybrid' }, addUnit(R, k, s0.star, Object.assign({ br: 'b', grade: 'r' }, hiOf(s0.star))))); extra.hyb = true; R.hybrids++; }
-    specs.forEach(u => { if (u.hyb && u.asp && u.minor && r() < u.hyb) { got.push(Object.assign({ hand: h.id, how: 'hybrid' }, addUnit(R, FU.hybridOf(u.asp, u.minor), u.star, Object.assign({ br: 'b', grade: 'r' }, hiOf(u.star))))); extra.hyb = true; R.hybrids++; } else got.push(Object.assign({ hand: h.id, how: 'hand', asp: u.asp }, addUnit(R, pickKin(R, r, u.asp, u.star), u.star, hiOf(u.star)))); });
+    if (g.hyb && specs.length && g.groups[1] && r() < g.hyb) { const s0 = specs.shift(), k = FU.hybridOf(g.groups[0].major, g.groups[1].major); got.push(Object.assign({ hand: h.id, how: 'hybrid' }, addUnit(R, k, s0.star, Object.assign({ br: 'b', grade: 'r' }, hiOf(s0.star))))); extra.hyb = true; R.hybrids++; byAdd(R, 'hybBy', 'full'); }
+    specs.forEach(u => { if (u.hyb && u.asp && u.minor && r() < u.hyb) { got.push(Object.assign({ hand: h.id, how: 'hybrid' }, addUnit(R, FU.hybridOf(u.asp, u.minor), u.star, Object.assign({ br: 'b', grade: 'r' }, hiOf(u.star))))); extra.hyb = true; R.hybrids++; byAdd(R, 'hybBy', u.two ? 'two' : 'mix'); } else got.push(Object.assign({ hand: h.id, how: 'hand', asp: u.asp }, addUnit(R, pickKin(R, r, u.asp, u.star), u.star, hiOf(u.star)))); });
     if (g.rare && r() < Math.min(0.9, g.rare * rareMul(R))) { const x = grantRare(R, r); got.push(Object.assign({ hand: h.id, how: 'rare' }, x)); extra.rare = x.kind; }
     g.pics.forEach(p => got.push(Object.assign({ hand: h.id, how: 'pic' }, addUnit(R, p.kind, p.star))));
     if (g.gold) R.gold += g.gold;
@@ -3698,6 +3829,8 @@ const DICE = (() => {
     const lostL = got.filter(x => x.type === 'gold'), lost = lostL.length, lostGold = lostL.reduce((a, x) => a + x.gold, 0);
     return ok({ got, hand: h, gets: g, extra, gold: g.gold, torch: h.torch, buff: g.buff ? R.buff : null, lost, lostGold });
   }
+  // 혼종 · 신화가 어느 길로 생겼는지 (봇 · 균형): hybBy { dye 한 일 · mix 두 색이 낀 묶음 · two 그 묶음에 두 색 주사위 · full 풀하우스 두 묶음 } · mythBy { dye · hand · fuse }
+  const byAdd = (R, k, w) => { const o = R[k] || (R[k] = {}); o[w] = (o[w] || 0) + 1; };
   const newUnit = (R, kind, star, o) => Object.assign({ uid: R.nextUid++, kind, star: star || 1, br: 'a', grade: FU.RARE[kind] ? 'x' : 'c', myth: null, fed: 0, fhp: 0, fatk: 0, dmg: 0, kills: 0, fights: 0, ex: {} }, o || {});
   function addUnit(R, kind, star, o) {
     const b = benchFree(R), u = newUnit(R, kind, star, o);
@@ -3733,7 +3866,7 @@ const DICE = (() => {
     if (x.bonus) { b.fhp = Math.round((b.fhp + x.bonus) * 1000) / 1000; b.fatk = Math.round((b.fatk + x.bonus) * 1000) / 1000; }
     b.kind = x.kind; b.star = x.star; b.br = x.br; b.grade = x.grade; b.myth = x.myth; if (x.rare) b.stain = x.stain || null; else delete b.stain; delete b.mats;
     let first = false; if (x.recipe && !R.found.includes(x.recipe)) { R.found.push(x.recipe); first = true; }
-    R.fusions++; if (x.grade === 'm') R.mythics++; if (x.rare && b.star >= 4) R.rare4++; R.maxStar = Math.max(R.maxStar || 0, b.star);
+    R.fusions++; if (x.grade === 'm') { R.mythics++; byAdd(R, 'mythBy', 'fuse'); } if (x.rare && b.star >= 4) R.rare4++; R.maxStar = Math.max(R.maxStar || 0, b.star);
     return ok({ merged: true, fused: true, uid: dst, star: b.star, up: true, how: x.how, grade: x.grade, recipe: x.recipe || null, stain: b.stain || null, rare: !!x.rare, first, mats, bonus: x.bonus || 0, name: unitName(b), gold: 0 });
   }
   const merge = fuse;
@@ -3933,7 +4066,7 @@ const DICE = (() => {
     const from = Object.assign(snapOf(u), { name: unitName(u) }); let how;
     if (FU.isBase(u)) { u.kind = dyeKind(R, u, asp); u.br = 'a'; how = 'dye'; }
     else if (FU.isRare(u)) { u.stain = asp; how = 'stain'; }
-    else { const x = hybridTo(u, FU.aspOf(u), asp); Object.assign(u, { kind: x.kind, br: x.br, grade: x.grade, myth: x.myth }); how = x.how; if (how === 'myth') { R.mythics++; if (!R.found.includes(x.myth)) R.found.push(x.myth); } else R.hybrids++; }
+    else { const x = hybridTo(u, FU.aspOf(u), asp); Object.assign(u, { kind: x.kind, br: x.br, grade: x.grade, myth: x.myth }); how = x.how; if (how === 'myth') { R.mythics++; byAdd(R, 'mythBy', 'dye'); if (!R.found.includes(x.myth)) R.found.push(x.myth); } else { R.hybrids++; byAdd(R, 'hybBy', 'dye'); } }
     u.ex = {}; if (!R.seenCond.includes(asp)) R.seenCond.push(asp);
     const to = Object.assign(snapOf(u), { name: unitName(u) }), rec = { uid: u.uid, asp, how, from, to, round: R.round, first: !R.dyeLog.length };
     R.dyeLog.push({ uid: u.uid, asp, how, round: R.round }); R.maxStar = Math.max(R.maxStar || 0, u.star); return rec;
@@ -3982,6 +4115,21 @@ const DICE = (() => {
     const used = R.mythLog.map(x => x.id).concat(R.myth ? [R.myth.id] : []), id = R.mythOrder.find(b => !used.includes(b)) || R.mythOrder[(R.mythCount) % 5];
     const at = R.myth ? R.myth.until + 1 + K.myth.gap[0] : Math.max(R.round, R.mythNext); return K.rounds - at + 1 < K.myth.minLeft ? null : { id, name: BEINGS[id].name, asp: BEING_ASP[id], round: R.myth ? null : at };
   }
+  // 신의 개입 한 줄 (결과 창): 「비어 있는 배가 내 편을 들어 적 하나를 삼켰습니다」. 숫자는 보이는 값(K.show)
+  const MOODN = { ally: '내 편을 들어', none: '가장 값진 것을 노려', foe: '노하여' };
+  function godRes(R, f) {
+    const g = f.god; if (!g) return null; const B = BEINGS[g.being], nm = B.name, J = dJo(nm, '이', '가'), who = g.hit === 'inv' ? '적' : '내 권속', U = {}; (f.units || []).forEach(u => { U[u.id] = u; });
+    const nameOfId = id => { const u = U[id]; return u ? u.name : ''; }, n = g.kills.length, dm = shown(g.dmg), how = MOODN[g.mood] || '';
+    let line;
+    if (!g.struck) line = g.why === 'cleanse' ? nm + '의 눈이 쫓겨나 끼어들지 못했습니다' : nm + J + ' 끼어들기 전에 싸움이 끝났습니다';
+    else if (g.being === 'belly') line = nm + J + ' ' + how + ' ' + who + ' 하나를 ' + (n ? '삼켰습니다' : '물어뜯었습니다 (피해 ' + dm + ')');
+    else if (g.being === 'deep') line = nm + J + ' ' + how + ' ' + who + ' 하나를 끌어내려 묶었습니다 (2초 · 피해 ' + dm + ')' + (n ? ' · 쓰러뜨림' : '');
+    else if (g.being === 'stars') line = nm + J + ' ' + how + ' ' + who + ' ' + g.tgs.length + '에게 눈을 떴습니다 (피해 ' + dm + (g.mads.length ? ' · 미침 ' + g.mads.length : '') + ')';
+    else if (g.being === 'mother') line = nm + J + ' ' + how + ' ' + (g.hit === 'inv' ? '내 편으로' : '적의 편으로') + ' 새끼 ' + g.spawns.length + '마리를 떨궜습니다';
+    else line = nm + J + ' ' + how + ' ' + (g.revived ? '쓰러진 ' + nameOfId(g.revived) + dJo(nameOfId(g.revived), '을', '를') + ' 일으켰습니다' : (g.hit === 'inv' ? '내 편으로' : '적의 편으로') + ' 큰 새끼 하나를 일으켰습니다');
+    const good = g.struck ? (g.hit === 'inv' ? 1 : -1) : 0;
+    return { being: g.being, name: nm, asp: B.asp, mood: g.mood, hit: g.hit, struck: g.struck, kills: n, dmg: dm, line, good };
+  }
   function fight(R) {
     if (R.phase !== 'place') return fail(R.phase === 'roll' ? '먼저 주사위를 확정하세요' : '지금은 싸울 때가 아니다');
     // 모으는 중인 재료(2/3)는 싸움에도 받는 쪽 안에 그대로 남는다 (싸움은 권속을 잃지 않으니 재료도 없어지지 않는다).
@@ -3993,7 +4141,9 @@ const DICE = (() => {
     const sv = Math.max(mythOn(R, 'belly') ? MYTH.belly.eff.starve[R.myth.stage - 1] : 0, ...hexOn(R, 'starve').map(h => h.v));
     if (sv > 0) { const ids = boardUids(R), q = rng(R.seed, R.round, 0xbe11, R.retry); R.starve = { uid: ids[Math.floor(q() * ids.length)], v: sv }; }
     const S = setupOf(R), node = R.node, leakL = S.inv.filter(o => o.leak).map(o => ({ kind: o.kind, name: L.INV[o.kind].name, w: o.w, cell: o.cell })); S.inv = S.inv.filter(o => !o.leak);
-    const f = L.simulate(S);
+    // 7판: 떠 있는 신이 끼어든다 (편 = 이번 등장에 바친 것 · 때 = 씨앗). 봇의 견줌은 GOD.stat 이 받는다
+    const P = GOD.planOf(R, S, rng(R.seed, R.round, 0x60d, R.retry)), f = GOD.run(S, P);
+    if (GOD.stat && P) GOD.stat({ R, S, P, f });
     const W = {}; S.inv.forEach(o => { W[o.kind] = Math.max(W[o.kind] || 0, o.w); });
     const left = f.final.filter(x => x.home === 'inv' && !x.summon && x.alive && !x.mad), downs = f.final.filter(x => x.home === 'inv' && !x.summon && (!x.alive || x.mad)), kills = downs.length, prey = downs.filter(x => isPrey(x.kind)).length;
     const kinLost = f.final.filter(x => x.home === 'nest' && !x.summon && !x.core && !x.alive).length, kinAlive = f.final.filter(x => x.home === 'nest' && !x.summon && !x.core && x.alive).length;
@@ -4014,7 +4164,10 @@ const DICE = (() => {
     const dyed = dyeAfter(R, f, S, win);
     const starve = R.starve ? { uid: R.starve.uid, v: R.starve.v, name: R.units[R.starve.uid] ? unitName(R.units[R.starve.uid]) : '' } : null;
     // 결과 요약 (화면의 결과 창이 그대로 쓴다: 승패 · 생명 · 진액 · 받은 보상과 그 설명 · 쓰러진 권속). 규칙 값은 바꾸지 않는다
-    const res = { round: R.round, world: worldOf(R).id, region: regionOf(R.round, R).name, type: node.type, name: routeTitle(node), boss: node.type === 'boss', win, kills, prey, loss, leftList, leak: leakL, leakLoss, kinLost, kinAlive, lifeBefore, life: R.life, gold, goldParts: { kill: kg, win: wg, interest: ig }, regen, time: f.time, torch: R.torch, reward: got, rewardInfo: got ? rewardInfo(R, node.reward) : null, starve, timeout: !win && kinAlive > 0, retry: R.retry, unpacked, lick: R.lick, grow, dyed };
+    const god = godRes(R, f);
+    if (R.myth) { if (!(R.myth.gave > 0)) R.myth.cold = (R.myth.cold || 0) + 1; R.myth.fought = (R.myth.fought || 0) + 1; }
+    if (god) { R.godLog.push({ round: R.round, being: god.being, mood: god.mood, hit: god.hit, struck: god.struck, kill: god.kills }); if (god.struck) R.godHits = (R.godHits || 0) + 1; }
+    const res = { round: R.round, world: worldOf(R).id, region: regionOf(R.round, R).name, type: node.type, name: routeTitle(node), boss: node.type === 'boss', win, kills, prey, loss, leftList, leak: leakL, leakLoss, kinLost, kinAlive, lifeBefore, life: R.life, gold, goldParts: { kill: kg, win: wg, interest: ig }, regen, time: f.time, torch: R.torch, reward: got, rewardInfo: got ? rewardInfo(R, node.reward) : null, starve, timeout: !win && kinAlive > 0, retry: R.retry, unpacked, lick: R.lick, grow, dyed, god };
     R.hist.push({ round: R.round, type: node.type, win, loss, life: R.life, kills, leak: leakL.length }); R.last = res; R.nextFight = null;
     hexOn(R, 'elite').forEach(h => { h.n--; });
     // 퀘스트: 아무도 잃지 않고 이김 (깊은 데) · 처치 (두건)
@@ -4137,7 +4290,7 @@ const DICE = (() => {
   function mythInfo(R, m) {
     m = m || R.myth; if (!m) return null; const B = BEINGS[m.id], M = MYTH[m.id];
     return { id: m.id, name: B.name, asp: B.asp, aspName: ASPN[B.asp], stage: m.stage, from: m.from, until: m.until, left: Math.max(0, m.until - R.round + 1), quest: { k: m.q.k, need: m.q.need, have: m.q.have, text: M.questText(m.q.need), goal: M.quest.goal, short: M.quest.short, note: M.quest.note || '' },
-      effs: M.effs(m.stage), rise: M.rise, done: M.done, line: B.line, twice: ASPN[B.asp] + ' 일은 두 배로 쌓입니다', god: { have: R.god[m.id] || 0, need: offerNeed(R) } };
+      effs: M.effs(m.stage), rise: M.rise, done: M.done, line: B.line, twice: ASPN[B.asp] + ' 일은 두 배로 쌓입니다', god: { have: R.god[m.id] || 0, need: offerNeed(R) }, mood: m === R.myth ? GOD.moodOf(R) : null, gave: m.gave || 0, cold: m.cold || 0, moodAlly: GOD.K.ally, moodIgnore: GOD.K.ignore };
   }
   // 걸려 있는 리스크 (짧은 이름 · 남은 라운드 또는 싸움 수)
   const HEXN = { reroll: h => '다시 굴리기 −' + h.v, damp: h => '권속 체력 −' + pct(h.v) + '%', elite: () => '정예 +1', curse: h => '적 +' + pct(h.v) + '%', extra: () => '적 +1', lock: h => '유물 ' + h.ids.length + '개 잠김', nogold: h => (h.v >= 2 ? '진액 0' : '처치 진액 0'), starve: () => '굶주림', draw: h => '꺼내는 주사위 −' + h.v };
@@ -4205,18 +4358,18 @@ const DICE = (() => {
       last: R.last, hist: R.hist.slice(), hex: hexView(R), nextFight: R.nextFight, torchNote: R.torchNote && R.torchNote.round === R.round ? R.torchNote : null,
       gods: BEING_IDS.map(b => ({ id: b, name: BEINGS[b].name, asp: BEING_ASP[b], have: R.god[b] || 0, n: R.godN[b] || 0 })), godNeed: offerNeed(R), canOffer: canOffer(R), next: nextBeing(R), dyes: R.dyes || 0, mix: bagMix(R), seenCond: R.seenCond.slice() };
   }
-  const SAVE_V = 7;
+  const SAVE_V = 8;
   function save(R) { return JSON.stringify(Object.assign({ sv: SAVE_V }, R)); }
   function load(s) {
     try { const o = typeof s === 'string' ? JSON.parse(s) : s; if (!o || o.sv !== SAVE_V || !Array.isArray(o.dice) || !o.dice.every(d => d && Array.isArray(d.faces)) || !o.units || !o.board || !Array.isArray(o.bench) || !Array.isArray(o.pend)) return null;
       if (!['roll', 'place', 'shop', 'altar', 'event', 'done', 'over'].includes(o.phase)) return null; delete o.sv;
-      o.hex = Array.isArray(o.hex) ? o.hex : []; o.world = WD.byId(o.world).id; o.unl = Array.isArray(o.unl) ? o.unl : []; o.deck = o.deck || { add: 0, remove: 0, refine: 0, dye: 0 }; ['god', 'godN'].forEach(k => { o[k] = Object.assign({ deep: 0, stars: 0, mother: 0, hood: 0, belly: 0 }, o[k] || {}); }); o.dyeLog = o.dyeLog || []; o.seenCond = o.seenCond || []; if (!o.shop && o.phase !== 'over') { try { o.shop = makeShop(o, 0); } catch (e) { o.shop = null; } } return o; } catch (e) { return null; }
+      o.hex = Array.isArray(o.hex) ? o.hex : []; o.godLog = Array.isArray(o.godLog) ? o.godLog : []; o.world = WD.byId(o.world).id; o.unl = Array.isArray(o.unl) ? o.unl : []; o.deck = o.deck || { add: 0, remove: 0, refine: 0, dye: 0 }; ['god', 'godN'].forEach(k => { o[k] = Object.assign({ deep: 0, stars: 0, mother: 0, hood: 0, belly: 0 }, o[k] || {}); }); o.dyeLog = o.dyeLog || []; o.seenCond = o.seenCond || []; if (!o.shop && o.phase !== 'over') { try { o.shop = makeShop(o, 0); } catch (e) { o.shop = null; } } return o; } catch (e) { return null; }
   }
   // 옛 판(1~6판) 저장인지 (화면은 조용히 지우고 새 판으로 · 도감은 남는다)
   const oldSave = s => { try { const o = typeof s === 'string' ? JSON.parse(s) : s; return !!(o && o.sv && o.sv !== SAVE_V); } catch (e) { return false; } };
   const dailySeed = d => { d = d || new Date(); return hash(d.getFullYear(), d.getMonth() + 1, d.getDate(), 0xd1ce) || 7; };
 
-  return { WD, WORLDS: WD.WORLDS, worldOf, regionsOf, eventFace, refinesOf, rareMul, bimuOf, crowdAdd, K, REGIONS, PACKS, GROUP, RELIC, RELIC_IDS, RELIC_POOL, SPECIAL, DIEKIND, INVD, BEINGS, BEING_IDS, MYTH, RISK, RV, EVENTS, HANDS, HAND_IDS, HANDP, HANDGET, isNum, handOf, handGets, handLine, handParts, handOfVals, groupInfo, groupsOf, groupView, laneView, packOf, boostOf, bagOdds, addOdds, removeOdds, hyperAtLeast, bag, drawn, drawCount, dieName, dieCols, makeDie, refineDie, canRefine, bagCount, risk, riskPick, hexView, liveRelics, newRun, startFight, setInterlude, makeNode, nodeType, eliteRound, regionPlan, pickInterlude, throwDice, toggleHold, setHeld, reroll, buyReroll, buyCost, confirm, faceInfo, kinOf, starOf, move, merge, autoPlace, fight, setupOf, synOf, isBeast, isRoot, leaky,
+  return { GOD, godRes, WD, WORLDS: WD.WORLDS, worldOf, regionsOf, eventFace, refinesOf, rareMul, bimuOf, crowdAdd, K, REGIONS, PACKS, GROUP, RELIC, RELIC_IDS, RELIC_POOL, SPECIAL, DIEKIND, INVD, BEINGS, BEING_IDS, MYTH, RISK, RV, EVENTS, HANDS, HAND_IDS, HANDP, HANDGET, isNum, handOf, handGets, handLine, handParts, handOfVals, groupInfo, groupsOf, groupView, laneView, packOf, boostOf, bagOdds, addOdds, removeOdds, hyperAtLeast, bag, drawn, drawCount, dieName, dieCols, makeDie, refineDie, canRefine, bagCount, risk, riskPick, hexView, liveRelics, newRun, startFight, setInterlude, makeNode, nodeType, eliteRound, regionPlan, pickInterlude, throwDice, toggleHold, setHeld, reroll, buyReroll, buyCost, confirm, faceInfo, kinOf, starOf, move, merge, autoPlace, fight, setupOf, synOf, isBeast, isRoot, leaky,
     shopBuy, shopLeave, shopRoll, shopOpen, shopRollCost, altarPick, eventPick, pendPick, pendFace, pendTidy, next, fuse, ungather, ungatherAll, feedTo, fusePreview, dropOptions, unitName, newUnit, addUnit, grantRare, FU, ackMyth, forceRise, questAdd, view, unitInfo, routeInfo, mythInfo, relicInfo, itemInfo, save, load, oldSave, dailySeed, capOf, rerollsOf, valueOf, feedOf, curFaces, isBoss, regionOf, regionIx, scaleOf, lineup, kinPool, makeShop, where, hash, ROWS, weightOfKind, offerCost, strength, foeLanes, rareCount,
     aspName, shown, isDyed, canDye, bagMix, COND, condNeed, condText, condLead, canGrow, growCols, dyeAfter, dyeUnit, dyeKind, offerNeed, offerVal, offerPreview, offer, canOffer, likesOf, dyeOdds, nextBeing, removeCost, GKEYS };
 })();
@@ -10319,13 +10472,15 @@ const DWART = (() => {
 //   잔혹한 장면을 끄면 피 대신 검은 먼지, 얼룩 없음.
 // 원거리: 종류마다 다른 것이 날아간다(시선 줄기 · 그림자 손 · 먹물 덩이 · 포자 구름 · 알 · 눈알 · 소리 고리 · 빛 기둥 · 화살 · 볼트 · 마법 구슬 · 빛 · 약병 · 사슬).
 //   끝은 매 장마다 대상이 지금 그려진 자리를 따라간다 (쏜 뒤에 대상이 움직여도 몸에 맞는다).
-// 기술: LAIRART.fx 의 기술 그림 + 화면 흔들림(움직임 켬일 때만) · 번쩍임 · 기술 이름 띠.
-// 빠르기: 보기 속도만 바꾼다(DPACE). 기본 1.35배(2026-11-26 사용자: 너무 빠르다, 살짝 늦게), 아무도 때리지 않는 틈은 2.6배 더, 남은 적이 둘 이하(우두머리 · 정예 없음)면 1.35배 더.
+// 기술: LAIRART.fx 의 기술 그림 + 화면 흔들림(움직임 켬일 때만) · 번쩍임 · 쓰는 이의 발밑에 짧은 빛 테 (7판: 전장 위 글씨 없음 — 기술 이름 띠 · 머리 위 이름표를 뺐다).
+// 탄 · 줄기 · 고리의 색 (7판): 편 색을 따른다 (내 편 청록 계열 · 적 붉은 계열, 넷씩). 신의 개입만 그 신의 색.
+// 빠르기: 보기 속도만 바꾼다(DPACE). 기본 1.2배(2026-11-26 1.35 → 11-27 7판 1.2: 「살짝만 내리고」), 아무도 때리지 않는 틈은 2.6배 더, 남은 적이 둘 이하(우두머리 · 정예 없음)면 1.35배 더.
 // 피 입자는 한 번에 48개(움직임 끔 24개), 얼룩 12개, 기술 그림 24개까지만 (2026-11-27 6판: 싸우는 내내 쌓여 화면이 지저분했다 → 줄이고 얼룩은 2초 안에 사라진다). 움직임 끔: 흔들림 없음, 밀림 절반, 입자 0.6배, 흔적 · 고리 · 얼룩은 0.6배 짧게.
 // 한 번에 보이는 양의 상한: 피 입자 · 바닥 얼룩 · 피해 숫자. 얼룩 수명(엔진 초, 보기 1배에서 약 1.3초)
 const DXCAP = { parts: 48, stains: 12, nums: 3, stainLife: 1.8, land: 0.18, spray: 0.6 };
 const DXA = 0.46, DXHIT = 0.22, DXREL = 0.19;
-const DPACE = { base: 1.35, lull: 2.6, gap: 0.55, few: 1.35, intro: 0.75, pad: 0.25, leak: 1.0 };
+// 7판 (2026-11-27 사용자: 「전투속도 살짝만내리고」): 기본 1.35 → 1.2 (약 11% 느리게). 빠르기 단추 · 건너뛰기는 그대로
+const DPACE = { base: 1.2, lull: 2.6, gap: 0.55, few: 1.35, intro: 0.75, pad: 0.25, leak: 1.0 };
 const DXBUSY = { attack: 1, hit: 1, cast: 1, skillfx: 1, die: 1, spawn: 1, mad: 1, heal: 1 };
 // 근접 종류: 몸이 붙는 것(full)과 몸은 조금 쏠리고 팔 · 턱 · 혀가 늘어나는 것(part)
 const DXMEL = { shell: 'ram', biter: 'jaw', gnaw: 'jaw', famine: 'jaw', maw: 'jaw', gulp: 'tongue', tangle: 'tentacle', heap: 'eyes', mask: 'finger', hollow: 'scythe', bell: 'bell',
@@ -10345,6 +10500,9 @@ const DXFLY = { gaze: 0.07, shadow: 0.34, inkblob: 0.38, spore: 0.5, egg: 0.4, e
 const DXAFTER = { gaze: 0.2, holy: 0.16, pillar: 0.26, shadow: 0.26, egg: 0.3, chain: 0.2 };
 const DXFL = { abyss: ['#06141c', '#1f6a70', '#8fe8d8'], brood: ['#142008', '#4a7a28', '#c8e870'], nebula: ['#140a26', '#5a3a9a', '#d0b8ff'], dusk: ['#1a1008', '#7a4a1a', '#f0c080'], hunger: ['#200608', '#7a1a1e', '#ff8a7a'] };
 const DXSKDUR = { meteor: 1.1, toll: 1, ink: 1.2, reap: 0.6, sermon: 0.9, rift: 1.3, rebirth: 0.9, banner: 1, mark: 0.8, smite: 0.8, exorcise: 1.1, flask: 1.1, possess: 0.9, snare: 0.7, beam: 0.75, pierce: 0.5, whisper: 0.7, lash: 0.6, bites: 0.7, bigbite: 0.6, latch: 0.7, backstab: 0.6, snipe: 0.7, seal: 1.2, madburst: 0.8, shell: 1.2, eyes: 0.9, slam: 0.8, feast: 0.9, readblast: 0.9, light: 1, sanctum: 1.6, song: 1, shieldwall: 1.4, wave: 1.1, swallow: 1.1, mask: 0.9, cloud: 1.4, firepillar: 1, hatch: 0.7, rise: 0.8, chorus: 0.9, skyeye: 1, pull: 0.8, dash: 0.5, read: 1.2, echo: 0.7, eat: 0.6 };
+// 편 색 (탄 · 줄기 · 고리 · 번쩍임): [어두움, 가운데, 밝음, 흰빛]. 내 편(미친 사람 포함) 청록 · 적 붉음
+const DXSIDE = { nest: ['#08201f', '#1f7a72', '#5ad8c8', '#d8fff6'], inv: ['#240608', '#8a1e22', '#ff6a5a', '#ffe4dc'] };
+const dxSideOf = u => (!u ? 'inv' : u.home === 'inv' && !u.mad ? 'inv' : 'nest');
 const dxE = k => (k <= 0 ? 0 : k >= 1 ? 1 : 1 - Math.pow(1 - k, 3));
 const dxC = (v, a, b) => (v < a ? a : v > b ? b : v);
 // 때림의 몸 쏠림(-0.15 = 살짝 젖힘, 1 = 다 붙음)과 팔 · 턱이 늘어난 정도(0~1). f = 때림 안의 몫 (0~1, 닿는 때 0.47)
@@ -10405,6 +10563,8 @@ function dxKbOff(F, u) { const k = u.kb; if (!k) return [0, 0]; const q = (F.t -
 // 이번 장의 몸 자리: 밀림 + 때림의 쏠림. 붙는 때림은 대상이 밀린 자리까지 보고 거리를 잰다
 function dxLayout(F) {
   F.units.forEach(u => { const kb = dxKbOff(F, u); u._o = { x: kb[0], y: kb[1] }; });
+  // 7판: 소환된 것(새끼 · 감염체 …)이 다른 것과 거의 같은 자리에, 또는 아래 줄의 큰 그림 뒤에 가려 그려지면 그리는 자리만 옆으로 비켜선다. 규칙의 칸은 그대로
+  if (!(DG.test && DG.test.noSep)) F.units.forEach((u, i) => { if (!u.summon || u.alive === false || u.gone) return; for (let j = 0; j < F.units.length; j++) { const v = F.units[j]; if (v === u || v.gone || v.alive === false || (v.summon && j > i)) continue; const dx = u.x - v.x, dy = u.y - v.y; const rw = v.summon ? 16 : 34; if (Math.abs(dx) < rw && dy < 16 && dy > (v.summon ? -16 : -40)) { const sy = dy > 0.5 ? 1 : dy < -0.5 ? -1 : (i % 2 ? 1 : -1); u._o.y += sy * (16 - Math.abs(dy)) * 0.4; u._o.x += (dx >= 0 ? 1 : -1) * (rw - Math.abs(dx)); const L = dxFxLog(); L.sep = (L.sep || 0) + 1; } } });
   F.units.forEach(u => {
     const s = u.strike; if (!s || u.alive === false) return; const f = (F.t - s.t0) / DXA; if (f < 0 || f >= 1) return; const tg = F.byId[s.tg]; if (!tg) return;
     const tx = tg.x + tg._o.x, ty = tg.y + tg._o.y, dx = tx - u.x, dy = ty - u.y, d = Math.hypot(dx, dy) || 1;
@@ -10421,7 +10581,7 @@ function dxAttack(F, u, tg, e) {
   const tt = F.t, ranged = !!e.r, inv = u.home === 'inv';
   if (!ranged) { const style = DXMEL[u.kind] || (inv ? 'sword' : 'claw'); u.strike = { t0: tt, tg: tg.id, style, rec: false }; F.hitAt[u.id] = { at: tt + DXHIT, style }; F.busy = Math.max(F.busy || 0, tt + DXA); dxName(style); return; }
   const style = DXRAN[u.kind] || 'orb', a = dxMid(u), b = dxMid(tg), d = Math.hypot(b.x - a.x, b.y - a.y), fl = DXFLY[style], fly = Math.max(0.06, typeof fl === 'function' ? fl(d) : fl || 0.3);
-  const sh = { t0: tt + DXREL, fly, after: DXAFTER[style] || 0, style, from: u.id, to: tg.id, ax: a.x + Math.sign(b.x - a.x || 1) * dxRad(u) * 0.5, ay: a.y - 4, last: b, rec: false, kind: u.kind, side: inv && !u.mad ? 'inv' : 'nest', col: u.kind === 'c_isel' ? '#ff8a30' : u.kind === 'c_eda' ? '#8fe8d8' : null };
+  const sh = { t0: tt + DXREL, fly, after: DXAFTER[style] || 0, style, from: u.id, to: tg.id, ax: a.x + Math.sign(b.x - a.x || 1) * dxRad(u) * 0.5, ay: a.y - 4, last: b, rec: false, kind: u.kind, side: inv && !u.mad ? 'inv' : 'nest' };
   F.fxShots.push(sh); if (F.fxShots.length > 30) F.fxShots.shift(); F.hitAt[u.id] = { at: sh.t0 + fly, style }; F.busy = Math.max(F.busy || 0, sh.t0 + fly + sh.after); dxName(style);
 }
 // 맞는 순간
@@ -10438,7 +10598,7 @@ function dxImpact(F, v, by, style, e) {
   if (style === 'inkblob') dxStain(F, dxAt(v).x, v.y + 1, 6, '#06080e', 2.4);
   if (style === 'flask') dxStain(F, dxAt(v).x, v.y + 1, 5, '#3a6a20', 1.8);
   F.fxMarks.push({ u: v.id, type, style, t0: F.t, dir, crit }); if (F.fxMarks.length > 30) F.fxMarks.shift();
-  if (style === 'bell' || style === 'rings' || style === 'note') F.fxRings.push({ x: m.x, y: m.y, t0: F.t, col: style === 'bell' ? '#f0a04a' : style === 'note' ? '#ffe070' : '#e0303a' });
+  if (style === 'bell' || style === 'rings' || style === 'note') F.fxRings.push({ x: m.x, y: m.y, t0: F.t, col: (DXSIDE[dxSideOf(by)] || DXSIDE.inv)[2] });
   if (F.fxRings.length > 16) F.fxRings.shift();
   const now = performance.now(); if (now - (F.sayAt || 0) > 90) { F.sayAt = now; dSay(type === 'bite' || type === 'wrap' || type === 'splat' ? 'dsplat' : type === 'blunt' ? 'dthwack' : 'hit'); }
 }
@@ -10469,16 +10629,14 @@ function dxSkill(F, e) {
   if (!me && !first) return;
   return add(me || first, first || me, { n: e.n, r: e.r || undefined });
 }
-// 기술을 쓸 때: 이름 띠 · 흔들림 · 번쩍임 (화면 시각으로)
+// 기술을 쓸 때 (7판: 글씨 없이): 쓰는 이의 몸에 편 색 빛 테 두 겹 · 번쩍임 · (권속 · 우두머리 · 정예는) 흔들림
 function dxCast(F, u, sk) {
   if (!sk || !sk.name) return false; const now = performance.now(), L = dxFxLog(), inv = u.home === 'inv' && !u.mad, big = !!(LAIR.INV[u.kind] && (LAIR.INV[u.kind].boss || LAIR.INV[u.kind].elite)) || (!inv && (u.star || 1) >= 2);
-  const col = inv ? '#ffcf6a' : ASPC[(LAIR.KIN[u.kind] || {}).asp] || '#8fe8d8';
+  const col = DXSIDE[inv ? 'inv' : 'nest'][2], m = dxMid(u);
   F.fxFlash = { t0: now, col, dur: dMo() ? 110 : 60 };
-  // 사람의 작은 기술은 번쩍임만 (머리 위 이름표). 권속 · 우두머리 · 정예는 흔들림과 이름 띠
-  if (inv && !big) return false;
-  if (dMo()) { F.fxShake = { t0: now, amp: big ? 3 : 2, dur: 190 }; L.shakes++; }
-  if (F.fxBand && now - F.fxBand.t0 < 650) return false;
-  F.fxBand = { t0: now, text: sk.name, who: (LAIR.KIN[u.kind] || LAIR.INV[u.kind] || LAIR.SUMMON[u.kind] || {}).name || '', col, inv }; L.bands++; return true;
+  F.fxRings.push({ x: m.x, y: m.y, t0: F.t, col }); F.fxRings.push({ x: m.x, y: m.y + 2, t0: F.t + 0.12, col: DXSIDE[inv ? 'inv' : 'nest'][3] }); if (F.fxRings.length > 16) F.fxRings.splice(0, F.fxRings.length - 16); L.casts = (L.casts || 0) + 1;
+  if ((inv && !big) || !dMo()) return true;
+  F.fxShake = { t0: now, amp: big ? 3 : 2, dur: 190 }; L.shakes++; return true;
 }
 // 엔진 초 dt 만큼: 입자 · 얼룩 · 흔적
 function dxTick(F, dt) {
@@ -10491,14 +10649,87 @@ function dxTick(F, dt) {
   F.fxSk = F.fxSk.filter(s => F.t - s.t0 < s.dur);
 }
 
+// ───────── 신의 개입 (7판) ─────────
+// 예고(치기 약 1.1초 전): 그 신의 색 그림자가 바닥에서 편든 쪽의 상대들 사이를 떠돌다가 맞을 것 아래에 멎고, 그 위 하늘에 눈이 뜬다.
+// 개입(0.7초): 비어 있는 배 = 큰 아가리가 닫힌다 · 깊은 데서 듣는 것 = 웅덩이에서 촉수가 솟아 감는다 · 별을 세는 것 = 하늘의 눈에서 빛줄기가 떨어진다
+//   · 어미의 어미 = 알주머니가 떨어져 터진다 · 두건 아래의 것 = 땅거미 기둥에서 쓰러진 것이 일어난다. 글은 없다 (무슨 일인지는 결과 창 한 줄).
+// 움직임 끔: 예고와 연출 없이, 치는 순간 맞은 것 둘레에 테만 잠깐.
+const DXGOD = { warn: 1.1, lock: 0.35, strike: 0.7, slow: 1.4 };
+const DXGODC = { belly: ['#2a0608', '#a01a1e', '#ff5f57'], deep: ['#04161c', '#1a7a8a', '#3ac0d8'], stars: ['#140a26', '#6a4ac8', '#c8b0ff'], mother: ['#0e1a06', '#4a8a28', '#a8e070'], hood: ['#1a0e04', '#a8601e', '#f0b060'] };
+// 싸움을 펼칠 때: 시간표에서 신의 눈이 친 때 · 대상 · 떨군 자리를 읽는다
+function dxGodPrep(F) {
+  const g = F.f.god; if (!g || !g.struck || g.strike == null) return null; const tl = F.f.timeline, cells = [];
+  tl.forEach(e => { if (e.type === 'spawn' && e.by === g.id && Math.abs(e.t - g.strike) < 0.06) cells.push(e.cell); });
+  const tgs = (g.tgs || []).filter(id => id !== g.id), G = { id: g.id, being: g.being, mood: g.mood, hit: g.hit, strike: g.strike, warn: Math.max(0.2, g.strike - DXGOD.warn), tgs, cells, col: DXGODC[g.being] || DXGODC.belly, hitT: null, said: {}, all: g.being === 'stars' };
+  return G;
+}
+// 예고부터 개입 끝까지는 보기 배수를 기본으로 (틈이 길어도 빨리 감지 않는다)
+const dxGodSlow = (F, T) => !!(F.god && T >= F.god.warn - 0.15 && T <= F.god.strike + DXGOD.slow - DXGOD.warn + 0.3);
+// 맞을 것 · 떨굴 자리 (지금 그려진 자리). k = 예고 안의 몫 (0~1): 앞 부분은 상대들 사이를 떠돈다
+function dxGodAim(F, G, k) {
+  const tgt = G.tgs.map(id => F.byId[id]).filter(Boolean), dest = tgt.length ? dxAt(tgt[0]) : G.cells.length ? (() => { const p = dCellXY(G.cells[0]); return { x: p.x, y: p.y }; })() : { x: DFW / 2, y: DFH / 2 };
+  if (k >= 1 - DXGOD.lock / DXGOD.warn || !dMo()) return dest;
+  const side = G.hit === 'inv' ? 'inv' : 'nest', cand = F.units.filter(u => u.alive !== false && !u.gone && !u.leaker && ((u.home === 'inv' && !u.mad) ? 'inv' : 'nest') === side).sort((a, b) => a.y - b.y).slice(0, 4);
+  if (!cand.length) return dest; const pts = cand.map(dxAt).concat([dest]), q = Math.min(1, k / (1 - DXGOD.lock / DXGOD.warn)) * (pts.length - 1), i = Math.min(pts.length - 2, Math.floor(q)), f = dxE(q - i);
+  return { x: pts[i].x + (pts[i + 1].x - pts[i].x) * f, y: pts[i].y + (pts[i + 1].y - pts[i].y) * f };
+}
+// 시간표의 신의 기술(skillfx)이 닿은 순간 (diceui 의 dEvent 가 부른다)
+function dxGodStrike(F, e) {
+  const G = F.god; if (!G || G.hitT != null) return; G.hitT = F.t; const L = dxFxLog(); L.god = { being: G.being, mood: G.mood, hit: G.hit, at: Math.round((F.t - DINTRO) * 100) / 100, warned: !!G.warned, tgs: G.tgs.length };
+  if (F.skipping) return; const now = performance.now();
+  F.fxFlash = { t0: now, col: G.col[2], dur: dMo() ? 220 : 80 }; if (dMo()) { F.fxShake = { t0: now, amp: 5, dur: 360 }; L.shakes++; }
+  dSay(G.being === 'belly' ? 'dgulp' : G.being === 'mother' || G.being === 'hood' ? 'dswell' : 'dsplat');
+  const gore = META.gore !== false; G.tgs.forEach(id => { const v = F.byId[id]; if (!v) return; const m = dxMid(v); dxSpray(F, m.x, m.y, 1, G.being === 'belly' ? 14 : 6, gore ? ['#5a0610', '#9a1020', G.col[2]] : ['#141218', G.col[1]], v.y + 3, gore, 0, true); });
+}
+function dxGodTick(F) {
+  const G = F.god; if (!G) return; const T = F.t - DINTRO;
+  if (!G.warned && T >= G.warn && T < G.strike) { G.warned = true; G.warnT = F.t; if (dMo()) dSay('omen'); const L = dxFxLog(); L.godWarn = (L.godWarn || 0) + 1; }
+}
+// 바닥: 예고 그림자 · 깊은 데서 듣는 것의 웅덩이
+function dxGodUnder(x, F) {
+  const G = F.god; if (!G || !dMo()) return; const T = F.t - DINTRO, P = dxPen(x), C = G.col;
+  if (T >= G.warn && T < G.strike + 0.05) { const k = (T - G.warn) / Math.max(0.1, G.strike - G.warn), a = dxGodAim(F, G, k), lock = k >= 1 - DXGOD.lock / DXGOD.warn, r = lock ? 13 + 2 * Math.sin(F.t * 30) : 11;
+    if (G.all) { G.tgs.forEach(id => { const v = F.byId[id]; if (v) { const p = dxAt(v); P.a(0.25 + 0.35 * k).ell(p.x, p.y + 2, 10, 3.5, C[0]).a(0.5 * k).ring(p.x, p.y + 2, 10, 3.5, C[1], 1); } }); }
+    else { P.a(0.55 + 0.4 * k).ell(a.x, a.y + 2, r + 2, (r + 2) * 0.4, C[0]).a(0.7 + 0.3 * k).ring(a.x, a.y + 2, r + 2, (r + 2) * 0.4, lock ? C[2] : C[1], lock ? 2 : 1); }
+    P.a(1); }
+  if (G.being === 'deep' && G.hitT != null && F.t - G.hitT < DXGOD.strike) { const q = (F.t - G.hitT) / DXGOD.strike; G.tgs.forEach(id => { const v = F.byId[id]; if (!v) return; const p = dxAt(v); P.a(1 - q * 0.6).ell(p.x, p.y + 2, 14, 5, C[0]).ring(p.x, p.y + 2, 14, 5, C[1], 1); }); P.a(1); }
+}
+// 하늘의 눈 (너비 w, 뜬 정도 o 0~1)
+function dxEye(P, X, Y, w, o, C) {
+  const h = Math.max(0.5, w * 0.42 * o); P.ell(X, Y, w + 6, w * 0.42 + 5, C[0]).ell(X, Y, w + 2, h + 2, '#05030a').ell(X, Y, w, h, '#e8e0d0');
+  if (o > 0.25) P.ell(X, Y, w * 0.42, Math.min(h, w * 0.42), C[1]).ell(X, Y, w * 0.12, Math.min(h, w * 0.36), '#05030a').dot(X - w * 0.2, Y - h * 0.4, '#ffffff', 2, 1);
+}
+// 유닛 위: 하늘의 눈 · 개입 그림
+function dxGodOver(x, F) {
+  const G = F.god; if (!G) return; const T = F.t - DINTRO, P = dxPen(x), C = G.col, mo = dMo();
+  if (mo && T >= G.warn && (G.hitT == null || F.t - G.hitT < DXGOD.strike)) { const k = Math.min(1, (T - G.warn) / Math.max(0.1, G.strike - G.warn)), a = G.all ? { x: DFW * 0.62, y: DFH * 0.5 } : dxGodAim(F, G, k), out = G.hitT != null ? (F.t - G.hitT) / DXGOD.strike : 0, ey = Math.max(18, a.y - 62) - 4 * Math.sin(F.t * 3);
+    dxEye(P.a(Math.min(1, k * 2.5) * (1 - out)), a.x, ey, G.all ? 26 : 18, Math.min(1, k * 1.6) * (1 - out * 0.5), C); P.a(1); }
+  if (G.hitT == null) return; const q = (F.t - G.hitT) / DXGOD.strike; if (q < 0 || q > 1) return;
+  if (!mo) { G.tgs.forEach(id => { const v = F.byId[id]; if (v) { const m = dxMid(v); P.a(1 - q).ring(m.x, m.y, 14, 14, C[2], 2); } }); P.a(1); return; }
+  const tg = G.tgs.map(id => F.byId[id]).filter(Boolean);
+  if (G.being === 'belly') tg.forEach(v => { const m = dxMid(v), c = Math.min(1, q / 0.35), gap = 16 * (1 - dxE(c)), w = 20; P.a(1 - Math.max(0, q - 0.6) / 0.4);
+    for (const sd of [-1, 1]) { const yy = m.y + sd * (gap + 4); P.ell(m.x, yy + sd * 4, w + 2, 6, C[0]).ell(m.x, yy + sd * 4, w, 4, C[1]); for (let j = -4; j <= 4; j++) P.tri([[m.x + j * 4.5 - 2, yy], [m.x + j * 4.5 + 2, yy], [m.x + j * 4.5, yy - sd * 6]], '#f4ece0'); } P.a(1); });
+  if (G.being === 'deep') tg.forEach(v => { const p = dxAt(v), m = dxMid(v), up = Math.min(1, q / 0.4); for (let f = -2; f <= 2; f++) { const bx = p.x + f * 5, top = p.y + 2 - up * (18 + Math.abs(f) * -3), sw = Math.sin(F.t * 14 + f) * 3; P.a(1 - Math.max(0, q - 0.7) / 0.3).line(bx, p.y + 3, bx + sw, top, C[0], 4).line(bx, p.y + 3, bx + sw, top, C[1], 2).dot(bx + sw - 1, top - 1, C[2], 2, 2); } P.a(Math.max(0, 1 - q)).ring(m.x, m.y, 12, 12, C[2], 1); P.a(1); });
+  if (G.being === 'stars') { const ex = DFW * 0.62, ey = Math.max(18, DFH * 0.5 - 62); tg.forEach(v => { const m = dxMid(v), f2 = Math.min(1, q / 0.25); P.a((1 - q) * 0.9).line(ex, ey + 6, ex + (m.x - ex) * f2, ey + 6 + (m.y - ey - 6) * f2, C[1], 3).line(ex, ey + 6, ex + (m.x - ex) * f2, ey + 6 + (m.y - ey - 6) * f2, C[2], 1); if (f2 >= 1) P.ring(m.x, m.y, 6 + q * 10, 6 + q * 8, C[2], 1); }); P.a(1); }
+  if (G.being === 'mother' || G.being === 'hood') { const cs = G.cells.length ? G.cells.map(dCellXY) : tg.map(dxAt); cs.slice(0, 4).forEach(p => {
+    if (G.being === 'mother') { const fall = Math.min(1, q / 0.3), y = p.y - 70 * (1 - dxE(fall)) - 12; if (fall < 1) P.ell(p.x, y, 7, 9, C[0]).ell(p.x, y, 5.5, 7.5, C[1]).dot(p.x - 2, y - 4, C[2], 2, 2); else { const b = (q - 0.3) / 0.7; for (let j = 0; j < 8; j++) { const an = j * 0.785; P.a(1 - b).dot(p.x + Math.cos(an) * (4 + b * 16), p.y - 12 + Math.sin(an) * (3 + b * 10), j % 2 ? C[2] : C[1], 2, 2); } P.a(1); } }
+    else { const h = 80 * Math.min(1, q / 0.3); x.globalCompositeOperation = 'lighter'; P.a(0.4 * (1 - q)).dot(p.x - 9, p.y - h, C[1], 18, h); x.globalCompositeOperation = 'source-over'; P.a(0.9 * (1 - q)).dot(p.x - 2, p.y - h, C[2], 4, h).ring(p.x, p.y + 1, 10 + q * 8, 3 + q * 2, C[2], 1); P.a(1); } }); }
+}
+// 화면 위: 개입하는 순간 그 신의 색으로 가장자리가 어두워진다 (움직임 켬)
+function dxGodTop(x, F) {
+  const G = F.god; if (!G || !dMo() || G.hitT == null) return; const q = (F.t - G.hitT) / DXGOD.strike; if (q < 0 || q > 1) return; const P = dxPen(x), a = 0.5 * (1 - q), b = 10;
+  P.a(a).dot(0, 0, G.col[0], DFW, b).dot(0, DFH - b, G.col[0], DFW, b).dot(0, 0, G.col[0], b, DFH).dot(DFW - b, 0, G.col[0], b, DFH).a(1);
+}
+
 // ───────── 그리기 ─────────
 // 바닥 (유닛 밑): 피 · 먹물 얼룩, 기어가는 그림자 손
 function dxDrawUnder(x, F) {
   const P = dxPen(x);
+  dxGodUnder(x, F);
   F.fxStains.forEach(s => { const k = (F.t - s.t0) / (s.life * (dMo() ? 1 : 0.6)); P.a((1 - k * k) * 0.85).ell(s.x, s.y, s.r * 1.4, Math.max(1, s.r * 0.45), s.c); });
   F.fxShots.forEach(s => { if (s.style !== 'shadow') return; const k = (F.t - s.t0) / s.fly; if (k < 0 || k > 1) return; const by = F.byId[s.from], tg = F.byId[s.to]; if (!by || !tg) return; const a = dxAt(by), b = dxAt(tg), px = a.x + (b.x - a.x) * k, py = a.y + (b.y - a.y) * k;
-    for (let j = 0; j < 8; j++) { const q = Math.max(0, k - j * 0.05), X = a.x + (b.x - a.x) * q, Y = a.y + (b.y - a.y) * q + 1; P.a(0.7 - j * 0.08).ell(X, Y, 10 - j * 0.8, 3.6, '#6a3aa0').a(0.85 - j * 0.09).ell(X, Y, 9 - j * 0.8, 2.6, '#05030a'); }
-    const sx = Math.sign(b.x - a.x || 1); P.a(1).ell(px, py, 7, 4, '#6a3aa0').ell(px, py, 6, 3, '#05030a').dot(px - sx * 2, py - 1, '#c080ff', 1, 1).dot(px + sx * 1, py - 1, '#c080ff', 1, 1); for (let f = 0; f < 5; f++) P.line(px + sx * 3, py - 1 + f * 0.6, px + sx * (9 + (f === 2 ? 3 : f % 2 ? 2 : 0) + Math.sin(DG.F.t * 30 + f) * 1.5), py - 3 + f * 1.6, '#140a1c', 2); });
+    for (let j = 0; j < 8; j++) { const q = Math.max(0, k - j * 0.05), X = a.x + (b.x - a.x) * q, Y = a.y + (b.y - a.y) * q + 1; P.a(0.7 - j * 0.08).ell(X, Y, 10 - j * 0.8, 3.6, (DXSIDE[s.side] || DXSIDE.inv)[1]).a(0.85 - j * 0.09).ell(X, Y, 9 - j * 0.8, 2.6, '#05030a'); }
+    const sx = Math.sign(b.x - a.x || 1), sc2 = (DXSIDE[s.side] || DXSIDE.inv); P.a(1).ell(px, py, 7, 4, sc2[1]).ell(px, py, 6, 3, '#05030a').dot(px - sx * 2, py - 1, sc2[2], 1, 1).dot(px + sx * 1, py - 1, sc2[2], 1, 1); for (let f = 0; f < 5; f++) P.line(px + sx * 3, py - 1 + f * 0.6, px + sx * (9 + (f === 2 ? 3 : f % 2 ? 2 : 0) + Math.sin(DG.F.t * 30 + f) * 1.5), py - 3 + f * 1.6, '#140a1c', 2); });
   P.a(1);
 }
 // 유닛 위: 때림 · 탄 · 기술 · 피 · 흔적 · 고리
@@ -10515,7 +10746,7 @@ function dxDrawOver(x, F) {
   const sh = dMo() ? 1 : 0.6; F.fxMarks.forEach(m => { const v = F.byId[m.u]; if (v) dxMarkDraw(P, v, m, (F.t - m.t0) / (0.4 * sh)); });
   F.fxRings.forEach(r => { const k = (F.t - r.t0) / (0.5 * sh); for (let j = 0; j < 3; j++) { const q = k - j * 0.18; if (q > 0 && q < 1) P.a((1 - q) * 0.9).ring(r.x, r.y, 4 + q * 20, 3 + q * 12, r.col, 1); } });
   F.fxParts.forEach(p => P.a(1).dot(p.x, p.y, p.c, p.s, p.s));
-  P.a(1);
+  P.a(1); dxGodOver(x, F);
 }
 // 때림의 모양: 시작점(팔 · 입 자리) · 끝점(대상 몸 가운데) · 늘어난 끝 · 닿은 정도(gap: 음수면 겹침)
 function dxGeo(u, tg, style, f) {
@@ -10591,36 +10822,36 @@ function dxStrikeDraw(P, x, u, tg, s, f, G) {
 }
 // 탄 · 줄기
 function dxShotDraw(P, x, F, s) {
-  const by = F.byId[s.from], tg = F.byId[s.to], k = (F.t - s.t0) / s.fly; if (tg && tg.alive !== false && !tg.gone) s.last = dxMid(tg); const b = s.last, a = { x: s.ax, y: s.ay };
-  if (k < 0) { if (s.style === 'gaze' && by) { const q = 1 + k * s.fly / DXREL; P.a(0.5 + 0.5 * q).disc(s.ax, s.ay, 1 + 2 * q, '#d0b8ff').a(1); } return; }
+  const SC = DXSIDE[s.side] || DXSIDE.inv, by = F.byId[s.from], tg = F.byId[s.to], k = (F.t - s.t0) / s.fly; if (tg && tg.alive !== false && !tg.gone) s.last = dxMid(tg); const b = s.last, a = { x: s.ax, y: s.ay };
+  if (k < 0) { if (s.style === 'gaze' && by) { const q = 1 + k * s.fly / DXREL; P.a(0.5 + 0.5 * q).disc(s.ax, s.ay, 1 + 2 * q, SC[2]).a(1); } return; }
   const kk = Math.min(1, k), st = s.style, d = Math.hypot(b.x - a.x, b.y - a.y) || 1, ux = (b.x - a.x) / d, uy = (b.y - a.y) / d, nx = -uy, ny = ux;
   const arc = st === 'inkblob' || st === 'egg' || st === 'flask' ? 22 + d * 0.12 : st === 'arrow' ? 6 + d * 0.05 : st === 'spore' ? 6 : 0, px = a.x + (b.x - a.x) * kk, py = a.y + (b.y - a.y) * kk - arc * Math.sin(Math.PI * kk), wob = st === 'spore' ? Math.sin(kk * 12) * 3 : 0;
   if (k >= 1 && !s.rec) { s.rec = true; const L = dxFxLog(), tc = tg ? dxMid(tg) : b; if (L.shots.length < 200) L.shots.push({ kind: s.kind, style: st, dx: Math.round((px - tc.x) * 10) / 10, dy: Math.round((py - tc.y) * 10) / 10 });
     const T = DG.test; if (T && T.fxPause && T.fxPause.indexOf(s.kind) >= 0 && !T.fxMid) { T.fxPause = T.fxPause.filter(q => q !== s.kind); F.pause = true; F.pauseWho = { kind: s.kind, style: st, ax: Math.round(a.x), ay: Math.round(a.y), bx: Math.round(b.x), by: Math.round(b.y) }; } }
   const T = DG.test; if (T && T.fxMid && T.fxPause && T.fxPause.indexOf(s.kind) >= 0 && k >= (DXAFTER[st] ? 0.9 : 0.45)) { T.fxPause = T.fxPause.filter(q => q !== s.kind); F.pause = true; F.pauseWho = { kind: s.kind, style: st, ax: Math.round(a.x), ay: Math.round(a.y), bx: Math.round(b.x), by: Math.round(b.y) }; }
   if (st === 'gaze' || st === 'holy') {
-    const live = by && by.alive !== false ? dxMid(by) : null, A = live ? { x: live.x + Math.sign(b.x - live.x || 1) * dxRad(by) * 0.5, y: live.y - 4 } : a, fade = k > 1 ? (k - 1) * s.fly / s.after : 0, c1 = st === 'gaze' ? '#b08fff' : '#ffe7a0', c2 = st === 'gaze' ? '#5a3a9a' : '#c89a30';
+    const live = by && by.alive !== false ? dxMid(by) : null, A = live ? { x: live.x + Math.sign(b.x - live.x || 1) * dxRad(by) * 0.5, y: live.y - 4 } : a, fade = k > 1 ? (k - 1) * s.fly / s.after : 0, c1 = SC[2], c2 = SC[1];
     const ex = A.x + (b.x - A.x) * kk, ey = A.y + (b.y - A.y) * kk; P.a(0.45 * (1 - fade)); x.globalCompositeOperation = 'lighter'; P.line(A.x, A.y, ex, ey, c2, 5); x.globalCompositeOperation = 'source-over';
     P.a(1 - fade * 0.8).line(A.x, A.y, ex, ey, c2, 3).line(A.x, A.y, ex, ey, c1, 1); P.a(1).disc(A.x, A.y, 2, '#ffffff'); if (k >= 1) P.a(1 - fade).ring(b.x, b.y, 3 + 6 * fade, 2 + 4 * fade, c1, 1).disc(b.x, b.y, 2 * (1 - fade) + 1, '#ffffff');
     P.a(1); return;
   }
-  if (st === 'chain') { const live = by && by.alive !== false ? dxMid(by) : a, ex = live.x + (b.x - live.x) * kk, ey = live.y + (b.y - live.y) * kk, n = Math.ceil(Math.hypot(ex - live.x, ey - live.y) / 3); for (let j = 0; j <= n; j++) P.dot(live.x + (ex - live.x) * j / n - 1, live.y + (ey - live.y) * j / n - 1, j % 2 ? '#5a5a66' : '#b0b4c0', 2, 2); P.tri([[ex + ux * 4, ey + uy * 4], [ex + nx * 3, ey + ny * 3], [ex - nx * 3, ey - ny * 3]], '#d0d4dc'); return; }
-  if (st === 'pillar') { const fade = k > 1 ? (k - 1) * s.fly / s.after : 0, top = 0, bot = b.y + dxRad(tg || { kind: '' }) * 0.8, h = (bot - top) * kk, w = 7 * (1 - fade * 0.6); x.globalCompositeOperation = 'lighter'; P.a(0.35 * (1 - fade)).dot(b.x - w - 3, top, '#8a6ad8', w * 2 + 6, h); x.globalCompositeOperation = 'source-over'; P.a(0.9 * (1 - fade)).dot(b.x - w / 2, top, '#d0b8ff', w, h).dot(b.x - 1, top, '#ffffff', 2, h); if (k >= 1) P.a(1 - fade).ring(b.x, bot, 6 + fade * 8, 2 + fade * 2, '#e8e0ff', 1); P.a(1); return; }
+  if (st === 'chain') { const live = by && by.alive !== false ? dxMid(by) : a, ex = live.x + (b.x - live.x) * kk, ey = live.y + (b.y - live.y) * kk, n = Math.ceil(Math.hypot(ex - live.x, ey - live.y) / 3); for (let j = 0; j <= n; j++) P.dot(live.x + (ex - live.x) * j / n - 1, live.y + (ey - live.y) * j / n - 1, j % 2 ? SC[1] : SC[2], 2, 2); P.tri([[ex + ux * 4, ey + uy * 4], [ex + nx * 3, ey + ny * 3], [ex - nx * 3, ey - ny * 3]], SC[3]); return; }
+  if (st === 'pillar') { const fade = k > 1 ? (k - 1) * s.fly / s.after : 0, top = 0, bot = b.y + dxRad(tg || { kind: '' }) * 0.8, h = (bot - top) * kk, w = 7 * (1 - fade * 0.6); x.globalCompositeOperation = 'lighter'; P.a(0.35 * (1 - fade)).dot(b.x - w - 3, top, SC[1], w * 2 + 6, h); x.globalCompositeOperation = 'source-over'; P.a(0.9 * (1 - fade)).dot(b.x - w / 2, top, SC[2], w, h).dot(b.x - 1, top, '#ffffff', 2, h); if (k >= 1) P.a(1 - fade).ring(b.x, bot, 6 + fade * 8, 2 + fade * 2, SC[3], 1); P.a(1); return; }
   if (k > 1) { if (st === 'egg') { const q = (k - 1) * s.fly / s.after, sx = Math.sign(ux || 1), hx = b.x - sx * (12 - 12 * Math.min(1, q * 1.6)), hy = b.y + 8 - 12 * Math.sin(Math.PI * Math.min(1, q * 1.4)); if (q < 0.5) for (let j = 0; j < 5; j++) P.a(1 - q * 2).dot(b.x - sx * 12 + Math.cos(j * 1.3) * (4 + q * 12), b.y + 8 - Math.abs(Math.sin(j * 1.3)) * (3 + q * 10), '#f0d8c8', 2, 1); P.a(1);
       P.ell(hx, hy, 5, 3.5, '#1a2a08').ell(hx, hy - 1, 4, 2.5, '#7ab838').dot(hx - 4, hy + 2, '#1a2a08', 1, 3).dot(hx - 1, hy + 2, '#1a2a08', 1, 3).dot(hx + 2, hy + 2, '#1a2a08', 1, 3).dot(hx + sx * 4, hy - 2, '#f4ece0', 1, 1).dot(hx + sx * 5, hy, '#f4ece0', 1, 1).dot(hx + sx * 2, hy - 2, '#c81a28'); }
-    if (st === 'shadow') { const q = (k - 1) * s.fly / s.after, gy = b.y + dxRad(tg || { kind: '' }) * 0.9, up = Math.min(1, q * 2.5); P.ell(b.x, gy, 10, 3, '#05030a'); for (let f2 = -2; f2 <= 2; f2++) { const fx = b.x + f2 * 4, top2 = gy - 4 - up * (16 - Math.abs(f2) * 2); P.line(fx, gy, fx + f2 * 0.8, top2, '#6a3aa0', 5).line(fx, gy, fx + f2 * 0.8, top2, '#05030a', 3); P.dot(fx + f2 * 1.2 - 1, top2 - 1, '#2a1a3a', 3, 2); } }
+    if (st === 'shadow') { const q = (k - 1) * s.fly / s.after, gy = b.y + dxRad(tg || { kind: '' }) * 0.9, up = Math.min(1, q * 2.5); P.ell(b.x, gy, 10, 3, '#05030a'); for (let f2 = -2; f2 <= 2; f2++) { const fx = b.x + f2 * 4, top2 = gy - 4 - up * (16 - Math.abs(f2) * 2); P.line(fx, gy, fx + f2 * 0.8, top2, SC[1], 5).line(fx, gy, fx + f2 * 0.8, top2, '#05030a', 3); P.dot(fx + f2 * 1.2 - 1, top2 - 1, '#2a1a3a', 3, 2); } }
     return; }
   if (st === 'shadow') return;
-  if (st === 'inkblob' || st === 'flask') { const c = st === 'inkblob' ? ['#05060c', '#1a2a3a', '#5a7a9a'] : ['#1a3a10', '#7ab838', '#e8ffd0']; for (let j = 1; j < 6; j++) { const q = Math.max(0, kk - j * 0.05); P.a(0.75 - j * 0.12).disc(a.x + (b.x - a.x) * q, a.y + (b.y - a.y) * q - arc * Math.sin(Math.PI * q) + j * 0.6, 3.6 - j * 0.5, c[0]); } P.a(1);
-    if (st === 'inkblob') { const sp = Math.sin(kk * 20) * 0.8; P.ell(px, py, 6.5 + sp, 6 - sp, '#3a6a8a').ell(px, py, 5 + sp, 4.5 - sp, c[0]).ell(px - 1, py - 1, 3, 2.5, c[1]).dot(px - 2, py - 3, c[2], 2, 1).dot(px + 3, py + 3, c[0], 1, 3); }
+  if (st === 'inkblob' || st === 'flask') { const c = st === 'inkblob' ? ['#05060c', SC[0], SC[1]] : [SC[0], SC[1], SC[3]]; for (let j = 1; j < 6; j++) { const q = Math.max(0, kk - j * 0.05); P.a(0.75 - j * 0.12).disc(a.x + (b.x - a.x) * q, a.y + (b.y - a.y) * q - arc * Math.sin(Math.PI * q) + j * 0.6, 3.6 - j * 0.5, c[0]); } P.a(1);
+    if (st === 'inkblob') { const sp = Math.sin(kk * 20) * 0.8; P.ell(px, py, 6.5 + sp, 6 - sp, SC[1]).ell(px, py, 5 + sp, 4.5 - sp, c[0]).ell(px - 1, py - 1, 3, 2.5, c[1]).dot(px - 2, py - 3, c[2], 2, 1).dot(px + 3, py + 3, c[0], 1, 3); }
     else { P.dot(px - 3, py - 4, c[0], 7, 9).dot(px - 2, py - 3, c[1], 5, 7).dot(px - 2, py - 7, '#8a6a3a', 5, 3).dot(px - 1, py - 2, c[2], 1, 3); } return; }
-  if (st === 'spore') { for (let j = 0; j < 6; j++) { const ox = Math.cos(j * 1.7 + kk * 6) * 5, oy = Math.sin(j * 2.3 + kk * 5) * 3.5; P.a(0.8).disc(px + ox, py + oy + wob, 3.2 + (j % 3), j % 2 ? '#a8c858' : '#5a7a28'); } P.a(1).dot(px - 1, py + wob - 1, '#e8ffb0', 2, 2); for (let j = 0; j < 5; j++) { const q = Math.max(0, kk - j * 0.04); P.dot(a.x + (b.x - a.x) * q + Math.sin(j * 3) * 4, a.y + (b.y - a.y) * q - arc * Math.sin(Math.PI * q) + Math.cos(j * 2) * 4, '#c8e870'); } return; }
+  if (st === 'spore') { for (let j = 0; j < 6; j++) { const ox = Math.cos(j * 1.7 + kk * 6) * 5, oy = Math.sin(j * 2.3 + kk * 5) * 3.5; P.a(0.8).disc(px + ox, py + oy + wob, 3.2 + (j % 3), j % 2 ? SC[2] : SC[1]); } P.a(1).dot(px - 1, py + wob - 1, SC[3], 2, 2); for (let j = 0; j < 5; j++) { const q = Math.max(0, kk - j * 0.04); P.dot(a.x + (b.x - a.x) * q + Math.sin(j * 3) * 4, a.y + (b.y - a.y) * q - arc * Math.sin(Math.PI * q) + Math.cos(j * 2) * 4, SC[2]); } return; }
   if (st === 'egg') { const r = kk * 9, sx = Math.round(Math.cos(r) * 1.5); P.ell(px, py, 5, 6.5, '#3a1a1a').ell(px, py, 4, 5.5, '#f0d8c8').dot(px - 2 + sx, py - 2, '#a86a6a', 2, 2).dot(px + 1 - sx, py + 2, '#c89090', 2, 1).dot(px - 2, py - 4, '#ffffff', 1, 2).dot(px + 2, py - 1, '#5a8a28', 1, 1); return; }
-  if (st === 'eyeball') { for (let j = 1; j < 7; j++) { const q = Math.max(0, kk - j * 0.04); P.a(0.8 - j * 0.11).dot(a.x + (b.x - a.x) * q + Math.sin(j * 2.1) * 1.5, a.y + (b.y - a.y) * q + Math.cos(j * 1.7) * 1.5, '#a01a2a', 2, 1); } P.a(1).disc(px, py, 5.5, '#1a0a26').disc(px, py, 4.5, '#f4f0ff').dot(px - 3, py + 1, '#d06070', 2, 1).dot(px + 1, py + 3, '#d06070', 1, 1).disc(px + ux * 1.8, py + uy * 1.8, 2.4, '#d8b040').disc(px + ux * 2.2, py + uy * 2.2, 1.2, '#05030a').dot(px - 2, py - 3, '#ffffff'); return; }
-  if (st === 'rings' || st === 'note') { const c = st === 'rings' ? '#e0303a' : '#ffe070', c2 = st === 'rings' ? '#5a0610' : '#5a4010'; for (let j = 0; j < 4; j++) { const q = kk - j * 0.12; if (q < 0) continue; const X = a.x + (b.x - a.x) * q, Y = a.y + (b.y - a.y) * q, an = Math.atan2(uy, ux), r = 5 + q * 8; P.a(1 - j * 0.22).ring(X, Y, r * 0.55, r, c2, 3, an - 1.1, an + 1.1).ring(X, Y, r * 0.55, r, c, 1, an - 1.1, an + 1.1); } if (st === 'note') P.a(1).dot(px, py - 6, '#ffe070', 1, 6).dot(px - 2, py, '#ffe070', 3, 2).dot(px + 1, py - 6, '#ffe070', 3, 1); P.a(1); return; }
-  if (st === 'arrow' || st === 'bolt') { const an = Math.atan2(b.y - a.y - arc * Math.PI * Math.cos(Math.PI * kk), b.x - a.x), dx = Math.cos(an), dy = Math.sin(an), len = st === 'arrow' ? 13 : 8; P.line(px - dx * len, py - dy * len, px, py, '#1a1008', st === 'arrow' ? 3 : 4).line(px - dx * len, py - dy * len, px, py, st === 'arrow' ? '#a8804a' : '#5a5a66', st === 'arrow' ? 1 : 2).tri([[px + dx * 4, py + dy * 4], [px - dy * 2.5, py + dx * 2.5], [px + dy * 2.5, py - dx * 2.5]], '#e0e4ec'); if (st === 'arrow') for (const sd of [-1, 1]) P.line(px - dx * len, py - dy * len, px - dx * (len - 4) + sd * dy * 3, py - dy * (len - 4) - sd * dx * 3, sd < 0 ? '#f0e8e0' : '#c83030', 1); else P.dot(px - dx * len - 1, py - dy * len - 1, '#8a8a96', 3, 3); return; }
+  if (st === 'eyeball') { for (let j = 1; j < 7; j++) { const q = Math.max(0, kk - j * 0.04); P.a(0.8 - j * 0.11).dot(a.x + (b.x - a.x) * q + Math.sin(j * 2.1) * 1.5, a.y + (b.y - a.y) * q + Math.cos(j * 1.7) * 1.5, SC[1], 2, 1); } P.a(1).disc(px, py, 5.5, '#1a0a26').disc(px, py, 4.5, '#f4f0ff').dot(px - 3, py + 1, '#d06070', 2, 1).dot(px + 1, py + 3, '#d06070', 1, 1).disc(px + ux * 1.8, py + uy * 1.8, 2.4, '#d8b040').disc(px + ux * 2.2, py + uy * 2.2, 1.2, '#05030a').dot(px - 2, py - 3, '#ffffff'); return; }
+  if (st === 'rings' || st === 'note') { const c = SC[2], c2 = SC[0]; for (let j = 0; j < 4; j++) { const q = kk - j * 0.12; if (q < 0) continue; const X = a.x + (b.x - a.x) * q, Y = a.y + (b.y - a.y) * q, an = Math.atan2(uy, ux), r = 5 + q * 8; P.a(1 - j * 0.22).ring(X, Y, r * 0.55, r, c2, 3, an - 1.1, an + 1.1).ring(X, Y, r * 0.55, r, c, 1, an - 1.1, an + 1.1); } if (st === 'note') P.a(1).dot(px, py - 6, SC[3], 1, 6).dot(px - 2, py, SC[3], 3, 2).dot(px + 1, py - 6, SC[3], 3, 1); P.a(1); return; }
+  if (st === 'arrow' || st === 'bolt') { const an = Math.atan2(b.y - a.y - arc * Math.PI * Math.cos(Math.PI * kk), b.x - a.x), dx = Math.cos(an), dy = Math.sin(an), len = st === 'arrow' ? 13 : 8; P.line(px - dx * len, py - dy * len, px, py, '#1a1008', st === 'arrow' ? 3 : 4).line(px - dx * len, py - dy * len, px, py, st === 'arrow' ? '#a8804a' : '#5a5a66', st === 'arrow' ? 1 : 2).tri([[px + dx * 4, py + dy * 4], [px - dy * 2.5, py + dx * 2.5], [px + dy * 2.5, py - dx * 2.5]], '#e0e4ec'); if (st === 'arrow') for (const sd of [-1, 1]) P.line(px - dx * len, py - dy * len, px - dx * (len - 4) + sd * dy * 3, py - dy * (len - 4) - sd * dx * 3, sd < 0 ? SC[3] : SC[1], 1); else P.dot(px - dx * len - 1, py - dy * len - 1, '#8a8a96', 3, 3); return; }
   // 마법 구슬 · 등불 · 책장: 색 구슬 + 꼬리
-  const c = s.col || (st === 'lamp' ? '#ffd890' : st === 'page' ? '#c8a0ff' : '#7aa8ff');
+  const c = st === 'page' ? SC[3] : SC[2];
   for (let j = 1; j < 8; j++) { const q = Math.max(0, kk - j * 0.04); P.a(0.8 - j * 0.1).disc(a.x + (b.x - a.x) * q, a.y + (b.y - a.y) * q, 4.2 - j * 0.45, c); }
   P.a(1); if (st === 'page') P.dot(px - 4, py - 5, '#1a0a26', 9, 10).dot(px - 3, py - 4, c, 7, 8).dot(px - 2, py - 3, '#ffffff', 1, 5).dot(px, py - 3, '#ffffff', 2, 1).dot(px, py, '#ffffff', 2, 1); else { x.globalCompositeOperation = 'lighter'; P.a(0.4).disc(px, py, 7, c); x.globalCompositeOperation = 'source-over'; P.a(1).disc(px, py, 4.5, c).disc(px - 1, py - 1, 2, '#ffffff'); }
 }
@@ -10633,24 +10864,21 @@ function dxMarkDraw(P, v, m, k) {
   else if (m.type === 'slash') { P.line(c.x - 6, c.y - 6, c.x + 6, c.y + 5, red, 2).line(c.x - 5, c.y - 6, c.x + 6, c.y + 4, k < 0.4 ? '#ffffff' : red, 1); }
   else if (m.type === 'stab') { for (let j = 0; j < 3; j++) P.dot(c.x - dir * 1 + (j - 1) * 2, c.y - 2 + j * 2, red, 2, 2); if (k < 0.3) P.line(c.x - dir * 6, c.y, c.x + dir * 4, c.y, '#ffffff', 1); }
   else if (m.type === 'blunt') { for (let j = 0; j < 8; j++) { const an = j * 0.785 + 0.3, r0 = 3 + k * 4, r1 = r0 + 4 * (1 - k); P.line(c.x + Math.cos(an) * r0, c.y + Math.sin(an) * r0, c.x + Math.cos(an) * r1, c.y + Math.sin(an) * r1, '#fff3c0', 1); } }
-  else if (m.type === 'burn') { P.ring(c.x, c.y, 5 + k * 6, 4 + k * 4, m.style === 'gaze' || m.style === 'pillar' ? '#d0b8ff' : '#ffe7a0', 1).dot(c.x - 1, c.y - 1, '#ffffff', 2, 2); }
+  else if (m.type === 'burn') { P.ring(c.x, c.y, 5 + k * 6, 4 + k * 4, '#f4f0e8', 1).dot(c.x - 1, c.y - 1, '#ffffff', 2, 2); }
   else if (m.type === 'splat') { P.ell(c.x, c.y, 6 - k * 2, 4, m.style === 'flask' ? '#5a9a28' : '#05060c'); for (let j = 0; j < 4; j++) P.dot(c.x - 5 + j * 3, c.y + 3 + k * 6 + (j % 2) * 2, m.style === 'flask' ? '#7ab838' : '#0a0c14', 1, 2); }
   else if (m.type === 'puff') { for (let j = 0; j < 5; j++) P.a(a * 0.7).disc(c.x + Math.cos(j * 1.26) * (3 + k * 9), c.y + Math.sin(j * 1.26) * (2 + k * 6), 3 - k * 1.5, j % 2 ? '#a8c858' : '#6a8a30'); }
   else if (m.type === 'burst') { P.ring(c.x, c.y, 3 + k * 10, 3 + k * 8, '#ffffff', 1); if (m.style === 'eyeball' && gore) for (let j = 0; j < 5; j++) P.dot(c.x + Math.cos(j * 1.3) * k * 10, c.y + Math.sin(j * 1.3) * k * 8, j % 2 ? '#f4f0ff' : '#c81a28', 2, 2); }
-  else if (m.type === 'sonic') { P.ring(c.x, c.y, 4 + k * 9, 3 + k * 7, m.style === 'note' ? '#ffe070' : '#e0303a', 1); }
+  else if (m.type === 'sonic') { P.ring(c.x, c.y, 4 + k * 9, 3 + k * 7, '#f4f0e8', 1); }
   else if (m.type === 'wrap') { if (m.style === 'chain') P.ring(c.x, c.y, dxRad(v), 3, '#b0b4c0', 1); }
   else if (m.type === 'grip') { for (let j = -2; j <= 2; j++) P.line(c.x + j * 3, c.y + 8, c.x + j * 2.2, c.y - 4 + Math.abs(j), '#05030a', 2); }
   if (m.crit && k < 0.5) P.a(1 - k * 2).ring(c.x, c.y, 8 + k * 10, 8 + k * 10, '#ffe060', 1);
   P.a(1);
 }
-// 화면 위: 기술 이름 띠 · 번쩍임 (흔들림은 diceui 의 dDraw 가 캔버스를 옮겨 그린다)
+// 화면 위: 번쩍임 (흔들림은 diceui 의 dDraw 가 캔버스를 옮겨 그린다). 7판: 기술 이름 띠는 없다
 function dxDrawTop(x, F) {
   const now = performance.now(), P = dxPen(x);
   const fl = F.fxFlash; if (fl) { const q = (now - fl.t0) / fl.dur; if (q >= 0 && q < 1) { x.globalCompositeOperation = 'lighter'; P.a(0.22 * (1 - q)).dot(0, 0, fl.col, DFW, DFH); x.globalCompositeOperation = 'source-over'; P.a(1); } }
-  const b = F.fxBand; if (b) { const q = (now - b.t0) / 820; if (q >= 0 && q < 1) { const inA = Math.min(1, q / 0.15), outA = q > 0.8 ? 1 - (q - 0.8) / 0.2 : 1, y = Math.round(DFH * 0.16), w = Math.round(DFW * inA);
-    P.a(0.78 * outA).dot((DFW - w) / 2, y - 12, '#06040c', w, 24).a(outA).dot((DFW - w) / 2, y - 12, b.col, w, 1).dot((DFW - w) / 2, y + 11, b.col, w, 1);
-    x.globalAlpha = outA; x.font = 'bold 14px sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillStyle = '#0c0812'; x.fillText(b.text, DFW / 2 + 1, y + 1); x.fillStyle = b.col; x.fillText(b.text, DFW / 2, y);
-    if (b.who) { x.font = '9px sans-serif'; x.fillStyle = '#c8c0b8'; x.textAlign = 'left'; x.fillText(b.who, (DFW - w) / 2 + 6, y - 5); } x.textBaseline = 'alphabetic'; x.globalAlpha = 1; } }
+  dxGodTop(x, F);
 }
 // 흔들림 (화면 시각)
 function dxShakeOff(F) { const s = F.fxShake; if (!s || !dMo()) return [0, 0]; const q = (performance.now() - s.t0) / s.dur; if (q < 0 || q >= 1) return [0, 0]; const a = s.amp * (1 - q); return [Math.round(Math.sin(q * 47) * a), Math.round(Math.cos(q * 39) * a * 0.6)]; }
@@ -10896,7 +11124,7 @@ function dTop(v) {
   const g = v.region, TN = { elite: '정예', boss: '우두머리' };
   const plan = (v.plan || []).map(x => `<span class="rr t-${x.type}${x.r === v.round ? ' now' : x.r < v.round ? ' past' : ''}">${x.r}${TN[x.type] ? ' ' + TN[x.type] : ''}</span>`).join('');
   el.innerHTML = `<p class="dg-rline"><span class="dg-rdots">${DICE.REGIONS.map((x, i) => `<i class="${i < g.ix ? 'past' : i === g.ix ? 'now' : ''}"></i>`).join('')}</span><span class="rr-w">${dEsc(v.world.name)}</span><span class="rr-n">${dEsc(g.name)}</span><span class="dg-rplan">${plan}</span>${v.bossRound ? `<b>우두머리 ${dEsc(g.boss)}</b>` : ''}${v.hex && v.hex.length ? '<b class="bad">' + dEsc(v.hex[0].text) + (v.hex.length > 1 ? ' 외 ' + (v.hex.length - 1) : '') + '</b>' : ''}</p>`
-    + (m ? `<button class="dg-mline${v.canOffer ? ' can' : ''}" data-d="mythinfo" style="--c:${ASPC[m.asp]}" aria-label="${dEsc(m.name)} · 퀘스트 ${m.quest.have}/${m.quest.need} · 제물 눈금 ${m.god.have}/${m.god.need}${v.canOffer ? ' · 권속을 여기로 끌어 놓으면 바칩니다' : ''}"><img src="${dSig(m.id, 32)}" alt=""><span class="ml-t"><b>${dEsc(m.name)}</b><span> · ${m.left}라운드 남음</span></span><span class="ml-q">퀘스트 · ${dEsc(m.quest.short)} <b class="ml-n">${m.quest.have}/${m.quest.need}</b></span><span class="ml-g"><small>제물</small><b>${m.god.have}/${m.god.need}</b><i style="width:${Math.round(Math.min(1, m.god.have / Math.max(1, m.god.need)) * 100)}%"></i></span></button>` : '');
+    + (m ? `<button class="dg-mline${v.canOffer ? ' can' : ''} md-${m.mood || 'none'}" data-d="mythinfo" style="--c:${ASPC[m.asp]}" aria-label="${dEsc(m.name)} · ${DMOODN[m.mood] || ''} · 퀘스트 ${m.quest.have}/${m.quest.need} · 제물 눈금 ${m.god.have}/${m.god.need}${v.canOffer ? ' · 권속을 여기로 끌어 놓으면 바칩니다' : ''}"><img src="${dSig(m.id, 32)}" alt=""><span class="ml-t"><b>${dEsc(m.name)}</b><span> · ${m.left}라운드 남음</span></span><span class="ml-q">퀘스트 · ${dEsc(m.quest.short)} <b class="ml-n">${m.quest.have}/${m.quest.need}</b></span><span class="ml-g"><small>제물</small><b>${m.god.have}/${m.god.need}</b><i style="width:${Math.round(Math.min(1, m.god.have / Math.max(1, m.god.need)) * 100)}%"></i></span></button>` : '');
 }
 
 // ───────── 대기 칸 ─────────
@@ -11322,7 +11550,7 @@ function dHandsModal() {
   const v = DG.v, rows = DICE.HAND_IDS.slice().reverse().map(k => `<tr class="hr${DICE.HANDS[k].rank}"><th>${dEsc(DICE.HANDS[k].name)}</th><td>${dEsc(DICE.HANDS[k].cond)}</td><td class="hgs">${dHandGetHtml(k)}</td><td class="hp">${DICE.HANDP[k] < 1 ? '1% 아래' : '약 ' + DICE.HANDP[k] + '%'}</td></tr>`).join('');
   const now = v && v.roll && v.roll.n && v.roll.line ? `<p class="sh-sub">지금: <b>${dEsc(v.roll.line)}</b></p>` : '';
   dShow(dBox('dg-hands', '족보표', `${now}<p><b>숫자 = 족보 = 별.</b> 같은 수를 모은 족보가 별을 정합니다. 족보를 이룬 주사위가 모두 기본이면 <b>기본 권속</b>, 색 주사위가 하나라도 끼면 그 족보 전체가 <b>그 색 권속</b>입니다.</p><div class="dg-twrap"><table class="dg-tbl dg-htbl"><tr><th>족보</th><th>조건</th><th>받는 것</th><th>대략</th></tr>${rows}</table></div>
-<p class="mute">권속은 「별 수」로 적었습니다 (예: 「2성 1」 = 2성 하나).</p><ul class="dg-hnote"><li>서로 다른 두 색이 한 묶음에 끼면(또는 두 색 주사위가 끼면) 첫 권속이 혼종이 될 수 있습니다 (${Math.round(DICE.K.hyb2 * 100)}%).</li><li>레시피가 있는 두 색이 낀 높은 족보(풀하우스 · 포카드 · 다섯 같은 수)에서는 신화 권속이 올 수 있습니다.</li><li>족보에 안 든 색 주사위는 그 색 권속을 이번 싸움에 ${Math.round(DICE.K.leftBuff * 100)}%씩 세게 합니다 (기본 주사위는 덤이 없습니다).</li><li>주사위는 떠 있는 신에게 권속을 바쳐야만 물듭니다 (위 띠의 옛것 표식).</li><li>「대략」은 주사위 다섯으로, 가장 많은 수를 고정하고 다시 굴리기 1번을 썼을 때 그 족보로 끝날 확률입니다.</li><li>6 도 평범한 수입니다 (다른 수를 대신하지 않습니다). 횃불 면은 숫자가 없어 족보를 깹니다 (확정하면 이번 적 체력 +10%).</li><li>그림 면은 족보와 따로, 나오면 그 권속이 곧바로 옵니다. 여섯 개 이상 꺼내면 가장 좋은 다섯으로 봅니다.</li></ul>`, '', '<button class="sh-x" data-d="mclose" aria-label="닫기">✕</button>'));
+<p class="mute">권속은 「별 수」로 적었습니다 (예: 「2성 1」 = 2성 하나).</p><ul class="dg-hnote"><li>두 색 주사위가 묶음에 끼면 그 묶음의 첫 권속은 혼종입니다.</li><li>한 색 주사위 둘(서로 다른 색)로는 주사위 ${DICE.K.hyb2n}개가 다 든 묶음(다섯 같은 수 · 라지 스트레이트)에서만 혼종이 될 수 있습니다 (${Math.round(DICE.K.hyb2 * 100)}%).</li><li>신화 권속은 더 드뭅니다: 레시피 두 색으로 된 풀하우스, 두 색 주사위가 낀 포카드 · 다섯 같은 수, 한 색 다섯 같은 수에서만 올 수 있습니다.</li><li>족보에 안 든 색 주사위는 그 색 권속을 이번 싸움에 ${Math.round(DICE.K.leftBuff * 100)}%씩 세게 합니다 (기본 주사위는 덤이 없습니다).</li><li>주사위는 떠 있는 신에게 권속을 바쳐야만 물듭니다 (위 띠의 옛것 표식).</li><li>「대략」은 주사위 다섯으로, 가장 많은 수를 고정하고 다시 굴리기 1번을 썼을 때 그 족보로 끝날 확률입니다.</li><li>6 도 평범한 수입니다 (다른 수를 대신하지 않습니다). 횃불 면은 숫자가 없어 족보를 깹니다 (확정하면 이번 적 체력 +10%).</li><li>그림 면은 족보와 따로, 나오면 그 권속이 곧바로 옵니다. 여섯 개 이상 꺼내면 가장 좋은 다섯으로 봅니다.</li></ul>`, '', '<button class="sh-x" data-d="mclose" aria-label="닫기">✕</button>'));
 }
 // 주머니 (= 내 주사위): 색마다 주사위 수 · 한 라운드에 그 색이 1 · 2 · 3개 이상 나올 확률 · 주사위 하나하나 (색 · 특수)
 function dMyDiceModal() {
@@ -11803,7 +12031,7 @@ function dDraw(now) {
   if (F) {
     dxDrawOver(x, F);
     F.nums.forEach(n => { const k = (F.t - n.t0) / 0.9; if (k < 0 || k > 1) return; try { LAIRART.num(x, n.x, n.y, n.text, n.kind, k, 2); } catch (e) { /* 숫자 없이 */ } });
-    F.tags.forEach(n => { const k = (F.t - n.t0) / 1.1; if (k < 0 || k > 1) return; x.font = 'bold 10px sans-serif'; x.textAlign = 'center'; x.globalAlpha = 1 - k; x.fillStyle = '#0c0812'; x.fillText(n.text, n.x + 1, n.y - 33 - k * 6); x.fillStyle = n.col; x.fillText(n.text, n.x, n.y - 34 - k * 6); x.globalAlpha = 1; });
+    // 7판: 머리 위 글씨(기술 이름 · 「미침」)는 없다 — 빛 테로만 (dxCast · mad)
     if (F.leakHit) { const q = (performance.now() - F.leakHit) / 700; if (q < 1) { x.fillStyle = 'rgba(160,10,30,' + (0.35 * (1 - q)).toFixed(3) + ')'; x.fillRect(0, 0, DFW, DFH); } }
     if (F.sneak && F.sneak.hit) { const q = (performance.now() - F.sneak.hit) / 1600; if (q < 1) { if (q < 0.4) { x.fillStyle = 'rgba(160,10,30,' + (0.3 * (1 - q / 0.4)).toFixed(3) + ')'; x.fillRect(0, 0, DFW, DFH); } } }
     // 싸움 결과 글(빈 줄로 샌 적 · 생명 −n · 승리)은 전장 위에 쓰지 않는다: 싸움이 끝나면 결과 창에 (붉은 번쩍임만 남긴다)
@@ -11843,6 +12071,8 @@ function dFight() {
   // 빈 줄로 새는 적: 싸움에 들지 않고 처음 1초 남짓 동안 왼쪽 밖(굴)으로 달려 나간다 → 붉은 번쩍임 · 「새어 든 적 · 생명 −n」
   (r.res.leak || []).forEach((o, i) => { const p = dCellXY(o.cell), t1 = DINTRO + 0.55 + i * 0.08; units.push({ id: 'L' + i, side: 'inv', home: 'inv', kind: o.kind, star: 1, x: p.x, y: p.y, hp: 1, mhp: 1, alive: true, anim: 'move', animT: 0, animEnd: t1, moving: true, mv: { x0: p.x, y0: p.y, x1: -40, y1: p.y, t0: 0.15, t1 }, leaker: true, face: -1, goneAt: t1 }); });
   if (r.res.leak && r.res.leak.length) DG.F.sneak = { at: DINTRO + 0.6, n: r.res.leakLoss, k: r.res.leak.length };
+  // 7판: 신의 개입 (예고 · 개입 그림은 dicefx 의 dxGod*)
+  DG.F.god = dxGodPrep(DG.F); DG.F.godId = f.god ? f.god.id : null;
   units.forEach(u => { DG.F.byId[u.id] = u; });
   DG.ui = 'fight'; $('modal').hidden = true; dMusic(R.node && R.node.type === 'boss' ? 'boss' : 'night'); dSay('night'); dRender(); dTip();
 }
@@ -11850,7 +12080,7 @@ function dInvLeft(F) { let n = 0, big = false; F.units.forEach(u => { if (u.home
 function dTickFight(dt) {
   const F = DG.F; if (!F || F.done || F.pause) return;
   const tl = F.f.timeline, [nl, big] = dInvLeft(F), k = F.leak ? DPACE.base : dxPaceK(tl, F.i, F.t - DINTRO, Math.max(F.busy || 0, F.late.length ? F.late[F.late.length - 1].at : 0) - DINTRO, nl, big);
-  F.pace = k; F.t += dt * dSpeed() * k * ((DG.test && DG.test.pace) || 1); if (F.pauseAt != null && F.t >= F.pauseAt) { F.t = F.pauseAt; F.pauseAt = null; F.pause = true; }
+  const kk = dxGodSlow(F, F.t - DINTRO) ? DPACE.base : k; F.pace = kk; F.t += dt * dSpeed() * kk * ((DG.test && DG.test.pace) || 1); if (F.pauseAt != null && F.t >= F.pauseAt) { F.t = F.pauseAt; F.pauseAt = null; F.pause = true; }
   const T = F.t - DINTRO;
   for (;;) { // 미룬 맞음과 시간표의 사건을 시각 차례로
     if (F.pause) break; const L = F.late.length && F.late[0].at <= F.t ? F.late[0] : null, E = F.i < tl.length && tl[F.i].t <= T && F.pauseAt == null ? tl[F.i] : null;
@@ -11858,7 +12088,7 @@ function dTickFight(dt) {
     if (E) { dEvent(F, E); F.i++; continue; } break;
   }
   F.units.forEach(u => { const m = u.mv; if (!m) return; const q = Math.min(1, (F.t - m.t0) / Math.max(0.01, m.t1 - m.t0)); u.x = m.x0 + (m.x1 - m.x0) * q; u.y = m.y0 + (m.y1 - m.y0) * q; if (q >= 1) { u.mv = null; u.moving = false; } });
-  F.nums = F.nums.filter(n => F.t - n.t0 < 0.9); F.tags = F.tags.filter(n => F.t - n.t0 < 1.1); dxTick(F, dt * dSpeed() * k);
+  F.nums = F.nums.filter(n => F.t - n.t0 < 0.9); F.tags = F.tags.filter(n => F.t - n.t0 < 1.1); dxTick(F, dt * dSpeed() * kk); dxGodTick(F);
   if (F.sneak && !F.sneak.hit && F.t >= F.sneak.at) { F.sneak.hit = performance.now(); dSay('down'); }
   F.units.forEach(u => { if (u.leaker && !u.gone && F.t >= u.goneAt) u.gone = true; });
   if (F.t >= F.end && !F.leak && !F.late.length) dLeakStart(F);
@@ -11875,6 +12105,8 @@ function dHit(F, u, e, tt) {
   if (e.k !== 'atk' && tt - F.hitSay > 0.18) { F.hitSay = tt; dSay('hit'); }
 }
 function dEvent(F, e, late) {
+  // 신의 눈은 그리지 않는다: 제 기술이 닿는 순간만 개입 그림으로 (맞음 · 새끼 · 되살림은 그 대상의 사건으로 그대로)
+  if (F.godId && e.u === F.godId) { if (e.type === 'skillfx') dxGodStrike(F, e); return; }
   const u = F.byId[e.u], tt = F.t;
   if (e.type === 'move' && u) { const p = dCellXY(e.to); u.mv = { x0: u.x, y0: u.y, x1: p.x, y1: p.y, t0: tt, t1: tt + Math.max(0.15, e.dur || 0.3) }; u.moving = true; u.anim = e.anim === 'dash' || e.anim === 'leap' ? 'attack' : e.anim === 'pull' || e.anim === 'push' ? 'hit' : 'move'; u.animT = tt; u.animEnd = tt + (e.dur || 0.3); }
   else if (e.type === 'attack' && u) { u.anim = 'attack'; u.animT = tt; u.animEnd = tt + DXA; const tg = F.byId[e.tg]; if (tg) { u.tgId = tg.id; dFaceAudit(F, u, tg); if (!F.skipping) dxAttack(F, u, tg, e); } }
@@ -11883,11 +12115,11 @@ function dEvent(F, e, late) {
   else if (e.type === 'die' && u) { if (!late && !F.skipping) { let at = 0; F.late.forEach(l => { if (l.e.u === e.u && l.e.type === 'hit') at = Math.max(at, l.at); }); if (at > tt) { F.late.push({ at: at + 0.01, e }); F.late.sort((a, b) => a.at - b.at); return; } }
     u.alive = false; u.dieT = tt; u.anim = 'die'; u.animT = tt; u.animEnd = null; u.mv = null; u.strike = null; dSay('die'); u.goneAt = tt + 0.9; }
   else if (e.type === 'spawn') { const p = dCellXY(e.cell), n = { id: e.u, side: e.side, home: e.side, kind: e.kind, star: 1, x: p.x, y: p.y, hp: e.mhp, mhp: e.mhp, alive: true, anim: 'idle', animT: tt, summon: true }; F.units.push(n); F.byId[e.u] = n; }
-  else if (e.type === 'mad' && u) { u.mad = true; u.side = 'nest'; F.tags.push({ x: u.x, y: u.y, text: '미침', col: '#f070e8', t0: tt }); dSay('mad'); }
+  else if (e.type === 'mad' && u) { u.mad = true; u.side = 'nest'; if (!F.skipping) { const m = dxMid(u); F.fxRings.push({ x: m.x, y: m.y, t0: tt, col: DXSIDE.nest[2] }, { x: m.x, y: m.y, t0: tt + 0.15, col: ASPC.nebula }); } dSay('mad'); }
   else if (e.type === 'cleanse' && u) { u.mad = false; u.side = 'inv'; u.tgId = null; }
   else if (e.type === 'skillfx' && u && e.tgs && e.tgs.length) { const tg = F.byId[e.tgs[0]]; if (tg && tg !== u && tg.home !== u.home) u.tgId = tg.id; if (!F.skipping) dxSkill(F, e); }
   else if (e.type === 'skillfx' && !F.skipping) dxSkill(F, e);
-  else if (e.type === 'cast' && u) { u.anim = 'cast'; u.animT = tt; u.animEnd = tt + 0.72; const tg = e.tg != null ? F.byId[e.tg] : null; if (tg && tg !== u) u.tgId = tg.id; const s = LAIR.SK[e.sk]; if (s && s.name && !e.again && !F.skipping && !dxCast(F, u, s)) F.tags.push({ x: u.x, y: u.y, text: s.name, col: u.side === 'inv' && !u.mad ? '#ffcf6a' : '#8fe8d8', t0: tt }); }
+  else if (e.type === 'cast' && u) { u.anim = 'cast'; u.animT = tt; u.animEnd = tt + 0.72; const tg = e.tg != null ? F.byId[e.tg] : null; if (tg && tg !== u) u.tgId = tg.id; const s = LAIR.SK[e.sk]; if (s && s.name && !e.again && !F.skipping) dxCast(F, u, s); }
   F.units.forEach(q => { if (q.alive === false && q.goneAt != null && F.t > q.goneAt) q.gone = true; });
 }
 function dLeakStart(F) {
@@ -11962,6 +12194,7 @@ function dFlow() {
   // 싸움 결과가 먼저 (「다음」을 누르기 전에는 옛것 장면 · 보상 고르기 · 다음 라운드가 뜨지 않는다)
   if (R.last && R.last.seen === false) return dResultModal();
   if (DG.dyeNote) return dDyeNote();
+  if (DG.godNote) return dGodNote();
   if (R.mythEv.length) return dRite(R.mythEv[0]);
   if (R.pend.length) return dPendModal('pend', 0);
   if (R.out) return dOutModal();
@@ -11980,6 +12213,14 @@ const dDyeSeen = () => { try { return localStorage.getItem(DYK) === '1'; } catch
 function dDyeNote() {
   DG.dyeNote = false; try { localStorage.setItem(DYK, '1'); } catch (e) { /* 저장 없이 */ }
   dShow(dBox('dg-dyei', '권속이 물들었습니다', `<div class="dg-items">${dItem('한 일로 색이 듭니다', ['색마다 겪어야 하는 일이 다릅니다 (적을 쓰러뜨리기 · 크게 맞고 버티기 …)', '그 일을 한 권속 자신이 물듭니다. 되돌릴 수 없습니다', '권속 정보 창에 가장 앞선 일의 눈금이 보입니다'], { plain: true })}${dItem('다른 색의 일까지 채우면', ['물든 권속이 다른 색의 일을 채우면 혼종이 됩니다 (3성 이상이고 레시피가 맞으면 신화)'], { plain: true })}${dItem('신에게 바칠 수 있습니다', ['위대한 옛것이 떠 있으면, 놓을 때 권속을 위 띠의 표식으로 끌어 놓으세요', '눈금이 차면 그 신이 주사위 하나를 제 색으로 물들입니다. 그 신의 색 권속은 아주 크게 채웁니다'], { plain: true })}</div>`, `<button id="dg-dyeok" class="btn pri" data-d="flow">확인</button>`, '<button class="sh-x" data-d="flow" aria-label="닫기">✕</button>'));
+}
+// 신이 처음 싸움에 끼어든 뒤 결과 창 다음에 한 번 (localStorage 'nestdice.god'): 편은 바친 것이 정한다 · 누구를 치는지는 운
+const DGK = 'nestdice.god';
+const dGodSeen = () => { try { return localStorage.getItem(DGK) === '1'; } catch (e) { return true; } };
+function dGodNote() {
+  DG.godNote = false; try { localStorage.setItem(DGK, '1'); } catch (e) { /* 저장 없이 */ }
+  const K = DICE.GOD.K;
+  dShow(dBox('dg-godi', '신이 싸움에 끼어들었습니다', `<div class="dg-items">${dItem('한 싸움에 한 번', ['떠 있는 신은 싸움마다 한 번, 바닥의 그림자와 하늘의 눈으로 예고한 뒤 내려칩니다', '누구에게 떨어지는지는 운입니다'], { plain: true })}${dItem('누구 편을 드는지는 바친 것이 정합니다', ['이번에 떠 있는 동안 눈금 ' + K.ally + ' 이상 바치면 내 편: 적을 칩니다', '바치지 않으면 편을 가리지 않고 전장에서 가장 센 것(대개 내 권속)을 노립니다', '하나도 바치지 않은 채 싸움이 ' + K.ignore + '번 지나면 노하여 내 권속을 칩니다'], { plain: true })}${dItem('지금 마음은 표식의 테 색', ['청록 = 내 편 · 회색 = 중립 · 붉음 = 노함 (위 띠의 표식)'], { plain: true })}</div>`, `<button id="dg-godok" class="btn pri" data-d="flow">확인</button>`, '<button class="sh-x" data-d="flow" aria-label="닫기">✕</button>'));
 }
 // 처음 희귀 권속이 오면 한 번 (localStorage 'nestdice.rare')
 const DRK = 'nestdice.rare';
@@ -12018,8 +12259,10 @@ function dResultModal() {
   const DHW = { dye: '물들었습니다', stain: '물들었습니다', hybrid: '물들어 혼종이 되었습니다', myth: '물들어 신화가 되었습니다' };
   const dyed = (L0.dyed || []).map(x => { const c = ASPC[x.asp], an = dAspN(x.asp), f = x.from, t = x.to;
     return dItem(`<span class="fd-pic"><img src="${dIcon(f.kind, f.star, 40, f.br, f.stain)}" alt=""><i>→</i><img src="${dIcon(t.kind, t.star, 40, t.br, t.stain)}" alt=""></span><span class="fd-t"><b>${dEsc(f.name)}</b>${dEsc(dJo(f.name, '이', '가').slice(f.name.length))} <b style="color:${c}">${dEsc(an)}</b>${dEsc(dJo(an, '으로', '로').slice(an.length))} ${DHW[x.how] || '물들었습니다'}</span>`,
-      [(FU_BASE(f.kind) ? '기본 ' : '') + f.name + ' ' + f.star + '성 → ' + (x.how === 'myth' ? '신화 ' : x.how === 'hybrid' ? '혼종 ' : an + ' ') + t.name + ' ' + t.star + '성', '한 일: ' + DICE.COND[x.asp].name], { cls: 'fr-dye up', html: false }); });
-  const items = dyed.concat([dItem(`생명 <b>${L0.lifeBefore}</b> → <b class="${L0.life < L0.lifeBefore ? 'bad' : ''}">${L0.life}</b>`, life.filter(Boolean), { cls: 'fr-life', html: true }),
+      [(FU_BASE(f.kind) ? '기본 ' : '') + f.name + ' ' + f.star + '성 → ' + (x.how === 'myth' ? '신화 ' : x.how === 'hybrid' ? '혼종 ' : an + ' ') + t.name + ' ' + t.star + '성', '한 일: ' + DICE.COND[x.asp].name].concat(x.how === 'myth' ? ['신화는 판에서 아주 드뭅니다'] : x.how === 'hybrid' ? ['혼종은 드뭅니다 · 두 성향의 피를 함께 씁니다'] : []), { cls: 'fr-dye up' + (x.how === 'myth' ? ' fr-myth' : x.how === 'hybrid' ? ' fr-hyb' : ''), html: false }); });
+  // 7판: 신의 개입 한 줄 (그 신의 색 · 표식). 내 편을 들었으면 청록 테, 내 권속을 쳤으면 붉은 테
+  const gd = L0.god ? [dItem(`<img class="fg-sig" src="${dSig(L0.god.being, 32)}" alt=""><span>신의 개입</span>`, L0.god.line, { cls: 'fr-god ' + (L0.god.good > 0 ? 'good' : L0.god.good < 0 ? 'bad' : 'none'), plain: true })] : [];
+  const items = gd.concat(dyed).concat([dItem(`생명 <b>${L0.lifeBefore}</b> → <b class="${L0.life < L0.lifeBefore ? 'bad' : ''}">${L0.life}</b>`, life.filter(Boolean), { cls: 'fr-life', html: true }),
     dItem(`진액 <b class="nv">+${L0.gold}</b>`, gold || '받은 진액이 없습니다', { cls: 'fr-gold' })]);
   if (L0.reward) { const pick = ['add', 'remove', 'refine'].includes(L0.reward.type); const more = L0.reward.lines.filter(l => !(ri && ri.name && l.indexOf(ri.name) >= 0) && !(pick && ri && l.indexOf(ri.title) === 0)); items.push(dItem(`보상 · ${dEsc(ri ? ri.title : '받은 것')}${ri && ri.name ? ' 「' + dEsc(ri.name) + '」' : ''}`, [ri && ri.short ? ri.short : null, more.length ? '함께 받음: ' + more.join(', ') : null, pick ? '「다음」을 누르면 고르는 창이 열립니다' : null], { cls: 'fr-rw up', plain: true })); }
   if (L0.kinLost) items.push(dItem(`쓰러진 권속 <b>${L0.kinLost}</b>`, '다음 라운드에 다시 섭니다', { cls: 'fr-kin' }));
@@ -12027,7 +12270,7 @@ function dResultModal() {
   if (L0.lick) items.push(dItem('주사위 핥는 혀', '다음 라운드 다시 굴리기 +' + L0.lick.reroll + (L0.lick.draw ? ' · 꺼내는 주사위 +' + L0.lick.draw : '')));
   (L0.grow || []).forEach(g => { const u = R.units[g.uid]; items.push(dItem(dEsc(u ? DICE.unitName(u) : '배고픈 살점'), '쓰러진 것 ' + g.n + '을 삼켜 체력·공격 +' + Math.round(g.g * 100) + '%')); });
   items.push(dItem(`처치 <b>${L0.kills}</b>`, P ? '쓴 족보: ' + P.name : null, { cls: 'fr-k', plain: true }));
-  DG.dbg.result = { win: L0.win, round: L0.round, loss: L0.loss, leakLoss: L0.leakLoss || 0, gold: L0.gold, reward: L0.reward ? L0.reward.type : null, over }; DG.dbg.results = (DG.dbg.results || 0) + 1;
+  DG.dbg.result = { god: L0.god ? { line: L0.god.line, mood: L0.god.mood, good: L0.god.good, struck: L0.god.struck } : null, win: L0.win, round: L0.round, loss: L0.loss, leakLoss: L0.leakLoss || 0, gold: L0.gold, reward: L0.reward ? L0.reward.type : null, over }; DG.dbg.results = (DG.dbg.results || 0) + 1;
   const head = `<div class="fr-head ${L0.win ? 'win' : 'lose'}"><p class="fr-big">${L0.win ? '승리' : '패배'}</p><p class="fr-sub">라운드 ${L0.round} · ${dEsc(L0.region || '')}${L0.boss ? ' · 우두머리' : L0.type === 'elite' ? ' · 정예' : ''}${over ? (R.over === 'win' ? ' · 마지막 싸움' : ' · 판이 끝났습니다') : ''}</p></div>`;
   $('toast').hidden = true; dShow(dBox('dg-fres', '싸움 결과', head + `<div class="dg-items fr-items">${items.join('')}</div>`, `<button id="dg-resok" class="btn pri big" data-d="resnext">다음</button>`));
   setTimeout(() => { const b = $('dg-resok'); if (b && document.activeElement !== b) try { b.focus({ preventScroll: true }); } catch (e) { /* 그대로 */ } }, 0);
@@ -12105,11 +12348,17 @@ function dPendModal(mode, i) {
 const dEffLi = e => `<li class="${e.good ? 'eff-g' : 'eff-b'}"><b>${dEsc(e.name)}</b><span class="ed">${dNumHi(e.text)}</span></li>`;
 // 퀘스트 한 덩이: 목표 한 줄(쉬운 말) + 진행 「3/8」 + 덧말
 const dQuestHtml = (q, left) => `<div class="dg-quest"><p class="q-goal">${dEsc(q.goal)}</p><p class="q-prog"><b>${q.have}/${q.need}</b>${left != null ? `<span> · ${left}라운드 남음</span>` : ''}</p>${q.note ? `<p class="q-note">${dEsc(q.note)}</p>` : ''}</div>`;
+// 신의 마음 (표식의 테 색 · 표식 창의 한 줄)
+const DMOODN = { ally: '내 편', none: '중립', foe: '노함' };
+function dMoodItem(m) {
+  const t = m.mood === 'ally' ? '싸움마다 한 번 끼어들어 적을 칩니다.' : m.mood === 'foe' ? '바치지 않은 싸움이 쌓였습니다. 싸움마다 한 번 내 권속을 칩니다. 바치면 풀립니다.' : '편을 가리지 않고 가장 센 것을 노립니다. 이번에 눈금 ' + m.moodAlly + ' 이상 바치면 내 편이 됩니다 (지금 ' + Math.min(m.gave, m.moodAlly) + '/' + m.moodAlly + ').';
+  return dItem(`<span class="md-dot md-${m.mood || 'none'}"></span>신의 마음 · <b>${DMOODN[m.mood] || '중립'}</b>`, t, { plain: true, cls: 'mm-mood' });
+}
 function dMythModal() {
   const v = DICE.view(DG.R), m = v.myth; if (!m) return;
   dShow(dBox('dg-mythm', `<img class="mm-sig" src="${dSig(m.id, 32)}" alt="">${dEsc(m.name)}`, `<p class="sh-sub">신화 단계 ${m.stage} · 라운드 ${m.from}~${m.until} · 남은 ${m.left}라운드</p>${DSTORY ? `<p class="dg-lore">${dEsc(m.line)}</p>` : ''}
 <h3>퀘스트</h3>${dQuestHtml(m.quest, m.left)}<h3>걸려 있는 것</h3><ul class="mm-effs">${m.effs.map(dEffLi).join('')}</ul><p class="mute">기한 안에 이루면 축복을 받고, 이루지 못하면 그 존재의 결대로 무엇인가를 치릅니다.</p>
-<h3>제물</h3><div class="dg-items">${dItem(`눈금 <b>${m.god.have}/${m.god.need}</b>`, ['놓을 때 권속을 위 띠의 이 표식으로 끌어 놓으면 바칩니다 (바친 권속은 사라집니다)', '눈금이 차면 이 신이 주사위 하나를 ' + dAspN(m.asp) + '(으)로 영영 물들입니다 (주사위는 고릅니다)', '주사위가 물들 때마다 다음 눈금이 길어집니다 (모든 신이 함께) · 떠나도 채운 눈금은 남습니다'], { plain: true })}${dItem('떠 있는 동안', [m.twice + ' (권속이 그 색으로 물드는 일)'], { plain: true })}${v.next ? dItem('다음에 뜰 신', [v.next.name + ' (' + dAspN(v.next.asp) + ')' + (v.next.round ? ' · 라운드 ' + v.next.round + '쯤' : '')], { plain: true }) : ''}</div>`, '<button class="btn sm" data-d="mclose">닫기</button>', '<button class="sh-x" data-d="mclose" aria-label="닫기">✕</button>'));
+<h3>제물</h3><div class="dg-items">${dMoodItem(m)}${dItem(`눈금 <b>${m.god.have}/${m.god.need}</b>`, ['놓을 때 권속을 위 띠의 이 표식으로 끌어 놓으면 바칩니다 (바친 권속은 사라집니다)', '눈금이 차면 이 신이 주사위 하나를 ' + dAspN(m.asp) + '(으)로 영영 물들입니다 (주사위는 고릅니다)', '주사위가 물들 때마다 다음 눈금이 길어집니다 (모든 신이 함께) · 떠나도 채운 눈금은 남습니다'], { plain: true })}${dItem('떠 있는 동안', [m.twice + ' (권속이 그 색으로 물드는 일)'], { plain: true })}${v.next ? dItem('다음에 뜰 신', [v.next.name + ' (' + dAspN(v.next.asp) + ')' + (v.next.round ? ' · 라운드 ' + v.next.round + '쯤' : '')], { plain: true }) : ''}</div>`, '<button class="btn sm" data-d="mclose">닫기</button>', '<button class="sh-x" data-d="mclose" aria-label="닫기">✕</button>'));
 }
 
 // ───────── 위대한 옛것 장면: 떠오름 · 퀘스트 깸 · 못 깸 ─────────
@@ -12301,12 +12550,12 @@ function dHelp(pg) {
 <h3>한 라운드</h3><ol><li>꺼내기: 주머니에서 주사위 ${K.bag.draw}개가 무작위로 나옵니다.</li><li>던지기: 「흔들기」를 누르고 있으면 통이 흔들리고, 떼면 던집니다. 주사위를 누르면 고정되고, 「다시 굴리기」는 고정하지 않은 주사위만 다시 던집니다 (공짜 ${K.rerolls}번, 그 뒤로는 진액 2 · 3 · 4 …).</li><li>확정: 띠에 적힌 권속이 대기 칸에 옵니다.</li><li>놓기: 권속을 끌어 왼쪽 칸에 세웁니다. 신이 떠 있으면 위 띠의 표식으로 끌어 바칠 수도 있습니다. 오른쪽 칸이 앞줄입니다. 「자동 배치」는 빈 줄부터 메워 놓기만 합니다 (합치지 않습니다).</li><li>싸우기: 이기면 보상이 저절로 옵니다.</li></ol>
 <h3>생명 · 진액</h3><p>맨 위 ♥ 는 생명입니다 (처음 ${K.life}). 싸움에서 지면 남은 적의 무게만큼 줄어듭니다: 보통 1 · 정예 2 · 우두머리 4. 빈 줄로 샌 적도 생명을 깎습니다. 0 이 되면 판이 끝납니다.</p><p>진액은 돈입니다. 적을 쓰러뜨리거나 이기면 받고, 상점 · 다시 굴리기에 씁니다.</p>
 <h3>짐승과 풀</h3><p>세상마다 첫 지역에서는 사람 대신 짐승과 풀이 길목을 지킵니다. 풀은 움직이지 않고 가시 · 포자 · 잎을 멀리 뻗어 가장 가까운 것을 찌릅니다. 짐승은 여러 줄로 넓게 펼쳐 서니 머릿수가 필요합니다.</p><h3>라운드 · 사건 · 상점</h3><p>지역마다 마지막 라운드는 우두머리, 그 앞 한 라운드는 정예(세고 보상이 큽니다)입니다. 위 띠에 그 자리가 보입니다. 라운드 사이에 가끔 사건이나 제단이 끼어듭니다. 「상점」은 늘 열려 있습니다 (싸우는 동안만 닫힙니다).</p>`;
-  if (pg === 'dice') body = `<h3>숫자 = 족보 = 별</h3><p>처음 주머니는 <b>기본 주사위 ${K.bag.start}개</b>입니다 (뼈색, 색 없음). 면은 평범한 1~6 입니다.</p><ul><li>같은 수가 모일수록 높은 족보, 높은 족보일수록 별이 높은 권속이 옵니다.</li><li>족보를 이룬 주사위가 모두 기본이면 <b>기본 권속</b>(덩이 · 발톱 · 눈알)이 옵니다.</li><li>족보를 이룬 주사위에 <b>색 주사위가 하나라도 끼면</b> 그 족보 전체가 그 색 권속입니다. 서로 다른 두 색이 끼면 혼종이, 레시피 두 색이 낀 높은 족보에서는 신화가 올 수 있습니다.</li><li>높은 족보(풀하우스 · 스트레이트 · 포카드 · 다섯 같은 수)에서는 덤으로 희귀 권속 1성이 올 수 있습니다.</li><li>족보에 안 든 색 주사위는 그 색 권속을 이번 싸움에 ${Math.round(K.leftBuff * 100)}%씩 세게 합니다.</li></ul>
+  if (pg === 'dice') body = `<h3>숫자 = 족보 = 별</h3><p>처음 주머니는 <b>기본 주사위 ${K.bag.start}개</b>입니다 (뼈색, 색 없음). 면은 평범한 1~6 입니다.</p><ul><li>같은 수가 모일수록 높은 족보, 높은 족보일수록 별이 높은 권속이 옵니다.</li><li>족보를 이룬 주사위가 모두 기본이면 <b>기본 권속</b>(덩이 · 발톱 · 눈알)이 옵니다.</li><li>족보를 이룬 주사위에 <b>색 주사위가 하나라도 끼면</b> 그 족보 전체가 그 색 권속입니다. 두 색 주사위가 끼면 혼종이 옵니다. 혼종과 신화는 드뭅니다 (족보표의 설명).</li><li>높은 족보(풀하우스 · 스트레이트 · 포카드 · 다섯 같은 수)에서는 덤으로 희귀 권속 1성이 올 수 있습니다.</li><li>족보에 안 든 색 주사위는 그 색 권속을 이번 싸움에 ${Math.round(K.leftBuff * 100)}%씩 세게 합니다.</li></ul>
 <h3>족보</h3><table class="dg-tbl dg-htbl">${DICE.HAND_IDS.slice().reverse().map(k => `<tr><th>${dEsc(DICE.HANDS[k].name)}</th><td>${dEsc(DICE.HANDS[k].cond)}</td><td class="hgs">${dHandGetHtml(k)}</td></tr>`).join('')}</table>
 <h3>주사위가 물드는 길</h3><p>주사위는 저절로 물들지 않습니다. <b>떠 있는 신(위대한 옛것)에게 권속을 바쳐</b> 그 신의 눈금을 채우면, 그 신이 주사위 하나를 제 색으로 영영 물들입니다 (주사위는 고릅니다). 색은 고르지 않습니다: 지금 떠 있는 신의 색입니다.</p><ul><li>놓을 때 권속을 위 띠의 옛것 표식으로 끌어 놓으면 바칩니다. 끄는 동안 표식에 오를 양(「+3」)이 보입니다.</li><li>오르는 양은 권속마다 다릅니다: 기본 권속은 종류마다 크게 치는 신이 둘 있고, 별이 높을수록 많이, 그 신의 색으로 물든 권속은 아주 크게 채웁니다.</li><li>이미 물든 주사위를 또 물들이면 두 색 주사위가 됩니다 (더는 못 칠합니다). 물든 주사위는 되돌릴 수 없습니다.</li><li>주사위가 물들 때마다 다음 눈금이 길어집니다. 신이 떠나도 채운 눈금은 남습니다.</li></ul>
 <h3>주머니</h3><p>가진 주사위 전부가 주머니입니다 (${K.bag.min}~${K.bag.max}개). 라운드마다 그 가운데 ${K.bag.draw}개를 무작위로 꺼냅니다. 보상 · 상점 · 사건은 색을 주지도 팔지도 않습니다.</p><ul><li><b>더하기</b>: 기본 주사위 하나 (드뭅니다).</li><li><b>빼기</b>: 주사위 하나를 고릅니다. 물든 주사위는 진액 ${K.price.dyedOut}이 더 듭니다.</li><li><b>다듬기</b>: 평범한 주사위 하나를 특수 주사위로 바꿉니다 — 「6 이 두 면」 · 「무거운」(다시 굴릴 때 고정한 수로 다시 설 확률 +${Math.round(K.heavy * 100)}%)${(dWP().unl || []).includes('even') ? ' · 「짝수 주사위」(2 · 2 · 4 · 4 · 6 · 6)' : ''}. 색은 바뀌지 않습니다.</li></ul>
 <h3>특수 면</h3><p>횃불: 적이 새 지역에 들어설 때(라운드 ${K.torchAt.join(' · ')}) 면 하나를 바꿔 놓습니다. 숫자가 없어 족보를 깨고, 확정하면 이번 적의 체력이 하나마다 10% 늡니다. 제단의 「정리하기」로 지웁니다. 그림 면: 퀘스트 축복으로 생깁니다. 나오면 그 권속이 족보와 따로 곧바로 옵니다.</p>`;
-  if (pg === 'kin') body = `<h3>권속이 물드는 길</h3><p>처음엔 모두 <b>기본 권속</b>입니다 (덩이: 앞에서 막음 · 발톱: 앞에서 침 · 눈알: 뒤에서 쏨). 색은 고르지 않습니다. <b>싸움에서 한 일</b>이 색이 됩니다.</p><ul><li>색마다 겪어야 하는 일이 있고, 그 일을 한 권속 자신이 물듭니다. 무슨 일인지는 처음 겪으면 도감에 열립니다.</li><li>물들면 그 색의 같은 역할 권속으로 바뀝니다 (별은 바뀌지 않습니다). 되돌릴 수 없습니다.</li><li>이미 색이 있는 권속이 다른 색의 일을 채우면 혼종이 됩니다. 3성 이상이고 레시피가 맞으면 신화가 됩니다.</li><li>떠 있는 옛것의 색 일은 두 배로 쌓입니다. 권속 정보 창에 가장 앞선 일의 눈금(「기아 ●●○」)이 보입니다.</li></ul>
+  if (pg === 'kin') body = `<h3>권속이 물드는 길</h3><p>처음엔 모두 <b>기본 권속</b>입니다 (덩이: 앞에서 막음 · 발톱: 앞에서 침 · 눈알: 뒤에서 쏨). 색은 고르지 않습니다. <b>싸움에서 한 일</b>이 색이 됩니다.</p><ul><li>색마다 겪어야 하는 일이 있고, 그 일을 한 권속 자신이 물듭니다. 무슨 일인지는 처음 겪으면 도감에 열립니다.</li><li>물들면 그 색의 같은 역할 권속으로 바뀝니다 (별은 바뀌지 않습니다). 되돌릴 수 없습니다.</li><li>이미 색이 있는 권속이 다른 색의 일을 채우면 혼종이 됩니다. 이 일은 처음 물들 때보다 ${DICE.K.dye.again}배 깁니다. 3성 이상이고 레시피가 맞으면 신화가 됩니다.</li><li>떠 있는 옛것의 색 일은 두 배로 쌓입니다. 권속 정보 창에 가장 앞선 일의 눈금(「기아 ●●○」)이 보입니다.</li></ul>
 <h3>무리 효과</h3><p>같은 성향이 ${K.group.join(' · ')}마리 서 있으면 그 성향 권속 전체가 세집니다. 별과 상관없이 머릿수로 셉니다. 기본 권속끼리도 작은 무리 효과가 있습니다. 놓는 동안 전장 아래 한 줄에 보입니다.</p><table class="dg-tbl">${LAIR.ASPS.concat(['base']).map(a => `<tr><th style="color:${ASPC[a]}">${dEsc(a === 'base' ? '기본' : LAIR.ASPN[a])}</th><td>${dNumHi(gl(a))}${G[a].eng[0] ? `<br><small>${dEsc(G[a].eng[0])}</small>` : ''}</td></tr>`).join('')}</table>
 <p><b>「떼」</b>: 1 · 2성은 곁(맞닿은 칸)에 같은 성향(기본은 기본끼리) 권속이 서면 하나마다 체력·공격 +${Math.round(K.pack.per * 100)}% (${K.pack.max}까지).</p><p><b>빈 줄</b>: 전장의 가로 줄 여섯 가운데, 적이 섰는데 내 권속이 한 마리도 없는 줄은 붉게 보입니다. 그 줄의 보통 적은 싸우지 않고 굴로 새어 들어 무게만큼 생명을 깎습니다 (정예 · 우두머리 · 풀 · 먹이는 새지 않습니다). 머릿수로 줄을 막으세요.</p>
 <h3>합치기: 같은 종류 · 같은 별 셋</h3><p>같은 종류 · 같은 별 권속 셋을 모으면 하나로 합쳐집니다 (종류가 다르면 모이지 않습니다). 한 권속 위에 같은 권속을 끌어 놓으면 「2/3」, 하나 더 놓으면 합쳐집니다. 결과 = 그 종류의 다음 별 (4성까지). 「자동 배치」는 합치지 않습니다.</p><p>등급: 일반 · <b class="g-r">변종</b>(×1.15) · <b class="g-x">희귀</b>(×${DFUSE.GRADE.x.mul}) · <b class="g-m">신화</b>(×1.35). 4성은 3성보다 ×1.6이고, 그 성향의 「4성의 힘」이 싸움 전체에 걸립니다.</p>
@@ -12317,6 +12566,7 @@ function dHelp(pg) {
       + DICE.WORLDS.map(w => { const open = DICE.WD.isOpen(P, w.id, all), ens = open ? dWFoes(w) : '';
         return `<div class="dg-item${w.id === cur ? ' up' : ''}"><p class="it-h">${open ? dEsc(w.name) : '???'} <small>${dSkulls(w.diff)}</small></p>${open ? w.rules.map(r => `<p class="it-b"><b>${dEsc(r.name)}</b> · ${dEsc(r.text)}</p>`).join('') + `<p class="it-b mute">적: ${dEsc(ens)}</p><p class="it-b">이기면: ${w.unlock ? dEsc(w.unlock.name) + ' 풀림' : '기록만 남습니다'}</p>` : '<p class="it-b mute">앞 세상을 이기면 열립니다.</p>'}</div>`; }).join(''); }
   if (pg === 'myth') body = `<h3>위대한 옛것</h3><p>첫 옛것은 2라운드에 떠오르고, 그 뒤로 쉬었다가 다른 옛것이 차례로 떠올라 3~4라운드씩 머뭅니다. 떠 있는 동안 그 옛것의 색 일은 두 배로 쌓이고, 권속을 바쳐 주사위를 그 색으로 물들일 수 있습니다 (표식 창에 다음에 뜰 신이 보입니다). 머무는 동안 효과 하나가 규칙을 바꾸고 퀘스트 하나가 걸립니다. 옛것 띠의 표식을 누르면 지금 걸린 효과를 봅니다. 기한 안에 퀘스트를 이루면 축복을 받고, 이루지 못하면 그 존재의 결대로 무작위 리스크 하나를 치릅니다.</p><ul>${DICE.BEING_IDS.map(id => `<li><b style="color:${ASPC[DICE.BEINGS[id].asp]}">${dEsc(DICE.BEINGS[id].name)}</b> · 퀘스트: ${dEsc(DICE.MYTH[id].quest.short)}</li>`).join('')}</ul>
+<h3>싸움에 끼어드는 신</h3><p>떠 있는 신은 싸움마다 한 번, 바닥의 그림자와 하늘의 눈으로 예고한 뒤 내려칩니다. 누구에게 떨어지는지는 운이고, 누구 편을 드는지는 바친 것이 정합니다: 이번에 떠 있는 동안 눈금 ${DICE.GOD.K.ally} 이상 바치면 내 편(적을 칩니다), 바치지 않으면 중립(가장 센 것을 노립니다), 하나도 바치지 않은 채 싸움이 ${DICE.GOD.K.ignore}번 지나면 노하여 내 권속을 칩니다. 지금 마음은 표식의 테 색(청록 · 회색 · 붉음)으로 보입니다. 무슨 일이 있었는지는 싸움 결과 창에 한 줄로 나옵니다.</p>
 <h3>사건 · 제단</h3><p>사건은 무슨 일인지 한 줄과 선택지 둘이 나옵니다. 「반반」이라고 적힌 것은 결과가 둘 가운데 하나로 정해집니다. 제단에서는 쉬어 생명을 채우거나, 횃불 면을 지웁니다.</p>`;
   dShow(dBox('dg-help', '안내서', tabs + body, '', '<button class="sh-x" data-d="mclose" aria-label="닫기">✕</button>'));
   const sb = $('modal').querySelector('.sh-body'); if (sb) sb.scrollTop = 0;
@@ -12473,7 +12723,7 @@ document.addEventListener('click', e => {
   if (d === 'dropno') { $('dg-drop').hidden = true; DG.dropPend = null; DG.offerPend = null; dTip(); return; }
   if (d === 'offerdo') return dOfferDo();
   if (d === 'overopen') return dOverModal();
-  if (d === 'resnext') { const R = DG.R; if (R && R.last && (R.last.dyed || []).length && !dDyeSeen()) DG.dyeNote = true; if (R && R.last) R.last.seen = true; $('modal').hidden = true; dSay('flip'); dSave(); dRender(); return dFlow(); }
+  if (d === 'resnext') { const R = DG.R; if (R && R.last && (R.last.dyed || []).length && !dDyeSeen()) DG.dyeNote = true; if (R && R.last && R.last.god && R.last.god.struck && !dGodSeen()) DG.godNote = true; if (R && R.last) R.last.seen = true; $('modal').hidden = true; dSay('flip'); dSave(); dRender(); return dFlow(); }
 });
 document.addEventListener('keydown', e => {
   const k = e.key === 'Escape' || e.key === 'Enter' || e.key === ' ';
@@ -12508,7 +12758,7 @@ window.__dice = {
   rise: (id, stage) => { DICE.forceRise(DG.R, id, stage); dSave(); dRender(); dFlow(); return DG.R.myth; },
   // 시험용 (6판 그림 정리): 그 엔진 시각에서 멈춘다 · 이번 장에 그린 유닛 그림 상자(캔버스 좌표) · 지금 보이는 피 · 조각 수
 toast: (m, ms) => dToast(m, ms), lanes: () => { const r = $('dg-cv').getBoundingClientRect(), k = r.height / DFH; return { top: r.top + (DLY - 2) * k, bottom: r.top + (DLY + 6 * DLH + 2) * k, left: r.left, right: r.right, dlh: DLH, dfh: DFH }; },   pauseAt: t => { if (DG.F) DG.F.pauseAt = t; return !!DG.F; }, boxes: () => (DG.boxes || []).map(b => Object.assign({}, b)), parts: () => { const F = DG.F; return F ? { parts: F.fxParts.length, stains: F.fxStains.length, nums: F.nums.length } : null; },
-  get fight() { return DG.F ? { t: DG.F.t, i: DG.F.i, n: DG.F.f.timeline.length } : null; }, codex: () => dCodex(), DICE, DFUSE, art: k => { try { const h = LAIRART.unit(dArt(k, 1), 1); return h ? 'ok:' + h.size : 'none'; } catch (e) { return String(e && e.stack || e).slice(0, 300); } }, get bg() { return DICE_BG; },
+  get fight() { return DG.F ? { t: DG.F.t, i: DG.F.i, n: DG.F.f.timeline.length, pace: DG.F.pace, base: DPACE.base } : null; }, get god() { const F = DG.F, G = F && F.god; return G ? { being: G.being, mood: G.mood, hit: G.hit, warn: G.warn + DINTRO, strike: G.strike + DINTRO, tgs: G.tgs.slice(), cells: G.cells.slice(), warned: !!G.warned, hit0: G.hitT, id: G.id } : null; }, codex: () => dCodex(), DICE, DFUSE, art: k => { try { const h = LAIRART.unit(dArt(k, 1), 1); return h ? 'ok:' + h.size : 'none'; } catch (e) { return String(e && e.stack || e).slice(0, 300); } }, get bg() { return DICE_BG; },
   // 시험용 (4판): 주머니를 통째로 바꾼다 [{ col, col2?, kind?, faces? }] · 고를 것을 하나 넣고 흐름으로 (덱 짜기 창)
   setBag: list => { const R = DG.R; R.dice = list.map((o, i) => Object.assign(DICE.makeDie(o.col, o.kind, o.col2), { id: 500 + i }, o.faces ? { faces: o.faces.slice() } : {})); R.nextDie = 500 + list.length; return R.dice.length; },
   pend: o => { const R = DG.R; R.pend.push(o); R.phase = 'done'; DG.ui = 'done'; $('modal').hidden = true; dRender(); dFlow(); },
