@@ -1045,6 +1045,8 @@ b.nv { color: #8fe8a0; font-weight: 700; white-space: nowrap; }
 .dg-fres .fr-dye.fr-hyb { border: 2px solid #5ab4ff; background: rgba(90, 180, 255, .09); box-shadow: 0 0 10px rgba(90, 180, 255, .3); }
 .dg-fres .fr-dye.fr-myth { border: 2px solid #ff9a3a; background: rgba(255, 154, 58, .1); box-shadow: 0 0 12px rgba(255, 154, 58, .4); }
 .dg-fres .fr-dye.fr-hyb .it-h, .dg-fres .fr-dye.fr-myth .it-h { font-size: calc(16px * var(--df)); }
+.dg-mlist { display: flex; flex-direction: column; gap: 8px; }
+.dg-mlist .btn { width: 100%; }
 </style>
 </head><body style="margin:0">
 <div id="title" class="screen">
@@ -12537,7 +12539,7 @@ function dSetModal(back) {
   const m = $('modal'); m.innerHTML = `<div class="sh-box dg-box" role="dialog" aria-modal="true"><div class="sh-head"><h2>설정</h2><button class="sh-x" data-d="${back || 'mclose'}" aria-label="닫기">✕</button></div><div class="sh-body">${DSET.map(([k, n]) => `<p class="dg-setrow"><span>${n}</span><button class="${dSetOn(k) ? 'on' : ''}" data-d="tog" data-v="${k}" data-back="${back || ''}" aria-pressed="${dSetOn(k)}">${dSetOn(k) ? '켬' : '끔'}</button></p>`).join('')}</div></div>`; m.hidden = false;
 }
 function dMenu() {
-  dShow(dBox('', '메뉴', `<div class="dg-menu"><button class="btn" data-d="mclose">이어서</button><button class="btn" data-d="help">안내서</button><button class="btn" data-d="tutagain">길잡이 다시 보기</button><button class="btn" data-d="rank">피해 순위</button><button class="btn" data-d="codex">도감</button><button class="btn" data-d="set">설정</button><button class="btn" data-d="title">첫 화면 (판은 저장됩니다)</button><button class="btn warn" data-d="askNew">이 판을 버리고 새 판</button></div>`, '', '<button class="sh-x" data-d="mclose" aria-label="닫기">✕</button>'));
+  dShow(dBox('', '메뉴', `<div class="dg-mlist"><button class="btn" data-d="mclose">이어서</button><button class="btn" data-d="help">안내서</button><button class="btn" data-d="tutagain">길잡이 다시 보기</button><button class="btn" data-d="rank">피해 순위</button><button class="btn" data-d="codex">도감</button><button class="btn" data-d="set">설정</button><button class="btn" data-d="title">첫 화면 (판은 저장됩니다)</button><button class="btn warn" data-d="askNew">이 판을 버리고 새 판</button></div>`, '', '<button class="sh-x" data-d="mclose" aria-label="닫기">✕</button>'));
 }
 // 안내서: 쪽 다섯 (기본 · 주사위 · 권속 · 세상 · 옛것). 위의 쪽 단추로 넘긴다
 const DHELP = [['base', '기본'], ['dice', '주사위'], ['kin', '권속'], ['world', '세상'], ['myth', '옛것']];
