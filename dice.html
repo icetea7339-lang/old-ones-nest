@@ -941,6 +941,57 @@ b.nv { color: #8fe8a0; font-weight: 700; white-space: nowrap; }
 .dg-fres .dg-item .it-h .bad { color: #ff6070; }
 .dg-fres .sh-btns { padding: 8px 12px 10px; }
 .dg-fres .sh-btns .btn { flex: 1 1 auto; min-height: 52px; font-size: calc(18px * var(--df)); }
+
+/* 6판 그림 정리 (2026-11-27 사용자: 「그래픽을 전반적으로 깔끔하게 해야겠다 엄청 지저분해서 잘모르겠어」): 테두리를 줄이고 주 단추 하나만 채운 색
+   위 띠 칩은 테 없이 숫자 + 표시만 · 메뉴 단추도 테 없이 · 대기 칸은 빈 칸일 때 아주 옅게 · 주사위 판 바깥 큰 상자 없음 · 「고정 칸」 선반 없음(판이 낮아진다) · 놓기 · 싸움에서는 주사위 판을 접는다 */
+.dg-st { background: transparent; border-color: transparent; padding: 3px 1px; }
+.dg-st.life.low, .dg-st.egg.low { border-color: var(--degg); }
+.dg-menu { background: transparent; border-color: transparent; color: #b8b0d0; }
+.dg-slot { background: rgba(140, 140, 200, .045); border: 1px solid rgba(140, 140, 200, .12); }
+.dg-slot.has { background: #1a1d36; border: 1px solid #343a60; }
+.dg-feed { background: transparent; border: 1px dashed rgba(220, 100, 110, .4); }
+#dg-tray { background: transparent; border: 0; border-radius: 0; padding: 2px 6px 2px; margin: 0; }
+#dg-dice { aspect-ratio: 192 / 56; }
+#dg-tcv { border-radius: 6px; }
+.dg-ledge { display: none; }
+#dg-tray.off #dg-dice { display: none; }
+#dg-btns .btn:not(.pri) { background: transparent; border-color: #3a3f66; }
+#dg-btns .btn:not(.pri):disabled { border-color: #2a2e4c; }
+/* 알림: 전장 줄 · 단추를 덮지 않는 자리에 (자리는 dToast 가 고른다). 두 줄까지 */
+#toast.dg-slot-t { left: 8px; right: 8px; transform: none; max-width: none; padding: 4px 10px; font-size: calc(13px * var(--df)); line-height: 1.3; text-align: center; background: #1a1730; border-color: #3a3f66; }
+/* 창(상점 · 결과 · 고르기)도 같은 규칙: 주 단추만 채운 색, 결과 머리는 테 없이 옅은 바탕만 */
+#modal .sh-btns .btn:not(.pri) { background: transparent; }
+.dg-fres .fr-head, .dg-fres .fr-head.lose { border-color: transparent; }
+/* 두 화면 (6판): 던지는 화면은 전장 · 무리 효과 줄 · 대기 칸을 접고, 가진 권속 한 줄 + 큰 주사위 판 + 족보표. 놓는 화면은 그 반대 */
+#dg-own, #dg-htab { display: none; }
+#dg.rollscr #dg-fieldwrap, #dg.rollscr #dg-grp, #dg.rollscr #dg-mid { display: none; }
+#dg.rollscr #dg-own { display: flex; flex: none; flex-wrap: nowrap; align-items: center; gap: 4px; min-height: 34px; padding: 2px 8px; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
+#dg.rollscr #dg-tray { flex: 1 1 auto; min-height: 0; gap: 6px; }
+#dg.rollscr #dg-htab { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; gap: 0; padding: 2px 2px; }
+.dg-ou { position: relative; flex: none; display: flex; align-items: center; gap: 2px; height: 30px; padding: 0 3px 0 1px; background: transparent; border: 0; border-radius: 6px; color: #e8dccf; cursor: pointer; }
+.dg-ou img { width: 24px; height: 24px; image-rendering: pixelated; }
+.dg-ou .pp { position: absolute; left: 2px; bottom: 0; display: flex; gap: 1px; }
+.dg-ou .pp b { display: block; width: 3px; height: 3px; background: #e8e0d0; box-shadow: 0 0 0 1px #0c0812; }
+.dg-ou.s2 .pp b { background: #a8dcff; } .dg-ou.s3 .pp b, .dg-ou.s4 .pp b { background: #ffd040; }
+.dg-ou span { font-size: calc(12px * var(--df)); font-weight: 700; font-variant-numeric: tabular-nums; }
+.dg-ou.many span { color: #ffd040; }
+.dg-ou + .dg-ou { margin-left: 2px; }
+#dg-htab .ht { display: flex; align-items: baseline; gap: 8px; margin: 0; padding: 1px 6px; border-radius: 5px; font-size: calc(12px * var(--df)); line-height: 1.4; color: var(--mute); white-space: nowrap; }
+#dg-htab .ht b { flex: none; width: 7.2em; color: #c8c0d4; font-weight: 700; }
+#dg-htab .ht span { min-width: 0; white-space: normal; }
+#dg-htab .ht .nv { color: inherit; }
+#dg-htab .ht.on { background: rgba(255, 208, 64, .12); color: #f0e6d0; }
+#dg-htab .ht.on b { color: #ffd040; }
+/* 펴기 (0.2초). 움직임 끔이면 없음 */
+@keyframes dgUnfold { from { opacity: 0; clip-path: inset(0 0 8% 0); } to { opacity: 1; clip-path: inset(0); } }
+@keyframes dgFade { from { opacity: .2; } to { opacity: 1; } }
+#dg.unfold.rollscr #dg-dice, #dg.unfold.rollscr #dg-htab, #dg.unfold.rollscr #dg-own, #dg.unfold:not(.rollscr) #dg-mid { animation: dgFade .2s ease-out; }
+#dg.unfold:not(.rollscr) #dg-fieldwrap { animation: dgFade .2s ease-out; }
+#dg.nomo.unfold * { animation: none !important; }
+@media (prefers-reduced-motion: reduce) { #dg.unfold * { animation: none !important; } }
+.dg-oumore { flex: none; padding: 0 4px; color: var(--mute); font-size: calc(12px * var(--df)); font-weight: 700; }
+#dg.rollscr #dg-own:empty { display: none; }
+#dg-htab .ht { line-height: 1.3; }
 </style>
 </head><body style="margin:0">
 <div id="title" class="screen">
@@ -10104,7 +10155,9 @@ const DWART = (() => {
 //   끝은 매 장마다 대상이 지금 그려진 자리를 따라간다 (쏜 뒤에 대상이 움직여도 몸에 맞는다).
 // 기술: LAIRART.fx 의 기술 그림 + 화면 흔들림(움직임 켬일 때만) · 번쩍임 · 기술 이름 띠.
 // 빠르기: 보기 속도만 바꾼다(DPACE). 기본 1.35배(2026-11-26 사용자: 너무 빠르다, 살짝 늦게), 아무도 때리지 않는 틈은 2.6배 더, 남은 적이 둘 이하(우두머리 · 정예 없음)면 1.35배 더.
-// 피 입자는 140개(움직임 끔 70개), 얼룩 48개, 기술 그림 24개까지만. 움직임 끔: 흔들림 없음, 밀림 절반, 입자 0.6배, 흔적 · 고리 · 얼룩은 0.6배 짧게.
+// 피 입자는 한 번에 48개(움직임 끔 24개), 얼룩 12개, 기술 그림 24개까지만 (2026-11-27 6판: 싸우는 내내 쌓여 화면이 지저분했다 → 줄이고 얼룩은 2초 안에 사라진다). 움직임 끔: 흔들림 없음, 밀림 절반, 입자 0.6배, 흔적 · 고리 · 얼룩은 0.6배 짧게.
+// 한 번에 보이는 양의 상한: 피 입자 · 바닥 얼룩 · 피해 숫자. 얼룩 수명(엔진 초, 보기 1배에서 약 1.3초)
+const DXCAP = { parts: 48, stains: 12, nums: 3, stainLife: 1.8, land: 0.18, spray: 0.6 };
 const DXA = 0.46, DXHIT = 0.22, DXREL = 0.19;
 const DPACE = { base: 1.35, lull: 2.6, gap: 0.55, few: 1.35, intro: 0.75, pad: 0.25, leak: 1.0 };
 const DXBUSY = { attack: 1, hit: 1, cast: 1, skillfx: 1, die: 1, spawn: 1, mad: 1, heal: 1 };
@@ -10175,7 +10228,8 @@ function dxPen(x) {
 }
 
 // ───────── 자리 ─────────
-function dxSc(u) { const big = LAIR.INV[u.kind] && LAIR.INV[u.kind].boss; return (big ? 1.05 : DLH >= 40 ? 0.92 : 0.8) * (u.summon ? 0.8 : 1); }
+// 6판: 줄이 넉넉하면(50 이상) 1배(정수 배율이라 점이 고르다). 그림 크기의 상한은 diceui 의 dFitSc 가 줄 높이로 한 번 더 건다
+function dxSc(u) { const big = LAIR.INV[u.kind] && LAIR.INV[u.kind].boss; return (big ? 1.05 : DLH >= 50 ? 1 : DLH >= 40 ? 0.92 : 0.8) * (u.summon ? 0.8 : 1); }
 const dxRad = u => (LAIR.INV[u.kind] && LAIR.INV[u.kind].boss ? 16 : 12.5 * dxSc(u) / 0.85);
 const dxLift = u => Math.round(15 * dxSc(u) / 0.85);
 // 그려지는 자리(발) · 몸 가운데
@@ -10209,7 +10263,7 @@ function dxImpact(F, v, by, style, e) {
   const L = dxFxLog(), type = DXHT[style] || 'blunt', mo = dMo(), crit = !!(e && e.crit), gore = META.gore !== false; L.impacts++;
   v.flashR = performance.now() + 45;
   if (by && v.alive !== false) { const a = dxAt(by), b = dxAt(v), dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy) || 1, amp = (DXKB[type] || 3) * (crit ? 1.5 : 1) * (mo ? 1 : 0.5); v.kb = { t0: F.t, vx: dx / d * amp, vy: dy / d * amp * 0.5 }; }
-  const m = dxMid(v), dir = by ? Math.sign(dxAt(v).x - dxAt(by).x) || 1 : 1, n = Math.round(((DXBLOOD[type] || 3) + (crit ? 4 : 0)) * (mo ? 1 : 0.6));
+  const m = dxMid(v), dir = by ? Math.sign(dxAt(v).x - dxAt(by).x) || 1 : 1, n = Math.max(1, Math.round(((DXBLOOD[type] || 3) + (crit ? 4 : 0)) * DXCAP.spray * (mo ? 1 : 0.6)));
   const human = v.home === 'inv' || !!LAIR.INV[v.kind], pal = !gore ? ['#141218', '#2a2630', '#46424c'] : human ? ['#5a0610', '#9a1020', '#d02a34', '#f05a5a'] : ['#2a0610', '#5a0a18', '#8a1a2a', '#c0303a'];
   dxSpray(F, m.x, m.y + 2, dir, n, pal, v.y + 3, gore, 0, true);
   if (type === 'bite' && gore) dxSpray(F, m.x, m.y, dir, 3, ['#7a1a1e', '#c05050'], v.y + 3, gore, 2, true);
@@ -10223,7 +10277,7 @@ function dxImpact(F, v, by, style, e) {
   const now = performance.now(); if (now - (F.sayAt || 0) > 90) { F.sayAt = now; dSay(type === 'bite' || type === 'wrap' || type === 'splat' ? 'dsplat' : type === 'blunt' ? 'dthwack' : 'hit'); }
 }
 function dxSpray(F, x, y, dir, n, pal, floor, gore, big, blood) {
-  const cap = dMo() ? 140 : 70, L = dxFxLog();
+  const cap = dMo() ? DXCAP.parts : DXCAP.parts / 2, L = dxFxLog();
   for (let k = 0; k < n && F.fxParts.length < cap; k++) {
     const an = -Math.PI / 2 + dir * (0.3 + Math.random() * 1.1), sp = 55 + Math.random() * 110, c = pal[k % pal.length];
     F.fxParts.push({ x: x + (Math.random() - 0.5) * 4, y: y + (Math.random() - 0.5) * 4, vx: Math.cos(an) * sp, vy: Math.sin(an) * sp, c, floor: floor + Math.random() * 6 - 2, s: big || (Math.random() < 0.6 ? 2 : 1), stain: gore, t0: F.t });
@@ -10231,7 +10285,7 @@ function dxSpray(F, x, y, dir, n, pal, floor, gore, big, blood) {
   }
   L.peakP = Math.max(L.peakP, F.fxParts.length);
 }
-function dxStain(F, x, y, r, c, life) { if (F.fxStains.length >= 48) F.fxStains.shift(); F.fxStains.push({ x, y, r, c, t0: F.t, life: life || 2.2 }); }
+function dxStain(F, x, y, r, c, life) { if (F.fxStains.length >= DXCAP.stains) F.fxStains.shift(); F.fxStains.push({ x, y, r, c, t0: F.t, life: Math.min(DXCAP.stainLife, life || DXCAP.stainLife) }); const L = dxFxLog(); L.peakS = Math.max(L.peakS || 0, F.fxStains.length); }
 // 기술 그림 (LAIRART.fx). 자리는 그릴 때마다 지금 자리를 다시 읽는다
 function dxSkill(F, e) {
   const u = e.u ? F.byId[e.u] : null, name = e.fx; if (!name) return; const L = dxFxLog(); L.skills++; dxName('sk:' + name);
@@ -10263,7 +10317,7 @@ function dxCast(F, u, sk) {
 // 엔진 초 dt 만큼: 입자 · 얼룩 · 흔적
 function dxTick(F, dt) {
   const g = 380;
-  F.fxParts = F.fxParts.filter(p => { p.vy += g * dt; p.x += p.vx * dt; p.y += p.vy * dt; if (p.y >= p.floor) { if (p.stain && Math.random() < 0.45) dxStain(F, p.x, p.floor, p.s, p.c, 1.6); return false; } return F.t - p.t0 < 1.4; });
+  F.fxParts = F.fxParts.filter(p => { p.vy += g * dt; p.x += p.vx * dt; p.y += p.vy * dt; if (p.y >= p.floor) { if (p.stain && Math.random() < DXCAP.land) dxStain(F, p.x, p.floor, p.s, p.c, 1.2); return false; } return F.t - p.t0 < 1.4; });
   F.fxStains = F.fxStains.filter(s => F.t - s.t0 < s.life * (dMo() ? 1 : 0.6));
   const sh = dMo() ? 1 : 0.6; F.fxMarks = F.fxMarks.filter(m => F.t - m.t0 < 0.4 * sh);
   F.fxRings = F.fxRings.filter(r => F.t - r.t0 < 0.5 * sh);
@@ -10447,7 +10501,7 @@ function dxShakeOff(F) { const s = F.fxShake; if (!s || !dMo()) return [0, 0]; c
 // 설정은 META (base.js) 의 sound · music · shake · gore 와 diceFeast · diceBig · diceSpeed · diceTut.
 const DG = { R: null, scr: 'title', ui: 'idle', sel: null, drag: null, F: null, raf: 0, last: 0, now: 0, roll: null, showV: null, dbg: { spr: {}, fights: 0, feasts: 0, throws: 0, drops: 0, merges: 0, picks: 0, evos: 0, evoLast: null, fusions: 0, feeds: 0, rites: [], face: { n: 0, ok: 0, bad: 0, behind: 0, behindOk: 0, kinBehind: 0, list: [] } }, test: null, tip: null };
 const DFW = 384, DX0 = 36, DCW = 58;
-// 전장 높이는 화면에 맞춰 244~360 사이에서 늘어난다 (줄 여섯은 가운데보다 조금 아래)
+// 전장 높이는 화면에 맞춰 244~360 사이에서 늘어난다 (줄 여섯은 가운데보다 조금 아래). 6판: 줄 높이는 35~54 (전에는 46 까지라 큰 화면에서 위아래가 비었다)
 let DFH = 244, DLY = 28, DLH = 35;
 const DKEY = 'nestdice.run', DCX = 'nestdice.codex';
 const dSay = k => { try { sfx(k); } catch (e) { /* 소리 없이 */ } };
@@ -10613,8 +10667,9 @@ function dMount() {
   g.innerHTML = `<header id="dg-top"></header><nav id="dg-myth" aria-label="위대한 옛것과 지역"></nav>
 <div id="dg-fieldwrap"><canvas id="dg-cv" class="px" width="${DFW}" height="${DFH}" role="img" aria-label="싸움터. 권속은 왼쪽에서 들어가고, 적은 오른쪽에 섭니다."></canvas><div id="dg-fctl" hidden></div><p id="dg-say" aria-live="polite"></p><div id="dg-peek" hidden></div><p id="dg-fprev" hidden></p></div>
 <div id="dg-grp" hidden aria-label="무리 효과"></div>
+<div id="dg-own" aria-label="가진 권속 (같은 것끼리 모아서)"></div>
 <section id="dg-mid"><div id="dg-bench" aria-label="대기 칸"></div><button id="dg-feed" class="dg-feed" data-d="feedhint" aria-label="버리기: 권속을 끌어다 놓으면 진액이 됩니다">버리기<small>진액</small></button></section>
-<section id="dg-tray"><div id="dg-dice"><canvas id="dg-tcv" width="${TW * TS}" height="${TH * TS}" role="img" aria-label="주사위 판. 위는 고정 칸, 아래는 바닥, 오른쪽은 주사위통 (누르고 있으면 흔들립니다)."></canvas><span class="dg-ledge" aria-hidden="true">고정 칸</span><div id="dg-dbtn"></div><span id="dg-hfx" aria-hidden="true"></span></div><div id="dg-sets" aria-live="polite"></div><div id="dg-btns"></div></section>
+<section id="dg-tray"><div id="dg-dice"><canvas id="dg-tcv" width="${TW * TS}" height="${(TH - TY0) * TS}" role="img" aria-label="주사위 판. 바닥에 주사위, 오른쪽은 주사위통 (누르고 있으면 흔들립니다). 누른 주사위는 제자리에서 굵은 테로 고정됩니다."></canvas><div id="dg-dbtn"></div><span id="dg-hfx" aria-hidden="true"></span></div><div id="dg-sets" aria-live="polite"></div><div id="dg-htab" aria-label="족보와 받는 것"></div><div id="dg-btns"></div></section>
 <div id="dg-spot" hidden aria-hidden="true"></div><div id="dg-tip" hidden role="note"></div><img id="dg-ghost" alt="" hidden><div id="dg-drop" hidden role="dialog" aria-label="합치기 · 먹이기"></div>
 <div id="dg-evo" hidden role="dialog" aria-modal="true" aria-label="진화"><canvas id="dg-ecv"></canvas><div class="ev-box"><p class="ev-found">새로 발견</p><p class="ev-tag"></p><h2 class="ev-name"><span class="ev-old"></span><i>→</i><b class="ev-new"></b></h2><div class="ev-trait"></div><div class="ev-stats"></div><p class="ev-tap">누르면 넘어갑니다</p></div></div>
 <div id="dg-rite" hidden role="dialog" aria-modal="true" aria-label="위대한 옛것"><canvas id="dg-rcv"></canvas><div class="rt-box"><p class="rt-tag"></p><h2 class="rt-name"></h2><p class="rt-lore"></p><ul class="rt-rules"></ul><p class="rt-tap">누르면 넘어갑니다</p></div></div>`;
@@ -10663,10 +10718,14 @@ function dBench(v) {
 // 차례: (다시 굴릴 때) 바닥의 주사위를 통에 쓸어 담음 → 통이 흔들리며 달그락 → 통을 기울여 쏟음 → 포물선으로 튀어나와 바닥에서 튀고 구르며 벽에 꺾임 → 멈춤 → 한 줄로 정렬 → 모음이 빛남.
 // 좌표는 192 x 70 낱칸(한 칸 = 캔버스 2점). 주사위 하나의 자리(x, y)는 윗면 가운데의 바닥 높이, z 는 바닥에서 뜬 높이.
 // 주사위 단추(.dg-die)는 캔버스 위에 겹친 투명한 단추로 멈춘 자리에 놓인다 (누르면 붙잡기, 길게 누르면 여섯 면).
-const TW = 192, TH = 70, TS = 2, TFL = { x0: 4, x1: 188, y0: 25, y1: 67 }, TROW = { x0: 6, x1: 156, y: 46 }, TCUP = { x: 174, y: 50 }, TLEDGE = { y: 8.5, s: 13, x0: 5 };
+const TW = 192, TH = 70, TS = 2, TFL = { x0: 4, x1: 188, y0: 25, y1: 67 }, TROW = { x0: 6, x1: 156, y: 46 }, TCUP = { x: 174, y: 50 };
+// 6판: 위의 「고정 칸」 선반을 없앴다. 고정한 주사위는 제자리(바닥 줄)에서 굵은 금빛 테로 보인다. 좌표는 그대로 두고 그릴 때 위 TY0 낱칸을 잘라 판을 낮춘다(통을 기울여 쏟을 때 통 윗부분 자리만 남긴다)
+const TY0 = 14;
 const TG = 560, TFR = 150;
 const TR = { dice: [], mode: 'idle', t: 0, cup: { x: TCUP.x, y: TCUP.y, a: 0 }, done: null, frames: [], bg: null, cupCv: null, clackAt: 0, sF: 18, log: [], fx: [], shT: 0, boost: null, shk: null };
 const trDep = s => Math.round(s * 0.28);
+// 주사위 크기 (낱칸): 6판에서 던지는 화면이 판 전체를 쓰게 되어 다섯이면 24 (전에는 18), 여섯 21, 일곱 이상 16
+const trSF = n => (n <= 5 ? 24 : n <= 6 ? 21 : 16);
 // 판에 오르는 주사위 수 = 이번 라운드에 주머니에서 꺼낸 수 (보통 다섯)
 const dN = () => (DG.R && DG.R.roll && DG.R.roll.pick ? DG.R.roll.pick.length : DICE.K.bag.draw);
 const trR = v => Math.round(v * TS) / TS;
@@ -10681,23 +10740,11 @@ function dFaceCv(f, px) {
     else { const a = document.createElement('canvas'); a.width = a.height = 16; dSymDraw(a.getContext('2d'), f.t); c = document.createElement('canvas'); c.width = c.height = px; const x = c.getContext('2d'); x.imageSmoothingEnabled = false; x.drawImage(a, 0, 0, px, px); } } catch (e) { c = null; }
   return (DCV[k] = c);
 }
-// 판 바닥 (한 번만 그린다)
+// 판 바닥 (한 번만 그린다). 6판: 무늬 없는 어두운 한 색 바닥 + 가는 테 하나 (점무늬 · 점선 · 뼈 테 없음)
 function dTrBg() {
   if (TR.bg) return TR.bg; const c = document.createElement('canvas'); c.width = TW * TS; c.height = TH * TS; const x = c.getContext('2d'); x.scale(TS, TS);
   const R = (col, X, Y, w, h) => { x.fillStyle = col; x.fillRect(X, Y, w, h); };
-  let s = 0x9e37; const rn = () => { s = (s * 1103515245 + 12345) & 0x7fffffff; return s / 0x7fffffff; };
-  R('#0d0a13', 0, 0, TW, TH);
-  // 붙잡은 자리: 뼈를 깎은 선반
-  R('#2b2335', 1, 1, TW - 2, 19); R('#382e46', 1, 1, TW - 2, 1); R('#1a1422', 1, 17, TW - 2, 3); R('#4a3e5a', 1, 20, TW - 2, 1);
-  for (let X = 21; X < 140; X += 16) R('#241c2e', X, 3, 1, 13);
-  // 바닥 테두리 (뼈) · 가죽 바닥
-  R('#2a2018', 0, 22, TW, TH - 22); R('#d4c6a4', 1, 22, TW - 2, 3); R('#a8987a', 1, 24, TW - 2, 1); R('#d4c6a4', 1, 22, 3, TH - 23); R('#d4c6a4', TW - 4, 22, 3, TH - 23); R('#b8a888', 1, TH - 3, TW - 2, 2);
-  R('#3a1d22', 4, 25, TW - 8, TH - 28);
-  for (let k = 0; k < 560; k++) { const X = 4 + Math.floor(rn() * (TW - 8)), Y = 25 + Math.floor(rn() * (TH - 28)); R(rn() < 0.5 ? '#45252b' : '#2e161b', X, Y, 1, 1); }
-  x.fillStyle = 'rgba(0,0,0,0.3)'; x.fillRect(4, 25, TW - 8, 3); x.fillRect(4, 25, 3, TH - 28); x.fillStyle = 'rgba(0,0,0,0.15)'; x.fillRect(4, 28, TW - 8, 2); x.fillRect(TW - 7, 25, 3, TH - 28);
-  for (let X = 9; X < TW - 9; X += 5) { R('#7a5a40', X, 26, 2, 1); R('#6a4a34', X, TH - 5, 2, 1); }
-  for (let Y = 30; Y < TH - 6; Y += 5) { R('#7a5a40', 5, Y, 1, 2); R('#7a5a40', TW - 6, Y, 1, 2); }
-  for (let X = 14; X < TW; X += 22) R('#8a7a60', X, 22, 1, 3);
+  R('#0f0d16', 0, 0, TW, TH); R('#3a3350', 2, 22, TW - 4, TH - 23); R('#1b1726', 3, 23, TW - 6, TH - 25); R('rgba(0,0,0,0.25)', 3, 23, TW - 6, 2);
   return (TR.bg = c);
 }
 // 주사위통: 위가 조금 넓은 가죽 통, 뼈 테와 뼈 띠, 가운데에 눈 무늬 (28 x 32 낱칸)
@@ -10714,14 +10761,13 @@ function dTrCup() {
 // 자리: 붙잡은 것은 선반에, 나머지는 바닥에 한 줄로 (주사위 순서대로). 여덟이면 조금 작게 해서 겹치지 않는다
 function dTrSlots() {
   const R = DG.R, ro = R.roll, n = dN(), held = [], row = [], out = {};
-  for (let i = 0; i < n; i++) (ro && ro.n > 0 && ro.held[i] ? held : row).push(i);
-  const sF = n <= 6 ? 18 : 16, gF = n <= 6 ? 4 : 3, m = row.length, tot = m * sF + (m - 1) * gF, x0 = (TROW.x0 + TROW.x1) / 2 - tot / 2 + sF / 2;
+  for (let i = 0; i < n; i++) row.push(i);
+  const sF = trSF(n), gF = n <= 6 ? 4 : 3, m = row.length, tot = m * sF + (m - 1) * gF, x0 = (TROW.x0 + TROW.x1) / 2 - tot / 2 + sF / 2;
   row.forEach((i, k) => { out[i] = { x: x0 + k * (sF + gF), y: TROW.y, s: sF, where: 'row' }; });
-  held.forEach((i, k) => { out[i] = { x: TLEDGE.x0 + TLEDGE.s / 2 + k * (TLEDGE.s + 3), y: TLEDGE.y, s: TLEDGE.s, where: 'ledge' }; });
   return out;
 }
 // 단추 자리 (캔버스에 대한 %)
-function dTrBox(i, slots) { const s = slots[i]; if (!s) return { l: 0, t: 0, w: 0, h: 0 }; const dep = trDep(s.s), p = v => Math.round(v * 1000) / 1000; return { l: p((s.x - s.s / 2 - 1) / TW * 100), t: p((s.y - s.s / 2 - 1) / TH * 100), w: p((s.s + 2) / TW * 100), h: p((s.s + dep + 2) / TH * 100) }; }
+function dTrBox(i, slots) { const s = slots[i]; if (!s) return { l: 0, t: 0, w: 0, h: 0 }; const dep = trDep(s.s), p = v => Math.round(v * 1000) / 1000; return { l: p((s.x - s.s / 2 - 1) / TW * 100), t: p((s.y - s.s / 2 - 1 - TY0) / (TH - TY0) * 100), w: p((s.s + 2) / TW * 100), h: p((s.s + dep + 2) / (TH - TY0) * 100) }; }
 // 옮김: 자리에서 자리로 (z 는 깡충)
 function dTrGo(d, to, dur, o) {
   o = o || {}; if (!dMo()) { d.x = to.x; d.y = to.y; d.s = to.s; d.z = 0; d.anim = null; if (o.cup) d.st = 'cup'; return; }
@@ -10741,7 +10787,7 @@ function dTraySync() {
     d.fin = ro.faces[i]; const s = slots[i];
     if (d.st === 'cup' || d.st === 'fly' || d.st === 'still') { d.cur = d.fin; d.phi = 0; d.ang = 0; d.z = 0; d.x = s.x; d.y = s.y; d.s = s.s; d.st = 'rest'; d.anim = null; return; }
     d.cur = d.fin; d.phi = 0; const a = d.anim, tx = a ? a.x1 : d.x, ty = a ? a.y1 : d.y, ts = a ? a.s1 : d.s;
-    if (Math.abs(tx - s.x) > 0.4 || Math.abs(ty - s.y) > 0.4 || ts !== s.s) { d.anim = null; dTrGo(d, s, 200, { hop: s.where === 'ledge' || d.y < 20 ? 7 : 3 }); }
+    if (Math.abs(tx - s.x) > 0.4 || Math.abs(ty - s.y) > 0.4 || ts !== s.s) { d.anim = null; dTrGo(d, s, 200, { hop: 3 }); }
   });
   if (TR.mode !== 'roll') TR.mode = out ? 'rest' : 'idle';
 }
@@ -10749,7 +10795,7 @@ function dTrNext(d) { let j = Math.floor(Math.random() * 5); if (j >= d.cur) j++
 // 던지기를 시작한다. fin = 규칙이 정한 면 (주사위마다 면 번호), held = 붙잡은 것
 // o.shook = 이미 누르고 흔들었다 (통 흔들기를 짧게) · o.slow = 다섯 같은 수 (멎을 때 잠깐 느려진다) · o.boost = 확률이 좋아지는 효과 (던질 때 불꽃 · 떨어질 때 터짐)
 function dTrThrow(fin, held, done, o) {
-  o = o || {}; const T = TR, R = DG.R; T.mode = 'roll'; T.t = 0; T.done = done; T.aligning = false; T.skip = false; T.frames = []; T.sF = dN() <= 6 ? 18 : 16; T.alignEnd = 0; T.slow = !!o.slow; T.boost = o.boost || null; T.slowSaid = false;
+  o = o || {}; const T = TR, R = DG.R; T.mode = 'roll'; T.t = 0; T.done = done; T.aligning = false; T.skip = false; T.frames = []; T.sF = trSF(dN()); T.alignEnd = 0; T.slow = !!o.slow; T.boost = o.boost || null; T.slowSaid = false;
   const go = []; T.dice.forEach((d, i) => { d.fin = fin[i]; d.go = !held[i]; d.landed = false; if (d.go) go.push(d); });
   let k = 0, pend = 0; go.forEach(d => { if (d.anim && d.anim.cup) pend = Math.max(pend, d.anim.t0 + d.anim.dur - performance.now()); else if (d.st !== 'cup') dTrGo(d, { x: TCUP.x, y: TCUP.y - 6, s: 10 }, 200, { hop: 10, delay: (k++) * 35, cup: true }); });
   T.s0 = Math.max(k ? 230 + k * 35 : 0, Math.max(0, pend)); T.s1 = T.s0 + (o.shook ? 140 : 460); go.forEach((d, j) => { d.relT = T.s1 + 110 + j * 40; d.launched = false; });
@@ -10782,7 +10828,9 @@ function dTrPhys(d, dt) {
 }
 // 주사위끼리 부딪힘 (바닥 깊이는 화면에서 눌려 보이므로 세로를 1.6배로 본다)
 function dTrCollide() {
-  const L = TR.dice.filter(d => d.go && (d.st === 'fly' || d.st === 'still'));
+  const L = TR.dice.filter(d => d.go && (d.st === 'fly' || d.st === 'still')), H = TR.dice.filter(d => !d.go && d.st === 'rest' && !d.anim);
+  // 제자리에 고정한 주사위는 움직이지 않는 돌: 굴러온 주사위만 밀려난다
+  L.forEach(A => H.forEach(B => { if (A.z > 8) return; let dx = A.x - B.x, dy = (A.y - B.y) * 1.6; const dist = Math.hypot(dx, dy) || 0.01, min = (A.s + B.s) / 2 * 0.95; if (dist >= min) return; dx /= dist; dy /= dist; A.x += dx * (min - dist); A.y += dy * (min - dist) / 1.6; const rv = A.vx * dx + A.vy * dy; if (rv < 0) { A.vx -= 1.6 * rv * dx; A.vy -= 1.6 * rv * dy; dTrClack(-rv); if (A.st === 'still') { A.st = 'fly'; A.settle = false; } } }));
   for (let a = 0; a < L.length; a++) for (let b = a + 1; b < L.length; b++) {
     const A = L[a], B = L[b]; if (Math.abs(A.z - B.z) > 10) continue; let dx = B.x - A.x, dy = (B.y - A.y) * 1.6; const dist = Math.hypot(dx, dy) || 0.01, min = (A.s + B.s) / 2 * 0.95; if (dist >= min) continue;
     dx /= dist; dy /= dist; const push = (min - dist) / 2; A.x -= dx * push; A.y -= dy * push / 1.6; B.x += dx * push; B.y += dy * push / 1.6;
@@ -10885,7 +10933,7 @@ function dTrCube(x, s, dep, f, nf, phi, dir, held, die) {
   // 몸통 = 그 주사위의 색 (성향) · 두 색 주사위는 오른쪽 반이 둘째 색 · 횃불 면이 나오면 그을린 빛
   const CA = DCOL[die && die.col] || ['#2b2320', '#1d1715', '#120e0c'], CB = die && die.col2 ? DCOL[die.col2] : null, bone = torch ? ['#5a3216', '#3e200c', '#2a1406'] : CA;
   // 몸통 테두리: 붙잡으면 금빛, 특수 주사위는 그 무늬 빛
-  const kind = die && die.kind, rim = held ? '#d8b040' : DKRIM[kind] ? dMix(DKRIM[kind], 0.35) : '#060406';
+  const kind = die && die.kind, rim = DKRIM[kind] ? dMix(DKRIM[kind], 0.35) : '#060406';
   R(rim, 1, 0, s - 2, s + dep); R(rim, 0, 1, s, s + dep - 2);
   R(bone[1], 1, s - 1, s - 2, dep); R(bone[2], 1, s + dep - 2, s - 2, 1); R('rgba(0,0,0,0.12)', s - 4, s - 1, 3, dep - 1);
   R(bone[0], 1, 1, s - 2, s - 2); if (CB && !torch) { R(CB[0], Math.floor(s / 2), 1, Math.ceil(s / 2) - 1, s - 2); R(CB[1], Math.floor(s / 2), s - 1, Math.ceil(s / 2) - 1, dep); }
@@ -10904,13 +10952,16 @@ function dTrDie(x, d, face, nface, o) {
   const s = d.s, dep = trDep(s), cx = trR(d.x), gy = trR(d.y), z = Math.max(0, d.z), top = trR(gy - s / 2 - z);
   const sw = Math.max(6, s + 2 - z * 0.3), sa = Math.max(0.1, 0.45 - z * 0.012);
   x.fillStyle = 'rgba(0,0,0,' + sa.toFixed(3) + ')'; x.fillRect(trR(cx - sw / 2 + 2), gy + s / 2 + dep - 2, trR(sw), 2); x.fillRect(trR(cx - sw / 2 + 3), gy + s / 2 + dep, trR(sw - 2), 1);
+  // 고정: 굵은 금빛 테 하나 (6판: 선반으로 옮기지 않고 제자리에서 이것만으로 보인다). 주사위 뒤에 깔아 둘레만 보인다
+  if (o && o.held) { const L = trR(cx - s / 2 - 2.5), T = top - 2.5, W = s + 5, H = s + dep + 5; x.fillStyle = '#0c0812'; x.fillRect(L - 0.5, T - 0.5, W + 1, H + 1); x.fillStyle = '#ffd040'; x.fillRect(L, T, W, H); x.fillStyle = '#0c0812'; x.fillRect(L + 1.5, T + 1.5, W - 3, H - 3); }
   x.save(); if (o && o.alpha != null) x.globalAlpha = o.alpha; x.translate(cx, top + (s + dep) / 2); if (d.ang) x.rotate(d.ang); x.translate(-s / 2, -(s + dep) / 2);
   dTrCube(x, s, dep, face, nface, d.phi, d.dir, o && o.held, o && o.die); x.restore();
+
   if (o && o.lit) { const now = DG.now || 0, pa = 0.55 + 0.45 * Math.sin(now / 170 + d.i), col = o.lit === 'k' ? '255,214,90' : '140,200,255'; x.strokeStyle = 'rgba(' + col + ',' + pa.toFixed(2) + ')'; x.lineWidth = 1; x.strokeRect(cx - s / 2 - 1.5, top - 1.5, s + 3, s + dep + 3);
     x.fillStyle = 'rgba(' + col + ',' + (pa * 0.9).toFixed(2) + ')'; const k = Math.floor(now / 90 + d.i * 3) % (2 * (s + dep + 4)), per = s + 3; const X = k < per ? cx - s / 2 - 2 + k : cx + s / 2 + 1 - (k - per) % per; x.fillRect(Math.min(cx + s / 2 + 1, Math.max(cx - s / 2 - 2, X)), k < per ? top - 2 : top + s + dep + 1, 1, 1); }
 }
 function dTrayDraw() {
-  const cv = $('dg-tcv'); if (!cv || !DG.R) return; const x = cv.getContext('2d'), R = DG.R, v = DG.v, T = TR; x.setTransform(1, 0, 0, 1, 0, 0); x.imageSmoothingEnabled = false; x.drawImage(dTrBg(), 0, 0); x.setTransform(TS, 0, 0, TS, 0, 0); x.imageSmoothingEnabled = false;
+  const cv = $('dg-tcv'); if (!cv || !DG.R) return; const x = cv.getContext('2d'), R = DG.R, v = DG.v, T = TR; x.setTransform(1, 0, 0, 1, 0, 0); x.imageSmoothingEnabled = false; x.drawImage(dTrBg(), 0, -TY0 * TS); x.setTransform(TS, 0, 0, TS, 0, -TY0 * TS); x.imageSmoothingEnabled = false;
   const lit = T.mode === 'rest' ? dLit(v) : {}, dim = R.phase !== 'roll' ? 0.62 : null, faceOf = (d, j) => (v && v.dice[d.i] ? v.dice[d.i].faces[j] : null);
   const ro = R.roll, inCup = T.dice.filter(d => d.st === 'cup' && !d.anim).length, c = T.cup;
   // 통 그림자 · 통
@@ -10923,7 +10974,7 @@ function dTrayDraw() {
   const vis = T.dice.filter(d => d.st !== 'cup' || d.anim).sort((a, b) => (a.y - b.y) || (a.x - b.x));
   // 확정한 뒤(놓기 · 싸움 · 라운드 끝)에는 늘 확정한 면을 그린다 (고친 것: 싸우는 동안 판의 주사위가 모두 「1」로 보였다)
   const fixed = R.phase !== 'roll' && ro && ro.n > 0;
-  vis.forEach(d => { const held = !!(ro && ro.n > 0 && ro.held[d.i]) && d.y < 22, cur = fixed && ro.faces[d.i] != null ? ro.faces[d.i] : d.cur; if (fixed) d.phi = 0; DG.dbg.trayFace = fixed ? (DG.dbg.trayFace || 0) + 1 : DG.dbg.trayFace; dTrDie(x, d, faceOf(d, cur), d.phi > 0.02 ? faceOf(d, d.nxt) : null, { alpha: dim, held, lit: lit[d.i], die: v && v.dice[d.i] ? v.dice[d.i] : null }); });
+  vis.forEach(d => { const held = !!(ro && ro.n > 0 && ro.held[d.i]) && R.phase === 'roll' && d.st === 'rest', cur = fixed && ro.faces[d.i] != null ? ro.faces[d.i] : d.cur; if (fixed) d.phi = 0; DG.dbg.trayFace = fixed ? (DG.dbg.trayFace || 0) + 1 : DG.dbg.trayFace; dTrDie(x, d, faceOf(d, cur), d.phi > 0.02 ? faceOf(d, d.nxt) : null, { alpha: dim, held, lit: lit[d.i], die: v && v.dice[d.i] ? v.dice[d.i] : null }); });
   dFxDraw(x);
 }
 function dDiceHtml(v) {
@@ -10976,10 +11027,37 @@ function dBtns(v) {
   if (DPHB[v.phase]) return `<button class="btn pri" data-d="flow">${DPHB[v.phase]}</button>`;
   return `<button class="btn pri" data-d="overopen">판 끝</button>`;
 }
+// ───────── 두 화면 (6판, 2026-11-27 사용자: 「주사위 던질때는 위에 전투화면 없어도되니까 판을 펴고 접고 하는게 나을거같은데」) ─────────
+// 던지는 화면(roll · 흔들기 · 구르기): 전장 · 대기 칸을 접고 주사위 판을 편다 (큰 주사위 · 족보표를 판 아래에 바로). 위 띠 · 지역 줄은 그대로.
+// 놓는 화면(확정 뒤 · 싸움): 판을 접고 전장 · 대기 칸을 편다. 바뀔 때 새로 펴지는 쪽이 0.2초 동안 펴진다 (움직임 끔이면 바로)
+function dScreen(v) {
+  const g = $('dg'), roll = v.phase === 'roll', was = g.classList.contains('rollscr'); if (was === roll && g.dataset.scr) return;
+  g.classList.toggle('rollscr', roll); g.classList.toggle('nomo', !dMo()); const first = !g.dataset.scr; g.dataset.scr = roll ? 'roll' : 'place';
+  if (!first && dMo()) { g.classList.remove('unfold'); void g.offsetWidth; g.classList.add('unfold'); clearTimeout(DG.unfT); DG.unfT = setTimeout(() => g.classList.remove('unfold'), 260); }
+  if (!roll) requestAnimationFrame(dFit);
+}
+// 가진 권속 한 줄 (던지는 화면): 판 위 + 대기 칸의 권속을 같은 종류 · 같은 별끼리 모아 작은 그림 + 별 점 + 수. 누르면 그 권속 정보
+function dOwnHtml(v) {
+  const R = DG.R, ids = Object.values(R.board).concat(R.bench.filter(x => x != null)), G = new Map();
+  ids.forEach(id => { const u = R.units[id]; if (!u) return; const k = u.kind + ':' + u.star + ':' + (u.br || '') + ':' + (u.stain || ''); const e = G.get(k); if (e) e.n++; else G.set(k, { u, id, n: 1 }); });
+  const L = Array.from(G.values()).sort((a, b) => (b.u.star - a.u.star) || (b.n - a.n) || String(a.u.kind).localeCompare(String(b.u.kind)));
+  return L.map(e => { const nm = (DICE.unitInfo(R, e.id) || {}).name || ''; return `<button class="dg-ou s${Math.min(4, e.u.star)}${e.n >= 2 ? ' many' : ''}" data-own="${e.id}" aria-label="${dEsc(nm)} ${e.u.star}성 ${e.n}마리"><img src="${dUnitImg(e.u, 24)}" alt=""><i class="pp">${'<b></b>'.repeat(Math.min(4, e.u.star))}</i>${e.n > 1 ? `<span>×${e.n}</span>` : ''}</button>`; }).join('');
+}
+// 한 줄에 다 안 들면 뒤의 것(별 낮고 수 적은 것)을 숨기고 「+n」 (가로로 밀리지 않게)
+function dOwnFit() {
+  const el = $('dg-own'); if (!el) return; el.querySelectorAll('.dg-oumore').forEach(m => m.remove()); const kids = Array.from(el.children); kids.forEach(k => { k.style.display = ''; }); if (!kids.length || !el.offsetParent) return;
+  const fits = () => el.scrollWidth <= el.clientWidth + 0.5; if (fits()) return; const m = document.createElement('span'); m.className = 'dg-oumore'; el.appendChild(m); let hid = 0;
+  for (let i = kids.length - 1; i > 0 && (hid === 0 || !fits()); i--) { kids[i].style.display = 'none'; hid++; m.textContent = '+' + hid; }
+}
+// 족보표 (던지는 화면, 판 아래): 족보 → 받는 권속 한 줄씩. 지금 족보는 밝게
+function dHandTabHtml(v) {
+  const ro = v.roll, cur = ro && ro.n && ro.hand ? ro.hand.id : null;
+  return DICE.HAND_IDS.slice().reverse().map(k => { const g = dHandGetLines(k).find(l => !l.sm) || ''; return `<p class="ht r${DICE.HANDS[k].rank}${k === cur ? ' on' : ''}"><b>${dEsc(DICE.HANDS[k].name)}</b><span>${dNumHi(String(g))}</span></p>`; }).join('');
+}
 function dRender() {
   if (DG.scr !== 'game' || !DG.R) return; const v = DICE.view(DG.R); DG.v = v;
   dTop(v); dBench(v); dTraySync(); $('dg-dbtn').innerHTML = dDiceHtml(v); $('dg-dice').dataset.n = v.dice.length; $('dg-sets').innerHTML = dSetsLine(v); dSetsFit(); requestAnimationFrame(dSetsFit); $('dg-btns').innerHTML = dBtns(v);
-  $('dg-tray').classList.toggle('off', v.phase !== 'roll'); $('dg').dataset.phase = DG.ui; dGroupHtml(v); dFit(); requestAnimationFrame(dFit);
+  $('dg-tray').classList.toggle('off', v.phase !== 'roll'); $('dg').dataset.phase = DG.ui; dScreen(v); $('dg-own').innerHTML = v.phase === 'roll' ? dOwnHtml(v) : ''; dOwnFit(); requestAnimationFrame(dOwnFit); $('dg-htab').innerHTML = v.phase === 'roll' ? dHandTabHtml(v) : ''; { const ht = $('dg-htab'), on = ht.querySelector('.ht.on'); if (on && ht.scrollHeight > ht.clientHeight + 1) { const top = on.offsetTop - ht.offsetTop; if (top < ht.scrollTop || top + on.offsetHeight > ht.scrollTop + ht.clientHeight) ht.scrollTop = Math.max(0, top - (ht.clientHeight - on.offsetHeight) / 2); } } dGroupHtml(v); dFit(); requestAnimationFrame(dFit);
   const say = $('dg-say'); say.textContent = dSayLine(v); dCodexScan();
 }
 // 무리 효과 줄 (전장 아래 한 줄, 놓는 동안에만 · 전장을 가리지 않는다): 걸린 것 「기아 4 · 공격 +25%」, 다음 문턱 「심연 1/2」, 빈 줄이 있으면 붉게
@@ -11098,7 +11176,7 @@ function dBind(g) {
   window.addEventListener('resize', dFit);
   $('dg-evo').addEventListener('click', e => { e.stopPropagation(); dEvoTap(); });
   $('dg-rite').addEventListener('click', e => { e.stopPropagation(); dRiteTap(); });
-  g.addEventListener('click', e => { const die = e.target.closest('.dg-die'); if (die) { if (DG.lpFired) { DG.lpFired = false; return; } return dHold(+die.dataset.die); } });
+  g.addEventListener('click', e => { const ow = e.target.closest('[data-own]'); if (ow) return dTapUnit(+ow.dataset.own); const die = e.target.closest('.dg-die'); if (die) { if (DG.lpFired) { DG.lpFired = false; return; } return dHold(+die.dataset.die); } });
 }
 function dDropAt(x, y) {
   const el = document.elementFromPoint(x, y); if (!el) return null;
@@ -11374,7 +11452,7 @@ function dEvoText(e) {
 // ───────── 전장 그리기 ─────────
 function dFit() {
   const wrap = $('dg-fieldwrap'), cv = $('dg-cv'); if (!wrap || !cv) return; const W = wrap.clientWidth, H = wrap.clientHeight; if (!W || !H) return;
-  const nh = Math.max(244, Math.min(360, Math.round(DFW * H / W))); if (nh !== DFH) { DFH = nh; cv.height = nh; DLH = Math.max(35, Math.min(46, Math.floor((DFH - 40) / 6))); DLY = Math.round((DFH - 6 * DLH) / 2) + 8; }
+  const nh = Math.max(244, Math.min(360, Math.round(DFW * H / W))); if (nh !== DFH) { DFH = nh; cv.height = nh; DLH = Math.max(35, Math.min(54, Math.floor((DFH - 40) / 6))); DLY = Math.round((DFH - 6 * DLH) / 2) + 8; }
   const k = Math.min(W / DFW, H / DFH); cv.style.width = Math.floor(DFW * k) + 'px'; cv.style.height = Math.floor(DFH * k) + 'px';
 }
 function dLoop() { dStop(); DG.last = performance.now(); const step = now => { DG.raf = requestAnimationFrame(step); const dt = Math.min(0.1, (now - DG.last) / 1000); DG.last = now; DG.now = now; if (DG.scr !== 'game') return; dTickFight(dt); dDraw(now); dTrayTick(dt, now); dTrayDraw(); dPeekTick(); }; DG.raf = requestAnimationFrame(step); dFit(); }
@@ -11393,13 +11471,54 @@ function dBgDraw(x) {
   if (DICE_BG) { const v = DG.v || DICE.view(DG.R), bg = v.region.bg, key = bg + (v.bossRound ? '@3' : ''), img = MZPICS.bg(bg); if (!MZPICS.draw(x, img, key, DFW, DFH, 0.5)) { x.fillStyle = '#100c18'; x.fillRect(0, 0, DFW, DFH); } x.fillStyle = 'rgba(6,4,12,0.18)'; x.fillRect(0, 0, DFW, DFH); return; }
   dFloorDraw(x);
 }
-// 단순한 바닥: 위아래로 어두워지는 바탕 · 줄 여섯이 놓인 옅은 바닥 띠 · 줄마다 아주 옅은 금 · 가장자리 그림자
+// 바닥 (6판): 줄 여섯이 번갈아 아주 옅은 띠 · 줄마다 발 닿는 금 · 내 쪽(왼쪽 세 칸)은 청록, 적 쪽은 붉은 기가 아주 옅게 · 가운데 경계 한 줄. 글씨 없음
+let DFLOOR = null;
 function dFloorDraw(x) {
-  const g = x.createLinearGradient(0, 0, 0, DFH); g.addColorStop(0, '#08070d'); g.addColorStop(0.5, '#110e19'); g.addColorStop(1, '#08070d'); x.fillStyle = g; x.fillRect(0, 0, DFW, DFH);
-  const y0 = DLY - 4, y1 = DLY + 6 * DLH + 4; x.fillStyle = 'rgba(150,130,180,0.035)'; x.fillRect(0, y0, DFW, y1 - y0);
-    x.fillStyle = 'rgba(150,130,180,0.08)'; x.fillRect(0, y0, DFW, 1); x.fillRect(0, y1, DFW, 1);
-  const s = x.createLinearGradient(0, 0, DFW, 0); s.addColorStop(0, 'rgba(0,0,0,0.35)'); s.addColorStop(0.12, 'rgba(0,0,0,0)'); s.addColorStop(0.88, 'rgba(0,0,0,0)'); s.addColorStop(1, 'rgba(0,0,0,0.35)'); x.fillStyle = s; x.fillRect(0, 0, DFW, DFH);
+  const k = DFW + 'x' + DFH + ':' + DLY + ':' + DLH; if (!DFLOOR || DFLOOR.k !== k) { const c = document.createElement('canvas'); c.width = DFW; c.height = DFH; const g = c.getContext('2d');
+    g.fillStyle = '#0b0a12'; g.fillRect(0, 0, DFW, DFH); const y0 = DLY, y1 = DLY + 6 * DLH, mid = DX0 + 3 * DCW, xr = DX0 + 6 * DCW;
+    for (let r = 0; r < 6; r++) { const y = DLY + r * DLH; g.fillStyle = r % 2 ? 'rgba(160,150,200,0.035)' : 'rgba(160,150,200,0.065)'; g.fillRect(0, y, DFW, DLH); g.fillStyle = 'rgba(170,160,210,0.07)'; g.fillRect(DX0 - 8, y + DLH - 5, xr - DX0 + 16, 1); }
+    g.fillStyle = 'rgba(74,214,196,0.045)'; g.fillRect(DX0, y0, mid - DX0, y1 - y0); g.fillStyle = 'rgba(240,84,76,0.04)'; g.fillRect(mid, y0, xr - mid, y1 - y0);
+    g.fillStyle = 'rgba(74,214,196,0.28)'; g.fillRect(DX0, y0, 1, y1 - y0); g.fillStyle = 'rgba(200,190,230,0.16)'; g.fillRect(mid, y0, 1, y1 - y0);
+    g.fillStyle = 'rgba(160,150,200,0.12)'; g.fillRect(0, y0 - 1, DFW, 1); g.fillRect(0, y1, DFW, 1);
+    DFLOOR = { k, c }; }
+  x.drawImage(DFLOOR.c, 0, 0);
 }
+// ───────── 6판 그림 정리 (2026-11-27 사용자: 「엄청 지저분해서 잘모르겠어」) ─────────
+// 크기: 줄 높이(DLH)에 맞춘다. 별이 높을수록 크되 그림의 꽉 찬 높이가 줄 높이 - 7 을 넘지 않는다(위 줄을 덮지 않고 머리 위 막대 자리가 남는다).
+//   같은 줄 앞뒤로는 칸 너비 - 6 을 넘지 않는다. 우두머리만 크게(줄 1.5배) 두고 먼저 그려 다른 유닛 뒤에 선다.
+const DFIT = { star: [0, 0.88, 0.94, 1, 1, 1], inv: 0.9, elite: 0.97, boss: 1.5 };
+function dFitSc(u, h, bb, star) {
+  const base = dxSc(u), H = Math.max(8, bb.b - bb.t), W = Math.max(8, bb.r - bb.l), inv = !!LAIR.INV[u.kind], d = inv ? LAIR.INV[u.kind] : null, boss = !!(d && d.boss);
+  const room = DLH - 7, mh = boss ? DLH * DFIT.boss : inv ? room * (d && d.elite ? DFIT.elite : DFIT.inv) : room * DFIT.star[Math.min(5, star || 1)], mw = boss ? DCW * 1.6 : DCW - 6;
+  return Math.min(base, mh / H, mw / W);
+}
+// 발밑 타원: 내 편 청록 · 적 붉은색 (옅은 바닥 + 한 줄 테)
+const DSIDEC = { nest: '74,214,196', inv: '240,84,76' };
+function dFootDraw(x, X, Y, side, rx) { const c = DSIDEC[side] || DSIDEC.nest; x.save(); x.fillStyle = 'rgba(' + c + ',0.16)'; x.beginPath(); x.ellipse(Math.round(X), Math.round(Y) + 1, rx, 3.5, 0, 0, 6.3); x.fill(); x.strokeStyle = 'rgba(' + c + ',0.55)'; x.lineWidth = 1; x.stroke(); x.restore(); }
+// 별 점: 3x3 금빛 점 (어두운 테) · 1성 흰빛 · 2성 하늘빛 · 3성 이상 금빛
+function dStarPips(x, X, Y, n) { const c = n >= 3 ? '#ffd040' : n === 2 ? '#a8dcff' : '#e8e0d0'; x.fillStyle = '#0c0812'; x.fillRect(X, Y - 1, n * 4 + 1, 5); x.fillStyle = c; for (let i = 0; i < n; i++) x.fillRect(X + 1 + i * 4, Y, 3, 3); }
+// 윤곽을 덧그린 그림 (캐시): 프레임 캔버스 + 배율 + 편 → 어두운 한 칸 윤곽 + 편 색 옅은 테. 프레임이 같으면 다시 만들지 않는다
+let DOUT = new WeakMap(), DOUTN = 0;
+const DHALO = { nest: 'rgba(90,232,212,0.6)', inv: 'rgba(255,104,96,0.6)' };
+function dOutline(src, sc, side) {
+  let m = DOUT.get(src); if (!m) { m = new Map(); DOUT.set(src, m); } const k = side + ':' + sc.toFixed(3); let e = m.get(k); if (e) return e;
+  const C = src.width, S = Math.max(1, Math.round(C * sc)), P = 3, W = S + P * 2, mk = () => { const c = document.createElement('canvas'); c.width = c.height = W; const g = c.getContext('2d'); g.imageSmoothingEnabled = false; return [c, g]; };
+  const [a, ga] = mk(); ga.drawImage(src, P, P, S, S);
+  const sil = col => { const [c, g] = mk(); g.drawImage(a, 0, 0); g.globalCompositeOperation = 'source-in'; g.fillStyle = col; g.fillRect(0, 0, W, W); return c; };
+  const halo = sil(DHALO[side] || DHALO.nest), dark = sil('#05030a'), [o, go] = mk();
+  [[-2, 0], [2, 0], [0, -2], [0, 2], [-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([dx, dy]) => go.drawImage(halo, dx, dy));
+  [[-1, 0], [1, 0], [0, -1], [0, 1]].forEach(([dx, dy]) => go.drawImage(dark, dx, dy));
+  go.drawImage(a, 0, 0);
+  if (++DOUTN > 2400) { DOUT = new WeakMap(); DOUTN = 0; }
+  e = { cv: o, k: S / C, P }; m.set(k, e); return e;
+}
+function dSprDraw(x, h, X, Y, anim, t, o, side) {
+  const src = h.frame(anim, t || 0, o), e = dOutline(src, o.scale || 1, side), gx = src.width / 2 * e.k + e.P, gy = (h.pad + h.rig.ground * h.rig.u) * e.k + e.P;
+  x.save(); x.imageSmoothingEnabled = false; x.translate(Math.round(X), Math.round(Y)); if (o.flip) x.scale(-1, 1); if (o.alpha != null) x.globalAlpha = o.alpha; x.drawImage(e.cv, -Math.round(gx), -Math.round(gy)); x.restore();
+}
+// 그림의 꽉 찬 상자 (쉬는 모습 첫 장, 프레임 안의 낱칸 좌표 · 발 기준). 겹침을 재는 시험이 쓴다
+const DSBB = new Map();
+function dSprBB(h) { let b = DSBB.get(h); if (b) return b; try { const cv = h.frame('idle', 0), C = cv.width, d = cv.getContext('2d').getImageData(0, 0, C, C).data; let x0 = C, y0 = C, x1 = -1, y1 = -1; for (let y = 0; y < C; y++) for (let x = 0; x < C; x++) if (d[(y * C + x) * 4 + 3] > 200) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; } const gx = C / 2, gy = h.pad + h.rig.ground * h.rig.u; b = x1 < 0 ? { l: 0, r: 0, t: 0, b: 0 } : { l: x0 - gx, r: x1 + 1 - gx, t: y0 - gy, b: y1 + 1 - gy }; } catch (e) { b = { l: -12, r: 12, t: -30, b: 0 }; } DSBB.set(h, b); return b; }
 function dSprite(kind, star, br, stain) { try { const h = LAIRART.unit(dArt(kind, star, stain), LAIR.INV[kind] ? 1 : Math.min(3, star || 1), br === 'b' ? 'b' : undefined); return h; } catch (e) { return null; } }
 // 전장의 권속 (싸움 중이면 엔진 유닛의 id 'k<uid>' 로 판의 권속을 찾는다)
 const dKinOf = u => { const R = DG.R; if (!R) return null; if (u.uid != null) return R.units[u.uid] || null; const m = /^k(\d+)$/.exec(u.id || ''); return m ? R.units[+m[1]] || null : null; };
@@ -11422,26 +11541,33 @@ function dDraw(now) {
     // 빈 줄: 지키는 자가 섰는데 우리 권속이 없는 줄 (그 줄의 적은 굴로 샌다)
     if (placing && R.board && Object.keys(R.board).length) dLaneDraw(x, DG.v || DICE.view(R), now);
   }
-  list.sort((a, b) => a.y - b.y);
+  // 우두머리 · 정예처럼 큰 것은 먼저(뒤에) 그려 다른 유닛을 가리지 않게. 나머지는 위 줄부터
+  list.sort((a, b) => ((b.big ? 1 : 0) - (a.big ? 1 : 0)) || (a.y - b.y));
+  DG.boxes = [];
   list.forEach(u => {
     const ku = (u.home || u.side) === 'nest' ? dKinOf(u) : null, sst = ku ? ku.star : u.star, stn = ku ? ku.stain : null, h = dSprite(u.kind, sst, u.br, stn); if (!h) return; if (DG.test && DG.test.spr) DG.dbg.spr[(F ? 'f:' : 'b:') + (u.id || 'k' + u.uid)] = dArt(u.kind, sst, stn) + ':' + (LAIR.INV[u.kind] ? 1 : Math.min(3, u.star || 1)) + ':' + (u.br === 'b' ? 'b' : 'a'); const t = F ? (F.t - (u.at || 0)) * 1000 : now - (u.at || 0);
     // 배고픈 살점은 먹은 만큼 커 보인다
     const grow = ku && ku.kind === 'x_glut' ? 1 + Math.min(0.45, (ku.fed || 0) * 0.025 + (ku.ate || 0) * 0.004) : 1, rare = !!(ku && DFUSE.RARE[ku.kind]);
-    const sc = dxSc(u) * grow, o = { scale: sc, flip: F ? dFaceOf(F, u) < 0 : (u.home || u.side) === 'inv' ? !u.mad : false, mad: !!u.mad, flash: !!(F && u.flashR && now < u.flashR), alpha: u.alive === false ? Math.max(0, 1 - (F.t - u.dieT) / 0.9) : null };
+    const side = (u.home || u.side) === 'inv' && !u.mad ? 'inv' : 'nest', bb = dSprBB(h), sc = dFitSc(u, h, bb, sst) * grow, o = { scale: sc, flip: F ? dFaceOf(F, u) < 0 : (u.home || u.side) === 'inv' ? !u.mad : false, mad: !!u.mad, flash: !!(F && u.flashR && now < u.flashR), alpha: u.alive === false ? Math.max(0, 1 - (F.t - u.dieT) / 0.9) : null };
     let anim = u.anim || 'idle'; if (u.alive === false) anim = 'die'; else if (F && u.animEnd != null && F.t > u.animEnd) anim = u.moving ? 'move' : 'idle';
-    const ux = F ? dxAt(u).x : u.x, uy = F ? dxAt(u).y : u.y, live = u.alive !== false;
+    const ux = F ? dxAt(u).x : u.x, uy = F ? dxAt(u).y : u.y, live = u.alive !== false, top = Math.round(uy + bb.t * sc); u._top = top;
+    if (live && !u.leaker) dFootDraw(x, ux, uy, side, Math.max(8, Math.min(20, (bb.r - bb.l) * sc * 0.42)));
     if (ku && live) { dGradeRing(x, ux, uy + 1, sc, ku.grade); if (ku.star >= 4) dS4Under(x, ux, uy, sc, now, (ku.grade !== 'c' ? DGR[ku.grade].col : '#ffd040'), h.size * (rare ? 0.8 : 1)); }
-    if (u.leak && live) dLeakMark(x, ux, uy, now);
-    h.draw(x, ux, uy, anim, Math.max(0, F && u.animT != null ? (F.t - u.animT) * 1000 : t), o);
+    if (u.leak && live) dLeakMark(x, ux, top + 32, now);
+    dSprDraw(x, h, ux, uy, anim, Math.max(0, F && u.animT != null ? (F.t - u.animT) * 1000 : t), o, side);
+    if (live) { const fl = o.flip; DG.boxes.push({ id: u.id || 'k' + u.uid, side: u.home || u.side, big: !!u.big, x0: ux + (fl ? -bb.r : bb.l) * sc, x1: ux + (fl ? -bb.l : bb.r) * sc, y0: uy + bb.t * sc, y1: uy + bb.b * sc }); }
     if (ku && live && ku.star >= 4) { dS4Over(x, ux, uy, sc, now, (ku.grade !== 'c' ? DGR[ku.grade].col : '#ffd040'), h.size * (rare ? 0.8 : 1)); if (rare) dRareLights(x, ux, uy, sc, now, h.size); }
     if (live) {
-      if (F) { try { LAIRART.bar(x, ux, uy - 34 * sc - 4, 22, u.hp / u.mhp, null, { side: u.side === 'inv' && !u.mad ? 'inv' : 'kin', px: 1 }); } catch (e) { /* 막대 없이 */ } }
-      else if (u.side === 'nest') { if (u.mats) dGathDraw(x, u, now); x.font = 'bold 9px sans-serif'; x.textAlign = 'center'; x.fillStyle = '#0c0812'; x.fillText(dStar(u.star), u.x + 1, u.y + 5); x.fillStyle = u.star >= 3 ? '#ffd040' : u.star === 2 ? '#c0e8ff' : '#e8e0d0'; x.fillText(dStar(u.star), u.x, u.y + 4); if (DG.pop && DG.pop.uid === u.uid && now - DG.pop.at < 900) { x.strokeStyle = 'rgba(255,224,96,' + (1 - (now - DG.pop.at) / 900) + ')'; x.beginPath(); x.arc(u.x, u.y - 14, 10 + (now - DG.pop.at) / 40, 0, 6.3); x.stroke(); } }
+      // 머리 위 한 줄 (그림 위쪽 바깥): 별 점 + 체력 막대. 체력이 가득하면 막대는 숨긴다. 놓는 동안에는 별 점만
+      const full = !F || u.hp >= u.mhp, ns = side === 'nest' && (u.home || u.side) === 'nest' ? Math.min(4, sst || 1) : 0, bw = 20, sw = ns ? ns * 4 + 1 : 0, gap = ns && !full ? 2 : 0, tw = sw + gap + (full ? 0 : bw), x0 = Math.round(ux - tw / 2), y0 = top - 6;
+      if (ns) dStarPips(x, x0, y0, ns);
+      if (!full) { try { LAIRART.bar(x, x0 + sw + gap + bw / 2, y0, bw, Math.max(0, u.hp / u.mhp), null, { side: side === 'inv' ? 'inv' : 'kin', px: 1 }); } catch (e) { /* 막대 없이 */ } }
+      if (!F && u.side === 'nest') { if (u.mats) dGathDraw(x, u, now); if (DG.pop && DG.pop.uid === u.uid && now - DG.pop.at < 900) { x.strokeStyle = 'rgba(255,224,96,' + (1 - (now - DG.pop.at) / 900) + ')'; x.beginPath(); x.arc(u.x, u.y - 14, 10 + (now - DG.pop.at) / 40, 0, 6.3); x.stroke(); } }
     }
   });
   if (F) {
     dxDrawOver(x, F);
-    F.nums.forEach(n => { const k = (F.t - n.t0) / 0.9; if (k < 0 || k > 1) return; try { LAIRART.num(x, n.x, n.y, n.text, n.kind, k, 1); } catch (e) { /* 숫자 없이 */ } });
+    F.nums.forEach(n => { const k = (F.t - n.t0) / 0.9; if (k < 0 || k > 1) return; try { LAIRART.num(x, n.x, n.y, n.text, n.kind, k, 2); } catch (e) { /* 숫자 없이 */ } });
     F.tags.forEach(n => { const k = (F.t - n.t0) / 1.1; if (k < 0 || k > 1) return; x.font = 'bold 10px sans-serif'; x.textAlign = 'center'; x.globalAlpha = 1 - k; x.fillStyle = '#0c0812'; x.fillText(n.text, n.x + 1, n.y - 33 - k * 6); x.fillStyle = n.col; x.fillText(n.text, n.x, n.y - 34 - k * 6); x.globalAlpha = 1; });
     if (F.leakHit) { const q = (performance.now() - F.leakHit) / 700; if (q < 1) { x.fillStyle = 'rgba(160,10,30,' + (0.35 * (1 - q)).toFixed(3) + ')'; x.fillRect(0, 0, DFW, DFH); } }
     if (F.sneak && F.sneak.hit) { const q = (performance.now() - F.sneak.hit) / 1600; if (q < 1) { if (q < 0.4) { x.fillStyle = 'rgba(160,10,30,' + (0.3 * (1 - q / 0.4)).toFixed(3) + ')'; x.fillRect(0, 0, DFW, DFH); } } }
@@ -11450,11 +11576,11 @@ function dDraw(now) {
   x.restore(); if (F) dxDrawTop(x, F);
 }
 
-// 빈 줄 경고 (놓기 · 던지기 중): 그 줄의 우리 쪽에 붉은 띠와 「빈 줄」, 새는 적 머리 위에 왼쪽 화살표
+// 빈 줄 경고 (놓기 · 던지기 중): 그 줄의 우리 쪽에 옅은 붉은 띠와 굴 쪽(왼쪽)으로 흐르는 작은 화살표 (글씨 없음: 아래 줄에 「빈 줄 n · 생명 −n」), 새는 적 머리 위에 왼쪽 화살표
 function dLaneDraw(x, v, now) {
   const L0 = v && v.lanes; if (!L0 || !L0.open.length) return; const p = 0.55 + 0.45 * Math.sin(now / 240);
   L0.open.forEach(c => { const y = DLY + c * DLH; x.fillStyle = 'rgba(200,30,50,' + (0.1 + 0.08 * p).toFixed(3) + ')'; x.fillRect(DX0, y + 2, DCW * 3, DLH - 4); x.fillStyle = 'rgba(255,90,100,' + (0.55 + 0.35 * p).toFixed(2) + ')'; x.fillRect(DX0, y + 2, 2, DLH - 4);
-    x.font = 'bold 11px sans-serif'; x.textAlign = 'left'; x.fillStyle = '#0c0812'; x.fillText('빈 줄', DX0 + 6, y + DLH / 2 + 5); x.fillStyle = '#ff8a90'; x.fillText('빈 줄', DX0 + 5, y + DLH / 2 + 4); });
+    for (let k = 0; k < 3; k++) { const ax = DX0 + 10 + k * 16 - Math.round(((now / 60) % 16)), ay = y + DLH / 2; x.fillStyle = 'rgba(255,110,118,' + (0.35 + 0.25 * p).toFixed(2) + ')'; for (let j = 0; j < 4; j++) x.fillRect(ax + j, ay - j, 1, j * 2 + 1); } });
 }
 // 새는 적: 머리 위 붉은 왼쪽 화살표 (굴로 샌다)
 function dLeakMark(x, X, Y, now) { const b = Math.round(Math.sin(now / 160) * 2), y = Math.round(Y - 40), c = '#ff5a64'; x.fillStyle = '#0c0812'; x.fillRect(X - 7 + b, y - 1, 12, 5); x.fillStyle = c; x.fillRect(X - 4 + b, y + 1, 9, 1); for (let k = 0; k < 3; k++) x.fillRect(X - 6 + b + k, y + 1 - k, 1, 1 + k * 2); }
@@ -11506,9 +11632,11 @@ function dTickFight(dt) {
 }
 // 미뤄 둔 사건: 맞음(닿는 때) · 죽음(맞음 뒤)
 function dLate(F, L) { const e = L.e, tt = F.t; if (e.type === 'hit') { const v = F.byId[e.u], by = F.byId[e.by]; dHit(F, v, e, tt); if (v && L.style) dxImpact(F, v, by, L.style, e); } else dEvent(F, e, true); }
+// 피해 숫자 (6판): 큰 타격(최대 체력의 1/4 이상) · 치명 · 처치만, 크게, 한 번에 셋까지 (넷째가 오면 가장 오래된 것을 지운다). 자리는 그 유닛 체력 막대 위
+function dNum(F, u, text, kind, tt) { if (F.nums.length >= DXCAP.nums) F.nums.shift(); F.nums.push({ x: dxAt(u).x, y: (u._top != null ? u._top : u.y - 30) - 4, text, kind, t0: tt }); }
 function dHit(F, u, e, tt) {
-  if (!u) return; u.hp = e.hp; if (e.dmg > 0) { F.nums.push({ x: dxAt(u).x + (Math.random() * 8 - 4), y: u.y - 30, text: Math.round(e.dmg), kind: e.crit ? 'crit' : 'dmg', t0: tt }); u.flashR = performance.now() + 45; if (u.anim !== 'attack' && u.anim !== 'cast') { u.anim = 'hit'; u.animT = tt; u.animEnd = tt + 0.26; } }
-  if (e.san > 0 && !(e.dmg > 0)) F.nums.push({ x: u.x, y: u.y - 30, text: Math.round(e.san), kind: 'san', t0: tt });
+  if (!u) return; u.hp = e.hp; if (e.dmg > 0) { if (e.crit || e.hp <= 0 || e.dmg >= u.mhp * 0.25) dNum(F, u, Math.round(e.dmg), e.crit ? 'crit' : 'dmg', tt); u.flashR = performance.now() + 45; if (u.anim !== 'attack' && u.anim !== 'cast') { u.anim = 'hit'; u.animT = tt; u.animEnd = tt + 0.26; } }
+  if (e.san > 0 && !(e.dmg > 0) && e.san >= u.mhp * 0.25) dNum(F, u, Math.round(e.san), 'san', tt);
   if (e.k !== 'atk' && tt - F.hitSay > 0.18) { F.hitSay = tt; dSay('hit'); }
 }
 function dEvent(F, e, late) {
@@ -12003,7 +12131,23 @@ function dAskNew() { const m = $('modal'); m.innerHTML = `<div class="sh-box dg-
 
 // ───────── 알림 ─────────
 let dToastT = 0;
-function dToast(msg, ms) { const t = $('toast'); if (!t) return; t.textContent = msg; t.hidden = false; clearTimeout(dToastT); dToastT = setTimeout(() => { t.hidden = true; }, ms || 2200); }
+function dToast(msg, ms) { const t = $('toast'); if (!t) return; t.textContent = msg; t.hidden = false; dToastPlace(t); clearTimeout(dToastT); dToastT = setTimeout(() => { t.hidden = true; }, ms || 2200); }
+// 알림 자리 (6판): 판 안에서는 전장의 줄(여섯 줄 바닥)과 단추를 덮지 않는 곳에 둔다.
+//   1) 줄 바로 위(전장 윗 여백 · 지역 줄 자리, 아래 끝을 줄 위에 맞춘다) → 위 띠의 단추(상점 · 메뉴)와 겹치면 그 왼쪽까지만 넓게
+//   2) 줄 바로 아래(전장 아랫 여백 · 무리 효과 줄 자리) 3) 둘 다 안 되면 1) 을 쓰되 위 띠 단추 왼쪽까지만
+function dToastPlace(t) {
+  const g = $('dg'), cv = $('dg-cv'); t.classList.remove('dg-slot-t'); ['top', 'bottom', 'left', 'right', 'width'].forEach(k => t.style.removeProperty(k));
+  if (!g || g.hidden || DG.scr !== 'game' || !cv || !$('modal').hidden) return;
+  const W = innerWidth, H = innerHeight, r = cv.getBoundingClientRect(), k = r.height ? r.height / DFH : 0, lanes = k ? { top: r.top + (DLY - 2) * k, bottom: r.top + (DLY + 6 * DLH + 2) * k } : null;
+  const btns = Array.from(document.querySelectorAll('#dg button')).filter(b => b.offsetParent).map(b => b.getBoundingClientRect()).filter(b => b.width && b.height);
+  const bad = q => q.top < 0 || q.bottom > H || btns.some(b => b.left < q.right - 1 && b.right > q.left + 1 && b.top < q.bottom - 1 && b.bottom > q.top + 1) || (lanes && q.bottom > lanes.top + 0.5 && q.top < lanes.bottom - 0.5);
+  t.classList.add('dg-slot-t'); const put = (y, up, right) => { t.style.left = '8px'; t.style.right = right + 'px'; t.style.top = '0px'; const h = t.getBoundingClientRect().height, top = up ? y - h : y; t.style.top = Math.round(top) + 'px'; return { top, bottom: top + h, left: 8, right: W - right }; };
+  const sh = $('dg-shopb'), cut = sh ? Math.max(8, W - sh.getBoundingClientRect().left + 6) : 8, ml = document.querySelector('#dg-myth .dg-mline'), tab = $('dg-htab');
+  // 자리 후보 (차례로): 줄 바로 위 · 옛것 띠 바로 위 · 던지는 화면의 족보표 위 · 줄 바로 아래. 넓이는 온 폭 → 상점 단추 왼쪽까지
+  const A = []; if (lanes) A.push([lanes.top, true]); if (ml && ml.offsetParent) A.push([ml.getBoundingClientRect().top - 2, true]); if (tab && tab.offsetParent) A.push([tab.getBoundingClientRect().top + 2, false]); if (lanes) A.push([lanes.bottom, false]);
+  for (const [y, up] of A) for (const rt of [8, cut]) { if (!bad(put(y, up, rt))) return; }
+  if (A.length) put(A[0][0], A[0][1], cut);
+}
 
 // ───────── 누르기 ─────────
 document.addEventListener('click', e => {
@@ -12096,6 +12240,8 @@ window.__dice = {
     DG.ui = R.phase; DG.bossLine = DICE.isBoss(r) && DBOSS[r] ? { round: r, text: DBOSS[r] } : null; dRender(); dFlow(); },
   give: (kind, star, cell, o) => { const R = DG.R, u = DICE.newUnit(R, kind, star, o); R.units[u.uid] = u; if (cell == null) { R.bench[R.bench.indexOf(null)] = u.uid; } else { if (R.board[cell] != null) delete R.units[R.board[cell]]; R.board[cell] = u.uid; } if (R.phase === 'roll') { R.phase = 'place'; DG.ui = 'place'; if (R.roll) R.roll.n = R.roll.n || 1; } dRender(); return u.uid; },
   rise: (id, stage) => { DICE.forceRise(DG.R, id, stage); dSave(); dRender(); dFlow(); return DG.R.myth; },
+  // 시험용 (6판 그림 정리): 그 엔진 시각에서 멈춘다 · 이번 장에 그린 유닛 그림 상자(캔버스 좌표) · 지금 보이는 피 · 조각 수
+toast: (m, ms) => dToast(m, ms), lanes: () => { const r = $('dg-cv').getBoundingClientRect(), k = r.height / DFH; return { top: r.top + (DLY - 2) * k, bottom: r.top + (DLY + 6 * DLH + 2) * k, left: r.left, right: r.right, dlh: DLH, dfh: DFH }; },   pauseAt: t => { if (DG.F) DG.F.pauseAt = t; return !!DG.F; }, boxes: () => (DG.boxes || []).map(b => Object.assign({}, b)), parts: () => { const F = DG.F; return F ? { parts: F.fxParts.length, stains: F.fxStains.length, nums: F.nums.length } : null; },
   get fight() { return DG.F ? { t: DG.F.t, i: DG.F.i, n: DG.F.f.timeline.length } : null; }, codex: () => dCodex(), DICE, DFUSE, art: k => { try { const h = LAIRART.unit(dArt(k, 1), 1); return h ? 'ok:' + h.size : 'none'; } catch (e) { return String(e && e.stack || e).slice(0, 300); } }, get bg() { return DICE_BG; },
   // 시험용 (4판): 주머니를 통째로 바꾼다 [{ col, col2?, kind?, faces? }] · 고를 것을 하나 넣고 흐름으로 (덱 짜기 창)
   setBag: list => { const R = DG.R; R.dice = list.map((o, i) => Object.assign(DICE.makeDie(o.col, o.kind, o.col2), { id: 500 + i }, o.faces ? { faces: o.faces.slice() } : {})); R.nextDie = 500 + list.length; return R.dice.length; },
