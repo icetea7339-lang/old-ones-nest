@@ -1045,8 +1045,73 @@ b.nv { color: #8fe8a0; font-weight: 700; white-space: nowrap; }
 .dg-fres .fr-dye.fr-hyb { border: 2px solid #5ab4ff; background: rgba(90, 180, 255, .09); box-shadow: 0 0 10px rgba(90, 180, 255, .3); }
 .dg-fres .fr-dye.fr-myth { border: 2px solid #ff9a3a; background: rgba(255, 154, 58, .1); box-shadow: 0 0 12px rgba(255, 154, 58, .4); }
 .dg-fres .fr-dye.fr-hyb .it-h, .dg-fres .fr-dye.fr-myth .it-h { font-size: calc(16px * var(--df)); }
+
+/* ───────── 8판: 최대한 단순하게 (2026-11-27 주인이 실제 폰으로 해 보고) ───────── */
+/* 족보 제목 줄: 이름 · 받을 권속 그림 · 덤 한 마디 · 주머니. 덩이마다 줄바꿈 없음, 넘치면 다음 줄로 (겹치지 않는다) */
+#dg-sets .hd-a { height: auto; min-height: max(34px, 2.3em); flex-wrap: wrap; row-gap: 2px; }
+#dg-sets .hd-a .hd-1 { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 8px; white-space: normal; flex: 1 1 auto; min-width: 0; }
+#dg-sets .hd-a .hd-chip { margin-left: auto; white-space: nowrap; }
+#dg-sets .hd-n { white-space: nowrap; }
+.hd-ks { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; }
+.hd-k { position: relative; display: inline-flex; align-items: center; gap: 1px; height: 28px; white-space: nowrap; }
+.hd-k img { width: 24px; height: 24px; image-rendering: pixelated; }
+.hd-k .pp { position: absolute; left: 1px; bottom: 0; display: flex; gap: 1px; }
+.hd-k .pp b { display: block; width: 4px; height: 4px; background: #e8e0d0; box-shadow: 0 0 0 1px #0c0812; }
+.hd-k em { font-style: normal; font-weight: 700; font-size: calc(13px * var(--df)); color: #f0e6d0; font-variant-numeric: tabular-nums; }
+.hd-ex { color: var(--mute); font-size: calc(12px * var(--df)); white-space: nowrap; }
+.hd-torch { margin-left: 6px; color: #ffb070; font-size: calc(12px * var(--df)); white-space: nowrap; }
+/* 족보 줄: 이름(왼쪽) · 작은 주사위 다섯(오른쪽). 고정 너비 칸 없음: 이름이 넓어지면 그림이 줄 안에서 밀리고, 그래도 안 들면 이름이 접힌다 */
+#dg-htab .ht { display: flex; align-items: center; justify-content: space-between; gap: 6px 10px; padding: 3px 8px; white-space: normal; line-height: 1.25; }
+#dg-htab .ht b { flex: 0 1 auto; width: auto; min-width: 0; overflow-wrap: anywhere; }
+#dg-htab .ht .ht-d { flex: none; display: inline-flex; gap: 3px; }
+#dg-htab .ht .hx { display: block; width: 18px; height: 18px; image-rendering: pixelated; }
+#dg-htab .ht .hx.dim { opacity: .22; }
+#dg-htab .ht:not(.on) .hx:not(.dim) { opacity: .7; }
+#dg-htab .ht.on .hx:not(.dim) { opacity: 1; }
+/* 주머니 창: 주사위 그림들 + 한 줄 (특수 주사위는 테 색, 누르면 면 여섯) */
+.dg-mydice .dg-bag { gap: 6px; margin: 2px 0 6px; }
+.dg-mydice .dg-bagd img { width: 32px; height: 32px; }
+.dg-mydice button.dg-bagd { padding: 2px; background: transparent; border: 2px solid var(--b, #ffcf4a); border-radius: 7px; cursor: pointer; }
+.dg-mydice button.dg-bagd.on { background: rgba(255, 207, 74, .14); }
+.dg-bagf { margin: 0 0 6px; padding: 6px 8px; border-radius: 8px; background: rgba(255, 255, 255, .05); }
+.dg-bagf p { margin: 0 0 4px; font-size: calc(12px * var(--df)); color: var(--mute); }
+.dg-bagf div { display: flex; flex-wrap: wrap; gap: 4px; }
+.dg-bagf img { width: 24px; height: 24px; image-rendering: pixelated; }
+.dg-bagl { margin: 0; }
+/* 권속 정보 창: 처음 보이는 것은 머리 · 두 숫자 · 기술 한 줄 · 색 눈금 한 줄. 나머지는 「자세히」 */
+.dg-u2 { display: flex; flex-wrap: wrap; gap: 4px 18px; margin: 8px 0 4px; font-size: calc(14px * var(--df)); color: var(--mute); }
+.dg-u2 b { margin-left: 4px; font-size: calc(18px * var(--df)); color: #f0e6d0; font-variant-numeric: tabular-nums; }
+.dg-u1 { margin: 4px 0 0; font-size: calc(13px * var(--df)); line-height: 1.4; color: #d8d0c0; }
+.dg-u1 > b { color: #f0e6d0; }
+.dg-umore { margin-top: 8px; padding-top: 6px; border-top: 1px solid var(--line); }
+.dg-umore[hidden] { display: none; }
+.dg-gath img { width: 24px; height: 24px; image-rendering: pixelated; vertical-align: middle; }
+/* 놓았을 때 고르기: 단추 두세 개 · 글은 한 줄씩 · ✕ 는 아무 일 없음 */
+.dd-head .dd-x { margin-left: auto; }
+#dg-drop .btn { flex-direction: row; justify-content: center; }
+/* 물들이기: 고른 주사위의 전후 그림 */
+.dg-dyeab { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 40px; }
+.dg-dyeab img { width: 32px; height: 32px; image-rendering: pixelated; }
+.dg-dyeab i { font-style: normal; color: var(--mute); }
+/* 메뉴 창의 목록 (고친 것: 위 띠 단추와 같은 이름표 .dg-menu 를 써서 40×36 으로 눌렸다) */
 .dg-mlist { display: flex; flex-direction: column; gap: 8px; }
 .dg-mlist .btn { width: 100%; }
+/* 위 띠 칩: 그림 + 숫자 한 줄 (접히지 않는다) */
+#dg-top .dg-st { flex-wrap: nowrap; white-space: nowrap; align-items: center; }
+#dg-top .dg-st.kin img { width: 16px; height: 16px; image-rendering: pixelated; flex: none; }
+/* 옛것 표식 창: 신 그림 · 눈금 · 한 줄 · 마음 한 줄 */
+.mm-top { display: flex; gap: 12px; align-items: center; }
+.mm-big { width: 64px; height: 64px; flex: none; image-rendering: pixelated; padding: 6px; border-radius: 10px; background: var(--ink); box-shadow: 0 0 0 2px var(--c), 0 0 14px var(--c); }
+.mm-gauge { margin: 0 0 6px; }
+.mm-gauge i { display: block; height: 6px; margin-top: 3px; background: #241e36; border-radius: 3px; overflow: hidden; }
+.mm-gauge u { display: block; height: 100%; }
+.mm-l { margin: 0 0 4px; font-size: calc(13px * var(--df)); line-height: 1.4; }
+.mm-l .md-dot { margin-right: 6px; }
+#dg-top .dg-st { flex: 1 1 auto; column-gap: 2px; }
+#dg-top .dg-st.kin img { width: 14px; height: 14px; }
+/* 지역 줄: 세상 이름은 빼고(첫 화면 · 세상 고르기에 있다) 한 줄로 */
+.dg-rline .rr-w { display: none; }
+.dg-rplan .rr { padding: 0 4px; }
 </style>
 </head><body style="margin:0">
 <div id="title" class="screen">
@@ -3897,7 +3962,8 @@ const DICE = (() => {
     const fp = fusePreview(R, src, dst), fw = FU.canFeed(a, b);
     return { fuse: fp.ok ? fp : null, fuseWhy: fp.ok ? null : fp.msg, feed: fw ? null : { gain: FU.feedGain(a), fed: b.fed || 0, cap: FU.feedCap(b) }, feedWhy: fw };
   }
-  // to = { cell } | { bench } | { feed: true } (버린다 · 진액). act = 'fuse'(모은다 · 셋째면 합친다) | 'feed' | 'swap' (권속 위에 놓을 때; 없으면 모을 수 있으면 모으고 아니면 자리를 바꾼다)
+  // to = { cell } | { bench } | { feed: true } (버린다 · 진액). act = 'fuse'(모은다 · 셋째면 합친다) | 'feed' | 'swap' (권속 위에 놓을 때; 없으면 자리를 바꾼다)
+  //   8판 (주인: 「자동으로 합치지마」): 합치기 · 먹이기는 act 로 고른 때만. 봇은 fuse · feedTo · autoPlace(o.fuse) 를 직접 부르므로 이 기본값과 상관없다
   function move(R, uid, to) {
     if (R.phase !== 'place' && R.phase !== 'roll') return fail('지금은 옮길 수 없습니다');
     const u = R.units[uid], from = where(R, uid); if (!u || !from) return fail('없는 권속입니다');
@@ -3906,7 +3972,7 @@ const DICE = (() => {
     if (to.cell != null && !isCell(to.cell)) return fail('놓을 수 없는 자리입니다'); if (to.bench != null && !(to.bench >= 0 && to.bench < R.bench.length)) return fail('없는 칸입니다');
     if (other === uid) return ok({ same: true });
     if (other != null) {
-      const act = to.act || (FU.canJoin(R.units[other], u) ? 'swap' : 'fuse');
+      const act = to.act || 'swap';
       if (act === 'fuse') return fuse(R, uid, other); if (act === 'feed') return feedTo(R, uid, other);
       const dest = to.cell != null ? { cell: to.cell } : { bench: to.bench }; take(R, other); take(R, uid); put(R, uid, dest); put(R, other, from); return ok({ swap: other });
     }
@@ -11097,13 +11163,15 @@ function dMount() {
   document.body.appendChild(g); document.body.appendChild($('dg-tip')); document.body.appendChild($('dg-spot')); dBind(g);
   // 전장 칸의 크기가 바뀌면(글자 크기를 키우는 브라우저가 뒤늦게 글을 키울 때 등) 캔버스도 곧바로 맞춘다 (캔버스가 칸보다 커서 위아래가 잘리지 않게)
   try { if (window.ResizeObserver) new ResizeObserver(() => dFit()).observe($('dg-fieldwrap')); } catch (e) { /* 창 크기 바뀜으로만 */ }
+  // 창(#modal)이 열리는 순간 떠 있던 알림은 지운다 (고친 것: 알림이 메뉴 창의 첫 단추 위에 겹쳐 떴다). 창이 열린 뒤의 새 알림은 dToastPlace 가 창 밖에 둔다
+  try { new MutationObserver(() => { if (!$('modal').hidden) { const t = $('toast'); if (t && !t.hidden && !DG.toastKeep) t.hidden = true; } }).observe($('modal'), { attributes: true, attributeFilter: ['hidden'] }); } catch (e) { /* 그대로 */ }
   return g;
 }
 function dStart(R) {
   DG.R = R; DG.scr = 'game'; DG.ui = R.phase; DG.F = null; DG.sel = null; DG.showV = null; DG.roll = null; TR.dice = []; TR.mode = 'idle';
   $('title').hidden = true; const g = dMount(); g.hidden = false; dBigApply(); dSave(); dRender(); dLoop(); dRoundMusic();
   if (TUT.on && TUT.intro) return dTutIntro(0);
-  if (!TUT.on && dTutWant() && R.round <= 3) { TUT.on = true; TUT.intro = false; TUT.seen = {}; }
+  if (!TUT.on && dTutWant() && R.round <= 1) { TUT.on = true; TUT.intro = false; TUT.seen = {}; }
   dFlow();
 }
 function dNew(seed, daily, world) {
@@ -11118,8 +11186,9 @@ function dStop() { if (DG.raf) cancelAnimationFrame(DG.raf); DG.raf = 0; }
 // ───────── 위 띠 · 옛것 띠 ─────────
 function dTop(v) {
   const s = DG.showV || v, low = s.life <= 4 ? ' low' : '';
-  $('dg-top').innerHTML = `<span class="dg-st gold" title="진액"><i></i><b>${s.gold}</b><small>진액</small></span><span class="dg-st life${low}" title="생명"><i>♥</i><b>${s.life}</b><small>/${s.lifeMax}</small></span>`
-    + `<span class="dg-st kin" title="세운 권속 / 최대"><b>${v.placed}/${v.cap}</b><small>권속</small></span><span class="dg-st rd" title="라운드"><b>${v.round}/20</b><small>${dEsc(v.region.name)}</small></span><button id="dg-shopb" class="dg-shopb" data-d="shop" ${v.shop && v.shop.open && !['fight', 'leak'].includes(DG.ui) ? '' : 'disabled'} aria-label="상점">상점</button><button class="dg-menu" data-d="menu" aria-label="메뉴">≡</button>`;
+  // 8판 (주인: 위 띠 칩이 실제 폰에서 두 줄로 접힌다): 글 이름표 없이 그림 + 숫자 한 줄 (지역 이름은 아래 지역 줄에 있다)
+  $('dg-top').innerHTML = `<span class="dg-st gold" title="진액" aria-label="진액 ${s.gold}"><i></i><b>${s.gold}</b></span><span class="dg-st life${low}" title="생명" aria-label="생명 ${s.life}/${s.lifeMax}"><i>♥</i><b>${s.life}</b></span>`
+    + `<span class="dg-st kin" title="세운 권속 / 최대" aria-label="권속 ${v.placed}/${v.cap}"><img src="${dIcon('b_claw', 1, 16)}" alt=""><b>${v.placed}/${v.cap}</b></span><span class="dg-st rd" title="라운드" aria-label="라운드 ${v.round}/20"><b>${v.round}/20</b></span><button id="dg-shopb" class="dg-shopb" data-d="shop" ${v.shop && v.shop.open && !['fight', 'leak'].includes(DG.ui) ? '' : 'disabled'} aria-label="상점">상점</button><button class="dg-menu" data-d="menu" aria-label="메뉴">≡</button>`;
   const m = v.myth, el = $('dg-myth');
   // 두 줄: 이름 · 남은 라운드 / 퀘스트 목표(쉬운 말) 진행 「3/8」
   // 지역 띠 (늘): 지역 여섯의 점 · 이 지역의 라운드 자리 (싸움 · 정예 · 우두머리) · 걸린 리스크. 옛것이 떠 있으면 그 아래 줄에 옛것 (이름 · 남은 라운드 / 퀘스트 진행)
@@ -11405,39 +11474,39 @@ function dDiceHtml(v) {
     return `<button class="${cls}" data-die="${i}" style="left:${b.l}%;top:${b.t}%;width:${b.w}%;height:${b.h}%" ${pick ? '' : 'aria-disabled="true"'} aria-pressed="${held}" aria-label="${dEsc(d.name)}${f ? ': ' + dEsc(f.name) : ''}${held ? ' (고정)' : ''}"></button>`;
   }).join('');
 }
-// 족보 띠: 던진 뒤 지금의 족보와 받을 것을 크게 (붙잡기를 바꾸거나 다시 굴릴 때마다 갈린다) · 족보표 · 주머니 단추
-//   던지기 전: 이번 라운드에 주머니에서 꺼낸 주사위들의 색 · 한 줄 안내
-const DLEG = () => LAIR.ASPS.map(a => `<span class="dg-leg" style="color:${ASPC[a]}">${dChip(a)}${dEsc(LAIR.ASPN[a])}</span>`).join(' ');
-// 물든 주사위가 하나라도 있는지 (6판: 꺼낸 주사위의 색 칩 줄은 그 뒤에만)
-const dAnyDyed = v => !!(v && v.bag && v.bag.some(d => d.col));
-// 띠의 높이는 늘 같다 (2026-11-27 사용자: 「아래 글들때문에 화면이 작아지는 버그도있어」): 윗줄(족보 이름 · 족보표 · 주머니) 한 줄 + 아랫줄 두 줄 자리.
-//   글이 줄어도 늘어도 전장 크기가 바뀌지 않는다. 아랫줄은 짧게 쓰고, 그래도 넘치면 그 안에서만 밀어 본다 (전장을 밀어내지 않는다).
+// 족보 띠 (8판, 2026-11-27 주인: 「최대한 단순간편으로」 · 「족보표 버튼 없애줘」 · 「확률 이런거 안보여줘도돼」): 판 아래 제목 줄 하나.
+//   던진 뒤: 족보 이름 + 받을 권속(그 색의 형상 + 별 점, 글 · 확률 없음) + 아주 짧은 덤 한 마디 · 오른쪽에 「주머니」.
+//   던지기 전: 꺼낸 주사위 색 점 (횃불이 섞인 라운드면 그 한 마디). 설명은 길잡이가 한다.
+//   이름 · 그림 · 단추는 저마다 줄바꿈 없는 덩이라서, 글꼴이 넓으면 다음 줄로 넘어갈 뿐 서로 겹치지 않는다.
+// 받을 권속의 형상: 그 색(기본은 뼈색) 실루엣. 어떤 종류가 올지는 확정할 때 정해지므로 종류는 보이지 않는다
+const DTOKART = a => (a && DFUSE.LADDER[a] ? DFUSE.LADDER[a][0] : DFUSE.BASE.b_claw.art);
+function dTok(asp, px) {
+  const k = 't:' + (asp || 'base') + ':' + px; if (DURL[k] != null) return DURL[k];
+  try { const c0 = LAIRART.icon(DTOKART(asp), 1, px), col = ASPC[asp] || ASPC.base, a = document.createElement('canvas'); a.width = a.height = px; const ax = a.getContext('2d');
+    const tint = c => { const t = document.createElement('canvas'); t.width = t.height = px; const tx = t.getContext('2d'); tx.drawImage(c0, 0, 0, px, px); tx.globalCompositeOperation = 'source-in'; tx.fillStyle = c; tx.fillRect(0, 0, px, px); return t; };
+    const rim = tint('#07050c'), u = Math.max(1, Math.round(px / 24)); [[-u, 0], [u, 0], [0, -u], [0, u]].forEach(([dx, dy]) => ax.drawImage(rim, dx, dy)); ax.drawImage(tint(col), 0, 0);
+    DURL[k] = a.toDataURL(); } catch (e) { DURL[k] = ''; }
+  return DURL[k];
+}
+// 별 점 (작은 네모 n 개)
+const dPips = n => `<i class="pp">${'<b></b>'.repeat(Math.max(1, Math.min(4, n)))}</i>`;
+// 받을 것 (구조): [{ asp, star, n }] (같은 색 · 같은 별은 묶는다) + 그림 면 권속 + 덤 한 마디
+function dGetToks(g) {
+  const m = []; (g.units || []).forEach(u => { const x = m.find(y => y.asp === u.asp && y.star === u.star); if (x) x.n += u.n; else m.push({ asp: u.asp, star: u.star, n: u.n }); });
+  const toks = m.map(x => `<span class="hd-k" title="${dEsc(dAspN(x.asp))} ${x.star}성"><img src="${dTok(x.asp, 24)}" alt="${dEsc(dAspN(x.asp))} ${x.star}성">${dPips(x.star)}${x.n > 1 ? `<em>×${x.n}</em>` : ''}</span>`)
+    .concat((g.pics || []).map(p => `<span class="hd-k pic"><img src="${dIcon(p.kind, p.star, 24)}" alt="${dEsc(LAIR.KIN[p.kind].name)} ${p.star}성">${dPips(p.star)}</span>`));
+  const ex = [g.gold ? '진액 +' + g.gold : '', g.buff ? '강화' : '', g.torch ? '횃불 ' + g.torch : ''].filter(Boolean);
+  return { toks: toks.join(''), ex: ex.join(' · ') };
+}
 function dSetsLine(v) {
-  const ro = v.roll, chips = `<span class="hd-chips"><button class="hd-chip" data-d="hands">족보표</button><button class="hd-chip" data-d="mydice">주머니 ${v.bag.length}</button></span>`;
-  const band = (cls, a, b) => `<div class="hd-line ${cls}"><div class="hd-a">${a}${chips}</div>${b == null ? '' : `<div class="hd-b">${b}</div>`}</div>`;
-  // 판을 접은 뒤(놓기 · 싸움)에는 윗줄 하나만: 확정한 족보 (받은 권속은 대기 칸에 있다 · 놓친 것은 확정할 때 알림으로)
-  if (v.phase !== 'roll' || DG.ui === 'fight' || DG.ui === 'leak') { const P = DG.lastParts; return band('done', `<p class="hd-1">${P && (v.phase === 'place' || DG.ui === 'fight' || DG.ui === 'leak') ? `확정 · <b>${dEsc(P.name)}</b>${DG.lastLost && v.phase === 'place' ? ` <span class="bad">· ${DG.lastLost.n}마리 놓침</span>` : ''}` : ''}</p>`, null); }
-  // 던지기 전 · 흔드는 중 · 구르는 중: 아랫줄은 같은 안내 (횃불이 섞인 라운드면 그 알림)
-  const tip = v.torchNote ? `<p class="hd-tip torch">${dEsc(v.region.name)}의 사람들이 횃불 면을 하나 섞었습니다 · 횃불은 숫자가 없어 족보를 깹니다</p>` : dAnyDyed(v) ? '<p class="hd-tip">색 주사위가 낀 족보 = 그 색 권속 · 같은 수가 모일수록 높은 별</p>' : '<p class="hd-tip">같은 수가 모일수록 높은 족보 · 높은 족보일수록 별이 높은 권속</p>';
-  if (DG.ui === 'shaking') return band('pre', '<p class="hd-1">흔드는 중 · 떼면 던집니다</p>', tip);
-  if (!ro || !ro.n || DG.ui === 'rolling') return band('pre', DG.ui === 'rolling' ? '<p class="hd-1">구릅니다…</p>' : (dAnyDyed(v) ? `<p class="hd-1 hd-draw">꺼낸 ${v.dice.length}개 ${v.dice.map(dDieChip).join('')}</p>` : `<p class="hd-1 hd-draw">기본 주사위 ${v.dice.length}개를 꺼냈습니다</p>`), tip);
-  // 윗줄: 족보 이름 / 아랫줄: 받는 것(짧게) · 덤(희귀 · 남은 주사위 · 강화 · 횃불, 작게)
-  // 6판: 색 주사위가 끼면 아랫줄 첫머리에 「기아 주사위 1개가 끼었습니다」 (넘치면 dSetsFit 이 「색 주사위 2개가 끼었습니다」로 줄인다)
-  const P = ro.parts || { name: ro.hand.name, get: [], buff: [], dyed: '' }, low = (P.dyed ? [P.dyed] : []).concat(dBuffShort(P.buff));
-  return band('r' + ro.hand.rank, `<p class="hd-1"><b class="hd-n">${dEsc(P.name)}</b></p>`, `${P.get.length ? `<p class="hd-2 hd-get">${dEsc(P.get.join(' · '))}</p>` : ''}${low.length ? `<p class="hd-3">${P.dyed ? `<span class="hd-dy" data-n="${P.dyedN || 0}">${dEsc(P.dyed)}</span>${low.length > 1 ? ' · ' : ''}` : ''}${dNumHi(low.slice(P.dyed ? 1 : 0).join(' · '))}</p>` : ''}`);
-}
-// 아랫줄이 두 줄 자리를 넘치면(큰 글씨 등) 더 짧은 말로: 「덤: 희귀 1성 10%」 → 「희귀 덤 10%」 · 「이번 싸움 공격 +35%」 → 「공격 +35%」 · 「적 체력 −15%」 → 「적 −15%」 · 「심연 1성 + 성운 1성」 → 「심연 · 성운 1성」
-function dSetsFit() {
-  const hb = document.querySelector('#dg-sets .hd-b'); if (!hb || hb.dataset.short || hb.scrollHeight <= hb.clientHeight + 1) return; hb.dataset.short = '1';
-  const g = hb.querySelector('.hd-2'), b = hb.querySelector('.hd-3:not(.bad)');
-  if (g) { const ps = g.textContent.split(' · '), k = ps[0].split(' + ').map(x => /^(\S+) (\d성)$/.exec(x)); if (k.length > 1 && k.every(x => x && x[2] === k[0][2])) { ps[0] = k.map(x => x[1]).join(' · ') + ' ' + k[0][2]; g.textContent = ps.join(' · '); } }
-  const dy = hb.querySelector('.hd-dy'); if (dy && hb.scrollHeight > hb.clientHeight + 1) { const n = +dy.dataset.n || 1; if (/ · /.test(dy.textContent)) dy.textContent = '색 주사위 ' + n + '개가 끼었습니다'; }
-  if (dy && hb.scrollHeight > hb.clientHeight + 1) dy.textContent = '색 주사위 ' + (+dy.dataset.n || 1);
-  if (b && hb.scrollHeight > hb.clientHeight + 1) { const rest = b.textContent.slice(dy ? dy.textContent.length : 0).replace(/^ · /, ''); b.innerHTML = (dy ? `<span class="hd-dy">${dEsc(dy.textContent)}</span>` + (rest ? ' · ' : '') : '') + dNumHi(rest.replace(/덤: 희귀 1성 ?(\d+%)?/, (m, q) => '희귀 덤' + (q ? ' ' + q : '')).replace(/이번 싸움 공격/, '공격').replace(/적 체력 −/, '적 −').replace(/남은 주사위 /, '남은 ').replace(/ \(적 체력 \+(\d+)%\)/, ' (적 +$1%)')); }
-}
-// 덤 줄을 짧게: 「남은 주사위: 번식 +5% 황혼 +5%」 → 「남은 주사위 +5%: 번식 · 황혼」 (모두 같은 몫일 때)
-function dBuffShort(list) {
-  return list.map(s => { const m = /^남은 주사위: (.+)$/.exec(s); if (!m) return s; const ps = m[1].split(/ (?=[^ ]+ \+\d+%)/).map(q => /^(.+) (\+\d+%)$/.exec(q)).filter(Boolean); return ps.length && ps.every(q => q[2] === ps[0][2]) ? '남은 주사위 ' + ps[0][2] + ': ' + ps.map(q => q[1]).join(' · ') : s; });
+  const ro = v.roll, bag = `<button class="hd-chip" data-d="mydice">주머니 ${v.bag.length}</button>`;
+  const band = (cls, a) => `<div class="hd-line ${cls}"><div class="hd-a">${a}${bag}</div></div>`;
+  // 판을 접은 뒤(놓기 · 싸움): 확정한 족보 이름만 (받은 권속은 대기 칸에 있다 · 놓친 것은 붉게)
+  if (v.phase !== 'roll' || DG.ui === 'fight' || DG.ui === 'leak') { const P = DG.lastParts; return band('done', `<p class="hd-1">${P && (v.phase === 'place' || DG.ui === 'fight' || DG.ui === 'leak') ? `<b>${dEsc(P.name)}</b>${DG.lastLost && v.phase === 'place' ? ` <span class="bad">${DG.lastLost.n}마리 놓침</span>` : ''}` : ''}</p>`); }
+  if (DG.ui === 'shaking') return band('pre', '<p class="hd-1">떼면 던집니다</p>');
+  if (!ro || !ro.n || DG.ui === 'rolling') return band('pre', DG.ui === 'rolling' ? '<p class="hd-1">구릅니다…</p>' : `<p class="hd-1 hd-draw">${v.dice.map(dDieChip).join('')}${v.torchNote ? '<span class="hd-torch">횃불 면이 섞였습니다</span>' : ''}</p>`);
+  const T = dGetToks(ro.gets || {});
+  return band('r' + ro.hand.rank, `<p class="hd-1"><b class="hd-n">${dEsc(ro.hand.name)}</b><span class="hd-ks">${T.toks}</span>${T.ex ? `<small class="hd-ex">${dEsc(T.ex)}</small>` : ''}</p>`);
 }
 const dSetsHtml = () => { if (DG.v) { const el = $('dg-sets'); if (el) el.innerHTML = dSetsLine(DG.v); } };
 const DPHB = { shop: '상점', altar: '제단', event: '사건', done: '다음' };
@@ -11474,14 +11543,25 @@ function dOwnFit() {
   const fits = () => el.scrollWidth <= el.clientWidth + 0.5; if (fits()) return; const m = document.createElement('span'); m.className = 'dg-oumore'; el.appendChild(m); let hid = 0;
   for (let i = kids.length - 1; i > 0 && (hid === 0 || !fits()); i--) { kids[i].style.display = 'none'; hid++; m.textContent = '+' + hid; }
 }
-// 족보표 (던지는 화면, 판 아래): 족보 → 받는 권속 한 줄씩. 지금 족보는 밝게
+// 족보 줄 (던지는 화면, 판 아래 · 8판): 줄마다 「족보 이름 + 작은 주사위 다섯 그림」. 그 족보를 이루는 주사위는 또렷하게, 나머지는 흐리게. 보상 글은 넣지 않는다 (받을 것은 제목 줄에만)
+//   높은 족보가 위 · 지금 나온 족보 줄은 밝게. 이름 칸과 그림 칸은 저마다 줄바꿈 없는 덩이 (고정 너비 칸이 아니다): 이름이 길면 그림이 오른쪽으로 밀릴 뿐 겹치지 않는다
+const DHEX = { five: ['66666', ''], four: ['6666', '2'], large: ['12345', ''], full: ['66655', ''], small: ['1234', '6'], three: ['666', '24'], two: ['6655', '1'], pair: ['66', '135'], junk: ['', '12456'] };
+// 작은 주사위: 게임 안 주사위와 같은 색(뼈색 몸통 · 검은 테 · 뼈빛 눈)의 9칸 도트, 화면에는 두 배(18px, 정수 배율)
+function dMiniImg(v) {
+  const k = 'x:' + v; if (DURL[k]) return DURL[k];
+  try { const c = document.createElement('canvas'); c.width = c.height = 9; const x = c.getContext('2d'), A = DCOL.base, R = (col, X, Y, w, h) => { x.fillStyle = col; x.fillRect(X, Y, w || 1, h || 1); };
+    R('#060406', 1, 0, 7, 9); R('#060406', 0, 1, 9, 7); R(A[0], 1, 1, 7, 7); R('rgba(255,255,255,0.18)', 2, 1, 5, 1);
+    (DPIP[v] || []).forEach(([i, j]) => R(DPIPL, 2 + i * 2, 2 + j * 2)); DURL[k] = c.toDataURL(); } catch (e) { DURL[k] = ''; }
+  return DURL[k];
+}
+const dMini = (v, dim) => `<img class="hx${dim ? ' dim' : ''}" src="${dMiniImg(+v)}" alt="${v}">`;
 function dHandTabHtml(v) {
   const ro = v.roll, cur = ro && ro.n && ro.hand ? ro.hand.id : null;
-  return DICE.HAND_IDS.slice().reverse().map(k => { const g = dHandGetLines(k).find(l => !l.sm) || ''; return `<p class="ht r${DICE.HANDS[k].rank}${k === cur ? ' on' : ''}"><b>${dEsc(DICE.HANDS[k].name)}</b><span>${dNumHi(String(g))}</span></p>`; }).join('');
+  return DICE.HAND_IDS.slice().reverse().map(k => { const x = DHEX[k] || ['', '']; return `<p class="ht r${DICE.HANDS[k].rank}${k === cur ? ' on' : ''}" data-h="${k}"><b>${dEsc(DICE.HANDS[k].name)}</b><span class="ht-d" aria-hidden="true">${x[0].split('').map(c => dMini(c)).join('')}${x[1].split('').map(c => dMini(c, 1)).join('')}</span></p>`; }).join('');
 }
 function dRender() {
   if (DG.scr !== 'game' || !DG.R) return; const v = DICE.view(DG.R); DG.v = v;
-  dTop(v); dBench(v); dTraySync(); $('dg-dbtn').innerHTML = dDiceHtml(v); $('dg-dice').dataset.n = v.dice.length; $('dg-sets').innerHTML = dSetsLine(v); dSetsFit(); requestAnimationFrame(dSetsFit); clearTimeout(DG.fitT); DG.fitT = setTimeout(dSetsFit, 160); $('dg-btns').innerHTML = dBtns(v);
+  dTop(v); dBench(v); dTraySync(); $('dg-dbtn').innerHTML = dDiceHtml(v); $('dg-dice').dataset.n = v.dice.length; $('dg-sets').innerHTML = dSetsLine(v); $('dg-btns').innerHTML = dBtns(v);
   $('dg-tray').classList.toggle('off', v.phase !== 'roll'); $('dg').dataset.phase = DG.ui; dScreen(v); $('dg-own').innerHTML = v.phase === 'roll' ? dOwnHtml(v) : ''; dOwnFit(); requestAnimationFrame(dOwnFit); $('dg-htab').innerHTML = v.phase === 'roll' ? dHandTabHtml(v) : ''; { const ht = $('dg-htab'), on = ht.querySelector('.ht.on'); if (on && ht.scrollHeight > ht.clientHeight + 1) { const top = on.offsetTop - ht.offsetTop; if (top < ht.scrollTop || top + on.offsetHeight > ht.scrollTop + ht.clientHeight) ht.scrollTop = Math.max(0, top - (ht.clientHeight - on.offsetHeight) / 2); } } dGroupHtml(v); dFit(); requestAnimationFrame(dFit);
   const say = $('dg-say'); say.textContent = dSayLine(v); dCodexScan();
 }
@@ -11530,7 +11610,7 @@ function dConfirm() {
 }
 function dDieFaces(i) {
   const d = DG.v.dice[i]; if (!d) return; const m = $('modal');
-  m.innerHTML = `<div class="sh-box dg-box" role="dialog" aria-modal="true"><div class="sh-head"><h2>${dEsc(d.name)}</h2><button class="sh-x" data-d="mclose" aria-label="닫기">✕</button></div><div class="sh-body"><p class="sh-sub">${d.col ? `색 = <b style="color:${ASPC[d.col]}">${dEsc(dAspN(d.col))}</b>${d.col2 ? ' · <b style="color:' + ASPC[d.col2] + '">' + dEsc(dAspN(d.col2)) + '</b>' : ''} · 이 주사위가 낀 족보는 그 색 권속을 부릅니다` : '기본 주사위 · 색이 없습니다 (떠 있는 신에게 권속을 바치면 물들일 수 있습니다)'}</p>${d.kind !== 'plain' ? `<p class="sh-sub">「${dEsc(d.kindName)}」 ${dEsc(d.kindShort)}</p>` : ''}<div class="dg-six">${d.faces.map(f => `<span class="dg-face"><img src="${dFaceImg(f, 40, d)}" alt=""><small>${dEsc(f.name)}</small></span>`).join('')}</div><p class="mute">주머니의 모든 주사위는 「주머니」에서 봅니다.</p></div></div>`;
+  m.innerHTML = `<div class="sh-box dg-box" role="dialog" aria-modal="true"><div class="sh-head"><h2>${dEsc(d.name)}</h2><button class="sh-x" data-d="mclose" aria-label="닫기">✕</button></div><div class="sh-body"><div class="dg-six">${d.faces.map(f => `<span class="dg-face"><img src="${dFaceImg(f, 40, d)}" alt=""><small>${dEsc(f.name)}</small></span>`).join('')}</div></div></div>`;
   m.hidden = false;
 }
 // 족보표: 족보 · 조건 · 받는 것 한눈에 (수치는 규칙의 표 DICE.HANDGET 에서 읽는다)
@@ -11547,21 +11627,16 @@ function dHandGetLines(k) {
   return a;
 }
 const dHandGetHtml = k => dHandGetLines(k).map(l => (l.sm ? `<span class="hg sm">${dNumHi(l.sm)}</span>` : `<span class="hg">${dNumHi(l)}</span>`)).join('');
-const dHandGetText = k => dHandGetLines(k).map(l => l.sm || l).join(' · ');
-function dHandsModal() {
-  const v = DG.v, rows = DICE.HAND_IDS.slice().reverse().map(k => `<tr class="hr${DICE.HANDS[k].rank}"><th>${dEsc(DICE.HANDS[k].name)}</th><td>${dEsc(DICE.HANDS[k].cond)}</td><td class="hgs">${dHandGetHtml(k)}</td><td class="hp">${DICE.HANDP[k] < 1 ? '1% 아래' : '약 ' + DICE.HANDP[k] + '%'}</td></tr>`).join('');
-  const now = v && v.roll && v.roll.n && v.roll.line ? `<p class="sh-sub">지금: <b>${dEsc(v.roll.line)}</b></p>` : '';
-  dShow(dBox('dg-hands', '족보표', `${now}<p><b>숫자 = 족보 = 별.</b> 같은 수를 모은 족보가 별을 정합니다. 족보를 이룬 주사위가 모두 기본이면 <b>기본 권속</b>, 색 주사위가 하나라도 끼면 그 족보 전체가 <b>그 색 권속</b>입니다.</p><div class="dg-twrap"><table class="dg-tbl dg-htbl"><tr><th>족보</th><th>조건</th><th>받는 것</th><th>대략</th></tr>${rows}</table></div>
-<p class="mute">권속은 「별 수」로 적었습니다 (예: 「2성 1」 = 2성 하나).</p><ul class="dg-hnote"><li>두 색 주사위가 묶음에 끼면 그 묶음의 첫 권속은 혼종입니다.</li><li>한 색 주사위 둘(서로 다른 색)로는 주사위 ${DICE.K.hyb2n}개가 다 든 묶음(다섯 같은 수 · 라지 스트레이트)에서만 혼종이 될 수 있습니다 (${Math.round(DICE.K.hyb2 * 100)}%).</li><li>신화 권속은 더 드뭅니다: 레시피 두 색으로 된 풀하우스, 두 색 주사위가 낀 포카드 · 다섯 같은 수, 한 색 다섯 같은 수에서만 올 수 있습니다.</li><li>족보에 안 든 색 주사위는 그 색 권속을 이번 싸움에 ${Math.round(DICE.K.leftBuff * 100)}%씩 세게 합니다 (기본 주사위는 덤이 없습니다).</li><li>주사위는 떠 있는 신에게 권속을 바쳐야만 물듭니다 (위 띠의 옛것 표식).</li><li>「대략」은 주사위 다섯으로, 가장 많은 수를 고정하고 다시 굴리기 1번을 썼을 때 그 족보로 끝날 확률입니다.</li><li>6 도 평범한 수입니다 (다른 수를 대신하지 않습니다). 횃불 면은 숫자가 없어 족보를 깹니다 (확정하면 이번 적 체력 +10%).</li><li>그림 면은 족보와 따로, 나오면 그 권속이 곧바로 옵니다. 여섯 개 이상 꺼내면 가장 좋은 다섯으로 봅니다.</li></ul>`, '', '<button class="sh-x" data-d="mclose" aria-label="닫기">✕</button>'));
-}
-// 주머니 (= 내 주사위): 색마다 주사위 수 · 한 라운드에 그 색이 1 · 2 · 3개 이상 나올 확률 · 주사위 하나하나 (색 · 특수)
-function dMyDiceModal() {
-  const R = DG.R, v = DICE.view(R), o = v.odds, pc = x => Math.round(x * 100) + '%';
-  const rowsA = LAIR.ASPS.filter(a => o.by[a].n).concat(['base']), tbl = rowsA.map(a => { const b = o.by[a]; return `<tr${b.n ? '' : ' class="off"'}><th style="color:${ASPC[a]}">${dChip(a === 'base' ? null : a)}${dEsc(dAspN(a === 'base' ? null : a))}</th><td>${b.n}</td><td>${pc(b.p1)}</td><td class="t2"><b>${pc(b.p2)}</b></td><td>${pc(b.p3)}</td></tr>`; }).join('');
-  const list = v.bag.map(d => `<span class="dg-bagd" title="${dEsc(d.name)}"><img src="${dDieImg(d, 26, d.kind === 'twin6' ? 6 : 5)}" alt="${dEsc(d.name)}">${d.kind !== 'plain' && d.kind !== 'duo' ? `<small>${dEsc(d.kindName)}</small>` : d.col2 ? '<small>두 색</small>' : d.col ? `<small>${dEsc(dAspN(d.col))}</small>` : d.temp ? '<small>옛것</small>' : ''}</span>`).join('');
-  const mx = v.mix || { base: 0, one: 0, two: 0 }, sum = `<div class="dg-deck sum"><p><b>숫자 = 족보 = 별</b> · 색 주사위가 낀 족보 = 그 색 권속</p><p>라운드마다 주머니 ${o.n}개 가운데 <b>${o.draw}개</b>를 무작위로 꺼내 굴립니다.</p><p>주사위는 떠 있는 신에게 권속을 바쳐야만 물듭니다 (되돌릴 수 없습니다).</p></div>`;
-  dShow(dBox('dg-mydice', '주머니', `${sum}<p class="sh-sub">주사위 ${o.n}개 (${DICE.K.bag.min}~${DICE.K.bag.max}개) · 기본 ${mx.base} · 한 색 ${mx.one} · 두 색 ${mx.two}</p><div class="dg-bag">${list}</div>
-<h3>한 라운드에 그 색이 나올 확률</h3><div class="dg-twrap"><table class="dg-tbl dg-otbl"><tr><th>색</th><th>수</th><th>1개 이상</th><th>2개 이상</th><th>3개 이상</th></tr>${tbl}</table></div><p class="mute">두 색 주사위는 두 색 모두에 셉니다. 더하기 ${v.deck.add} · 빼기 ${v.deck.remove} · 물들이기 ${v.deck.dye || 0} · 다듬기 ${v.deck.refine}</p>`, '', '<button class="sh-x" data-d="mclose" aria-label="닫기">✕</button>'));
+// 주머니 (8판, 주인: 「주머니도 너무복잡해 간단하게해줘」): 제목 · 주사위 그림들(색이 있으면 색으로) · 한 줄. 그게 전부.
+//   특수 주사위(면이 평범한 1~6 이 아니거나 무거운 것)는 테가 다르고, 누르면 면 여섯을 작게 보인다
+const dPlainFaces = d => d.faces.every((f, k) => f.t === 'num' && f.v === k + 1);
+const dSpecDie = d => !dPlainFaces(d) || (d.kind !== 'plain' && d.kind !== 'duo');
+function dMyDiceModal(open) {
+  const v = DICE.view(DG.R), img = d => `<img src="${dDieImg(d, 32, d.kind === 'twin6' ? 6 : 5)}" alt="${dEsc(d.name)}">`;
+  const list = v.bag.map(d => dSpecDie(d) ? `<button class="dg-bagd spec${open === d.i ? ' on' : ''}" data-d="bagf" data-die="${d.i}" aria-pressed="${open === d.i}" aria-label="${dEsc(d.name)} · 면 보기" style="--b:${DKRIM[d.kind] || '#ffcf4a'}">${img(d)}</button>` : `<span class="dg-bagd" title="${dEsc(d.name)}">${img(d)}</span>`).join('');
+  const sel = open != null ? v.bag.find(d => d.i === open) : null;
+  const faces = sel ? `<div class="dg-bagf"><p>${dEsc(sel.name)}</p><div>${sel.faces.map(f => `<img src="${dFaceImg(f, 24, sel)}" alt="${dEsc(f.name)}">`).join('')}</div></div>` : '';
+  dShow(dBox('dg-mydice', '주머니', `<div class="dg-bag">${list}</div>${faces}<p class="sh-sub dg-bagl">라운드마다 ${v.odds.draw}개를 꺼내 굴립니다</p>`, '', '<button class="sh-x" data-d="mclose" aria-label="닫기">✕</button>'));
 }
 
 // ───────── 놓기 (끌어 놓기 · 합치기 · 먹이기 · 눌러 보기) ─────────
@@ -11628,10 +11703,9 @@ function dPreview(uid, to, cx, cy) {
   const el = $('dg-fprev'), other = dAt(to); dGodHot(to && to.god ? uid : null); if (to && to.god) { el.hidden = true; DG.prev = null; return; }
   if (other == null || other === uid || (to && to.feed)) { el.hidden = true; DG.prev = null; return; }
   const o = DICE.dropOptions(DG.R, uid, other); if (!o) { el.hidden = true; return; } const parts = [];
-  if (o.fuse) parts.push(o.fuse.gather ? `모으면 <b>${o.fuse.have}/${o.fuse.need}</b> · 같은 것 하나 더 모으면 → <b style="color:${DGR[o.fuse.grade].col}">${dEsc(dFuseName(o.fuse))}</b> ${o.fuse.star}성` : `<b>${o.fuse.have}/${o.fuse.need}</b> 합치면 → <b style="color:${DGR[o.fuse.grade].col}">${dEsc(dFuseName(o.fuse))}</b> ${o.fuse.star}성 · ${o.fuse.gradeName}`);
-  if (o.feed) parts.push(`먹이면 체력·공격 +${Math.round(o.feed.gain * 100)}% (먹은 수 ${o.feed.fed}/${dCap(o.feed.cap)})`);
-  if (!parts.length) parts.push('자리 바꾸기' + (o.fuseWhy && /같은 종류/.test(o.fuseWhy) ? '<br><small>' + dEsc(o.fuseWhy) + '</small>' : ''));
-  el.innerHTML = parts.join('<br>'); el.hidden = false; DG.prev = { uid, other, o }; const wrap = $('dg-fieldwrap').getBoundingClientRect(), w = el.offsetWidth;
+  // 끄는 동안의 작은 글: 놓으면 고를 수 있는 것만 (8판: 놓아도 저절로 합쳐지지 않는다)
+  if (o.fuse) parts.push(`합치기 <b>${o.fuse.have}/${o.fuse.need}</b>`); if (o.feed) parts.push('먹이기'); parts.push('자리 바꾸기');
+  el.innerHTML = parts.join(' · '); el.hidden = false; DG.prev = { uid, other, o }; const wrap = $('dg-fieldwrap').getBoundingClientRect(), w = el.offsetWidth;
   el.style.left = Math.max(4, Math.min(wrap.width - w - 4, cx - wrap.left - w / 2)) + 'px'; el.style.top = Math.max(4, cy - wrap.top - 86) + 'px';
 }
 function dDrop(uid, to) {
@@ -11639,25 +11713,24 @@ function dDrop(uid, to) {
   if (other != null && other !== uid && !to.feed) { const o = DICE.dropOptions(DG.R, uid, other); if (o && (o.fuse || o.feed)) return dDropAsk(uid, to, o); return dDo(uid, Object.assign({ act: 'swap' }, to)); }
   dDo(uid, to);
 }
-// 놓을 때 고른다: 모은다(같은 별 셋 가운데 둘째) · 합친다(셋째) / 먹인다(별 낮은 것을) / 자리를 바꾼다 / 그만둔다. 버리기는 「버린다」 칸에 끌어 놓을 때만
+// 놓을 때 고른다 (8판, 주인: 「자동으로 합치지마」): 권속을 다른 권속 위에 놓으면 기본은 자리 바꾸기. 합치거나 먹일 수 있는 짝이면 작은 고르기
+//   「합치기」(같은 별 셋 가운데 둘째면 모으기 2/3) / 「먹이기」 / 「자리 바꾸기」 · ✕ 로 닫으면 아무 일도 없다. 고른 것만 일어난다. 버리기는 「버리기」 칸에 끌어 놓을 때만
 function dDropAsk(uid, to, o) {
   const el = $('dg-drop'), a = DG.R.units[uid], b = DG.R.units[dAt(to)]; DG.dropPend = { uid, to }; const ts = $('toast'); if (ts) ts.hidden = true;
-  el.innerHTML = `<p class="dd-head"><img src="${dUnitImg(a, 28)}" alt=""><span>${dEsc(DICE.unitName(a))} ${a.star}성</span><i>→</i><img src="${dUnitImg(b, 28)}" alt=""><span>${dEsc(DICE.unitName(b))} ${b.star}성</span></p>`
-    + (o.fuse ? (o.fuse.gather ? `<button class="btn pri" data-d="dropdo" data-act="fuse">모으기 · ${o.fuse.have}/${o.fuse.need}<small>같은 것 하나 더 모으면 → ${dEsc(dFuseName(o.fuse))} ${o.fuse.star}성</small></button>`
-      : `<button class="btn pri" data-d="dropdo" data-act="fuse">합치기 · ${o.fuse.have}/${o.fuse.need}<small>→ ${dEsc(dFuseName(o.fuse))} ${o.fuse.star}성 · ${o.fuse.gradeName}${o.fuse.bonus ? ' · 덤 +' + Math.round(o.fuse.bonus * 100) + '%' : ''}</small></button>`) : `<p class="mute dd-why">합치기: ${dEsc(o.fuseWhy || '')}</p>`)
-    + (o.feed ? `<button class="btn" data-d="dropdo" data-act="feed">먹이기<small>${dEsc(DICE.unitName(b))}의 체력·공격 +${Math.round(o.feed.gain * 100)}% · 먹은 수 ${o.feed.fed}/${dCap(o.feed.cap)}</small></button>` : '')
-    + `<div class="dd-row"><button class="btn sm" data-d="dropdo" data-act="swap">자리 바꾸기</button><button class="btn sm" data-d="dropno">취소</button></div>`;
+  el.innerHTML = `<p class="dd-head"><img src="${dUnitImg(a, 28)}" alt=""><span>${dEsc(DICE.unitName(a))} ${a.star}성</span><i>→</i><img src="${dUnitImg(b, 28)}" alt=""><span>${dEsc(DICE.unitName(b))} ${b.star}성</span><button class="sh-x dd-x" data-d="dropno" aria-label="닫기">✕</button></p>`
+    + (o.fuse ? `<button class="btn" data-d="dropdo" data-act="fuse">합치기 ${o.fuse.gather ? o.fuse.have + '/' + o.fuse.need : '→ ' + dEsc(dFuseName(o.fuse)) + ' ' + o.fuse.star + '성'}</button>` : '')
+    + (o.feed ? `<button class="btn" data-d="dropdo" data-act="feed">먹이기 · 체력·공격 +${Math.round(o.feed.gain * 100)}%</button>` : '')
+    + `<button class="btn" data-d="dropdo" data-act="swap">자리 바꾸기</button>`;
   el.hidden = false; dTip();
 }
 // 신에게 바칠지 한 번 묻는다 (실수 방지). 처음 바칠 때는 제물 설명 세 줄을 함께 (한 번만, localStorage 'nestdice.offer')
-const DOK = 'nestdice.offer';
+const DOK = 'nestdice.offer8';
 const dOfferSeen = () => { try { return localStorage.getItem(DOK) === '1'; } catch (e) { return true; } };
 function dOfferAsk(uid) {
   const R = DG.R, a = R.units[uid], p = DICE.offerPreview(R, uid); if (!a || !p) return; const B = DICE.BEINGS[p.being], el = $('dg-drop'); DG.offerPend = uid; const ts = $('toast'); if (ts) ts.hidden = true;
-  const first = dOfferSeen() ? '' : `<div class="dd-note"><p>떠 있는 신에게 권속을 바치면 그 신의 눈금이 찹니다.</p><p>눈금이 차면 그 신이 주사위 하나를 <b style="color:${ASPC[p.asp]}">${dEsc(dAspN(p.asp))}</b>(으)로 영영 물들입니다 (주사위는 고릅니다).</p><p>오르는 양은 권속마다 다릅니다. 그 신의 색 권속은 아주 크게 채웁니다. 바친 권속은 사라집니다.</p></div>`;
+  const first = dOfferSeen() ? '' : '<p class="dd-note">바친 권속은 사라지고, 눈금이 차면 주사위 하나가 그 색으로 물듭니다.</p>';
   el.innerHTML = `<p class="dd-head"><img src="${dUnitImg(a, 28)}" alt=""><span>${dEsc(DICE.unitName(a))} ${a.star}성</span><i>→</i><img src="${dSig(p.being, 28)}" alt=""><span style="color:${ASPC[p.asp]}">${dEsc(B.name)}</span></p>${first}`
-    + `<button class="btn pri" data-d="offerdo">바치기 · 눈금 +${p.gain}<small>${p.have} → ${p.after}/${p.need}${p.full ? ' · 눈금이 찹니다: 주사위 하나가 ' + dEsc(dAspN(p.asp)) + '(으)로 물듭니다' : ''}</small></button>`
-    + `<div class="dd-row"><button class="btn sm" data-d="dropno">취소</button></div>`;
+    + `<button class="btn pri" data-d="offerdo">바치기 · 눈금 +${p.gain} → ${p.after}/${p.need}</button><button class="btn" data-d="dropno">그만두기</button>`;
   el.hidden = false; dTip();
 }
 function dOfferDo() {
@@ -11672,7 +11745,7 @@ function dDo(uid, to) {
   // 먹이기(fedTo)와 버리기(discard)를 가린다 (고친 버그: 먹인 뒤에도 「버렸다 · 진액」이 떴다. 먹이기의 결과에도 fed(먹은 수)가 있어서)
   if (r.fedTo != null) { DG.dbg.feeds++; dSay('dgulp'); const b = R.units[r.fedTo], pc = Math.round(r.gain * 100), nb = b ? DICE.unitName(b) : '', na = DG.feedName || '권속'; dToast(dJo(nb, '이', '가') + ' ' + dJo(na, '을', '를') + ' 먹었습니다 · 체력 +' + pc + '% 공격 +' + pc + '% · 먹은 수 ' + r.fed + '/' + dCap(r.cap)); DG.pop = { uid: r.fedTo, at: performance.now() }; }
   else if (r.discard) { dSay('coin'); dToast('버렸습니다. 진액 +' + r.gold); }
-  else if (r.gathered) { DG.dbg.gathers = (DG.dbg.gathers || 0) + 1; dSay('flip'); dToast(dJo(r.name, '이', '가') + ' 재료를 모았습니다 · ' + r.have + '/' + r.need + ' · 같은 것 하나 더 놓으면 합쳐집니다'); DG.pop = { uid: r.uid, at: performance.now() }; }
+  else if (r.gathered) { DG.dbg.gathers = (DG.dbg.gathers || 0) + 1; dSay('flip'); dToast(dJo(r.name, '이', '가') + ' 재료를 모았습니다 · ' + r.have + '/' + r.need); DG.pop = { uid: r.uid, at: performance.now() }; }
   else if (r.fused) { DG.dbg.merges++; DG.dbg.fusions++; dSay('combo'); const u = R.units[r.uid], first = !!(r.recipe && !dKnown(r.recipe)); DG.pop = { uid: r.uid, at: performance.now() }; dEvoQueue([dEvoEv({ u, before, from: 'fuse', mats: r.mats, how: r.how, first })]); }
   else dSay('thud');
   DG.sel = null; dSave(); dRender(); dTip(); dFlow();
@@ -11739,16 +11812,29 @@ const dMythItem = mi => dItem(`<span class="g-m">신화의 힘 「${dEsc(mi.name
 const dAuraItem = a => dItem(`<span class="up">4성의 힘 「${dEsc(a.name)}」</span>`, a.short);
 const dLoreItem = t => (DSTORY && t ? dItem('기록', t, { cls: 'lore', plain: true }) : '');
 function dTapUnit(uid) { const u = DICE.unitInfo(DG.R, uid); if (!u) return; dSay('click'); dUnitModal(u); }
+// 권속 정보 (8판, 주인: 「권속들 설명도 너무 복잡해」): 처음 보이는 것 = 그림 · 이름 · 별 · 한 줄 구실 · 체력 · 공격 · 기술 한 줄 · (색 진행이 있으면) 색 눈금 한 줄 · 단추.
+//   나머지(공격 속도 · 닿는 거리 · 특성 · 좋아하는 신 · 무리 · 먹은 수 · 합치기 · 먹이기 글)는 「자세히」를 눌러야 펴진다 (기본은 접힘). 도감의 권속 칸도 같은 꼴
+const DROLE = { tank: '앞에서 막습니다', melee: '앞에서 칩니다', ranged: '뒤에서 쏩니다', support: '뒤에서 돕습니다', dive: '적 뒤로 파고듭니다' };
+// 머리: 그림 · 별 · 한 줄 구실 / 두 숫자 / 기술 한 줄 / (색 눈금 한 줄)
+function dUMain(img, u, st, extra) {
+  const d = LAIR.KIN[u.kind], sk = d && LAIR.SK[d.skill];
+  return `<div class="dg-uhead">${img}<div><p class="dg-ustar s${u.star}">${dStar(u.star)}<span>${u.star}성</span>${u.grade && u.grade !== 'c' ? `<small> · <b style="color:${u.gradeCol}">${u.gradeName}</b></small>` : ''}</p><p class="dg-asp" style="color:${ASPC[u.asp] || ASPC.base}">${dEsc(DROLE[u.role] || u.roleName || '')}</p></div></div>`
+    + `<p class="dg-u2"><span>체력 <b>${dV(st.hp)}</b></span><span>공격 <b>${dV(st.atk)}</b></span></p>`
+    + (sk && sk.name ? `<p class="dg-u1"><b>${dEsc(sk.name)}</b> ${dEsc(dFirst(sk.more))}</p>` : '') + (extra || '');
+}
+// 색 눈금 한 줄 (가장 앞선 「한 일」): 「기아 ●●○」
+const dCondLine = u => (u.grow && u.cond ? `<p class="dg-u1 dg-ucond"><b style="color:${ASPC[u.cond.asp]}">${dEsc(u.cond.name)} ${'●'.repeat(u.cond.have)}${'○'.repeat(Math.max(0, u.cond.need - u.cond.have))}</b> <span class="mute">${dEsc(u.cond.what)}</span></p>` : '');
+const dUMoreBtn = () => '<button class="btn sm dg-umb" data-d="umore" aria-expanded="false">자세히</button>';
 function dUnitModal(u) {
-  const m = $('modal'), live = DG.R && (DG.R.phase === 'roll' || DG.R.phase === 'place') && DG.R.units[u.uid], s3 = Math.min(3, u.star), br = u.br === 'b' ? 'b' : undefined;
-  const items = dRareItems(u.kind, u.star, u.stain) + dTraitItem(u.kind, s3, br) + dSkillItems(u.kind, s3, br) + dDyeItem(u) + (u.mythInfo ? dMythItem(u.mythInfo) : '') + (u.aura ? dAuraItem(u.aura) : '') + (u.where && u.where.cell != null ? dGroupItem(u) : '');
-  // 모으는 중 (같은 별 셋 가운데 둘): 재료 그림 · 풀기
-  const mats = u.mats && u.mats.length ? `<div class="dg-gath"><p class="it-h">모으는 중 <b>${u.mats.length + 1}/${u.need}</b></p><p class="it-b">${u.mats.map(x => `<img src="${dIcon(x.kind, x.star, 24, x.br)}" alt="">${dEsc(x.name)} ${x.star}성`).join(' · ')}</p><p class="it-b mute">같은 종류 · 같은 별 권속 하나를 더 위에 놓으면 합쳐집니다.</p>${live ? `<button class="btn sm" data-d="ungather" data-uid="${u.uid}">모으기를 풀어 되돌린다</button>` : ''}</div>` : '';
+  const m = $('modal'), live = DG.R && (DG.R.phase === 'roll' || DG.R.phase === 'place') && DG.R.units[u.uid], s3 = Math.min(3, u.star), br = u.br === 'b' ? 'b' : undefined, st = dStat4(u);
+  // 모으는 중 (같은 별 셋 가운데 둘): 한 줄 · 풀기 (지금 상태라서 접지 않는다)
+  const mats = u.mats && u.mats.length ? `<div class="dg-gath"><p class="it-b">모으는 중 <b>${u.mats.length + 1}/${u.need}</b> ${u.mats.map(x => `<img src="${dIcon(x.kind, x.star, 24, x.br)}" alt="${dEsc(x.name)} ${x.star}성">`).join('')}</p>${live ? `<button class="btn sm" data-d="ungather" data-uid="${u.uid}">모으기 풀기</button>` : ''}</div>` : '';
+  const sk = (() => { const d = LAIR.KIN[u.kind], e = LAIR.evoOf(u.kind, br); return s3 >= 3 && e ? dItem(`3성 「${dEsc(e.t3.name)}」`, e.t3.short, { cls: 'up' }) : ''; })();
+  const more = dStatRows(st) + `<div class="dg-items">${dRareItems(u.kind, u.star, u.stain)}${dTraitItem(u.kind, s3, br)}${sk}${u.mythInfo ? dMythItem(u.mythInfo) : ''}${u.aura ? dAuraItem(u.aura) : ''}${dDyeItem(u)}${u.where && u.where.cell != null ? dGroupItem(u) : ''}`
+    + dItem('먹이기 · 합치기', ['먹은 수 ' + u.fed + (u.feedCap === Infinity ? '' : '/' + u.feedCap) + (u.fhp ? ' · 체력·공격 +' + Math.round(u.fhp * 100) + '%' : ''), u.star < 4 ? '같은 권속 셋을 합치면 별이 오릅니다' : null], { plain: true }) + '</div>';
   m.innerHTML = `<div class="sh-box dg-box dg-unit" role="dialog" aria-modal="true"><div class="sh-head"><h2 style="color:${u.gradeCol}">${dEsc(u.name)}</h2><button class="sh-x" data-d="mclose" aria-label="닫기">✕</button></div><div class="sh-body">
-<div class="dg-uhead"><img class="g-${u.grade}" src="${dUnitImg(u, 64)}" alt=""><div><p class="dg-ustar s${u.star}">${dStar(u.star)}<span>${u.star}성</span><small> · <b style="color:${u.gradeCol}">${u.gradeName}</b></small></p><p class="dg-asp" style="color:${ASPC[u.asp] || ASPC.base}">${dEsc(u.aspName)}${u.isBase ? ' · ' + dEsc(DFUSE.BASE[u.kind].short) : ''}${u.br === 'b' && LAIR.KEVOB[u.kind] ? ' · ' + LAIR.ASPN[LAIR.KEVOB[u.kind].pair] + '의 피' : ''}</p><p class="dg-fedn">먹은 수 ${u.fed}${u.feedCap === Infinity ? " (끝 없음)" : "/" + u.feedCap}${u.fhp ? ' · 체력·공격 +' + Math.round(u.fhp * 100) + '%' : ''}</p></div></div>
-${mats}${dStatRows(dStat4(u))}<div class="dg-items">${items}</div>${DSTORY && u.mythInfo ? `<p class="dg-lore">${dEsc(u.mythInfo.lore)}</p>` : ''}
-${u.star < 4 ? `<div class="dg-item mute dg-tnote"><p class="it-h">합치기 · 먹이기</p><p class="it-b">같은 종류 · 같은 별 셋을 모으면 합쳐집니다: 한 권속 위에 같은 권속 둘을 차례로 끌어 놓습니다 (별 +1, 4성까지).</p><p class="it-b">별이 낮은 권속을 먹이면 능력치가 영구히 오릅니다.</p></div>` : ''}</div>
-<div class="sh-btns">${live ? `<button class="btn sm warn" data-d="feed" data-uid="${u.uid}">버리기 · 진액 +${DICE.feedOf(DG.R.units[u.uid], DG.R)}</button>` : ''}<button class="btn sm" data-d="mclose">닫기</button></div></div>`;
+${dUMain(`<img class="g-${u.grade}" src="${dUnitImg(u, 64)}" alt="">`, u, st, dCondLine(u))}${mats}<div class="dg-umore" hidden>${more}</div></div>
+<div class="sh-btns">${dUMoreBtn()}${live ? `<button class="btn sm warn" data-d="feed" data-uid="${u.uid}">버리기 · 진액 +${DICE.feedOf(DG.R.units[u.uid], DG.R)}</button>` : ''}<button class="btn sm" data-d="mclose">닫기</button></div></div>`;
   m.hidden = false;
 }
 // 싸움 중에 누르면: 멈추지 않는 작은 창 (지금 체력이 따라 줄어든다)
@@ -12210,26 +12296,26 @@ function dFlow() {
   $('modal').hidden = true; dTip();
 }
 // 권속이 처음 물든 싸움 뒤 결과 창 다음에 한 번 (localStorage 'nestdice.dyed'): 한 일로 물든다 · 신에게 바칠 수 있다
-const DYK = 'nestdice.dyed';
+const DYK = 'nestdice.dyed8';
 const dDyeSeen = () => { try { return localStorage.getItem(DYK) === '1'; } catch (e) { return true; } };
 function dDyeNote() {
   DG.dyeNote = false; try { localStorage.setItem(DYK, '1'); } catch (e) { /* 저장 없이 */ }
-  dShow(dBox('dg-dyei', '권속이 물들었습니다', `<div class="dg-items">${dItem('한 일로 색이 듭니다', ['색마다 겪어야 하는 일이 다릅니다 (적을 쓰러뜨리기 · 크게 맞고 버티기 …)', '그 일을 한 권속 자신이 물듭니다. 되돌릴 수 없습니다', '권속 정보 창에 가장 앞선 일의 눈금이 보입니다'], { plain: true })}${dItem('다른 색의 일까지 채우면', ['물든 권속이 다른 색의 일을 채우면 혼종이 됩니다 (3성 이상이고 레시피가 맞으면 신화)'], { plain: true })}${dItem('신에게 바칠 수 있습니다', ['위대한 옛것이 떠 있으면, 놓을 때 권속을 위 띠의 표식으로 끌어 놓으세요', '눈금이 차면 그 신이 주사위 하나를 제 색으로 물들입니다. 그 신의 색 권속은 아주 크게 채웁니다'], { plain: true })}</div>`, `<button id="dg-dyeok" class="btn pri" data-d="flow">확인</button>`, '<button class="sh-x" data-d="flow" aria-label="닫기">✕</button>'));
+  dShow(dBox('dg-dyei', '권속이 물들었습니다', '<p>싸움에서 한 일로 권속이 그 색 권속이 되었습니다.</p><p>옛것이 떠 있으면 권속을 바쳐 주사위도 물들일 수 있습니다.</p>', `<button id="dg-dyeok" class="btn pri" data-d="flow">확인</button>`, '<button class="sh-x" data-d="flow" aria-label="닫기">✕</button>'));
 }
 // 신이 처음 싸움에 끼어든 뒤 결과 창 다음에 한 번 (localStorage 'nestdice.god'): 편은 바친 것이 정한다 · 누구를 치는지는 운
-const DGK = 'nestdice.god';
+const DGK = 'nestdice.god8';
 const dGodSeen = () => { try { return localStorage.getItem(DGK) === '1'; } catch (e) { return true; } };
 function dGodNote() {
   DG.godNote = false; try { localStorage.setItem(DGK, '1'); } catch (e) { /* 저장 없이 */ }
   const K = DICE.GOD.K;
-  dShow(dBox('dg-godi', '신이 싸움에 끼어들었습니다', `<div class="dg-items">${dItem('한 싸움에 한 번', ['떠 있는 신은 싸움마다 한 번, 바닥의 그림자와 하늘의 눈으로 예고한 뒤 내려칩니다', '누구에게 떨어지는지는 운입니다'], { plain: true })}${dItem('누구 편을 드는지는 바친 것이 정합니다', ['이번에 떠 있는 동안 눈금 ' + K.ally + ' 이상 바치면 내 편: 적을 칩니다', '바치지 않으면 편을 가리지 않고 전장에서 가장 센 것(대개 내 권속)을 노립니다', '하나도 바치지 않은 채 싸움이 ' + K.ignore + '번 지나면 노하여 내 권속을 칩니다'], { plain: true })}${dItem('지금 마음은 표식의 테 색', ['청록 = 내 편 · 회색 = 중립 · 붉음 = 노함 (위 띠의 표식)'], { plain: true })}</div>`, `<button id="dg-godok" class="btn pri" data-d="flow">확인</button>`, '<button class="sh-x" data-d="flow" aria-label="닫기">✕</button>'));
+  dShow(dBox('dg-godi', '신이 싸움에 끼어들었습니다', `<p>떠 있는 신은 싸움마다 한 번 내려칩니다.</p><p>눈금 ${K.ally} 이상 바치면 내 편, 안 바치면 내 권속도 칩니다.</p>`, `<button id="dg-godok" class="btn pri" data-d="flow">확인</button>`, '<button class="sh-x" data-d="flow" aria-label="닫기">✕</button>'));
 }
 // 처음 희귀 권속이 오면 한 번 (localStorage 'nestdice.rare')
 const DRK = 'nestdice.rare';
 const dRareSeen = () => { try { return localStorage.getItem(DRK) === '1'; } catch (e) { return true; } };
 function dRareIntro() {
   const R = DG.R, u = Object.keys(R.units).map(id => R.units[id]).find(x => DFUSE.isRare(x)); try { localStorage.setItem(DRK, '1'); } catch (e) { /* 저장 없이 */ }
-  dShow(dBox('dg-rarei', '희귀 권속', `<p class="dg-uhead"><img class="g-x" src="${dUnitImg(u, 64)}" alt=""><span><b class="g-x">${dEsc(DICE.unitName(u))}</b><br>${dEsc(DFUSE.RARE[u.kind].ab(u.star))}</span></p>${DSTORY ? `<p class="dg-lorep">${dEsc(DFUSE.RARE[u.kind].lore)}</p>` : ''}<ul class="dg-hnote"><li>희귀는 셋뿐이고, 1성부터 4성까지 모습과 이름이 다릅니다.</li><li>같은 희귀 셋을 모으면 다음 별이 됩니다. 싸움에서 한 일로 한 번 물들면 그 성향으로 셉니다.</li><li>성향이 없는 희귀는 무리 효과에서 아무 성향 하나로 칩니다.</li></ul>`, `<button id="dg-rareok" class="btn pri" data-d="flow">확인</button>`));
+  dShow(dBox('dg-rarei', '희귀 권속', `<p class="dg-uhead"><img class="g-x" src="${dUnitImg(u, 64)}" alt=""><span><b class="g-x">${dEsc(DICE.unitName(u))}</b><br>${dEsc(DFUSE.RARE[u.kind].ab(u.star))}</span></p><p>같은 희귀 셋을 합치면 다음 별이 됩니다.</p>`, `<button id="dg-rareok" class="btn pri" data-d="flow">확인</button>`));
 }
 const DBOSS = {
   3: '「양 우리 문은 내가 지키네. 등불이 꺼지기 전까지는, 그 안의 것이 무엇이든 들이지 않을 걸세.」',
@@ -12261,12 +12347,12 @@ function dResultModal() {
   const DHW = { dye: '물들었습니다', stain: '물들었습니다', hybrid: '물들어 혼종이 되었습니다', myth: '물들어 신화가 되었습니다' };
   const dyed = (L0.dyed || []).map(x => { const c = ASPC[x.asp], an = dAspN(x.asp), f = x.from, t = x.to;
     return dItem(`<span class="fd-pic"><img src="${dIcon(f.kind, f.star, 40, f.br, f.stain)}" alt=""><i>→</i><img src="${dIcon(t.kind, t.star, 40, t.br, t.stain)}" alt=""></span><span class="fd-t"><b>${dEsc(f.name)}</b>${dEsc(dJo(f.name, '이', '가').slice(f.name.length))} <b style="color:${c}">${dEsc(an)}</b>${dEsc(dJo(an, '으로', '로').slice(an.length))} ${DHW[x.how] || '물들었습니다'}</span>`,
-      [(FU_BASE(f.kind) ? '기본 ' : '') + f.name + ' ' + f.star + '성 → ' + (x.how === 'myth' ? '신화 ' : x.how === 'hybrid' ? '혼종 ' : an + ' ') + t.name + ' ' + t.star + '성', '한 일: ' + DICE.COND[x.asp].name].concat(x.how === 'myth' ? ['신화는 판에서 아주 드뭅니다'] : x.how === 'hybrid' ? ['혼종은 드뭅니다 · 두 성향의 피를 함께 씁니다'] : []), { cls: 'fr-dye up' + (x.how === 'myth' ? ' fr-myth' : x.how === 'hybrid' ? ' fr-hyb' : ''), html: false }); });
+      [(FU_BASE(f.kind) ? '기본 ' : '') + f.name + ' ' + f.star + '성 → ' + (x.how === 'myth' ? '신화 ' : x.how === 'hybrid' ? '혼종 ' : an + ' ') + t.name + ' ' + t.star + '성'], { cls: 'fr-dye up' + (x.how === 'myth' ? ' fr-myth' : x.how === 'hybrid' ? ' fr-hyb' : ''), html: false }); });
   // 7판: 신의 개입 한 줄 (그 신의 색 · 표식). 내 편을 들었으면 청록 테, 내 권속을 쳤으면 붉은 테
   const gd = L0.god ? [dItem(`<img class="fg-sig" src="${dSig(L0.god.being, 32)}" alt=""><span>신의 개입</span>`, L0.god.line, { cls: 'fr-god ' + (L0.god.good > 0 ? 'good' : L0.god.good < 0 ? 'bad' : 'none'), plain: true })] : [];
-  const items = gd.concat(dyed).concat([dItem(`생명 <b>${L0.lifeBefore}</b> → <b class="${L0.life < L0.lifeBefore ? 'bad' : ''}">${L0.life}</b>`, life.filter(Boolean), { cls: 'fr-life', html: true }),
+  const items = gd.concat(dyed).concat([dItem(`생명 <b>${L0.lifeBefore}</b> → <b class="${L0.life < L0.lifeBefore ? 'bad' : ''}">${L0.life}</b>`, [life.filter(Boolean).join(' · ')], { cls: 'fr-life', html: true }),
     dItem(`진액 <b class="nv">+${L0.gold}</b>`, gold || '받은 진액이 없습니다', { cls: 'fr-gold' })]);
-  if (L0.reward) { const pick = ['add', 'remove', 'refine'].includes(L0.reward.type); const more = L0.reward.lines.filter(l => !(ri && ri.name && l.indexOf(ri.name) >= 0) && !(pick && ri && l.indexOf(ri.title) === 0)); items.push(dItem(`보상 · ${dEsc(ri ? ri.title : '받은 것')}${ri && ri.name ? ' 「' + dEsc(ri.name) + '」' : ''}`, [ri && ri.short ? ri.short : null, more.length ? '함께 받음: ' + more.join(', ') : null, pick ? '「다음」을 누르면 고르는 창이 열립니다' : null], { cls: 'fr-rw up', plain: true })); }
+  if (L0.reward) { const pick = ['add', 'remove', 'refine'].includes(L0.reward.type); const more = L0.reward.lines.filter(l => !(ri && ri.name && l.indexOf(ri.name) >= 0) && !(pick && ri && l.indexOf(ri.title) === 0)); items.push(dItem(`보상 · ${dEsc(ri ? ri.title : '받은 것')}${ri && ri.name ? ' 「' + dEsc(ri.name) + '」' : ''}`, [ri && ri.short ? ri.short : more.length ? more.join(', ') : null], { cls: 'fr-rw up', plain: true })); }
   if (L0.kinLost) items.push(dItem(`쓰러진 권속 <b>${L0.kinLost}</b>`, '다음 라운드에 다시 섭니다', { cls: 'fr-kin' }));
   if (L0.starve) items.push(dItem('굶주린 권속', L0.starve.name + ' · 이번 싸움 체력·공격 −' + Math.round(L0.starve.v * 100) + '%'));
   if (L0.lick) items.push(dItem('주사위 핥는 혀', '다음 라운드 다시 굴리기 +' + L0.lick.reroll + (L0.lick.draw ? ' · 꺼내는 주사위 +' + L0.lick.draw : '')));
@@ -12280,20 +12366,20 @@ function dResultModal() {
 
 // ───────── 상점 · 제단 · 사건 ─────────
 function dItemHtml(c, i) {
-  const body = c.type === 'die' ? `<span class="dg-cface"><img src="${dDieImg(c.die, 40, c.die.kind === 'twin6' ? 6 : 5)}" alt=""></span><span class="dg-codds">${dOddsLine(c.odds)}</span>` : c.type === 'rare' ? `<span class="dg-cface rare"><img src="${dIcon(c.kind, 1, 40)}" alt=""></span>` : c.type === 'refine' ? `<span class="dg-cface"><img src="${dNumImg(6, 40, null)}" alt=""></span>` : '';
+  const body = c.type === 'die' ? `<span class="dg-cface"><img src="${dDieImg(c.die, 40, c.die.kind === 'twin6' ? 6 : 5)}" alt=""></span>` : c.type === 'rare' ? `<span class="dg-cface rare"><img src="${dIcon(c.kind, 1, 40)}" alt=""></span>` : c.type === 'refine' ? `<span class="dg-cface"><img src="${dNumImg(6, 40, null)}" alt=""></span>` : '';
   // 위에서 아래로: 종류 / 이름 / (그림) / 효과(효과마다 한 줄, 숫자 강조) / 기록(작게) / 값
-  return `<button class="dg-card t-${c.type}${c.unique ? ' uniq' : ''}${c.sold ? ' off' : ''}" data-d="sbuy" data-i="${i}" ${c.can ? '' : 'disabled'}><span class="dg-ck">${dEsc(c.title)}</span><b>${dEsc(c.name)}</b>${body}<span class="dg-cs">${dSplit(c.short).map(t => `<span>${dNumHi(t)}</span>`).join('')}</span>${DSTORY && c.type === 'relic' && c.lore ? `<span class="dg-lore">${dEsc(c.lore)}</span>` : ''}<span class="dg-price">진액 ${c.price}${c.sold ? ' · 구입함' : ''}</span></button>`;
+  return `<button class="dg-card t-${c.type}${c.unique ? ' uniq' : ''}${c.sold ? ' off' : ''}" data-d="sbuy" data-i="${i}" ${c.can ? '' : 'disabled'}><span class="dg-ck">${dEsc(c.title)}</span><b>${dEsc(c.name)}</b>${body}<span class="dg-cs"><span>${dNumHi(c.short)}</span></span>${DSTORY && c.type === 'relic' && c.lore ? `<span class="dg-lore">${dEsc(c.lore)}</span>` : ''}<span class="dg-price">진액 ${c.price}${c.sold ? ' · 구입함' : ''}</span></button>`;
 }
 function dShopModal() {
   const R = DG.R, S = DICE.view(R).shop; if (!S) return; const B = S.being ? DICE.BEINGS[S.being] : null;
-  const head = `<p class="dg-shead">${B ? `<img src="${dSig(B.id, 32)}" alt="">` : `<img src="${dSym('sack', 32)}" alt="">`}<span>${B ? dEsc(B.line) : '등에 진 자루에서 썩은 냄새가 나는 행상입니다. 값은 비싸고 물건은 적습니다.'}</span></p>`;
+  const head = '';
   // 상점은 늘 열려 있다 (갈래가 아니다): 라운드마다 새 진열 셋. 「진열 바꾸기」는 진액 (라운드 안에서 오른다). 닫으면 하던 걸음으로 돌아간다
-  dShow(dBox('dg-shop', B ? dEsc(B.name) + '의 진열대' : '떠도는 행상', `${head}<div class="dg-cards n${S.items.length}">${S.items.map(dItemHtml).join('')}</div><p class="sh-sub">가진 진액 <b>${R.gold}</b> · 진열은 라운드마다 바뀝니다</p>`,
+  dShow(dBox('dg-shop', B ? dEsc(B.name) + '의 진열대' : '떠도는 행상', `${head}<div class="dg-cards n${S.items.length}">${S.items.map(dItemHtml).join('')}</div><p class="sh-sub">가진 진액 <b>${R.gold}</b></p>`,
     `<button class="btn sm" data-d="sroll" ${S.canRoll ? '' : 'disabled'}>진열 바꾸기<small>진액 ${S.roll}</small></button><button id="dg-leave" class="btn pri" data-d="leave">닫기</button>`, '<button class="sh-x" data-d="leave" aria-label="닫기">✕</button>'));
 }
 function dAltarModal() {
   const R = DG.R, v = DICE.view(R), A = v.altar; if (!A) return;
-  const head = v.myth ? `<p class="dg-shead"><img src="${dSig(v.myth.id, 32)}" alt=""><span><b>${dEsc(v.myth.name)}</b><br>퀘스트 · ${dEsc(v.myth.quest.goal)} <b>${v.myth.quest.have}/${v.myth.quest.need}</b></span></p>` : `<p class="dg-shead"><img src="${dSym('altar', 32)}" alt=""><span>길가에 누군가 세워 둔 제단. 피가 마른 자리마다 이름 붙일 수 없는 무늬가 새겨져 있습니다.</span></p>`;
+  const head = v.myth ? `<p class="dg-shead"><img src="${dSig(v.myth.id, 32)}" alt=""><span><b>${dEsc(v.myth.name)}</b><br>퀘스트 · ${dEsc(v.myth.quest.goal)} <b>${v.myth.quest.have}/${v.myth.quest.need}</b></span></p>` : '';
   dShow(dBox('dg-altar', '피 묻은 제단', `${head}<div class="dg-cards n2">${A.opts.map((o, i) => `<button class="dg-card t-${o.type}" data-d="altar" data-i="${i}" ${o.can ? '' : 'disabled'}><b>${dEsc(o.name)}</b><span class="dg-cs">${dSplit(o.short).map(t => `<span>${dNumHi(t)}</span>`).join('')}</span>${o.type === 'offer' && !o.can ? '<span class="bad">진액 부족</span>' : ''}</button>`).join('')}</div><p class="sh-sub">가진 진액 <b>${R.gold}</b> · 생명 <b>${R.life}/${R.lifeMax}</b></p>`));
 }
 function dEventModal() {
@@ -12305,38 +12391,30 @@ function dOutModal() {
   const t = E ? dEsc(DICE.eventFace(R, E).name) : '피 묻은 제단', what = E ? `<p class="sh-sub">「${dEsc(E.opts[O.pick].label)}」${O.coin == null ? '' : O.coin ? ' · 운이 따랐습니다' : ' · 운이 따르지 않았습니다'}</p>` : '';
   dShow(dBox('dg-out', t, `${what}<ul class="dg-outl">${O.lines.map(l => `<li>${dEsc(l)}</li>`).join('')}</ul>`, `<button id="dg-outnext" class="btn pri" data-d="outnext">다음</button>`));
 }
-// 덱 짜기 고르기 (2026-11-26 사용자: 「주사위로 덱 짜는 걸 더 잘 설명해 줘」): 보상 · 사건 · 제단(pend) 이나 상점(shop)의
-//   더하기 = 다섯 색 가운데 하나 (색마다 전후 한 줄: 「기아 주사위 3 → 4 · 한 라운드에 기아가 2개 이상 나올 확률 41% → 55%」, 누르면 곧바로)
-//   빼기 = 주머니의 주사위 하나 (누르면 전후 한 줄 → 「이 주사위를 뺀다」 · 보상이면 「빼지 않는다」 진액 +3)
-//   다듬기 = 평범한 주사위 하나를 특수 주사위로 · 그림 면(축복) = 주사위 하나의 면 하나에 권속 그림
-//   처음 이 창이 열리면 덱 짜기 말풍선 세 줄 (localStorage 'nestdice.deck', 한 번만).
-const DDK = 'nestdice.deck';
-const dDeckSeen = () => { try { return localStorage.getItem(DDK) === '1'; } catch (e) { return false; } };
-const dPct = x => Math.round(x * 100) + '%';
-// 「기아 주사위 3 → 4 · 한 라운드에 기아가 2개 이상 나올 확률 41% → 55%」
-const dOddsLine = o => (o ? `<b style="color:${ASPC[o.col] || ASPC.base}">${dEsc(dAspN(o.col))}</b> 주사위 ${o.n[0]} → <b>${o.n[1]}</b> · 한 라운드에 ${dEsc(dJo(dAspN(o.col), '이', '가'))} 2개 이상 나올 확률 ${dPct(o.p2[0])} → <b>${dPct(o.p2[1])}</b>` : '');
-// 물들이기 전후 (6판): 「기아 주사위 0 → 1 · 한 라운드에 기아가 나올 확률 0% → 62%」
-const dDyeLine = o => (o ? `<b style="color:${ASPC[o.asp]}">${dEsc(dAspN(o.asp))}</b> 주사위 ${o.n[0]} → <b>${o.n[1]}</b> · 한 라운드에 ${dEsc(dJo(dAspN(o.asp), '이', '가'))} 나올 확률 ${dPct(o.p1[0])} → <b>${dPct(o.p1[1])}</b>${o.two ? ' · <b>두 색 주사위</b>가 됩니다 (더는 못 칠합니다)' : ''}` : '');
+// 덱 짜기 고르기: 보상 · 사건 · 제단(pend) 이나 상점(shop)의 더하기(기본 주사위 하나) · 빼기(하나 고름) · 다듬기 · 그림 면 · 물들이기(신의 눈금이 찼을 때).
+//   8판: 한 줄 + 고르기만. 확률 전후 · 덱 설명 상자는 없다 (주인: 「확률 이런거 안보여줘도돼」)
 const DPK = { add: '주사위 더하기', remove: '주사위 빼기', refine: '다듬기', face: '그림 면', dye: '주사위 물들이기' };
 const DPW = { reward: '보상', bless: '축복', event: '사건', altar: '제단', shop: '상점', god: '신' };
 function dPendModal(mode, i) {
   const R = DG.R; if (mode === 'pend') { const g = DICE.pendTidy(R); if (g) dToast('고를 수 없는 것은 진액 +' + g + '(으)로 바꾸었습니다.'); if (!R.pend.length) { dSave(); return dFlow(); } }
   const c = mode === 'shop' ? R.shop.items[i] : null, p = mode === 'pend' ? R.pend[0] : { k: c.type, to: c.to, why: 'shop' }, k = p.k || 'face', v = DICE.view(R), sel = DG.pickSel != null && R.dice[DG.pickSel] && !R.dice[DG.pickSel].drop ? DG.pickSel : null;
-  const deck = dDeckSeen() || k === 'dye' || k === 'face' ? '' : `<div class="dg-deck"><p class="dk-h">주머니</p><ol><li>라운드마다 주머니에서 ${v.odds.draw}개를 꺼냅니다. 숫자 = 족보 = 별.</li><li>주머니가 작으면 같은 주사위가 자주 나옵니다. 물든 주사위가 있으면 그 색 권속이 자주 옵니다.</li><li>색은 신에게 권속을 바쳐야만 듭니다. 주사위를 더하고 빼는 일은 드뭅니다.</li></ol><button class="btn sm pri" data-d="deckok" data-m="${mode}" data-i="${i || 0}">알겠습니다</button></div>`;
+  // 8판: 덱 설명 상자 · 확률 전후는 없다 (주인: 「확률 이런거 안보여줘도돼」). 한 화면에 설명 한 줄까지
+  const deck = '';
   const title = (k === 'dye' ? dEsc(DICE.BEINGS[p.being].name) : DPW[p.why || 'reward']) + ': ' + (k === 'refine' ? '다듬기 「' + DICE.DIEKIND[p.to].name + '」' : DPK[k]) + (mode === 'pend' && R.pend.length > 1 ? ' <small>' + R.pend.length + '개 남음</small>' : '');
   const bagRows = ok => v.bag.map(d => { const no = !ok(d), on = sel === d.i; return `<button class="dg-pick${on ? ' sel' : ''}" data-d="psel" data-m="${mode}" data-i="${i || 0}" data-die="${d.i}" ${no ? 'disabled' : ''} aria-pressed="${on}" aria-label="${dEsc(d.name)}${no ? ' (고를 수 없습니다)' : ''}"><img src="${dDieImg(d, 28, d.kind === 'twin6' ? 6 : 5)}" alt=""><small>${dEsc(d.col2 ? '두 색' : dAspN(d.col))}${d.kind !== 'plain' && d.kind !== 'duo' ? '<br>' + dEsc(d.kindName) : ''}</small></button>`; }).join('');
   let body = '', btns = '';
   if (k === 'add') {
-    body = `<p class="sh-sub">기본 주사위 하나가 주머니에 듭니다 (주머니 ${v.bag.length} → ${v.bag.length + 1}). 색은 고르지 않습니다.</p><div class="dg-addc"><button class="dg-addb" data-d="padd" style="--b:${ASPC.base}"><img src="${dNumImg(5, 32, null)}" alt=""><span class="ad-t">${dOddsLine(DICE.addOdds(R, null))}</span></button></div>`;
+    body = `<p class="sh-sub">기본 주사위 하나가 주머니에 듭니다.</p><div class="dg-addc"><button class="dg-addb" data-d="padd" style="--b:${ASPC.base}"><img src="${dNumImg(5, 32, null)}" alt=""><span class="ad-t">주머니 ${v.bag.length} → <b>${v.bag.length + 1}</b></span></button></div>`;
   } else if (k === 'dye') {
-    const o = sel != null ? DICE.dyeOdds(R, p.asp, sel) : null, B = DICE.BEINGS[p.being];
-    body = `<p class="sh-sub"><img class="rw-face" src="${dSig(p.being, 24)}" alt=""> 눈금이 찼습니다. <b style="color:${ASPC[p.asp]}">${dEsc(B.name)}</b>${dEsc(dJo(B.name, '이', '가').slice(B.name.length))} 주사위 하나를 <b style="color:${ASPC[p.asp]}">${dEsc(dAspN(p.asp))}</b>(으)로 영영 물들입니다. 물들일 주사위를 고르세요.</p><div class="dg-swap">${o ? `<p class="sw-l up">${dDyeLine(o)}</p>` : '<p class="sw-l mute">주사위를 누르면 전후가 여기 보입니다. 이미 물든 주사위는 두 색 주사위가 됩니다.</p>'}</div><div class="dg-picks">${bagRows(dd => DICE.canDye(R.dice[dd.i], p.asp))}</div><p class="mute">두 색 주사위 · 같은 색 주사위 · 옛것이 준 주사위는 고를 수 없습니다.</p>`;
+    // 물들이기: 한 줄 + 고른 주사위의 전후 그림 (확률 없음)
+    const d0 = sel != null ? v.bag.find(x => x.i === sel) : null, after = d0 ? (d0.col ? { col: d0.col, col2: p.asp } : { col: p.asp }) : null;
+    body = `<p class="sh-sub"><img class="rw-face" src="${dSig(p.being, 24)}" alt=""> <b style="color:${ASPC[p.asp]}">${dEsc(dAspN(p.asp))}</b>(으)로 물들일 주사위를 고르세요.</p><div class="dg-swap dg-dyeab">${d0 ? `<img src="${dDieImg(d0, 32)}" alt="${dEsc(d0.name)}"><i>→</i><img src="${dNumImg(5, 32, after.col, after.col2)}" alt="${dEsc(dAspN(p.asp))}">` : ''}</div><div class="dg-picks">${bagRows(dd => DICE.canDye(R.dice[dd.i], p.asp))}</div>`;
     btns = `<button id="dg-pickok" class="btn pri" data-d="pok" data-m="${mode}" data-i="${i || 0}" ${sel != null ? '' : 'disabled'}>이 주사위 물들이기</button>`;
   } else if (k === 'remove' || k === 'refine') {
     const ro = sel != null ? DICE.removeOdds(R, sel) : null, d = sel != null ? v.bag.find(x => x.i === sel) : null;
-    const line = k === 'remove' ? (ro ? ro.cols.map(x => `<p class="sw-l down">${dOddsLine(Object.assign({}, x))}</p>`).join('') + (ro.cost ? `<p class="sw-l bad">물든 주사위 · 진액 ${ro.cost} 더 (가진 진액 ${R.gold})</p>` : '') : `<p class="sw-l mute">뺄 주사위를 누르면 전후가 여기 보입니다. 물든 주사위는 진액 ${DICE.K.price.dyedOut}을 더 냅니다.</p>`)
+    const line = k === 'remove' ? (ro ? `<p class="sw-l down">주머니 ${v.bag.length} → <b>${v.bag.length - 1}</b></p>` + (ro.cost ? `<p class="sw-l bad">물든 주사위 · 진액 ${ro.cost} 더</p>` : '') : '<p class="sw-l mute">뺄 주사위를 고르세요.</p>')
       : (d ? `<p class="sw-l up">${dEsc(d.name)} → 「${dEsc(DICE.DIEKIND[p.to].name)}」 · ${dEsc(DICE.DIEKIND[p.to].short)}</p>` : `<p class="sw-l mute">「${dEsc(DICE.DIEKIND[p.to].name)}」: ${dEsc(DICE.DIEKIND[p.to].short)}. 평범한 주사위 하나를 고르세요.</p>`);
-    body = `<div class="dg-swap">${line}</div><div class="dg-picks">${bagRows(dd => !dd.temp && (k === 'remove' ? v.bag.length > DICE.K.bag.min : dd.kind === 'plain'))}</div>${k === 'remove' ? `<p class="mute">주머니는 ${DICE.K.bag.min}개 아래로 줄지 않습니다. 뺀 주사위는 이번 라운드가 끝나면 주머니에서 사라집니다.</p>` : ''}`;
+    body = `<div class="dg-swap">${line}</div><div class="dg-picks">${bagRows(dd => !dd.temp && (k === 'remove' ? v.bag.length > DICE.K.bag.min : dd.kind === 'plain'))}</div>`;
     btns = `${k === 'remove' && mode === 'pend' ? '<button class="btn sm" data-d="pskip">빼지 않기<small>진액 +3</small></button>' : ''}<button id="dg-pickok" class="btn pri" data-d="pok" data-m="${mode}" data-i="${i || 0}" ${sel != null ? '' : 'disabled'}>${k === 'remove' ? '이 주사위 빼기' : '이 주사위 다듬기'}</button>`;
   } else {
     const to = DICE.faceInfo(p.to), fs = DG.faceSel && R.dice[DG.faceSel.die] ? DG.faceSel : null;
@@ -12352,15 +12430,14 @@ const dEffLi = e => `<li class="${e.good ? 'eff-g' : 'eff-b'}"><b>${dEsc(e.name)
 const dQuestHtml = (q, left) => `<div class="dg-quest"><p class="q-goal">${dEsc(q.goal)}</p><p class="q-prog"><b>${q.have}/${q.need}</b>${left != null ? `<span> · ${left}라운드 남음</span>` : ''}</p>${q.note ? `<p class="q-note">${dEsc(q.note)}</p>` : ''}</div>`;
 // 신의 마음 (표식의 테 색 · 표식 창의 한 줄)
 const DMOODN = { ally: '내 편', none: '중립', foe: '노함' };
-function dMoodItem(m) {
-  const t = m.mood === 'ally' ? '싸움마다 한 번 끼어들어 적을 칩니다.' : m.mood === 'foe' ? '바치지 않은 싸움이 쌓였습니다. 싸움마다 한 번 내 권속을 칩니다. 바치면 풀립니다.' : '편을 가리지 않고 가장 센 것을 노립니다. 이번에 눈금 ' + m.moodAlly + ' 이상 바치면 내 편이 됩니다 (지금 ' + Math.min(m.gave, m.moodAlly) + '/' + m.moodAlly + ').';
-  return dItem(`<span class="md-dot md-${m.mood || 'none'}"></span>신의 마음 · <b>${DMOODN[m.mood] || '중립'}</b>`, t, { plain: true, cls: 'mm-mood' });
-}
+// 옛것 표식 창 (8판, 주인: 「우리가 추구할건 컨셉이지 복잡하면 안될거같아」): 처음 보이는 것 = 신 그림 · 이름 · 눈금 · 한 줄 · 지금 마음 한 줄.
+//   퀘스트 · 걸려 있는 효과는 「자세히」 뒤로. 눈금이 길어지는 규칙 · 다음에 뜰 신 같은 수치 글은 뺐다 (안내서에 있다)
 function dMythModal() {
-  const v = DICE.view(DG.R), m = v.myth; if (!m) return;
-  dShow(dBox('dg-mythm', `<img class="mm-sig" src="${dSig(m.id, 32)}" alt="">${dEsc(m.name)}`, `<p class="sh-sub">신화 단계 ${m.stage} · 라운드 ${m.from}~${m.until} · 남은 ${m.left}라운드</p>${DSTORY ? `<p class="dg-lore">${dEsc(m.line)}</p>` : ''}
-<h3>퀘스트</h3>${dQuestHtml(m.quest, m.left)}<h3>걸려 있는 것</h3><ul class="mm-effs">${m.effs.map(dEffLi).join('')}</ul><p class="mute">기한 안에 이루면 축복을 받고, 이루지 못하면 그 존재의 결대로 무엇인가를 치릅니다.</p>
-<h3>제물</h3><div class="dg-items">${dMoodItem(m)}${dItem(`눈금 <b>${m.god.have}/${m.god.need}</b>`, ['놓을 때 권속을 위 띠의 이 표식으로 끌어 놓으면 바칩니다 (바친 권속은 사라집니다)', '눈금이 차면 이 신이 주사위 하나를 ' + dAspN(m.asp) + '(으)로 영영 물들입니다 (주사위는 고릅니다)', '주사위가 물들 때마다 다음 눈금이 길어집니다 (모든 신이 함께) · 떠나도 채운 눈금은 남습니다'], { plain: true })}${dItem('떠 있는 동안', [m.twice + ' (권속이 그 색으로 물드는 일)'], { plain: true })}${v.next ? dItem('다음에 뜰 신', [v.next.name + ' (' + dAspN(v.next.asp) + ')' + (v.next.round ? ' · 라운드 ' + v.next.round + '쯤' : '')], { plain: true }) : ''}</div>`, '<button class="btn sm" data-d="mclose">닫기</button>', '<button class="sh-x" data-d="mclose" aria-label="닫기">✕</button>'));
+  const v = DICE.view(DG.R), m = v.myth; if (!m) return; const c = ASPC[m.asp], w = Math.round(Math.min(1, m.god.have / Math.max(1, m.god.need)) * 100);
+  const moodT = m.mood === 'ally' ? '내 편 · 싸움마다 적을 칩니다' : m.mood === 'foe' ? '노함 · 내 권속을 칩니다. 바치면 풀립니다' : '중립 · 가장 센 것을 노립니다';
+  dShow(dBox('dg-mythm', `<img class="mm-sig" src="${dSig(m.id, 32)}" alt="">${dEsc(m.name)}`, `<div class="mm-top"><img class="mm-big" src="${dSig(m.id, 64)}" alt="" style="--c:${c}"><div><p class="mm-gauge"><b style="color:${c}">눈금 ${m.god.have}/${m.god.need}</b><i><u style="width:${w}%;background:${c}"></u></i></p><p class="mm-l">권속을 끌어다 바치면 주사위가 <b style="color:${c}">${dEsc(dAspN(m.asp))}</b>(으)로 물듭니다.</p><p class="mm-l"><span class="md-dot md-${m.mood || 'none'}"></span>${dEsc(moodT)}</p></div></div>`
+    + `<div class="dg-umore" hidden><h3>퀘스트 · ${m.left}라운드 남음</h3>${dQuestHtml(Object.assign({}, m.quest, { note: '' }), null)}<h3>걸려 있는 것</h3><ul class="mm-effs">${m.effs.map(dEffLi).join('')}</ul></div>`,
+    dUMoreBtn() + '<button class="btn sm" data-d="mclose">닫기</button>', '<button class="sh-x" data-d="mclose" aria-label="닫기">✕</button>'));
 }
 
 // ───────── 위대한 옛것 장면: 떠오름 · 퀘스트 깸 · 못 깸 ─────────
@@ -12505,29 +12582,26 @@ function dCodexModal() {
 // 그 형태의 기본 능력치 (유물 · 먹이기 없이)
 function dStatBase(o) { const fake = { relics: [], myth: null, starve: null, hex: [], round: 1, units: { 0: Object.assign({ uid: 0, br: 'a', grade: 'c', myth: null, fed: 0, fhp: 0, fatk: 0, dmg: 0, kills: 0, fights: 0 }, o) }, board: {}, bench: [] }; return DICE.unitInfo(fake, 0); }
 const dCxAt = at => (at && at.r ? `<p class="cx-at">처음 본 때: ${at.r}번째 판 · 라운드 ${at.d}</p>` : '');
-function dCxBox(title, col, body) { const sb = $('modal').querySelector('.sh-body'); DG.cxScroll = sb ? sb.scrollTop : 0; dShow(dBox('dg-unit dg-cxd', `<span style="color:${col}">${title}</span>`, body, '<button class="btn sm" data-d="codex">도감으로</button>', '<button class="sh-x" data-d="codex" aria-label="도감으로">✕</button>')); }
+function dCxBox(title, col, body, more) { const sb = $('modal').querySelector('.sh-body'); DG.cxScroll = sb ? sb.scrollTop : 0; dShow(dBox('dg-unit dg-cxd', `<span style="color:${col}">${title}</span>`, body + (more ? `<div class="dg-umore" hidden>${more}</div>` : ''), (more ? dUMoreBtn() : '') + '<button class="btn sm" data-d="codex">도감으로</button>', '<button class="sh-x" data-d="codex" aria-label="도감으로">✕</button>')); }
 function dCxUnit(key) {
   const [kind, s, br] = key.split(':'), star = +s, G = dCxGot(), g = G.u[key], d = LAIR.KIN[kind]; if (!d) return; dSay('click');
   if (DFUSE.RARE[kind]) { const stain = br === 'a' ? null : br, X = DFUSE.RARE[kind];
     if (!g) return dCxBox('???', '#8a809a', `<div class="dg-uhead"><img class="cx-big unk" src="${dShade(kind, star, 96, null, stain)}" alt="검은 형상"><div><p class="dg-ustar s${star}">${dStar(star)}<span>${star}성</span></p><p class="dg-asp g-x">희귀${stain ? ' · ' + dEsc(LAIR.ASPN[stain]) + '에 물든' : ''}</p></div></div><p class="dg-lore">아직 보지 못한 권속입니다.</p><p class="mute">${star === 1 ? '높은 족보의 덤 · 정예 · 우두머리 · 상점 · 사건에서 드물게 옵니다.' : stain ? '이 희귀와 같은 별 권속 둘(' + dEsc(LAIR.ASPN[stain]) + '이 많게)을 모으면 됩니다.' : '이 희귀끼리 같은 별 셋을 모으면 됩니다.'}</p>`);
-    const u = dStatBase({ kind, star, grade: 'x', stain });
-    return dCxBox(dEsc(u.name), u.gradeCol, `<div class="dg-uhead"><img class="cx-big g-x" src="${dIcon(kind, star, 96, null, stain)}" alt=""><div><p class="dg-ustar s${star}">${dStar(star)}<span>${star}성</span><small> · <b style="color:${u.gradeCol}">희귀</b></small></p><p class="dg-asp" style="color:${stain ? ASPC[stain] : '#ffcf4a'}">${dEsc(u.aspName)} · ${dEsc(u.roleName)}</p></div></div>
-${dStatRows(dStat4(u))}<div class="dg-items">${dRareItems(kind, star, stain)}${dSkillItems(kind, Math.min(3, star))}${dLoreItem(X.lore)}</div>${dCxAt(g.at)}`); }
+    const u = dStatBase({ kind, star, grade: 'x', stain }), st = dStat4(u);
+    return dCxBox(dEsc(u.name), u.gradeCol, dUMain(`<img class="cx-big g-x" src="${dIcon(kind, star, 96, null, stain)}" alt="">`, u, st) + dCxAt(g.at), dStatRows(st) + `<div class="dg-items">${dRareItems(kind, star, stain)}${dLoreItem(X.lore)}</div>`); }
   if (!g) { const how = DFUSE.BASE[kind] ? (star === 1 ? '기본 주사위로 이룬 족보에서 나옵니다.' : '높은 족보, 또는 같은 것 셋을 모으면 나옵니다.') : br === 'b' ? '한 색 권속이 다른 색의 일을 채우거나, 두 색이 낀 족보에서 나옵니다.' : star === 4 ? '같은 것 3성 셋을 모으면 나옵니다.' : star === 1 ? '색 주사위가 낀 족보, 또는 기본 권속이 한 일로 물들면 나옵니다.' : '같은 것 셋을 모으거나, 높은 족보 · 물든 기본 권속에서 나옵니다.';
     return dCxBox('???', '#8a809a', `<div class="dg-uhead"><img class="cx-big unk" src="${dShade(kind, star, 96, br)}" alt="검은 형상"><div><p class="dg-ustar s${star}">${dStar(star)}<span>${star}성</span></p><p class="dg-asp" style="color:${ASPC[d.asp] || ASPC.base}">${dEsc(dAspN(d.asp))}${br === 'b' ? ' · 혼종' : ''}</p></div></div><p class="dg-lore">아직 보지 못한 권속입니다.</p><p class="mute">${how}</p>`); }
   const u = dStatBase({ kind, star, br, grade: g.grade }), pair = br === 'b' && LAIR.KEVOB[kind] ? LAIR.KEVOB[kind].pair : null;
   const lore = (DKLORE[kind] || '') + (pair ? ' ' + DKHY[pair] : '') + (star >= 4 && DK4[d.asp] ? ' ' + DK4[d.asp] : '');
-  dCxBox(dEsc(u.name), u.gradeCol, `<div class="dg-uhead"><img class="cx-big g-${u.grade}" src="${dIcon(kind, star, 96, br)}" alt=""><div><p class="dg-ustar s${star}">${dStar(star)}<span>${star}성</span><small> · <b style="color:${u.gradeCol}">${u.gradeName}</b></small></p><p class="dg-asp" style="color:${ASPC[d.asp] || ASPC.base}">${dEsc(u.aspName)}${pair ? ' · ' + LAIR.ASPN[pair] + '의 피' : ''} · ${dEsc(u.roleName)}</p></div></div>
-${dStatRows(dStat4(u))}<div class="dg-items">${dTraitItem(kind, Math.min(3, star), br === 'b' ? 'b' : undefined)}${dSkillItems(kind, Math.min(3, star), br === 'b' ? 'b' : undefined)}${u.aura ? dAuraItem(u.aura) : ''}${dLoreItem(lore)}</div>${dCxAt(g.at)}`);
+  const st = dStat4(u); dCxBox(dEsc(u.name), u.gradeCol, dUMain(`<img class="cx-big g-${u.grade}" src="${dIcon(kind, star, 96, br)}" alt="">`, u, st, pair ? `<p class="dg-u1 mute">${dEsc(LAIR.ASPN[pair])}의 피 · 혼종</p>` : '') + dCxAt(g.at), dStatRows(st) + `<div class="dg-items">${dTraitItem(kind, Math.min(3, star), br === 'b' ? 'b' : undefined)}${u.aura ? dAuraItem(u.aura) : ''}${dLoreItem(lore)}</div>`);
 }
 function dCxRecipe(id) {
   const x = DFUSE.RECIPE[id]; if (!x) return; const G = dCxGot(), g = G.m[id], A = LAIR.KIN[x.a], B = LAIR.KIN[x.b]; dSay('click');
   if (!g) { const a = LAIR.ASPN[A.asp], b = LAIR.ASPN[B.asp], hint = dJo(a, '과', '와') + ' ' + dJo(b, '이', '가') + (A.asp === B.asp ? ' 겹치면 …' : ' 만나면 …');
     return dCxBox('???', '#8a809a', `<div class="dg-uhead"><img class="cx-big unk" src="${dShade(x.base, 3, 96, x.br)}" alt="검은 형상"><div><p class="dg-asp g-m">신화 레시피</p><p>??? = ??? + ???</p></div></div><p class="dg-lore">아직 보지 못한 권속입니다.</p><p class="cx-hint">${dEsc(hint)}</p>`); }
   const star = Math.max(2, Math.min(4, g.star || 3)), u = dStatBase({ kind: x.base, star, br: x.br, grade: 'm', myth: id });
-  dCxBox(dEsc(u.name), u.gradeCol, `<div class="dg-uhead"><img class="cx-big g-m" src="${dIcon(x.base, star, 96, x.br)}" alt=""><div><p class="dg-ustar s${star}">${dStar(star)}<span>${star}성</span><small> · <b style="color:${u.gradeCol}">신화</b></small></p><p class="dg-asp" style="color:${ASPC[u.asp]}">${dEsc(u.aspName)} · ${dEsc(u.roleName)}</p></div></div>
-${dStatRows(dStat4(u))}<div class="dg-items">${dTraitItem(x.base, Math.min(3, star), x.br === 'b' ? 'b' : undefined)}${dSkillItems(x.base, Math.min(3, star), x.br === 'b' ? 'b' : undefined)}${dMythItem({ name: x.name, short: x.short })}
-${dItem('재료', [`<img src="${dIcon(x.a, 2, 24)}" alt="">${dEsc(A.name)} + <img src="${dIcon(x.b, 2, 24)}" alt="">${dEsc(B.name)}`, '<small>3성 이상인 한쪽 권속이 다른 쪽의 색 일을 채우면 됩니다 (레시피 두 색 주사위가 낀 높은 족보에서도)</small>'], { cls: 'cx-mats', html: true })}${dLoreItem(x.lore)}</div>${dCxAt(g.at)}`);
+  const st = dStat4(u); dCxBox(dEsc(u.name), u.gradeCol, dUMain(`<img class="cx-big g-m" src="${dIcon(x.base, star, 96, x.br)}" alt="">`, u, st, `<p class="dg-u1"><b class="g-m">${dEsc(x.name)}</b> ${dEsc(x.short)}</p>`) + dCxAt(g.at),
+    dStatRows(st) + `<div class="dg-items">${dTraitItem(x.base, Math.min(3, star), x.br === 'b' ? 'b' : undefined)}${dItem('재료', [`<img src="${dIcon(x.a, 2, 24)}" alt="">${dEsc(A.name)} + <img src="${dIcon(x.b, 2, 24)}" alt="">${dEsc(B.name)}`, '<small>3성 이상인 한쪽 권속이 다른 쪽의 색 일을 채우면 됩니다</small>'], { cls: 'cx-mats', html: true })}${dLoreItem(x.lore)}</div>`);
 }
 
 // ───────── 메뉴 · 설정 · 안내서 ─────────
@@ -12552,7 +12626,7 @@ function dHelp(pg) {
 <h3>한 라운드</h3><ol><li>꺼내기: 주머니에서 주사위 ${K.bag.draw}개가 무작위로 나옵니다.</li><li>던지기: 「흔들기」를 누르고 있으면 통이 흔들리고, 떼면 던집니다. 주사위를 누르면 고정되고, 「다시 굴리기」는 고정하지 않은 주사위만 다시 던집니다 (공짜 ${K.rerolls}번, 그 뒤로는 진액 2 · 3 · 4 …).</li><li>확정: 띠에 적힌 권속이 대기 칸에 옵니다.</li><li>놓기: 권속을 끌어 왼쪽 칸에 세웁니다. 신이 떠 있으면 위 띠의 표식으로 끌어 바칠 수도 있습니다. 오른쪽 칸이 앞줄입니다. 「자동 배치」는 빈 줄부터 메워 놓기만 합니다 (합치지 않습니다).</li><li>싸우기: 이기면 보상이 저절로 옵니다.</li></ol>
 <h3>생명 · 진액</h3><p>맨 위 ♥ 는 생명입니다 (처음 ${K.life}). 싸움에서 지면 남은 적의 무게만큼 줄어듭니다: 보통 1 · 정예 2 · 우두머리 4. 빈 줄로 샌 적도 생명을 깎습니다. 0 이 되면 판이 끝납니다.</p><p>진액은 돈입니다. 적을 쓰러뜨리거나 이기면 받고, 상점 · 다시 굴리기에 씁니다.</p>
 <h3>짐승과 풀</h3><p>세상마다 첫 지역에서는 사람 대신 짐승과 풀이 길목을 지킵니다. 풀은 움직이지 않고 가시 · 포자 · 잎을 멀리 뻗어 가장 가까운 것을 찌릅니다. 짐승은 여러 줄로 넓게 펼쳐 서니 머릿수가 필요합니다.</p><h3>라운드 · 사건 · 상점</h3><p>지역마다 마지막 라운드는 우두머리, 그 앞 한 라운드는 정예(세고 보상이 큽니다)입니다. 위 띠에 그 자리가 보입니다. 라운드 사이에 가끔 사건이나 제단이 끼어듭니다. 「상점」은 늘 열려 있습니다 (싸우는 동안만 닫힙니다).</p>`;
-  if (pg === 'dice') body = `<h3>숫자 = 족보 = 별</h3><p>처음 주머니는 <b>기본 주사위 ${K.bag.start}개</b>입니다 (뼈색, 색 없음). 면은 평범한 1~6 입니다.</p><ul><li>같은 수가 모일수록 높은 족보, 높은 족보일수록 별이 높은 권속이 옵니다.</li><li>족보를 이룬 주사위가 모두 기본이면 <b>기본 권속</b>(덩이 · 발톱 · 눈알)이 옵니다.</li><li>족보를 이룬 주사위에 <b>색 주사위가 하나라도 끼면</b> 그 족보 전체가 그 색 권속입니다. 두 색 주사위가 끼면 혼종이 옵니다. 혼종과 신화는 드뭅니다 (족보표의 설명).</li><li>높은 족보(풀하우스 · 스트레이트 · 포카드 · 다섯 같은 수)에서는 덤으로 희귀 권속 1성이 올 수 있습니다.</li><li>족보에 안 든 색 주사위는 그 색 권속을 이번 싸움에 ${Math.round(K.leftBuff * 100)}%씩 세게 합니다.</li></ul>
+  if (pg === 'dice') body = `<h3>숫자 = 족보 = 별</h3><p>처음 주머니는 <b>기본 주사위 ${K.bag.start}개</b>입니다 (뼈색, 색 없음). 면은 평범한 1~6 입니다.</p><ul><li>같은 수가 모일수록 높은 족보, 높은 족보일수록 별이 높은 권속이 옵니다.</li><li>족보를 이룬 주사위가 모두 기본이면 <b>기본 권속</b>(덩이 · 발톱 · 눈알)이 옵니다.</li><li>족보를 이룬 주사위에 <b>색 주사위가 하나라도 끼면</b> 그 족보 전체가 그 색 권속입니다. 두 색 주사위가 끼면 혼종이 옵니다. 혼종과 신화는 드뭅니다.</li><li>높은 족보(풀하우스 · 스트레이트 · 포카드 · 다섯 같은 수)에서는 덤으로 희귀 권속 1성이 올 수 있습니다.</li><li>족보에 안 든 색 주사위는 그 색 권속을 이번 싸움에 ${Math.round(K.leftBuff * 100)}%씩 세게 합니다.</li></ul>
 <h3>족보</h3><table class="dg-tbl dg-htbl">${DICE.HAND_IDS.slice().reverse().map(k => `<tr><th>${dEsc(DICE.HANDS[k].name)}</th><td>${dEsc(DICE.HANDS[k].cond)}</td><td class="hgs">${dHandGetHtml(k)}</td></tr>`).join('')}</table>
 <h3>주사위가 물드는 길</h3><p>주사위는 저절로 물들지 않습니다. <b>떠 있는 신(위대한 옛것)에게 권속을 바쳐</b> 그 신의 눈금을 채우면, 그 신이 주사위 하나를 제 색으로 영영 물들입니다 (주사위는 고릅니다). 색은 고르지 않습니다: 지금 떠 있는 신의 색입니다.</p><ul><li>놓을 때 권속을 위 띠의 옛것 표식으로 끌어 놓으면 바칩니다. 끄는 동안 표식에 오를 양(「+3」)이 보입니다.</li><li>오르는 양은 권속마다 다릅니다: 기본 권속은 종류마다 크게 치는 신이 둘 있고, 별이 높을수록 많이, 그 신의 색으로 물든 권속은 아주 크게 채웁니다.</li><li>이미 물든 주사위를 또 물들이면 두 색 주사위가 됩니다 (더는 못 칠합니다). 물든 주사위는 되돌릴 수 없습니다.</li><li>주사위가 물들 때마다 다음 눈금이 길어집니다. 신이 떠나도 채운 눈금은 남습니다.</li></ul>
 <h3>주머니</h3><p>가진 주사위 전부가 주머니입니다 (${K.bag.min}~${K.bag.max}개). 라운드마다 그 가운데 ${K.bag.draw}개를 무작위로 꺼냅니다. 보상 · 상점 · 사건은 색을 주지도 팔지도 않습니다.</p><ul><li><b>더하기</b>: 기본 주사위 하나 (드뭅니다).</li><li><b>빼기</b>: 주사위 하나를 고릅니다. 물든 주사위는 진액 ${K.price.dyedOut}이 더 듭니다.</li><li><b>다듬기</b>: 평범한 주사위 하나를 특수 주사위로 바꿉니다 — 「6 이 두 면」 · 「무거운」(다시 굴릴 때 고정한 수로 다시 설 확률 +${Math.round(K.heavy * 100)}%)${(dWP().unl || []).includes('even') ? ' · 「짝수 주사위」(2 · 2 · 4 · 4 · 6 · 6)' : ''}. 색은 바뀌지 않습니다.</li></ul>
@@ -12574,66 +12648,70 @@ function dHelp(pg) {
   const sb = $('modal').querySelector('.sh-body'); if (sb) sb.scrollTop = 0;
 }
 
-// ───────── 길잡이 (첫 판, 2026-11-26 사용자: 「뜬금없이 전투 두 개부터 보여 주니 이상하다」) ─────────
-// 처음 새 판을 열면: 도입 세 장(무엇을 하는가 · 한 라운드의 순서 · 숫자와 족보) → 첫 라운드는 갈래 없이 바로 양 우리의 싸움 → 한 걸음씩 짚는다.
-//   말풍선은 늘 닫을 수 있다(「닫기」 · 「알겠다」). tipAt = 말풍선을 올려 둘 자리(족보 띠를 가리지 않게 띠 위에).
-//   짚기: 해야 할 단추 · 주사위만 밝게(#dg-spot, 나머지는 어둡게), 말풍선 한 줄(#dg-tip). 걸음마다 한 번만. 「길잡이 건너뛰기」는 늘. 끝나면 localStorage 'nestdice.tut' = done.
-//   걸음: 흔들기 → 붙잡기 → 다시 굴리기 → 족보 띠 읽기 → 확정 → 끌어 놓기 → (빈 줄 · 무리 효과 · 같은 별 셋) → 싸운다 → 첫 보상 주사위 더하기(덱 걸음) → 흐름 → 상점 → 위대한 옛것의 표식.
-const DTK = 'nestdice.tut';
-const dTutDone = () => { try { return localStorage.getItem(DTK) === 'done'; } catch (e) { return false; } };
+// ───────── 길잡이 (8판, 2026-11-27 주인: 「처음에 가이드 무조건해줘 설명없이는 못하는게임이야」) ─────────
+// 길잡이 판 번호(DTV): 규칙이 통째로 바뀌었으므로, 예전 판에서 길잡이를 보았거나 건너뛴 사람('done')에게도 이 판을 처음 열면 다시 나온다. 끝내면 localStorage 'nestdice.tut' = DTV.
+// 1) 도입 카드 셋 (장마다 두 줄 · 건너뛰기 없음) → 2) 첫 라운드는 손을 잡고 끝까지: 흔들기 → 남길 주사위 → 다시 굴리기 → 확정 → 놓기 → 싸우기 → 결과 창.
+//    걸음마다 해야 할 것 하나만 밝게(#dg-spot) · 말풍선 한 줄(#dg-tip) · 「닫기」만 (닫아도 다음 걸음에서 다시 짚는다). 결과 창의 「다음」을 누르면 끝.
+// 3) 그 뒤는 처음 겪을 때 한 번씩 (판을 넘어 남는다 · localStorage 'nestdice.tip8'): 같은 권속 셋 · 옛것이 떴을 때(끌어다 바치기) · 눈금이 찼을 때(물들이기).
+//    권속이 처음 물들었을 때 · 신이 처음 끼어들었을 때는 결과 창 다음의 작은 창 두 줄 (dDyeNote · dGodNote). 처음 바칠 때는 바치기 물음에 한 줄.
+// 메뉴 · 설정의 「길잡이」 끔이면 아무것도 나오지 않는다 (그대로).
+const DTK = 'nestdice.tut', DTV = 'v8', DTK2 = 'nestdice.tip8';
+const dTutDone = () => { try { return localStorage.getItem(DTK) === DTV; } catch (e) { return false; } };
 const dTutSave = v => { try { if (v) localStorage.setItem(DTK, v); else localStorage.removeItem(DTK); } catch (e) { /* 저장 없이 */ } };
+let DTIPS = null;
+const dTips = () => { if (DTIPS) return DTIPS; try { DTIPS = JSON.parse(localStorage.getItem(DTK2) || '{}') || {}; } catch (e) { DTIPS = {}; } return DTIPS; };
+const dTipSave = k => { dTips()[k] = 1; try { localStorage.setItem(DTK2, JSON.stringify(DTIPS)); } catch (e) { /* 저장 없이 */ } };
+const dTipsReset = () => { DTIPS = {}; try { localStorage.removeItem(DTK2); } catch (e) { /* 저장 없이 */ } };
 const TUT = { on: false, intro: false, seen: {}, cur: null };
-const dTutWant = () => META.diceTut !== 'off' && !dTutDone() && !(DG.test && DG.test.tut === false);
+const dTipOff = () => META.diceTut === 'off' || !!(DG.test && DG.test.tut === false);
+const dTutWant = () => !dTipOff() && !dTutDone();
 function dTutStart() { TUT.on = true; TUT.intro = true; TUT.seen = {}; TUT.cur = null; }
-function dTutEnd() { TUT.on = false; TUT.intro = false; TUT.cur = null; dTutSave('done'); const el = $('dg-tip'), sp = $('dg-spot'); if (el) el.hidden = true; if (sp) sp.hidden = true; const g = $('dg'); if (g) g.classList.remove('tipon'); }
-// 도입 세 장 (기록 한두 줄 + 쉬운 안내)
+function dTutEnd() { TUT.on = false; TUT.intro = false; TUT.cur = null; dTutSave(DTV); const el = $('dg-tip'), sp = $('dg-spot'); if (el) el.hidden = true; if (sp) sp.hidden = true; const g = $('dg'); if (g) g.classList.remove('tipon'); }
+// 도입 세 장 (장마다 두 줄)
 const DTINTRO = [
-  { t: '주사위 굴', lore: '이 기록을 남기는 나는 그 밤 굴 안에 있었다. 살덩이는 권속들을 이끌고 물레골의 양 우리에서 탑까지, 여섯 지역을 차례로 쳐들어갔다.',
-    body: () => `<p>주사위를 굴려 <b>권속</b>(내 편 괴물)을 모으세요. <b>여섯 지역</b>을 모두 돌파하면 승리합니다.</p><p>맨 위 <b class="bad">♥</b> 는 생명입니다. 싸움에 지면 줄고, 0 이 되면 판이 끝납니다. <b>진액</b>은 돈입니다.</p>` },
-  { t: '한 라운드', lore: '굴의 것들은 주사위가 멎는 소리를 신호로 길목에 나섰다.',
-    body: () => '<ol class="dt-steps"><li>「흔들기」를 누르고 있다가 떼면 던집니다</li><li>남길 주사위를 눌러 고정하고 다시 굴립니다</li><li>족보를 보고 확정하면 권속이 옵니다</li><li>권속을 왼쪽 칸에 놓습니다</li><li>「싸우기」 · 이기면 보상이 저절로 옵니다</li><li>다음 라운드 (가끔 사건이 끼어듭니다)</li></ol>' },
-  { t: '숫자 = 족보 = 별', lore: '주사위가 멎을 때마다 굴의 살덩이에서 무엇인가 하나씩 떨어져 나왔다.',
-    body: () => `<p>같은 수가 많이 모일수록(족보가 높을수록) 별이 높은 권속이 옵니다.</p><p>라운드마다 주머니에서 주사위 다섯을 꺼내 던집니다. 처음엔 모두 기본 주사위라 기본 권속(덩이 · 발톱 · 눈알)이 옵니다.</p><p>첫 싸움은 바로 시작합니다.</p>` },
+  { t: '주사위 굴', body: () => '<p>주사위를 굴려 <b>권속</b>(내 편 괴물)을 모으세요.</p><p>권속으로 여섯 지역을 지나면 이깁니다. <b class="bad">♥</b>이 0이 되면 집니다.</p>' },
+  { t: '족보 = 별', body: () => '<p>같은 수가 많이 모일수록 별이 높은 권속이 옵니다.</p><p>족보는 던지는 화면 아래에 늘 보입니다.</p>' },
+  { t: '한 라운드', body: () => '<p>던지기 → 권속 놓기 → 싸우기.</p><p>첫 라운드는 한 걸음씩 짚어 드립니다.</p>' },
 ];
 function dTutIntro(k) {
   const P = DTINTRO[k]; if (!P) { TUT.intro = false; $('modal').hidden = true; return dFlow(); }
-  dShow(dBox('dg-tintro', `${dEsc(P.t)} <small>${k + 1}/${DTINTRO.length}</small>`, `${DSTORY ? `<p class="dg-lorep">${dEsc(P.lore)}</p>` : ''}${P.body()}`,
-    `<button class="btn sm" data-d="tutskip">길잡이 건너뛰기</button><button id="dg-tnext" class="btn pri" data-d="tutnext" data-k="${k + 1}">${k + 1 < DTINTRO.length ? '다음' : '시작'}</button>`));
+  dShow(dBox('dg-tintro', `${dEsc(P.t)} <small>${k + 1}/${DTINTRO.length}</small>`, P.body(), `<button id="dg-tnext" class="btn pri" data-d="tutnext" data-k="${k + 1}">${k + 1 < DTINTRO.length ? '다음' : '시작'}</button>`));
 }
 // 같은 별 셋이 있는지 (굴 + 대기 칸, 4성 아래)
 const dCan3 = v => { const c = {}; v.board.concat(v.bench.filter(Boolean)).forEach(u => { if (u.star < 4 && !(u.mats && u.mats.length)) { const k = u.kind + ':' + (u.br === 'b' ? 'b' : 'a') + ':' + (u.myth || '') + ':' + u.star; c[k] = (c[k] || 0) + 1; } }); return Object.keys(c).some(k => c[k] >= 3); };
 const dHeldDie = v => { const h = v.roll && v.roll.hand, i = h && h.use.length ? h.use[0] : 0; return '.dg-die[data-die="' + i + '"]'; };
+const dBox0 = () => { const b = $('modal').hidden ? null : $('modal').querySelector('.sh-box'); return b ? b.className : ''; };
+// 첫 라운드 (손을 잡고): 차례대로 · 걸음마다 할 것 하나. 던지는 화면의 말풍선은 주사위 판 바로 아래(below)에: 주사위 · 단추를 가리지 않는다
 const DTUT = [
-  { k: 'shake', at: '#dg-go', tipAt: '#dg-sets', text: '「흔들기」를 누르고 있으세요. 통이 흔들리다가, 손을 떼면 던집니다.', when: v => v.phase === 'roll' && !v.roll.n && v.round === 1 },
-  { k: 'hold', at: dHeldDie, text: '남길 주사위를 눌러 고정하세요. 같은 수끼리 남기면 족보가 높아집니다.', when: v => v.phase === 'roll' && v.roll.n === 1 && !v.roll.held.some(Boolean) && v.roll.left > 0 },
-  { k: 'reroll', at: '[data-d="reroll"]', tipAt: '#dg-sets', text: '「다시 굴리기」를 누르고 있다가 떼세요. 고정하지 않은 주사위만 다시 구릅니다.', when: v => v.phase === 'roll' && v.roll.n === 1 && v.roll.held.some(Boolean) && v.roll.left > 0 },
-  { k: 'band', at: '#dg-sets', ack: true, html: () => '이 띠가 지금의 족보입니다. 첫 줄은 족보 이름, 둘째 줄은 받을 권속입니다.', when: v => v.phase === 'roll' && v.roll.n >= 2 },
-  { k: 'confirm', at: '#dg-ok', tipAt: '#dg-sets', text: '「확정」하면 띠에 적힌 권속이 대기 칸에 옵니다.', when: v => v.phase === 'roll' && v.roll.n >= 1 && TUT.seen.band },
-  { k: 'drag', at: '#dg-bench', text: '대기 칸의 권속을 끌어 왼쪽 칸에 놓으세요. 오른쪽 칸이 앞줄입니다.', when: v => v.phase === 'place' && !v.placed },
-  { k: 'lane', at: '#dg-cv', ack: true, text: '붉은 「빈 줄」에는 내 권속이 없습니다. 그 줄의 적은 싸우지 않고 굴로 새어 들어 생명을 깎습니다. 그 줄에도 권속을 놓으세요.', when: v => v.phase === 'place' && v.placed && v.lanes && v.lanes.open.length },
-  { k: 'group', at: '#dg-grp', ack: true, text: '같은 성향(기본은 기본끼리)이 ' + DICE.K.group.join(' · ') + '마리 서 있으면 무리 효과가 걸립니다 (별과 상관없이 머릿수).', when: v => v.phase === 'place' && v.groups.some(g => g.tier) },
-  { k: 'merge', at: '#dg-bench', ack: true, text: '같은 권속 셋이 있습니다 (같은 종류 · 같은 별). 한 권속 위에 같은 권속 둘을 차례로 끌어 놓으면 셋이 하나로 합쳐집니다 (별 +1).', when: v => v.phase === 'place' && v.placed && dCan3(v) },
-  { k: 'fight', at: '#dg-fight', tipAt: '#dg-sets', text: '「싸우기」를 누르면 권속이 저절로 싸웁니다.', when: v => v.phase === 'place' && v.placed },
-  { k: 'deck', at: '#modal .dg-addc', ack: true, text: '기본 주사위 하나가 주머니에 듭니다. 주머니가 크면 같은 주사위가 덜 자주 나옵니다. 누르면 들어갑니다.', when: v => v.pend.length && v.pend[0].k === 'add' },
-  { k: 'flow', at: '#dg-myth .dg-rline', ack: true, text: '싸움이 끝나면 결과 창에 받은 것이 나옵니다. 라운드는 차례로 이어지고, 이 띠에 정예 · 우두머리 자리가 보입니다. 가끔 사건이 끼어듭니다.', when: v => v.phase === 'roll' && v.round >= 2 },
-  { k: 'shop', at: '#dg-shopb', ack: true, text: '「상점」은 늘 열려 있습니다. 진액으로 유물 · 주사위 · 주사위 빼기 · 다듬기를 삽니다. 진열은 라운드마다 바뀝니다.', when: v => (v.phase === 'roll' || v.phase === 'place') && v.round >= 2 && TUT.seen.flow },
-  { k: 'myth', at: '#dg-myth .dg-mline', ack: true, text: '위대한 옛것이 떠올랐습니다. 이 띠를 누르면 퀘스트와 걸려 있는 효과를 봅니다. 놓을 때 권속을 이 띠로 끌어 놓으면 신에게 바칩니다.', when: v => !!v.myth && !RT.cur, last: true },
+  { k: 'shake', at: '#dg-go', tipAt: '#dg-dice', below: true, text: '「흔들기」를 누르고 있다가 떼세요.', when: v => v.phase === 'roll' && !v.roll.n },
+  { k: 'hold', at: dHeldDie, tipAt: '#dg-dice', below: true, text: '남길 주사위를 누르세요. 같은 수를 남기면 족보가 높아집니다.', when: v => v.phase === 'roll' && v.roll.n === 1 && !v.roll.held.some(Boolean) && v.roll.left > 0 },
+  { k: 'reroll', at: '[data-d="reroll"]', tipAt: '#dg-dice', below: true, text: '「다시 굴리기」를 누르고 있다가 떼세요. 누른 주사위는 남습니다.', when: v => v.phase === 'roll' && v.roll.n === 1 && v.roll.held.some(Boolean) && v.roll.left > 0 },
+  { k: 'confirm', at: '#dg-ok', tipAt: '#dg-sets', below: true, text: '족보 이름 옆이 받을 권속입니다. 「확정」을 누르세요.', when: v => v.phase === 'roll' && v.roll.n >= 1 && (v.roll.n >= 2 || v.roll.left <= 0 || TUT.seen.hold || TUT.seen.reroll) },
+  { k: 'drag', at: '#dg-bench', text: '대기 칸의 권속을 끌어다 전장 왼쪽 칸에 놓으세요.', when: v => v.phase === 'place' && !v.placed },
+  { k: 'fight', at: '#dg-fight', tipAt: '#dg-sets', text: '더 놓아도 됩니다. 다 놓았으면 「싸우기」를 누르세요.', when: v => v.phase === 'place' && v.placed },
+  { k: 'result', at: '#dg-resok', text: '싸움 결과입니다. 「다음」을 누르면 다음 라운드로 갑니다.', when: () => /dg-fres/.test(dBox0()) },
+];
+// 처음 겪을 때 한 번씩 (첫 라운드 뒤 · 판을 넘어 한 번)
+const DTONCE = [
+  { k: 'merge', at: '#dg-bench', text: '같은 권속 셋이 모였습니다. 같은 권속 위에 끌어 놓고 「합치기」를 고르세요.', when: v => v.phase === 'place' && dCan3(v) },
+  { k: 'myth', at: '#dg-myth .dg-mline', text: '옛것이 떴습니다. 놓을 때 권속을 이 띠로 끌어다 놓으면 바칩니다.', when: v => !!v.myth && !RT.cur && (v.phase === 'roll' || v.phase === 'place') },
+  { k: 'dye', at: '#modal .dg-picks', text: '눈금이 찼습니다. 물들일 주사위 하나를 누르세요.', when: () => /k-dye/.test(dBox0()) },
 ];
 // 말풍선이 가리면 안 되는 때: 싸움 · 던지는 중 · 진화 장면 · 옛것 장면 · 합치기 물음 · 처형 장면
 const dTipBusy = () => DG.scr !== 'game' || DG.ui === 'fight' || DG.ui === 'leak' || DG.ui === 'rolling' || DG.ui === 'shaking' || !!EV.cur || !!RT.cur || !$('dg-drop').hidden || !!(DFE.el && !DFE.el.hidden);
 function dTip() {
   const el = $('dg-tip'), sp = $('dg-spot'); if (!el) return; const v = DG.R ? DICE.view(DG.R) : null; el.hidden = true; if (sp) sp.hidden = true; const g = $('dg'); if (g) g.classList.remove('tipon');
-  if (!TUT.on || TUT.intro || !v || DG.scr !== 'game') return;
-  // 하던 걸음(누르기 · 끌기)이 끝나면 다 본 것으로
-  if (TUT.cur && !TUT.cur.ack && !TUT.cur.when(v)) TUT.seen[TUT.cur.k] = true;
-  if (TUT.seen.myth || v.round >= 7) return dTutEnd();
+  if (TUT.intro || !v || DG.scr !== 'game' || dTipOff()) { TUT.cur = null; return; }
+  // 첫 라운드: 하던 걸음(누르기 · 끌기)이 끝나면 다 본 것으로. 판이 넘어가 있으면(이어 하기 등) 끝낸다
+  if (TUT.on) { if (TUT.cur && TUT.cur.k !== 'result' && !TUT.cur.when(v)) TUT.seen[TUT.cur.k] = true; if (v.round >= 3) dTutEnd(); }
   if (dTipBusy()) return;
-  const s = DTUT.find(q => !TUT.seen[q.k] && q.when(v)); TUT.cur = s || null; if (!s) return; const sel = typeof s.at === 'function' ? s.at(v) : s.at, tg = document.querySelector(sel);
+  const s = TUT.on ? DTUT.find(q => !TUT.seen[q.k] && q.when(v)) : DTONCE.find(q => !dTips()[q.k] && q.when(v)); TUT.cur = s || null; if (!s) return;
+  const sel = typeof s.at === 'function' ? s.at(v) : s.at, tg = document.querySelector(sel);
   if (!tg || (!$('modal').hidden && !tg.closest('#modal'))) return;
-  el.innerHTML = `<span class="tp-t">${s.html ? s.html() : dEsc(s.text)}</span><span class="tp-b"><button class="btn sm pri" data-d="tutack">${s.ack ? '확인' : '닫기'}</button><button class="btn sm" data-d="tutskip">길잡이 건너뛰기</button></span>`;
-  el.hidden = false; DG.tip = s.k; if (g) g.classList.add('tipon'); const ts = $('toast'); if (ts) ts.hidden = true; const b = tg.getBoundingClientRect(), w = el.offsetWidth, h = el.offsetHeight, vw = innerWidth, vh = innerHeight, inM = !$('modal').hidden;
+  el.innerHTML = `<span class="tp-t">${dEsc(s.text)}</span><span class="tp-b"><button class="btn sm pri" data-d="tutack">닫기</button></span>`;
+  el.hidden = false; DG.tip = s.k; if (g) g.classList.add('tipon'); const ts = $('toast'); if (ts) ts.hidden = true; const b = tg.getBoundingClientRect(), vw = innerWidth, vh = innerHeight, inM = !$('modal').hidden;
   if (sp) { sp.hidden = false; sp.classList.toggle('inmodal', inM); Object.assign(sp.style, { left: (b.left - 4) + 'px', top: (b.top - 4) + 'px', width: (b.width + 8) + 'px', height: (b.height + 8) + 'px' }); }
-  const an = (s.tipAt && document.querySelector(s.tipAt)) || tg, place = () => { const b2 = an.getBoundingClientRect(), w2 = el.offsetWidth, h2 = el.offsetHeight; let top = b2.top - h2 - 10; if (top < 4) top = b2.bottom + 10; if (top + h2 > vh - 4) top = Math.max(4, vh - h2 - 4);
+  const an = (s.tipAt && document.querySelector(s.tipAt)) || tg, place = () => { const b2 = an.getBoundingClientRect(), w2 = el.offsetWidth, h2 = el.offsetHeight; let top = s.below ? b2.bottom + 6 : b2.top - h2 - 10; if (top < 4) top = b2.bottom + 10; if (top + h2 > vh - 4) top = Math.max(4, vh - h2 - 4);
     el.style.left = Math.max(8, Math.min(vw - w2 - 8, b2.left + b2.width / 2 - w2 / 2)) + 'px'; el.style.top = top + 'px'; };
   place(); el.classList.toggle('inmodal', inM);
   // 글자 크기를 키우는 브라우저(큰 글씨)는 말풍선이 뒤늦게 커진다: 한 번 더 자리를 잡는다 (짚는 것을 가리지 않게)
@@ -12644,6 +12722,8 @@ function dTip() {
     if (dTipBusy() || !document.contains(tg) || (!$('modal').hidden && !tg.closest('#modal'))) { clearInterval(DG.tipI); el.hidden = true; if (sp) sp.hidden = true; if (g) g.classList.remove('tipon'); }
   }, 120);
 }
+// 말풍선의 「닫기」: 첫 라운드면 이 걸음만 닫는다 (다음 걸음에서 다시 짚는다) · 한 번씩 알림이면 다시 안 나온다
+function dTipAck() { const c = TUT.cur; if (c) { if (TUT.on) TUT.seen[c.k] = true; else dTipSave(c.k); } dTip(); }
 function dAskNew() { const m = $('modal'); m.innerHTML = `<div class="sh-box dg-box" role="dialog" aria-modal="true"><div class="sh-head"><h2>새 판</h2><button class="sh-x" data-d="mclose" aria-label="닫기">✕</button></div><div class="sh-body"><p>지금 판의 저장을 지우고 새로 시작합니다.</p></div><div class="sh-btns"><button class="btn sm" data-d="mclose">취소</button><button class="btn sm warn" data-d="worlds">새로 시작</button></div></div>`; m.hidden = false; }
 
 // ───────── 알림 ─────────
@@ -12654,7 +12734,10 @@ function dToast(msg, ms) { const t = $('toast'); if (!t) return; t.textContent =
 //   2) 줄 바로 아래(전장 아랫 여백 · 무리 효과 줄 자리) 3) 둘 다 안 되면 1) 을 쓰되 위 띠 단추 왼쪽까지만
 function dToastPlace(t) {
   const g = $('dg'), cv = $('dg-cv'); t.classList.remove('dg-slot-t'); ['top', 'bottom', 'left', 'right', 'width'].forEach(k => t.style.removeProperty(k));
-  if (!g || g.hidden || DG.scr !== 'game' || !cv || !$('modal').hidden) return;
+  // 창이 열려 있으면: 창 상자 위 → 아래 → 맨 위 (창 안 단추를 가리지 않게)
+  if (!$('modal').hidden) { const bx = $('modal').querySelector('.sh-box'); if (!bx) return; const r = bx.getBoundingClientRect(), H = innerHeight; t.classList.add('dg-slot-t'); t.style.left = '8px'; t.style.right = '8px'; t.style.top = '0px'; const h = t.getBoundingClientRect().height;
+    t.style.top = Math.round(r.top - h - 6 >= 2 ? r.top - h - 6 : r.bottom + 6 + h <= H - 2 ? r.bottom + 6 : 2) + 'px'; return; }
+  if (!g || g.hidden || DG.scr !== 'game' || !cv) return;
   const W = innerWidth, H = innerHeight, r = cv.getBoundingClientRect(), k = r.height ? r.height / DFH : 0, lanes = k ? { top: r.top + (DLY - 2) * k, bottom: r.top + (DLY + 6 * DLH + 2) * k } : null;
   const btns = Array.from(document.querySelectorAll('#dg button')).filter(b => b.offsetParent).map(b => b.getBoundingClientRect()).filter(b => b.width && b.height);
   const bad = q => q.top < 0 || q.bottom > H || btns.some(b => b.left < q.right - 1 && b.right > q.left + 1 && b.top < q.bottom - 1 && b.bottom > q.top + 1) || (lanes && q.bottom > lanes.top + 0.5 && q.top < lanes.bottom - 0.5);
@@ -12688,8 +12771,8 @@ document.addEventListener('click', e => {
   if (d === 'flow') { $('modal').hidden = true; return dFlow(); }
   // 누르고 떼면 이미 던졌다 (pointerdown · pointerup). 여기는 글쇠(Enter)로 누른 때: 흔들지 않고 바로 던진다
   if (d === 'throw' || d === 'reroll') { if (performance.now() - (DG.relAt || 0) < 700 || DG.shake) return; return dThrow(() => (d === 'throw' ? DICE.throwDice(R) : DICE.reroll(R))); }
-  if (d === 'hands') return dHandsModal();
   if (d === 'mydice') return dMyDiceModal();
+  if (d === 'bagf') { const i = +b.dataset.die; dSay('click'); return dMyDiceModal(b.getAttribute('aria-pressed') === 'true' ? null : i); }
   if (d === 'buy' && R.phase === 'roll') { const r = DICE.buyReroll(R); if (!r.ok) return dToast(r.msg); dSay('coin'); dSave(); return dRender(); }
   if (d === 'shop') { if (!R || !DICE.shopOpen(R) || DG.ui === 'fight' || DG.ui === 'leak' || DG.ui === 'rolling' || DG.ui === 'shaking') return dToast('지금은 상점이 닫혀 있습니다.'); dSay('click'); DG.dbg.shopOpen = (DG.dbg.shopOpen || 0) + 1; return dShopModal(); }
   if (d === 'sroll') { const r = DICE.shopRoll(R); if (!r.ok) { dSay('down'); dToast(r.msg); } else { dSay('flip'); dSave(); dRender(); } return dShopModal(); }
@@ -12702,6 +12785,7 @@ document.addEventListener('click', e => {
   if (d === 'skip') return dSkip();
   if (d === 'feed') { const uid = +b.dataset.uid; $('modal').hidden = true; return dDo(uid, { feed: true }); }
   if (d === 'ungather') { const r = DICE.ungather(R, +b.dataset.uid); $('modal').hidden = true; if (!r.ok) return dToast(r.msg); dSay('thud'); dSave(); dRender(); dTip(); return dToast('모으기를 풀었습니다. 재료 ' + r.back.length + '마리가 돌아왔습니다.'); }
+  if (d === 'umore') { const mo = $('modal').querySelector('.dg-umore'); if (!mo) return; mo.hidden = !mo.hidden; b.setAttribute('aria-expanded', String(!mo.hidden)); b.textContent = mo.hidden ? '자세히' : '접기'; return; }
   if (d === 'peekx') { $('dg-peek').hidden = true; DG.peek = null; return; }
   if (d === 'feedhint') return dToast('권속을 여기로 끌어다 놓으면 버리고 진액을 받습니다.');
   if (d === 'altar') { const r = DICE.altarPick(R, +b.dataset.i); if (!r.ok) return dToast(r.msg); dSay('coin'); dSave(); return dFlow(); }
@@ -12709,23 +12793,21 @@ document.addEventListener('click', e => {
   if (d === 'outnext') { R.out = null; $('modal').hidden = true; return dFlow(); }
   if (d === 'facesel') { DG.faceSel = { die: +b.dataset.die, face: +b.dataset.face }; dSay('click'); const sb = $('modal').querySelector('.sh-body'), y = sb ? sb.scrollTop : 0; dPendModal('pend', 0); const sb2 = $('modal').querySelector('.sh-body'); if (sb2) sb2.scrollTop = y; return; }
   if (d === 'psel') { DG.pickSel = +b.dataset.die; dSay('click'); const sb = $('modal').querySelector('.sh-body'), y = sb ? sb.scrollTop : 0; dPendModal(b.dataset.m, +b.dataset.i); const sb2 = $('modal').querySelector('.sh-body'); if (sb2) sb2.scrollTop = y; return; }
-  if (d === 'deckok') { try { localStorage.setItem(DDK, '1'); } catch (er) { /* 저장 없이 */ } if (TUT.cur && TUT.cur.k === 'deck') TUT.seen.deck = true; return dPendModal(b.dataset.m || 'pend', +b.dataset.i || 0); }
-  if (d === 'padd') { const r = DICE.pendPick(R, {}); if (!r.ok) { dSay('down'); return dToast(r.msg); } dSay('flip'); DG.dbg.deck = (DG.dbg.deck || 0) + 1; if (TUT.cur && TUT.cur.k === 'deck') TUT.seen.deck = true; dSave(); dRender(); dToast('기본 주사위가 주머니에 들었습니다 (주머니 ' + DICE.bag(R).length + '개)'); return dFlow(); }
+  if (d === 'padd') { const r = DICE.pendPick(R, {}); if (!r.ok) { dSay('down'); return dToast(r.msg); } dSay('flip'); DG.dbg.deck = (DG.dbg.deck || 0) + 1; dSave(); dRender(); dToast('기본 주사위가 주머니에 들었습니다 (주머니 ' + DICE.bag(R).length + '개)'); return dFlow(); }
   if (d === 'pskip') { const r = DICE.pendPick(R, { skip: true }); if (!r.ok) return dToast(r.msg); DG.pickSel = null; dSay('coin'); dSave(); dRender(); return dFlow(); }
   if (d === 'pok') { if (DG.pickSel == null) return; const m = b.dataset.m, i = +b.dataset.i, arg = { die: DG.pickSel }, nm = R.dice[arg.die] ? DICE.dieName(R.dice[arg.die]) : ''; const r = m === 'pend' ? DICE.pendPick(R, arg) : DICE.shopBuy(R, i, arg); if (!r.ok) { dSay('down'); return dToast(r.msg); }
     DG.pickSel = null; DG.dbg.deck = (DG.dbg.deck || 0) + 1; dSay(r.k === 'dye' ? 'drite' : m === 'pend' ? 'flip' : 'coin'); dSave(); dRender(); dToast(r.k === 'dye' ? dJo(nm, '이', '가') + ' ' + dAspN(r.asp) + (r.two ? '까지 물들어 두 색 주사위가 되었습니다' : '(으)로 물들었습니다') : R.dice[arg.die] && R.dice[arg.die].drop ? dJo(nm, '을', '를') + ' 주머니에서 뺐습니다' + (r.cost ? ' (진액 −' + r.cost + ')' : '') : dJo(nm, '이', '가') + ' 다듬어졌습니다'); return m === 'pend' ? dFlow() : dShopModal(); }
   if (d === 'faceto') { if (b.dataset.die === '') return; DG.faceSel = null; const r = DICE.pendPick(R, { die: +b.dataset.die, face: +b.dataset.face }); if (!r.ok) { dSay('down'); return dToast(r.msg); } dSay('flip'); dSave(); dRender(); return dFlow(); }
-  if (d === 'mythinfo') { if (TUT.cur && TUT.cur.k === 'myth') TUT.seen.myth = true; return dMythModal(); }
+  if (d === 'mythinfo') { return dMythModal(); }
   if (d === 'tutnext') return dTutIntro(+b.dataset.k);
-  if (d === 'tutskip') { const wasIntro = TUT.intro; dTutEnd(); dToast('길잡이를 건너뛰었습니다. 메뉴에서 다시 볼 수 있습니다.'); if (wasIntro) { $('modal').hidden = true; return dFlow(); } return; }
-  if (d === 'tutack') { if (TUT.cur) TUT.seen[TUT.cur.k] = true; return dTip(); }
-  if (d === 'tutagain') { dTutSave(null); if (META.diceTut === 'off') { META.diceTut = 0; try { saveMeta(); } catch (er) { /* 저장 없이 */ } } dTutStart(); return dTutIntro(0); }
+  if (d === 'tutack') return dTipAck();
+  if (d === 'tutagain') { dTutSave(null); dTipsReset(); if (META.diceTut === 'off') { META.diceTut = 0; try { saveMeta(); } catch (er) { /* 저장 없이 */ } } dTutStart(); return dTutIntro(0); }
   if (d === 'rank') return dShow(dBox('dg-rankm', '피해 순위', dRankHtml(), '<button class="btn sm" data-d="menu">메뉴로</button>', '<button class="sh-x" data-d="mclose" aria-label="닫기">✕</button>'));
   if (d === 'dropdo') { const p = DG.dropPend; $('dg-drop').hidden = true; DG.dropPend = null; if (p) dDo(p.uid, Object.assign({}, p.to, { act: b.dataset.act })); return; }
   if (d === 'dropno') { $('dg-drop').hidden = true; DG.dropPend = null; DG.offerPend = null; dTip(); return; }
   if (d === 'offerdo') return dOfferDo();
   if (d === 'overopen') return dOverModal();
-  if (d === 'resnext') { const R = DG.R; if (R && R.last && (R.last.dyed || []).length && !dDyeSeen()) DG.dyeNote = true; if (R && R.last && R.last.god && R.last.god.struck && !dGodSeen()) DG.godNote = true; if (R && R.last) R.last.seen = true; $('modal').hidden = true; dSay('flip'); dSave(); dRender(); return dFlow(); }
+  if (d === 'resnext') { const R = DG.R; if (TUT.on) dTutEnd(); if (R && R.last && (R.last.dyed || []).length && !dDyeSeen()) DG.dyeNote = true; if (R && R.last && R.last.god && R.last.god.struck && !dGodSeen()) DG.godNote = true; if (R && R.last) R.last.seen = true; $('modal').hidden = true; dSay('flip'); dSave(); dRender(); return dFlow(); }
 });
 document.addEventListener('keydown', e => {
   const k = e.key === 'Escape' || e.key === 'Enter' || e.key === ' ';
