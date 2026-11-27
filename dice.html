@@ -11505,8 +11505,8 @@ function dSetsLine(v) {
   if (v.phase !== 'roll' || DG.ui === 'fight' || DG.ui === 'leak') { const P = DG.lastParts; return band('done', `<p class="hd-1">${P && (v.phase === 'place' || DG.ui === 'fight' || DG.ui === 'leak') ? `<b>${dEsc(P.name)}</b>${DG.lastLost && v.phase === 'place' ? ` <span class="bad">${DG.lastLost.n}마리 놓침</span>` : ''}` : ''}</p>`); }
   if (DG.ui === 'shaking') return band('pre', '<p class="hd-1">떼면 던집니다</p>');
   if (!ro || !ro.n || DG.ui === 'rolling') return band('pre', DG.ui === 'rolling' ? '<p class="hd-1">구릅니다…</p>' : `<p class="hd-1 hd-draw">${v.dice.map(dDieChip).join('')}${v.torchNote ? '<span class="hd-torch">횃불 면이 섞였습니다</span>' : ''}</p>`);
-  const T = dGetToks(ro.gets || {});
-  return band('r' + ro.hand.rank, `<p class="hd-1"><b class="hd-n">${dEsc(ro.hand.name)}</b><span class="hd-ks">${T.toks}</span>${T.ex ? `<small class="hd-ex">${dEsc(T.ex)}</small>` : ''}</p>`);
+  const T = dGetToks(ro.gets || {}), g0 = (ro.hand.groups || [])[0], skip = !!(g0 && g0.run && g0.idx.length < (ro.hand.id === 'large' ? 5 : 4));
+  return band('r' + ro.hand.rank, `<p class="hd-1"><b class="hd-n">${dEsc(ro.hand.name)}</b>${skip ? '<small class="hd-ex hd-skip">한 칸 빠짐</small>' : ''}<span class="hd-ks">${T.toks}</span>${T.ex ? `<small class="hd-ex">${dEsc(T.ex)}</small>` : ''}</p>`);
 }
 const dSetsHtml = () => { if (DG.v) { const el = $('dg-sets'); if (el) el.innerHTML = dSetsLine(DG.v); } };
 const DPHB = { shop: '상점', altar: '제단', event: '사건', done: '다음' };
@@ -11556,7 +11556,7 @@ function dMiniImg(v) {
 }
 const dMini = (v, dim) => `<img class="hx${dim ? ' dim' : ''}" src="${dMiniImg(+v)}" alt="${v}">`;
 function dHandTabHtml(v) {
-  const ro = v.roll, cur = ro && ro.n && ro.hand ? ro.hand.id : null;
+  const ro = v.roll, cur = ro && ro.n && ro.hand && DG.ui !== 'rolling' && DG.ui !== 'shaking' ? ro.hand.id : null;
   return DICE.HAND_IDS.slice().reverse().map(k => { const x = DHEX[k] || ['', '']; return `<p class="ht r${DICE.HANDS[k].rank}${k === cur ? ' on' : ''}" data-h="${k}"><b>${dEsc(DICE.HANDS[k].name)}</b><span class="ht-d" aria-hidden="true">${x[0].split('').map(c => dMini(c)).join('')}${x[1].split('').map(c => dMini(c, 1)).join('')}</span></p>`; }).join('');
 }
 function dRender() {
