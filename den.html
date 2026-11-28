@@ -199,6 +199,12 @@ img.dn-ic { width: 16px; height: 16px; vertical-align: -3px; image-rendering: pi
 #dn-top { flex-wrap: wrap; row-gap: 0; }
 .dn-stat { font-size: 14px; padding: 0 3px; gap: 2px; }
 .dn-stat b.idle { color: var(--dn-gold); }
+/* 위 띠의 숫자마다 이름을 작게 붙인다 */
+#dn-top .dn-stat { flex-direction: column; align-items: center; gap: 0; line-height: 1.15; }
+#dn-top .dn-stat .v { display: inline-flex; align-items: center; gap: 2px; }
+#dn-top .dn-stat small { font-size: 11px; font-weight: 500; color: var(--dn-dim); white-space: nowrap; line-height: 1; }
+#dn-top { padding-bottom: 1px; }
+#dn-top.tight .dn-stat small { display: none; }
 .dn-stat.sus.warm { color: var(--dn-gold); }
 .dn-stat.sus.hot { color: var(--dn-red); }
 #dn-dband { flex: 0 0 auto; display: flex; align-items: center; gap: 6px; width: 100%; border: 0; border-bottom: 1px solid var(--dn-line); background: #251433; padding: 3px 8px; min-height: 30px; font-size: 14px; text-align: left; }
@@ -8934,11 +8940,13 @@ var DEN = (function () {
   };
   var JOBK = Object.keys(JOBS);
   var OUTCAP = [3, 4, 5, 6, 8], SUS_T = 8, DIGV = 4;
+  // 캐기: 같은 일에 여럿이 서면 뒤에 선 신도는 덜 낸다 (4 · 4 · 3 · 2 · 1 · 1 ...)
+  function digOut(n) { var t = 0; for (var i = 0; i < n; i++) t += i < 2 ? DIGV : Math.max(1, 5 - i); return t; }
   function tribOf(p) { return Math.floor(PLACE[p].base / 3); }
   var DEMANDS = {
     8: [{ k: 'fol6', t: '신도 다섯' }, { k: 'off3', t: '바친 제물 둘' }, { k: 'kin6', t: '권속 다섯' }],
-    16: [{ k: 'godout', t: '깃든 신 하나와 바깥 신도 넷' }, { k: 'follux', t: '신도 여덟과 호화 별 넷' }, { k: 'risen1', t: '넘어온 곳 하나' }],
-    24: [{ k: 'faith12', t: '믿음 합 열넷과 신도 일곱' }, { k: 'risen2', t: '넘어온 곳 둘과 본체 3단계' }, { k: 'fol15', t: '신도 여덟과 깃든 신 둘' }],
+    16: [{ k: 'godout', t: '깃든 신 하나와 바깥 신도 다섯' }, { k: 'follux', t: '신도 여덟과 호화 별 넷' }, { k: 'risen1', t: '넘어온 곳 하나와 신도 일곱' }],
+    24: [{ k: 'faith12', t: '믿음 합 열여섯과 신도 여덟' }, { k: 'risen2', t: '넘어온 곳 둘과 본체 3단계' }, { k: 'fol15', t: '신도 아홉과 깃든 신 둘' }],
   };
   function faithSum(G) { return ASP.reduce(function (a, g) { return a + G.faith[g]; }, 0); }
   function godsIn(G) { return ASP.filter(function (a) { return faithTier(G, a) >= 1; }).length; }
@@ -8950,12 +8958,12 @@ var DEN = (function () {
     var f = G.fol, two = function (a, b, c, d) { return a / b <= c / d ? [a, b] : [c, d]; };
     switch (k) {
       case 'fol6': return [f, 5]; case 'off3': return [G.offered, 2]; case 'kin6': return [G.kin.length, 5];
-      case 'godout': return two(godsIn(G), 1, outTotal(G) + risenN(G) * 4, 4);
+      case 'godout': return two(godsIn(G), 1, outTotal(G) + risenN(G) * 4, 5);
       case 'follux': return two(f, 8, luxStars(G), 4);
-      case 'risen1': return [risenN(G), 1];
-      case 'faith12': return two(faithSum(G), 14, f, 7);
+      case 'risen1': return two(risenN(G), 1, f, 7);
+      case 'faith12': return two(faithSum(G), 16, f, 8);
       case 'risen2': return two(risenN(G), 2, G.bossStage, 3);
-      case 'fol15': return two(f, 8, godsIn(G), 2);
+      case 'fol15': return two(f, 9, godsIn(G), 2);
     }
     return [0, 1];
   }
@@ -8963,11 +8971,12 @@ var DEN = (function () {
   function demandParts(G, k) {
     var f = G.fol;
     switch (k) {
-      case 'godout': return [[godsIn(G), 1], [outTotal(G) + risenN(G) * 4, 4]];
+      case 'godout': return [[godsIn(G), 1], [outTotal(G) + risenN(G) * 4, 5]];
       case 'follux': return [[f, 8], [luxStars(G), 4]];
       case 'risen2': return [[risenN(G), 2], [G.bossStage, 3]];
-      case 'fol15': return [[f, 8], [godsIn(G), 2]];
-      case 'faith12': return [[faithSum(G), 14], [f, 7]];
+      case 'risen1': return [[risenN(G), 1], [f, 7]];
+      case 'fol15': return [[f, 9], [godsIn(G), 2]];
+      case 'faith12': return [[faithSum(G), 16], [f, 8]];
     }
     return [demandProg(G, k)];
   }
@@ -9020,9 +9029,7 @@ var DEN = (function () {
     }
     // 물들이는 제물이 있으면 그 자리부터 (캐기에서 데려온다)
     while ((G.job.bind || 0) < Math.min(G.binding.length, s.bind || 0)) { if (!idleFol(G)) { var fr = ['mend', 'pray', 'boil', 'dig'].filter(function (k) { return G.job[k]; })[0]; if (!fr) break; G.job[fr]--; if (!G.job[fr]) delete G.job[fr]; } if (!put('bind')) break; }
-    if (/faith|godout|fol15|risen2/.test(want)) while (pull('pray')) { }
-    var land = placesOpen(G).filter(function (p) { return !G.risen[p]; });
-    if (/godout|risen|fol/.test(want) && G.sus < SUS_T - 2) land.slice(0, /fol/.test(want) ? 1 : 2).forEach(function (p) { pull('preach' + p); });
+    // 요구에 맞는 일(기도·포교)은 주인이 직접 세운다. 알아서 나누기는 먹이와 살림만 챙기고, 의심을 올리는 포교는 하지 않는다
     while (put('dig')) { } put('boil'); put('mend'); while (put('pray')) { }
     return { ok: true, n: n };
   }
@@ -9033,7 +9040,7 @@ var DEN = (function () {
     var need = G.fol + G.kin.length, food = foodTotal(G), starve = Math.max(0, Math.min(G.fol, need - food)), hungry = Math.max(0, starve - idleFol(G)), eff = {};
     Object.keys(G.job).forEach(function (k) { eff[k] = G.job[k]; });
     ['mend', 'boil', 'pray', 'bind', 'dig'].forEach(function (k) { while (hungry > 0 && eff[k] > 0) { eff[k]--; hungry--; } });
-    var boil = Math.min(eff.boil || 0, countBlk(G, 'pot')), work = Math.round((eff.dig || 0) * DIGV * (1 + 0.5 * boil)), trib = G.risen.reduce(function (a, r, p) { return a + (r ? tribOf(p) : 0); }, 0);
+    var boil = Math.min(eff.boil || 0, countBlk(G, 'pot')), work = Math.round(digOut(eff.dig || 0) * (1 + 0.5 * boil)), trib = G.risen.reduce(function (a, r, p) { return a + (r ? tribOf(p) : 0); }, 0);
     var preach = 0; Object.keys(G.job).forEach(function (k) { if (/^preach/.test(k)) preach += G.job[k]; });
     var sus = preach + Math.floor(outTotal(G) / 4);
     return { ichor: work + trib, work: work, trib: trib, eff: eff, food: [need, food], starve: starve, faith: (eff.pray || 0) ? Math.floor(((G.prayAcc || 0) + eff.pray) / 2) : 0, pray: G.job.pray || 0, sus: sus, idle: idleFol(G), bind: G.binding.length };
@@ -9048,7 +9055,7 @@ var DEN = (function () {
     if (starve && G.starve) { var gone = Math.min(starve, G.starve, G.fol); if (gone) { G.fol -= gone; G.sus += 1; G.st.fled += gone; msg.push('굶주린 신도 ' + nk(gone) + ' 달아났습니다.'); jobFix(G); } }
     G.starve = starve; if (starve) msg.push('먹이가 모자라 신도 ' + nk(starve) + ' 굶었습니다.');
     // 캐기·졸이기
-    var boil = Math.min(eff.boil || 0, countBlk(G, 'pot')), dig = eff.dig || 0, got = Math.round(dig * DIGV * (1 + 0.5 * boil)), pops = [];
+    var boil = Math.min(eff.boil || 0, countBlk(G, 'pot')), dig = eff.dig || 0, got = Math.round(digOut(dig) * (1 + 0.5 * boil)), pops = [];
     if (got) { CELLS.forEach(function (c) { if (c !== 'b' && roomOf(G, c).b.indexOf('spring') >= 0) pops.push({ id: c, v: 0 }); }); var share = pops.length ? Math.floor(got / pops.length) : 0; pops.forEach(function (p, i) { p.v = share + (i === 0 ? got - share * pops.length : 0); }); }
     G.ichor += got; G.st.inc.home += got; G.led.home += got; G.led.pops = G.led.pops.concat(pops);
     // 넘어온 곳의 공물
@@ -9676,7 +9683,7 @@ var DEN = (function () {
     buy: buy, reroll: reroll, kinRow: kinRow, kinName: kinName, kinRelease: kinRelease, offer: offer,
     placesOpen: placesOpen, strikeStart: strikeStart, strikeRoll: strikeRoll, strikeStop: strikeStop, strikeEnd: strikeEnd, rest: rest,
     raidStep: raidStep, raidAnswer: raidAnswer, useOrb: useOrb, manById: manById, inCave: inCave, tallyClose: tallyClose, grade: grade, ga: ga, eun: eun, nk: nk,
-    JOBS: JOBS, JOBK: JOBK, OUTCAP: OUTCAP, SUS_T: SUS_T, DIGV: DIGV, tribOf: tribOf, DEMANDS: DEMANDS, jobSlots: jobSlots, setJob: setJob, autoJobs: autoJobs, idleFol: idleFol, working: working, landMax: landMax, landUsed: landUsed, forecast: forecast, foodTotal: foodTotal, jobFix: jobFix, bindStart: bindStart, demandsView: demandsView, demandNext: demandNext, demandProg: demandProg, demandParts: demandParts, raidAuto: raidAuto, replayMake: replayMake, workCells: workCells, workersIn: workersIn, placesStrike: placesStrike, outTotal: outTotal, risenN: risenN, godsIn: godsIn,
+    JOBS: JOBS, JOBK: JOBK, OUTCAP: OUTCAP, SUS_T: SUS_T, DIGV: DIGV, digOut: digOut, tribOf: tribOf, DEMANDS: DEMANDS, jobSlots: jobSlots, setJob: setJob, autoJobs: autoJobs, idleFol: idleFol, working: working, landMax: landMax, landUsed: landUsed, forecast: forecast, foodTotal: foodTotal, jobFix: jobFix, bindStart: bindStart, demandsView: demandsView, demandNext: demandNext, demandProg: demandProg, demandParts: demandParts, raidAuto: raidAuto, replayMake: replayMake, workCells: workCells, workersIn: workersIn, placesStrike: placesStrike, outTotal: outTotal, risenN: risenN, godsIn: godsIn,
     EVN: EVN, pathShape: pathShape, _d: d, _GEN: GEN,
   };
 })();
@@ -9873,7 +9880,9 @@ const save = () => { if (U.G && !U.replay) store.set('run', D.save(U.G)); };
 function toast(msg, ms) {
   const t = $('dn-toast'); if (U.G && U.G.phase === 'raid') return; t.textContent = msg; t.hidden = false;
   const note = $('dn-note'), sb = document.querySelector('#dn-sheet .dn-sbox'), r = note && !$('dn').hidden ? note.getBoundingClientRect() : null;
-  t.style.top = (sb ? Math.max(6, sb.getBoundingClientRect().top - 48) : r ? r.top : 42) + 'px';
+  // 알림은 굴 그림 위에 띄운다 (아래 단추와 예상 장부를 가리지 않게)
+  const cw = $('dn-cavew'), cr = cw && !$('dn').hidden ? cw.getBoundingClientRect() : null;
+  t.style.top = (sb ? Math.max(6, sb.getBoundingClientRect().top - 48) : cr ? cr.top + 6 : r ? r.top : 42) + 'px';
   clearTimeout(toast.t); toast.t = setTimeout(() => { t.hidden = true; }, ms || 1800);
 }
 const CELLN = D.CELLN;
@@ -9957,10 +9966,12 @@ function draw() {
   if (root.dataset.m !== md) { root.dataset.m = md; root.className = md; }
 
   const idle = D.idleFol(G), sus = G.sus;
-  $('dn-top').innerHTML = `<span class="dn-stat night">${ic('ic_night')}${Math.min(G.night, D.K.nights)}/${D.K.nights}</span>`
-    + `<span class="dn-stat" aria-label="진액 ${G.ichor}">${ic('ic_ichor')}${G.ichor}</span><span class="dn-stat" id="dn-fol" aria-label="신도 ${G.fol}, 노는 이 ${idle}">${ic('ic_follower')}${idle ? `<b class="idle">${idle}</b>/` : ''}${G.fol}</span><span class="dn-stat" aria-label="제물 ${G.cap}">${ic('ic_captive')}${G.cap}</span>`
-    + `<span class="dn-stat" aria-label="공포 ${G.fear}">${ic('ic_fear')}${G.fear}</span><span class="dn-stat sus${sus >= D.SUS_T ? ' hot' : sus >= D.SUS_T - 3 ? ' warm' : ''}" id="dn-sus" aria-label="의심 ${sus}">${ic('ic_suspect')}${sus}</span>`
+  $('dn-top').innerHTML = `<span class="dn-stat night"><span class="v">${ic('ic_night')}${Math.min(G.night, D.K.nights)}/${D.K.nights}</span><small>밤</small></span>`
+    + `<span class="dn-stat" aria-label="진액 ${G.ichor}"><span class="v">${ic('ic_ichor')}${G.ichor}</span><small>진액</small></span><span class="dn-stat" id="dn-fol" aria-label="신도 ${G.fol}, 노는 이 ${idle}"><span class="v">${ic('ic_follower')}${idle ? `<b class="idle">${idle}</b>/` : ''}${G.fol}</span><small>신도</small></span><span class="dn-stat" aria-label="제물 ${G.cap}"><span class="v">${ic('ic_captive')}${G.cap}</span><small>제물</small></span>`
+    + `<span class="dn-stat" aria-label="공포 ${G.fear}"><span class="v">${ic('ic_fear')}${G.fear}</span><small>공포</small></span><span class="dn-stat sus${sus >= D.SUS_T ? ' hot' : sus >= D.SUS_T - 3 ? ' warm' : ''}" id="dn-sus" aria-label="의심 ${sus}"><span class="v">${ic('ic_suspect')}${sus}</span><small>의심</small></span>`
     + `<span class="dn-sp"></span><button id="dn-menub" data-a="menu" aria-label="메뉴">☰</button>`;
+  // 이름을 붙이면 한 줄에 안 들어가는 화면(큰 글씨)에서는 이름을 뺀다
+  { const tp = $('dn-top'), f = tp.firstElementChild, mb = $('dn-menub'); tp.classList.remove('tight'); if (f && mb && mb.offsetTop > f.offsetTop + f.offsetHeight - 4) tp.classList.add('tight'); }
   bandDraw();
   const C = D.cap(G), stars = Math.min(10, Math.ceil(C.lux / 4));
   $('dn-capl').innerHTML = `<span class="${C.seats[2] > C.seats[1] ? 'short' : ''}" id="dn-cap-seat">${ic('ic_seat', 1)}자리 ${C.seats[0]}/${C.seats[1]}</span><span class="${C.larder[0] >= C.larder[1] ? 'short' : ''}" id="dn-cap-lard">${ic('ic_larder', 1)}제물 ${C.larder[0]}/${C.larder[1]}</span><span class="lux" id="dn-cap-lux">${ic('ic_lux', 1)}${'★'.repeat(stars) || '☆'}</span>`;
@@ -9982,7 +9993,8 @@ function draw() {
   if (ask) { const q = G.raid.ask; $('dn-ask').innerHTML = `<p>${esc(D.ga(q.name))} 죽습니다. 제물 하나를 바쳐 다시 굴립니까</p><div class="dn-askb">${G.cap > 0 ? '<button class="pri" data-a="ans" data-v="offer">바친다</button>' : ''}${q.orb ? '<button data-a="ans" data-v="orb">번식의 구슬</button>' : ''}<button data-a="ans" data-v="let">보낸다</button></div>`; }
   // 운영판: 도면 높이는 남는 자리에서 일손 표 몫(줄 셋 남짓)을 먼저 떼고 잡는다 (큰 글씨에서도 표가 보이게)
   if (md === 'board') { let fixed = 0; Array.from(root.children).forEach(e => { if (e.id !== 'dn-cavew' && e.id !== 'dn-board' && !e.hidden && e.offsetParent !== null) fixed += e.offsetHeight; }); const rowH = (document.querySelector('#dn-board .dn-jr') || { offsetHeight: 40 }).offsetHeight || 40, want = Math.round(window.innerHeight * 0.3);
-    $('dn-cavew').style.height = Math.max(120, Math.min(240, want, root.clientHeight - fixed - Math.round(rowH * 3.6 + 30))) + 'px'; }
+    // 일손 표가 여섯 줄 남짓 보이게 먼저 떼고, 남는 것만 도면에 준다 (가장 낮게 120)
+    $('dn-cavew').style.height = Math.max(120, Math.min(240, want, root.clientHeight - fixed - Math.round(rowH * 6.6 + 30))) + 'px'; }
   else $('dn-cavew').style.height = '';
   guideTick();
 }
@@ -11178,7 +11190,7 @@ function guideStep() {
   }
   if (n === 3) return deck || sh ? null : ['restRaid', '[data-a="rest"]', '발소리가 들립니다. 「쉰다」로 밤을 넘기면 침입이 옵니다. 첫 침입은 직접 봅니다.'];
   if (n === 4) {
-    if (!deck) { if (!gSeen('autojobs') && !sh) return ['autojobs', '#dn-autojobs', '「알아서 나누기」는 노는 신도를 알맞은 일에 세웁니다. 눌러 보세요.']; return sh ? null : ['deck2', '[data-a="deck"]', '「꾸민다」로 방과 권속을 손봅니다.']; }
+    if (!deck) { if (!gSeen('autojobs') && !sh) return ['autojobs', '#dn-autojobs', '「알아서 나누기」는 먹이와 캐기부터 채웁니다. 기도와 포교는 직접 세우세요. 눌러 보세요.']; return sh ? null : ['deck2', '[data-a="deck"]', '「꾸민다」로 방과 권속을 손봅니다.']; }
     if (G.cells.el === 'es_none') {
       if (sh === 'cell' && U.sheet.id === 'el') return U.sheet.pick === 'es_spring' ? ['springPut', '#dn-place', '「놓는다」를 누르세요. 진액 샘은 밤마다 진액을 냅니다.'] : ['spring', '#dn-sheet [data-t="es_spring"]', '표에서 진액 샘을 고르세요.'];
       if (sh) return ['closeAny', '#dn-sheet .dn-x', '닫기를 누르세요.'];
@@ -11209,6 +11221,7 @@ function guideOnce() {
   if (!sh && G.cmd !== 'deck' && D.forecast(G).starve && !gSeen('starve')) return ['starve', '#dn-fc-food', '먹이가 모자랍니다. 굶은 신도는 일하지 않고, 두 밤 굶으면 달아납니다. 가꾸기에 세우세요.'];
   if (!sh && G.rose && G.rose.length && !gSeen('rise')) return ['rise', '#dn-note', '바깥 신도가 가득 찬 곳이 들고일어나 넘어왔습니다. 공물이 들어오고, 그곳은 더 치지 않습니다.'];
   if (!sh && G.sus > 0 && !gSeen('sus')) return ['sus', '#dn-sus', '의심입니다. 포교와 바깥 신도로 오르고, 8이 되면 색출대가 옵니다. 쉬면 내립니다.'];
+  if (!sh && G.cmd !== 'deck' && (G.job.dig || 0) >= 3 && !gSeen('digless')) return ['digless', '#dn-board [data-a="job"][data-k="dig"][data-d="-1"]', '같은 일에 여럿이 서면 뒤에 선 신도는 덜 냅니다. 남는 신도는 기도나 포교로 돌리세요.'];
   if (G.cmd === 'deck' && !sh && D.roomOpen(G, 'e_split') && !gSeen('fork')) return ['fork', cellT('e'), '입구에 갈림길을 놓으면 사람들이 세 갈래로 나뉩니다. 옆 칸의 살림도 드러납니다.'];
   if (G.cmd === 'deck' && !sh && D.newRooms(G).length && !gSeen('newroom')) return ['newroom', '#dn-note', '굴에 진액을 쓸수록 새 방이 열립니다.'];
   if (!sh && G.kin.some(k => !k.at) && !gSeen('seats')) return ['seats', '#dn-cap-seat', '자리가 모자라 굴 밖에서 기다리는 권속이 있습니다. 둥지를 지으세요.'];
