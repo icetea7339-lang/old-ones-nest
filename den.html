@@ -174,6 +174,26 @@ img.dn-ic { width: 16px; height: 16px; vertical-align: -3px; image-rendering: pi
 @media (orientation: landscape) and (max-height: 460px) { #rotate { display: flex; position: fixed; inset: 0; z-index: 99; align-items: center; justify-content: center; background: var(--dn-bg); font-size: 18px; } }
 .dn-infos { display: flex; flex-wrap: wrap; gap: 4px; margin: 8px 0 4px; }
 .dn-infos button { flex: 0 0 auto; font-size: 13px; padding: 5px 8px; }
+
+/* ---------- 쿼터뷰 위의 작은 단추, 침입 띠, 방 표 ---------- */
+#dn-isob { position: absolute; right: 6px; top: 6px; display: flex; gap: 4px; z-index: 2; }
+.dn-mini { border: 0; border-radius: 8px; padding: 5px 9px; background: rgba(40, 24, 56, .88); color: var(--dn-ink); font-size: 13px; font-weight: 700; box-shadow: 0 2px 6px rgba(0,0,0,.4); }
+#dn-raidc { grid-template-columns: 1fr auto auto; align-items: center; }
+#dn-raidc button { padding: 0 14px; }
+.dn-mind { display: block; height: 14px; border-radius: 7px; background: #2a1838; overflow: hidden; border: 1px solid #4d3366; }
+.dn-mind i { display: block; height: 100%; background: linear-gradient(90deg, #b08cf0, #5fd6c2); transition: width .3s; }
+.dn-rhead, .dn-rrow { display: grid; grid-template-columns: minmax(0, 1fr) 30px 30px 30px 40px; gap: 2px; align-items: center; text-align: center; }
+.dn-rhead { font-size: 13px; color: var(--dn-dim); padding: 4px 6px; border-bottom: 1px solid var(--dn-line); }
+.dn-rhead > span:first-child { text-align: left; }
+.dn-rhead img { width: 14px; height: 14px; image-rendering: pixelated; justify-self: center; }
+.dn-rrow { width: 100%; border: 0; background: transparent; padding: 7px 6px; font-size: 14px; border-bottom: 1px solid #33223f; }
+.dn-rrow .nm { text-align: left; font-weight: 700; min-width: 0; overflow-wrap: anywhere; }
+.dn-rrow.cur { background: rgba(95, 214, 194, .12); }
+.dn-rrow.pick { background: rgba(242, 194, 90, .18); }
+.dn-rrow.lock { color: var(--dn-faint); }
+.dn-rrow .no, .dn-desc b.no { color: var(--dn-red); }
+.dn-prev { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 4px; }
+.dn-prev canvas { flex: 0 0 auto; width: 128px; height: 80px; border-radius: 8px; image-rendering: pixelated; }
 </style>
 </head><body style="margin:0">
 <div id="dn-title">
@@ -233,6 +253,18 @@ var DENART = (function () {
   spec('mk_leader', 6, 6, BASE); spec('mk_scout', 6, 6, BASE);
   ['ev_calm', 'ev_dark', 'ev_breath', 'ev_whisper', 'ev_floor', 'ev_egg', 'ev_gaze', 'ev_hunger'].forEach(function (i) { spec(i, 12, 12, BASE); });
   spec('d20_them', 16, 16, BASE); spec('d20_us', 16, 16, BASE);
+  spec('iso_void', 32, 16, BASE); spec('iso_road', 32, 16, ['v0', 'v1', 'v2']); spec('iso_road_lit', 32, 16, BASE);
+  spec('iso_room', 32, 16, ['v0', 'v1']); spec('iso_side', 32, 16, ['v0', 'v1']); spec('iso_empty', 32, 16, ['v0', 'v1']);
+  spec('iso_boss', 32, 16, ['v0', 'v1']); spec('iso_vault', 32, 16, BASE); spec('iso_grass', 32, 16, ['v0', 'v1', 'v2']);
+  spec('iso_water', 32, 16, FX2);
+  ['iso_wall_l', 'iso_wall_r', 'iso_door_l', 'iso_door_r', 'iso_lamp'].forEach(function (i) { spec(i, 32, 32, BASE); });
+  spec('iso_wall_boss_l', 32, 40, BASE); spec('iso_wall_boss_r', 32, 40, BASE);
+  ['iso_maze', 'iso_rock', 'iso_bush', 'iso_thorn', 'iso_mushbed'].forEach(function (i) { spec(i, 32, 24, BASE); });
+  spec('iso_tree', 32, 40, ['v0', 'v1']); spec('iso_gate', 32, 40, BASE);
+  spec('iso_hoard1', 32, 24, BASE); spec('iso_hoard2', 40, 32, BASE); spec('iso_hoard3', 48, 40, BASE); spec('iso_hoard4', 64, 48, BASE);
+  spec('iso_tomb', 16, 16, BASE); spec('iso_shadow', 16, 8, BASE);
+  spec('iso_ring_us', 20, 10, BASE); spec('iso_ring_them', 20, 10, BASE); spec('iso_sel', 32, 16, BASE); spec('iso_arrow', 16, 16, BASE);
+  spec('box_fight', 48, 48, BASE); spec('box_floor', 32, 8, BASE); spec('box_tail', 12, 8, BASE);
   ['ic_deck', 'ic_strike', 'ic_rest', 'ic_call', 'ic_done'].forEach(function (i) { spec(i, 12, 12, BASE); });
 
   var IDS = Object.keys(SPEC);
@@ -5442,6 +5474,1195 @@ var DENART = (function () {
       ".......xxx......",
       "................"]
   } };
+  ART["iso_void"] = { p: {"a": "#140b1c", "b": "#1e1228"}, f: {
+    "base": [
+      "...............aa...............",
+      ".............aaaaaa.............",
+      "...........aaaaaaaaaa...........",
+      ".........aaaaaaaaaaaaaa.........",
+      ".......aaaaaaaaaaaaaaaaaa.......",
+      ".....aaaaaaaaaaaaaaaaaaaaaa.....",
+      "...aaaaaaaaaaaaaaaaaaaaaaaaaa...",
+      ".aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.",
+      ".abaaaaaaaaaaaaaaaaaaaaaaaaaaab.",
+      "...abaaaaaaaaaaaaaaaaaaaaaaab...",
+      ".....abaaaaaaaaaaaaaaaaaaab.....",
+      ".......abaaaaaaaaaaaaaaab.......",
+      ".........abaaaaaaaaaaab.........",
+      "...........abaaaaaaab...........",
+      ".............abaaab.............",
+      "...............ab..............."]
+  } };
+  ART["iso_road"] = { p: {"a": "#7a4262", "b": "#5e3350", "c": "#985a7a", "d": "#4e2846", "e": "#b07890"}, f: {
+    "v0": [
+      "...............ac...............",
+      ".............caaaca.............",
+      "...........acaaaaaaac...........",
+      ".........caaaaaaaaaaaca.........",
+      ".......acaaaccaccaccaaeac.......",
+      ".....caaaaaacaccaccaaaaaaca.....",
+      "...acaaaaaaaaceaccacaaaaaaaac...",
+      ".caabaaaaadaccaccaccaaacaadaaca.",
+      ".bbaaaaaaaaacaceaccaaaaaaaaaabb.",
+      "...bbaaaaaabcccaccacaaaaaabbb...",
+      ".....bbaaaaaccaccaccaaaaabb.....",
+      ".......bbaaacaccaccaaaabb.......",
+      ".........bbaaaaaaaaaabb.........",
+      "...........bbaaaaaabb...........",
+      ".............bbabbb.............",
+      "...............bb..............."],
+    "v1": [
+      "...............ac...............",
+      ".............caaaca.............",
+      "...........acaaaaaaac...........",
+      ".........cabaaaaaaaaaca.........",
+      ".......acaaacaccaccaaaaac.......",
+      ".....caaaaaaaccaccacaaaaaca.....",
+      "...acaaaaaaaccaecaccaaaaaaaac...",
+      ".caaaaaaaaaacaccaccaaaaaaaaaaca.",
+      ".bbaaaaaaaaaaccaccaceaaaaaaaabb.",
+      "...bbadaaaaacccccacceaaaaaabb...",
+      ".....bbaaaaacacccccaaaaaabb.....",
+      ".......bbaaaaccaccacaaabb.......",
+      ".........bbaaaaaaaaaabb.........",
+      "...........bbaaaaaabb...........",
+      ".............bbaabb.............",
+      "...............bb..............."],
+    "v2": [
+      "...............ac...............",
+      ".............caaaca.............",
+      "...........acabaaaaac...........",
+      ".........caaaaaaaaadaca.........",
+      ".......acaaeaccaccacaabac.......",
+      ".....caaaaaaccaccaccaaabaca.....",
+      "...acdaaaaaacaceaccaabaaaaaac...",
+      ".caaaaaaaaaaaccaecacaaaaaaaaaca.",
+      ".bbaaaaaaaaaccaccaccaaaaaaaaabb.",
+      "...bbaaaaaaacaccaccaaaaaaaabb...",
+      ".....bbacaaaaccaccacaaaaabb.....",
+      ".......bbaaaccaccaccadabb.......",
+      ".........bbaaaaaaaaaabb.........",
+      "...........bbaaaaaabb...........",
+      ".............bbaabb.............",
+      "...............bb..............."]
+  } };
+  ART["iso_road_lit"] = { p: {"a": "#8a5468", "b": "#6a3c58", "c": "#b07a84", "d": "#5a3450", "e": "#e0b08a"}, f: {
+    "base": [
+      "...............ac...............",
+      ".............caaaca.............",
+      "...........acaaaaaaac...........",
+      ".........cacacacacacaca.........",
+      ".......acacacacacacacaaac.......",
+      ".....caaaaacacacacacacaaaca.....",
+      "...acaaaaacaedcacacacaaaaaaac...",
+      ".caaaaaaaaacccacecacacaaaaaaaca.",
+      ".bbaaaaaaacacacececacaaaaaaaabb.",
+      "...bbadaaaacacccecacacaaaaabb...",
+      ".....bbaaacacacacacaeaaaabb.....",
+      ".......bbaacacacacacacabb.......",
+      ".........bcacacacacacbb.........",
+      "...........bbaaaaaabb...........",
+      ".............bbaabb.............",
+      "...............bb..............."]
+  } };
+  ART["iso_room"] = { p: {"a": "#5c4a84", "b": "#463870", "c": "#7664a2", "d": "#3c2e5e"}, f: {
+    "v0": [
+      "...............ac...............",
+      ".............cacaca.............",
+      "...........acaaaaaaac...........",
+      ".........caacaaaaaaaaca.........",
+      ".......abbaaaaaaaaaaaabbc.......",
+      ".....caaaabbcaaaaaaabbaaaca.....",
+      "...accaaaaaabbaaaabbacaaaabac...",
+      ".caaaaaaaaaaaabbbbaaaaaaaaaaaca.",
+      ".ddaaaaaabaaaabbbbaaaaaaaaaaadd.",
+      "...ddaaaaaaabbaaaabbaaaaaaadd...",
+      ".....ddababbbaaaaaaabbaaadd.....",
+      ".......dbbaaaaaaaaaaaabbd.......",
+      ".........ddaaaaaaaaaadd.........",
+      "...........ddaaaaaadd...........",
+      ".............ddaadd.............",
+      "...............dd..............."],
+    "v1": [
+      "...............ac...............",
+      ".............caaaca.............",
+      "...........acaaaaaaac...........",
+      ".........caaaaaaaaaaaca.........",
+      ".......abbaaaaaaaaaaaabbc.......",
+      ".....caaaabbaaaaaaaabbaaaca.....",
+      "...acaaaaccabbaaaabbaaaaaaaac...",
+      ".caaaaaaabaaaabbbbaaaaaaaaaaaca.",
+      ".ddaaaaaaaaaaabbbbaaaaaaaaaaadd.",
+      "...ddaaaaaaabbaaaabbaaaaaabdd...",
+      ".....ddaaabbaaaaaaaabbddadd.....",
+      ".......dbbaaaaaaaaaaaabbd.......",
+      ".........ddaaaaaaaaaadd.........",
+      "...........ddaaaaaadd...........",
+      ".............ddaadd.............",
+      "...............dd..............."]
+  } };
+  ART["iso_side"] = { p: {"a": "#46395e", "b": "#352a4a", "c": "#5a4c72", "d": "#2c2240", "m": "#4e7a4a", "M": "#6a9a5a"}, f: {
+    "v0": [
+      "...............ac...............",
+      ".............caaaca.............",
+      "...........acaaaaaaac...........",
+      ".........caaaaaaacaaaca.........",
+      ".......acaaaaaaaaaaaaabbc.......",
+      ".....caaaaMmaaaaaaaabbaaaca.....",
+      "...acaaaaaaaaaaaaabbaaaaaaaac...",
+      ".caaaaaaaaaaaaaabbaaaaaaaaaaaca.",
+      ".ddaaaaaaaaaabbbMaacaaaaaaaaadd.",
+      "...ddaaacaaabbaaaaaaaaaaaamdd...",
+      ".....ddaaabbaaamaaaaaaaaadd.....",
+      ".......dbbaaaaaaaaaaaaadd.......",
+      ".........ddaaaaaaaaaadd.........",
+      "...........ddaaaaaadd...........",
+      ".............ddaadd.............",
+      "...............dd..............."],
+    "v1": [
+      "...............ac...............",
+      ".............caaaca.............",
+      "...........acaaaaaaac...........",
+      ".........caaaaaaaaaaaca.........",
+      ".......acaaaaabaaaaaaabbc.......",
+      ".....caaaaaaaaaaaaaabbaaaca.....",
+      "...acaaamaaaaaacaabbmbamaabac...",
+      ".caaaaaaaaaaaaaabbaaamaaaaaaaca.",
+      ".ddaaaaaaaaaaabbaaaaaaaaaaaaadd.",
+      "...ddaMaaaaMbbaaaaaaaaaaaaadd...",
+      ".....ddaaabbacaamamaaaaaadd.....",
+      ".......dbbamaaaaaaaaaaadd.......",
+      ".........ddaaaaaaaaaadd.........",
+      "...........ddmaaaaadd...........",
+      ".............ddaadd.............",
+      "...............dd..............."]
+  } };
+  ART["iso_empty"] = { p: {"a": "#30243a", "b": "#261c30", "c": "#3e3048", "d": "#1c1424"}, f: {
+    "v0": [
+      "...............aa...............",
+      ".............aaaaaa.............",
+      "...........aaaacdaaaa...........",
+      ".........aaaaaaaaaaabaa.........",
+      ".......aaaaaabbaaaaaaaaaa.......",
+      ".....aaaaaaaccaaaaabaaaacaa.....",
+      "...aaaacaabaddaaaaaaaaaaaacaa...",
+      ".aaaaaaaaadaccaaaaaaaaaaaaaaaaa.",
+      ".ddaaaaaaaaaddaaaaaaaabaaaaaadd.",
+      "...ddaaaaadaaaccaaabaaaaaaadd...",
+      ".....ddaaaadaaddbaaabaaaadd.....",
+      ".......ddaaaaaaaaaaaaaadd.......",
+      ".........ddaaaaaaaaaadd.........",
+      "...........ddaaaaaadd...........",
+      ".............ddcadd.............",
+      "...............dd..............."],
+    "v1": [
+      "...............aa...............",
+      ".............aaabaa.............",
+      "...........aabaaaaaaa...........",
+      ".........aaaaaaaaaaaaaa.........",
+      ".......aabacaaaaaaaccaaaa.......",
+      ".....aaaabaaccbaaaaddaaaaaa.....",
+      "...aaaaaaaaaddaaaaaaaaaaaaaaa...",
+      ".aaaaaaaaaaaaaadaaaabaaaacaaaaa.",
+      ".ddbaaaaaaaaaaaccaaaaaaaaaacadd.",
+      "...ddaaaaaaaaaaddaaaaaaabaadd...",
+      ".....ddaaaaaaaaaaaaaaaaabdd.....",
+      ".......ddaaaaaaaaaaaaaadd.......",
+      ".........ddaaaaaababadd.........",
+      "...........ddaaaaaadd...........",
+      ".............ddaadd.............",
+      "...............dd..............."]
+  } };
+  ART["iso_boss"] = { p: {"a": "#a24c96", "b": "#7c3474", "c": "#c873b8", "d": "#5e2458"}, f: {
+    "v0": [
+      "...............ab...............",
+      ".............abaaab.............",
+      "...........abaaayaaab...........",
+      ".........abaaabaaabaaab.........",
+      ".......abaaayaaabaaayaaab.......",
+      ".....abaaabaaabaaabaaabaaab.....",
+      "...abaaayaaabaaayaaabaaayaaab...",
+      ".abaaabaaabaaabacabaaabaaabaaab.",
+      ".ddayaaabaaayaacycaayaaabaaaydd.",
+      "...ddabaaabaaabacabaaabaaabdd...",
+      ".....ddayaaabaaayaaabaaaydd.....",
+      ".......ddabaaabaaabaaabdd.......",
+      ".........ddayaaabaaaydd.........",
+      "...........ddabaaabdd...........",
+      ".............ddaydd.............",
+      "...............dd..............."],
+    "v1": [
+      "...............Yy...............",
+      ".............yYccyY.............",
+      "...........YycaayacYy...........",
+      ".........yYcaabaaabacyY.........",
+      ".......YycaayaaabaaayacYy.......",
+      ".....yYcaabaaabaaabaaabacyY.....",
+      "...YycaayaaabaaayaaabaaayacYy...",
+      ".yYcaabaaabaaabaaabaaabaaabacyY.",
+      ".yYcyaaabaaayaaabaaayaaabaaacyY.",
+      "...YycbaaabaaabaaabaaabaaacYy...",
+      ".....yYcyaaabaaayaaabaaacyY.....",
+      ".......YycbaaabaaabaaacYy.......",
+      ".........yYcyaaabaaacyY.........",
+      "...........YycbaaacYy...........",
+      ".............yYccyY.............",
+      "...............Yy..............."]
+  } };
+  ART["iso_vault"] = { p: {"a": "#5a4a62", "b": "#463a4e", "c": "#74647a", "d": "#3a2e42"}, f: {
+    "base": [
+      "...............ac...............",
+      ".............caaaca.............",
+      "...........acaaaaaaac...........",
+      ".........caaaaaaaaaaaca.........",
+      ".......abbabaaaaaaaaaabbc.......",
+      ".....caaaabbaaaaaaaabbaaaca.....",
+      "...acaaaaaaabbaaaabbaaaaaaaac...",
+      ".caacaaaaaaaaabbbbaaaaaaaaaaaca.",
+      ".ddaaaaaybaaaabbbbaaaaaaaaaaadd.",
+      "...ddacabaaabbcaaabbaaaaaaadd...",
+      ".....ddyaabbaaaaaaaabbaaYdd.....",
+      ".......dbbaaaaaaaaaaaabbd.......",
+      ".........ddaaaaaaaaaadd.........",
+      "...........ddaaaaaadd...........",
+      ".............ddaadd.............",
+      "...............dd..............."]
+  } };
+  ART["iso_grass"] = { p: {"a": "#2c4a40", "b": "#223a32", "c": "#3e6252", "d": "#1a2e28"}, f: {
+    "v0": [
+      "...............aa...............",
+      ".............aaaaaa.............",
+      "...........aaaaaaaaaa...........",
+      ".........acaaaaaaaaaaaa.........",
+      ".......aaaccaaaaaaadaaaaa.......",
+      ".....aaaaaaaaaaaaaaaaaaaaaa.....",
+      "...aaaaaaaaaacaaaaaaaacaaaaaa...",
+      ".aaaaaaaaaaaaccaaaaaaacccaaaaaa.",
+      ".bbaaaaaaaaaaaaaaaaabaaaccaaabb.",
+      "...bbaabaaaaaaaaaaaaaabaaaabb...",
+      ".....bbabaaaaaaaaaaaaaaaabb.....",
+      ".......bbaaaaaaaaaccaaabb.......",
+      ".........bbaaaaaaacccbb.........",
+      "...........bbbaaaaabb...........",
+      ".............bbabbb.............",
+      "...............bb..............."],
+    "v1": [
+      "...............aa...............",
+      ".............aaaaaa.............",
+      "...........aaaaaaaaaa...........",
+      ".........aaaaaaaaaaaaaa.........",
+      ".......aacaabaaabaaaaaaaa.......",
+      ".....aaaaccacaaaaaaaaabaaaa.....",
+      "...aabaaaaaaccaaaaaaaaaaaaaaa...",
+      ".aaaaaaaaagaaaaaaaaaaaaaaaaaaaa.",
+      ".bbaaaaaaaaabaaaaaaaaaaaaaaaabb.",
+      "...bbaaaaaaaaaaacacaaanaaaabb...",
+      ".....bbaaaaaaaaaccccaaaaabb.....",
+      ".......bbaaaaaaddaaaaaabb.......",
+      ".........bbaadaaaaaaabb.........",
+      "...........bbaaaaaabb...........",
+      ".............bbaabb.............",
+      "...............bb..............."],
+    "v2": [
+      "...............aa...............",
+      ".............aaaaaa.............",
+      "...........aaaaaaabaa...........",
+      ".........aaacaaaaaaaaaa.........",
+      ".......aaaaaccaaaaacadaaa.......",
+      ".....aaaaaaaaaaaaaZccaaaaaa.....",
+      "...aaaaaaaaaaaaaaaaaaaaaaaaaa...",
+      ".aaaaaaaaaaaaaaaaaaaababaaaaaaa.",
+      ".bbaaaaaaaaaaaaaaaaaaaaaaabaabb.",
+      "...bbaaaaaaaaaaaaaaaaaaaaaabb...",
+      ".....bbaaaaagaaaacaaaacaabb.....",
+      ".......bbaaaaaadaccaacccb.......",
+      ".........bbaaaaaaaaaacc.........",
+      "...........bbaaaaaabb...........",
+      ".............bbaabb.............",
+      "...............bb..............."]
+  } };
+  ART["iso_water"] = { p: {"a": "#244370", "b": "#1a3254", "c": "#4a7ab0", "d": "#9ccaf0"}, f: {
+    "f0": [
+      "...............ac...............",
+      ".............caaaca.............",
+      "...........acaaaaaaac...........",
+      ".........caaaaaaaaaaaca.........",
+      ".......acaaaaaaaaaaaaaaac.......",
+      ".....caaaaaaaaabaaacccaaaca.....",
+      "...acaacdcaaaaaaaaaaaaaaaaaac...",
+      ".caaaaaaaabaaaaaaaaaaaaabaaaaca.",
+      ".bbaaaaaaaaaaaaaaaaaaaaaaaaaabb.",
+      "...bbcdcaaaaaaaaaaaaaaacccabb...",
+      ".....bbaaaaacdcaaaaaaaaaabb.....",
+      ".......bbaaaaaaaaaaaaaabb.......",
+      ".........bbaaaaaabaaabb.........",
+      "...........bbaaaaaabb...........",
+      ".............bbaabb.............",
+      "...............bb..............."],
+    "f1": [
+      "...............ac...............",
+      ".............caaaca.............",
+      "...........acaaaaaaac...........",
+      ".........caaaaaaaaaaaca.........",
+      ".......acaaaaaaaaaaaaaaac.......",
+      ".....caaaaaaaaabacdcaaaaaca.....",
+      "...acaaaacccaaaaaaaaaaaaaaaac...",
+      ".caaaaaaaabaaaaaaaaaaaaabaaaaca.",
+      ".bbaaaaaaaaaaaaaaaaaaaaaaaaaabb.",
+      "...bbaacccaaaaaaaaaaacdcaaabb...",
+      ".....bbaaaaaaacccaaaaaaaabb.....",
+      ".......bbaaaaaaaaaaaaaabb.......",
+      ".........bbaaaaaabaaabb.........",
+      "...........bbaaaaaabb...........",
+      ".............bbaabb.............",
+      "...............bb..............."]
+  } };
+  ART["iso_wall_l"] = { p: {"f": "#5e4a7a", "F": "#7a66a0", "k": "#3e2e58", "l": "#4a3a68", "K": "#140b1c", "N": "#8a3a84", "n": "#b0589e"}, f: {
+    "base": [
+      "................................",
+      "...............oo...............",
+      ".............ooFFo..............",
+      "........g..ooFFFFo..............",
+      ".........ooFFFFffo..............",
+      ".......ooFFFFffllo..............",
+      ".....ooFFFFfflllfo..............",
+      "...ooFFFFffllfflfo..............",
+      ".ooFFFFffllfffflfo..............",
+      "oFFFFfflllfffffllo..............",
+      "FFFffllfflfffllffo..............",
+      "Fffllfffflfllffffo..............",
+      "flllfffffllflffffo..............",
+      "lfflfffllffflffllo..............",
+      "ffflfllfffffllllfo..............",
+      "fffllflffffllfflfo..............",
+      "fllffflffllffffkko..............",
+      "lfffffllllfffkkoo...............",
+      "lffffllfflfkkoo.................",
+      "lffllffffkkoo...................",
+      "llllfffkkoo.....................",
+      "lfflfkkoo.......................",
+      "fffkkoo.........................",
+      "fkkoo...........................",
+      "koo.............................",
+      "o...............................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................"]
+  } };
+  ART["iso_wall_r"] = { p: {"f": "#5e4a7a", "F": "#7a66a0", "k": "#3e2e58", "l": "#4a3a68", "K": "#140b1c", "N": "#8a3a84", "n": "#b0589e"}, f: {
+    "base": [
+      "................................",
+      "...............oo...............",
+      "..............oFFoo.............",
+      "..............oFFFFoo..g........",
+      "..............offFFFFoo.........",
+      "..............ollffFFFFoo.......",
+      "..............oflllffFFFFoo.....",
+      "..............oflffllffFFFFoo...",
+      "..............oflffffllffFFFFoo.",
+      "..............ollffffflllffFFFFo",
+      "..............offllffflffllffFFF",
+      "..............offffllflffffllffF",
+      "..............offfflfllffffflllf",
+      "..............ollfflfffllffflffl",
+      "..............ofllllfffffllflfff",
+      "..............oflffllfffflfllfff",
+      "..............okkffffllfflfffllf",
+      "...............ookkfffllllfffffl",
+      ".................ookkflffllffffl",
+      "...................ookkffffllffl",
+      ".....................ookkfffllll",
+      ".......................ookkflffl",
+      ".........................ookkfff",
+      "...........................ookkf",
+      ".............................ook",
+      "...............................o",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................"]
+  } };
+  ART["iso_door_l"] = { p: {"f": "#5e4a7a", "F": "#7a66a0", "k": "#3e2e58", "l": "#4a3a68", "K": "#140b1c", "N": "#8a3a84", "n": "#b0589e"}, f: {
+    "base": [
+      "................................",
+      "...............oo...............",
+      ".............ooFFo..............",
+      "...........ooFFFFo..............",
+      ".........ooFFFFffo..............",
+      ".......ooFFFFffllo..............",
+      ".....ooFFFFfflllfo..............",
+      "...ooFFFFffllfflfo..............",
+      ".ooFFFFffllfffflfo..............",
+      "oFFFFfflllfffffllo..............",
+      "FFFffllffFFffllffo..............",
+      "FffllffFFKKFlffffo..............",
+      "flllffFKKKKKlffffo..............",
+      "lfflffKKKKKKlffllo..............",
+      "ffflfFKKKKKKllllfo..............",
+      "fffllKKKKKKKlfflfo..............",
+      "fllffKKKKgKKfffkko..............",
+      "lffffKKgKKKKfkkoo...............",
+      "lffffKKKKKKKkoo.................",
+      "lffllKKKKKKoo...................",
+      "llllfKKKKoo.....................",
+      "lfflfKKoo.......................",
+      "fffkkoo.........................",
+      "fkkoo...........................",
+      "koo.............................",
+      "o...............................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................"]
+  } };
+  ART["iso_door_r"] = { p: {"f": "#5e4a7a", "F": "#7a66a0", "k": "#3e2e58", "l": "#4a3a68", "K": "#140b1c", "N": "#8a3a84", "n": "#b0589e"}, f: {
+    "base": [
+      "................................",
+      "...............oo...............",
+      "..............oFFoo.............",
+      "..............oFFFFoo...........",
+      "..............offFFFFoo.........",
+      "..............ollffFFFFoo.......",
+      "..............oflllffFFFFoo.....",
+      "..............oflffllffFFFFoo...",
+      "..............oflffffllffFFFFoo.",
+      "..............ollffffflllffFFFFo",
+      "..............offllffFFffllffFFF",
+      "..............offfflFKKFFffllffF",
+      "..............offfflKKKKKFfflllf",
+      "..............ollfflKKKKKKfflffl",
+      "..............ofllllKKKKKKFflfff",
+      "..............oflfflKKKKKKKllfff",
+      "..............okkfffKKgKKKKffllf",
+      "...............ookkfKKKKgKKffffl",
+      ".................ookKKKKKKKffffl",
+      "...................ooKKKKKKllffl",
+      ".....................ooKKKKfllll",
+      ".......................ooKKflffl",
+      ".........................ookkfff",
+      "...........................ookkf",
+      ".............................ook",
+      "...............................o",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................"]
+  } };
+  ART["iso_lamp"] = { p: {"a": "#7a5c8e", "b": "#57406a", "c": "#9c7cb0", "d": "#8a6a4a", "e": "#5e4632", "f": "#b48c5c", "j": "#9a9ab0", "J": "#6a6a84", "i": "#c8c8dc", "v": "rgba(255,215,90,0.25)"}, f: {
+    "base": [
+      "................................",
+      "...........Z..oooo..Z...........",
+      ".............oJJJJo.............",
+      "............oJJJJJJo............",
+      "............oJyyyyJo............",
+      ".........Z..oJyZZyJo..Z.........",
+      "............oJyZZyJo............",
+      "............oJyyyyJo............",
+      "............oJJJJJJo............",
+      "........Z....ooJJoo....Z........",
+      "..............oJJo..............",
+      "..............oJJo..............",
+      "..............oJJo..............",
+      "..............oJJo..............",
+      "..............oJJo..............",
+      "..............oJJo..............",
+      "..............oJJo..............",
+      "..............oJJo..............",
+      "..............oJJo..............",
+      "..............oJJo..............",
+      "..............oJJo..............",
+      "..............oJJo..............",
+      "............v.oJJov.v...........",
+      ".........v.v.voJJo.v.v.v........",
+      "........v.v.vooJJoo.v.v.v.......",
+      ".......v.v.vojjjjjjo.v.v.v......",
+      "........v.v.ojjjjjjov.v.v.......",
+      ".........v.v.oooooov.v.v........",
+      "............v.v.v.v.v...........",
+      "................................",
+      "................................",
+      "................................"]
+  } };
+  ART["iso_wall_boss_l"] = { p: {"f": "#5e4a7a", "F": "#7a66a0", "k": "#3e2e58", "l": "#4a3a68", "K": "#140b1c", "N": "#8a3a84", "n": "#b0589e"}, f: {
+    "base": [
+      "................................",
+      "...............oo...............",
+      ".............ooFFo..............",
+      "...........ooFFFFo..............",
+      ".........ooFFFFyfo..............",
+      ".......ooFFFFyyNlo..............",
+      ".....ooFFFFyynnNfo..............",
+      "...ooFFFFyyNnnnNfo..............",
+      ".ooFFFFyyNNNnnnNfo..............",
+      "oFFFFyynnNNNnnnNlo..............",
+      "FFFyyNnnnNNNnnnNfo..............",
+      "FyyNNNnnnNNNnnnNfo..............",
+      "fnnNNNnnnNNNnnnNfo..............",
+      "lnnNNNnnnNNNnnnNlo..............",
+      "fnnNNNnnyNNNnnnNfo..............",
+      "fnnNNNnygyNNnnnNfo..............",
+      "fnnNNNnnyNNNnnnNfo..............",
+      "lnnNNNnnnNNNnnnNlo..............",
+      "lnnNNNnnnNNNnnnNfo..............",
+      "lnnNNNnnnNNNnnnNfo..............",
+      "lnnNNNnnnNNNnnnNfo..............",
+      "lnnNNNnnnNNNnnnllo..............",
+      "fnnNNNnnnNNNnyllfo..............",
+      "fnnNNNnnnNNllYflfo..............",
+      "fnnNNNnnnlyffffkko..............",
+      "lnnNNNnyllYffkkoo...............",
+      "lnnNNllYflfkkoo.................",
+      "lnnlyffffkkoo...................",
+      "lyllYffkkoo.....................",
+      "lYflfkkoo.......................",
+      "fffkkoo.........................",
+      "fkkoo...........................",
+      "koo.............................",
+      "o...............................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................"]
+  } };
+  ART["iso_wall_boss_r"] = { p: {"f": "#5e4a7a", "F": "#7a66a0", "k": "#3e2e58", "l": "#4a3a68", "K": "#140b1c", "N": "#8a3a84", "n": "#b0589e"}, f: {
+    "base": [
+      "................................",
+      "...............oo...............",
+      "..............oFFoo.............",
+      "..............oFFFFoo...........",
+      "..............ofyFFFFoo.........",
+      "..............olNyyFFFFoo.......",
+      "..............ofNnnyyFFFFoo.....",
+      "..............ofNnnnNyyFFFFoo...",
+      "..............ofNnnnNNNyyFFFFoo.",
+      "..............olNnnnNNNnnyyFFFFo",
+      "..............ofNnnnNNNnnnNyyFFF",
+      "..............ofNnnnNNNnnnNNNyyF",
+      "..............ofNnnnNNNnnnNNNnnf",
+      "..............olNnnnNNNnnnNNNnnl",
+      "..............ofNnnnNNNynnNNNnnf",
+      "..............ofNnnnNNygynNNNnnf",
+      "..............ofNnnnNNNynnNNNnnf",
+      "..............olNnnnNNNnnnNNNnnl",
+      "..............ofNnnnNNNnnnNNNnnl",
+      "..............ofNnnnNNNnnnNNNnnl",
+      "..............ofNnnnNNNnnnNNNnnl",
+      "..............ollnnnNNNnnnNNNnnl",
+      "..............ofllynNNNnnnNNNnnf",
+      "..............oflfYllNNnnnNNNnnf",
+      "..............okkffffylnnnNNNnnf",
+      "...............ookkffYllynNNNnnl",
+      ".................ookkflfYllNNnnl",
+      "...................ookkffffylnnl",
+      ".....................ookkffYllyl",
+      ".......................ookkflfYl",
+      ".........................ookkfff",
+      "...........................ookkf",
+      ".............................ook",
+      "...............................o",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................"]
+  } };
+  ART["iso_maze"] = { p: {"f": "#5e4a7a", "F": "#7a66a0", "k": "#3e2e58", "l": "#4a3a68", "K": "#140b1c", "N": "#8a3a84", "n": "#b0589e"}, f: {
+    "base": [
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "..........................oo....",
+      "........................ooFFo...",
+      "......................ooFFFFo...",
+      "................o...ooFFFFffo...",
+      "...............ogoooFFFFffffo...",
+      "................ooFFFFffflffo...",
+      "..............ooFFFFffffflffo...",
+      "............ooFFFFfflfffffkko...",
+      "..........ooFFFFfffflfffkkoo....",
+      "........ooFFFFffffffffkkoo......",
+      "......ooFFFFffflffffkkoo........",
+      ".....oFFFFffffflffkkoo..........",
+      "....oFFFfflfffffkkoo............",
+      "....oFfffflfffkkoo..............",
+      "....offfffffkkoo................",
+      "....olffffkkoo..................",
+      "....olffkkoo....................",
+      "....ofkkoo......................",
+      "....okoo........................"]
+  } };
+  ART["iso_rock"] = { p: {"a": "#7a5c8e", "b": "#57406a", "c": "#9c7cb0", "d": "#8a6a4a", "e": "#5e4632", "f": "#b48c5c", "j": "#9a9ab0", "J": "#6a6a84", "i": "#c8c8dc", "F": "#5a8a5a", "s": "rgba(10,4,16,0.45)"}, f: {
+    "base": [
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "............ooooooo.............",
+      "..........ooiiijjjjoo...........",
+      ".........oiijFjjjjjjjo..........",
+      "........oijFFjjjjjjjjjo.........",
+      ".......ojjjjjjjjjjjjjjjo........",
+      "......ojjjjjjjjjjjjjjjjjo.......",
+      "......ojjjjjjjjjjjjjjjjjo.......",
+      "......ojjjjjjjjjjjjjjjjJo.......",
+      "......ojjjjjjjjjjjjjFjjJo.......",
+      "......oJjjjjjjjjjjjjjjjjJo......",
+      ".......oJjjjjjjjjjjjjjjjJJo.....",
+      "......ssoJjjjjjjjjjjjjjJJos.....",
+      ".....ssssoJJjjjjjjJJJJJJosss....",
+      "......ssssooJJJJJJJooJoosss.....",
+      "........ssssooooooossosss.......",
+      "................s...............",
+      "................................"]
+  } };
+  ART["iso_bush"] = { p: {"a": "#3e6a5a", "b": "#28463e", "c": "#5a8e70", "t": "#5a3c34", "T": "#3e2824", "s": "rgba(10,4,16,0.45)"}, f: {
+    "base": [
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      ".............ooooooo............",
+      "...........oocccaaaaoo..........",
+      ".........ooccaaaaaaaaaoo........",
+      "........occaaaaaaaaaaaaao.......",
+      "........ocaaaaaaaaanaaaao.......",
+      ".......oaaaanaaaaaaaaaaaao......",
+      "......oaaaaaaaaaaaaaaaaaaao.....",
+      ".....oaaaaaaaaaaaaaaaaaaaabo....",
+      ".....oaaaaaaaaaaaaaaaaaaaabo....",
+      "....obaaanaaaaaanaaaaanaaabbo...",
+      ".....oaaaaaaaaaaaaaaaaaaaabo....",
+      ".....obaaaaaaaaaaaaaaaaaabbo....",
+      ".....sobbbabbaaaaaabbbbbbbos....",
+      "....sssoooboobbbbbbboobooosss...",
+      ".....sssssossooooooossosssss....",
+      "........sssssssssssssssss.......",
+      "................s...............",
+      "................................"]
+  } };
+  ART["iso_thorn"] = { p: {"a": "#7a5c8e", "b": "#57406a", "c": "#9c7cb0", "d": "#8a6a4a", "e": "#5e4632", "f": "#b48c5c", "j": "#9a9ab0", "J": "#6a6a84", "i": "#c8c8dc", "x": "#5a3a6e", "s": "rgba(10,4,16,0.45)"}, f: {
+    "base": [
+      "................................",
+      "................................",
+      "................................",
+      "...........o......o.....o.......",
+      "..........oxo....oxo...oxo......",
+      "......o...oxo....oxo...oxo......",
+      ".....oxo.ooxo.o.oono...oxo.o....",
+      ".....oxooxoxooxoxxxxoo.oxooxo...",
+      ".....oxoxnooxoooxxoxoxo.oxoo....",
+      ".....oxoxxooxo.oxxoxoxo.oxo.....",
+      "......oxxoxoxooxxxoxxxxonxo.....",
+      "......oxooxoxooooxooxoxoxxo.....",
+      "......oxooxoxonooxooxoxooxo.....",
+      ".....ooxooxoxoo.oxooxoxooxo.....",
+      "....oxoxooxoxo..oxooxoxooxo.....",
+      ".....ooxooxoxo..oxooxoxooxo.....",
+      "......oxxoxooxooxoxoxoxo.oxo....",
+      ".....oxoxooxoxooxoxooxoxooxo....",
+      ".....oxoxooxoxooxoxooxoxooxo....",
+      "....soxoxooxoxooxoxooxoxooxos...",
+      ".....sosossosossosossosossos....",
+      "........sssssssssssssssss.......",
+      "................s...............",
+      "................................"]
+  } };
+  ART["iso_mushbed"] = { p: {"a": "#7a5c8e", "b": "#57406a", "c": "#9c7cb0", "d": "#3a2428", "e": "#4a3036", "f": "#6a4a46", "j": "#9a9ab0", "J": "#6a6a84", "i": "#c8c8dc"}, f: {
+    "base": [
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "..................ggg...........",
+      "...................t............",
+      "...............ef...............",
+      "........ggg..feeefe.....ggg.....",
+      ".........t.efeeeeeeefnnn.t......",
+      ".........feeennneeffeft.........",
+      ".......efeeeeetdffeeeeeef.......",
+      ".....feeeeeeeeffeeeeeeffefe.....",
+      "...efeeeeeegggdeeeeeffeeeeeef...",
+      ".feeeeeeeeffteeennnfeeeeeeffefe.",
+      ".ooeeeeeffeeeeeefteeeeeeffeeeoo.",
+      "...ooeffeeeeeeffeeeeeeffeeeoo...",
+      ".....foeeeeeffeeeeeeffeeeoo.....",
+      ".......ooeffeeeeeeffeeeoo.......",
+      ".........foeeeeeffeeeoo.........",
+      "...........ooeffeeeoo...........",
+      ".............foeeoo.............",
+      "...............oo..............."]
+  } };
+  ART["iso_tree"] = { p: {"a": "#3e6a5a", "b": "#28463e", "c": "#5a8e70", "t": "#5a3c34", "T": "#3e2824", "s": "rgba(10,4,16,0.45)"}, f: {
+    "v0": [
+      "................................",
+      "................................",
+      "................o...............",
+      "............oooocoooo...........",
+      "..........ooccccaaaaaoo.........",
+      ".........occaaaaaaaaaaao........",
+      "........ocaaaaaaaaaaaaaao.......",
+      ".......ocaaaaaaaaaaaaaaaao......",
+      "......ocaaaaaaaaaaaagaaaaao.....",
+      ".....oaaaaaaaaaaaaaaaaaaaaao....",
+      ".....oaaaaaaaaaaaaaaaaaaaaao....",
+      ".....oaaaanaaaaaaaaaaaaaaaao....",
+      ".....oaaaaaaaaaaaaaaaaaaaaao....",
+      "....obaaaaaaaaaaaaaaaaaaaaabo...",
+      ".....oaaaaaaaaaaaaaaaaaaaabo....",
+      ".....oaaaaaaaaaaaaaaaaaaaabo....",
+      ".....oaaaaaaaaaaaaaaaagaaabo....",
+      ".....oaaaaaaagaaaaaaaaaaaabo....",
+      "....obaaaaaaaaaaaaaaaaaaaabbo...",
+      ".....oaaaaaaaaaaaaaaaaaaaabo....",
+      ".....obaaaaaaaaaaaaaaaaaabbo....",
+      "......obbbabaaaaaaaabbbbbbo.....",
+      ".......ooobobbbbabbbbobooo......",
+      "..........o.oootbTooo.o.........",
+      "..............ottto.............",
+      "..............ottto.............",
+      "..............ottto.............",
+      "..............ottTo.............",
+      "..............ottto.............",
+      "............ssotttoss...........",
+      ".........sssssotttosssss........",
+      "........ssssssotttossssss.......",
+      ".......sssssssotttosssssss......",
+      "........sssssssooosssssss.......",
+      ".........sssssssssssssss........",
+      "............sssssssss...........",
+      "................................",
+      "................................",
+      "................................",
+      "................................"],
+    "v1": [
+      "................................",
+      "................................",
+      "..............ooooo.............",
+      ".............occaaao............",
+      "............ocaaaaaao...........",
+      "............ocaaaaaao...........",
+      "...........obaaaaaaabo..........",
+      "............ocaaaaaao...........",
+      "...........oocaaaaaaoo..........",
+      "..........occanaaaaaaao.........",
+      ".........ocaaaaaaaaaaaao........",
+      ".........ocaaaaaaaaaaaao........",
+      ".........obaaaaaaaaaaabo........",
+      ".........ooaaaaaaaaaaaoo........",
+      "........oaaaaaaaaaaaaaabo.......",
+      ".......oaaaaaaaaaanaaaaabo......",
+      "......obaaaaaaaaaaaaaaaabbo.....",
+      ".......obaaaaaaaaaaaaaabbo......",
+      ".......ooaaaaaaaaaaaaaaboo......",
+      ".....ooaaaaaaaaaaaaaaaaaaboo....",
+      "....oaaaaaaagaaaaaaaaaaaaaabo...",
+      "....oaaaaaaaaaaaaaaaaaaaaaabo...",
+      "....obbaaaaaaaaaaaaaaaaaabbbo...",
+      ".....oobbbbaaaaaaaaaabbbbboo....",
+      ".......oooobbbbbbbbbbboooo......",
+      "...........ooootttoooo..........",
+      "..............ottto.............",
+      "..............ottTo.............",
+      "..............ottto.............",
+      "............ssotttoss...........",
+      ".........sssssotttosssss........",
+      "........ssssssotttossssss.......",
+      ".......sssssssotttosssssss......",
+      "........sssssssooosssssss.......",
+      ".........sssssssssssssss........",
+      "............sssssssss...........",
+      "................................",
+      "................................",
+      "................................",
+      "................................"]
+  } };
+  ART["iso_gate"] = { p: {"a": "#7a5c8e", "b": "#57406a", "c": "#9c7cb0", "d": "#8a6a4a", "e": "#5e4632", "f": "#b48c5c", "j": "#9a9ab0", "J": "#6a6a84", "i": "#c8c8dc", "F": "#5a8a5a", "K": "#140b1c"}, f: {
+    "base": [
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................o......o........",
+      "........o...ooooioooo.oFo.......",
+      ".......oFoooiiiijjjjjooo........",
+      "........ooiijjjjjjjjjjjoo.......",
+      ".......oiijjjjjjjjjjjjjjjo......",
+      ".....ooijjjjjjjjjjjjjjjjjjo.....",
+      "....oFjjjjjjjjjjjjjjjjjjjjjo....",
+      "....ojjjjjjjjjjjjjjjjjjjjjjjo...",
+      "....ojjjjjjjjjjjjjjjjjjjjjFjo...",
+      "...ojjjjjjjjjjjjjjjjjjjjjjjjjo..",
+      "...ojjjjjjjjjjjjjjjjjjjjjjjjjo..",
+      "..ojjjjjjjjjjjjjjjjjjjjjjjjjjjo.",
+      "..ojjjjjjjjjjjjjjjjjjjjjjjjjjjo.",
+      "..ojjjjjjjjjjjjjjjjjjjjjjjjjjjo.",
+      ".ojjjjjjjjjjjjjjKjjjjjjjjjjjjjjo",
+      ".ojjjjjjjjjjjKKKKKKKjjjjjjjjjjJo",
+      ".ojjjjjjjjjjKKKKKKKKKjjjjjjjjjJo",
+      ".ojjjjjjjjjjKKKKKKKKKjjjjjjjjjJo",
+      ".ojjjjjjjjjKKKKKKKKKKKjjjjjjjjJo",
+      ".ojjjjjjjjKKKKKKpKKKKKKjjjjjjjJo",
+      ".ojjjjjjjjKKKKpppppKKKKjjjjjjjJo",
+      ".ojjjjjjjjKKKpppppppKKKjjjjjjjJo",
+      ".ojjjjjjjjKKKpppppppKKKjjjjjjjJo",
+      ".ojjjjjjjjKKppgpppgppKKjjjjjjjJo",
+      ".ojjjjjjjKKKpppppppppKKKjjjjjjJo",
+      ".ojjjjjjjKKKpppppppppKKKjjjjjjJo",
+      ".ojjnjjjjKKKpppppppppKKKjjjjjjJo",
+      ".ojjnjjjjKKKpppppppppKKKjjjjjjJo",
+      ".ojjjjjjjKKKpppppppppKKKjjjgjjJo",
+      ".ojjjjjjjKKKpppppppppKKKjjjjjjJo",
+      ".ojjjjjjjKKKKpppppppKKKKjjjjjjJo",
+      ".oJJJJJJjKKKKpppppppKKKKJJJJJJJo",
+      "..ooooooJKKKKKpppppKKKKKJoooooo.",
+      "........ooJJjKKKpKKKJJJoo.......",
+      "..........ooJJJJKJJJJoo.........",
+      "............ooooJoooo..........."]
+  } };
+  ART["iso_hoard1"] = { p: {"a": "#7a5c8e", "b": "#57406a", "c": "#9c7cb0", "d": "#8a6a4a", "e": "#5e4632", "f": "#b48c5c", "j": "#9a9ab0", "J": "#6a6a84", "i": "#c8c8dc", "s": "rgba(10,4,16,0.45)"}, f: {
+    "base": [
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "...................oo...........",
+      "............oo.oo.oZZo..........",
+      "...........oZZoccoZWZZo.........",
+      ".........ooZyocWccoZZZo.........",
+      "........oZooyoccccoZZoyo........",
+      ".......oZottoyoccoWooyyYo.......",
+      "......oZotWttoyooyyyyWyyYo......",
+      "......oyottttoyyyyyyyyyyYo......",
+      "......oYWottoyyyyyyyyyyYYo......",
+      "......soYyooyyyyyyyyyyYYos......",
+      ".....sssoYYyyyyyyyyyYYYosss.....",
+      "......sssooYYYYYYYYYYoosss......",
+      "........sssoooooooooosss........",
+      "................................",
+      "................................",
+      "................................",
+      "................................"]
+  } };
+  ART["iso_hoard2"] = { p: {"a": "#7a5c8e", "b": "#57406a", "c": "#9c7cb0", "d": "#8a6a4a", "e": "#5e4632", "f": "#b48c5c", "j": "#9a9ab0", "J": "#6a6a84", "i": "#c8c8dc", "s": "rgba(10,4,16,0.45)"}, f: {
+    "base": [
+      "........................................",
+      "........................................",
+      "........................................",
+      "........................................",
+      "........................................",
+      "........................................",
+      "........................................",
+      "........................................",
+      "........................................",
+      "........................................",
+      "........................................",
+      "..........oo.....ooo.oo.................",
+      ".........oZZo..ooZZZotto................",
+      "........oZWZZooZZyyotWttooo.............",
+      "........oZZZZoZyyyyottttoyyoo...........",
+      ".........oZZoyyyyyyyottonoyyyo..........",
+      ".........oooyyyyyyyyoooonoyyyyo.........",
+      "........oZyyyyyyyyyoBWBBoyooyyYo........",
+      ".......oZyyyyyyyyyyoBBBBooccooyYo.......",
+      "......oZyyyyyyyyyyyyoBBoocWccooWYo......",
+      "......oyyyyyyyyyyWyyyooyoccccotoYo......",
+      "......oyyyyyyyyyyyWyyyyyyoccottoYo......",
+      "......oYyyyyyyyyyyyyyyyyyyoottoYYo......",
+      ".......oyyyyyyyyyyyyyyyyyyyyooyYo.......",
+      "......soYyyyyyyyyyyyyyyyyyyyyyYYos......",
+      ".....sssoYyyyyyyyyyyyyyyyyyyyYYosss.....",
+      "......sssoYYyyyyyyyyyyyyyyyYYYosss......",
+      ".........sooYYyyyyyyyyyyyYYYoos.........",
+      "............ooYYYYYYYYYYYYoo............",
+      "..............oooooooooooo..............",
+      "........................................",
+      "........................................"]
+  } };
+  ART["iso_hoard3"] = { p: {"a": "#7a5c8e", "b": "#57406a", "c": "#9c7cb0", "d": "#8a6a4a", "e": "#5e4632", "f": "#b48c5c", "j": "#9a9ab0", "J": "#6a6a84", "i": "#c8c8dc", "s": "rgba(10,4,16,0.45)"}, f: {
+    "base": [
+      "................................................",
+      "................................................",
+      "................................................",
+      "................................................",
+      "................................................",
+      "................................................",
+      "................................................",
+      "................................................",
+      "................................................",
+      "................................................",
+      "................................................",
+      "................................................",
+      "................................................",
+      "................................................",
+      ".......................oo.......................",
+      "...................ooooZyooo....................",
+      "..................oZZZZyyocoo.o.................",
+      "...............o.ooyyyyyococcoyoo...............",
+      ".............ooZoBBoyyyyoocWccoyyoo.............",
+      "............oZZoBWBBoyyyyoccccoyyyyo............",
+      "..........ooZyyoBBBBoyyyyyoccoyyooyyoo..........",
+      ".........oZZyyyyoBBoyWyyyyyooyWoZZootto.........",
+      "........oZyyyyyotooyooyyyyyyyyoZWZZoWtto........",
+      "........oyyyyyotWttoZZoyWyyyyyoZZZZottto........",
+      ".......oZyyooyotttoZWZZoyyyyyyyoZZoottoYo.......",
+      "......oyyyonnoyottoZZZZoyyooyyyyooyyooyyYo......",
+      "......oyyonWnnoyooyoZZoyyonnoyyyyyyWyyyyYo......",
+      "......oyyonnnnoyyyyyooyyonWnnoyyyyyyyyyyYo......",
+      "......oyyyonnoyyyyyyyyyyonnnnoyyyyyyyyyyYo......",
+      "......oyyyyooyyyyyyyyyyyyonnoyyyyyyyyyyyYo......",
+      "......oYyyyyyyyyyyyyyyyyyyooyyyyyyyyyyyYYo......",
+      ".......oyyyyyyyyWyyyyyyyyyyyyWyyyyyyyyyYo.......",
+      "......soYyyyyyyyyyyyyyyyyyyyyyyyyyyyyyYYos......",
+      ".....sssoYyyyyyyyyyyyyyyyyyyyyyyyyyyyYYosss.....",
+      "......sssoYyyyyyyyyyyyyyyyyyyyyyyyyyYYosss......",
+      "..........oYYyyyyyyyyyyyyyyyyyyyyyYYYo..........",
+      "...........ooYYyyyyyyyyyyyyyyyyyYYYoo...........",
+      ".............ooYYYyyyyyyyyyyyYYYYoo.............",
+      "...............oooYYYYYYYYYYYYooo...............",
+      "..................oooooooooooo.................."]
+  } };
+  ART["iso_hoard4"] = { p: {"a": "#7a5c8e", "b": "#57406a", "c": "#9c7cb0", "d": "#8a6a4a", "e": "#5e4632", "f": "#b48c5c", "j": "#9a9ab0", "J": "#6a6a84", "i": "#c8c8dc", "s": "rgba(10,4,16,0.45)"}, f: {
+    "base": [
+      "................................................................",
+      "................................................................",
+      "................................................................",
+      "................................................................",
+      "................................................................",
+      "................................................................",
+      "................................................................",
+      "................................................................",
+      "................................................................",
+      "................................................................",
+      "................................................................",
+      "...........................o..o..o..............................",
+      "..........................oyooyooyo.............................",
+      "..........................oyyoyyoyyo............................",
+      "..........................oyyyyyyyyo............................",
+      "..........................oyryyyByyo............................",
+      "..........................oYYYYYYYYo............................",
+      ".........................ooooZZZyyyoooo.........................",
+      ".......................ooZZZZyyyyyyyyyyoo....oo.................",
+      "...................ooooZZyyyyyyyyyyyyyyyyo..occo................",
+      "..................oZZotoyyyooyyyyyyyyyyyyyoocWcco...............",
+      ".................oZWZZotoyoZZoyyyyyyyyyyyoBocccco...............",
+      "................ooZZZZotooZWZZoyooyyyyyyoBWBocco................",
+      "..............ooZZoZZotoyoZZZZoottoyyyyooBBBBooyoo..............",
+      ".............oZooyyooooyyyoZZootWttoyyyoBoBBoyyyyyo.............",
+      "............oZoccoyyyyyyyyyooyottttoyyyyoBooyyyyyyyo............",
+      "...........oZocWccoyyyyyyyyyyyyottoyyyyyyooyyyyyyyyYo...........",
+      "..........oZyoccccoyyyyyooyyyyyyooyyyyyyyyyyyyyyyWyyWo..........",
+      ".........oyyyyoccoyyyyyottoyyyyyyyyooyyyyyyyyyyyyyyyyYo.........",
+      "........oyyyyyyooyyyyyotWttoyyyyyyonnoyyyyyyyyyyyyyyyyYo........",
+      "........oWyyyyyyyyyyyyottttoyyyyyonWnnoyyyyooyooyyyyyyYo........",
+      ".......oyyyyyyyyyyyyWyyottoyyyyyyonnnnoooyonnonnoyyWyyyYo.......",
+      ".......oyyyyyyyyyyyyyooyooyyyyyyyyonnooZZonWnnonnoyyyyyYo.......",
+      ".......oyyyyyyyyyyyyoccoyyyyyyyWyyyoooZWZZonnnonnoyyyyyYo.......",
+      ".......oyyyyyyyyyyyocWccoyyyyyyyyyyyyoZZZZonnonnoyyyyyyYo.......",
+      ".......oyyyyyyyWyyyoccccoyyyyyyyyWyyyyoZZoyooyooyyyyyyyYo.......",
+      ".......oyyyyyyyyyyyyoccoyyyyyyyyyyyyyyyooyyyyyyyyyyyyyyYo.......",
+      ".......oYyyyyyyyyyyyyooyyyyyyyyWyyyyyyyyyyyyyyyyyyyyyyYYo.......",
+      "........oyyyyyyyyyyyyyyyyyyyyyWyyyyyyyyyyyyyyyyyyyyyyyYo........",
+      "........oYyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyWyyyyyyYYo........",
+      ".......ssoYyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyYYoss.......",
+      "......ssssoYyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyYYossss......",
+      ".......ssssoYyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyYYossss.......",
+      "............oYyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyYYo............",
+      ".............oYYyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyYYYo.............",
+      "..............ooYYyyyyyyyyyyyyyyyyyyyyyyyyyyyYYYoo..............",
+      "................ooYYyyyyyyyyyyyyyyyyyyyyyyyYYYoo................",
+      "..................ooYYYYYYYYYYYYYYYYYYYYYYYYoo.................."]
+  } };
+  ART["iso_tomb"] = { p: {"a": "#7a5c8e", "b": "#57406a", "c": "#9c7cb0", "d": "#8a6a4a", "e": "#3a2a30", "f": "#b48c5c", "j": "#9a9ab0", "J": "#6a6a84", "i": "#c8c8dc", "F": "#5a8a5a"}, f: {
+    "base": [
+      "................",
+      "......oooo......",
+      ".....ojjjjo.....",
+      "....ojjjjjjo....",
+      "...ojjjiijjjo...",
+      "...ojjjijjjjo...",
+      "...ojjjijjjjo...",
+      "...ojjjjjjjJo...",
+      "...ojjjjjjJJo...",
+      "...ojjjjjjJJo...",
+      "..oFjjjjjJJJno..",
+      ".oeeeFeeeeeeeeo.",
+      ".oeeeeeeeeeeeeo.",
+      "..oooooooooooo..",
+      "................",
+      "................"]
+  } };
+  ART["iso_shadow"] = { p: {"s": "rgba(10,4,16,0.45)"}, f: {
+    "base": [
+      "................",
+      "...ssssssssss...",
+      ".ssssssssssssss.",
+      ".ssssssssssssss.",
+      ".ssssssssssssss.",
+      ".ssssssssssssss.",
+      "...ssssssssss...",
+      "................"]
+  } };
+  ART["iso_ring_us"] = { p: {"x": "#f6b8ee", "X": "#c060c8"}, f: {
+    "base": [
+      "....................",
+      "....xxxxxxxxxxxx....",
+      "..xxxx........xxxx..",
+      ".xx..............xx.",
+      ".xx..............xx.",
+      ".XX..............XX.",
+      ".XX..............XX.",
+      "..XXXX........XXXX..",
+      "....XXXXXXXXXXXX....",
+      "...................."]
+  } };
+  ART["iso_ring_them"] = { p: {"x": "#b8cde0", "X": "#7f9ab0"}, f: {
+    "base": [
+      "....................",
+      "....xxxxxxxxxxxx....",
+      "..xxxx........xxxx..",
+      ".xx..............xx.",
+      ".xx..............xx.",
+      ".XX..............XX.",
+      ".XX..............XX.",
+      "..XXXX........XXXX..",
+      "....XXXXXXXXXXXX....",
+      "...................."]
+  } };
+  ART["iso_sel"] = { p: {}, f: {
+    "base": [
+      "...............WW...............",
+      ".............yY..Yy.............",
+      "...........yY......Yy...........",
+      ".........yY..........Yy.........",
+      ".......yY..............Yy.......",
+      ".....yY..................Yy.....",
+      "...yY......................Yy...",
+      ".WY..........................YW.",
+      ".WY..........................YW.",
+      "...yY......................Yy...",
+      ".....yY..................Yy.....",
+      ".......yY..............Yy.......",
+      ".........yY..........Yy.........",
+      "...........yY......Yy...........",
+      ".............yY..Yy.............",
+      "...............WW..............."]
+  } };
+  ART["iso_arrow"] = { p: {}, f: {
+    "base": [
+      ".......oo.......",
+      "......onno......",
+      ".....onnnno.....",
+      "....onnWnnno....",
+      "...onnWnnnnno...",
+      "..onnnnnnnnnno..",
+      ".onnnnnnnnnnnno.",
+      "..oooonnnnoooo..",
+      ".....onnnno.....",
+      ".....onnnno.....",
+      ".....onnNNo.....",
+      ".....oNNNNo.....",
+      ".....oNNNNo.....",
+      "......oooo......",
+      "................",
+      "................"]
+  } };
+  ART["box_fight"] = { p: {"q": "#4e3366", "Q": "#7a5a9a", "k": "#3a2450", "K": "#1c1026", "D": "#241630", "T": "#e0c8b0"}, f: {
+    "base": [
+      "oooooooooooooooooooooooooooooooooooooooooooooooo",
+      "onQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQno",
+      "oQggqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqgqQo",
+      "oQgqqkqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqgQo",
+      "oQqkqqqqqqqqkqqqqqqqqqqqqqqqqqqqqqqkqqqqqqqkqqQo",
+      "oQqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqQo",
+      "oQqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqQo",
+      "oQqqqqqkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkqqqqqQo",
+      "oQqqqqqkooooooooooooooooooooooooooooooookqqqqqQo",
+      "oQqqqqqkoDttttTDDDDDDDDDDDDDDDDDDttttTDokqqqqqQo",
+      "oQqqqqqkoDKtttKKKKKKKKKKKKKKKKKKKKtttKDokqqqqqQo",
+      "oQqqqqqkoDKttKKKKKKKKKKKKKKKKKKKKKttKKDokqqqqqQo",
+      "oQqqkqqkoDKtKKKKKKKKKKKKKKKKKKKKKKtKKKDokqqqkqQo",
+      "oQqqqqqkoDKKKKKKKKKKKKKKKKKKKKKKKKKKKKDokqqqqqQo",
+      "oQqqqqqkoDKKKKKKKKKKKKKKKKKKKKKKKKKKKKDokqqqqqQo",
+      "oQqqqqqkoDKKKKKKKKKKKKKKKKKKKKKKKKKKKKDokqqqqqQo",
+      "oQqqqqqkoDKKKKKKKKKKKKKKKKKKKKKKKKKKKKDokqqqqqQo",
+      "oQqqqqqkoDKKKKKKKKKKKKKKKKKKKKKKKKKKKKDokqqqqqQo",
+      "oQqqqqqkoDKKKKKKKKKKKKKKKKKKKKKKKKKKKKDokqqqqqQo",
+      "oQqqqqqkoDKKKKKKKKKKKKKKKKKKKKKKKKKKKKDokqqqqqQo",
+      "oQqqqqqkoDKKKKKKKKKKKKKKKKKKKKKKKKKKKKDokqqqqqQo",
+      "oQqqqqqkoDKKKKKKKKKKKKKKKKKKKKKKKKKKKKDokqqqqqQo",
+      "oQqqqqqkoDKKKKKKKKKKKKKKKKKKKKKKKKKKKKDokqqqqqQo",
+      "oQqqqqqkoDKKKKKKKKKKKKKKKKKKKKKKKKKKKKDokqqqqqQo",
+      "oQqqqqqkoDKKKKKKKKKKKKKKKKKKKKKKKKKKKKDokqqqqqQo",
+      "oQqqqqqkoDKKKKKKKKKKKKKKKKKKKKKKKKKKKKDokqqqqqQo",
+      "oQqqqqqkoDKKKKKKKKKKKKKKKKKKKKKKKKKKKKDokqqqqqQo",
+      "oQqqqqqkoDKKKKKKKKKKKKKKKKKKKKKKKKKKKKDokqqqqqQo",
+      "oQqqqqqkoDKKKKKKKKKKKKKKKKKKKKKKKKKKKKDokqqqqqQo",
+      "oQqqqqqkoDKKKKKKKKKKKKKKKKKKKKKKKKKKKKDokqqqqqQo",
+      "oQqqqqqkoDKKKKKKKKKKKKKKKKKKKKKKKKKKKKDokqqqqqQo",
+      "oQqqqqqkoDKKKKKKKKKKKKKKKKKKKKKKKKKKKKDokqqqqqQo",
+      "oQqqqqqkoDKKKKKKKKKKKKKKKKKKKKKKKKKKKKDokqqqqqQo",
+      "oQqqqqqkoDKKKKKKKKKKKKKKKKKKKKKKKKKKKKDokqqqqqQo",
+      "oQqqqqqkoDKKKKKKKKKKKKKKKKKKKKKKKKKKKKDokqqqqqQo",
+      "oQqqqqqkoDKKKKKKKKKKKKKKKKKKKKKKKKKKKKDokqqqkqQo",
+      "oQqqqqqkoDKKKKKKKKKKKKKKKKKKKKKKKKKKKKDokqqqqqQo",
+      "oQqqqqqkoDKKKKKKKKKKKKKKKKKKKKKKKKKKKKDokqqqqqQo",
+      "oQqqqqqkoDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDokqqqqqQo",
+      "oQqqqqqkooooooooooooooooooooooooooooooookqqqqqQo",
+      "oQqwwwwkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkwwwwqQo",
+      "oQwwppwwqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqwwppwwQo",
+      "oQwwpWwwqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqwwpWwwQo",
+      "oQqwwwwqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqwwwwqQo",
+      "oQqqqqqqqqqqkqqqqqqqqqqqqqqqqqqqqqqkqqqqqqqqqqQo",
+      "oQqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqQo",
+      "onQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQno",
+      "oooooooooooooooooooooooooooooooooooooooooooooooo"]
+  } };
+  ART["box_floor"] = { p: {"q": "#4e3366", "Q": "#7a5a9a", "k": "#3a2450", "K": "#1c1026", "D": "#241630", "T": "#e0c8b0"}, f: {
+    "base": [
+      "QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ",
+      "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
+      "qqqqqgqqqqqqqqqqqqqkqqqqqqqqqqqq",
+      "qqqkqqqqqqqqqqqqqqqqqqgqqqqqqqqq",
+      "qqqqqqqqqqqqqqqkqqqqqqqqqqkqqqqq",
+      "qqqqqqqqqqqkqqqqqqqqqqqqqqqqqqqq",
+      "qqqqqqqkqqqqqqqqqqqqqqqqqqqqqqkq",
+      "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq"]
+  } };
+  ART["box_tail"] = { p: {"q": "#4e3366", "Q": "#7a5a9a", "k": "#3a2450", "K": "#1c1026", "D": "#241630", "T": "#e0c8b0"}, f: {
+    "base": [
+      "Qqqqqqqqqqqq",
+      "oQqqqqqqqqqo",
+      ".oQqqqqqqqo.",
+      "..oQqqqqqo..",
+      "...oQqqqo...",
+      "....oqqo....",
+      "....oqqo....",
+      ".....oo....."]
+  } };
   ART["place1"] = { p: {"a": "#7a5c8e", "b": "#57406a", "c": "#9c7cb0", "d": "#8a6a4a", "e": "#5e4632", "f": "#b48c5c", "j": "#9a9ab0", "J": "#6a6a84", "i": "#c8c8dc", "1": "#1a1c3a", "2": "#252a52", "3": "#323a66", "4": "#2a3a34", "5": "#1e2a26", "6": "#5a5068", "7": "#3e3850", "8": "#7a4a44", "9": "#5a3432", "x": "#8a8aa0"}, f: {
     "calm": [
       "111111111111111111111111111111111111111111111111",
@@ -7333,17 +8554,18 @@ const blkArt = b => D.BLK[b] ? D.BLK[b].art : 'blk_seat';
 // ---------- 틀 ----------
 function shell() {
   const root = document.createElement('div'); root.id = 'dn'; root.hidden = true;
-  root.innerHTML = `<div id="dn-top"></div><div id="dn-cavew"><canvas id="dn-cv" role="img" aria-label="굴 그림"></canvas></div><div id="dn-capl"></div><div id="dn-note"></div><div id="dn-row"></div><div id="dn-cmds"></div><div id="dn-raidc" hidden></div><div id="dn-ask" hidden></div>`;
+  root.innerHTML = `<div id="dn-top"></div><div id="dn-cavew"><canvas id="dn-cv" role="img" aria-label="굴 그림"></canvas><div id="dn-isob"><button class="dn-mini" data-a="follow" id="dn-follow" hidden>따라가기</button><button class="dn-mini" data-a="fit" id="dn-fit">전체</button></div></div><div id="dn-capl"></div><div id="dn-note"></div><div id="dn-row"></div><div id="dn-cmds"></div><div id="dn-raidc" hidden></div><div id="dn-ask" hidden></div>`;
   document.body.appendChild(root);
   ['dn-sheet', 'dn-toast', 'dn-spot', 'dn-tip', 'dn-flash'].forEach(id => { if (!$(id)) { const e = document.createElement('div'); e.id = id; e.hidden = id !== 'dn-sheet' && id !== 'dn-flash'; document.body.appendChild(e); } });
   const end = document.createElement('div'); end.id = 'dn-end'; end.hidden = true; document.body.appendChild(end);
   $('dn-tip').setAttribute('role', 'note'); $('dn-spot').setAttribute('aria-hidden', 'true');
   document.addEventListener('pointerdown', () => { U.armed = true; }, { capture: true });
   document.body.addEventListener('click', onClick);
-  $('dn-cv').addEventListener('click', onCave);
+  $('dn-cv').addEventListener('click', onCave); isoBind($('dn-cv'));
   const vh = () => document.documentElement.style.setProperty('--dn-vh', window.innerHeight + 'px'); vh(); window.addEventListener('resize', vh);
   // 칸 테두리(아홉 조각)는 그림 한 장을 읽어 잘라 쓴다
   const im = new Image(); im.onload = () => { U.img.frame = im; }; im.src = ART.url('cell_frame', { scale: 1 });
+  if (ART.has('box_fight')) { const bi = new Image(); bi.onload = () => { U.img.box = bi; }; bi.src = ART.url('box_fight', { scale: 1 }); }
   requestAnimationFrame(frame);
 }
 function show(scr) {
@@ -7395,13 +8617,16 @@ function draw() {
   $('dn-cmds').hidden = raid; $('dn-raidc').hidden = !raid || !!ask; $('dn-ask').hidden = !ask;
   if (!raid && !deck) $('dn-cmds').innerHTML = `<button data-a="strike" ${free ? '' : 'disabled'}>${ic('ic_strike')}친다</button><button data-a="deck" ${free ? '' : 'disabled'}>${ic('ic_deck')}꾸민다</button><button data-a="rest" ${free ? '' : 'disabled'}>${ic('ic_rest')}쉰다</button>`;
   else if (deck) $('dn-cmds').innerHTML = `<button data-a="summon" id="dn-summonb">${ic('ic_call')}부른다</button>${G.undo ? `<button data-a="undo" id="dn-undo">${ic('ic_undo')}되돌린다</button>` : `<button data-a="deckx" ${G.ops ? 'disabled' : ''}>그만둔다</button>`}<button data-a="deckend" id="dn-deckend" class="pri">${ic('ic_done')}마친다</button>`;
-  else if (!ask) $('dn-raidc').innerHTML = `<button data-a="speed">${['보통', '빠름', '아주 빠름'][U.speed]}</button><button data-a="skip">넘기기</button>`;
+  else if (!ask) $('dn-raidc').innerHTML = `<span class="dn-mind" id="dn-mind" aria-label="침입자들의 남은 정신"><i style="width:${Math.round(mindLeft() * 100)}%"></i></span><button data-a="speed">${['보통', '빠름', '아주 빠름'][U.speed]}</button><button data-a="skip">넘기기</button>`;
+  const iso = isoOn(); $('dn-isob').hidden = !iso; $('dn-fit').textContent = ISO.fit ? '가까이' : '전체'; $('dn-follow').hidden = !(raid && !ISO.follow);
   if (ask) { const q = G.raid.ask; $('dn-ask').innerHTML = `<p>${esc(D.ga(q.name))} 죽습니다. 제물 하나를 바쳐 다시 굴립니까</p><div class="dn-askb">${G.cap > 0 ? '<button class="pri" data-a="ans" data-v="offer">바친다</button>' : ''}${q.orb ? '<button data-a="ans" data-v="orb">번식의 구슬</button>' : ''}<button data-a="ans" data-v="let">보낸다</button></div>`; }
   guideTick();
 }
+// 굴 안 침입자들의 남은 정신 (처음을 1 로)
+function mindLeft() { const G = U.G; if (!G || !G.raid) return 0; let a = 0, b = 0; G.raid.party.forEach(x => { b += Math.max(1, x.mind0); if (x.st === 'in') a += Math.max(0, x.mind); }); return b ? Math.min(1, a / b) : 0; }
 function noteText() {
   const G = U.G; if (U.note) return U.note;
-  if (G.phase === 'raid') return G.raid.ask ? '' : '침입자가 내려옵니다.';
+  if (G.phase === 'raid') return G.raid.ask ? '' : (U.say || '침입자가 내려옵니다.');
   if (G.strike) return '';
   if (G.cmd === 'deck') { if (U.sel) { const k = D.kinById(G, U.sel); return k ? D.ga(k.name) + ' 설 칸을 누르세요. 한 번 더 누르면 자세히 봅니다.' : ''; } const n = D.newRooms(G).length; return n ? '새 방이 ' + D.nk(n) + ' 열렸습니다. 칸을 눌러 보세요.' : '칸을 눌러 방을 고르고, 권속을 눌러 옮깁니다.'; }
   const wait = G.kin.filter(k => !k.at).length;
@@ -7467,7 +8692,7 @@ function frame(t) {
   if (!W || !H) return;
   if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
   const c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0); c.imageSmoothingEnabled = false;
-  U.lay = lay(W, H); paint(c, U.lay, t);
+  U.lay = lay(W, H); if (isoOn()) isoPaint(c, t, W, H, dpr); else paint(c, U.lay, t);
 }
 function tile(c, id, r, sc, alpha) { const sz = ART.size(id), w = sz.w * sc, h = sz.h * sc; c.save(); c.beginPath(); c.rect(r.x, r.y, r.w, r.h); c.clip(); if (alpha != null) c.globalAlpha = alpha; for (let y = r.y; y < r.y + r.h; y += h) for (let x = r.x; x < r.x + r.w; x += w) ART.draw(c, id, x, y, { scale: sc }); c.restore(); }
 function rrect(c, r, rad, fill, stroke, lw) { c.beginPath(); if (c.roundRect) c.roundRect(r.x, r.y, r.w, r.h, rad); else c.rect(r.x, r.y, r.w, r.h); if (fill) { c.fillStyle = fill; c.fill(); } if (stroke) { c.strokeStyle = stroke; c.lineWidth = lw || 2; c.stroke(); } }
@@ -7568,8 +8793,7 @@ function paint(c, L, t) {
     });
   }
   // 덧그림: 주사위·숫자·효과
-  U.fx = U.fx.filter(f => t < f.t0 + f.dur);
-  U.fx.forEach(f => {
+  U.fx.filter(() => false).forEach(f => {
     if (t < f.t0) return; const k = Math.max(0, (t - f.t0) / f.dur);
     if (f.k === 'd20') {
       const bounce = k < 0.3 ? -Math.sin(k / 0.3 * Math.PI) * 6 : 0, ds = f.small ? 1 : Math.max(1, sc - (sc >= 3 ? 1 : 0));
@@ -7597,6 +8821,8 @@ function fxAdd(f) { f.t0 = performance.now() + (f.delay || 0); U.fx.push(f); }
 function onCave(e) {
   const G = U.G, L = U.lay; if (!G || !L || G.phase !== 'cmd' || G.strike) return;
   const r = $('dn-cv').getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top, s = 16 * L.sc, deck = G.cmd === 'deck';
+  // 쿼터뷰: 끌어서 옮긴 직후의 누름은 버린다. 권속 → 권속 창, 방 → 그 방이 무엇인지
+  if (!deck) { if (performance.now() - ISO.moved < 300) return; const h = isoHit(x, y); if (!h) return; sfx('flip'); if (h.kin) return openSheet({ k: 'kin', id: h.kin }); if (h.cell) return openSheet({ k: 'cell', id: h.cell }); return; }
   for (const k of G.kin) { const q = kinPos(G, L, k); if (q && x >= q.x && x <= q.x + s && y >= q.y - 2 && y <= q.y + s + 2) {
     sfx('flip');
     if (deck && U.sel !== k.id) { U.sel = k.id; return draw(); }
@@ -7640,7 +8866,7 @@ function onClick(e) {
   // 창 안
   if (a === 'buy') { const r = D.buy(G, +b.dataset.i); if (!r.ok) return toast(r.msg); sfx('birth'); toast(D.ga(r.kin.name) + ' 굴에 왔습니다.'); return after(); }
   if (a === 'reroll') { const r = D.reroll(G); if (!r.ok) return toast(r.msg); sfx('flip'); return after(); }
-  if (a === 'setroom') { const r = D.setRoom(G, U.sheet.id, b.dataset.t); if (!r.ok) return toast(r.msg); sfx('place'); if (r.back) toast('전 방 값의 절반을 돌려받았습니다 (진액 +' + r.back + ').'); return after(); }
+  if (a === 'setroom') { const r = D.setRoom(G, U.sheet.id, b.dataset.t); if (r.ok) U.sheet.pick = null; if (!r.ok) return toast(r.msg); sfx('place'); if (r.back) toast('전 방 값의 절반을 돌려받았습니다 (진액 +' + r.back + ').'); return after(); }
   if (a === 'bossup') { const r = D.bossUp(G); if (!r.ok) return toast(r.msg); sfx('place'); return after(); }
   if (a === 'undo') { const r = D.undo(G); if (!r.ok) return toast(r.msg); toast('되돌렸습니다.'); return after(); }
   if (a === 'info') { U.sheet.info = b.dataset.t; return renderSheet(); }
@@ -7658,6 +8884,11 @@ function onClick(e) {
   if (a === 'logtog') { U.sheet.log = U.sheet.log ? 0 : 1; return renderSheet(); }
   if (a === 'logall') { U.sheet.log = U.sheet.log === 2 ? 1 : 2; return renderSheet(); }
   if (a === 'rules') return openSheet({ k: 'rules' });
+  if (a === 'status') return openSheet({ k: 'status' });
+  if (a === 'fit') return isoToggleFit();
+  if (a === 'follow') { ISO.follow = true; if (G.raid && G.raid.cell) isoFocus(G.raid.cell === 'out' ? 'e' : G.raid.cell); return draw(); }
+  if (a === 'pick2') { U.sheet.pick = b.dataset.t; U.sheet.lock = null; return renderSheet(); }
+  if (a === 'lockrow') { U.sheet.lock = b.dataset.t; U.sheet.pick = null; return renderSheet(); }
 }
 function after() { save(); draw(); renderSheet(); }
 
@@ -7670,7 +8901,7 @@ function afterNight(r) {
 }
 function ledgerPops() {
   const G = U.G, L = U.lay, T = G.tally; if (!T || !L) return;
-  T.led.pops.forEach((p, j) => { const r = L.cells[p.id]; if (!r) return; if (p.v) fxAdd({ k: 'num', x: r.x + r.w / 2, y: r.y + 16, txt: '+' + p.v, col: '#f2c25a', dur: 1300, delay: j * 140 }); if (p.mul) fxAdd({ k: 'num', x: r.x + r.w / 2, y: r.y + 32, txt: '×' + p.mul, col: '#5fd6c2', dur: 1300, delay: j * 140 }); fxAdd({ k: 'spr', id: 'fx_plus', x: r.x + r.w / 2 - 6, y: r.y + r.h / 2, dur: 900, delay: j * 140, fade: 1 }); });
+  T.led.pops.forEach((p, j) => { const r = isoCellW(p.id); if (p.v) fxAdd({ k: 'num', x: r.x, y: r.y - 14, txt: '+' + p.v, col: '#f2c25a', dur: 1300, delay: j * 140 }); if (p.mul) fxAdd({ k: 'num', x: r.x, y: r.y, txt: '×' + p.mul, col: '#5fd6c2', dur: 1300, delay: j * 140 }); fxAdd({ k: 'spr', id: 'fx_plus', x: r.x - 6, y: r.y - 6, dur: 900, delay: j * 140, fade: 1 }); });
   if (T.led.pops.length) sfx('coin');
 }
 function strikeRoll(h) {
@@ -7691,16 +8922,18 @@ function dmInit() {
   G.kin.forEach(k => { dm.kinHp[k.id] = k.hp; });
   const n = G.raid.party.length;
   G.raid.party.forEach((x, i) => { const p = manSpot(L, 'out', i, n); dm.men[x.id] = { id: x.id, cls: x.cls, rank: x.rank, n: i, x: p.x - 40, y: p.y, tx: p.x, ty: p.y, st: 'in', hp: x.hp, mhp: x.mhp, cell: 'out', path: [] }; });
-  U.dm = dm;
+  U.dm = dm; isoDmInit(dm);
 }
 // 칸마다 침입자를 다시 세운다 (서 있는 자만). 칸이 바뀐 자는 통로를 따라 걷는다
 function regroup() {
+  if (isoOn()) return isoRegroup();
   const L = U.lay, dm = U.dm; if (!dm || !L) return;
   const by = {}; Object.values(dm.men).forEach(m => { if (m.st === 'in' || m.st === 'mad') (by[m.cell] = by[m.cell] || []).push(m); });
   Object.keys(by).forEach(c => { by[c].forEach((m, i) => { const p = manSpot(L, c, i, by[c].length); m.tx = p.x; m.ty = p.y; }); });
 }
-function moveMen(ids, c) { const L = U.lay, dm = U.dm; ids.forEach(id => { const m = dm.men[id]; if (!m || m.cell === c) return; m.path = routeTo(L, m, c); m.cell = c; }); regroup(); }
+function moveMen(ids, c) { if (isoOn()) return isoMoveMen(ids, c); const L = U.lay, dm = U.dm; ids.forEach(id => { const m = dm.men[id]; if (!m || m.cell === c) return; m.path = routeTo(L, m, c); m.cell = c; }); regroup(); }
 function actorXY(ref) {
+  if (isoOn()) return isoActorW(ref);
   const G = U.G, L = U.lay, s = 16 * L.sc;
   if (ref.side === 'man') { const m = U.dm.men[ref.id]; return m ? { x: m.tx, y: m.ty } : { x: 0, y: 0 }; }
   if (ref.side === 'boss') { const b = bossPos(L); return { x: b.x + b.w / 2 - s / 2, y: b.y }; }
@@ -7717,7 +8950,7 @@ const SPD = () => [1.0, 0.55, 0.28][U.speed];
 async function raidRun() {
   const G = U.G; if (U.raiding) return; U.raiding = true; U.skip = !!U.test.skipAll;
   closeSheet(true); $('dn-toast').hidden = true; if (!U.lay) await sleep(60);
-  dmInit(); draw(); sfx('night');
+  ISO.follow = true; ISO.box = null; U.say = ''; dmInit(); isoFocus('e', true); draw(); sfx('night');
   let guard = 0;
   while (G.phase === 'raid' && guard++ < 6000) {
     if (U.guideHold) await U.guideHold;
@@ -7732,7 +8965,7 @@ async function raidRun() {
   }
   save(); U.raiding = false; U.skip = false;
   await sleep(U.test.fast ? 30 : 500);
-  U.dm = null; U.note = ''; draw(); ledgerPops();
+  U.dm = null; U.note = ''; U.say = ''; ISO.box = null; draw(); ledgerPops();
   setTimeout(() => openSheet({ k: 'tally' }), U.test.fast ? 30 : 500);
 }
 // 사건 하나를 그림에 옮긴다
@@ -7756,8 +8989,9 @@ function applyEv(e) {
   else if (e.t === 'end') { G.kin.forEach(k => { dm.kinHp[k.id] = k.hp; }); }
 }
 async function playEv(e) {
-  const k = SPD(), L = U.lay, s = 16 * L.sc, now = performance.now(), dm = U.dm;
-  applyEv(e);
+  const k = SPD(), L = U.lay, s = 16, now = performance.now(), dm = U.dm;
+  applyEv(e); sayEv(e);
+  if (e.cell && e.cell !== 'out' && e.t !== 'chk') isoFocus(e.cell);
   if (e.t === 'start') { sfx('step'); U.note = ''; return 500 * k; }
   if (e.t === 'split') return 250 * k;
   if (e.t === 'enter') { sfx('step'); return 500 + 300 * k; }
@@ -7765,60 +8999,99 @@ async function playEv(e) {
   if (e.t === 'chk') {
     // 결정의 굴림은 크게 멈춰서, 나머지는 작게 흘러가듯. 「아주 빠름」에서는 결정의 굴림만
     if (U.speed === 2 && !e.big) return 30;
-    const A = e.side === 'us' ? actorXY({ side: 'kin', id: e.id }) : actorXY({ side: 'man', id: e.id }), tint = e.nat === 20 ? 'crit' : e.nat === 1 ? 'fumble' : e.ok ? 'hit' : 'miss';
+    const A = e.side === 'us' ? actorXY({ side: 'kin', id: e.id }) : actorXY({ side: 'man', id: e.id }), tint = e.nat === 20 ? 'crit' : e.nat === 1 ? 'fumble' : e.ok ? 'hit' : 'miss'; if (e.big && e.cell) isoFocus(e.cell);
     fxAdd({ k: 'd20', x: A.x + (e.big ? 0 : 4), y: A.y + (e.big ? -s * 0.2 : s * 0.4), n: e.nat, n2: e.rolls.length > 1 ? e.rolls[1] : null, tint, side: e.side, rt: e.rt, small: !e.big, dur: (e.big ? 1100 : 600) * k + 250 });
     sfx('dice'); if (U.guideRaid) await U.guideRaid(e);
     return e.big ? 450 + 500 * k : 260 * k;
   }
   if (e.t === 'event') {
     U.note = '굴의 차례. ' + D.EVN[e.ev] + '.'; draw();
-    fxAdd({ k: 'ev', ev: e.ev, dur: 1100 }); const V = L.cells.out; fxAdd({ k: 'd20', x: V.x + V.w / 2 + 22, y: V.y + 2, n: e.nat, tint: e.ev === 'calm' ? 'miss' : 'crit', side: 'us', rt: 'star', dur: 1100 });
+    fxAdd({ k: 'ev', ev: e.ev, n: e.nat, tint: e.ev === 'calm' ? 'miss' : 'crit', dur: 1100 });
     if (e.ev === 'dark') Object.values(dm.men).forEach(q => { if (q.st === 'in') q.mad = now + 700; });
     if (e.kin) { const q = actorXY({ side: 'kin', id: e.kin }); fxAdd({ k: 'spr', id: 'ic_heart', x: q.x + s / 2 - 6, y: q.y - 6, dur: 800, frame: 0, rise: 1 }); const kk = D.kinById(U.G, e.kin); if (kk) dm.kinHp[e.kin] = kk.hp; }
     if (e.orb) draw();
     sfx(e.ev === 'calm' ? 'flip' : 'omen'); if (U.guideRaid) await U.guideRaid(e);
     return e.ev === 'calm' ? 350 * k + 150 : 700 + 300 * k;
   }
-  if (e.t === 'crew' || e.t === 'hold' || e.t === 'init' || e.t === 'blk' || e.t === 'disarm' || e.t === 'trip') { if (e.t === 'disarm') { const m = dm.men[e.id]; if (m) fxAdd({ k: 'spr', id: 'fx_miss', x: m.tx + s / 2 - 5, y: m.ty + s, dur: 500 }); } if (e.t === 'blk') e.ids.forEach(id => { const m = dm.men[id]; if (m) m.mad = now + 700; }); return (e.t === 'hold' ? 180 : 120) * k; }
-  if (e.t === 'mind') { const m = dm.men[e.id]; if (m) { m.mad = now + 600; fxAdd({ k: 'num', x: m.tx + s / 2, y: m.ty, txt: '−' + e.loss, col: '#b08cf0', dur: 800 }); } return 200 * k; }
+  if (e.t === 'crew' || e.t === 'hold' || e.t === 'init' || e.t === 'blk' || e.t === 'disarm' || e.t === 'trip') { if (e.t === 'disarm') { const m = dm.men[e.id]; if (m) { const A = actorXY({ side: 'man', id: e.id }); fxAdd({ k: 'spr', id: 'fx_miss', x: A.x + 3, y: A.y + s, dur: 500 }); } } if (e.t === 'blk') e.ids.forEach(id => { const m = dm.men[id]; if (m) m.mad = now + 700; }); return (e.t === 'hold' ? 180 : 120) * k; }
+  if (e.t === 'mind') { const m = dm.men[e.id]; if (m) { m.mad = now + 600; const A = actorXY({ side: 'man', id: e.id }); fxAdd({ k: 'num', x: A.x + s / 2, y: A.y, txt: '−' + e.loss, col: '#b08cf0', dur: 800 }); } return 200 * k; }
   if (e.t === 'lure' || e.t === 'turned' || e.t === 'flee') { sfx('slide'); return 450 * k; }
   if (e.t === 'trap') {
-    const m = dm.men[e.id]; if (!m) return 0;
-    if (e.dmg) { fxAdd({ k: 'num', x: m.tx + s / 2, y: m.ty, txt: e.dmg, col: '#ff8a7a', dur: 900, delay: 200 * k }); sfx('trap'); }
-    if (e.blk === 'whisper' || e.blk === 'maze') fxAdd({ k: 'spr', id: 'fx_mad', x: m.tx + s / 2 - 5, y: m.ty - 6, dur: 700, fade: 1 });
+    const m = dm.men[e.id]; if (!m) return 0; const A = actorXY({ side: 'man', id: e.id }); dm.blkShake = dm.blkShake || {}; dm.blkShake[e.cell] = now + 400;
+    if (e.dmg) { fxAdd({ k: 'num', x: A.x + s / 2, y: A.y, txt: e.dmg, col: '#ff8a7a', dur: 900, delay: 200 * k }); sfx('trap'); }
+    if (e.blk === 'whisper' || e.blk === 'maze') fxAdd({ k: 'spr', id: 'fx_mad', x: A.x + 3, y: A.y - 6, dur: 700, fade: 1 });
     return 420 * k;
   }
-  if (e.t === 'shop' || e.t === 'inn') { const m = dm.men[e.id]; if (m) fxAdd({ k: 'num', x: m.tx + s / 2, y: m.ty, txt: '+' + e.amt, col: '#f2c25a', dur: 1000 }); if (m && e.t === 'inn') m.mad = now + 600; sfx('coin'); return 420 * k; }
+  if (e.t === 'shop' || e.t === 'inn') { const m = dm.men[e.id]; if (m) { const A = actorXY({ side: 'man', id: e.id }); fxAdd({ k: 'num', x: A.x + s / 2, y: A.y, txt: '+' + e.amt, col: '#f2c25a', dur: 1000 }); } if (m && e.t === 'inn') m.mad = now + 600; sfx('coin'); return 420 * k; }
+  if (e.t === 'atk' && U.speed < 2 && e.a.side !== e.b.side && (e.a.side === 'man' || e.b.side === 'man')) {
+    // 싸움 상자: 맞붙은 짝을 크게. 스무면체와 피해 숫자는 상자 안에서
+    const ours = e.a.side === 'man' ? e.b : e.a, them = e.a.side === 'man' ? e.a : e.b, B = isoBoxShow(e, ours, them, now);
+    if (e.a.side === 'man') { const m = dm.men[e.a.id]; if (m) m.atk = now + 300; } else if (e.a.side === 'kin') dm.kinAtk[e.a.id] = now + 300;
+    B.roll = { n: e.rolls[0], n2: e.rolls.length > 1 ? e.rolls[1] : null, tint: e.crit ? 'crit' : e.fumble ? 'fumble' : e.hit ? 'hit' : 'miss', side: e.side, t0: now, dur: 900 * k + 300 };
+    if (e.dmg) B.dmg = { v: e.dmg, side: e.b.side, crit: e.crit, t0: now + 200 * k };
+    sfx(e.hit ? 'hit' : 'dice'); if (U.guideRaid) await U.guideRaid(e);
+    return (e.crit ? 500 : 0) + 680 * k;
+  }
   if (e.t === 'atk') {
     const A = actorXY(e.a), Bp = actorXY(e.b), tint = e.crit ? 'crit' : e.fumble ? 'fumble' : e.hit ? 'hit' : 'miss';
     if (e.a.side === 'man') { const m = dm.men[e.a.id]; if (m) m.atk = now + 260; } else if (e.a.side === 'kin') dm.kinAtk[e.a.id] = now + 260;
-    const two = e.rolls.length > 1, dy = e.a.side === 'man' ? s * 0.45 : -s * 0.75;
-    if (U.speed === 2 && !e.big && !e.dmg) return 60;
+    const two = e.rolls.length > 1, dy = -s * 0.75;
+    if (U.speed === 2 && !e.big) { if (e.dmg) fxAdd({ k: 'num', x: Bp.x + s / 2, y: Bp.y + 4, txt: e.dmg, col: e.b.side === 'man' ? '#ff8a7a' : '#ffb0c8', dur: 800 }); return 60; }
     fxAdd({ k: 'd20', x: A.x, y: A.y + dy, n: e.rolls[0], n2: two ? e.rolls[1] : null, tint, side: e.side, rt: 'sword', small: !e.big, dur: 900 * k + 250 });
     sfx(e.hit ? 'hit' : 'dice');
-    if (e.dmg) { fxAdd({ k: 'num', x: Bp.x + s / 2, y: Bp.y + 4, txt: e.dmg, col: e.crit ? '#ffd760' : e.b.side === 'man' ? '#ff8a7a' : '#ffb0c8', dur: 950, delay: 220 * k }); fxAdd({ k: 'spr', id: e.crit ? 'fx_crit' : 'fx_hit', x: Bp.x + s / 2 - 6, y: Bp.y + s / 2 - 6, dur: 380, delay: 200 * k, sc: Math.max(1, L.sc - 1) }); }
+    if (e.dmg) { fxAdd({ k: 'num', x: Bp.x + s / 2, y: Bp.y + 4, txt: e.dmg, col: e.crit ? '#ffd760' : e.b.side === 'man' ? '#ff8a7a' : '#ffb0c8', dur: 950, delay: 220 * k }); fxAdd({ k: 'spr', id: e.crit ? 'fx_crit' : 'fx_hit', x: Bp.x + s / 2 - 6, y: Bp.y + s / 2 - 6, dur: 380, delay: 200 * k, sc: 1 }); }
     else fxAdd({ k: 'spr', id: 'fx_miss', x: Bp.x + s / 2 - 5, y: Bp.y + 2, dur: 380, delay: 200 * k });
     if (U.guideRaid) await U.guideRaid(e);
     return (e.crit ? 400 : 0) + 620 * k;
   }
   if (e.t === 'spite' || e.t === 'open') { const Bp = actorXY(e.b); fxAdd({ k: 'num', x: Bp.x + s / 2, y: Bp.y + 4, txt: e.dmg, col: '#ffb060', dur: 900 }); fxAdd({ k: 'spr', id: 'fx_hit', x: Bp.x + s / 2 - 5, y: Bp.y + s / 2 - 5, dur: 380 }); sfx('hit'); return 420 * k; }
   if (e.t === 'down') {
-    const m = dm.men[e.id]; sfx('die'); if (m) { fxAdd({ k: 'spr', id: 'fx_blood', x: m.tx + 2, y: m.ty + s - 10, dur: 900 }); fxAdd({ k: 'num', x: m.tx + s / 2, y: m.ty - 2, txt: '+' + e.loot, col: '#f2c25a', dur: 1100, delay: 200 }); }
+    const m = dm.men[e.id]; sfx('die'); if (ISO.box && ISO.box.b.id === e.id) { ISO.box.last = now; ISO.box.hold = 1500; } if (m) { const A = actorXY({ side: 'man', id: e.id }); fxAdd({ k: 'spr', id: 'fx_blood', x: A.x + 2, y: A.y + s - 6, dur: 900 }); fxAdd({ k: 'num', x: A.x + s / 2, y: A.y - 2, txt: '+' + e.loot, col: '#f2c25a', dur: 1100, delay: 200 }); }
     nom(e.cell); return 520 * k;
   }
-  if (e.t === 'mad') { const m = dm.men[e.id]; if (m) { m.mad = now + 1600; fxAdd({ k: 'd6', x: m.tx + s / 4, y: m.ty + s * 0.3, n: e.v, dur: 1100 }); } sfx('mad'); if (U.guideRaid) await U.guideRaid(e); return 400 + 500 * k; }
+  if (e.t === 'mad') { const m = dm.men[e.id]; if (m) { m.mad = now + 1600; const A = actorXY({ side: 'man', id: e.id }); fxAdd({ k: 'd6', x: A.x + 2, y: A.y - 14, n: e.v, dur: 1100 }); } if (e.cell) isoFocus(e.cell); sfx('mad'); if (U.guideRaid) await U.guideRaid(e); return 400 + 500 * k; }
   if (e.t === 'madres') return 250 * k;
   if (e.t === 'tick') { e.ids.forEach(id => { const m = dm.men[id]; if (m) m.mad = now + 500; }); return 260 * k; }
-  if (e.t === 'kfall') { sfx('die'); return 300 * k; }
+  if (e.t === 'kfall') { sfx('die'); if (ISO.box && ISO.box.a.id === e.id) { ISO.box.last = now; ISO.box.hold = 1500; } return 300 * k; }
   if (e.t === 'death') { const q = actorXY({ side: 'kin', id: e.id }); fxAdd({ k: 'd20', x: q.x, y: q.y - s * 0.75, n: e.rolls[0], n2: e.rolls.length > 1 ? e.rolls[1] : null, tint: e.ok ? 'hit' : 'fumble', side: 'us', rt: 'skull', dur: 1200 }); sfx('dice'); return 700 + 300 * k; }
   if (e.t === 'dead') { const q = actorXY({ side: 'kin', id: e.id }); fxAdd({ k: 'spr', id: 'ic_tomb', x: q.x + s / 2 - 6, y: q.y + s - 14, dur: 1400, frame: 0, rise: 1 }); sfx('die'); return 500 + 200 * k; }
   if (e.t === 'rise' || e.t === 'spawn') { const q = actorXY({ side: 'kin', id: e.id }); fxAdd({ k: 'spr', id: 'fx_lvup', x: q.x + s / 2 - 6, y: q.y - 8, dur: 800 }); sfx('birth'); return 450 * k; }
   if (e.t === 'bfall') { sfx('burst'); fxAdd({ k: 'flash', col: '#ef6a6a', dur: 600 }); return 700; }
-  if (e.t === 'steal') { const V = L.cells.vault, m = dm.men[e.id]; if (m) fxAdd({ k: 'd6', x: m.tx, y: m.ty - 4, n: Math.min(6, e.rolls[0]), dur: 900 }); fxAdd({ k: 'num', x: V.x + V.w / 2, y: V.y + 6, txt: '−' + e.amt, col: '#ef6a6a', dur: 1100 }); sfx('slide'); return 650 * k + 200; }
-  if (e.t === 'siderob') { const r = L.cells[e.cell]; if (r && !e.blocked && e.amt) fxAdd({ k: 'num', x: r.x + r.w / 2, y: r.y + 14, txt: '−' + e.amt, col: '#ef6a6a', dur: 1000 }); if (r && e.blocked) fxAdd({ k: 'spr', id: 'fx_miss', x: r.x + r.w / 2 - 5, y: r.y + 8, dur: 600 }); return 450 * k; }
+  if (e.t === 'steal') { const V = isoCellW('vault'), m = dm.men[e.id]; isoFocus('vault'); if (m) { const A = actorXY({ side: 'man', id: e.id }); fxAdd({ k: 'd6', x: A.x, y: A.y - 14, n: Math.min(6, e.rolls[0]), dur: 900 }); } fxAdd({ k: 'num', x: V.x, y: V.y - 16, txt: '−' + e.amt, col: '#ef6a6a', dur: 1100 }); sfx('slide'); return 650 * k + 200; }
+  if (e.t === 'siderob') { const r = isoCellW(e.cell); if (!e.blocked && e.amt) fxAdd({ k: 'num', x: r.x, y: r.y - 14, txt: '−' + e.amt, col: '#ef6a6a', dur: 1000 }); if (e.blocked) fxAdd({ k: 'spr', id: 'fx_miss', x: r.x - 5, y: r.y - 14, dur: 600 }); return 450 * k; }
   if (e.t === 'skip') return 200 * k;
   if (e.t === 'end') return 200;
   return 100 * k;
+}
+// 아래 알림 줄: 방금 일어난 일을 짧게 (굴 그림 위에는 글을 얹지 않는다)
+const josa = (w, a, b) => { const c = String(w).charCodeAt(String(w).length - 1); return w + (c >= 0xAC00 && c <= 0xD7A3 && (c - 0xAC00) % 28 ? a : b); };
+function whoName(ref) { const G = U.G; if (!ref) return ''; if (ref.side === 'boss') return '본체'; if (ref.side === 'man' || typeof ref === 'string') { const id = typeof ref === 'string' ? ref : ref.id, x = G.raid && D.manById(G, id); return x ? D.MAN[x.cls].name : '사람'; } const k = D.kinById(G, ref.id); return k ? k.name : '권속'; }
+function sayEv(e) {
+  const G = U.G, man = id => whoName({ side: 'man', id }), kin = id => whoName({ side: 'kin', id }); let t = null;
+  if (e.t === 'start') t = '발소리가 굴 앞에 멈춥니다.';
+  else if (e.t === 'split') t = e.how === 'scatter' ? '일행이 흩어집니다.' : '일행이 ' + ({ L: '왼', C: '가운데', R: '오른' }[e.how] || '가운데') + ' 갈래로 갑니다.';
+  else if (e.t === 'enter' && e.cell !== 'vault') t = '사람 ' + josa(D.nk(e.ids.length), '이', '가') + ' ' + CELLN[e.cell] + '에 들어섭니다.';
+  else if (e.t === 'chk' && e.big) t = josa(e.side === 'us' ? kin(e.id) : man(e.id), '이', '가') + ' ' + (e.what || '굴림').replace(/ \(.*\)$/, '') + '에 ' + (e.ok ? '성공합니다.' : '실패합니다.');
+  else if (e.t === 'atk') { const a = whoName(e.a), b = whoName(e.b); t = e.crit ? josa(a, '이', '가') + ' 급소를 노립니다. 대성공입니다.' : e.hit ? josa(a, '이', '가') + ' ' + josa(b, '을', '를') + ' ' + (e.a.side === 'man' ? '칩니다.' : '뭅니다.') : josa(a, '의', '의') + ' 공격이 빗나갑니다.'; }
+  else if (e.t === 'down') t = josa(man(e.id), '이', '가') + (e.cap ? ' 사로잡힙니다.' : ' 쓰러집니다.');
+  else if (e.t === 'flee') t = josa(man(e.id), '이', '가') + ' 달아납니다.';
+  else if (e.t === 'mad') t = josa(man(e.id), '이', '가') + ' 미칩니다.';
+  else if (e.t === 'kfall') t = josa(kin(e.id), '이', '가') + ' 쓰러집니다.';
+  else if (e.t === 'dead') t = josa(e.name, '이', '가') + ' 돌아오지 않습니다.';
+  else if (e.t === 'bfall') t = '본체가 쓰러집니다.';
+  else if (e.t === 'steal') t = josa(man(e.id), '이', '가') + ' 금고를 텁니다.';
+  else if (e.t === 'trap' && e.dmg) t = josa(man(e.id), '이', '가') + ' ' + D.BLK[e.blk].name + '에 다칩니다.';
+  else if (e.t === 'disarm') t = josa(man(e.id), '이', '가') + ' 함정을 풉니다.';
+  else if (e.t === 'sneak') t = josa(man(e.id), '이', '가') + ' 몰래 지나갑니다.';
+  else if (e.t === 'lure') t = josa(man(e.id), '이', '가') + ' 가짜 알을 들고 나갑니다.';
+  else if (e.t === 'shop') t = josa(man(e.id), '이', '가') + ' 좌판에서 물건을 삽니다.';
+  else if (e.t === 'inn') t = josa(man(e.id), '이', '가') + ' 여인숙에서 쉬어 갑니다.';
+  else if (e.t === 'turned') t = '일행이 팻말 앞에서 돌아갑니다.';
+  else if (e.t === 'hold') t = josa(whoName(e.q), '이', '가') + ' 나와서 ' + josa(man(e.id), '을', '를') + ' 막아섭니다.';
+  else if (e.t === 'siderob' && !e.blocked) t = josa(man(e.id), '이', '가') + (e.what === 'cap' ? ' 제물을 풀어 줍니다.' : ' 살림을 텁니다.');
+  else if (e.t === 'event') t = '굴의 차례. ' + D.EVN[e.ev] + '.';
+  if (t) { U.say = t; const n = $('dn-note'); if (n) n.textContent = t; }
+  const mb = document.querySelector('#dn-mind i'); if (mb) mb.style.width = Math.round(mindLeft() * 100) + '%';
 }
 function nom(c) { const G = U.G, now = performance.now(); D.kinIn(G, c).forEach(k => { if (k.st === 'ok') U.dm.kinNom[k.id] = now + 1400; }); }
 function orbUse(i) {
@@ -7845,7 +9118,21 @@ function kinCard(G, k, extra) {
   const sk = k.sk.map(x => D.SK[x].name).join(' · ');
   return `<img class="art" src="${ART.url(kinArt(k), { scale: 3, frame: kinArt(k).indexOf('man_') === 0 ? 'mad' : 0 })}" alt=""><div class="txt"><span class="nm">${esc(k.name)} <img class="dn-sig" src="${ART.url('sig_' + k.asp, { scale: 1 })}" alt="${D.ASPN[k.asp]}"> <small>${esc(D.KIN[k.kind].name)}</small></span><span class="ln">${esc(D.kinLine(G, k))}</span>${sk ? `<span class="sk">${esc(sk)}</span>` : ''}${extra || ''}</div>`;
 }
+// 방 미리보기: 그 방을 쿼터뷰로 작게 (바닥 4 × 3, 뒤쪽 벽, 블록)
+function isoPreview(cv, rid) {
+  if (!cv) return; const R = D.ROOMS[rid], c = cv.getContext('2d'), dpr = Math.min(3, window.devicePixelRatio || 1); cv.width = 128 * dpr; cv.height = 80 * dpr; c.setTransform(dpr, 0, 0, dpr, 0, 0); c.imageSmoothingEnabled = false;
+  c.fillStyle = '#100a17'; c.fillRect(0, 0, 128, 80); const ox = 60, oy = 12, fl = R.b.length ? (R.zone === 'e' || R.zone === 'm' ? 'iso_room' : 'iso_side') : 'iso_empty';
+  for (let gx = 0; gx < 4; gx++) for (let gy = 0; gy < 3; gy++) { const p = iwp(gx, gy); isoFloor(c, R.zone === 'out' ? 'iso_grass' : fl, p.x + ox - 16, p.y + oy - 8, gx + gy); }
+  for (let gy = 0; gy < 3; gy++) { const p = iwp(0, gy); isoWall(c, 'iso_wall_l', p.x + ox - 16, p.y + oy - 8, 'l'); } for (let gx = 0; gx < 4; gx++) { const p = iwp(gx, 0); isoWall(c, 'iso_wall_r', p.x + ox - 16, p.y + oy - 8, 'r'); }
+  R.b.forEach((bk, i) => { const gx = 1 + (i % 3), gy = Math.floor(i / 3) ? 2 : 1, p = iwp(gx, gy), art = bk === 'fork' ? 'blk_bend_l' : blkArt(bk), sz = ART.size(art); ART.draw(c, art, p.x + ox - sz.w * 0.375, p.y + oy + 2 - sz.h * 0.75, { scale: 0.75, frame: bk === 'seat' ? 'lv1' : /^rm_/.test(art) ? 'lv1' : 0 }); });
+}
 const SHEETS = {
+  status() {
+    const G = U.G, n = { seat: 0, trap: 0, other: 0 }; D.CELLS.forEach(c => { if (c === 'b') return; const b = D.roomOf(G, c).b; if (!b.length) return; if (b.indexOf('seat') >= 0) n.seat++; else if (b.some(x => D.TRAPS.indexOf(x) >= 0)) n.trap++; else n.other++; });
+    const gods = D.ASP.filter(a => D.faithTier(G, a)).map(a => D.ASPN[a] + ' ' + D.faithTier(G, a) + '단계').join(' · ') || '아직 없습니다';
+    const row = (a, b) => `<tr><td>${a}</td><td>${b}</td></tr>`;
+    return `<div class="dn-sbox">${head('굴 현황', G.night + '번째 밤')}<div class="dn-sbody"><table class="dn-led" id="dn-status">${row('진액', G.ichor)}${row('공포', G.fear)}${row('제물', G.cap + ' / ' + D.larderTotal(G))}${row('호화', D.lux(G))}${row('권속', G.kin.length + ' (자리 ' + D.seatsTotal(G) + ')')}${row('자리 있는 방', n.seat)}${row('함정 방', n.trap)}${row('그 밖의 방', n.other)}${row('본체', G.bossStage + '단계')}</table><div class="dn-desc"><b>깃든 신</b><span>${gods}</span></div><div class="dn-desc"><b>묘비</b><span>${G.dead.length}개</span></div></div></div>`;
+  },
   intro(s) {
     const T = ['나는 굴 깊은 곳에서 갓 깨어난 작은 옛 것입니다.', '땅 위를 건드려 사람들을 굴로 꾀어 들입니다.', '굴이 그들을 먹고, 나는 자랍니다. 스물네 번째 밤까지.'];
     setTimeout(() => { const cv = $('dn-icv'); if (!cv) return; cv.width = 96; cv.height = 64; const c = cv.getContext('2d'); c.imageSmoothingEnabled = false; c.fillStyle = '#1f1230'; c.fillRect(0, 0, 96, 64);
@@ -7853,7 +9140,7 @@ const SHEETS = {
     return `<div class="dn-sbox">${head('길잡이', (s.i + 1) + '/3', true)}<div class="dn-sbody"><div class="dn-intro"><canvas id="dn-icv"></canvas><p>${T[s.i]}</p></div></div><div class="dn-sfoot"><button class="dn-btn pri" data-a="intro" id="dn-introb">${s.i < 2 ? '다음' : '시작합니다'}</button></div></div>`;
   },
   menu() {
-    return `<div class="dn-sbox">${head('메뉴')}<div class="dn-sbody"><div class="dn-rowb" style="flex-direction:column"><button class="dn-btn sm" data-a="guide">길잡이 다시 보기</button><button class="dn-btn sm" data-a="rules" id="dn-rulesb">굴림 한눈에</button><button class="dn-btn sm" data-a="sound">소리 ${META.sound ? '켜짐' : '꺼짐'}</button><button class="dn-btn sm" data-a="ask">죽음 앞에서 묻기 ${META.ask ? '켜짐' : '꺼짐 (늘 보냅니다)'}</button><button class="dn-btn sm" data-a="title">첫 화면으로</button><button class="dn-btn sm" data-a="wipe">처음부터 (저장을 지웁니다)</button></div></div></div>`;
+    return `<div class="dn-sbox">${head('메뉴')}<div class="dn-sbody"><div class="dn-rowb" style="flex-direction:column"><button class="dn-btn sm" data-a="guide">길잡이 다시 보기</button><button class="dn-btn sm" data-a="status" id="dn-statusb">굴 현황</button><button class="dn-btn sm" data-a="rules" id="dn-rulesb">굴림 한눈에</button><button class="dn-btn sm" data-a="sound">소리 ${META.sound ? '켜짐' : '꺼짐'}</button><button class="dn-btn sm" data-a="ask">죽음 앞에서 묻기 ${META.ask ? '켜짐' : '꺼짐 (늘 보냅니다)'}</button><button class="dn-btn sm" data-a="title">첫 화면으로</button><button class="dn-btn sm" data-a="wipe">처음부터 (저장을 지웁니다)</button></div></div></div>`;
   },
   rules() {
     const R = [['rt_eye', '갈림길', '우두머리가 마음으로 살핍니다. 성공하면 지키는 권속이 가장 적은 갈래로, 실패하면 눈에 띄는 쪽으로 갑니다. 1 이면 흩어집니다.'],
@@ -7884,6 +9171,21 @@ const SHEETS = {
     const where = { out: '굴 밖. 오는 사람에 영향을 줍니다.', e: '입구. 이 칸의 방이 길의 모양을 정합니다.', es: '옆 갈래의 첫 칸. 입구가 갈림길이 아니면 아무도 오지 않는 안전한 자리입니다.', m: '가운데 갈래의 둘째 칸.', ms: '옆 갈래의 둘째 칸.', is: '옆 갈래의 마지막 칸. 가운데로 온 도둑도 본체 방 앞에서 새어 듭니다.' }[z];
     let h = `<div class="dn-desc"><b>${R.name} ${luxTxt(R.lux)}</b><span>${esc(R.d)}</span><span>${where}</span></div>`;
     if (!deck) h += `<p class="dn-line" style="color:var(--dn-dim)">방을 바꾸려면 「꾸민다」 밤에 누르세요.</p>`;
+    else if (true) {
+      // 방 목록 = 표 (이름 | 자리 | 함정 | 그 밖 | 값). 안 열린 방은 ?????. 줄을 누르면 미리보기와 「놓는다」
+      const list = D.roomList(G, id), back = Math.floor(R.cost / 2), P = s.pick && D.ROOMS[s.pick];
+      const cnt = b => { const seat = b.filter(x => x === 'seat').length, trap = b.filter(x => D.TRAPS.indexOf(x) >= 0).length; return [seat, trap, b.length - seat - trap]; };
+      h = '';
+      if (P) { const have = G.ichor, cost = P.cost, left = have + (s.pick === G.cells[id] ? 0 : back) - cost;
+        h += `<div class="dn-prev" id="dn-prev"><canvas id="dn-pcv" width="128" height="80"></canvas><div class="dn-desc" style="flex:1;min-width:0"><b>${P.name} ${luxTxt(P.lux)}</b><span>${esc(P.d)}</span><span>가진 것 ${have} · 값 ${cost}${back && s.pick !== G.cells[id] ? ' · 돌려받음 ' + back : ''} · 남는 것 <b class="${left < 0 ? 'no' : ''}" style="display:inline">${left}</b></span></div></div>`
+          + `<div class="dn-rowb"><button class="dn-btn pri sm" data-a="setroom" data-t="${s.pick}" id="dn-place" ${left >= 0 && s.pick !== G.cells[id] ? '' : 'disabled'}>${s.pick === G.cells[id] ? '지금 놓인 방' : '놓는다'}</button></div>`;
+        setTimeout(() => isoPreview($('dn-pcv'), s.pick), 0); }
+      else if (s.lock) { const r = list.find(x => x.id === s.lock); h += `<p class="dn-line" id="dn-lockline">${r && r.capNeed && G.capEver < r.capNeed ? '제물을 ' + r.capNeed + ' 넘게 가져 보면 열립니다.' : '굴에 진액 ' + Math.max(1, (r ? r.need : 0) - G.spentRoom) + '을 더 쓰면 열립니다.'}</p>`; }
+      else h += `<div class="dn-desc"><b>${R.name} ${luxTxt(R.lux)}</b><span>${esc(R.d)}</span><span>${where}</span></div>`;
+      h += `<div class="dn-rhead"><span>방 · 진액 ${G.ichor}</span>${ic('ic_seat', 1)}<span>${ic('blk_spike', 1)}</span><span>${ic('blk_shop', 1)}</span><span>${ic('ic_ichor', 1)}</span></div><div id="dn-rooms">`
+        + list.map(r => { const cur = r.id === G.cells[id]; if (!r.open) return `<button class="dn-rrow lock" data-a="lockrow" data-t="${r.id}"><span class="nm">?????</span><span>?</span><span>?</span><span>?</span><span>?</span></button>`;
+          const c3 = cnt(r.b), afford = G.ichor + back >= r.cost || cur; return `<button class="dn-rrow${cur ? ' cur' : ''}${s.pick === r.id ? ' pick' : ''}" data-a="pick2" data-t="${r.id}"><span class="nm">${r.name}${cur ? ' ●' : ''}</span><span>${c3[0] || '·'}</span><span>${c3[1] || '·'}</span><span>${c3[2] || '·'}</span><span class="${afford ? '' : 'no'}">${r.cost}</span></button>`; }).join('') + '</div>';
+    }
     else {
       const list = D.roomList(G, id), info = s.info && D.ROOMS[s.info];
       if (info) h += `<div class="dn-desc"><b>${info.name}</b><span>${esc(info.d)}</span></div>`;
@@ -7961,11 +9263,325 @@ window.__den = {
   get G() { return U.G; }, U, D, get meta() { return META; },
   speed(n) { U.speed = n; }, skip() { U.skip = true; }, redraw: () => draw(), open: k => openSheet(k), raid: () => raidRun(), show: k => show(k),
   pt(target) { const L = U.lay, r = $('dn-cv').getBoundingClientRect(); if (!L) return null;
+    if (isoOn() && ISO.map) { if (typeof target === 'number') { const k = D.kinById(U.G, target), tl = k && isoKinTile(U.G, ISO.map, k); if (!tl) return null; const p = iwp(tl[0], tl[1]), q = isoS(p.x, p.y - 8); return { x: r.left + q.x, y: r.top + q.y }; } isoReveal(target); const p = isoCellW(target), q = isoS(p.x, p.y); return { x: r.left + q.x, y: r.top + q.y }; }
     if (typeof target === 'number') { const k = D.kinById(U.G, target); const q = k && kinPos(U.G, L, k); if (!q) return null; return { x: r.left + q.x + 8 * L.sc, y: r.top + q.y + 8 * L.sc }; }
     const q = L.cells[target]; return { x: r.left + q.x + q.w / 2, y: r.top + q.y + 10 }; },
-  cellBox(id) { const L = U.lay, r = $('dn-cv').getBoundingClientRect(); if (!L) return null; const q = L.cells[id]; return { left: r.left + q.x, top: r.top + q.y, width: q.w, height: q.h }; },
-  st() { const G = U.G; if (!G) return { scr: U.scr }; return { scr: U.scr, phase: G.phase, night: G.night, cmd: G.cmd, sheet: U.sheet && U.sheet.k, raiding: U.raiding, ask: !!(G.raid && G.raid.ask), ichor: G.ichor, kin: G.kin.length, lamp: G.lamp, strike: G.strike ? { sum: G.strike.sum, hold: G.strike.hold, n: G.strike.dice.length, done: G.strike.done } : null, step: typeof guideStep === 'function' ? (guideStep() || [null])[0] : null, tip: !$('dn-tip').hidden, grade: G.grade && G.grade.letter, evN: U.evN, ev: U.ev && U.ev.t }; },
+  cellBox(id) { const L = U.lay, r = $('dn-cv').getBoundingClientRect(); if (!L) return null; if (isoOn() && ISO.map) return isoCellBox(id); const q = L.cells[id]; return { left: r.left + q.x, top: r.top + q.y, width: q.w, height: q.h }; },
+  st() { const G = U.G; if (!G) return { scr: U.scr }; return { scr: U.scr, phase: G.phase, night: G.night, cmd: G.cmd, sheet: U.sheet && U.sheet.k, raiding: U.raiding, ask: !!(G.raid && G.raid.ask), ichor: G.ichor, kin: G.kin.length, lamp: G.lamp, strike: G.strike ? { sum: G.strike.sum, hold: G.strike.hold, n: G.strike.dice.length, done: G.strike.done } : null, step: typeof guideStep === 'function' ? (guideStep() || [null])[0] : null, tip: !$('dn-tip').hidden, grade: G.grade && G.grade.letter, evN: U.evN, ev: U.ev && U.ev.t, iso: isoOn(), fit: ISO.fit, follow: ISO.follow, box: !!ISO.box, cam: [Math.round(ISO.cam.x), Math.round(ISO.cam.y)], say: U.say }; },
+  get iso() { return ISO; }, isoCellBox: c => isoCellBox(c), boxRect: () => ISO.box && ISO.box.rect,
 };
+// 굴 (den) 쿼터뷰: 2:1 마름모 타일 지도. 본 화면과 침입 때 쓴다 (꾸미는 밤은 denui.js 의 납작한 도면).
+// 셈 (den_art.md 덧붙임 5): 칸 (gx, gy) 의 중심은 (gx − gy) × 16, (gx + gy) × 8. gx = 굴의 깊이(입구 → 금고), gy = 갈래(왼 → 오른).
+// 바닥 32×16 은 (cx − 16, cy − 8), 키 있는 것 32×N 은 (cx − 16, cy + 8 − N), 정면 그림(유닛·블록)은 (cx − w/2, cy + 2 − h).
+// 그림이 아직 없는 id 는 여기서 마름모·벽을 색으로 그려 대신한다 (물음표 네모가 굴에 깔리지 않게).
+const ISO = { z: 1.5, zBase: 1.5, fit: false, cam: { x: 0, y: 0 }, tgt: null, follow: true, drag: null, layer: null, key: '', map: null, box: null, dpr: 1, W: 0, H: 0, moved: 0, started: 0 };
+const TW = 16, TH = 8;
+const iwp = (gx, gy) => ({ x: (gx - gy) * TW, y: (gx + gy) * TH });
+const IHAS = id => ART.has(id);
+const ICOL = { iso_void: '#150d1e', iso_road: '#5b3b42', iso_road_lit: '#7d5745', iso_room: '#3e2c58', iso_side: '#32244a', iso_empty: '#2a1f2e', iso_boss: '#6b3166', iso_vault: '#5d4c2a', iso_grass: '#1f3a2b' };
+// 지도: 칸마다 방 하나 (4 × 3 타일, 본체 방은 5 × 3), 사이에 폭 1 타일 통로. 굴 밖은 풀밭
+const IROOM = {
+  el: [4, 0, 4, 3], e: [4, 4, 4, 3], er: [4, 8, 4, 3],
+  ml: [9, 0, 4, 3], m: [9, 4, 4, 3], mr: [9, 8, 4, 3],
+  il: [14, 0, 4, 3], b: [14, 4, 5, 3], ir: [14, 8, 4, 3],
+  vault: [20, 4, 2, 3],
+};
+const ILANE = { L: 1, C: 5, R: 9 };
+function isoMap(G) {
+  const W = 22, H = 11, t = {}, set = (x, y, v) => { t[x + ',' + y] = Object.assign(t[x + ',' + y] || {}, v); };
+  for (let x = 0; x < 3; x++) for (let y = 0; y < H; y++) set(x, y, { k: 'grass' });
+  // 통로 격자: 갈림 줄(gx 3), 칸 사이(gx 8, 13), 갈래마다 세로 길, 본체 방 앞과 금고로 가는 길
+  for (let y = 1; y <= 9; y++) { set(3, y, { k: 'road', ln: 'split' }); set(8, y, { k: 'road', ln: 'mid' }); set(13, y, { k: 'road', ln: 'gather' }); }
+  set(2, 5, { k: 'road', ln: 'gate' });
+  for (const L of ['L', 'C', 'R']) { const y = ILANE[L]; [3, 8, 13].forEach(x => set(x, y, { k: 'road', ln: L })); }
+  for (let x = 13; x <= 13; x++) set(x, 3, { k: 'road', ln: 'L' }), set(x, 7, { k: 'road', ln: 'R' });
+  set(19, 5, { k: 'road', ln: 'C' });
+  // 옆 갈래의 끝(안쪽 칸)에서 본체 방으로 이어지는 짧은 길
+  set(16, 3, { k: 'road', ln: 'L' }); set(16, 7, { k: 'road', ln: 'R' });
+  const cells = {};
+  Object.keys(IROOM).forEach(id => {
+    const [x0, y0, w, h] = IROOM[id], tiles = [];
+    for (let x = x0; x < x0 + w; x++) for (let y = y0; y < y0 + h; y++) { set(x, y, { k: 'room', cell: id }); tiles.push([x, y]); }
+    // 블록 여섯 자리: 뒤쪽 두 변(x0, y0)을 비우지 않고, 앞쪽 3 × 2 (본체 방은 본체 자리 다음)
+    const inner = []; for (let j = 0; j < 6; j++) inner.push([x0 + 1 + (j % 3), y0 + (Math.floor(j / 3) ? h - 1 : Math.max(0, h - 2))]);
+    cells[id] = { x0, y0, w, h, tiles, inner, cx: x0 + (w - 1) / 2, cy: y0 + (h - 1) / 2 };
+  });
+  return { W, H, t, cells };
+}
+// 걸을 수 있는 칸 사이의 길 찾기 (너비 우선)
+function isoPath(M, a, b) {
+  const key = (x, y) => x + ',' + y, ok = (x, y) => { const v = M.t[key(x, y)]; return v && v.k !== 'grass' || (x <= 3 && v); };
+  const q = [a], prev = {}; prev[key(a[0], a[1])] = null;
+  while (q.length) { const [x, y] = q.shift(); if (x === b[0] && y === b[1]) break;
+    [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(([dx, dy]) => { const nx = x + dx, ny = y + dy, k = key(nx, ny); if (k in prev || !ok(nx, ny)) return; prev[k] = [x, y]; q.push([nx, ny]); }); }
+  const out = []; let cur = b; if (!(key(b[0], b[1]) in prev)) return [b];
+  while (cur) { out.unshift(cur); cur = prev[key(cur[0], cur[1])]; }
+  return out.slice(1);
+}
+// 칸 안에서 침입자가 서는 타일 (앞쪽 줄부터, 여럿이면 두 줄로)
+function isoSpot(M, c, i, n) {
+  if (c === 'out') return [1.2 + (i % 3) * 0.5, 4 + Math.floor(i / 3) * 0.7 + (i % 2) * 0.2];
+  const C = M.cells[c] || M.cells.vault; const cols = Math.min(n, 3), r = Math.floor(i / 3);
+  return [C.x0 + 0.3 + (i % 3) * 0.6 + r * 0.25, C.y0 + 0.2 + r * 0.6 + (cols === 1 ? 0.6 : 0)];
+}
+function isoKinTile(G, M, k) {
+  if (!k.at) return null; const C = M.cells[k.at]; if (!C) return null;
+  if (k.at === 'b') { const i = D.kinIn(G, 'b').indexOf(k); return [C.x0 + 2 + (i % 3), C.y0 + Math.floor(i / 3) * 1 + 1]; }
+  const sl = seatList(G, k.at), i = D.kinIn(G, k.at).indexOf(k); if (i < 0 || sl[i] == null) return null; return C.inner[sl[i]];
+}
+// ---------- 화면 옮기기 ----------
+function isoSize() { const wrap = $('dn-cavew'); return { W: wrap.clientWidth, H: wrap.clientHeight }; }
+function isoFitZ() { const { W, H } = isoSize(); return Math.min(W / 545, H / 315); }
+function isoCenter(wx, wy, now) { const { W, H } = isoSize(), z = ISO.z, cx = W / 2 - wx * z, cy = H / 2 - wy * z; if (now) { ISO.cam.x = cx; ISO.cam.y = cy; ISO.tgt = null; } else ISO.tgt = { x: cx, y: cy }; }
+function isoCellW(c) { const M = ISO.map || isoMap(U.G); const C = M.cells[c]; if (!C) { const p = iwp(1, 5); return p; } return iwp(C.cx, C.cy); }
+function isoFocus(c, now) { if (!ISO.follow || ISO.fit) return; const p = isoCellW(c); isoCenter(p.x, p.y, now); }
+function isoStart() { ISO.z = ISO.fit ? isoFitZ() : ISO.zBase; const p = isoCellW('b'); isoCenter(p.x - 40, p.y - 30, true); ISO.started = 1; }
+function isoToggleFit() {
+  ISO.fit = !ISO.fit; ISO.z = ISO.fit ? isoFitZ() : ISO.zBase;
+  if (ISO.fit) isoCenter(88, 112, true); else { const p = isoCellW(U.G && U.G.phase === 'raid' && U.G.raid.cell && U.G.raid.cell !== 'out' ? U.G.raid.cell : 'b'); isoCenter(p.x, p.y, true); }
+  ISO.key = ''; isoClamp(); draw();
+}
+function isoClamp() { const { W, H } = isoSize(), z = ISO.z, minX = W - 360 * z, maxX = 200 * z, minY = H - 300 * z, maxY = 30 * z; ISO.cam.x = Math.max(Math.min(minX, maxX), Math.min(Math.max(minX, maxX), ISO.cam.x)); ISO.cam.y = Math.max(Math.min(minY, maxY), Math.min(Math.max(minY, maxY), ISO.cam.y)); }
+function isoBind(cv) {
+  cv.addEventListener('pointerdown', e => { if (!isoOn()) return; ISO.drag = { x: e.clientX, y: e.clientY, cx: ISO.cam.x, cy: ISO.cam.y, moved: false }; });
+  window.addEventListener('pointermove', e => { const d = ISO.drag; if (!d) return; const dx = e.clientX - d.x, dy = e.clientY - d.y; if (!d.moved && Math.hypot(dx, dy) < 7) return; d.moved = true; ISO.cam.x = d.cx + dx; ISO.cam.y = d.cy + dy; ISO.tgt = null; isoClamp(); if (U.G && U.G.phase === 'raid' && ISO.follow) { ISO.follow = false; draw(); } });
+  window.addEventListener('pointerup', () => { const d = ISO.drag; ISO.drag = null; if (d && d.moved) ISO.moved = performance.now(); });
+}
+function isoOn() { const G = U.G; return !!G && !(G.phase === 'cmd' && G.cmd === 'deck'); }
+// 화면 좌표 ↔ 세상 좌표
+const isoS = (wx, wy) => ({ x: wx * ISO.z + ISO.cam.x, y: wy * ISO.z + ISO.cam.y });
+function isoHitTile(sx, sy) { const wx = (sx - ISO.cam.x) / ISO.z, wy = (sy - ISO.cam.y) / ISO.z, gx = (wy / TH + wx / TW) / 2, gy = (wy / TH - wx / TW) / 2; return [Math.floor(gx + 0.5), Math.floor(gy + 0.5)]; }
+function isoHit(sx, sy) {
+  const G = U.G, M = ISO.map; if (!M) return null;
+  for (const k of G.kin) { const tl = isoKinTile(G, M, k); if (!tl) continue; const p = iwp(tl[0], tl[1]), s = isoS(p.x - 8, p.y + 2 - 16); if (sx >= s.x - 3 && sx <= s.x + 16 * ISO.z + 3 && sy >= s.y - 3 && sy <= s.y + 18 * ISO.z) return { kin: k.id }; }
+  const [gx, gy] = isoHitTile(sx, sy), v = M.t[gx + ',' + gy];
+  if (v && v.cell) return { cell: v.cell === 'vault' ? null : v.cell };
+  if (gx >= 0 && gx <= 2) return { cell: 'out' };
+  return null;
+}
+// 칸이 화면에서 차지하는 상자 (길잡이의 금빛 테가 쓴다)
+function isoCellBox(c) {
+  const M = ISO.map || isoMap(U.G), C = c === 'out' ? { x0: 0, y0: 0, w: 3, h: 11 } : M.cells[c]; if (!C) return null;
+  const pts = [iwp(C.x0 - 0.5, C.y0 - 0.5), iwp(C.x0 + C.w - 0.5, C.y0 - 0.5), iwp(C.x0 - 0.5, C.y0 + C.h - 0.5), iwp(C.x0 + C.w - 0.5, C.y0 + C.h - 0.5)].map(p => isoS(p.x, p.y));
+  const r = $('dn-cv').getBoundingClientRect(), x0 = Math.min(...pts.map(p => p.x)), x1 = Math.max(...pts.map(p => p.x)), y0 = Math.min(...pts.map(p => p.y)) - 10 * ISO.z, y1 = Math.max(...pts.map(p => p.y));
+  return { left: r.left + x0, top: r.top + y0, width: x1 - x0, height: y1 - y0 };
+}
+// 테가 가리킬 칸이 화면 밖이면 화면을 그리로 옮긴다
+function isoReveal(c) { const b = isoCellBox(c), r = $('dn-cv').getBoundingClientRect(); if (!b) return; if (b.left < r.left || b.top < r.top || b.left + b.width > r.right || b.top + b.height > r.bottom) { const p = isoCellW(c); isoCenter(p.x, p.y, true); isoClamp(); } }
+
+// ---------- 그리기 ----------
+function isoDiamond(c, x, y, col, edge) { c.beginPath(); c.moveTo(x + 16, y); c.lineTo(x + 32, y + 8); c.lineTo(x + 16, y + 16); c.lineTo(x, y + 8); c.closePath(); c.fillStyle = col; c.fill(); if (edge) { c.strokeStyle = edge; c.lineWidth = 1; c.stroke(); } }
+// 바닥 한 장 (그림이 있으면 그림, 없으면 색 마름모)
+function isoFloor(c, id, x, y, v) {
+  if (IHAS(id)) { const fr = ART.frames(id), f = fr.length > 1 ? fr[v % fr.length] : 0; ART.draw(c, id, x, y, { frame: f }); return; }
+  const col = ICOL[id] || '#333'; isoDiamond(c, x, y, v % 2 ? col : shade(col, 0.08), shade(col, -0.25));
+  if (id === 'iso_road' || id === 'iso_road_lit') { c.fillStyle = 'rgba(0,0,0,.18)'; c.fillRect(x + 12 + (v % 3) * 3, y + 6, 2, 1); }
+  if (id === 'iso_grass') { c.fillStyle = '#2f5a3a'; c.fillRect(x + 8 + (v % 4) * 4, y + 5 + (v % 3), 1, 2); c.fillRect(x + 20 - (v % 3) * 3, y + 8, 1, 2); }
+  if (id === 'iso_boss') { c.strokeStyle = 'rgba(255,190,230,.35)'; c.beginPath(); c.moveTo(x + 16, y + 3); c.lineTo(x + 27, y + 8); c.lineTo(x + 16, y + 13); c.lineTo(x + 5, y + 8); c.closePath(); c.stroke(); }
+}
+function shade(h, k) { const n = parseInt(h.slice(1), 16), f = v => Math.max(0, Math.min(255, Math.round(v + (k > 0 ? (255 - v) * k : v * k)))); return '#' + [n >> 16, (n >> 8) & 255, n & 255].map(f).map(v => v.toString(16).padStart(2, '0')).join(''); }
+// 키 있는 것: 벽 (뒤쪽 두 변에만)
+function isoWall(c, id, x, y, side, boss) {
+  if (IHAS(id)) { const N = ART.size(id).h; ART.draw(c, id, x, y + 16 - N); return; }
+  const h = boss ? 14 : 9, col = boss ? '#7a3a6e' : '#4b3566', top = boss ? '#9a5a8a' : '#62468a';
+  c.beginPath();
+  if (side === 'l') { c.moveTo(x, y + 8); c.lineTo(x + 16, y); c.lineTo(x + 16, y - h); c.lineTo(x, y + 8 - h); }
+  else { c.moveTo(x + 16, y); c.lineTo(x + 32, y + 8); c.lineTo(x + 32, y + 8 - h); c.lineTo(x + 16, y - h); }
+  c.closePath(); c.fillStyle = col; c.fill(); c.strokeStyle = top; c.lineWidth = 1; c.stroke();
+  c.fillStyle = '#5fd6c2'; c.fillRect(side === 'l' ? x + 7 : x + 23, y + 3 - h, 1, 1);
+}
+function isoTall(c, id, x, y, alt) {
+  if (IHAS(id)) { const z = ART.size(id), fr = ART.frames(id); ART.draw(c, id, x + 16 - z.w / 2, y + 16 - z.h, { frame: alt && fr.indexOf(alt) >= 0 ? alt : 0 }); return; }
+  if (id === 'iso_tree') { c.fillStyle = '#3a2a24'; c.fillRect(x + 15, y - 2, 3, 10); c.fillStyle = '#1e4a3a'; c.beginPath(); c.arc(x + 16, y - 6, 8, 0, 7); c.fill(); c.fillStyle = '#2a6a4f'; c.beginPath(); c.arc(x + 13, y - 9, 4, 0, 7); c.fill(); return; }
+  if (id === 'iso_gate') { c.fillStyle = '#4a3a4a'; c.beginPath(); c.moveTo(x + 4, y + 8); c.lineTo(x + 4, y - 10); c.quadraticCurveTo(x + 16, y - 26, x + 28, y - 10); c.lineTo(x + 28, y + 8); c.fill(); c.fillStyle = '#0c0812'; c.beginPath(); c.moveTo(x + 10, y + 8); c.lineTo(x + 10, y - 6); c.quadraticCurveTo(x + 16, y - 16, x + 22, y - 6); c.lineTo(x + 22, y + 8); c.fill(); return; }
+  if (id === 'iso_lamp') { c.fillStyle = '#5a4030'; c.fillRect(x + 15, y - 8, 2, 14); c.fillStyle = '#ffcf5a'; c.fillRect(x + 13, y - 12, 6, 5); return; }
+  if (id === 'iso_thorn') { c.strokeStyle = '#6a3a3a'; for (let i = 0; i < 5; i++) { c.beginPath(); c.moveTo(x + 6 + i * 5, y + 8); c.lineTo(x + 8 + i * 5, y - 2); c.stroke(); } return; }
+  if (id === 'iso_mushbed') { for (let i = 0; i < 4; i++) { c.fillStyle = '#e8a0c8'; c.fillRect(x + 6 + i * 6, y + 1, 4, 2); c.fillStyle = '#d0c0b0'; c.fillRect(x + 7 + i * 6, y + 3, 2, 3); } return; }
+  if (id === 'iso_rock' || id === 'iso_bush') { c.fillStyle = id === 'iso_rock' ? '#4a4258' : '#24503a'; c.beginPath(); c.ellipse(x + 16, y + 4, 8, 5, 0, 0, 7); c.fill(); return; }
+  if (/^iso_hoard/.test(id)) { const n = +id.slice(-1); for (let i = 0; i < n + 1; i++) { c.fillStyle = i % 2 ? '#f2c25a' : '#f0e0b0'; c.beginPath(); c.ellipse(x + 16 + (i - n / 2) * 5, y + 4 - (i % 2) * 4 - n, 5, 4, 0, 0, 7); c.fill(); } return; }
+}
+// 움직이지 않는 것(바닥·벽·굴 밖·통로)은 한 번 그려 둔 그림을 다시 쓴다
+function isoLayer(G, M, dpr) {
+  const shape = D.pathShape(G), key = JSON.stringify(G.cells) + shape + ISO.z + dpr + G.bossLv + (IHAS('iso_road') ? 1 : 0) + (ART.ids.length);
+  if (ISO.layer && ISO.key === key) return ISO.layer;
+  const ox = 180, oy = 40, Wp = 560, Hp = 330, cv = ISO.layer || document.createElement('canvas'), s = ISO.z * dpr;
+  cv.width = Math.ceil(Wp * s); cv.height = Math.ceil(Hp * s); const c = cv.getContext('2d'); c.setTransform(s, 0, 0, s, 0, 0); c.imageSmoothingEnabled = false;
+  // 빈 땅
+  for (let gx = -3; gx < 25; gx++) for (let gy = -3; gy < 14; gy++) { const p = iwp(gx, gy); const x = p.x + ox - 16, y = p.y + oy - 8; if (x < -32 || y < -16 || x > Wp || y > Hp) continue; const v = M.t[gx + ',' + gy]; if (!v) isoFloor(c, 'iso_void', x, y, (gx * 7 + gy * 3) & 3); }
+  const lanes = shape === 'fork' ? ['L', 'C', 'R'] : [shape];
+  const lit = v => v.ln === 'gate' || (lanes.indexOf(v.ln) >= 0) || (v.ln === 'split' || v.ln === 'gather') && false;
+  const order = Object.keys(M.t).map(k => k.split(',').map(Number)).sort((a, b) => (a[0] + a[1]) - (b[0] + b[1]) || a[0] - b[0]);
+  order.forEach(([gx, gy]) => {
+    const v = M.t[gx + ',' + gy], p = iwp(gx, gy), x = p.x + ox - 16, y = p.y + oy - 8, h = (gx * 5 + gy * 3) & 7;
+    if (v.k === 'grass') isoFloor(c, 'iso_grass', x, y, h);
+    else if (v.k === 'road') isoFloor(c, lit(v) ? 'iso_road_lit' : 'iso_road', x, y, h);
+    else if (v.k === 'room') { const Cb = M.cells[v.cell]; if (v.cell === 'b') { const edge = gx === Cb.x0 || gy === Cb.y0 || gx === Cb.x0 + Cb.w - 1 || gy === Cb.y0 + Cb.h - 1; isoFloor(c, 'iso_boss', x, y, edge ? 1 : 0); return; } const id = v.cell === 'b' ? 'iso_boss' : v.cell === 'vault' ? 'iso_vault' : D.roomOf(G, v.cell).b.length ? (D.laneOf(v.cell) === 'C' ? 'iso_room' : 'iso_side') : 'iso_empty'; isoFloor(c, id, x, y, h); }
+  });
+  // 벽: 방의 뒤쪽 두 변 (x0 줄은 왼쪽 뒤, y0 줄은 오른쪽 뒤)
+  Object.keys(M.cells).forEach(id => { const C = M.cells[id], boss = id === 'b';
+    for (let gy = C.y0; gy < C.y0 + C.h; gy++) { const p = iwp(C.x0, gy); const door = gy === Math.round(C.cy) && id !== 'vault'; if (!door) isoWall(c, boss ? 'iso_wall_boss_l' : 'iso_wall_l', p.x + ox - 16, p.y + oy - 8, 'l', boss); }
+    for (let gx = C.x0; gx < C.x0 + C.w; gx++) { const p = iwp(gx, C.y0); isoWall(c, boss ? 'iso_wall_boss_r' : 'iso_wall_r', p.x + ox - 16, p.y + oy - 8, 'r', boss); } });
+  // 굴 밖: 나무, 입구, 굴 밖 방의 소품
+  const outB = D.roomOf(G, 'out').b[0];
+  [[0, 1], [1, 8], [0, 9], [2, 0], [0, 6], [1, 2]].forEach(([gx, gy], i) => { const p = iwp(gx, gy); isoTall(c, 'iso_tree', p.x + ox - 16, p.y + oy - 8, i % 2 ? 'v1' : 'v0'); });
+  if (outB) [[1, 4], [1, 6], [0, 5]].forEach(([gx, gy]) => { const p = iwp(gx, gy); isoTall(c, outB === 'thorn' ? 'iso_thorn' : outB === 'lamp' ? 'iso_lamp' : 'iso_mushbed', p.x + ox - 16, p.y + oy - 8); });
+  const gp = iwp(2, 5); isoTall(c, 'iso_gate', gp.x + ox - 16, gp.y + oy - 8);
+  ISO.layer = cv; ISO.key = key; ISO.ox = ox; ISO.oy = oy; return cv;
+}
+// 정면 그림 하나를 타일 위에 세운다 (발이 타일 중심)
+function isoStand(c, id, wx, wy, o) { const sz = ART.size(id), z = ISO.z * ((o && o.k) || 1), s = isoS(wx - sz.w * ((o && o.k) || 1) / 2, wy + 2 - sz.h * ((o && o.k) || 1)); ART.draw(c, id, Math.round(s.x), Math.round(s.y), Object.assign({ scale: z }, o || {})); return s; }
+function isoFeet(c, wx, wy, side) {
+  const s = isoS(wx, wy), z = ISO.z;
+  if (IHAS('iso_shadow')) ART.draw(c, 'iso_shadow', s.x - 8 * z, s.y - 4 * z, { scale: z }); else { c.fillStyle = 'rgba(0,0,0,.35)'; c.beginPath(); c.ellipse(s.x, s.y, 6 * z, 2.5 * z, 0, 0, 7); c.fill(); }
+  if (side) { const id = side === 'us' ? 'iso_ring_us' : 'iso_ring_them'; if (IHAS(id)) ART.draw(c, id, s.x - 10 * z, s.y - 5 * z, { scale: z }); else { c.strokeStyle = side === 'us' ? 'rgba(240,138,200,.8)' : 'rgba(140,170,200,.8)'; c.lineWidth = Math.max(1, z * 0.8); c.beginPath(); c.ellipse(s.x, s.y, 7 * z, 3 * z, 0, 0, 7); c.stroke(); } }
+}
+function isoPaint(c, t, W, H, dpr) {
+  const G = U.G; ISO.W = W; ISO.H = H; ISO.dpr = dpr;
+  if (!ISO.map || ISO.mapFor !== G) { ISO.map = isoMap(G); ISO.mapFor = G; }
+  const M = ISO.map;
+  if (!ISO.started) isoStart();
+  if (ISO.fit) { ISO.z = isoFitZ(); isoCenter(88, 112, true); }
+  if (ISO.tgt && !ISO.drag) { ISO.cam.x += (ISO.tgt.x - ISO.cam.x) * 0.12; ISO.cam.y += (ISO.tgt.y - ISO.cam.y) * 0.12; if (Math.abs(ISO.tgt.x - ISO.cam.x) < 0.5 && Math.abs(ISO.tgt.y - ISO.cam.y) < 0.5) ISO.tgt = null; isoClamp(); }
+  c.fillStyle = '#0b0710'; c.fillRect(0, 0, W, H);
+  const L = isoLayer(G, M, dpr);
+  c.drawImage(L, Math.round(ISO.cam.x - ISO.ox * ISO.z), Math.round(ISO.cam.y - ISO.oy * ISO.z), L.width / dpr, L.height / dpr);
+  const tk = Math.floor(t / 520), dm = U.dm, raid = G.phase === 'raid', items = [];
+  // 방 안의 블록 (방석·함정·살림)
+  Object.keys(M.cells).forEach(id => {
+    if (id === 'vault' || id === 'b') return; const R = D.roomOf(G, id), C = M.cells[id];
+    R.b.forEach((bk, i) => { const tl = C.inner[i]; if (!tl) return; const p = iwp(tl[0], tl[1]); let art = blkArt(bk), fr = 0;
+      if (bk === 'fork') art = 'blk_bend_l'; if (bk === 'seat') fr = R.cost >= 30 ? 'lv3' : R.cost >= 16 ? 'lv2' : 'lv1'; if (/^rm_/.test(art)) fr = (R.cost >= 20 ? 'lv2' : 'lv1') + (tk % 2 ? 'b' : ''); if (/^out_/.test(art)) return;
+      const shake = dm && dm.blkShake && dm.blkShake[id] > t ? ((t >> 5) % 2 ? 1 : -1) : 0, bkK = 1;
+      items.push({ d: tl[0] + tl[1] - 0.2, f: () => { const s = isoStand(c, art, p.x + shake, p.y - 1, { frame: fr, k: bkK }); if (bk === 'larder') for (let j = 0; j < Math.min(G.cap, 3); j++) ART.draw(c, 'ic_captive', s.x + j * 5 * ISO.z, s.y - 6 * ISO.z, { scale: ISO.z * 0.75 }); } }); });
+    if (R.lux >= 3) { const tl = [C.x0, C.y0 + C.h - 1], p = iwp(tl[0], tl[1]); items.push({ d: tl[0] + tl[1], f: () => isoStand(c, ['deco_candle', 'deco_mush', 'deco_helms', 'deco_mobile', 'deco_censer'][R.cost % 5], p.x, p.y, { k: 0.75 }) }); }
+  });
+  // 본체와 묘비, 금고의 보물 더미
+  const B = M.cells.b, bp = iwp(B.x0 + 1, B.y0 + 1), bossHp = dm ? dm.bossHp : G.boss.hp;
+  const bf = bossHp <= 0 ? 'sleep' : (U.eatT > t ? 'eat' : (dm && dm.bossHurt > t ? 'hurt' : (tk % 9 === 0 ? 'blink' : (tk % 2 ? 'idle1' : 'idle0'))));
+  items.push({ d: B.x0 + B.y0 + 2, f: () => { isoFeet(c, bp.x, bp.y, 'us'); const s = isoStand(c, 'boss' + G.bossStage, bp.x, bp.y, { frame: bf }); hpBarW(c, s.x, s.y - 4, ART.size('boss' + G.bossStage).w * ISO.z, bossHp / D.bossSt(G).mhp); } });
+  for (let j = 0; j < D.cellSeats(G, 'b'); j++) { const tl = [B.x0 + 2 + (j % 3), B.y0 + Math.floor(j / 3) + 1], p = iwp(tl[0], tl[1]); items.push({ d: tl[0] + tl[1] - 0.3, f: () => isoStand(c, 'blk_seat', p.x, p.y - 1, { frame: G.bossLv >= 2 ? 'lv2' : 'lv1' }) }); }
+  G.dead.slice(-5).forEach((x, j) => { const p = iwp(B.x0 + 4, B.y0 + j * 0.5); items.push({ d: B.x0 + 4 + B.y0 + j * 0.5, f: () => isoStand(c, IHAS('iso_tomb') ? 'iso_tomb' : 'ic_tomb', p.x, p.y, {}) }); });
+  const V = M.cells.vault, pile = G.ichor >= 150 ? 4 : G.ichor >= 80 ? 3 : G.ichor >= 30 ? 2 : 1, vp = iwp(V.x0 + 0.5, V.y0 + 1);
+  items.push({ d: V.x0 + V.y0 + 1.5, f: () => { const s = isoS(vp.x - 16, vp.y + 8); c.save(); c.translate(s.x, s.y); c.scale(ISO.z, ISO.z); isoTall(c, 'iso_hoard' + pile, 0, -8); c.restore(); } });
+  // 권속 (싸우는 중이면 자리에서 나와 맞선다)
+  G.kin.forEach(k => {
+    const tl = isoKinTile(G, M, k); if (!tl) return; let [gx, gy] = tl;
+    const pr = raid && G.raid.pairs && G.raid.pairs.find(p => p.q === k.id), foe = pr && dm && dm.men[pr.x];
+    if (foe) { gx += (foe.gx - gx) * 0.55; gy += (foe.gy - gy) * 0.55; }
+    const p = iwp(gx, gy), ph = (k.id * 3 + tk) % 2, hp = dm && dm.kinHp[k.id] != null ? dm.kinHp[k.id] : k.hp;
+    let fr = k.st === 'out' || hp <= 0 ? 'down' : (dm && dm.kinAtk[k.id] > t ? 'atk' : dm && dm.kinHurt[k.id] > t ? 'hurt' : ((tk + k.id) % 11 === 0 ? 'blink' : ph ? 'idle1' : 'idle0'));
+    const art = kinArt(k); if (art.indexOf('man_') === 0) fr = fr === 'down' ? 'down' : fr === 'atk' ? 'atk' : 'mad';
+    items.push({ d: gx + gy + 0.1, f: () => { isoFeet(c, p.x, p.y, 'us'); const s = isoStand(c, art, p.x, p.y, { frame: fr, flip: true, tint: dm && dm.kinFlash[k.id] > t ? 'white' : undefined }); if (U.sel === k.id) { c.strokeStyle = '#f2c25a'; c.lineWidth = 1.5; c.strokeRect(s.x - 1, s.y - 1, 16 * ISO.z + 2, 16 * ISO.z + 2); }
+      if (hp < k.mhp) hpBarW(c, s.x + 2 * ISO.z, s.y - 3, 12 * ISO.z, hp / k.mhp);
+      if (!raid && k.st === 'ok' && (k.id + Math.floor(t / 4000)) % 5 === 0) ART.draw(c, 'ic_zzz', s.x + 10 * ISO.z, s.y - 6 * ISO.z, { scale: ISO.z * 0.75 });
+      if (dm && dm.kinNom[k.id] > t) ART.draw(c, 'fx_nom', s.x + 9 * ISO.z, s.y + 2 * ISO.z, { scale: ISO.z * 0.75, frame: tk % 2 ? 'f1' : 'f0' }); } });
+  });
+  // 침입자: 통로 타일을 따라 걷는다
+  if (dm) {
+    const sp = 0.045 * (1 + U.speed);
+    Object.values(dm.men).forEach(m => {
+      if (m.gx == null) return;
+      const tg = m.tp && m.tp.length ? m.tp[0] : [m.tgx, m.tgy], dx = tg[0] - m.gx, dy = tg[1] - m.gy, dd = Math.hypot(dx, dy);
+      if (dd <= sp) { m.gx = tg[0]; m.gy = tg[1]; if (m.tp && m.tp.length) m.tp.shift(); } else { m.gx += dx / dd * sp; m.gy += dy / dd * sp; }
+      if (m.gone) return; let a = 1; if (m.fade) { a = Math.max(0, 1 - (t - m.fade) / 900); if (a <= 0) { m.gone = 1; return; } }
+      const p = iwp(m.gx, m.gy), moving = m.tp && m.tp.length;
+      const fr = m.st === 'down' || m.st === 'cap' ? 'down' : m.st === 'mad' ? 'mad' : m.atk > t ? 'atk' : m.hurt > t ? 'hurt' : (moving ? (Math.floor(t / 180 + m.n) % 2 ? 'walk1' : 'walk0') : 'walk0');
+      items.push({ d: m.gx + m.gy + 0.15, f: () => { c.save(); c.globalAlpha = a; isoFeet(c, p.x, p.y, m.st === 'in' ? 'them' : null);
+        const s = isoStand(c, D.MAN[m.cls].art, p.x, p.y, { frame: fr, flip: dx < 0 || dy > 0, tint: m.flash > t ? 'white' : undefined });
+        if (dm.leader === m.id) ART.draw(c, 'mk_leader', s.x + 1, s.y - 5 * ISO.z, { scale: ISO.z * 0.75 }); else if (dm.scout === m.id) ART.draw(c, 'mk_scout', s.x + 1, s.y - 5 * ISO.z, { scale: ISO.z * 0.75 });
+        if (m.st === 'in' && m.hp < m.mhp) hpBarW(c, s.x + 2 * ISO.z, s.y - 3, 12 * ISO.z, m.hp / m.mhp);
+        if (m.st === 'down') ART.draw(c, 'ic_bone', s.x + 8 * ISO.z, s.y + 10 * ISO.z, { scale: ISO.z * 0.75 });
+        if (m.st === 'cap') ART.draw(c, 'ic_captive', s.x + 2 * ISO.z, s.y - 8 * ISO.z, { scale: ISO.z * 0.75 });
+        if (m.mad > t) ART.draw(c, 'fx_mad', s.x + 3 * ISO.z, s.y - 8 * ISO.z, { scale: ISO.z * 0.75, frame: tk % 2 ? 'f1' : 'f0' });
+        c.restore(); } });
+    });
+  }
+  items.sort((a, b) => a.d - b.d).forEach(o => o.f());
+  isoFx(c, t, W, H);
+  isoBoxPaint(c, t, W, H);
+}
+function hpBarW(c, x, y, w, f) { f = Math.max(0, Math.min(1, f)); const h = Math.max(2, Math.round(ISO.z * 1.5)); c.fillStyle = '#1a0f22'; c.fillRect(x, y, w, h); c.fillStyle = f > 0.5 ? '#7ad36a' : f > 0.25 ? '#f0c04b' : '#ef6a6a'; c.fillRect(x, y, Math.round(w * f), h); }
+// 덧그림: 주사위·숫자·효과 (세상 좌표로 적어 두고 그릴 때 화면 좌표로)
+function isoFx(c, t, W, H) {
+  U.fx = U.fx.filter(f => t < f.t0 + f.dur);
+  const z = ISO.z;
+  U.fx.forEach(f => {
+    if (t < f.t0) return; const k = Math.max(0, (t - f.t0) / f.dur), s = f.x != null ? isoS(f.x, f.y) : null;
+    if (f.k === 'd20') {
+      const bounce = k < 0.3 ? -Math.sin(k / 0.3 * Math.PI) * 6 : 0, ds = f.small ? Math.max(1, z * 0.75) : Math.max(1.5, z * 1.25);
+      ART.draw(c, 'd20', s.x, s.y + bounce, { scale: ds, tint: f.tint });
+      if (f.side) ART.draw(c, f.side === 'us' ? 'd20_us' : 'd20_them', s.x, s.y + bounce, { scale: ds });
+      if (f.rt) ART.draw(c, 'rt_' + f.rt, s.x - 7 * Math.max(1, ds * 0.6), s.y + bounce - 3, { scale: Math.max(1, ds * 0.6) });
+      if (f.n2 != null) { ART.draw(c, 'd20', s.x + 16 * ds + 2, s.y + bounce, { scale: ds, tint: 'miss' }); num(c, s.x + 24 * ds + 2, s.y + 9 * ds + bounce, f.n2, '#1a1020', 6 + 3 * ds); }
+      num(c, s.x + 8 * ds, s.y + 9 * ds + bounce, f.n, '#1a1020', 6 + 3 * ds);
+    } else if (f.k === 'd6') ART.draw(c, 'd6_' + f.n, s.x, s.y - k * 4, { scale: Math.max(1, z) });
+    else if (f.k === 'num') { c.save(); c.globalAlpha = 1 - Math.max(0, k - 0.6) / 0.4; num(c, s.x, s.y - k * 16, f.txt, f.col, 13 + 2 * z, true); c.restore(); }
+    else if (f.k === 'spr') { c.save(); c.globalAlpha = f.fade ? 1 - k : 1; ART.draw(c, f.id, s.x, s.y - (f.rise ? k * 10 : 0), { scale: (f.sc || 1) * Math.max(1, z * 0.75), frame: f.frame != null ? f.frame : (Math.floor(t / 120) % 2 ? 'f1' : 'f0') }); c.restore(); }
+    else if (f.k === 'ev') { c.save(); c.globalAlpha = k < 0.8 ? 1 : (1 - k) * 5; ART.draw(c, 'ev_' + f.ev, W / 2 - 18, 6 - (k < 0.15 ? (0.15 - k) * 40 : 0), { scale: 3 }); c.restore(); if (f.n != null) { ART.draw(c, 'd20', W / 2 + 22, 8, { scale: 2, tint: f.tint }); ART.draw(c, 'd20_us', W / 2 + 22, 8, { scale: 2 }); ART.draw(c, 'rt_star', W / 2 + 14, 6, { scale: 1 }); num(c, W / 2 + 38, 26, f.n, '#1a1020', 12); } }
+    else if (f.k === 'flash') { c.save(); c.globalAlpha = 0.35 * (1 - k); c.fillStyle = f.col; c.fillRect(0, 0, W, H); c.restore(); if (f.sig) ART.draw(c, 'sig_' + f.sig, W / 2 - 18, H / 2 - 18 - k * 10, { scale: 3 }); }
+  });
+}
+// ---------- 싸움 상자 ----------
+// 맞붙은 짝이 치고받을 때 그 방 가까이에 뜬다. 두 싸움꾼을 크게 마주 보게, 체력 막대, 스무면체, 피해 숫자
+function isoBoxShow(e, ours, theirs, now) {
+  const b = ISO.box && ISO.box.a.id === ours.id && ISO.box.b.id === theirs.id ? ISO.box : { a: ours, b: theirs, cell: e.cell, t0: now };
+  b.last = now; b.cell = e.cell || b.cell; ISO.box = b; return b;
+}
+function isoBoxPaint(c, t, W, H) {
+  const B = ISO.box; if (!B) return; if (t - B.last > (B.hold || 1400)) { ISO.box = null; return; }
+  const dm = U.dm; if (!dm) { ISO.box = null; return; }
+  const bw = Math.min(W - 16, 200), bh = 112, p = isoCellW(B.cell || 'b'), s = isoS(p.x, p.y);
+  let x = Math.round(s.x - bw / 2), y = Math.round(s.y - bh - 30 * ISO.z); if (y < 4) y = Math.round(s.y + 24 * ISO.z); x = Math.max(6, Math.min(W - bw - 6, x)); y = Math.max(4, Math.min(H - bh - 4, y));
+  B.rect = { x, y, w: bw, h: bh };
+  // 틀: 그림이 있으면 아홉 조각, 없으면 굴 벽 색의 두꺼운 테
+  if (IHAS('box_fight') && U.img.box) { const im = U.img.box, k = 16, sc = 1, d = k * sc, P = (sx, sy, sw, sh, dx, dy, dw, dh) => c.drawImage(im, sx, sy, sw, sh, dx, dy, dw, dh); P(0, 0, k, k, x, y, d, d); P(32, 0, k, k, x + bw - d, y, d, d); P(0, 32, k, k, x, y + bh - d, d, d); P(32, 32, k, k, x + bw - d, y + bh - d, d, d); P(16, 0, k, k, x + d, y, bw - 2 * d, d); P(16, 32, k, k, x + d, y + bh - d, bw - 2 * d, d); P(0, 16, k, k, x, y + d, d, bh - 2 * d); P(32, 16, k, k, x + bw - d, y + d, d, bh - 2 * d); P(16, 16, k, k, x + d, y + d, bw - 2 * d, bh - 2 * d); }
+  else { rrect(c, { x, y, w: bw, h: bh }, 10, '#140b1d', '#6b4a8a', 3); c.fillStyle = '#5fd6c2'; c.fillRect(x + 6, y + 6, 2, 2); c.fillRect(x + bw - 8, y + 6, 2, 2); }
+  c.fillStyle = '#2a1838'; c.fillRect(x + 8, y + bh - 22, bw - 16, 3);
+  const G = U.G, sc = 3, fy = y + bh - 22 - 16 * sc, ax = x + 14, bx = x + bw - 14 - 16 * sc, now = t;
+  // 우리 편 (왼쪽, 오른쪽을 본다)
+  const A = B.a, Z = B.b; let aArt, aHp, aMax, aFr = 'idle0';
+  if (A.side === 'boss') { aArt = 'boss' + G.bossStage; aHp = dm.bossHp; aMax = D.bossSt(G).mhp; aFr = aHp <= 0 ? 'sleep' : dm.bossHurt > now ? 'hurt' : (Math.floor(t / 500) % 2 ? 'idle1' : 'idle0'); }
+  else { const k = D.kinById(G, A.id) || B.aKin; if (k) B.aKin = k; aArt = k ? kinArt(k) : 'kin_brood_b'; aHp = dm.kinHp[A.id] != null ? dm.kinHp[A.id] : 0; aMax = k ? k.mhp : 1; aFr = aHp <= 0 ? 'down' : dm.kinAtk[A.id] > now ? 'atk' : dm.kinHurt[A.id] > now ? 'hurt' : (Math.floor(t / 500) % 2 ? 'idle1' : 'idle0'); if (aArt.indexOf('man_') === 0) aFr = aFr === 'down' ? 'down' : 'mad'; }
+  const asz = ART.size(aArt), asc = Math.max(2, Math.floor(48 / Math.max(asz.w, asz.h)));
+  ART.draw(c, aArt, ax, y + bh - 22 - asz.h * asc + 2, { scale: asc, frame: aFr, flip: true, tint: A.side === 'kin' && dm.kinFlash[A.id] > now ? 'white' : undefined });
+  hpBarW(c, x + 10, y + 10, bw / 2 - 16, aHp / Math.max(1, aMax));
+  const m = dm.men[Z.id];
+  if (m) { const fr = m.st === 'down' || m.st === 'cap' || m.hp <= 0 ? 'down' : m.st === 'mad' ? 'mad' : m.atk > now ? 'atk' : m.hurt > now ? 'hurt' : (Math.floor(t / 450) % 2 ? 'walk1' : 'walk0');
+    ART.draw(c, D.MAN[m.cls].art, bx, fy + 2, { scale: sc, frame: fr, tint: m.flash > now ? 'white' : undefined }); hpBarW(c, x + bw / 2 + 6, y + 10, bw / 2 - 16, m.hp / m.mhp);
+    if (fr === 'down') ART.draw(c, 'ic_bone', bx + 20, y + bh - 30, { scale: 2 });
+    if (m.rank > 0) ART.draw(c, 'rank' + Math.min(5, m.rank), bx + 21, fy - 6, { scale: 2 }); }
+  if (aHp <= 0 && A.side === 'kin') ART.draw(c, 'ic_bone', ax + 18, y + bh - 30, { scale: 2 });
+  // 스무면체와 피해 숫자 (상자 안)
+  const R = B.roll; if (R && t - R.t0 < R.dur) { const k = (t - R.t0) / R.dur, bounce = k < 0.3 ? -Math.sin(k / 0.3 * Math.PI) * 8 : 0, dx = x + bw / 2 - 16 + (R.side === 'us' ? -6 : 6);
+    ART.draw(c, 'd20', dx, y + 26 + bounce, { scale: 2, tint: R.tint }); ART.draw(c, R.side === 'us' ? 'd20_us' : 'd20_them', dx, y + 26 + bounce, { scale: 2 }); ART.draw(c, 'rt_sword', dx - 10, y + 24 + bounce, { scale: 1 }); num(c, dx + 16, y + 44 + bounce, R.n, '#1a1020', 13);
+    if (R.n2 != null) { ART.draw(c, 'd20', dx + 34, y + 26 + bounce, { scale: 1.5, tint: 'miss' }); num(c, dx + 46, y + 38 + bounce, R.n2, '#1a1020', 10); } }
+  const Dg = B.dmg; if (Dg && t - Dg.t0 < 1000) { const k = (t - Dg.t0) / 1000; c.save(); c.globalAlpha = 1 - Math.max(0, k - 0.6) / 0.4; num(c, Dg.side === 'man' ? bx + 24 : ax + 24, fy - 6 - k * 14, Dg.v, Dg.crit ? '#ffd760' : Dg.side === 'man' ? '#ff8a7a' : '#ffb0c8', 20, true); c.restore(); if (k < 0.4) ART.draw(c, Dg.crit ? 'fx_crit' : 'fx_hit', (Dg.side === 'man' ? bx : ax) + 12, fy + 14, { scale: 2, frame: Math.floor(t / 120) % 2 ? 'f1' : 'f0' }); }
+  // 꼬리: 싸움이 난 방 쪽
+  const tx = Math.max(x + 20, Math.min(x + bw - 20, s.x)), up = s.y < y; c.fillStyle = '#6b4a8a'; c.beginPath(); if (up) { c.moveTo(tx - 6, y); c.lineTo(tx + 6, y); c.lineTo(tx, y - 7); } else { c.moveTo(tx - 6, y + bh); c.lineTo(tx + 6, y + bh); c.lineTo(tx, y + bh + 7); } c.fill();
+}
+// ---------- 침입자의 걸음 ----------
+function isoDmInit(dm) {
+  const M = ISO.map || isoMap(U.G); ISO.map = M;
+  Object.values(dm.men).forEach((m, i) => { const sp = isoSpot(M, 'out', i, 9); m.gx = -1.5 - i * 0.3; m.gy = 5 + (i % 3) * 0.4 - 0.4; m.tgx = sp[0]; m.tgy = sp[1]; m.tp = [[0.6, 5]]; });
+}
+function isoRegroup() {
+  const dm = U.dm, M = ISO.map; if (!dm || !M) return;
+  const by = {}; Object.values(dm.men).forEach(m => { if (m.st === 'in' || m.st === 'mad') (by[m.cell] = by[m.cell] || []).push(m); });
+  Object.keys(by).forEach(c => by[c].forEach((m, i) => { const p = isoSpot(M, c, i, by[c].length); m.tgx = p[0]; m.tgy = p[1]; }));
+}
+function isoMoveMen(ids, c) {
+  const dm = U.dm, M = ISO.map; if (!dm || !M) return;
+  ids.forEach(id => { const m = dm.men[id]; if (!m || m.cell === c) return; const from = [Math.round(m.tp && m.tp.length ? m.tp[m.tp.length - 1][0] : m.gx), Math.round(m.tp && m.tp.length ? m.tp[m.tp.length - 1][1] : m.gy)];
+    const C = M.cells[c], to = C ? [C.x0 + 1, Math.round(C.cy)] : [1, 5]; const path = isoPath(M, [Math.max(0, from[0]), Math.max(0, Math.min(10, from[1]))], to); m.tp = (m.tp || []).concat(path); m.cell = c; });
+  isoRegroup(); isoFocus(c);
+}
+// 세상 좌표 (그림의 왼쪽 위)
+function isoActorW(ref) {
+  const G = U.G, M = ISO.map;
+  if (ref.side === 'man') { const m = U.dm && U.dm.men[ref.id]; if (!m) return { x: 0, y: 0 }; const p = iwp(m.tgx != null && !(m.tp && m.tp.length) ? m.tgx : m.gx, m.tgy != null && !(m.tp && m.tp.length) ? m.tgy : m.gy); return { x: p.x - 8, y: p.y - 14 }; }
+  if (ref.side === 'boss') { const B = M.cells.b, p = iwp(B.x0 + 1, B.y0 + 1); return { x: p.x - 10, y: p.y - 20 }; }
+  const k = D.kinById(G, ref.id), tl = k && isoKinTile(G, M, k); if (!tl) return { x: 0, y: 0 }; const p = iwp(tl[0], tl[1]); return { x: p.x - 8, y: p.y - 14 };
+}
 // 굴 (den) 길잡이: 첫 네 밤을 손잡고 간다. 누를 곳에 금빛 테, 한 줄 말풍선(「닫기」 있음).
 // 그 뒤에는 처음 생기는 일에만 한 번씩. 금빛 테와 말풍선은 떠 있는 동안 자리를 거듭 다시 잰다 (창이 늦게 떠 밀려도 따라간다).
 const GD = { cur: null, hide: {}, iv: null, args: null, raidSeen: {}, rel: null };
@@ -7994,7 +9610,7 @@ function guideStep() {
     }
     if (G.cells.e === 'e_empty') {
       if (sh === 'summon') return ['closeSummon', '#dn-sheet .dn-x', '닫기를 누르세요.'];
-      if (sh === 'cell' && U.sheet.id === 'e') return ['nest', '#dn-sheet [data-t="e_fork"]', '입구 둥지를 고르세요. 자리 둘이 생깁니다.'];
+      if (sh === 'cell' && U.sheet.id === 'e') return U.sheet.pick === 'e_fork' ? ['nestPut', '#dn-place', '「놓는다」를 누르세요. 자리 둘이 생깁니다.'] : ['nest', '#dn-sheet [data-t="e_fork"]', '표에서 입구 둥지를 고르세요.'];
       return ['cellE', cellT('e'), '입구 칸을 누르세요. 사람들이 처음 지나는 칸입니다.'];
     }
     if (sh === 'cell') return ['closeCell', '#dn-sheet .dn-x', '권속이 저절로 가서 섰습니다. 닫기를 누르세요.'];
@@ -8011,7 +9627,7 @@ function guideStep() {
   if (n === 4) {
     if (!deck) return ['deck2', '[data-a="deck"]', '「꾸민다」로 옆 칸에 살림을 지어 봅니다.'];
     if (G.cells.el === 'es_none') {
-      if (sh === 'cell' && U.sheet.id === 'el') return ['spring', '#dn-sheet [data-t="es_spring"]', '진액 샘은 밤마다 진액을 냅니다.'];
+      if (sh === 'cell' && U.sheet.id === 'el') return U.sheet.pick === 'es_spring' ? ['springPut', '#dn-place', '「놓는다」를 누르세요. 진액 샘은 밤마다 진액을 냅니다.'] : ['spring', '#dn-sheet [data-t="es_spring"]', '표에서 진액 샘을 고르세요.'];
       if (sh) return ['closeAny', '#dn-sheet .dn-x', '닫기를 누르세요.'];
       return ['cellL', cellT('el'), '입구 왼쪽 칸을 누르세요. 길이 곧으면 아무도 오지 않는 안전한 자리입니다.'];
     }
