@@ -8052,13 +8052,16 @@ function guideTick() {
   GD.cur = { key: on[0], once: true }; spot(on[1]); tipShow(on[0], on[1], on[2]);
 }
 function rectOf(t) { if (typeof t === 'function') { const r = t(); return r && r.width ? r : null; } const el = document.querySelector(t); if (!el || !el.offsetParent) return null; const r = el.getBoundingClientRect(); return r.width ? r : null; }
+// 창이 떠 있으면, 창 밖의 것을 가리키는 테와 말풍선은 숨긴다 (창 위에 테만 덩그러니 남던 것). 창을 닫으면 다시 뜬다
+function covered(t) { if (!t || !document.querySelector('#dn-sheet .dn-sbox')) return false; if (typeof t !== 'string') return true; const el = document.querySelector(t); return !(el && el.closest('#dn-sheet')); }
 function spot(t) {
-  const sp = $('dn-spot'); const r = t ? rectOf(t) : null; GD.spotT = t; if (!r) { sp.hidden = true; return; }
+  const sp = $('dn-spot'); const r = t && !covered(t) ? rectOf(t) : null; GD.spotT = t; if (!r) { sp.hidden = true; return; }
   sp.hidden = false; Object.assign(sp.style, { left: Math.round(r.left - 4) + 'px', top: Math.round(r.top - 4) + 'px', width: Math.round(r.width + 8) + 'px', height: Math.round(r.height + 8) + 'px' });
 }
 // 말풍선: 가리킨 것의 아래나 위 (화면 안). 침입 중에는 굴 그림 아래 자리에 (굴 그림 위에 글을 얹지 않는다)
 function tipShow(key, target, text) {
   const tp = $('dn-tip'); GD.args = [key, target, text]; watch();
+  if (covered(target)) { tp.hidden = true; GD.key = null; return; }
   if (GD.key !== key) { GD.key = key; tp.innerHTML = `<p>${esc(text)}</p><button data-a="tipclose">닫기</button>`; }
   tp.hidden = false; const W = window.innerWidth, H = window.innerHeight, w = Math.min(340, W - 16); tp.style.width = w + 'px'; const th = tp.offsetHeight || 70;
   const r = target ? rectOf(target) : null, G = U.G, cave = $('dn-cavew').getBoundingClientRect();
