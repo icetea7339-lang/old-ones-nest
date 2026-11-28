@@ -289,6 +289,8 @@ img.od { width: 8px; height: 8px; image-rendering: pixelated; }
 .dn-stats .no { color: var(--dn-red); font-weight: 700; }
 #dn-end { padding-top: 0; }
 #dn-end #dn-elder { flex: 0 0 auto; width: calc(100% + 28px); max-width: 548px; height: auto; aspect-ratio: 96 / 72; margin: 0 -14px; image-rendering: pixelated; }
+/* 「한 판 더」는 밀지 않아도 보이게 등급 바로 아래에 둔다 */
+#dn-end .dn-btn.pri { flex: 0 0 auto; }
 #dn-end .say2 { font-size: 15px; color: var(--dn-dim); margin: 0; text-align: center; }
 #dn-end .shs { display: flex; gap: 4px; }
 #dn-end .shs img { width: 24px; height: 24px; background: rgba(255,255,255,.08); border-radius: 5px; }
@@ -8792,7 +8794,7 @@ var DEN = (function () {
   function deckCancel(G) { if (!canDeck(G) || G.ops) return { ok: false, msg: '이미 꾸몄습니다. 「마친다」로 밤을 넘기세요.' }; G.cmd = null; G.undo = null; return { ok: true }; }
   function deckEnd(G) { if (!canDeck(G)) return { ok: false }; G.cmd = null; G.undo = null; G.st.cmds.deck++; led0(G); return endNight(G, 'deck'); }
   function pay(G, n) { G.ichor -= n; G.spent += n; }
-  function snapUndo(G, what) { G.undo = { what: what, s: JSON.stringify({ cells: G.cells, ichor: G.ichor, spent: G.spent, spentRoom: G.spentRoom, bossLv: G.bossLv, kin: G.kin, shop: G.shop, summons: G.summons, kid: G.kid, nameUse: G.nameUse, rerollFree: G.rerollFree, rs: G.rs }) }; }
+  function snapUndo(G, what) { G.undo = { what: what, s: JSON.stringify({ cells: G.cells, ichor: G.ichor, spent: G.spent, spentRoom: G.spentRoom, bossLv: G.bossLv, kin: G.kin, shop: G.shop, summons: G.summons, kid: G.kid, nameUse: G.nameUse, rerollFree: G.rerollFree, rs: G.rs, job: G.job, jobLost: G.jobLost || 0 }) }; }
   function undo(G) {
     if (!G.undo || !canDeck(G)) return { ok: false, msg: '되돌릴 것이 없습니다.' };
     var s = JSON.parse(G.undo.s); Object.keys(s).forEach(function (k) { G[k] = s[k]; }); G.undo = null; G.ops = Math.max(0, G.ops - 1); arrange(G); return { ok: true };
@@ -8817,7 +8819,7 @@ var DEN = (function () {
     if (G.ichor + back < cost) return { ok: false, msg: '진액이 모자랍니다.' };
     snapUndo(G, 'room'); G.ops++;
     G.ichor += back; G.spent = Math.max(0, G.spent - back); G.cells[c] = t; pay(G, cost); G.spentRoom += cost; G.st.rooms[t] = 1;
-    arrange(G); return { ok: true, back: back };
+    arrange(G); jobFix(G); return { ok: true, back: back };
   }
   function bossUp(G) {
     if (!canDeck(G)) return { ok: false, msg: '「꾸민다」 밤에만 굴을 바꿀 수 있습니다.' };
@@ -9260,7 +9262,7 @@ var DEN = (function () {
       else lane = LANEK.slice().sort(function (a, b) { return laneLure(G, b) - laneLure(G, a) || (a === 'C' ? -1 : b === 'C' ? 1 : 0); })[0];
     }
     var lanes = { L: [], C: [], R: [] };
-    inCave(G).forEach(function (x, i) { var l = lane === 'scatter' ? LANEK[i % 3] : lane; x.lane = l; x.path = LANES[l].concat(['b', 'vault']); x.pi = -1; if (x.cls === 'inq') { var wc = workCells(G); x.lane = wc.length ? laneOf(wc[0]) || 'C' : 'C'; x.path = wc.length ? wc.concat(['exit']) : ['e', 'exit']; } lanes[x.lane].push(x.id); });
+    inCave(G).forEach(function (x, i) { var l = lane === 'scatter' ? LANEK[i % 3] : lane; x.lane = l; x.path = LANES[l].concat(['b', 'vault']); x.pi = -1; if (x.cls === 'inq') { var wc = workCells(G).filter(function (q) { return q !== 'e'; }); x.lane = 'C'; x.path = ['e'].concat(wc, ['exit']); } lanes[x.lane].push(x.id); });
     yield { t: 'split', L: lanes.L, C: lanes.C, R: lanes.R, how: lane };
     scare(G, inCave(G));
     for (var round = 1; round <= 30 && inCave(G).length; round++) {
@@ -9894,9 +9896,18 @@ function shell() {
   if (ART.has('box_fight')) { const bi = new Image(); bi.onload = () => { U.img.box = bi; }; bi.src = ART.url('box_fight', { scale: 1 }); }
   requestAnimationFrame(frame);
 }
+// 침입을 보던 중에 판을 떠나면 (첫 화면, 새 판, 이어하기) 돌던 침입 고리를 끊는다.
+// 안 끊으면 옛 고리가 새 판 위에서 계속 돌아 오류가 나거나, 이어 한 판의 침입이 시작되지 않는다
+function raidAbort() {
+  U.raidTok = (U.raidTok || 0) + 1; U.raiding = false; U.skip = false;
+  if (U.replay) { U.G = U.replay; U.replay = null; }
+  if (U.wait) { const w = U.wait; U.wait = null; w(); }
+  if (U.raidTipRelease) U.raidTipRelease();
+  U.dm = null; U.note = ''; U.say = ''; if (typeof ISO !== 'undefined') ISO.box = null;
+}
 function show(scr) {
   U.scr = scr; $('dn-title').hidden = scr !== 'title'; $('dn').hidden = scr !== 'game'; $('dn-end').hidden = scr !== 'end';
-  if (scr !== 'game') { closeSheet(true); $('dn-toast').hidden = true; }
+  if (scr !== 'game') { if (scr === 'title') raidAbort(); closeSheet(true); $('dn-toast').hidden = true; }
   if (scr === 'title') titleDraw();
   guideTick();
 }
@@ -9920,6 +9931,7 @@ function titleDraw() {
   const nj = $('nojs'); if (nj && !nj.dataset.err) nj.hidden = true;
 }
 function newRun() {
+  raidAbort();
   const seed = U.test.seed != null ? U.test.seed : (Date.now() >>> 0);
   const tut = U.test.guide === false ? false : !META.guided;
   U.G = D.newGame(seed, { tut, ask: META.ask, watch: META.watch, askMin: META.askMin }); META.runs++; saveMeta(); save(); U.fx = []; U.dm = null; U.sel = null; U.view = 'board';
@@ -9927,6 +9939,7 @@ function newRun() {
   if (tut) openSheet({ k: 'intro', i: 0 });
 }
 function contRun() {
+  raidAbort();
   const G = D.load(store.get('run')); if (!G) { toast('이어 할 판이 없습니다.'); return newRun(); }
   U.G = G; G.opt.ask = META.ask; G.opt.watch = META.watch; G.opt.askMin = META.askMin; U.fx = []; U.dm = null; U.sel = null; U.view = 'board'; show('game'); draw();
   if (G.phase === 'raid') raidRun();
@@ -9996,7 +10009,7 @@ function jobRes(G, k, fc, slots) {
   const n = G.job[k] || 0, e = fc.eff[k] || 0, boil = Math.min(fc.eff.boil || 0, slots.boil || 0), hun = n > e ? ' (굶음 ' + (n - e) + ')' : '';
   if (k === 'dig') return [(n ? '진액 +' + fc.work : '진액 0') + hun, n > e];
   if (k === 'boil') return [n ? '캐기 ×' + (1 + 0.5 * boil) : '캐기를 불립니다', false];
-  if (k === 'farm') return ['먹이 ' + fc.food[0] + '/' + fc.food[1], fc.food[0] > fc.food[1]];
+  if (k === 'farm') return [foodTxt(fc), fc.food[0] > fc.food[1]];
   if (k === 'pray') return [n ? '믿음 +' + fc.faith : '믿음 0', false, `<button class="god" data-a="praygod" aria-label="기도할 신 바꾸기: 지금 ${D.ASPN[G.prayGod]}">${ic('sig_' + G.prayGod, 1, 'dn-sig')}</button>`];
   if (k === 'bind') return [G.binding.length ? (n >= G.binding.length ? '물들이는 중 ' + G.binding.length : '일손 모자람') : '올린 제물 없음', G.binding.length > n];
   if (k === 'mend') return [n ? '함정 +, 체력 +' + 3 * n : '손질 반만', false];
@@ -10026,7 +10039,7 @@ function boardDraw() {
 function fcDraw() {
   const G = U.G, fc = D.forecast(G), food = fc.food[0] > fc.food[1], sus = G.sus + fc.sus >= D.SUS_T;
   const susT = '의심 ' + G.sus + (fc.sus ? ' +' + fc.sus : '');
-  $('dn-fc').innerHTML = `<span class="h">오늘 밤</span><span id="dn-fc-ichor">${ic('ic_ichor', 1)}+${fc.ichor}</span><span id="dn-fc-food" class="${food ? 'short' : ''}">먹이 ${fc.food[0]}/${fc.food[1]}</span><span id="dn-fc-faith">믿음 +${fc.faith}</span><span id="dn-fc-sus" class="${sus ? 'short' : ''}">${susT}</span>`;
+  $('dn-fc').innerHTML = `<span class="h">오늘 밤</span><span id="dn-fc-ichor">${ic('ic_ichor', 1)}+${fc.ichor}</span><span id="dn-fc-food" class="${food ? 'short' : ''}">${foodTxt(fc)}</span><span id="dn-fc-faith">믿음 +${fc.faith}</span><span id="dn-fc-sus" class="${sus ? 'short' : ''}">${susT}</span>`;
 }
 // 굴 안 침입자들의 남은 정신 (처음을 1 로)
 function mindLeft() { const G = U.G; if (!G || !G.raid) return 0; let a = 0, b = 0; G.raid.party.forEach(x => { b += Math.max(1, x.mind0); if (x.st === 'in') a += Math.max(0, x.mind); }); return b ? Math.min(1, a / b) : 0; }
@@ -10384,7 +10397,7 @@ function moveMen(ids, c) { if (isoOn()) return isoMoveMen(ids, c); const L = U.l
 function actorXY(ref) {
   if (isoOn()) return isoActorW(ref);
   const G = U.G, L = U.lay, s = 16 * L.sc;
-  if (ref.side === 'man') { const m = U.dm.men[ref.id]; return m ? { x: m.tx, y: m.ty } : { x: 0, y: 0 }; }
+  if (ref.side === 'man') { const m = U.dm && U.dm.men[ref.id]; return m ? { x: m.tx, y: m.ty } : { x: 0, y: 0 }; }
   if (ref.side === 'boss') { const b = bossPos(L); return { x: b.x + b.w / 2 - s / 2, y: b.y }; }
   const k = D.kinById(G, ref.id); const q = k && kinPos(G, L, k); return q || { x: L.W / 2, y: L.H / 2 };
 }
@@ -10398,23 +10411,28 @@ function curHp(ref) { const dm = U.dm; if (ref.side === 'man') return dm.men[ref
 const SPD = () => [1.0, 0.55, 0.28][U.speed];
 async function raidRun() {
   const G = U.G; if (U.raiding) return; U.raiding = true; U.skip = !!U.test.skipAll;
+  const tok = U.raidTok = (U.raidTok || 0) + 1, live = () => U.raidTok === tok;
   closeSheet(true); $('dn-toast').hidden = true; if (!U.lay) await sleep(60);
+  if (!live()) return;
   ISO.follow = true; ISO.box = null; U.say = ''; dmInit(); isoFocus('e', true); draw(); sfx('night');
   let guard = 0;
   while (G.phase === 'raid' && guard++ < 6000) {
     if (U.guideHold) await U.guideHold;
+    if (!live()) return;
     const e = D.raidStep(G); U.ev = e; U.evN++; if (!e) break;
     if (e.t === 'ask' && U.replay) { draw(); continue; }
     if (e.t === 'ask') {
       save(); draw(); sfx('mad'); U.skip = false;
-      await new Promise(res => { U.wait = res; }); draw(); continue;
+      await new Promise(res => { U.wait = res; }); if (!live()) return; draw(); continue;
     }
     if (U.skip) { applyEv(e); if (e.t === 'end') break; continue; }
     const ms = await playEv(e); if (ms) await sleep(ms);
+    if (!live()) return;
     if (e.t === 'end') break;
   }
   save(); U.raiding = false; U.skip = false;
   await sleep(U.test.fast ? 30 : 500);
+  if (!live()) return;
   U.dm = null; U.note = ''; U.say = ''; ISO.box = null;
   if (U.replay) { U.G = U.replay; U.replay = null; draw(); return openSheet({ k: 'tally', seen: 1 }); }
   draw(); ledgerPops();
@@ -10564,7 +10582,17 @@ function orbUse(i) {
 
 // ---------- 창 ----------
 function openSheet(s) { U.sheet = s; renderSheet(); }
-function closeSheet(quiet) { U.sheet = null; const sh = $('dn-sheet'); if (sh) sh.innerHTML = ''; if (!quiet) draw(); else guideTick(); }
+// 먹이: 먹일 입을 빼고 남는 것 (모자라면 −)
+function foodTxt(fc) { const d = fc.food[1] - fc.food[0]; return '먹이 ' + (d >= 0 ? '+' + d : '−' + (-d)); }
+function closeSheet(quiet) {
+  U.sheet = null; const sh = $('dn-sheet'); if (sh) sh.innerHTML = '';
+  // 밤의 장부나 치기 창이 떠 있어야 할 때 다른 창을 열었다 닫으면 그 창으로 돌아온다 (아니면 넘길 단추가 사라져 멈춘다)
+  if (!quiet && U.G && U.scr === 'game' && !U.replay && !U.raiding) {
+    if (U.G.phase === 'tally') return openSheet({ k: 'tally', seen: 1 });
+    if (U.G.phase === 'cmd' && U.G.strike) return openSheet({ k: 'strike' });
+  }
+  if (!quiet) draw(); else guideTick();
+}
 function head(t, sub, noClose) { return `<div class="dn-shead"><h2>${t}${sub ? '<small>' + sub + '</small>' : ''}</h2>${noClose ? '' : '<button class="dn-x" data-a="close">닫기</button>'}</div>`; }
 function renderSheet() {
   const s = U.sheet, sh = $('dn-sheet'); if (!s) { sh.innerHTML = ''; return guideTick(); }
@@ -10745,10 +10773,10 @@ function endShow() {
   if (!META.best || g.score > META.best.score) { META.best = { letter: g.letter, score: g.score }; } saveMeta(); store.del('run');
   const e = $('dn-end'), eld = g.eldest, fr = g.summoned ? (g.shards >= 3 ? 'full' : 'half') : 'gone';
   const say = { full: ['온전히 오셨습니다.', '모두 맛있었습니다. 당신도요.'], half: ['반쯤 오셨습니다.', '굴과 교단을 한 입에 드셨습니다. 당신도요.'], gone: ['그분은 오지 않았습니다.', '다시 잠듭니다.'] }[fr];
-  e.innerHTML = `<canvas id="dn-elder" class="${fr}" role="img" aria-label="큰 옛 것"></canvas><p class="say" id="dn-endsay">${say[0]}</p><p class="say2">${say[1]}</p><div class="shs">${[0, 1, 2].map(i => ic(i < g.shards ? 'ic_shard' : 'ic_shard_off', 2, 'dn-shd')).join('')}</div><div class="gr" id="dn-grade">${g.letter}</div>`
+  e.innerHTML = `<canvas id="dn-elder" class="${fr}" role="img" aria-label="큰 옛 것"></canvas><p class="say" id="dn-endsay">${say[0]}</p><p class="say2">${say[1]}</p><div class="shs">${[0, 1, 2].map(i => ic(i < g.shards ? 'ic_shard' : 'ic_shard_off', 2, 'dn-shd')).join('')}</div><div class="gr" id="dn-grade">${g.letter}</div><button class="dn-btn pri" data-a="again">한 판 더</button>`
     + `<table class="dn-led">${g.parts.map(p => `<tr><td>${p.name}</td><td>${p.v}</td></tr>`).join('')}<tr class="sum"><td>점수</td><td>${g.score}</td></tr></table>${g.summoned ? '' : '<p class="eld">부르지 못한 판은 C 를 넘지 못합니다.</p>'}`
     + `<p class="eld">${eld ? '가장 오래 산 권속: ' + esc(eld.name) + ' Lv ' + eld.lv + '<br>' + esc(eld.line) : '살아남은 권속이 없습니다.'}<br>묘비 ${g.tombs}개 · 신도 ${G.fol}</p>`
-    + `<button class="dn-btn pri" data-a="again">한 판 더</button><button class="dn-btn" data-a="title">첫 화면</button>`;
+    + `<button class="dn-btn" data-a="title">첫 화면</button>`;
   // 큰 옛 것: 화면 폭 가득 (조금 넘치게), 위에 붙여서. 아래는 잘린다
   const cv = $('dn-elder'); cv.width = 96; cv.height = 72; const c = cv.getContext('2d'); c.imageSmoothingEnabled = false; c.fillStyle = '#120a1b'; c.fillRect(0, 0, 96, 72); ART.draw(c, 'elder', 0, 0, { scale: 1, frame: fr });
   e.scrollTop = 0; sfx('ending');
@@ -11170,7 +11198,7 @@ function guideOnce() {
   if (G.phase === 'raid' && G.raid.ask && !gSeen('ask')) return ['ask', '#dn-ask', '제물 하나로 죽음 굴림을 한 번 더 할 수 있습니다. 보내도 판은 이어집니다.'];
   if (sh === 'dres' && U.sheet.d) { const ok = U.sheet.d.ok; if (!gSeen(ok ? 'dresok' : 'dresno')) return [ok ? 'dresok' : 'dresno', '#dn-dresok', ok ? '요구를 채우면 부름의 조각을 받습니다. 조각이 많을수록 그분이 온전히 옵니다.' : '노여움입니다. 다음 요구는 띠에 있습니다. 스물네 번째 밤의 요구를 못 채우면 판이 끝납니다.']; return null; }
   if (G.phase === 'tally' && G.tally) {
-    if (G.tally.raid && G.tally.raid.gain.dragged && !gSeen('inq')) return ['inq', '#dn-rres', '색출대가 왔습니다. 일터 칸에 권속이 없으면 신도를 끌고 갑니다. 의심을 낮추려면 쉬세요.'];
+    if (G.tally.raid && G.tally.raid.gain.dragged && !gSeen('inq')) return ['inq', '#dn-rres', '색출대가 왔습니다. 입구의 권속이 붙잡지 못하면 일터에서 신도를 끌고 갑니다. 의심을 낮추려면 쉬세요.'];
     if (G.tally.raid && G.lastRaid && !U.replay && !gSeen('replay') && !(G.tut && !META.guided)) return ['replay', '#dn-replay', '침입은 곧바로 계산됩니다. 「다시 보기」로 같은 굴림을 처음부터 볼 수 있습니다.'];
     if (G.tally.ups.length && !gSeen('lvup')) return ['lvup', '#dn-sheet .dn-up', '권속이 자랐습니다. d6 으로 무엇이 오를지 정해집니다. 기술은 셋까지.'];
     if (G.tally.raid && G.tally.raid.gain.sideRob.length && !gSeen('rob')) return ['rob', '#dn-ledger', '도둑이 살림을 털었습니다. 같은 갈래에 권속을 세우면 막습니다.'];
