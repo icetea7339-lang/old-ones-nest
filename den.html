@@ -44,7 +44,7 @@ img.dn-ic { width: 16px; height: 16px; vertical-align: -3px; image-rendering: pi
 @keyframes dn-glow { 50% { filter: drop-shadow(0 0 5px #ffcf5a); } }
 #dn-menub { border: 0; background: transparent; font-size: 15px; font-weight: 700; padding: 4px 6px; color: var(--dn-dim); }
 #dn-cavew { flex: 1 1 auto; position: relative; min-height: 220px; overflow: hidden; }
-#dn-cv { position: absolute; left: 0; top: 0; width: 100%; height: 100%; touch-action: manipulation; image-rendering: pixelated; }
+#dn-cv { position: absolute; left: 0; top: 0; width: 100%; height: 100%; touch-action: none; image-rendering: pixelated; }
 #dn-capl { flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 4px; padding: 3px 8px; font-size: 14px; font-weight: 700; background: #1b1028; border-top: 1px solid var(--dn-line); }
 #dn-capl span { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
 #dn-capl img { width: 14px; height: 14px; image-rendering: pixelated; }
@@ -8636,14 +8636,18 @@ function noteText() {
 }
 
 // ---------- 굴 그림 ----------
-// 굴 밖 한 줄 + 3×3 + 금고. 칸 사이 틈에 통로를 그린다
+// 굴 밖 한 줄 + 3×3 (안쪽 줄의 가운데는 빈 통로) + 그 바깥에 본체 방과 금고. 칸 사이 틈에 통로를 그린다
 function lay(W, H) {
-  const gx = 10, gy = 12, outH = 30, vaultH = 34, pad = 4, cw = Math.floor((W - pad * 2 - gx * 2) / 3), ch = Math.floor((H - outH - vaultH - gy * 4 - 4) / 3);
-  const sc = Math.max(1, Math.min(3, Math.floor(Math.min((cw - 6) / 48, (ch - 6) / 38))));
+  const gx = 10, gy = 8, outH = 26, pad = 4, cw = Math.floor((W - pad * 2 - gx * 2) / 3);
+  // 줄 셋 + 그 아래 본체 방 줄. 본체 방 줄은 칸 높이와 같게 잡는다
+  const ch = Math.floor((H - outH - gy * 5 - 4) / 4);
+  const sc = Math.max(1, Math.min(3, Math.floor(Math.min((cw - 6) / 48, (ch - 6) / 34))));
   const L = { W, H, sc, cw, ch, gx, gy, cells: {} }, xs = [pad, pad + cw + gx, pad + 2 * (cw + gx)], y0 = outH + gy;
   L.cells.out = { x: pad, y: 2, w: W - pad * 2, h: outH - 2 };
-  D.ROWS.forEach((row, r) => { const order = [row[1], row[0], row[2]]; order.forEach((c, i) => { L.cells[c] = { x: xs[i], y: y0 + r * (ch + gy), w: cw, h: ch }; }); });
-  const b = L.cells.b; L.cells.vault = { x: b.x + 6, y: b.y + b.h + gy, w: b.w - 12, h: vaultH - 4 };
+  D.ROWS.forEach((row, r) => { const order = [row[1], row[0], row[2]]; order.forEach((c, i) => { if (c !== 'b') L.cells[c] = { x: xs[i], y: y0 + r * (ch + gy), w: cw, h: ch }; }); });
+  // 본체 방은 3×3 바깥(아래)에 따로, 금고는 그 옆 더 바깥에. 안쪽 줄의 가운데는 빈 통로다
+  const by = y0 + 3 * (ch + gy), bw = cw + 30; L.cells.b = { x: xs[1] - 30, y: by, w: bw, h: ch };
+  const b = L.cells.b, vx = b.x + b.w + gx + 8; L.cells.vault = { x: vx, y: b.y + Math.round(ch * 0.3), w: W - pad - vx, h: ch - Math.round(ch * 0.3) };
   return L;
 }
 // 칸 안의 블록 자리 (3 × 2, 아래쪽에 붙인다). 위쪽 띠는 침입자가 서는 곳
@@ -8681,7 +8685,7 @@ function routeTo(L, m, c) {
   if (from === 'out' && ln) { at(hub(L, 'split', 'C')); if (ln !== 'C') at(hub(L, 'split', ln)); }
   else if (ln && D.laneOf(from) === ln) at(hub(L, 'mid', ln));
   else if (c === 'b' && D.laneOf(from) === 'C') at(hub(L, 'gather', 'C'));
-  else if (c === 'vault') at({ x: L.cells.b.x + L.cells.b.w / 2, y: L.cells.b.y + L.cells.b.h + L.gy / 2 });
+  else if (c === 'vault') at({ x: L.cells.vault.x + L.cells.vault.w / 2, y: L.cells.vault.y + L.cells.vault.h / 2 });
   else if (c === 'b' && from === 'out') { at(hub(L, 'split', 'C')); at(hub(L, 'mid', 'C')); at(hub(L, 'gather', 'C')); }
   return pts;
 }
@@ -8714,12 +8718,13 @@ function paint(c, L, t) {
   const lanes = shape === 'fork' ? ['L', 'C', 'R'] : [shape];
   const cx = col => hub(L, 'split', col).x, B = L.cells.b, rowY = c0 => L.cells[c0].y + L.cells[c0].h / 2;
   // 가로 통로 (사다리의 가로대): 갈림 줄, 칸 사이, 모임 줄
-  ['e', 'm', 'b'].forEach(c0 => road(c, { x: cx('L'), y: rowY(c0) }, { x: cx('R'), y: rowY(c0) }, false, 6));
+  ['e', 'm', 'il'].forEach(c0 => road(c, { x: cx('L'), y: rowY(c0) }, { x: cx('R'), y: rowY(c0) }, false, 6));
   road(c, hub(L, 'split', 'L'), hub(L, 'split', 'R'), false); ['L', 'R'].forEach(l => road(c, hub(L, 'split', 'C'), hub(L, 'split', l), lanes.indexOf(l) >= 0));
   road(c, { x: cx('C'), y: O.y + O.h - 4 }, hub(L, 'split', 'C'), true);
   ['L', 'C', 'R'].forEach(l => { const on = lanes.indexOf(l) >= 0; road(c, hub(L, 'split', l), { x: cx(l), y: l === 'C' ? B.y + 6 : rowY('il') }, on); });
-  ['L', 'R'].forEach(l => road(c, { x: cx(l), y: rowY('il') }, { x: cx('C'), y: rowY('b') }, lanes.indexOf(l) >= 0));
-  road(c, { x: cx('C'), y: B.y + B.h - 4 }, { x: cx('C'), y: L.cells.vault.y + 4 }, true);
+  const gY = B.y - L.gy / 2, V0 = L.cells.vault;
+  ['L', 'R'].forEach(l => { const on = lanes.indexOf(l) >= 0; road(c, { x: cx(l), y: rowY('il') }, { x: cx(l), y: gY }, on); road(c, { x: cx(l), y: gY }, { x: cx('C'), y: gY }, on); });
+  road(c, { x: B.x + B.w - 4, y: V0.y + V0.h / 2 }, { x: V0.x + 4, y: V0.y + V0.h / 2 }, true);
   // 칸들
   D.CELLS.forEach(cid => {
     if (cid === 'out') return;
@@ -8770,6 +8775,7 @@ function paint(c, L, t) {
     if (dm && dm.kinNom[k.id] > t) ART.draw(c, 'fx_nom', q.x + s - 8, q.y + 2, { scale: 1, frame: tk % 2 ? 'f1' : 'f0' });
   });
   // 기다리는 권속 (자리가 없어 굴 밖)
+  if (deck) D.CELLS.forEach(cid => { if (cid === 'out') return; const r = L.cells[cid]; c.save(); c.fillStyle = 'rgba(26,16,36,.85)'; c.fillRect(r.x + 1, r.y + 1, 18, 16); c.restore(); ART.draw(c, 'ic_deck', r.x + 4, r.y + 3, { scale: 1 }); });
   const wait = G.kin.filter(k => !k.at); wait.slice(0, 6).forEach((k, i) => ART.draw(c, kinArt(k), O.x + 4 + i * (12 * Math.max(1, sc - 1)), O.y + O.h - 16 * Math.max(1, sc - 1), { scale: Math.max(1, sc - 1), frame: kinArt(k).indexOf('man_') === 0 ? 'mad' : 'idle0', alpha: 0.85 }));
   // 침입자
   if (dm) {
@@ -8823,6 +8829,8 @@ function onCave(e) {
   const r = $('dn-cv').getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top, s = 16 * L.sc, deck = G.cmd === 'deck';
   // 쿼터뷰: 끌어서 옮긴 직후의 누름은 버린다. 권속 → 권속 창, 방 → 그 방이 무엇인지
   if (!deck) { if (performance.now() - ISO.moved < 300) return; const h = isoHit(x, y); if (!h) return; sfx('flip'); if (h.kin) return openSheet({ k: 'kin', id: h.kin }); if (h.cell) return openSheet({ k: 'cell', id: h.cell }); return; }
+  // 칸 왼쪽 위의 손잡이를 누르면 권속이 서 있어도 그 칸의 방 목록이 열린다
+  if (deck) for (const cid of D.CELLS) { if (cid === 'out') continue; const rr = L.cells[cid]; if (x >= rr.x - 2 && x <= rr.x + 26 && y >= rr.y - 4 && y <= rr.y + 22) { U.sel = null; sfx('flip'); return openSheet({ k: 'cell', id: cid }); } }
   for (const k of G.kin) { const q = kinPos(G, L, k); if (q && x >= q.x && x <= q.x + s && y >= q.y - 2 && y <= q.y + s + 2) {
     sfx('flip');
     if (deck && U.sel !== k.id) { U.sel = k.id; return draw(); }
@@ -9265,7 +9273,7 @@ window.__den = {
   pt(target) { const L = U.lay, r = $('dn-cv').getBoundingClientRect(); if (!L) return null;
     if (isoOn() && ISO.map) { if (typeof target === 'number') { const k = D.kinById(U.G, target), tl = k && isoKinTile(U.G, ISO.map, k); if (!tl) return null; const p = iwp(tl[0], tl[1]), q = isoS(p.x, p.y - 8); return { x: r.left + q.x, y: r.top + q.y }; } isoReveal(target); const p = isoCellW(target), q = isoS(p.x, p.y); return { x: r.left + q.x, y: r.top + q.y }; }
     if (typeof target === 'number') { const k = D.kinById(U.G, target); const q = k && kinPos(U.G, L, k); if (!q) return null; return { x: r.left + q.x + 8 * L.sc, y: r.top + q.y + 8 * L.sc }; }
-    const q = L.cells[target]; return { x: r.left + q.x + q.w / 2, y: r.top + q.y + 10 }; },
+    const q = L.cells[target]; if (U.G && U.G.cmd === 'deck' && target !== 'out') return { x: r.left + q.x + 12, y: r.top + q.y + 9 }; return { x: r.left + q.x + q.w / 2, y: r.top + q.y + 10 }; },
   cellBox(id) { const L = U.lay, r = $('dn-cv').getBoundingClientRect(); if (!L) return null; if (isoOn() && ISO.map) return isoCellBox(id); const q = L.cells[id]; return { left: r.left + q.x, top: r.top + q.y, width: q.w, height: q.h }; },
   st() { const G = U.G; if (!G) return { scr: U.scr }; return { scr: U.scr, phase: G.phase, night: G.night, cmd: G.cmd, sheet: U.sheet && U.sheet.k, raiding: U.raiding, ask: !!(G.raid && G.raid.ask), ichor: G.ichor, kin: G.kin.length, lamp: G.lamp, strike: G.strike ? { sum: G.strike.sum, hold: G.strike.hold, n: G.strike.dice.length, done: G.strike.done } : null, step: typeof guideStep === 'function' ? (guideStep() || [null])[0] : null, tip: !$('dn-tip').hidden, grade: G.grade && G.grade.letter, evN: U.evN, ev: U.ev && U.ev.t, iso: isoOn(), fit: ISO.fit, follow: ISO.follow, box: !!ISO.box, cam: [Math.round(ISO.cam.x), Math.round(ISO.cam.y)], say: U.say }; },
   get iso() { return ISO; }, isoCellBox: c => isoCellBox(c), boxRect: () => ISO.box && ISO.box.rect,
@@ -9283,21 +9291,21 @@ const ICOL = { iso_void: '#150d1e', iso_road: '#5b3b42', iso_road_lit: '#7d5745'
 const IROOM = {
   el: [4, 0, 4, 3], e: [4, 4, 4, 3], er: [4, 8, 4, 3],
   ml: [9, 0, 4, 3], m: [9, 4, 4, 3], mr: [9, 8, 4, 3],
-  il: [14, 0, 4, 3], b: [14, 4, 5, 3], ir: [14, 8, 4, 3],
-  vault: [20, 4, 2, 3],
+  il: [14, 0, 4, 3], ir: [14, 8, 4, 3],
+  b: [21, 4, 5, 3], vault: [28, 5, 2, 3],
 };
 const ILANE = { L: 1, C: 5, R: 9 };
 function isoMap(G) {
-  const W = 22, H = 11, t = {}, set = (x, y, v) => { t[x + ',' + y] = Object.assign(t[x + ',' + y] || {}, v); };
+  const W = 30, H = 11, t = {}, set = (x, y, v) => { t[x + ',' + y] = Object.assign(t[x + ',' + y] || {}, v); };
   for (let x = 0; x < 3; x++) for (let y = 0; y < H; y++) set(x, y, { k: 'grass' });
   // 통로 격자: 갈림 줄(gx 3), 칸 사이(gx 8, 13), 갈래마다 세로 길, 본체 방 앞과 금고로 가는 길
   for (let y = 1; y <= 9; y++) { set(3, y, { k: 'road', ln: 'split' }); set(8, y, { k: 'road', ln: 'mid' }); set(13, y, { k: 'road', ln: 'gather' }); }
   set(2, 5, { k: 'road', ln: 'gate' });
   for (const L of ['L', 'C', 'R']) { const y = ILANE[L]; [3, 8, 13].forEach(x => set(x, y, { k: 'road', ln: L })); }
-  for (let x = 13; x <= 13; x++) set(x, 3, { k: 'road', ln: 'L' }), set(x, 7, { k: 'road', ln: 'R' });
-  set(19, 5, { k: 'road', ln: 'C' });
-  // 옆 갈래의 끝(안쪽 칸)에서 본체 방으로 이어지는 짧은 길
-  set(16, 3, { k: 'road', ln: 'L' }); set(16, 7, { k: 'road', ln: 'R' });
+  // 세 갈래는 안쪽 줄을 지난 뒤 모임 줄(gx 18)에서 모여, 격자 바깥의 본체 방으로 간다. 금고는 그 뒤, 더 바깥
+  for (let x = 14; x <= 20; x++) set(x, 5, { k: 'road', ln: 'C' });
+  for (let y = 1; y <= 9; y++) set(18, y, { k: 'road', ln: y < 5 ? 'L' : y > 5 ? 'R' : 'C' });
+  set(26, 5, { k: 'road', ln: 'C' }); set(27, 5, { k: 'road', ln: 'C' }); set(27, 6, { k: 'road', ln: 'C' });
   const cells = {};
   Object.keys(IROOM).forEach(id => {
     const [x0, y0, w, h] = IROOM[id], tiles = [];
@@ -9331,21 +9339,23 @@ function isoKinTile(G, M, k) {
 }
 // ---------- 화면 옮기기 ----------
 function isoSize() { const wrap = $('dn-cavew'); return { W: wrap.clientWidth, H: wrap.clientHeight }; }
-function isoFitZ() { const { W, H } = isoSize(); return Math.min(W / 545, H / 315); }
+function isoFitZ() { const { W, H } = isoSize(); return Math.min(W / 680, H / 385); }
 function isoCenter(wx, wy, now) { const { W, H } = isoSize(), z = ISO.z, cx = W / 2 - wx * z, cy = H / 2 - wy * z; if (now) { ISO.cam.x = cx; ISO.cam.y = cy; ISO.tgt = null; } else ISO.tgt = { x: cx, y: cy }; }
 function isoCellW(c) { const M = ISO.map || isoMap(U.G); const C = M.cells[c]; if (!C) { const p = iwp(1, 5); return p; } return iwp(C.cx, C.cy); }
 function isoFocus(c, now) { if (!ISO.follow || ISO.fit) return; const p = isoCellW(c); isoCenter(p.x, p.y, now); }
 function isoStart() { ISO.z = ISO.fit ? isoFitZ() : ISO.zBase; const p = isoCellW('b'); isoCenter(p.x - 40, p.y - 30, true); ISO.started = 1; }
 function isoToggleFit() {
   ISO.fit = !ISO.fit; ISO.z = ISO.fit ? isoFitZ() : ISO.zBase;
-  if (ISO.fit) isoCenter(88, 112, true); else { const p = isoCellW(U.G && U.G.phase === 'raid' && U.G.raid.cell && U.G.raid.cell !== 'out' ? U.G.raid.cell : 'b'); isoCenter(p.x, p.y, true); }
+  if (ISO.fit) isoCenter(152, 150, true); else { const p = isoCellW(U.G && U.G.phase === 'raid' && U.G.raid.cell && U.G.raid.cell !== 'out' ? U.G.raid.cell : 'b'); isoCenter(p.x, p.y, true); }
   ISO.key = ''; isoClamp(); draw();
 }
-function isoClamp() { const { W, H } = isoSize(), z = ISO.z, minX = W - 360 * z, maxX = 200 * z, minY = H - 300 * z, maxY = 30 * z; ISO.cam.x = Math.max(Math.min(minX, maxX), Math.min(Math.max(minX, maxX), ISO.cam.x)); ISO.cam.y = Math.max(Math.min(minY, maxY), Math.min(Math.max(minY, maxY), ISO.cam.y)); }
+function isoClamp() { const { W, H } = isoSize(), z = ISO.z, minX = W - 490 * z, maxX = 200 * z, minY = H - 370 * z, maxY = 30 * z; ISO.cam.x = Math.max(Math.min(minX, maxX), Math.min(Math.max(minX, maxX), ISO.cam.x)); ISO.cam.y = Math.max(Math.min(minY, maxY), Math.min(Math.max(minY, maxY), ISO.cam.y)); }
 function isoBind(cv) {
-  cv.addEventListener('pointerdown', e => { if (!isoOn()) return; ISO.drag = { x: e.clientX, y: e.clientY, cx: ISO.cam.x, cy: ISO.cam.y, moved: false }; });
+  cv.addEventListener('pointerdown', e => { if (!isoOn()) return; ISO.drag = { x: e.clientX, y: e.clientY, cx: ISO.cam.x, cy: ISO.cam.y, moved: false, id: e.pointerId }; try { cv.setPointerCapture(e.pointerId); } catch (err) { /* 잡지 못해도 끌기는 된다 */ } });
+  cv.addEventListener('touchmove', e => { if (isoOn() && ISO.drag) e.preventDefault(); }, { passive: false });
   window.addEventListener('pointermove', e => { const d = ISO.drag; if (!d) return; const dx = e.clientX - d.x, dy = e.clientY - d.y; if (!d.moved && Math.hypot(dx, dy) < 7) return; d.moved = true; ISO.cam.x = d.cx + dx; ISO.cam.y = d.cy + dy; ISO.tgt = null; isoClamp(); if (U.G && U.G.phase === 'raid' && ISO.follow) { ISO.follow = false; draw(); } });
-  window.addEventListener('pointerup', () => { const d = ISO.drag; ISO.drag = null; if (d && d.moved) ISO.moved = performance.now(); });
+  const dragEnd = () => { const d = ISO.drag; ISO.drag = null; if (d && d.moved) ISO.moved = performance.now(); };
+  window.addEventListener('pointerup', dragEnd); window.addEventListener('pointercancel', dragEnd);
 }
 function isoOn() { const G = U.G; return !!G && !(G.phase === 'cmd' && G.cmd === 'deck'); }
 // 화면 좌표 ↔ 세상 좌표
@@ -9404,10 +9414,10 @@ function isoTall(c, id, x, y, alt) {
 function isoLayer(G, M, dpr) {
   const shape = D.pathShape(G), key = JSON.stringify(G.cells) + shape + ISO.z + dpr + G.bossLv + (IHAS('iso_road') ? 1 : 0) + (ART.ids.length);
   if (ISO.layer && ISO.key === key) return ISO.layer;
-  const ox = 180, oy = 40, Wp = 560, Hp = 330, cv = ISO.layer || document.createElement('canvas'), s = ISO.z * dpr;
+  const ox = 180, oy = 40, Wp = 700, Hp = 400, cv = ISO.layer || document.createElement('canvas'), s = ISO.z * dpr;
   cv.width = Math.ceil(Wp * s); cv.height = Math.ceil(Hp * s); const c = cv.getContext('2d'); c.setTransform(s, 0, 0, s, 0, 0); c.imageSmoothingEnabled = false;
   // 빈 땅
-  for (let gx = -3; gx < 25; gx++) for (let gy = -3; gy < 14; gy++) { const p = iwp(gx, gy); const x = p.x + ox - 16, y = p.y + oy - 8; if (x < -32 || y < -16 || x > Wp || y > Hp) continue; const v = M.t[gx + ',' + gy]; if (!v) isoFloor(c, 'iso_void', x, y, (gx * 7 + gy * 3) & 3); }
+  for (let gx = -3; gx < 34; gx++) for (let gy = -3; gy < 14; gy++) { const p = iwp(gx, gy); const x = p.x + ox - 16, y = p.y + oy - 8; if (x < -32 || y < -16 || x > Wp || y > Hp) continue; const v = M.t[gx + ',' + gy]; if (!v) isoFloor(c, 'iso_void', x, y, (gx * 7 + gy * 3) & 3); }
   const lanes = shape === 'fork' ? ['L', 'C', 'R'] : [shape];
   const lit = v => v.ln === 'gate' || (lanes.indexOf(v.ln) >= 0) || (v.ln === 'split' || v.ln === 'gather') && false;
   const order = Object.keys(M.t).map(k => k.split(',').map(Number)).sort((a, b) => (a[0] + a[1]) - (b[0] + b[1]) || a[0] - b[0]);
