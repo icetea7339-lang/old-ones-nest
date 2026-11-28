@@ -7634,7 +7634,7 @@ function onClick(e) {
   if (a === 'strike') return openSheet({ k: 'strike' });
   if (a === 'rest') return doRest();
   if (a === 'speed') { U.speed = (U.speed + 1) % 3; META.speed = U.speed; saveMeta(); return draw(); }
-  if (a === 'skip') { U.skip = true; return; }
+  if (a === 'skip') { U.skip = true; if (U.raidTipRelease) U.raidTipRelease(); return; }
   if (a === 'orb') return orbUse(+b.dataset.i);
   if (a === 'ans') { const v = b.dataset.v; D.raidAnswer(G, v); sfx(v === 'let' ? 'die' : 'birth'); save(); if (U.wait) { const w = U.wait; U.wait = null; w(); } return draw(); }
   // 창 안
@@ -7823,7 +7823,7 @@ async function playEv(e) {
 function nom(c) { const G = U.G, now = performance.now(); D.kinIn(G, c).forEach(k => { if (k.st === 'ok') U.dm.kinNom[k.id] = now + 1400; }); }
 function orbUse(i) {
   const G = U.G; if (G.phase !== 'raid' || G.raid.ask) return;
-  const ev = D.useOrb(G, i); if (!ev) return; save(); sfx('spell');
+  const ev = D.useOrb(G, i); if (!ev) return; if (U.raidTipRelease) U.raidTipRelease(); save(); sfx('spell');
   fxAdd({ k: 'flash', col: ASPC[ev.asp], sig: ev.asp, dur: 800 });
   const dm = U.dm, now = performance.now();
   if (dm) { if (ev.asp === 'abyss' || ev.asp === 'dusk') ev.ids.forEach(id => { const m = dm.men[id]; if (m) { m.mad = now + 900; if (ev.asp === 'dusk') m.flash = now + 300; } }); if (ev.asp === 'brood') G.kin.forEach(k => { dm.kinHp[k.id] = k.hp; }); }
@@ -8041,6 +8041,8 @@ function guideOnce() {
 }
 function guideTick() {
   if (!$('dn-tip')) return;
+  // 침입 중의 말풍선이 떠 있으면 건드리지 않는다 (화면을 다시 그릴 때 말풍선만 사라지고 침입이 멈춘 채 남던 것을 막는다)
+  if (GD.rel) { if (GD.args) tipShow(GD.args[0], GD.args[1], GD.args[2]); return; }
   const G = U.G;
   if (G && G.tut && !META.guided && G.night >= 5) { META.guided = 1; saveMeta(); }
   const st = guideStep();
@@ -8077,9 +8079,12 @@ function watch() {
   const raf = () => { if (GD.spotT && GD.cur) spot(GD.spotT); requestAnimationFrame(raf); }; requestAnimationFrame(raf);
 }
 function tipHide(keepSpot) { const tp = $('dn-tip'); if (tp) tp.hidden = true; GD.key = null; GD.args = null; if (!keepSpot) { const sp = $('dn-spot'); if (sp) sp.hidden = true; GD.spotT = null; } }
+// 침입을 멈춰 둔 말풍선을 푼다. 말풍선이 어떤 까닭으로든 사라지면 침입은 반드시 이어진다
+function raidTipRelease() { if (!GD.rel) return false; const r = GD.rel; GD.rel = null; tipHide(); GD.cur = null; r(); return true; }
+U.raidTipRelease = raidTipRelease;
 function tipClose() {
   const c = GD.cur;
-  if (GD.rel) { const r = GD.rel; GD.rel = null; tipHide(); GD.cur = null; r(); return; }
+  if (raidTipRelease()) return;
   if (!c) return tipHide();
   if (c.once || c.tipOnly) { gSeenSet(c.key); tipHide(); GD.cur = null; return guideTick(); }
   GD.hide[c.key] = 1; tipHide(true);
