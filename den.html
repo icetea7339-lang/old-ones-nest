@@ -194,11 +194,114 @@ img.dn-ic { width: 16px; height: 16px; vertical-align: -3px; image-rendering: pi
 .dn-rrow .no, .dn-desc b.no { color: var(--dn-red); }
 .dn-prev { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 4px; }
 .dn-prev canvas { flex: 0 0 auto; width: 128px; height: 80px; border-radius: 8px; image-rendering: pixelated; }
+
+/* ---------- 운영판 (덧붙임 6) ---------- */
+#dn-top { flex-wrap: wrap; row-gap: 0; }
+.dn-stat { font-size: 14px; padding: 0 3px; gap: 2px; }
+.dn-stat b.idle { color: var(--dn-gold); }
+.dn-stat.sus.warm { color: var(--dn-gold); }
+.dn-stat.sus.hot { color: var(--dn-red); }
+#dn-dband { flex: 0 0 auto; display: flex; align-items: center; gap: 6px; width: 100%; border: 0; border-bottom: 1px solid var(--dn-line); background: #251433; padding: 3px 8px; min-height: 30px; font-size: 14px; text-align: left; }
+#dn-dband img.dn-ic { width: 14px; height: 14px; }
+#dn-dband .left { flex: 0 0 auto; color: var(--dn-dim); font-weight: 700; white-space: nowrap; }
+#dn-dband .t { flex: 1 1 auto; min-width: 0; font-weight: 700; line-height: 1.2; overflow-wrap: anywhere; }
+#dn-dband .pg { flex: 0 0 auto; font-weight: 800; }
+#dn-dband.ok .pg { color: var(--dn-teal); }
+#dn-dband.due .pg, #dn-dband.due .left { color: var(--dn-red); }
+#dn-dband .shs { display: inline-flex; gap: 1px; flex: 0 0 auto; }
+img.dn-shd { width: 12px; height: 12px; image-rendering: pixelated; }
+#dn-dband .shs img { width: 12px; height: 12px; image-rendering: pixelated; background: rgba(255,255,255,.08); border-radius: 3px; }
+#dn-dband #dn-lamp { width: 22px; height: 22px; flex: 0 0 auto; }
+#dn.board #dn-cavew { flex: 0 0 auto; min-height: 0; }
+#dn-board, #dn-fc { display: none; }
+#dn.board #dn-board { display: block; flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 0 6px 4px; border-top: 1px solid var(--dn-line); }
+#dn.board #dn-fc { display: flex; }
+#dn.board #dn-note { min-height: 26px; padding: 2px 10px; font-size: 13px; }
+#dn.board #dn-row { min-height: 36px; }
+#dn.board .dn-orb { width: 30px; height: 30px; }
+#dn.board .dn-orb img { width: 24px; height: 24px; }
+.dn-jh { display: flex; align-items: center; gap: 8px; padding: 4px 2px; font-size: 14px; font-weight: 700; }
+.dn-jh > span { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
+.dn-jh img { width: 14px; height: 14px; image-rendering: pixelated; }
+.dn-jh .idle b { color: var(--dn-gold); }
+.dn-jh .dn-small { margin-left: auto; padding: 5px 9px; font-size: 14px; display: inline-flex; align-items: center; gap: 4px; }
+.dn-jh .dn-small img { width: 14px; height: 14px; }
+.dn-jh.land { margin-top: 4px; border-top: 1px solid var(--dn-line); }
+.dn-jh .full { color: var(--dn-gold); }
+.dn-jr { display: grid; grid-template-columns: 24px minmax(3.4em, auto) 40px 2.8em 40px minmax(0, 1fr) auto; align-items: center; gap: 4px; padding: 2px 2px; border-bottom: 1px solid #2f1f40; min-height: 38px; }
+.dn-jr .ji { width: 24px; height: 24px; image-rendering: pixelated; }
+.dn-jr .nm { font-size: 15px; font-weight: 700; white-space: nowrap; }
+.dn-jr .nn { text-align: center; font-size: 15px; color: var(--dn-dim); white-space: nowrap; }
+.dn-jr .nn b { color: var(--dn-ink); font-size: 17px; }
+.dn-jr .st { border: 0; border-radius: 9px; height: 34px; background: var(--dn-card2); font-size: 20px; font-weight: 800; line-height: 1; padding: 0; touch-action: manipulation; }
+.dn-jr .st:disabled { opacity: .3; }
+.dn-jr .rs { font-size: 13px; color: var(--dn-dim); line-height: 1.25; min-width: 0; overflow-wrap: anywhere; }
+.dn-jr.short .rs, .dn-jr.short .nm { color: var(--dn-red); font-weight: 700; }
+.dn-jr .god { border: 0; background: var(--dn-card); border-radius: 8px; width: 30px; height: 30px; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
+.dn-jr .god img { width: 16px; height: 16px; }
+.dn-lr { display: grid; grid-template-columns: 24px minmax(0, 1fr) auto auto; align-items: center; gap: 4px; padding: 2px 2px; border-bottom: 1px solid #2f1f40; min-height: 40px; }
+.dn-lr .pl { width: 24px; height: 16px; image-rendering: pixelated; border-radius: 3px; }
+.dn-lr .nm { font-size: 14px; font-weight: 700; min-width: 0; line-height: 1.2; }
+.dn-lr .dots, .dn-plist .dots { display: flex; flex-wrap: wrap; gap: 1px; margin-top: 2px; }
+img.od { width: 8px; height: 8px; image-rendering: pixelated; }
+.dn-plist img.od { width: 10px; height: 10px; border-radius: 0; }
+.dn-lr .tg { border: 2px solid transparent; border-radius: 9px; background: var(--dn-card); padding: 0 8px; height: 34px; font-size: 14px; font-weight: 700; display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; touch-action: manipulation; }
+.dn-lr .tg img { width: 14px; height: 14px; image-rendering: pixelated; }
+.dn-lr .tg.on { background: #4d2a66; border-color: var(--dn-gold); }
+.dn-lr .tg:disabled { opacity: .35; }
+.dn-lr.risen { grid-template-columns: 24px auto minmax(0, 1fr); }
+.dn-lr .rs { font-size: 13px; color: var(--dn-teal); display: inline-flex; align-items: center; gap: 3px; }
+.dn-lr .rs img { width: 12px; height: 16px; image-rendering: pixelated; }
+.dn-jmiss { font-size: 13px; color: var(--dn-faint); margin: 6px 2px 2px; line-height: 1.35; }
+#dn-fc { flex: 0 0 auto; align-items: center; gap: 10px; padding: 3px 8px; min-height: 28px; font-size: 14px; font-weight: 700; background: #1b1028; border-top: 1px solid var(--dn-line); flex-wrap: wrap; row-gap: 0; }
+#dn-fc .h { color: var(--dn-dim); font-weight: 600; }
+#dn-fc span { display: inline-flex; align-items: center; gap: 2px; white-space: nowrap; }
+#dn-fc img { width: 14px; height: 14px; image-rendering: pixelated; }
+#dn-fc .short { color: var(--dn-red); animation: dn-blink 1s steps(2) infinite; }
+.dn-jobs { margin-bottom: 4px; }
+.dn-line.dim { color: var(--dn-dim); font-size: 13px; }
+.dn-line.no { color: var(--dn-red); font-weight: 700; }
+.dn-line.warn { color: var(--dn-gold); font-size: 14px; margin: 2px 0; }
+.dn-bnds { display: flex; gap: 8px; flex-wrap: wrap; margin: 4px 0; }
+.dn-bnd { display: inline-flex; align-items: center; gap: 2px; font-size: 13px; color: var(--dn-teal); }
+.dn-bnd.stop { color: var(--dn-red); }
+.dn-bnd img { width: 24px; height: 24px; image-rendering: pixelated; }
+.dn-dm { display: grid; grid-template-columns: 3em minmax(0, 1fr) auto auto; gap: 6px; align-items: center; padding: 8px 4px; border-bottom: 1px solid var(--dn-line); font-size: 15px; }
+.dn-dm .t { font-weight: 700; line-height: 1.3; }
+.dn-dm .pg { font-weight: 800; }
+.dn-dm .s { font-size: 13px; color: var(--dn-dim); display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
+.dn-dm .s img { width: 14px; height: 14px; image-rendering: pixelated; }
+.dn-dm.ok .s, .dn-dm.ready .pg { color: var(--dn-teal); }
+.dn-dm.no .s, .dn-dm.due .pg, .dn-dm.due .s { color: var(--dn-red); }
+.dn-dm.ok, .dn-dm.no { opacity: .8; }
+.dn-sbox.wrath { background: #0d0614; border-top-color: var(--dn-red); }
+.dn-sbox.wrath canvas { background: #07030c; }
+.dn-rres { background: var(--dn-card); border-radius: 12px; padding: 6px 8px; margin-bottom: 6px; }
+.dn-who { display: flex; flex-wrap: wrap; gap: 8px; }
+.dn-who .who { display: inline-flex; align-items: flex-end; gap: 1px; font-size: 14px; }
+.dn-who img { width: 32px; height: 32px; image-rendering: pixelated; }
+.dn-rit { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 14px; margin-top: 4px; }
+.dn-rit span { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
+.dn-rit img { width: 16px; height: 16px; image-rendering: pixelated; }
+.dn-rit .bad { color: var(--dn-red); font-weight: 700; }
+.dn-rres .dn-line { margin: 4px 0 0; font-size: 14px; }
+.dim { color: var(--dn-dim); }
+.dn-stats .no { color: var(--dn-red); font-weight: 700; }
+#dn-end { padding-top: 0; }
+#dn-end #dn-elder { flex: 0 0 auto; width: calc(100% + 28px); max-width: 548px; height: auto; aspect-ratio: 96 / 72; margin: 0 -14px; image-rendering: pixelated; }
+#dn-end .say2 { font-size: 15px; color: var(--dn-dim); margin: 0; text-align: center; }
+#dn-end .shs { display: flex; gap: 4px; }
+#dn-end .shs img { width: 24px; height: 24px; background: rgba(255,255,255,.08); border-radius: 5px; }
+#dn-end .say { text-align: center; }
+#dn-menub { font-size: 20px; line-height: 1; padding: 4px 8px; }
+#dn-dband.two { flex-wrap: wrap; row-gap: 0; }
+#dn-dband.two .t { order: 9; flex-basis: 100%; padding-left: 20px; }
+#dn-dband.two .left { flex: 1 1 auto; }
 </style>
 </head><body style="margin:0">
 <div id="dn-title">
-  <canvas id="dn-tcv" role="img" aria-label="굴 안쪽. 작은 옛 것이 알 더미 위에 앉아 있고 권속 둘이 곁에 있다."></canvas>
-  <h1>옛 것의 둥지<small>굴</small></h1>
+  <canvas id="dn-tcv" role="img" aria-label="굴 안쪽. 작은 옛 것이 알 더미 위에 앉아 있고 권속 둘이 곁에 있다. 스물네 번째 밤에 큰 옛 것을 부른다."></canvas>
+  <h1>옛 것의 둥지<small>굴 밑의 교단</small></h1>
   <nav id="dn-menu"></nav>
   <p id="dn-best"></p>
   <p id="nojs">버튼이 보이지 않나요? 지금 보는 화면은 파일 미리보기라서 게임이 실행되지 않습니다. 보낸 사람에게 인터넷 주소(링크)를 받아 사파리나 크롬에서 열어 주세요.</p>
@@ -265,6 +368,14 @@ var DENART = (function () {
   spec('iso_tomb', 16, 16, BASE); spec('iso_shadow', 16, 8, BASE);
   spec('iso_ring_us', 20, 10, BASE); spec('iso_ring_them', 20, 10, BASE); spec('iso_sel', 32, 16, BASE); spec('iso_arrow', 16, 16, BASE);
   spec('box_fight', 48, 48, BASE); spec('box_floor', 32, 8, BASE); spec('box_tail', 12, 8, BASE);
+  spec('fol', 16, 16, ['idle0', 'idle1', 'work0', 'work1', 'pray', 'carried', 'hungry']); spec('fol_dot', 6, 6, BASE);
+  spec('man_inq', 16, 16, LIVE_MAN);
+  spec('elder', 96, 96, ['half', 'full', 'gone']); spec('elder_eye', 32, 32, ['open', 'shut']);
+  ['job_dig', 'job_boil', 'job_farm', 'job_pray', 'job_bind', 'job_mend', 'job_preach', 'job_spy', 'job_hatch', 'job_idle',
+    'ic_follower', 'ic_suspect', 'ic_shard', 'ic_shard_off', 'ic_wrath', 'ic_demand', 'ic_rise', 'ic_auto', 'ic_watch', 'ic_board'
+  ].forEach(function (i) { spec(i, 12, 12, BASE); });
+  spec('slot_empty', 8, 8, BASE); spec('slot_full', 8, 8, BASE); spec('out_fol_on', 6, 6, BASE); spec('out_fol_off', 6, 6, BASE);
+  spec('flag_ours', 12, 16, BASE);
   ['ic_deck', 'ic_strike', 'ic_rest', 'ic_call', 'ic_done'].forEach(function (i) { spec(i, 12, 12, BASE); });
 
   var IDS = Object.keys(SPEC);
@@ -1966,6 +2077,110 @@ var DENART = (function () {
       ".ocbo......obcZo",
       "..oo........ooo.",
       "................"]
+  } };
+  ART["man_inq"] = { p: {"a": "#3a3c4e", "b": "#26283a", "c": "#5a5c70", "d": "#18141e", "g": "#a8e0d0"}, f: {
+    "walk0": [
+      "....oddddddo....",
+      "....oddddddo....",
+      ".oooodccccdoooo.",
+      "oddddddddddddddo",
+      ".ooohhhhhhhhooo.",
+      "...ohhhoohoo....",
+      "...ohhhhphpho...",
+      "...ohhhhhhhho...",
+      "...oHHHHHHHHo...",
+      "....oaacaaaoo...",
+      "....oaacaabhSoo.",
+      "....oaacaaboSSSo",
+      "...oaaacaaabSgSo",
+      "...obbbcbbbbSgSo",
+      "....oUUooUUooSo.",
+      ".....oo..oo..o.."],
+    "walk1": [
+      "....oddddddo....",
+      "....oddddddo....",
+      ".oooodccccdoooo.",
+      "oddddddddddddddo",
+      ".ooohhhhhhhhooo.",
+      "...ohhhoohoo....",
+      "...ohhhhphpho...",
+      "...ohhhhhhhho...",
+      "...oHHHHHHHHo...",
+      "....oaacaaaoo...",
+      "....oaacaabhSoo.",
+      "....oaacaaboSSSo",
+      "...oaaacaaabSgSo",
+      "...obbbcbbbbSgSo",
+      "....ooUUUUoooSo.",
+      "......oooo...o.."],
+    "atk": [
+      "....oddddddo....",
+      "....oddddddo....",
+      ".oooodccccdoooo.",
+      "oddddddddddddddo",
+      ".ooohhhhhhhhooo.",
+      "...ohhhoohoo..o.",
+      "...ohhhhphphoogo",
+      "...ohhhhhhhhhSo.",
+      "...oHHHHHHHHSSSo",
+      "....oaacaaaoSgSg",
+      "....oaacaaboSgSo",
+      "....oaacaabooSoo",
+      "...oaaacaaabooog",
+      "...obbbcbbbgo..o",
+      "....oUUooUUo....",
+      ".....oo..oo....."],
+    "hurt": [
+      "...oddddddo.....",
+      "...oddddddo.....",
+      "oooodccccdoooo..",
+      "ddddddddddddddo.",
+      "ooohhhhhhhhooo..",
+      "..ohhhphhpho....",
+      "..ohhhhoohho....",
+      "..ohhhhhhhro....",
+      "..oHHHHHHHHo....",
+      "...oaacaaaoo....",
+      "...oaacaabhSoo..",
+      "...oaacaaboSSSo.",
+      "..oaaacaaabSuSo.",
+      "..obbbcbbbbSuSo.",
+      "...oUUooUUooSo..",
+      "....oo..oo..o..."],
+    "mad": [
+      "....oddddddo....",
+      "....oddddddo....",
+      ".oooodccccdoooo.",
+      "oddddddddddddddo",
+      ".ooohhhhhhhhooo.",
+      "...ohVVVhVVVo...",
+      "...ohVhVhVhVo...",
+      "...ohVVhhVVho...",
+      "...oHHHowoHHo...",
+      "....oaacaaaoo...",
+      "....oaacaabhSoo.",
+      "....oaacaaboSSSo",
+      "...oaaacaaabSgSo",
+      "...obbbcbbbbSgSo",
+      "....oUUooUUooSo.",
+      ".....oo..oo..o.."],
+    "down": [
+      "............ooo.",
+      "...........oSSSo",
+      "...........oSgSo",
+      "............oSo.",
+      ".............o..",
+      "...oooooo.o.oo..",
+      "ooodhhhhHohobbo.",
+      "ddddhhhhHabbabUo",
+      "ddcdhhphHaaaabUo",
+      "ddcdhhhhHaaaabo.",
+      "ddcdhhphHccccco.",
+      "ddcdhhhhHaaaabUo",
+      "ddddhhhhHaaaabUo",
+      "ooodhhhhHoooabor",
+      "...oooooo...Rtt.",
+      "...........r..t."]
   } };
   ART["man_adv"] = { p: {"a": "#8a6248", "b": "#5e4232", "c": "#4e3a30", "d": "#6a4a36"}, f: {
     "walk0": [
@@ -6663,6 +6878,856 @@ var DENART = (function () {
       "....oqqo....",
       ".....oo....."]
   } };
+  ART["fol"] = { p: {"a": "#8a4a78", "b": "#5e2e56", "c": "#b0709a", "K": "#1a0e22", "e": "#ffc8ec", "h": "#3a2040", "l": "#7c5f48", "J": "#6a6a84", "i": "#c8c8dc"}, f: {
+    "idle0": [
+      ".......oobo.....",
+      "......ocao......",
+      ".....ocaaao.....",
+      "....ocbbbbao....",
+      "...ocbKKKKbao...",
+      "...ocKKeKeKao...",
+      "...oaKKKKKKao...",
+      "...obbKKKKbbo...",
+      "....oaaaaabo....",
+      "....oaaaaabo....",
+      "...oaaaaaaabo...",
+      "...obaaaaabbo...",
+      "..obhaaaaabhbo..",
+      "..oaaaaaaaaabo..",
+      ".obbbbbbbbbbbbo.",
+      "..oooohhohhooo.."],
+    "idle1": [
+      "................",
+      ".......oobo.....",
+      "......ocao......",
+      ".....ocaaao.....",
+      "....ocbbbbao....",
+      "...ocbKKKKbao...",
+      "...ocKKeKeKao...",
+      "...oaKKKKKKao...",
+      "...obbKKKKbbo...",
+      "....oaaaaabo....",
+      "....oaaaaabo....",
+      "...oaaaaaaabo...",
+      "..obhaaaaabhbo..",
+      "..oaaaaaaaaabo..",
+      ".obbbbbbbbbbbbo.",
+      "..oooohhohhooo.."],
+    "work0": [
+      "................",
+      "................",
+      "........ooo.....",
+      "....oooocaaoo...",
+      "...occccaaaaao..",
+      "...oaaabbbbaao..",
+      "...oaaaKeKeabo..",
+      "...obaabKKbbo...",
+      "....oaaaaabo....",
+      "....oaaaaabo....",
+      "...oaaaaaabho...",
+      "...oaaaaaabhlo..",
+      "..oaaaaaaaablo..",
+      "..oaaaaaaaabJJo.",
+      ".obbbbbbbbbbbbo.",
+      "..oooohhohhooo.."],
+    "work1": [
+      ".......oobo.....",
+      "......ocao......",
+      ".....ocaaao.....",
+      "....ocbbbbao....",
+      "...ocbKeKebao...",
+      "..oocKKKKKKaoo..",
+      ".ohoaKKKKKKaoho.",
+      "..obbbKKKKbbbo..",
+      "...ooaaaaaboo...",
+      "....oaaaaabo....",
+      "...oaaaaaaabo...",
+      "...oaaaaaaabo...",
+      "..oaaaaaaaaabo..",
+      "..oaaaaaaaaabo..",
+      ".obbbbbbbbbbbbo.",
+      "..oooohhohhooo.."],
+    "pray": [
+      ".o.....oobo..oZo",
+      "oZo...ocao....o.",
+      ".o...ocaaao...o.",
+      "oho.ocbbbbao.oho",
+      "ocoocbKeKebaooao",
+      "oaooaKKKKKKaooao",
+      "obooaKKKKKKaoobo",
+      ".obobbKKKKbbobo.",
+      "..o.oaaaaabo.o..",
+      "....oaaaaabo....",
+      "...oaaaaaaabo...",
+      "...oaaaaaaabo...",
+      "..oaaaaaaaaabo..",
+      "..oaaaaaaaaabo..",
+      ".obbbbbbbbbbbbo.",
+      "..oooohhohhooo.."],
+    "carried": [
+      ".....ocaaao.....",
+      "....ocbbbbao....",
+      "...ocbKKKKbao...",
+      "...ocKKeKeKao...",
+      "...oaKKKKKKao...",
+      "...obbKKKKbbo...",
+      "....oaaaaabo....",
+      "....oaaaaabo....",
+      "...oaaaaaaabo...",
+      "...obaaaaabbo...",
+      "..obhaaaaabhbo..",
+      "..oaaaaaaaaabo..",
+      ".obbbbbbbbbbbbo.",
+      "..oooooooohooo..",
+      "......h.........",
+      ".....i..i..i...."],
+    "hungry": [
+      ".........o......",
+      ".......oobo.o...",
+      "......ocao.oBo..",
+      ".....ocaaaooBo..",
+      "....ocbbbbaoo...",
+      "...ocbKKKKbao...",
+      "...oaKeKKKeao...",
+      "...obKKeKeKbo...",
+      "...obbKKKKbbo...",
+      "....oacaaabo....",
+      "....oabbbbbo....",
+      "...oabhhhhabo...",
+      "...oaaaaaaabo...",
+      "..oaaaaaaaaabo..",
+      "..oaaaaaaaaabo..",
+      ".obbbbhhbhhbbbo."]
+  } };
+  ART["fol_dot"] = { p: {"a": "#8a4a78", "b": "#5e2e56", "c": "#b0709a", "K": "#1a0e22", "e": "#ffc8ec", "h": "#3a2040"}, f: {
+    "base": [
+      ".oaao.",
+      "oaaaao",
+      "oaKKao",
+      "oaeeao",
+      "oaaaao",
+      ".oooo."]
+  } };
+  ART["elder"] = { p: {"a": "#d77fd6", "b": "#9c4fae", "c": "#f6b8ee", "d": "#7a3a8e", "r": "#3a2450", "R": "#4e3366", "f": "#2a1838"}, f: {
+    "half": [
+      "RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR",
+      "RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR",
+      "RRRRRRRfRRRfRRfRRRfRRfRRRRRRRRRRfRRfRRRfRRfRRRRRRRRRRfRRfRRRfRRfRRRfRRRRRRRRRfRRRfRRfRRRfRRfRRRR",
+      "RRRRRRR.fRR.fRafRRafR.fRRRRRRfRRafR.fRR.fRafRRRRRRRRR.fRafRRafR.fRR.fRRRRRRfR.fRR.fRafRRafR.RRRR",
+      "fRRRfRfa.fRa.f.afR.afa.RRfRRfafR.afa.fRa.f.afRfRRfRRRa.f.afR.afa.fRa.RfRRRfafa.fRa.f.afR.afaRRRf",
+      "afRRafa.a.f.a.a.afa.a.aRR.fRa.afa.a.a.f.a.a.afafR.fRf.a.a.afa.a.a.f.aRafRRa.a.a.f.a.a.afa.a.fRR.",
+      ".afR.a.a.a.a.a.a.a.a.a.fRa.f.aRR.a.a.a.a.a.a.a.afa.f.a.a.a.a.a.a.a.a.f.afR.a.a.a.a.a.a.a.a.a.fRa",
+      "a.afa.a.a.a.a.a.a.a.a.a.f.a.a.Rfa.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.afa.a.a.a.a.a.a.a.RRa.f.",
+      ".a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.aRR.a.a.a.a.a.a.a.a.aRf.a.a",
+      "a.a.a.RRa.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.Rfa.a.a.a.a.a.a.a.a.a.a.a.",
+      ".a.a.aRf.a.a.a.a.a.a.a.a.a.a.a.aoooo.a.a.a.a.a.a.a.a.a.a.a.aoooo.a.agg.a.a.a.a.a.a.a.a.a.a.a.a.a",
+      "a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.p.a.a.a.a.a.a.a.a.a.a.a.a.a.p.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.",
+      ".a.a.a.a.a.a.a.a.a.a.a.a.agg.a.a.a.a.a.a.a.b.b.b.b.b.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a",
+      "a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.b.b.b.b.b.b.b.b.b.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.",
+      ".a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.b.b.b.b.b.b.b.b.b.b.b.b.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a",
+      "a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.b.b.b.b.b.b.b.b.b.b.b.b.b.b.a.a.a.a.a.a.a.a.a.ooooooa.a.a.a.a.",
+      ".a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.a.a.a.a.a.a.a.a.a.a.p.a.a.a.a.a.a",
+      "a.a.a.a.a.ooooooa.a.a.a.a.a.a.a.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.",
+      ".a.a.a.a.a.a.p.a.a.a.a.a.a.a.a.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a",
+      "a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.a.a.a.a.a.a.a.a.a.a.a.a.a.a.",
+      ".a.a.a.a.a.a.a.a.a.a.a.a.a.a.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.a.a.a.a.a.a.a.a.a.a.a.a.a.a",
+      "a.a.a.a.a.a.a.a.a.a.a.a.a.a.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.a.a.a.a.a.a.a.a.a.a.a.a.a.",
+      ".a.a.a.a.a.a.a.a.a.a.a.a.a.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.a.a.a.a.a.a.a.a.a.agg.a.a.a",
+      "a.a.a.a.a.a.a.a.a.a.a.a.a.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.a.a.a.a.a.a.a.a.a.a.a.a.a.",
+      ".a.a.a.a.a.a.a.a.a.a.a.a.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.a.a.a.a.a.a.a.a.a.a.a.a.a",
+      "a.a.a.a.a.a.a.a.a.a.a.a.a.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.a.a.a.a.a.a.a.a.a.a.a.a.",
+      ".a.a.a.agg.a.a.a.a.a.a.a.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.a.a.a.a.a.a.a.a.a.a.a.a.a",
+      "a.a.a.a.a.a.a.a.a.a.a.a.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.a.a.a.a.a.a.a.a.a.a.a.a.",
+      ".a.a.a.a.a.a.a.a.a.a.a.a.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.a.a.a.a.a.a.a.a.a.a.a.a",
+      "a.a.a.a.a.a.a.a.a.a.a.a.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.a.a.a.a.a.a.a.a.a.a.a.a.",
+      ".a.a.a.a.a.a.a.a.a.a.a.a.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.a.a.a.a.a.a.a.a.a.a.a.a",
+      "a.a.a.a.a.a.a.a.a.a.a.a.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.a.a.a.a.a.a.a.a.a.a.a.a.",
+      ".a.a.a.a.a.a.a.a.a.a.a.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.a.a.a.a.a.a.a.a.ooooo.a",
+      "a.a.a.a.a.a.a.a.a.a.a.aoooooooooooooooooooooooooooooooooooooooooooooooooa.a.a.a.a.a.a.a.a.apa.a.",
+      ".aoooooa.a.a.a.a.a.a.a.awwwwwwwwoooooooooooooooooooooooooooooooowwwwwwww.a.a.a.a.a.a.a.a.a.a.a.a",
+      "a.a.p.a.a.a.a.a.a.a.a.a.wwwwwwwwwwwwppppppppppppppppppppppppwwwwwwwwwwwwa.a.a.a.a.a.a.a.a.a.a.a.",
+      ".a.a.a.a.a.a.a.a.a.a.a.awwwwwwwwwwwwppppppwwwpppppppppppppppwwwwwwwwwwww.a.a.a.a.a.a.a.a.a.a.a.a",
+      "a.a.a.a.a.a.a.a.a.a.a.a.awwwwwwwwwwpppppppwwwppppppppppppppppwwwwwwwwww.a.a.a.a.a.a.a.a.a.a.a.a.",
+      ".a.a.a.a.a.a.a.a.a.a.a.a.wwwwwwwwwwpppppppwwwppppppppppppppppwwwwwwwwwwa.a.a.a.a.a.a.a.a.a.a.a.a",
+      "a.a.a.a.a.a.a.a.a.a.a.a.a.wwwwwwwwwppppppppppppppppppppppppppwwwwwwwwwa.a.a.a.a.a.a.a.a.a.a.a.a.",
+      ".a.a.a.a.a.a.a.a.a.a.a.a.awwwwwwwwwppppppppppppppppppppppppppwwwwwwwww.a.a.a.a.a.a.a.a.a.a.agg.a",
+      "a.a.a.a.a.a.a.a.a.a.a.a.a.awwwwwwwwppppppppppppppppppppppppppwwwwwwww.a.a.a.a.a.a.a.a.a.a.a.a.a.",
+      ".a.agg.a.a.a.a.a.a.a.a.a.a.wwwwwwwwppppppppppppppppppppppppppwwwwwwwwa.a.a.a.a.a.a.a.a.a.a.a.a.a",
+      "a.a.a.a.a.a.a.a.a.a.a.a.a.a.wwwwwwwppppppppppppppppppppppppppwwwwwwwa.a.a.a.a.a.a.a.a.a.a.a.a.a.",
+      ".a.a.a.a.a.a.a.a.a.a.a.a.a.a.wwwwwwwppppppppppppppppppppppppwwwwwwwa.a.a.a.a.a.a.a.a.a.a.a.a.a.a",
+      "a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.wwwwwwppppppppppppppppppppppppwwwwwwa.a.a.a.a.a.a.a.a.a.a.a.a.a.a.",
+      ".a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.wwwwwwppppppppppppppppppppppwwwwwwa.a.a.a.a.ooooo.a.a.a.a.a.a.a.a",
+      "a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.wwwwwwppppppppppppppppppppwwwwwwa.a.a.a.a.a.apa.a.a.a.a.a.a.a.a.",
+      ".a.a.a.a.a.a.a.aoooooa.a.a.a.a.a.awwwwwppppppppppppppppppwwwww.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a",
+      "a.a.a.a.a.a.a.a.a.p.a.a.a.a.a.a.a.awwwwwwppppppppppppppwwwwww.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.",
+      ".a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.awwwwwppppppppppwwwww.a.a.a.a.a.a.a.a.a.a.agg.a.a.a.a.a.a.a",
+      "a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.awwwwwwwwwwwwww.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.",
+      ".a.a.a.a.a.a.a.agg.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.aoooo",
+      "a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.p.",
+      "oooo.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a",
+      "a.p.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.",
+      ".a.a.a.a.a.a.a.a.a.a.a.a.a.aoooo.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.aoooo.a.a.a.a.a.a.a.a.a.a.a.a.a.a",
+      "a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.p.a.a.nna.a.a.a.a.a.a.a.a.a.nna.a.a.p.a.a.a.a.a.a.a.a.a.a.a.a.a.a.",
+      ".a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a",
+      "a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.o.a.a.a.a.a.a.aoa.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.",
+      ".a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.agooooooooooooooa.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a",
+      "a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.ata.a.a.a.t.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.ao",
+      ".a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.t.a.a.a.ata.a.agg.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.o",
+      "a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.ao",
+      ".a.a.a.a.o.b.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.b.b.a.a.a.a.o",
+      "a.a.a.a.boooo.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.b.boooa.a.a.a.ao",
+      ".a.a.a.a.o...o.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.oo..o.a.a.a.a.o",
+      "a.a.a.a.bo...oa.a.a.a.a.b.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.b.a.a.a.a.bo...oa.a.a.a.ao",
+      ".a.a.a.a.o...o.a.a.a.a.ooo.b.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.b.b.boo.a.a.a.a.o...o.a.a.a.b.o",
+      "o.a.a.a.a.o.o.a.a.a.a.o...ooo.a.a.a.a.b.b.a.a.a.b.b.b.b.b.a.a.a.b.oooo..o.a.a.a.b.o.o.a.a.a.b.o.",
+      ".o.a.a.a.o...o.a.a.a.o.......o.a.a.a.ooooo.a.a.a.ooooooooo.a.a.a.o.......o.a.a.a.o...o.a.a.a.o..",
+      ".oa.a.a.bo...oa.a.a.bo.......oa.a.a.bo...oa.a.a.bo.......oa.a.a.bo.......oa.a.a.bo...oa.a.a.bo..",
+      ".o.a.a.a.o...o.a.a.a.o.......o.a.a.a.o...o.a.a.a.o.......o.a.a.a.o.......o.a.a.a.o...o.a.a.a.o..",
+      ".oa.a.a.bo...oa.a.a.bo.......oa.a.a.bo...oa.a.a.bo.......oa.a.a.bo.......oa.a.a.bo...oa.a.a.bo..",
+      ".o.a.a.a.o...o.a.a.a.o.......o.a.a.a.o...o.a.a.a.o.......o.a.a.a.o.......o.a.a.a.o...o.a.a.a.o..",
+      ".oa.a.a.bo...oa.a.a.bo.......oa.a.a.bo...oa.a.a.bo.......oa.a.a.bo.......oa.a.a.bo...oa.a.a.bo..",
+      ".o.a.a.a.o...o.a.a.a.o.......o.a.a.a.o...o.a.a.a.o.......o.a.a.a.o.......o.a.a.a.o...o.a.a.a.o..",
+      ".ob.a.a.bo...oa.a.a.bo.......ob.a.a.bo...oa.a.a.bo.......oa.a.a.bo.......ob.a.a.bo...oa.a.a.bo..",
+      "..oa.a.a.bo.oa.a.a.bo.........oa.a.a.bo.oa.a.a.bo.......oa.a.a.bo.........oa.a.a.bo.oa.a.a.bo...",
+      "..o.a.a.a.o.o.a.a.a.o.........o.a.a.a.o.o.a.a.a.o.......o.a.a.a.o.........o.a.a.a.o.o.a.a.a.o...",
+      "..oa.a.a.bo.oa.a.a.bo.........oa.a.a.bo.oa.a.a.bo.......oa.a.a.bo.........oa.a.a.bo.oa.a.a.bo...",
+      "..o.a.a.a.o.o.a.a.a.o.........o.a.a.a.o.o.a.a.a.o.......o.a.a.a.o.........o.a.a.a.o.o.a.a.a.o...",
+      "..oa.a.a.bo.oa.a.a.bo.........oa.a.a.bo.oa.a.a.bo.......oa.a.a.bo.........oa.a.a.bo.oa.a.a.bo...",
+      "..o.a.a.a.o.o.a.a.b.o.........o.a.a.a.o.o.a.a.b.o.......o.a.a.b.o.........o.a.a.a.o.o.a.a.b.o...",
+      "...o.a.a.boo.a.a.boo...........o.a.a.boo.a.a.boo.......o.a.a.boo...........o.a.a.boo.a.a.boo....",
+      "...oa.a.a.ooa.a.a.o............oa.a.a.ooa.a.a.o........oa.a.a.o............oa.a.a.ooa.a.a.o.....",
+      "...o.a.a.boo.a.a.bo............o.a.a.boo.a.a.bo........o.a.a.bo............o.a.a.boo.a.a.bo.....",
+      "...oa.a.a.ooa.a.a.o............oa.a.a.ooa.a.a.o........oa.a.a.o............oa.a.a.ooa.a.a.o.....",
+      "...o.a.a.boo.a.a.bo............o.a.a.boo.a.a.bo........o.a.a.bo............o.a.a.boo.a.a.bo.....",
+      "....o.a.a.a.a.a.bo..............o.a.a.a.a.a.bo........o.a.a.bo..............o.a.a.a.a.a.bo......",
+      "....oa.a.a.a.a.a.o..............oa.a.a.a.a.a.o........oa.a.a.o..............oa.a.a.a.a.a.o......",
+      "....o.a.a.a.a.a.bo..............o.a.a.a.a.a.bo........o.a.a.bo..............o.a.a.a.a.a.bo......",
+      "....ob.a.a.a.a.a.o..............ob.a.a.a.a.a.o........oa.a.b.o..............ob.a.a.a.a.b.o......",
+      ".....oa.a.a.a.a.o................oa.a.a.a.a.o........oa.a.a.o................oa.a.a.a.a.o.......",
+      ".....o.a.a.a.a.bo................o.a.a.a.a.bo........o.a.a.bo................o.a.a.a.a.bo.......",
+      ".....ob.b.b.b.b.o................ob.b.b.b.b.o........ob.b.b.o................ob.b.b.b.b.o......."],
+    "full": [
+      "RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR",
+      "RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR",
+      "RRRRRRRfRRRfRRfRRRfRRfRRRRRRRRRRfRRfRRRfRRfRRRRRRRRRRfRRfRRRfRRfRRRfRRRRRRRRRfRRRfRRfRRRfRRfRRRR",
+      "RRRRRRRafRRafRafRRafRafRRRRRRfRRafRafRRafRafRRRRRRRRRafRafRRafRafRRafRRRRRRfRafRRafRafRRafRaRRRR",
+      "fRRRfRfaafRaafaafRaafaaRRfRRfafRaafaafRaafaafRfRRfRRRaafaafRaafaafRaaRfRRRfafaafRaafaafRaafaRRRf",
+      "afRRafaaaafaaaaaafaaaaaRRafRaaafaaaaaafaaaaaafafRafRfaaaaaafaaaaaafaaRafRRaaaaaafaaaaaafaaaafRRa",
+      "aafRaaaaaaaaaaaaaaaaaaafRaafaaRRaaaaaaaaaaaaaaaafaafaaaaaaaaaaaaaaaaafaafRaaaaaaaaaaaaaaaaaaafRa",
+      "aaafaaaaaaaaaaaaaaaaaaaafaaaaaRfaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaafaaaaaaaaaaaaaaaaRRaafa",
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaawwaaaaaaaaaaaaaaaaaaaaaaaaaawwaaaaaaaRRaaaaaaaaaaaaaaaaaaRfaaaa",
+      "aaaaaaRRaaaaaaaaaaaaaaaaaaaaaaaawpwwaaaaaaaaaaaaaaaaaaaaaaaawpwwaaaaaaRfaaaaaaaaaaaaaaaaaaaaaaaa",
+      "aaaaaaRfaaaaaaaaaaaaaaaaaaaaaaaawppwaaaaaaaaaaaaaaaaaaaaaaaawppwaaaaggaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaawwaaaaaaaaaaaaaaaaaaaaaaaaaawwaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaggaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaawwwwaaaaaaaaaaa",
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaawwwwwwwwwwwwwwaaaaaaaaaaaaaaaaaaaaaaaaawwwwwwaaaaaaaaaa",
+      "aaaaaaaaaaawwwwaaaaaaaaaaaaaaaaaaaaaaawwwwwwwwwwwwwwwwwwwwaaaaaaaaaaaaaaaaaaaaaawpwpwwaaaaaaaaaa",
+      "aaaaaaaaaawwwwwwaaaaaaaaaaaaaaaaaaawwwwwwwwwwwwwwwwwwwwwwwwwwaaaaaaaaaaaaaaaaaaawpppwwaaaaaaaaaa",
+      "aaaaaaaaaawpwpwwaaaaaaaaaaaaaaaaaawwwwwwwwwwwwwwwwwwwwwwwwwwwwaaaaaaaaaaaaaaaaaawpppwwaaaaaaaaaa",
+      "aaaaaaaaaawpppwwaaaaaaaaaaaaaaaawwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwaaaaaaaaaaaaaaaaawwwwaaaaaaaaaaa",
+      "aaaaaaaaaawpppwwaaaaaaaaaaaaaaawwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "aaaaaaaaaaawwwwaaaaaaaaaaaaaaawwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaawwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaaawwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaawwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwaaaaaaaaaaaaaaaaaaaggaaaaaa",
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaawwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "aaaaaaaaaaaaaaaaaaaaaaaaaawwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "aaaaaaaaaaaaaaaaaaaaaaaaaawwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "aaaaaaaaggaaaaaaaaaaaaaaawwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "aaaaaaaaaaaaaaaaaaaaaaaaawwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "aaaaaaaaaaaaaaaaaaaaaaaawwwwwwwwwwwwwwwwwwwppppppppppwwwwwwwwwwwwwwwwwwwaaaaaaaaaaaaaaaaaaaaaaaa",
+      "aaaaaaaaaaaaaaaaaaaaaaaawwwwwwwwwwwwwwwwwppppppppppppppwwwwwwwwwwwwwwwwwaaaaaaaaaaaaaaaaaaaaaaaa",
+      "aaaaaaaaaaaaaaaaaaaaaaaawwwwwwwwwwwwwwwppppppppppppppppppwwwwwwwwwwwwwwwaaaaaaaaaaaaaaaaaawwwaaa",
+      "aaaaaaaaaaaaaaaaaaaaaaaawwwwwwwwwwwwwwppppppppppppppppppppwwwwwwwwwwwwwwaaaaaaaaaaaaaaaaawwwwwaa",
+      "aaawwwaaaaaaaaaaaaaaaaaawwwwwwwwwwwwwppwwwwwwppppppppppppppwwwwwwwwwwwwwaaaaaaaaaaaaaaaaawpwpwaa",
+      "aawwwwwaaaaaaaaaaaaaaaaawwwwwwwwwwwwwppwwwwwwppppppppppppppwwwwwwwwwwwwwaaaaaaaaaaaaaaaaawpppwaa",
+      "aawpwpwaaaaaaaaaaaaaaaaawwwwwwwwwwwwpppwwwwwwpppppppppppppppwwwwwwwwwwwwaaaaaaaaaaaaaaaaaapppaaa",
+      "aawpppwaaaaaaaaaaaaaaaaawwwwwwwwwwwwpppwwwwwwpppppppppppppppwwwwwwwwwwwwaaaaaaaaaaaaaaaaaaaaaaaa",
+      "aaapppaaaaaaaaaaaaaaaaaawwwwwwwwwwwppppwwwwwwppppppppppppppppwwwwwwwwwwwaaaaaaaaaaaaaaaaaaaaaaaa",
+      "aaaaaaaaaaaaaaaaaaaaaaaaawwwwwwwwwwppppppppppppppppppppppppppwwwwwwwwwwaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "aaaaaaaaaaaaaaaaaaaaaaaaawwwwwwwwwwppppppppppppppppppppppppppwwwwwwwwwwaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "aaaaaaaaaaaaaaaaaaaaaaaaaawwwwwwwwwppppppppppppppppppppppppppwwwwwwwwwaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "aaaaaaaaaaaaaaaaaaaaaaaaaawwwwwwwwwppppppppppppppppppppppppppwwwwwwwwwaaaaaaaaaaaaaaaaaaaaaaggaa",
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaawwwwwwwwppppppppppppppppppppppppppwwwwwwwwaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "aaaaggaaaaaaaaaaaaaaaaaaaaawwwwwwwwppppppppppppppppppppppppppwwwwwwwwaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaaawwwwwwwwpppppppppppppppppwwpppppwwwwwwwwaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaawwwwwwwpppppppppppppppppwwpppppwwwwwwwaaaaaaaaawwwaaaaaaaaaaaaaaaaa",
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaawwwwwwwppppppppppppppppppppppwwwwwwwaaaaaaaaawwwwwaaaaaaaaaaaaaaaa",
+      "aaaaaaaaaaaaaaaaawwwaaaaaaaaaaawwwwwwppppppppppppppppppppppwwwwwwaaaaaaaaaawpwpwaaaaaaaaaaaaaaaa",
+      "aaaaaaaaaaaaaaaawwwwwaaaaaaaaaaawwwwwwppppppppppppppppppppwwwwwwaaaaaaaaaaawpppwaaaaaaaaaaaaaaaa",
+      "aaaaaaaaaaaaaaaawpwpwaaaaaaaaaaaaawwwwwppppppppppppppppppwwwwwaaaaaaaaaaaaaapppaaaaaaaaaaaaaaaaa",
+      "aaaaaaaaaaaaaaaawpppwaaaaaaaaaaaaaawwwwwwppppppppppppppwwwwwwaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "aaaaaaaaaaaaaaaaapppaaaaaaaaaaaaaaaaaawwwwwppppppppppwwwwwaaaaaaaaaaaaaaaaaaaaaaggaaaaaaaaaaawwa",
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaawwwwwwwwwwwwwwaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaawpww",
+      "awwaaaaaaaaaaaaaggaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaawppw",
+      "wpwwaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaawwa",
+      "wppwaaaaaaaaaaaaaaaaaaaaaaaaawwaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaawwaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "awwaaaaaaaaaaaaaaaaaaaaaaaaawpwwaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaawpwwaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaaawppwaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaawppwaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaawwaaaaannaaaaaaaaaaaaaaaaaaaannaaaaawwaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaoaaaaaaaaaaaaaaoaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaagooooooooooooooaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaataaaaaaaataaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaao",
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaataaaaaaaataaaaaggaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaao",
+      "aaaaaaaaabaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaao",
+      "aaaaaaaabobbbaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbaaaaaaaaao",
+      "aaaaaaaaboooobaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbboooaaaaaaaaao",
+      "aaaaaaaabo...oaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaboo..oaaaaaaaaao",
+      "aaaaaaaabo...oaaaaaaaaabbbaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbaaaaaaaabo...oaaaaaaaaao",
+      "aaaaaaaabo...oaaaaaaaabooobbbaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbboobaaaaaaabo...oaaaaaaabao",
+      "oaaaaaaaabo.obaaaaaaabo...ooobaaaaaaabbbbbaaaaaabbbbbbbbbbaaaaaabboooo..obaaaaaabbo.obaaaaaabbo.",
+      ".oaaaaaabo...oaaaaaabo.......oaaaaaaboooooaaaaaaboooooooooaaaaaabo.......oaaaaaabo...oaaaaaabo..",
+      ".oaaaaaabo...oaaaaaabo.......oaaaaaabo...oaaaaaabo.......oaaaaaabo.......oaaaaaabo...oaaaaaabo..",
+      ".oaaaaaabo...oaaaaaabo.......oaaaaaabo...oaaaaaabo.......oaaaaaabo.......oaaaaaabo...oaaaaaabo..",
+      ".oaaaaaabo...oaaaaaabo.......oaaaaaabo...oaaaaaabo.......oaaaaaabo.......oaaaaaabo...oaaaaaabo..",
+      ".oaaaaaabo...oaaaaaabo.......oaaaaaabo...oaaaaaabo.......oaaaaaabo.......oaaaaaabo...oaaaaaabo..",
+      ".oaaaaaabo...oaaaaaabo.......oaaaaaabo...oaaaaaabo.......oaaaaaabo.......oaaaaaabo...oaaaaaabo..",
+      ".oaaaaaabo...oaaaaaabo.......oaaaaaabo...oaaaaaabo.......oaaaaaabo.......oaaaaaabo...oaaaaaabo..",
+      ".obaaaaabo...oaaaaaabo.......obaaaaabo...oaaaaaabo.......oaaaaabbo.......obaaaaabo...oaaaaabbo..",
+      "..oaaaaaabo.oaaaaaabo.........oaaaaaabo.oaaaaaabo.......oaaaaaabo.........oaaaaaabo.oaaaaaabo...",
+      "..oaaaaaabo.oaaaaaabo.........oaaaaaabo.oaaaaaabo.......oaaaaaabo.........oaaaaaabo.oaaaaaabo...",
+      "..oaaaaaabo.oaaaaaabo.........oaaaaaabo.oaaaaaabo.......oaaaaaabo.........oaaaaaabo.oaaaaaabo...",
+      "..oaaaaaabo.oaaaaaabo.........oaaaaaabo.oaaaaaabo.......oaaaaaabo.........oaaaaaabo.oaaaaaabo...",
+      "..oaaaaaabo.oaaaaaabo.........oaaaaaabo.oaaaaaabo.......oaaaaaabo.........oaaaaaabo.oaaaaaabo...",
+      "..obaaaaabo.oaaaaabbo.........obaaaaabo.oaaaaabbo.......oaaaabbbo.........obaaaaabo.oaaaabbbo...",
+      "...oaaaaabooaaaaaboo...........oaaaaabooaaaaaboo.......oaaaaaboo...........oaaaaabooaaaaaboo....",
+      "...oaaaaabooaaaaabo............oaaaaabooaaaaabo........oaaaaabo............oaaaaabooaaaaabo.....",
+      "...oaaaaabooaaaaabo............oaaaaabooaaaaabo........oaaaaabo............oaaaaabooaaaaabo.....",
+      "...oaaaaabooaaaaabo............oaaaaabooaaaaabo........oaaaaabo............oaaaaabooaaaaabo.....",
+      "...obaaaabooaaaaabo............obaaaabooaaaaabo........oaaaabbo............obaaaabooaaaabbo.....",
+      "....oaaaaaaaaaaabo..............oaaaaaaaaaaabo........oaaaaabo..............oaaaaaaaaaaabo......",
+      "....oaaaaaaaaaaabo..............oaaaaaaaaaaabo........oaaaaabo..............oaaaaaaaaaaabo......",
+      "....oaaaaaaaaaaabo..............oaaaaaaaaaaabo........oaaaaabo..............oaaaaaaaaaaabo......",
+      "....obaaaaaaaaaabo..............obaaaaaaaaaabo........oaaaabbo..............obaaaaaaaaabbo......",
+      ".....oaaaaaaaaabo................oaaaaaaaaabo........oaaaaabo................oaaaaaaaaabo.......",
+      ".....oaaaaaaaaabo................oaaaaaaaaabo........oaaaaabo................oaaaaaaaaabo.......",
+      ".....obbbbbbbbbbo................obbbbbbbbbbo........obbbbbbo................obbbbbbbbbbo......."],
+    "gone": [
+      "RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR",
+      "RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR",
+      "RRRRRRRfRRRfRRfRRRfRRfRRRRRRRRRRfRRfRRRfRRfRRRRRRRRRRfRRfRRRfRRfRRRfRRRRRRRRRfRRRfRRfRRRfRRfRRRR",
+      "RRRRRRR.fRR.fR.fRR.fR.fRRRRRRfRR.fR.fRR.fR.fRRRRRRRRR.fR.fRR.fR.fRR.fRRRRRRfR.fRR.fR.fRR.fR.RRRR",
+      "fRRRfRf..fR..f..fR..f..RRfRRf.fR..f..fR..f..fRfRRfRRR..f..fR..f..fR..RfRRRf.f..fR..f..fR..f.RRRf",
+      ".fRR.f....f......f.....RR.fR...f......f......f.fR.fRf......f......f..R.fRR......f......f....fRR.",
+      "..fR...................fR..f..RR................f..f.................f..fR...................fR.",
+      "...f....................f.....Rf.........................................f................RR..f.",
+      "......................................................................RR..................Rf....",
+      "......RR..............................................................Rf........................",
+      "......Rf........................oooo........................oooo................................",
+      "................................................................................................",
+      "................................................................................................",
+      "................................................................................................",
+      "................................................................................................",
+      "................................................................................o.oo.o..........",
+      "................................................................................................",
+      "...........oo.oo................................................................................",
+      "................................................................................................",
+      "................................................................................................",
+      "................................................................................................",
+      "................................................................................................",
+      "................................................................................................",
+      "................................................................................................",
+      "................................................................................................",
+      "................................................................................................",
+      "................................................................................................",
+      "................................................................................................",
+      "................................................................................................",
+      "................................................................................................",
+      "................................................................................................",
+      "................................................................................................",
+      ".........................................................................................oo.oo..",
+      "................................................................................................",
+      "...oo.o.........................................................................................",
+      "........................o.......................................................................",
+      ".........................oo.........................................o.o.........................",
+      "...........................oo.....................................oo.o..........................",
+      ".............................oo.o..............................o.oo.............................",
+      "...............................oo.o..........................oo.oo..............................",
+      "...............................o.oo.oo...................oo.oo.o................................",
+      "...................................oo.oo.oo.oo.oo.oo.oo.oo.oo..o................................",
+      "........................................oo.oo.oo.oo.oo.oo.......................................",
+      ".......................................o...............o........................................",
+      ".......................................o.......o................................................",
+      "................................................................................................",
+      "...........................................................................oo.oo................",
+      "................................................................................................",
+      "................oo.oo...........................................................................",
+      "................................................................................................",
+      "................................................................................................",
+      "................................................................................................",
+      ".............................................................................................oo.",
+      "................................................................................................",
+      ".oo.............................................................................................",
+      "................................................................................................",
+      ".............................oo..................................oo.............................",
+      "................................................................................................",
+      "................................................................................................",
+      "................................................................................................",
+      ".........................................o.oo.oo.oo.oo..........................................",
+      "................................................................................................",
+      "...............................................................................................o",
+      "...............................................................................................o",
+      ".........o......................................................................................",
+      ".........o.oo......................................................................oo..........o",
+      ".............o....................................................................o..o.........o",
+      ".........o...o...................................................................o...o..........",
+      ".........o.............oo..............................................o.........o.............o",
+      "..........o...........o...o.o......................................oo.............o...........o.",
+      ".o.......o...o.......o...............o.oo........o.oo.oo.o...............o.......o...o.......o..",
+      ".........o...........o.......o...........o...............o.......o...............o...........o..",
+      ".o...........o...............o.......o...o.......o...............o.......o...........o..........",
+      ".o.......o...o.......o...............o...........o.......o...............o.......o...o.......o..",
+      ".........o...........o.......o...........o...............o.......o...............o...........o..",
+      ".o...........o...............o.......o...o.......o...............o.......o...........o..........",
+      ".o.......o...o.......o...............o...........o.......o...............o.......o...o.......o..",
+      ".........o...........o.......o...........o...............o.......o...............o...........o..",
+      "..o.......o.........o.................o.o...............o.......o.........o.......o.........o...",
+      "..........o.o.................o.........o.......o...............o.................o.o...........",
+      "..o.........o.......o.........o.......o.........o.......o.................o.........o.......o...",
+      "..o.......o.........o.................o.o...............o.......o.........o.......o.........o...",
+      "..........o.o.................o.........o.......o...............o.................o.o...........",
+      "..o.........o.......o.........o.......o.........o.......o.................o.........o.......o...",
+      "..........oo.......o...........o......o.......oo.......o......o...................oo.......o....",
+      "...o......o.......o............o.......o......o........o...................o......o.......o.....",
+      "...o.......o......o...................oo......................o............o.......o......o.....",
+      "..........oo...................o......o.......o........o......o...................oo............",
+      "...o......o.......o............o.......o......o........o...................o......o.......o.....",
+      ".................o..............o............o........o..................................o......",
+      "....o............o..............o............................o..............o............o......",
+      "....o........................................o........o......o..............o...................",
+      ".................o..............o............o........o..................................o......",
+      ".....o..........o...........................o........o.......................o..........o.......",
+      "................o................o..........................o...........................o.......",
+      ".....o...........................o..........o........o......o................o.................."]
+  } };
+  ART["elder_eye"] = { p: {"a": "#d77fd6", "b": "#9c4fae", "c": "#f6b8ee", "d": "#7a3a8e", "r": "#c04a5a", "R": "#4e3366", "f": "#2a1838", "K": "#0e0814"}, f: {
+    "open": [
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "...........KKKKKKKKKK...........",
+      "........KKKKKKKKKKKKKKKK........",
+      "......KKKKKKKKKKKKKKKKKKKK......",
+      ".....KKKKKwwwwwwwwwwwwKKKKK.....",
+      "...KKKKKwwwwwwwwwwwwwwwwKKKKK...",
+      "...KKKwwwwwwaaaaaaaawwwwwwKKK...",
+      "..KKKwwwwwwaaaappaaaawwwwwwKKK..",
+      ".KKKwwwwwwaaWWdppdaaaawwwwwwKKK.",
+      ".KKKwwwrrwaaWWppppdaaawwwwwwKKK.",
+      ".KKwwrrwwaaaddppppddaaawwwwwwKK.",
+      ".KKrrwwwwaaaddppppddaaawwwwwwKK.",
+      ".KKwwwwwwaadddppppdddaawwwwrrKK.",
+      ".KKwwwwwwraaddppppddaaawwrrwwKK.",
+      ".KKKwwrrraaaddppppddaaarrwwwKKK.",
+      ".KKKwrwwwwaaaddppddaaawwwwwwKKK.",
+      "..KKKwwwwwaaaadppdaaaawwwwwKKK..",
+      "...KKKwwwwwaaaaaaaaaawwwwwKKK...",
+      "...KKKKKwwwwaaaaaaaawwwwKKKKK...",
+      ".....KKKKKwwwwwwwwwwwwKKKKK.....",
+      "......KKKKKKKKKKKKKKKKKKKK......",
+      "........KKKKKKKKKKKKKKKK........",
+      "...........KKKKKKKKKK...........",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................"],
+    "shut": [
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "...........KKKKKKKKKK...........",
+      "........KKKKKKKKKKKKKKKK........",
+      "......KKKKKKKKKKKKKKKKKKKK......",
+      ".....KKKKKKKKKKKKKKKKKKKKKK.....",
+      "...KKKKKKKKKKKKKKKKKKKKKKKKKK...",
+      "...KKKKKKKKKKKKKKKKKKKKKKKKKK...",
+      "..KKKKKKKKKKKKKKKKKKKKKKKKKKKK..",
+      ".KKKKKKKKKKKKKKKKKKKKKKKKKKKKKK.",
+      ".KKKKKKKKKKKKKKKKKKKKKKKKKKKKKK.",
+      ".KKKKKKKKKKKKKKKKKKKKKKKKKKKKKK.",
+      ".KKKaaKKKKKKKKKKKKKKKKKKKKaaKKK.",
+      ".KKKbbaaKKKKKKKKKKKKKKKKaabbKKK.",
+      ".KKKKKbbaaKKKKKKKKKKKKaabbKKKKK.",
+      ".KKKKKaKbbaaaaaaaaaaaabbKKKKKKK.",
+      ".KKKKKaKKKbbbbbbbbbbbbaKKKKKKKK.",
+      "..KKKKKKKKaKKKaKKKaKKKaKKKKKKK..",
+      "...KKKKKKKaKKKaKKKaKKKKKKKKKK...",
+      "...KKKKKKKKKKKKKKKKKKKKKKKKKK...",
+      ".....KKKKKKKKKKKKKKKKKKKKKK.....",
+      "......KKKKKKKKKKKKKKKKKKKK......",
+      "........KKKKKKKKKKKKKKKK........",
+      "...........KKKKKKKKKK...........",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................"]
+  } };
+  ART["job_dig"] = { p: {"a": "#8a4a78", "b": "#57406a", "c": "#9c7cb0", "d": "#8a60d0", "e": "#ffc8ec", "f": "#b48c5c", "j": "#9a9ab0", "J": "#6a6a84", "i": "#c8c8dc", "K": "#1a0e22", "h": "#f0d2b8", "u": "#8a8a9a", "T": "#f0e4c8", "V": "#c4a0ff", "U": "#3c4050"}, f: {
+    "base": [
+      "ossssso.....",
+      "ssoolsso....",
+      "so.olooso...",
+      "o..olo.o....",
+      "..ollo..o...",
+      ".ollo..ogo..",
+      "ollo..ogggo.",
+      "llo...ogWgo.",
+      "oo....ogggo.",
+      ".......ogo..",
+      "........o...",
+      "............"]
+  } };
+  ART["job_boil"] = { p: {"a": "#8a4a78", "b": "#57406a", "c": "#9c7cb0", "d": "#8a60d0", "e": "#ffc8ec", "f": "#b48c5c", "j": "#9a9ab0", "J": "#6a6a84", "i": "#c8c8dc", "K": "#1a0e22", "h": "#f0d2b8", "u": "#8a8a9a", "T": "#f0e4c8", "V": "#c4a0ff", "U": "#3c4050"}, f: {
+    "base": [
+      "..oiooio....",
+      ".oiooio.....",
+      ".ooiooioo...",
+      "oJFFFFFFJo..",
+      "JJJJJJJJJJo.",
+      "JUJJJJJJJJo.",
+      "JUUJJJJJJJo.",
+      "oJUUJJJJJo..",
+      ".oYyYyYyo...",
+      ".oyYyYyYo...",
+      "..oooooo....",
+      "............"]
+  } };
+  ART["job_farm"] = { p: {"a": "#8a4a78", "b": "#57406a", "c": "#9c7cb0", "d": "#8a60d0", "e": "#ffc8ec", "f": "#b48c5c", "j": "#9a9ab0", "J": "#6a6a84", "i": "#c8c8dc", "K": "#1a0e22", "h": "#f0d2b8", "u": "#8a8a9a", "T": "#f0e4c8", "V": "#c4a0ff", "U": "#3c4050"}, f: {
+    "base": [
+      ".oonnno.....",
+      "onnWnnno....",
+      "nnnnnnnno...",
+      "oooeeoooooo.",
+      "..oeeo.oBBBo",
+      "oooeeooBooBB",
+      "FFFFFFoBBBBB",
+      "FFFFFFoBBBBo",
+      "oooooo.oBBo.",
+      "........oo..",
+      "............",
+      "............"]
+  } };
+  ART["job_pray"] = { p: {"a": "#8a4a78", "b": "#57406a", "c": "#9c7cb0", "d": "#8a60d0", "e": "#ffc8ec", "f": "#b48c5c", "j": "#9a9ab0", "J": "#6a6a84", "i": "#c8c8dc", "K": "#1a0e22", "h": "#f0d2b8", "u": "#8a8a9a", "T": "#f0e4c8", "V": "#c4a0ff", "U": "#3c4050"}, f: {
+    "base": [
+      "oo..oZo..oo.",
+      "hhooZZZoohho",
+      "hho.oZo.ohho",
+      "hho..o..ohho",
+      "aao.....oaao",
+      "aaao...oaaao",
+      "oaaaoooaaao.",
+      ".oaaaaaaao..",
+      "..oaaaaao...",
+      "...ooooo....",
+      "............",
+      "............"]
+  } };
+  ART["job_bind"] = { p: {"a": "#8a4a78", "b": "#57406a", "c": "#9c7cb0", "d": "#8a60d0", "e": "#ffc8ec", "f": "#b48c5c", "j": "#9a9ab0", "J": "#6a6a84", "i": "#c8c8dc", "K": "#1a0e22", "h": "#f0d2b8", "u": "#8a8a9a", "T": "#f0e4c8", "V": "#c4a0ff", "U": "#3c4050"}, f: {
+    "base": [
+      "...ouuuo....",
+      "..ouuuuuo...",
+      "..oupuupo...",
+      "..ouuuuuo...",
+      "..oouuuoo...",
+      ".ouuaauuuo..",
+      "ouuaaaauuuo.",
+      "ouaaaaaauuo.",
+      "ouuaaaauuuo.",
+      ".oaooooaoo..",
+      "..o....o....",
+      "............"]
+  } };
+  ART["job_mend"] = { p: {"a": "#8a4a78", "b": "#57406a", "c": "#9c7cb0", "d": "#8a60d0", "e": "#ffc8ec", "f": "#b48c5c", "j": "#9a9ab0", "J": "#6a6a84", "i": "#c8c8dc", "K": "#1a0e22", "h": "#f0d2b8", "u": "#8a8a9a", "T": "#f0e4c8", "V": "#c4a0ff", "U": "#3c4050"}, f: {
+    "base": [
+      "SSSSSSSSo...",
+      "SjjjjjjSo...",
+      "SjjjjjjSo...",
+      "SSSSSSSSo...",
+      "ooollooo....",
+      "..ollo......",
+      "..ollo...o..",
+      "..ollo..oyo.",
+      "..oLLo.oyZyo",
+      "...oo...oyo.",
+      ".........o..",
+      "............"]
+  } };
+  ART["job_preach"] = { p: {"a": "#8a4a78", "b": "#57406a", "c": "#9c7cb0", "d": "#8a60d0", "e": "#ffc8ec", "f": "#b48c5c", "j": "#9a9ab0", "J": "#6a6a84", "i": "#c8c8dc", "K": "#1a0e22", "h": "#f0d2b8", "u": "#8a8a9a", "T": "#f0e4c8", "V": "#c4a0ff", "U": "#3c4050"}, f: {
+    "base": [
+      "....owwwwwwo",
+      "...owwwwwwwo",
+      "..oowpwpwpwo",
+      ".oaowwwwwwo.",
+      "oaaaowwooo..",
+      "aaaaaoo.....",
+      "aKKKao......",
+      "aeKeao......",
+      "aaaaao......",
+      "aaaaao......",
+      "ooooo.......",
+      "............"]
+  } };
+  ART["job_spy"] = { p: {"a": "#8a4a78", "b": "#57406a", "c": "#9c7cb0", "d": "#8a60d0", "e": "#ffc8ec", "f": "#b48c5c", "j": "#9a9ab0", "J": "#6a6a84", "i": "#c8c8dc", "K": "#1a0e22", "h": "#f0d2b8", "u": "#8a8a9a", "T": "#f0e4c8", "V": "#c4a0ff", "U": "#3c4050"}, f: {
+    "base": [
+      "oyyyyyyyyo..",
+      "yyyKKKKyyyo.",
+      "yyKwwwwKyyo.",
+      "yyKwpwwKyyo.",
+      "yyyKKKKyyyo.",
+      "yyyyKKyyyyo.",
+      "yyyyKKyyyyo.",
+      "yyyKKKKyyyo.",
+      "YYYYYYYYYYo.",
+      "oYYYYYYYYo..",
+      ".oooooooo...",
+      "............"]
+  } };
+  ART["job_hatch"] = { p: {"a": "#8a4a78", "b": "#57406a", "c": "#9c7cb0", "d": "#8a60d0", "e": "#ffc8ec", "f": "#b48c5c", "j": "#9a9ab0", "J": "#6a6a84", "i": "#c8c8dc", "K": "#1a0e22", "h": "#f0d2b8", "u": "#8a8a9a", "T": "#f0e4c8", "V": "#c4a0ff", "U": "#3c4050"}, f: {
+    "base": [
+      "...otttto...",
+      "..otttttto..",
+      ".ottWttttto.",
+      ".otttttntto.",
+      ".ottFttttto.",
+      ".otttttttto.",
+      ".oottttttoo.",
+      "offffffffffo",
+      "fofofofofofo",
+      "o.o.o.o.o.o.",
+      "............",
+      "............"]
+  } };
+  ART["job_idle"] = { p: {"a": "#8a4a78", "b": "#57406a", "c": "#9c7cb0", "d": "#8a60d0", "e": "#ffc8ec", "f": "#b48c5c", "j": "#9a9ab0", "J": "#6a6a84", "i": "#c8c8dc", "K": "#1a0e22", "h": "#f0d2b8", "u": "#8a8a9a", "T": "#f0e4c8", "V": "#c4a0ff", "U": "#3c4050"}, f: {
+    "base": [
+      ".......oBBBo",
+      "........oBo.",
+      ".......oBBBo",
+      "....oo..ooo.",
+      "...oaao.....",
+      "..oaaaao....",
+      ".oaKKKKao...",
+      "oaaeKeKaao..",
+      "aaaaaaaaaao.",
+      "aaaaaaaaaao.",
+      "oooooooooo..",
+      "............"]
+  } };
+  ART["ic_follower"] = { p: {"a": "#8a4a78", "b": "#57406a", "c": "#9c7cb0", "d": "#8a60d0", "e": "#ffc8ec", "f": "#b48c5c", "j": "#9a9ab0", "J": "#6a6a84", "i": "#c8c8dc", "K": "#1a0e22", "h": "#f0d2b8", "u": "#8a8a9a", "T": "#f0e4c8", "V": "#c4a0ff", "U": "#3c4050"}, f: {
+    "base": [
+      "...oaao.....",
+      "..oaaaao....",
+      ".oaaaaaao...",
+      "oaKKKKKKao..",
+      "oaKeKKeKao..",
+      "oaaKKKKaao..",
+      "aaaaaaaaaao.",
+      "aaaaaaaaaao.",
+      "aaaaaaaaaao.",
+      "oooooooooo..",
+      "............",
+      "............"]
+  } };
+  ART["ic_suspect"] = { p: {"a": "#8a4a78", "b": "#57406a", "c": "#9c7cb0", "d": "#8a60d0", "e": "#ffc8ec", "f": "#b48c5c", "j": "#9a9ab0", "J": "#6a6a84", "i": "#c8c8dc", "K": "#1a0e22", "h": "#f0d2b8", "u": "#8a8a9a", "T": "#f0e4c8", "V": "#c4a0ff", "U": "#3c4050"}, f: {
+    "base": [
+      "........oYo.",
+      ".......oyYyo",
+      ".......oyZyo",
+      "ooooooo.olo.",
+      "uuuuuuuoolo.",
+      "uwwppwwuolo.",
+      "uwwppwwuolo.",
+      "uuuuuuuoolo.",
+      "ooooooo.olo.",
+      ".........o..",
+      "............",
+      "............"]
+  } };
+  ART["ic_shard"] = { p: {"a": "#8a4a78", "b": "#57406a", "c": "#9c7cb0", "d": "#8a60d0", "e": "#ffc8ec", "f": "#b48c5c", "j": "#9a9ab0", "J": "#6a6a84", "i": "#c8c8dc", "K": "#1a0e22", "h": "#f0d2b8", "u": "#8a8a9a", "T": "#f0e4c8", "V": "#c4a0ff", "U": "#3c4050"}, f: {
+    "base": [
+      "....oVVo....",
+      "...oVWVVo...",
+      "..oVWVVVVo..",
+      ".oVVVVVVVVo.",
+      "..oVVVVVdo..",
+      "...oVVddo...",
+      "o...oVdo..o.",
+      "Zo...oo..oZo",
+      "o.........o.",
+      "............",
+      "............",
+      "............"]
+  } };
+  ART["ic_shard_off"] = { p: {"a": "#8a4a78", "b": "#57406a", "c": "#9c7cb0", "d": "#8a60d0", "e": "#ffc8ec", "f": "#b48c5c", "j": "#9a9ab0", "J": "#6a6a84", "i": "#c8c8dc", "K": "#1a0e22", "h": "#f0d2b8", "u": "#8a8a9a", "T": "#f0e4c8", "V": "#c4a0ff", "U": "#3c4050"}, f: {
+    "base": [
+      "....oqqo....",
+      "...oqooqo...",
+      "..oqo..oqo..",
+      ".oqo....oqo.",
+      "..oqo..oqo..",
+      "...oqooqo...",
+      "....oqqo....",
+      ".....oo.....",
+      "............",
+      "............",
+      "............",
+      "............"]
+  } };
+  ART["ic_wrath"] = { p: {"a": "#8a4a78", "b": "#57406a", "c": "#9c7cb0", "d": "#8a60d0", "e": "#ffc8ec", "f": "#b48c5c", "j": "#9a9ab0", "J": "#6a6a84", "i": "#c8c8dc", "K": "#1a0e22", "h": "#f0d2b8", "u": "#8a8a9a", "T": "#f0e4c8", "V": "#c4a0ff", "U": "#3c4050"}, f: {
+    "base": [
+      "orrrrrrrrro.",
+      "rtrtrtrtrtro",
+      "rmmmmmmmmmro",
+      "rmmmMMMmmmro",
+      "rmmmmmmmmmro",
+      "rtrtrtrtrtro",
+      "orrrrrrrrro.",
+      ".ooooooooo..",
+      "............",
+      "............",
+      "............",
+      "............"]
+  } };
+  ART["ic_demand"] = { p: {"a": "#8a4a78", "b": "#57406a", "c": "#9c7cb0", "d": "#8a60d0", "e": "#ffc8ec", "f": "#b48c5c", "j": "#9a9ab0", "J": "#6a6a84", "i": "#c8c8dc", "K": "#1a0e22", "h": "#f0d2b8", "u": "#8a8a9a", "T": "#f0e4c8", "V": "#c4a0ff", "U": "#3c4050"}, f: {
+    "base": [
+      "ZooooZooooZo",
+      "onnnnnnnnno.",
+      "nwwwwwwwwwno",
+      "nwwwppwwwwno",
+      "nwwwppwwwwno",
+      "onnnnnnnnno.",
+      ".oooonoooo..",
+      "...onono....",
+      "..ono.ono...",
+      "...o...o....",
+      "............",
+      "............"]
+  } };
+  ART["ic_rise"] = { p: {"a": "#8a4a78", "b": "#57406a", "c": "#9c7cb0", "d": "#8a60d0", "e": "#ffc8ec", "f": "#b48c5c", "j": "#9a9ab0", "J": "#6a6a84", "i": "#c8c8dc", "K": "#1a0e22", "h": "#f0d2b8", "u": "#8a8a9a", "T": "#f0e4c8", "V": "#c4a0ff", "U": "#3c4050"}, f: {
+    "base": [
+      "looooooo....",
+      "laaaaaaao...",
+      "laawwaaao...",
+      "lawpwaaao...",
+      "laawwaaao...",
+      "laaaaaaao...",
+      "looooooo....",
+      "lo..........",
+      "lo..........",
+      "LLo.........",
+      "oo..........",
+      "............"]
+  } };
+  ART["ic_auto"] = { p: {"a": "#8a4a78", "b": "#57406a", "c": "#9c7cb0", "d": "#8a60d0", "e": "#ffc8ec", "f": "#b48c5c", "j": "#9a9ab0", "J": "#6a6a84", "i": "#c8c8dc", "K": "#1a0e22", "h": "#f0d2b8", "u": "#8a8a9a", "T": "#f0e4c8", "V": "#c4a0ff", "U": "#3c4050"}, f: {
+    "base": [
+      "..oggggo....",
+      ".ogoooogo...",
+      "ogo....ogo..",
+      "ogo...ogggo.",
+      "ogo....ogo..",
+      "gggo...ogo..",
+      "ogo....ogo..",
+      ".ogoooogo...",
+      "..oggggo....",
+      "...oooo.....",
+      "............",
+      "............"]
+  } };
+  ART["ic_watch"] = { p: {"a": "#8a4a78", "b": "#57406a", "c": "#9c7cb0", "d": "#8a60d0", "e": "#ffc8ec", "f": "#b48c5c", "j": "#9a9ab0", "J": "#6a6a84", "i": "#c8c8dc", "K": "#1a0e22", "h": "#f0d2b8", "u": "#8a8a9a", "T": "#f0e4c8", "V": "#c4a0ff", "U": "#3c4050"}, f: {
+    "base": [
+      "...ooooo....",
+      ".ooBBBBBoo..",
+      "oBBwwwwwBBo.",
+      "BwwwBBpwwwBo",
+      "BwwBBppBwwBo",
+      "BwwwBBBwwwBo",
+      "oBBwwwwwBBo.",
+      ".ooBBBBBoo..",
+      "...ooooo....",
+      "............",
+      "............",
+      "............"]
+  } };
+  ART["ic_board"] = { p: {"a": "#8a4a78", "b": "#57406a", "c": "#9c7cb0", "d": "#8a60d0", "e": "#ffc8ec", "f": "#b48c5c", "j": "#9a9ab0", "J": "#6a6a84", "i": "#c8c8dc", "K": "#1a0e22", "h": "#f0d2b8", "u": "#8a8a9a", "T": "#f0e4c8", "V": "#c4a0ff", "U": "#3c4050"}, f: {
+    "base": [
+      ".olllllllo..",
+      "olTTTTTTTlo.",
+      "olTqqqqqTlo.",
+      "olTTTTTTTlo.",
+      "olTqqqqTTlo.",
+      "olTTTTTTTlo.",
+      "olTqqqTTTlo.",
+      "olTTTTTTTlo.",
+      ".olllllllo..",
+      "..ooroooo...",
+      "....o.......",
+      "............"]
+  } };
+  ART["slot_empty"] = { p: {"a": "#8a4a78", "b": "#5e2e56", "c": "#b0709a", "K": "#1a0e22", "e": "#ffc8ec", "h": "#3a2040", "q": "#7a5a9a"}, f: {
+    "base": [
+      "..q..q..",
+      "........",
+      "q......q",
+      "........",
+      "........",
+      "q......q",
+      "........",
+      "..q..q.."]
+  } };
+  ART["slot_full"] = { p: {"a": "#8a4a78", "b": "#5e2e56", "c": "#b0709a", "K": "#1a0e22", "e": "#ffc8ec", "h": "#3a2040", "q": "#7a5a9a"}, f: {
+    "base": [
+      ".oocaoo.",
+      "ocaaaaao",
+      "oaaaaaao",
+      "aaaeeaaa",
+      "baaaaabb",
+      "oaaaaabo",
+      "obbabbbo",
+      ".oobboo."]
+  } };
+  ART["out_fol_on"] = { p: {"a": "#8a4a78", "b": "#5e2e56", "c": "#b0709a", "K": "#1a0e22", "e": "#ffc8ec", "h": "#3a2040", "q": "#7a5a9a"}, f: {
+    "base": [
+      ".oaao.",
+      "oacaao",
+      "acaaaa",
+      "aaaaaa",
+      "oaaaao",
+      ".oaao."]
+  } };
+  ART["out_fol_off"] = { p: {"a": "#8a4a78", "b": "#5e2e56", "c": "#b0709a", "K": "#1a0e22", "e": "#ffc8ec", "h": "#3a2040", "q": "#7a5a9a"}, f: {
+    "base": [
+      "..qq..",
+      ".q..q.",
+      "q....q",
+      "q....q",
+      ".q..q.",
+      "..qq.."]
+  } };
+  ART["flag_ours"] = { p: {"a": "#8a4a78", "b": "#5e2e56", "c": "#b0709a", "K": "#1a0e22", "e": "#ffc8ec", "h": "#3a2040"}, f: {
+    "base": [
+      "oyoooooooo..",
+      "olcccbbaaao.",
+      "olaabwwbaao.",
+      "olaawppwaao.",
+      "olaaawwaabo.",
+      "olaaaaabbo..",
+      "olaaaaabo...",
+      "olbbbbbbbo..",
+      "olooooooo...",
+      "olo.........",
+      "olo.........",
+      "olo.........",
+      "olo.........",
+      "olo.........",
+      "olo.........",
+      "olo........."]
+  } };
   ART["place1"] = { p: {"a": "#7a5c8e", "b": "#57406a", "c": "#9c7cb0", "d": "#8a6a4a", "e": "#5e4632", "f": "#b48c5c", "j": "#9a9ab0", "J": "#6a6a84", "i": "#c8c8dc", "1": "#1a1c3a", "2": "#252a52", "3": "#323a66", "4": "#2a3a34", "5": "#1e2a26", "6": "#5a5068", "7": "#3e3850", "8": "#7a4a44", "9": "#5a3432", "x": "#8a8aa0"}, f: {
     "calm": [
       "111111111111111111111111111111111111111111111111",
@@ -7423,8 +8488,8 @@ var DEN = (function () {
     nights: 24, big: [8, 16, 24], ichor0: 26, orbMax: 3, faithT: [2, 5, 9], bossT: [3, 7, 12],
     holdDice: 4, larderBase: 2, rerollCost: 3, dieDC: 7,
     raidBase: 0.08, raidFear: 0.004, raidMax: 0.3,
-    gradeT: [100, 250, 515, 570, 630, 700, 780, 870], gradeN: ['F', 'E', 'D', 'C', 'B', 'A', 'S', 'SS', 'SSS'],
-    score: { fear: 2, offered: 6, kinLv: 4, boss: 20, faith: 10, lux: 9 },
+    gradeT: [150, 400, 690, 750, 820, 900, 980, 1080], gradeN: ['F', 'E', 'D', 'C', 'B', 'A', 'S', 'SS', 'SSS'],
+    score: { fear: 2, offered: 6, kinLv: 4, boss: 20, faith: 10, lux: 9, shard: 60, fol: 3 },
   };
 
   // ---------- 곳 (치기) ----------
@@ -7442,12 +8507,14 @@ var DEN = (function () {
     adv: { name: '모험가', art: 'man_adv', lure: { shop: 0.6, bait: 0.5, inn: 0.5, spring: 0.15 } },
     thief: { name: '도둑', art: 'man_thief', lure: { spring: 0.7, larder: 0.6, bait: 0.6, shop: 0.25, inn: 0.2 } },
     soldier: { name: '병사', art: 'man_soldier', lure: {} },
+    inq: { name: '색출대', art: 'man_inq', lure: {} },
     mob: { name: '마을 사람', art: 'man_mob', lure: { inn: 0.25 } },
   };
   function manStat(G, cls, r) {
     var h = Math.floor(r / 2), t = Math.floor(r / 3), q4 = d(G, 4);
     if (cls === 'adv') return { mhp: 6 + 3 * r + q4, str: 1 + h, agi: 1 + h, wit: 1 + h, dmg: [1, 6, h], ac: 11 + h, mind: 10 + h, loot: 3 + 3 * r };
     if (cls === 'thief') return { mhp: 4 + 3 * r + q4, str: t, agi: 3 + h, wit: 1 + t, dmg: [1, 4, h], ac: 12 + h, mind: 9 + t, loot: 5 + 4 * r };
+    if (cls === 'inq') return { mhp: 9 + 4 * r + q4, str: 1 + h, agi: 1 + t, wit: 3 + h, dmg: [1, 6, h], ac: 13 + h, mind: 13 + h, loot: 4 + 3 * r };
     if (cls === 'soldier') return { mhp: 8 + 4 * r + q4, str: 2 + h, agi: t, wit: t, dmg: [1, 6, 1 + h], ac: 13 + h, mind: 11 + h, loot: 4 + 3 * r };
     return { mhp: 6 + 3 * r + q4, str: t, agi: t - 1, wit: t - 1, dmg: [1, 4, t], ac: 9 + t, mind: 6 + t, loot: 1 + 2 * r };
   }
@@ -7538,7 +8605,7 @@ var DEN = (function () {
     o_none: R_('그대로 둠', 'out', [], 0, 0, 0, '풀과 돌뿐입니다.'),
     o_thorn: R_('가시덤불', 'out', ['thorn'], 14, 20, 1, '오는 사람이 하나 줄어듭니다.'),
     o_lamp: R_('등불 길', 'out', ['lamp'], 12, 10, 2, '오는 사람이 하나 늡니다. 손님이 곧 수입입니다.'),
-    o_farm: R_('버섯 밭', 'out', ['farm'], 16, 0, 1, '밤마다 진액이 조금 납니다.'),
+    o_farm: R_('버섯 밭', 'out', ['farm'], 12, 0, 1, '가꾸기 일자리 셋. 신도가 먹이를 냅니다.'),
     // 입구 (길목)
     e_empty: R_('빈 굴', 'e', [], 0, 0, 0, '아무것도 없습니다. 가운데 갈래로 온 자가 그냥 지나갑니다.'),
     e_fork: R_('입구 둥지', 'e', S_(2), 8, 0, 1, '권속 둘이 섭니다. 곧은 길이라 모두 가운데로 내려옵니다.'),
@@ -7562,8 +8629,8 @@ var DEN = (function () {
     es_shop: R_('좌판', 'es', ['shop'], 14, 0, 2, '지나는 침입자가 진액을 쓰고 갑니다. 대신 그자의 피해가 2 오릅니다.'),
     es_shop2: R_('큰 좌판', 'es', ['shop', 'shop', 'seat', 'seat'], 32, 45, 4, '좌판 둘과 권속 둘. 사게 하고 잡습니다.'),
     es_inn: R_('여인숙', 'es', ['inn', 'seat'], 18, 15, 3, '지나는 자가 한참 머뭅니다. 정신이 깎이고 진액을 조금 씁니다.'),
-    es_spring: R_('진액 샘', 'es', ['spring'], 12, 0, 1, '밤마다 진액이 솟습니다. 같은 갈래에 권속이 없으면 도둑이 텁니다.'),
-    es_pot: R_('졸임 솥', 'es', ['pot'], 16, 20, 2, '굴 안의 진액 샘 수입을 불립니다.'),
+    es_spring: R_('진액 샘', 'es', ['spring'], 12, 0, 1, '캐기 일자리 둘. 신도가 캐야 진액이 납니다. 같은 갈래에 권속이 없으면 도둑이 텁니다.'),
+    es_pot: R_('졸임 솥', 'es', ['pot'], 16, 20, 2, '졸이기 일자리 하나. 캐기 수입을 불립니다.'),
     // 가운데 (길목)
     m_empty: R_('빈 굴', 'm', [], 0, 0, 0, '아무것도 없습니다.'),
     m_nest: R_('두 겹 둥지', 'm', S_(4), 18, 0, 2, '권속 넷이 섭니다.'),
@@ -7581,17 +8648,18 @@ var DEN = (function () {
     ms_spear: R_('창 셋', 'ms', S_(3, 'spear'), 30, 35, 3, '아픈 창 셋.'),
     ms_wall: R_('큰 벽', 'ms', ['crush', 'crush'], 34, 50, 3, '조이는 벽 둘.'),
     ms_bait: R_('미끼 광', 'ms', ['bait', 'bait', 'spike'], 20, 25, 2, '미끼 둘과 가시.'),
+    ms_mush: R_('버섯 굴', 'ms', ['farm'], 12, 0, 1, '가꾸기 일자리 셋. 신도가 먹이를 냅니다.'),
     // 안쪽 왼쪽·오른쪽 (곁방)
     is_none: R_('빈 곁방', 'is', [], 0, 0, 0, '비어 있습니다.'),
-    is_larder: R_('작은 제물 광', 'is', ['larder'], 10, 0, 1, '제물 자리 +3.', { cap: 3 }),
+    is_larder: R_('작은 제물 광', 'is', ['larder'], 10, 0, 1, '제물 자리 +3. 물들이기 일자리 하나.', { cap: 3 }),
     is_larder2: R_('큰 제물 광', 'is', ['larder', 'larder', 'larder'], 28, 30, 3, '제물 자리 +8. 제물을 여섯 넘게 가져 봐야 열립니다.', { cap: 8, capNeed: 6 }),
     is_nest: R_('안쪽 둥지', 'is', S_(3), 12, 0, 1, '권속 셋. 옆 갈래의 마지막 칸입니다.'),
     is_nest5: R_('깊은 둥지', 'is', S_(5), 30, 45, 3, '권속 다섯.'),
     is_pit: R_('구덩이', 'is', ['pit', 'pit'], 24, 25, 2, '깊은 구덩이 둘.'),
     is_command: R_('지휘 방', 'is', ['command'], 26, 35, 3, '모든 권속의 방어도 +1.'),
     is_rest: R_('쉼터', 'is', ['rest'], 20, 20, 2, '죽음 굴림 +2. 기절한 권속이 다음 밤에 바로 돌아옵니다.'),
-    is_repair: R_('함정 손질 방', 'is', ['repair'], 22, 30, 2, '모든 함정의 난이도 +2.'),
-    is_shrine: R_('작은 제단', 'is', ['shrine'], 16, 15, 3, '바칠 때 믿음을 하나 더 얻습니다.'),
+    is_repair: R_('함정 손질 방', 'is', ['repair'], 22, 30, 2, '고치기 일자리 하나. 모든 함정의 난이도 +2 (일손이 없으면 +1).'),
+    is_shrine: R_('작은 제단', 'is', ['shrine'], 16, 15, 3, '기도 일자리 둘. 바칠 때 믿음을 하나 더 얻습니다.'),
   };
   var ZONEK = {}; Object.keys(ROOMS).forEach(function (k) { var z = ROOMS[k].zone; (ZONEK[z] = ZONEK[z] || []).push(k); });
   var EMPTY = { out: 'o_none', e: 'e_empty', es: 'es_none', m: 'm_empty', ms: 'ms_none', is: 'is_none' };
@@ -7621,18 +8689,21 @@ var DEN = (function () {
   function newGame(seed, opt) {
     opt = opt || {};
     var G = {
-      v: 2, seed: seed >>> 0, rs: (seed >>> 0) ^ 0x9E3779B9, night: 1, phase: 'cmd', cmd: null, tut: !!opt.tut,
+      v: 3, seed: seed >>> 0, rs: (seed >>> 0) ^ 0x9E3779B9, night: 1, phase: 'cmd', cmd: null, tut: !!opt.tut,
       ichor: K.ichor0, fear: 0, cap: 0, capEver: 0, spent: 0, spentRoom: 0, robbed: 0, offered: 0, kills: 0,
       orbs: [], faith: { hunger: 0, abyss: 0, brood: 0, dusk: 0, nebula: 0 }, bossStage: 1, bossLv: 0,
       boss: { hp: BOSS[1].mhp }, cells: {}, kin: [], dead: [], kid: 0, mid: 0, nameUse: {}, summons: 0,
       shop: [], rerollFree: 1, lamp: 0, lampSrc: null, struck: null, mock: 0,
       strike: null, raid: null, tally: null, led: null, undo: null, ops: 0, seenRooms: {},
-      opt: { ask: opt.ask !== false },
+      opt: { ask: opt.ask !== false, watch: !!opt.watch, askMin: opt.askMin == null ? 2 : opt.askMin },
+      fol: 3, job: {}, sus: 0, outFol: [0, 0, 0, 0, 0], risen: [false, false, false, false, false], binding: [], prayGod: 'abyss', prayAcc: 0, starve: 0, spied: {}, shards: 0, wrathN: 0, inqLast: -9, demands: null, lastRaid: null,
       st: { strike: { exact: 0, near: 0, far: 0, over: 0 }, inc: { strike: 0, loot: 0, home: 0, trade: 0 }, fate: { kill: 0, cap: 0, fled: 0, morale: 0, bait: 0, reach: 0, home: 0 },
-        raids: 0, deaths: 0, bossDowns: 0, orbsGot: 0, orbsUsed: 0, asks: 0, firstLoot: 0, cards: {}, bought: {}, cmds: { strike: 0, deck: 0, rest: 0 }, rooms: {}, sideRob: 0, robBlocked: 0, visits: 0, splitN: 0, splitOk: 0, scatter: 0, trapChance: 0, trapOff: 0, events: 0, eventsLive: 0 },
+        raids: 0, deaths: 0, bossDowns: 0, orbsGot: 0, orbsUsed: 0, asks: 0, firstLoot: 0, cards: {}, bought: {}, cmds: { strike: 0, deck: 0, rest: 0 }, rooms: {}, sideRob: 0, robBlocked: 0, visits: 0, fled: 0, outLost: 0, bound: 0, preach: 0, spyCaught: 0, rise: 0, inq: 0, dragged: 0, inqBlocked: 0, splitN: 0, splitOk: 0, scatter: 0, trapChance: 0, trapOff: 0, events: 0, eventsLive: 0 },
     };
     CELLS.forEach(function (c) { if (c !== 'b') G.cells[c] = EMPTY[ZONE[c]]; });
     roomsOpen(G).forEach(function (k) { G.seenRooms[k] = 1; });
+    // 처음 굴: 입구 왼쪽에 진액 샘, 굴 밖에 버섯 밭 (신도 셋 가운데 둘이 일하고 하나는 논다)
+    G.cells.el = 'es_spring'; G.cells.out = 'o_farm'; G.cells.il = 'is_larder'; G.demands = demandsMake(G); G.job = { farm: 1, dig: 1 };
     shopFill(G); arrange(G); led0(G);
     return G;
   }
@@ -7652,7 +8723,7 @@ var DEN = (function () {
   function lux(G) { var l = BOSSROOM[G.bossLv].lux; CELLS.forEach(function (c) { if (c !== 'b') l += roomOf(G, c).lux; }); return l; }
   function threat(G) { return G.fear + Math.floor(G.ichor / 15) + Math.floor(lux(G) / 5); }
   function cap(G) { return { seats: [G.kin.filter(function (k) { return k.at; }).length, seatsTotal(G), G.kin.length], larder: [G.cap, larderTotal(G)], lux: lux(G) }; }
-  function trapDC(G, b, c) { var B = BLK[b]; return B.dc + (hasBlk(G, 'repair') ? 2 : 0) + (faithTier(G, 'nebula') >= 1 ? 1 : 0) + (kinIn(G, c).some(function (q) { return has(q, 'n_trap'); }) ? 2 : 0); }
+  function trapDC(G, b, c) { var B = BLK[b]; return B.dc + (hasBlk(G, 'repair') ? ((G.job && G.job.mend) ? 2 : 1) : 0) + (faithTier(G, 'nebula') >= 1 ? 1 : 0) + (kinIn(G, c).some(function (q) { return has(q, 'n_trap'); }) ? 2 : 0); }
 
   // ---------- 권속 ----------
   function nameNew(G) { var free = NAMES.filter(function (n) { return !G.nameUse[n]; }); return pick(G, free.length ? free : NAMES); }
@@ -7787,10 +8858,12 @@ var DEN = (function () {
   }
 
   // ---------- 친다 / 쉰다 ----------
-  function placesOpen(G) { return PLACE.map(function (p, i) { return G.fear >= p.fear ? i : -1; }).filter(function (i) { return i >= 0; }); }
+  function placesOpen(G) { return PLACE.map(function (p, i) { return G.fear >= p.fear || (i > 0 && G.risen && G.risen[i - 1]) ? i : -1; }).filter(function (i) { return i >= 0; }); }
+  function placesStrike(G) { return placesOpen(G).filter(function (p) { return !G.risen[p]; }); }
   function strikeStart(G, p) {
     if (G.phase !== 'cmd' || G.cmd || G.strike) return { ok: false, msg: '지금은 칠 수 없습니다.' };
-    if (!PLACE[p] || G.fear < PLACE[p].fear) return { ok: false, msg: '아직 열리지 않은 곳입니다.' };
+    if (!PLACE[p] || placesOpen(G).indexOf(p) < 0) return { ok: false, msg: '아직 열리지 않은 곳입니다.' };
+    if (G.risen[p]) return { ok: false, msg: '이미 넘어온 곳입니다.' };
     led0(G); G.strike = { p: p, hold: PLACE[p].hold, sum: 0, dice: [], done: false }; return { ok: true };
   }
   function strikeRoll(G, kind) {
@@ -7805,7 +8878,7 @@ var DEN = (function () {
     var P = PLACE[S.p], short = S.hold - S.sum, last = S.dice.length ? S.dice[S.dice.length - 1].v : 0, god = last >= 1 && last <= 5 ? ASP[last - 1] : 'star';
     var res = { p: S.p, sum: S.sum, hold: S.hold, dice: S.dice.slice(), god: S.dice.length ? god : null, ichor: 0, fear: 0, cap: 0, orb: null, kind: '' };
     if (!S.dice.length) { res.kind = 'far'; }
-    else if (short === 0) { res.kind = 'exact'; res.ichor = Math.round(P.base * 1.3); res.fear = 3 + S.p; res.cap = 1; }
+    else if (short === 0 || (G.outFol[S.p] > 0 && Math.abs(short) === 1)) { res.kind = 'exact'; res.door = short !== 0; res.ichor = Math.round(P.base * 1.3); res.fear = 3 + S.p; res.cap = 1; }
     else if (short > 0 && short <= 3) { res.kind = 'near'; res.ichor = Math.round(P.base * (1 - 0.15 * short)); res.fear = 2 + S.p; }
     else if (short > 0) { res.kind = 'far'; res.ichor = Math.round(P.base * 0.3); res.fear = 1; G.mock++; }
     else { res.kind = 'over'; res.ichor = Math.round(P.base * 0.3); res.fear = 6 + 2 * S.p; }
@@ -7821,11 +8894,14 @@ var DEN = (function () {
     if (G.phase !== 'cmd' || G.cmd || G.strike) return { ok: false, msg: '지금은 쉴 수 없습니다.' };
     led0(G);
     G.kin.forEach(function (k) { k.hp = k.mhp; if (k.st === 'out') { k.st = 'ok'; k.outN = 0; } });
-    G.boss.hp = bossSt(G).mhp; G.fear = Math.max(0, G.fear - 3); G.st.cmds.rest++;
+    G.boss.hp = bossSt(G).mhp; G.fear = Math.max(0, G.fear - 3); G.sus = Math.max(0, G.sus - 2); G.st.cmds.rest++;
     return endNight(G, 'rest');
   }
   // 밤의 끝: 살림 수입을 세고, 등불이 켜졌으면 침입, 아니면 장부
   function homeIncome(G) {
+    return nightWork(G);
+  }
+  function homeIncomeOld(G) {
     var pops = [], tot = 0, pots = countBlk(G, 'pot'), mul = 1 + 0.5 * pots;
     CELLS.forEach(function (c) {
       if (c === 'b') return; var R = roomOf(G, c);
@@ -7842,7 +8918,206 @@ var DEN = (function () {
     if (G.lamp) raidBegin(G); else tallyMake(G, null);
     return { ok: true, how: how, raid: G.phase === 'raid' };
   }
-  function gainCap(G, n) { var room = larderTotal(G) - G.cap, k = Math.max(0, Math.min(n, room)); G.cap += k; G.capEver += k; return k; }
+  function gainCap(G, n) { var room = larderTotal(G) - G.cap - (G.binding ? G.binding.length : 0), k = Math.max(0, Math.min(n, room)); G.cap += k; G.capEver += k; return k; }
+
+  // ---------- 교단: 신도 · 일자리 · 의심 · 바깥 신도 · 큰 옛 것의 요구 ----------
+  // 신도는 수로만 센다. 방이 일자리를 만들고 신도 하나가 일자리 하나를 채운다. 어젯밤 배치가 남는다.
+  var JOBS = {
+    dig: { name: '캐기', icon: 'job_dig', blk: 'spring', per: 2, d: '진액 샘에서 진액을 캡니다.' },
+    boil: { name: '졸이기', icon: 'job_boil', blk: 'pot', per: 1, d: '굴 안 샘의 수입을 불립니다.' },
+    farm: { name: '가꾸기', icon: 'job_farm', blk: 'farm', per: 3, d: '버섯 밭에서 먹이를 냅니다 (하나마다 4).' },
+    pray: { name: '기도', icon: 'job_pray', blk: 'shrine', per: 2, d: '고른 신의 믿음이 두 밤에 하나씩 찹니다. 가끔 가호 구슬.' },
+    bind: { name: '물들이기', icon: 'job_bind', blk: 'larder', per: 1, d: '제물 하나를 이틀에 걸쳐 신도로 물들입니다.' },
+    mend: { name: '고치기', icon: 'job_mend', blk: 'repair', per: 1, d: '함정을 손보고 다친 권속을 돌봅니다.' },
+  };
+  var JOBK = Object.keys(JOBS);
+  var OUTCAP = [3, 4, 5, 6, 8], SUS_T = 8, DIGV = 4;
+  function tribOf(p) { return Math.floor(PLACE[p].base / 3); }
+  var DEMANDS = {
+    8: [{ k: 'fol6', t: '신도 다섯' }, { k: 'off3', t: '바친 제물 둘' }, { k: 'kin6', t: '권속 다섯' }],
+    16: [{ k: 'godout', t: '깃든 신 하나와 바깥 신도 넷' }, { k: 'follux', t: '신도 여덟과 호화 별 넷' }, { k: 'risen1', t: '넘어온 곳 하나' }],
+    24: [{ k: 'faith12', t: '믿음 합 열넷과 신도 일곱' }, { k: 'risen2', t: '넘어온 곳 둘과 본체 3단계' }, { k: 'fol15', t: '신도 여덟과 깃든 신 둘' }],
+  };
+  function faithSum(G) { return ASP.reduce(function (a, g) { return a + G.faith[g]; }, 0); }
+  function godsIn(G) { return ASP.filter(function (a) { return faithTier(G, a) >= 1; }).length; }
+  function outTotal(G) { return G.outFol.reduce(function (a, v) { return a + v; }, 0); }
+  function risenN(G) { return G.risen.filter(Boolean).length; }
+  function luxStars(G) { return Math.ceil(lux(G) / 4); }
+  // 요구 하나의 [지금, 채울 것] (둘이 붙은 요구는 덜 찬 쪽을 센다)
+  function demandProg(G, k) {
+    var f = G.fol, two = function (a, b, c, d) { return a / b <= c / d ? [a, b] : [c, d]; };
+    switch (k) {
+      case 'fol6': return [f, 5]; case 'off3': return [G.offered, 2]; case 'kin6': return [G.kin.length, 5];
+      case 'godout': return two(godsIn(G), 1, outTotal(G) + risenN(G) * 4, 4);
+      case 'follux': return two(f, 8, luxStars(G), 4);
+      case 'risen1': return [risenN(G), 1];
+      case 'faith12': return two(faithSum(G), 14, f, 7);
+      case 'risen2': return two(risenN(G), 2, G.bossStage, 3);
+      case 'fol15': return two(f, 8, godsIn(G), 2);
+    }
+    return [0, 1];
+  }
+  // 둘이 붙은 요구는 둘 다 보여 준다: [[지금, 채울 것], ...]
+  function demandParts(G, k) {
+    var f = G.fol;
+    switch (k) {
+      case 'godout': return [[godsIn(G), 1], [outTotal(G) + risenN(G) * 4, 4]];
+      case 'follux': return [[f, 8], [luxStars(G), 4]];
+      case 'risen2': return [[risenN(G), 2], [G.bossStage, 3]];
+      case 'fol15': return [[f, 8], [godsIn(G), 2]];
+      case 'faith12': return [[faithSum(G), 14], [f, 7]];
+    }
+    return [demandProg(G, k)];
+  }
+  function demandsMake(G) { return [8, 16, 24].map(function (n) { var d = pick(G, DEMANDS[n]); return { night: n, k: d.k, t: d.t, done: null }; }); }
+  function demandNext(G) { for (var i = 0; i < G.demands.length; i++) if (G.demands[i].done == null) return G.demands[i]; return null; }
+  function demandsView(G) { return G.demands.map(function (d) { var p = demandProg(G, d.k); return { night: d.night, k: d.k, t: d.t, done: d.done, cur: Math.min(p[0], p[1]), need: p[1], left: d.night - G.night, ok: p[0] >= p[1], parts: demandParts(G, d.k).map(function (q) { return [Math.min(q[0], q[1]), q[1]]; }) }; }); }
+  // 일자리 수: 방의 블록에서. 땅 위는 열린 곳마다 포교 하나, 염탐 하나 (넘어온 곳 빼고)
+  function jobSlots(G) {
+    var s = {}; JOBK.forEach(function (j) { s[j] = 0; });
+    CELLS.forEach(function (c) { if (c === 'b') return; roomOf(G, c).b.forEach(function (b) { JOBK.forEach(function (j) { if (JOBS[j].blk === b) s[j] += JOBS[j].per; }); }); });
+    s.bind = Math.min(s.bind, 2);
+    placesOpen(G).forEach(function (p) { if (!G.risen[p]) { s['preach' + p] = 1; s['spy' + p] = 1; } });
+    return s;
+  }
+  function landMax(G) { return hasBlk(G, 'command') ? 4 : 2; }
+  function landUsed(G) { var n = 0; Object.keys(G.job).forEach(function (k) { if (/^(preach|spy)/.test(k)) n += G.job[k]; }); return n; }
+  function working(G) { var n = 0; Object.keys(G.job).forEach(function (k) { n += G.job[k]; }); return n; }
+  function idleFol(G) { return Math.max(0, G.fol - working(G)); }
+  // 일자리를 잃은 신도는 논다 (방을 바꿨거나 신도가 줄었을 때)
+  function jobFix(G) {
+    var s = jobSlots(G), lost = 0;
+    Object.keys(G.job).forEach(function (k) { var m = s[k] || 0; if (G.job[k] > m) { lost += G.job[k] - m; G.job[k] = m; } if (!G.job[k]) delete G.job[k]; });
+    while (landUsed(G) > landMax(G)) { var lk = Object.keys(G.job).filter(function (k) { return /^(preach|spy)/.test(k); })[0]; G.job[lk]--; if (!G.job[lk]) delete G.job[lk]; lost++; }
+    var over = working(G) - G.fol; var order = ['mend', 'boil', 'pray', 'bind', 'dig', 'farm'].concat(Object.keys(G.job).filter(function (k) { return /^(preach|spy)/.test(k); }));
+    while (over > 0) { var key = order.filter(function (k) { return G.job[k]; })[0] || Object.keys(G.job)[0]; if (!key) break; G.job[key]--; if (!G.job[key]) delete G.job[key]; over--; }
+    if (lost) G.jobLost = (G.jobLost || 0) + lost;
+    return lost;
+  }
+  // 한 명씩 옮긴다 (+1 / −1)
+  function setJob(G, key, dlt) {
+    if (G.phase !== 'cmd' || G.strike) return { ok: false, msg: '지금은 일손을 옮길 수 없습니다.' };
+    var s = jobSlots(G), cur = G.job[key] || 0;
+    if (!(key in s)) return { ok: false, msg: '그 일자리가 없습니다.' };
+    if (dlt > 0) {
+      if (idleFol(G) < 1) return { ok: false, msg: '놀고 있는 신도가 없습니다.' };
+      if (cur >= s[key]) return { ok: false, msg: '일자리가 다 찼습니다.' };
+      if (/^(preach|spy)/.test(key) && landUsed(G) >= landMax(G)) return { ok: false, msg: '땅 위에는 한 밤에 ' + landMax(G) + '까지 내보냅니다.' };
+      G.job[key] = cur + 1;
+    } else { if (cur < 1) return { ok: false, msg: '그 일에 선 신도가 없습니다.' }; G.job[key] = cur - 1; if (!G.job[key]) delete G.job[key]; }
+    return { ok: true };
+  }
+  // 알아서 나누기: 놀고 있는 신도를 정해진 차례로
+  function autoJobs(G) {
+    jobFix(G); var s = jobSlots(G), n = 0, put = function (k) { if (idleFol(G) > 0 && (G.job[k] || 0) < (s[k] || 0)) { if (/^(preach|spy)/.test(k) && landUsed(G) >= landMax(G)) return false; G.job[k] = (G.job[k] || 0) + 1; n++; return true; } return false; };
+    var dm = demandNext(G), want = dm ? dm.k : '';
+    var pull = function (k) { if ((G.job[k] || 0) >= (s[k] || 0)) return false; if (!idleFol(G)) { var fr = ['dig', 'mend', 'boil'].filter(function (q) { return G.job[q]; })[0]; if (!fr) return false; G.job[fr]--; if (!G.job[fr]) delete G.job[fr]; } return put(k); };
+    while (foodTotal(G) < G.fol + G.kin.length && (G.job.farm || 0) < (s.farm || 0)) {
+      if (!idleFol(G)) { var from = ['mend', 'pray', 'boil', 'dig'].filter(function (k) { return G.job[k]; })[0]; if (!from) break; G.job[from]--; if (!G.job[from]) delete G.job[from]; }
+      if (!put('farm')) break;
+    }
+    // 물들이는 제물이 있으면 그 자리부터 (캐기에서 데려온다)
+    while ((G.job.bind || 0) < Math.min(G.binding.length, s.bind || 0)) { if (!idleFol(G)) { var fr = ['mend', 'pray', 'boil', 'dig'].filter(function (k) { return G.job[k]; })[0]; if (!fr) break; G.job[fr]--; if (!G.job[fr]) delete G.job[fr]; } if (!put('bind')) break; }
+    if (/faith|godout|fol15|risen2/.test(want)) while (pull('pray')) { }
+    var land = placesOpen(G).filter(function (p) { return !G.risen[p]; });
+    if (/godout|risen|fol/.test(want) && G.sus < SUS_T - 2) land.slice(0, /fol/.test(want) ? 1 : 2).forEach(function (p) { pull('preach' + p); });
+    while (put('dig')) { } put('boil'); put('mend'); while (put('pray')) { }
+    return { ok: true, n: n };
+  }
+  function foodTotal(G) { return 6 + 4 * Math.min(G.job.farm || 0, jobSlots(G).farm); }
+  // 오늘 밤 예상 장부
+  function forecast(G) {
+    // 밤의 일과 같은 차례로 셈한다: 노는 이부터 굶고, 그 다음 고치기 · 졸이기 · 기도 · 물들이기 · 캐기 순으로 일손이 빠진다
+    var need = G.fol + G.kin.length, food = foodTotal(G), starve = Math.max(0, Math.min(G.fol, need - food)), hungry = Math.max(0, starve - idleFol(G)), eff = {};
+    Object.keys(G.job).forEach(function (k) { eff[k] = G.job[k]; });
+    ['mend', 'boil', 'pray', 'bind', 'dig'].forEach(function (k) { while (hungry > 0 && eff[k] > 0) { eff[k]--; hungry--; } });
+    var boil = Math.min(eff.boil || 0, countBlk(G, 'pot')), work = Math.round((eff.dig || 0) * DIGV * (1 + 0.5 * boil)), trib = G.risen.reduce(function (a, r, p) { return a + (r ? tribOf(p) : 0); }, 0);
+    var preach = 0; Object.keys(G.job).forEach(function (k) { if (/^preach/.test(k)) preach += G.job[k]; });
+    var sus = preach + Math.floor(outTotal(G) / 4);
+    return { ichor: work + trib, work: work, trib: trib, eff: eff, food: [need, food], starve: starve, faith: (eff.pray || 0) ? Math.floor(((G.prayAcc || 0) + eff.pray) / 2) : 0, pray: G.job.pray || 0, sus: sus, idle: idleFol(G), bind: G.binding.length };
+  }
+  // 밤의 일: 굶음 → 일한 결과 → 물들이기 → 땅 위 → 의심
+  function nightWork(G) {
+    jobFix(G);
+    var need = G.fol + G.kin.length, food = foodTotal(G), starve = Math.max(0, Math.min(G.fol, need - food)), msg = [];
+    // 굶은 신도는 일하지 않는다 (차례: 노는 이부터 굶는다), 두 밤 굶으면 달아난다
+    var hungry = Math.max(0, starve - idleFol(G)), eff = {}; Object.keys(G.job).forEach(function (k) { eff[k] = G.job[k]; });
+    ['mend', 'boil', 'pray', 'bind', 'dig'].forEach(function (k) { while (hungry > 0 && eff[k] > 0) { eff[k]--; hungry--; } });
+    if (starve && G.starve) { var gone = Math.min(starve, G.starve, G.fol); if (gone) { G.fol -= gone; G.sus += 1; G.st.fled += gone; msg.push('굶주린 신도 ' + nk(gone) + ' 달아났습니다.'); jobFix(G); } }
+    G.starve = starve; if (starve) msg.push('먹이가 모자라 신도 ' + nk(starve) + ' 굶었습니다.');
+    // 캐기·졸이기
+    var boil = Math.min(eff.boil || 0, countBlk(G, 'pot')), dig = eff.dig || 0, got = Math.round(dig * DIGV * (1 + 0.5 * boil)), pops = [];
+    if (got) { CELLS.forEach(function (c) { if (c !== 'b' && roomOf(G, c).b.indexOf('spring') >= 0) pops.push({ id: c, v: 0 }); }); var share = pops.length ? Math.floor(got / pops.length) : 0; pops.forEach(function (p, i) { p.v = share + (i === 0 ? got - share * pops.length : 0); }); }
+    G.ichor += got; G.st.inc.home += got; G.led.home += got; G.led.pops = G.led.pops.concat(pops);
+    // 넘어온 곳의 공물
+    G.risen.forEach(function (r, p) { if (r) { var tr = tribOf(p); G.ichor += tr; G.st.inc.strike += tr; G.led.tribute += tr; } });
+    // 기도
+    if (eff.pray) { G.prayAcc = (G.prayAcc || 0) + eff.pray; while (G.prayAcc >= 2) { G.prayAcc -= 2; G.faith[G.prayGod] += 1; } if (rnd(G) < 0.1 * eff.pray) addOrb(G, G.prayGod); }
+    // 고치기: 다친 권속을 돌본다
+    if (eff.mend) G.kin.forEach(function (k) { if (k.st === 'ok') k.hp = Math.min(k.mhp, k.hp + 3 * eff.mend); });
+    // 물들이기: 일손이 선 만큼 진행. 이틀이면 신도가 된다
+    var bw = eff.bind || 0;
+    G.binding = G.binding.filter(function (b, i) { if (i < bw) b.n++; if (b.n >= 2) { G.fol++; G.st.bound++; msg.push('물들인 제물이 신도가 되었습니다.'); return false; } return true; });
+    // 땅 위: 포교와 염탐
+    var spied = {};
+    Object.keys(G.job).forEach(function (k) {
+      var m = /^(preach|spy)(\d)$/.exec(k); if (!m) return; var p = +m[2], n = eff[k] || 0; if (!n) return;
+      if (m[1] === 'preach') { G.outFol[p] = Math.min(OUTCAP[p], G.outFol[p] + n); G.sus += n; G.st.preach += n; }
+      else { var r = d(G, 20); if (r < 7) { G.fol--; G.job[k]--; if (!G.job[k]) delete G.job[k]; G.sus += 2; msg.push(PLACE[p].name + '에서 염탐하던 신도가 들켰습니다.'); G.st.spyCaught++; } else spied[p] = 1; }
+    });
+    G.spied = spied;
+    G.sus += Math.floor(outTotal(G) / 4);
+    G.sus = clamp(G.sus, 0, 20);
+    G.led.msg = msg;
+    jobFix(G);
+  }
+  // 봉기: 바깥 신도가 가득 찬 곳은 다음 밤 넘어온다
+  function uprisings(G) {
+    var out = [];
+    PLACE.forEach(function (P, p) { if (!G.risen[p] && G.outFol[p] >= OUTCAP[p]) { G.risen[p] = true; G.outFol[p] = 0; G.fol += 3; G.sus = clamp(G.sus + 5, 0, 20); G.st.rise++; out.push(p); } });
+    if (out.length) jobFix(G);
+    return out;
+  }
+  // 제물의 갈래: 물들인다 (물들이기 자리가 비어 있어야)
+  function bindStart(G) {
+    if (G.phase !== 'cmd' || G.strike) return { ok: false, msg: '지금은 물들일 수 없습니다.' };
+    if (G.cap < 1) return { ok: false, msg: '제물이 없습니다.' };
+    var slots = jobSlots(G).bind; if (!slots) return { ok: false, msg: '제물 광이 있어야 물들입니다.' };
+    if (G.binding.length >= slots) return { ok: false, msg: '물들이기 자리가 찼습니다.' };
+    G.cap--; G.binding.push({ n: 0 }); return { ok: true };
+  }
+  // 요구를 잰다 (8·16·24밤이 끝날 때). 못 채우면 노여움. 24밤을 못 채우면 판이 끝난다
+  function demandCheck(G) {
+    var dm = G.demands.filter(function (d) { return d.night === G.night && d.done == null; })[0]; if (!dm) return null;
+    var p = demandProg(G, dm.k), ok = p[0] >= p[1]; dm.done = ok;
+    var res = { night: dm.night, t: dm.t, ok: ok, eaten: null, fol: 0 };
+    if (ok) G.shards++;
+    else if (dm.night < 24) {
+      var best = null; G.kin.forEach(function (k) { if (!best || k.lv > best.lv) best = k; });
+      if (best) { G.kin.splice(G.kin.indexOf(best), 1); G.dead.push({ name: best.name, kind: best.kind, lv: best.lv, night: G.night, cell: best.at }); res.eaten = best.name; arrange(G); }
+      var f = Math.min(2, G.fol); G.fol -= f; res.fol = f; G.wrathN++; jobFix(G);
+    }
+    G.lastDemand = res;
+    return res;
+  }
+  // 침입을 곧바로 계산한다: 위급하면 구슬을 쓰고, 죽음 앞의 물음은 설정대로
+  function raidAuto(G) {
+    var n = 0;
+    while (G.phase === 'raid' && n++ < 8000) {
+      var e = raidStep(G); if (!e) break;
+      if (e.t === 'ask') { raidAnswer(G, G.cap >= (G.opt.askMin == null ? 2 : G.opt.askMin) && G.cap > 0 ? 'offer' : (G.orbs.indexOf('brood') >= 0 ? 'orb' : 'let')); continue; }
+      if (G.orbs.length && ((e.t === 'hold' && (e.cell === 'b' || G.raid.pairs.length >= 3)) || e.t === 'kfall' || e.t === 'bfall')) {
+        var i = -1; ['dusk', 'hunger', 'abyss', 'nebula'].some(function (a) { i = G.orbs.indexOf(a); return i >= 0; }); if (i < 0 && G.orbs.indexOf('brood') >= 0 && G.kin.some(function (k) { return k.st === 'out'; })) i = G.orbs.indexOf('brood');
+        if (i >= 0) useOrb(G, i);
+      }
+    }
+    return { ok: true };
+  }
+  // 다시 보기: 침입을 처음부터 같은 굴림으로 (그때 한 끼어들기도 같은 걸음에)
+  function replayMake(G) {
+    var L0 = G.lastRaid; if (!L0) return null;
+    var G2 = JSON.parse(L0.snap); G2.rsnap = L0.snap; G2.rin = L0.rin.slice(); G2.rn = 0; G2.replay = 1; G2.opt = Object.assign({}, G2.opt); return G2;
+  }
 
   // ---------- 침입 ----------
   function makeParty(G, src) {
@@ -7852,11 +9127,18 @@ var DEN = (function () {
     if (hasBlk(G, 'thorn')) size--; if (hasBlk(G, 'lamp')) size++;
     size = clamp(size, 1, 9); G.mock = 0;
     if (src && src.tut) { size = 2; rank = 0; }
+    if (G.spied && G.spied[p]) size--;
+    if (src && src.inqOnly) size = 0;
+    size = Math.max(0, size);
     for (var i = 0; i < size; i++) {
       var cls = src && src.tut ? 'mob' : wpick(G, P.mix), r = clamp(rank - (i >= 2 && rnd(G) < 0.4 ? 1 : 0), 0, 5);
       party.push(mkMan(G, cls, r, lx, src && src.tut));
       if (cls === 'mob' && party.length < 9 && rnd(G) < 0.5 && !(src && src.tut)) party.push(mkMan(G, 'mob', r, lx));
     }
+    // 바깥 신도가 섞여 있다: 둘마다 한 사람이 정신 −2 로 시작
+    for (var j = 0; j < Math.floor((G.outFol[p] || 0) / 2) && j < party.length; j++) party[j].mind -= 2;
+    // 색출대
+    for (var q = 0; q < (src && src.inq || 0); q++) party.push(mkMan(G, 'inq', clamp(Math.floor(G.night / 6), 0, 4), lx));
     return party;
   }
   function mkMan(G, cls, r, lx, weak) {
@@ -7868,17 +9150,17 @@ var DEN = (function () {
   function raidBegin(G) {
     var src = G.lampSrc || {}; var party = makeParty(G, src);
     G.raid = { party: party, cell: 'out', round: 0, log: [], pend: [], mods: {}, pairs: [], boss: null, bossDown: false, ask: null, answer: null, grief: {}, newKin: [],
-      gain: { ichor: 0, cap: 0, capLost: 0, robbed: 0, kill: 0, caps: 0, fled: 0, bait: 0, reach: 0, turned: 0, home: 0, fear: 0, trade: 0, deaths: [], stuns: [], joined: [], sideRob: [] }, n0: party.length, src: src };
+      gain: { ichor: 0, cap: 0, capLost: 0, robbed: 0, kill: 0, caps: 0, fled: 0, bait: 0, reach: 0, turned: 0, dragged: 0, inq: 0, orbs: [], home: 0, fear: 0, trade: 0, deaths: [], stuns: [], joined: [], sideRob: [] }, n0: party.length, src: src };
     G.raid.boss = bossObj(G); G.phase = 'raid'; G.st.raids++; G.rn = 0; G.rin = [];
-    G.rsnap = JSON.stringify(G, function (k, v) { return k === 'rsnap' || k === 'rin' ? undefined : v; });
+    G.rsnap = JSON.stringify(G, function (k, v) { return k === 'rsnap' || k === 'rin' || k === 'lastRaid' ? undefined : v; });
   }
   var GEN = typeof WeakMap !== 'undefined' ? new WeakMap() : null;
   function genOf(G) {
     var g = GEN.get(G); if (g) return g;
     // 이어하기: 침입을 처음부터 다시 돌리되, 그때 한 끼어들기를 같은 걸음에 넣는다
-    var S = JSON.parse(G.rsnap), rn = G.rn || 0, rin = G.rin || [], snap = G.rsnap;
+    var S = JSON.parse(G.rsnap), rn = G.rn || 0, rin = G.rin || [], snap = G.rsnap, rp = G.replay, op = G.opt;
     Object.keys(G).forEach(function (k) { delete G[k]; }); Object.keys(S).forEach(function (k) { G[k] = S[k]; });
-    G.rsnap = snap; G.rin = rin; G.rn = 0;
+    G.rsnap = snap; G.rin = rin; G.rn = 0; if (rp) G.replay = rp; if (op) G.opt = op;
     g = raidGen(G); GEN.set(G, g);
     for (var i = 0; i < rn; i++) { rin.forEach(function (x) { if (x.n === i) applyIn(G, x); }); g.next(); G.rn++; }
     rin.forEach(function (x) { if (x.n === rn) applyIn(G, x); });
@@ -7887,7 +9169,9 @@ var DEN = (function () {
   function applyIn(G, x) { if (x.k === 'orb') orbApply(G, x.v); else if (x.k === 'ans') G.raid.answer = x.v; }
   function raidStep(G) {
     if (G.phase !== 'raid') return null;
-    var g = genOf(G), r = g.next(); G.rn++;
+    var fresh = !GEN.get(G), g = genOf(G);
+    if (G.replay && !fresh) G.rin.forEach(function (x) { if (x.n === G.rn) applyIn(G, x); });
+    var r = g.next(); G.rn++;
     if (r.done || !r.value) return { t: 'end' };
     return r.value;
   }
@@ -7913,7 +9197,7 @@ var DEN = (function () {
 
   function orbApply(G, i) {
     var a = G.orbs.splice(i, 1)[0], R = G.raid, row = Math.max(0, R.row), ev = { t: 'orb', asp: a, ids: [] };
-    G.st.orbsUsed++;
+    G.st.orbsUsed++; R.gain.orbs.push(a);
     if (a === 'hunger') { var hc = CELLS; G.kin.forEach(function (k) { if (hc.indexOf(k.at) >= 0) { k.crit = (k.crit || 0) + 2; ev.ids.push(k.id); } }); R.bossCrit = (R.bossCrit || 0) + 2; }
     else if (a === 'abyss') { inCave(G).forEach(function (x) { x.mind -= 3; ev.ids.push(x.id); }); }
     else if (a === 'brood') {
@@ -7945,6 +9229,14 @@ var DEN = (function () {
     L(G, who.name + ' · ' + what + ' · ' + g.rolls.join('·') + (g.adv > 0 ? '(유리)' : g.adv < 0 ? '(불리)' : '') + ' ' + (mod >= 0 ? '+ ' + mod : '− ' + (-mod)) + ' = ' + tot + (ok ? ' ≥ ' : ' < ') + dc + ' · ' + (ok ? '성공' : '실패') + (g.nat === 20 ? ' (대성공)' : g.nat === 1 ? ' (대실패)' : ''), big);
     return { t: 'chk', rt: rt, what: what, id: who.id, side: who.side === 'man' ? 'them' : 'us', rolls: g.rolls, nat: g.nat, mod: mod, dc: dc, ok: ok, big: !!big || g.nat === 20 || g.nat === 1, cell: cell || who.cell };
   }
+  // 신도가 일하는 칸 (가까운 것부터). 색출대가 찾아간다
+  function workCells(G) {
+    var s = {}, out = []; JOBK.forEach(function (j) { if (G.job[j]) s[JOBS[j].blk] = 1; });
+    ['out', 'el', 'e', 'er', 'ml', 'm', 'mr', 'il', 'ir'].forEach(function (c) { if (roomOf(G, c).b.some(function (b) { return s[b]; })) out.push(c); });
+    return out;
+  }
+  function workersIn(G, c) { var n = 0; JOBK.forEach(function (j) { if (G.job[j] && roomOf(G, c).b.indexOf(JOBS[j].blk) >= 0) n += G.job[j]; }); return n; }
+  function dragOne(G, c) { for (var i = 0; i < JOBK.length; i++) { var j = JOBK[i]; if (G.job[j] && roomOf(G, c).b.indexOf(JOBS[j].blk) >= 0) { G.job[j]--; if (!G.job[j]) delete G.job[j]; G.fol--; return true; } } return false; }
   function leaderOf(G) { var xs = inCave(G).slice().sort(function (a, b) { return b.rank - a.rank || b.wit - a.wit; }); return xs[0] || null; }
   function scoutOf(G, xs) { return xs.filter(function (x) { return x.cls === 'thief' && ok(x); })[0] || null; }
   function scare(G, xs) { xs.forEach(function (x) { if (ok(x)) x.scary = 1; }); }
@@ -7968,7 +9260,7 @@ var DEN = (function () {
       else lane = LANEK.slice().sort(function (a, b) { return laneLure(G, b) - laneLure(G, a) || (a === 'C' ? -1 : b === 'C' ? 1 : 0); })[0];
     }
     var lanes = { L: [], C: [], R: [] };
-    inCave(G).forEach(function (x, i) { var l = lane === 'scatter' ? LANEK[i % 3] : lane; x.lane = l; x.path = LANES[l].concat(['b', 'vault']); x.pi = -1; lanes[l].push(x.id); });
+    inCave(G).forEach(function (x, i) { var l = lane === 'scatter' ? LANEK[i % 3] : lane; x.lane = l; x.path = LANES[l].concat(['b', 'vault']); x.pi = -1; if (x.cls === 'inq') { var wc = workCells(G); x.lane = wc.length ? laneOf(wc[0]) || 'C' : 'C'; x.path = wc.length ? wc.concat(['exit']) : ['e', 'exit']; } lanes[x.lane].push(x.id); });
     yield { t: 'split', L: lanes.L, C: lanes.C, R: lanes.R, how: lane };
     scare(G, inCave(G));
     for (var round = 1; round <= 30 && inCave(G).length; round++) {
@@ -7976,7 +9268,7 @@ var DEN = (function () {
       // ---- 사람의 차례: 붙잡히지 않은 자는 한 칸 나아가고, 붙잡힌 자는 친다 ----
       var movers = inCave(G).filter(function (x) { return !pairOf(G, x); });
       var groups = {}; movers.forEach(function (x) { if (x.stuck) { x.stuck = 0; return; } if (x.skip) { x.skip = 0; return; } var nc = x.path[x.pi + 1]; if (!nc) return; (groups[nc] = groups[nc] || []).push(x); });
-      var order = ['el', 'e', 'er', 'ml', 'm', 'mr', 'il', 'ir', 'b', 'vault'];
+      var order = ['out', 'el', 'e', 'er', 'ml', 'm', 'mr', 'il', 'ir', 'b', 'vault', 'exit'];
       for (var oi = 0; oi < order.length; oi++) { var gc = order[oi]; if (groups[gc]) yield* enterCell(G, gc, groups[gc].filter(ok)); if (!inCave(G).length) break; }
       var held = inCave(G).filter(function (x) { return pairOf(G, x); });
       for (var hi = 0; hi < held.length; hi++) { var x = held[hi], p = pairOf(G, x); if (!ok(x) || !p) continue; var q = qOf(G, p.q); if (!ok(q)) { unpair(G, function (pp) { return pp === p; }); continue; } yield* strike(G, x, q, p.cell); }
@@ -8000,6 +9292,7 @@ var DEN = (function () {
     xs.forEach(function (x) { x.cell = c; x.pi++; });
     R.cell = c;
     yield { t: 'enter', cell: c, ids: xs.map(function (x) { return x.id; }) };
+    if (c === 'exit') { xs.forEach(function (x) { x.st = 'left'; }); yield { t: 'exit', ids: xs.map(function (x) { return x.id; }) }; return; }
     if (c === 'vault') {
       for (var vi = 0; vi < xs.length; vi++) {
         var y = xs[vi], tries = y.cls === 'thief' ? 2 : 1, amt = 0, rolls = [];
@@ -8068,6 +9361,8 @@ var DEN = (function () {
       yield { t: 'init', id: w.id, q: ref(q0), first: first, cell: c };
       if (first === 'us') yield* strike(G, q0, w, c); else yield* strike(G, w, q0, c);
     }
+    // 색출대: 붙잡히지 않았으면 그 칸에서 일하던 신도를 하나씩 끌고 나간다
+    for (var qi = 0; qi < xs.length; qi++) { var iq = xs[qi]; if (iq.cls !== 'inq' || !ok(iq) || pairOf(G, iq) || iq.dragged) continue; if (workersIn(G, c) > 0 && dragOne(G, c)) { iq.dragged = 1; iq.path = iq.path.slice(0, iq.pi + 1).concat(['exit']); R.gain.dragged++; G.st.dragged++; G.sus = clamp(G.sus + 1, 0, 20); L(G, iq.name + ' 신도 하나를 끌고 감', true); yield { t: 'drag', id: iq.id, cell: c }; } }
     // 가운데로 온 도둑이 본체 방에서 붙잡히지 않으면 안쪽 옆 칸(제물 광)으로 샌다
     if (c === 'b') xs.filter(function (x) { return ok(x) && x.cls === 'thief' && !pairOf(G, x); }).forEach(function (x) { var side = ['il', 'ir'].filter(function (s) { return roomOf(G, s).b.indexOf('larder') >= 0; })[0]; if (side && x.path.indexOf(side) < 0) x.path.splice(x.pi + 1, 0, side); });
   }
@@ -8169,15 +9464,16 @@ var DEN = (function () {
     if (res === 'flee') { x.st = 'fled'; R.gain.fled++; G.st.fate.fled++; L(G, x.name + ' 미침 굴림 ' + v + ' · 달아남'); }
     else if (res === 'cap') { var kept = capture(G, x); L(G, x.name + ' 미침 굴림 ' + v + ' · 주저앉음 · 사로잡음' + (kept ? '' : ' (제물 자리가 차서 놓침)')); xpCell(G, c, 1); }
     else {
-      if (G.kin.length + R.newKin.length < seatsTotal(G)) { x.st = 'joined'; R.newKin.push(x.id); R.gain.joined.push(x.name); G.st.fate.cap++; L(G, x.name + ' 미침 굴림 6 · 웃으며 본체를 따름'); }
-      else { capture(G, x); L(G, x.name + ' 미침 굴림 6 · 자리가 없어 제물이 됨'); }
+      x.st = 'joined'; G.fol++; R.gain.joined.push(x.name); G.st.fate.cap++; L(G, x.name + ' 미침 굴림 6 · 웃으며 신도가 됨');
     }
     yield { t: 'madres', id: x.id, res: x.st, cell: c };
   }
   function xpCell(G, c, n) { kinIn(G, c).forEach(function (q) { if (q.st === 'ok') q.xp += n; }); }
   function* manFall(G, x, c, by) {
     var R = G.raid; x.hp = 0;
-    var caged = c && c !== 'out' && blocks(G, c).indexOf('cage') >= 0, capt = caged;
+    var caged = c && c !== 'out' && c !== 'exit' && c !== 'vault' && blocks(G, c).indexOf('cage') >= 0, capt = caged;
+    // 쓰러진 자를 가끔 산 채로 끌고 온다 (제물 자리가 있으면)
+    if (!capt && G.cap + G.binding.length < larderTotal(G) && rnd(G) < 0.35) capt = true;
     if (capt) { var kept = capture(G, x); L(G, x.name + ' 쓰러짐 · 우리에 사로잡음' + (kept ? '' : ' (제물 자리가 차서 놓침)') + ' · 진액 +' + Math.ceil(x.loot * 0.75)); }
     else { x.st = 'dead'; R.gain.kill++; G.st.fate.kill++; G.kills++; R.gain.ichor += x.loot; G.ichor += x.loot; G.st.inc.loot += x.loot; G.led.loot += x.loot; G.fear += 1; R.gain.fear += 1; if (!G.st.firstLoot) G.st.firstLoot = G.night; L(G, x.name + ' 쓰러짐 · 진액 +' + x.loot); }
     if (by && by.side === 'kin') { by.xp += 4 + 2 * x.rank; by.kills = (by.kills || 0) + 1; if (has(by, 'h_drain')) by.hp = Math.min(by.mhp, by.hp + 4); }
@@ -8270,7 +9566,9 @@ var DEN = (function () {
   }
   function raidFinish(G) {
     var R = G.raid;
-    R.newKin.forEach(function (id) { var x = manById(G, id); var k = mkKin(G, 'cultist', '미친 ' + MAN[x.cls].name); k.id = ++G.kid; k.name = nameFinal(G, k.name); G.kin.push(k); });
+    // 색출대를 한 명도 놓치지 않고 막았으면 의심이 내린다
+    var inqs = R.party.filter(function (x) { return x.cls === 'inq'; }); if (inqs.length) { G.st.inq++; R.gain.inq = inqs.length; if (!R.gain.dragged && inqs.every(function (x) { return x.st !== 'left'; })) { G.sus = Math.max(0, G.sus - 3); G.st.inqBlocked++; } }
+    G.lastRaid = { snap: G.rsnap, rin: (G.rin || []).slice() };
     G.kin.forEach(function (k) { k.fellNow = 0; k.crit = 0; });
     arrange(G);
     tallyMake(G, R);
@@ -8293,7 +9591,7 @@ var DEN = (function () {
     });
     if (ups.length) arrange(G);
     var Lg = G.led, home = Lg.home + Lg.trade, total = home + Lg.tribute + Lg.loot - Lg.robbed;
-    G.tally = { night: G.night, how: G.how, raid: R ? { n: R.n0, gain: R.gain, log: R.log, bossDown: R.bossDown } : null, led: { home: home, tribute: Lg.tribute, loot: Lg.loot, robbed: Lg.robbed, total: total, at: Lg.at, pops: Lg.pops }, ups: ups, line: R ? raidLine(R) : '' };
+    G.tally = { night: G.night, how: G.how, raid: R ? { n: R.n0, gain: R.gain, log: R.log, bossDown: R.bossDown } : null, led: { home: home, tribute: Lg.tribute, loot: Lg.loot, robbed: Lg.robbed, total: total, at: Lg.at, pops: Lg.pops }, ups: ups, line: R ? raidLine(R) : '', msg: (Lg.msg || []).slice(), fol: G.fol, sus: G.sus, binding: G.binding.length, rose: (G.rose || []).slice() };
     G.raid = null; G.rsnap = null; G.rin = null; G.rn = 0; G.phase = 'tally';
     if (R && GEN) GEN.delete(G);
   }
@@ -8308,6 +9606,7 @@ var DEN = (function () {
     if (g.turned) s += ' 팻말 앞에서 돌아간 이도 있습니다.';
     if (g.reach) s += ' ' + u(g.reach) + ' 금고를 털었습니다.';
     if (g.sideRob.length) s += ' 도둑이 살림을 털었습니다.';
+    if (g.dragged) s += ' 색출대가 신도 ' + nk(g.dragged) + '을 끌고 갔습니다.';
     if (R.bossDown) s += ' 본체가 쓰러졌습니다.';
     g.deaths.forEach(function (nm) { s += ' ' + ga(nm) + ' 돌아오지 않습니다.'; });
     return s;
@@ -8315,8 +9614,9 @@ var DEN = (function () {
   function tallyClose(G) {
     if (G.phase !== 'tally') return { ok: false };
     G.tally = null;
-    if (G.night >= K.nights) { G.phase = 'end'; G.grade = grade(G); return { ok: true, end: true }; }
-    newNight(G); return { ok: true };
+    var dm = demandCheck(G);
+    if (G.night >= K.nights) { G.phase = 'end'; G.summoned = !!(dm && dm.ok); G.grade = grade(G); return { ok: true, end: true, demand: dm }; }
+    newNight(G); return { ok: true, demand: dm };
   }
   function newNight(G) {
     G.night++; G.phase = 'cmd'; G.cmd = null; G.strike = null; G.undo = null;
@@ -8325,13 +9625,19 @@ var DEN = (function () {
       if (has(k, 'b_regen') || faithTier(G, 'brood') >= 2) k.hp = k.mhp; else k.hp = Math.min(k.mhp, k.hp + Math.ceil(k.mhp / 4));
     });
     G.boss.hp = G.boss.hp <= 0 ? Math.ceil(bossSt(G).mhp / 2) : Math.min(bossSt(G).mhp, G.boss.hp + Math.ceil(bossSt(G).mhp / 4));
-    var src = null;
-    if (G.struck != null) src = { p: G.struck };
-    if (K.big.indexOf(G.night) >= 0) src = { p: src ? src.p : placesOpen(G).slice(-1)[0], big: 1 };
-    if (!src && G.night > (G.tut ? 4 : 2) && rnd(G) < Math.min(K.raidMax, K.raidBase + G.fear * K.raidFear)) src = { p: pick(G, placesOpen(G)) };
+    G.outPurge = null; G.jobLost = 0;
+    G.rose = uprisings(G);
+    var src = null, open = placesStrike(G);
+    if (G.struck != null && !G.risen[G.struck]) src = { p: G.struck };
+    if (K.big.indexOf(G.night) >= 0 && open.length) src = { p: src ? src.p : open.slice(-1)[0], big: 1 };
+    if (!src && open.length && G.night > (G.tut ? 4 : 2) && rnd(G) < Math.min(K.raidMax, K.raidBase + G.fear * K.raidFear)) src = { p: pick(G, open) };
+    // 의심이 문턱을 넘으면 색출대 (세 밤에 한 번까지)
+    if (G.sus >= SUS_T && G.night - G.inqLast >= (G.sus >= 14 ? 2 : 3) && G.fol > 0) { var nq = 1 + Math.floor((G.sus - SUS_T) / 6); src = src ? Object.assign(src, { inq: nq }) : { p: open.length ? open[0] : 0, inq: nq, inqOnly: 1 }; G.inqLast = G.night;
+      // 의심이 아주 높으면 색출대가 땅 위의 바깥 신도도 잡아간다
+      if (G.sus >= 11) { var mx = 0; G.outFol.forEach(function (v, i) { if (v > G.outFol[mx]) mx = i; }); if (G.outFol[mx]) { G.st.outLost += G.outFol[mx]; G.outFol[mx] = 0; G.outPurge = mx; } } }
     if (src && G.tut && !G.st.raids) src.tut = 1;
     G.lamp = src ? 1 : 0; G.lampSrc = src; G.struck = null;
-    G.shop = []; G.rerollFree = 1; shopFill(G); arrange(G); led0(G);
+    G.shop = []; G.rerollFree = 1; shopFill(G); arrange(G); jobFix(G); led0(G);
   }
 
   // ---------- 등급 ----------
@@ -8345,17 +9651,19 @@ var DEN = (function () {
       { k: 'fear', name: '공포', v: G.fear * S.fear },
       { k: 'god', name: '바친 제물 · 깃든 신 · 본체', v: G.offered * S.offered + ft * S.faith + (G.bossStage - 1) * S.boss },
       { k: 'kin', name: '권속의 레벨', v: lvSum * S.kinLv },
+      { k: 'cult', name: '부름의 조각 · 신도', v: G.shards * K.score.shard + G.fol * K.score.fol },
       { k: 'rob', name: '털린 것', v: -Math.round(G.robbed / 2) },
     ];
     var score = 0; parts.forEach(function (p) { score += p.v; });
     var gi = 0; K.gradeT.forEach(function (t) { if (score >= t) gi++; });
+    if (G.phase === 'end' && !G.summoned) gi = Math.min(gi, 3);
     var old = null; G.kin.forEach(function (k) { if (!old || k.born < old.born || (k.born === old.born && k.lv > old.lv)) old = k; });
-    return { score: score, parts: parts, letter: K.gradeN[gi], gi: gi, rose: gi >= 3, eldest: old ? { name: old.name, kind: old.kind, lv: old.lv, line: kinLine(G, old), born: old.born } : null, tombs: G.dead.length, lux: lx };
+    return { score: score, parts: parts, letter: K.gradeN[gi], gi: gi, rose: gi >= 3, summoned: !!G.summoned, shards: G.shards, eldest: old ? { name: old.name, kind: old.kind, lv: old.lv, line: kinLine(G, old), born: old.born } : null, tombs: G.dead.length, lux: lx };
   }
 
   // ---------- 저장 ----------
   function save(G) { return JSON.stringify(G); }
-  function load(s) { try { var G = typeof s === 'string' ? JSON.parse(s) : s; if (!G || G.v !== 2 || !G.cells) return null; return G; } catch (e) { return null; } }
+  function load(s) { try { var G = typeof s === 'string' ? JSON.parse(s) : s; if (!G || G.v !== 3 || !G.cells) return null; return G; } catch (e) { return null; } }
 
   return {
     K: K, ASP: ASP, ASPN: ASPN, PLACE: PLACE, RANKN: RANKN, MAN: MAN, KIN: KIN, SK: SK, BLK: BLK, ROOMS: ROOMS, ZONEK: ZONEK, CELLS: CELLS, ROWS: ROWS, ZONE: ZONE, CELLN: CELLN, BOSS: BOSS, BOSSROOM: BOSSROOM, TRAPS: TRAPS,
@@ -8366,6 +9674,7 @@ var DEN = (function () {
     buy: buy, reroll: reroll, kinRow: kinRow, kinName: kinName, kinRelease: kinRelease, offer: offer,
     placesOpen: placesOpen, strikeStart: strikeStart, strikeRoll: strikeRoll, strikeStop: strikeStop, strikeEnd: strikeEnd, rest: rest,
     raidStep: raidStep, raidAnswer: raidAnswer, useOrb: useOrb, manById: manById, inCave: inCave, tallyClose: tallyClose, grade: grade, ga: ga, eun: eun, nk: nk,
+    JOBS: JOBS, JOBK: JOBK, OUTCAP: OUTCAP, SUS_T: SUS_T, DIGV: DIGV, tribOf: tribOf, DEMANDS: DEMANDS, jobSlots: jobSlots, setJob: setJob, autoJobs: autoJobs, idleFol: idleFol, working: working, landMax: landMax, landUsed: landUsed, forecast: forecast, foodTotal: foodTotal, jobFix: jobFix, bindStart: bindStart, demandsView: demandsView, demandNext: demandNext, demandProg: demandProg, demandParts: demandParts, raidAuto: raidAuto, replayMake: replayMake, workCells: workCells, workersIn: workersIn, placesStrike: placesStrike, outTotal: outTotal, risenN: risenN, godsIn: godsIn,
     EVN: EVN, pathShape: pathShape, _d: d, _GEN: GEN,
   };
 })();
@@ -8539,25 +9848,25 @@ if (typeof window !== 'undefined') window.__zz = { kinds: Object.keys(ZZ), rende
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const ART = DENART, D = DEN;
-const KEY = 'den.v1.';
+const KEY = 'den.v2.';
 const store = {
   get(k) { try { const v = localStorage.getItem(KEY + k); return v ? JSON.parse(v) : null; } catch (e) { return null; } },
   set(k, v) { try { localStorage.setItem(KEY + k, JSON.stringify(v)); } catch (e) { /* 저장이 막힌 환경 */ } },
   del(k) { try { localStorage.removeItem(KEY + k); } catch (e) { /* 저장이 막힌 환경 */ } },
 };
-let META = Object.assign({ sound: true, ask: true, best: null, guided: 0, seen: {}, speed: 1, runs: 0 }, store.get('meta') || {});
+let META = Object.assign({ sound: true, ask: true, best: null, guided: 0, seen: {}, speed: 1, runs: 0, watch: false, askMin: 2 }, store.get('meta') || {});
 const saveMeta = () => store.set('meta', META);
 let AC = null;
 function sfx(kind) {
   if (!META.sound || !U.armed) return;
   try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === 'suspended') AC.resume(); if (typeof zzPlay === 'function') zzPlay(AC, kind, 0.9); } catch (e) { /* 소리를 못 내는 환경 */ }
 }
-const U = { G: null, scr: 'title', sheet: null, armed: false, speed: META.speed == null ? 1 : META.speed, skip: false, raiding: false, fx: [], dm: null, lay: null, test: window.__denOpt || {}, note: '', eatT: 0, wait: null, guideHold: null, ev: null, evN: 0, sel: null, img: {} };
+const U = { G: null, scr: 'title', sheet: null, armed: false, speed: META.speed == null ? 1 : META.speed, skip: false, raiding: false, fx: [], dm: null, lay: null, test: window.__denOpt || {}, note: '', eatT: 0, wait: null, guideHold: null, ev: null, evN: 0, sel: null, img: {}, view: 'board', replay: null };
 const ASPC = { hunger: '#e0524f', abyss: '#4aa3df', brood: '#8fd14f', dusk: '#f0a04b', nebula: '#b08cf0', star: '#fff2a8' };
 const ic = (id, s, cls) => `<img class="${cls || 'dn-ic'}" src="${ART.url(id, { scale: s || 2 })}" alt="">`;
 const kinArt = k => (D.KIN[k.kind] && D.KIN[k.kind].art) || ('kin_' + k.kind);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
-const save = () => { if (U.G) store.set('run', D.save(U.G)); };
+const save = () => { if (U.G && !U.replay) store.set('run', D.save(U.G)); };
 // 알림: 굴 그림 위가 아니라 아래 알림 줄 자리에 뜬다. 침입 중에는 띄우지 않는다
 function toast(msg, ms) {
   const t = $('dn-toast'); if (U.G && U.G.phase === 'raid') return; t.textContent = msg; t.hidden = false;
@@ -8571,7 +9880,7 @@ const blkArt = b => D.BLK[b] ? D.BLK[b].art : 'blk_seat';
 // ---------- 틀 ----------
 function shell() {
   const root = document.createElement('div'); root.id = 'dn'; root.hidden = true;
-  root.innerHTML = `<div id="dn-top"></div><div id="dn-cavew"><canvas id="dn-cv" role="img" aria-label="굴 그림"></canvas><div id="dn-isob"><button class="dn-mini" data-a="follow" id="dn-follow" hidden>따라가기</button><button class="dn-mini" data-a="fit" id="dn-fit">전체</button></div></div><div id="dn-capl"></div><div id="dn-note"></div><div id="dn-row"></div><div id="dn-cmds"></div><div id="dn-raidc" hidden></div><div id="dn-ask" hidden></div>`;
+  root.innerHTML = `<div id="dn-top"></div><button id="dn-dband" data-a="demands"></button><div id="dn-cavew"><canvas id="dn-cv" role="img" aria-label="굴 그림"></canvas><div id="dn-isob"><button class="dn-mini" data-a="follow" id="dn-follow" hidden>따라가기</button><button class="dn-mini" data-a="fit" id="dn-fit">전체</button></div></div><div id="dn-capl"></div><div id="dn-board"></div><div id="dn-fc"></div><div id="dn-note"></div><div id="dn-row"></div><div id="dn-cmds"></div><div id="dn-raidc" hidden></div><div id="dn-ask" hidden></div>`;
   document.body.appendChild(root);
   ['dn-sheet', 'dn-toast', 'dn-spot', 'dn-tip', 'dn-flash'].forEach(id => { if (!$(id)) { const e = document.createElement('div'); e.id = id; e.hidden = id !== 'dn-sheet' && id !== 'dn-flash'; document.body.appendChild(e); } });
   const end = document.createElement('div'); end.id = 'dn-end'; end.hidden = true; document.body.appendChild(end);
@@ -8587,7 +9896,7 @@ function shell() {
 }
 function show(scr) {
   U.scr = scr; $('dn-title').hidden = scr !== 'title'; $('dn').hidden = scr !== 'game'; $('dn-end').hidden = scr !== 'end';
-  if (scr !== 'game') closeSheet(true);
+  if (scr !== 'game') { closeSheet(true); $('dn-toast').hidden = true; }
   if (scr === 'title') titleDraw();
   guideTick();
 }
@@ -8613,13 +9922,13 @@ function titleDraw() {
 function newRun() {
   const seed = U.test.seed != null ? U.test.seed : (Date.now() >>> 0);
   const tut = U.test.guide === false ? false : !META.guided;
-  U.G = D.newGame(seed, { tut, ask: META.ask }); META.runs++; saveMeta(); save(); U.fx = []; U.dm = null; U.sel = null;
+  U.G = D.newGame(seed, { tut, ask: META.ask, watch: META.watch, askMin: META.askMin }); META.runs++; saveMeta(); save(); U.fx = []; U.dm = null; U.sel = null; U.view = 'board';
   show('game'); draw();
   if (tut) openSheet({ k: 'intro', i: 0 });
 }
 function contRun() {
   const G = D.load(store.get('run')); if (!G) { toast('이어 할 판이 없습니다.'); return newRun(); }
-  U.G = G; G.opt.ask = META.ask; U.fx = []; U.dm = null; U.sel = null; show('game'); draw();
+  U.G = G; G.opt.ask = META.ask; G.opt.watch = META.watch; G.opt.askMin = META.askMin; U.fx = []; U.dm = null; U.sel = null; U.view = 'board'; show('game'); draw();
   if (G.phase === 'raid') raidRun();
   else if (G.phase === 'tally') openSheet({ k: 'tally' });
   else if (G.phase === 'end') endShow();
@@ -8627,49 +9936,124 @@ function contRun() {
 }
 
 // ---------- 본 화면 (글 부분) ----------
+// 화면의 꼴: board = 운영판 (낮은 도면 + 일손 표 + 예상 장부), deck = 꾸미는 밤 (도면을 크게), watch = 구경 (쿼터뷰), raid = 침입을 직접 볼 때
+function mode() { const G = U.G; if (!G) return 'board'; if (G.phase === 'raid') return 'raid'; if (G.phase === 'cmd' && G.cmd === 'deck') return 'deck'; return U.view === 'watch' ? 'watch' : 'board'; }
 function draw() {
   const G = U.G; if (!G || U.scr !== 'game') return;
-  const raid = G.phase === 'raid', deck = G.phase === 'cmd' && G.cmd === 'deck';
+  const raid = G.phase === 'raid', deck = G.phase === 'cmd' && G.cmd === 'deck', md = mode(), root = $('dn');
+  if (root.dataset.m !== md) { root.dataset.m = md; root.className = md; }
+
+  const idle = D.idleFol(G), sus = G.sus;
   $('dn-top').innerHTML = `<span class="dn-stat night">${ic('ic_night')}${Math.min(G.night, D.K.nights)}/${D.K.nights}</span>`
-    + `<span class="dn-stat" aria-label="진액 ${G.ichor}">${ic('ic_ichor')}${G.ichor}</span><span class="dn-stat" aria-label="공포 ${G.fear}">${ic('ic_fear')}${G.fear}</span><span class="dn-stat" aria-label="제물 ${G.cap}">${ic('ic_captive')}${G.cap}</span>`
-    + `<span class="dn-sp"></span><img id="dn-lamp" class="${G.lamp || raid ? 'on' : ''}" src="${ART.url(G.lamp || raid ? 'ic_steps_on' : 'ic_steps_off', { scale: 2 })}" alt="${G.lamp || raid ? '발소리 등불 켜짐' : '발소리 등불 꺼짐'}"><button id="dn-menub" data-a="menu">메뉴</button>`;
+    + `<span class="dn-stat" aria-label="진액 ${G.ichor}">${ic('ic_ichor')}${G.ichor}</span><span class="dn-stat" id="dn-fol" aria-label="신도 ${G.fol}, 노는 이 ${idle}">${ic('ic_follower')}${idle ? `<b class="idle">${idle}</b>/` : ''}${G.fol}</span><span class="dn-stat" aria-label="제물 ${G.cap}">${ic('ic_captive')}${G.cap}</span>`
+    + `<span class="dn-stat" aria-label="공포 ${G.fear}">${ic('ic_fear')}${G.fear}</span><span class="dn-stat sus${sus >= D.SUS_T ? ' hot' : sus >= D.SUS_T - 3 ? ' warm' : ''}" id="dn-sus" aria-label="의심 ${sus}">${ic('ic_suspect')}${sus}</span>`
+    + `<span class="dn-sp"></span><button id="dn-menub" data-a="menu" aria-label="메뉴">☰</button>`;
+  bandDraw();
   const C = D.cap(G), stars = Math.min(10, Math.ceil(C.lux / 4));
   $('dn-capl').innerHTML = `<span class="${C.seats[2] > C.seats[1] ? 'short' : ''}" id="dn-cap-seat">${ic('ic_seat', 1)}자리 ${C.seats[0]}/${C.seats[1]}</span><span class="${C.larder[0] >= C.larder[1] ? 'short' : ''}" id="dn-cap-lard">${ic('ic_larder', 1)}제물 ${C.larder[0]}/${C.larder[1]}</span><span class="lux" id="dn-cap-lux">${ic('ic_lux', 1)}${'★'.repeat(stars) || '☆'}</span>`;
+  if (md === 'board') { boardDraw(); fcDraw(); }
   $('dn-note').textContent = noteText();
-  const orbs = [], om = D.orbMax(G);
-  for (let i = 0; i < om; i++) { const a = G.orbs[i]; orbs.push(`<button class="dn-orb${a && raid && !G.raid.ask ? ' live' : ''}" data-a="orb" data-i="${i}" ${a && raid ? '' : 'disabled'} aria-label="${a ? D.ASPN[a] + '의 가호 구슬' : '빈 구슬 자리'}"><img src="${ART.url(a ? 'gem_' + a : 'gem_empty', { scale: 2 })}" alt=""></button>`); }
+  const orbs = [], om = D.orbMax(G), rp = !!U.replay;
+  for (let i = 0; i < om; i++) { const a = G.orbs[i]; orbs.push(`<button class="dn-orb${a && raid && !G.raid.ask && !rp ? ' live' : ''}" data-a="orb" data-i="${i}" ${a && raid && !rp ? '' : 'disabled'} aria-label="${a ? D.ASPN[a] + '의 가호 구슬' : '빈 구슬 자리'}"><img src="${ART.url(a ? 'gem_' + a : 'gem_empty', { scale: 2 })}" alt=""></button>`); }
   const free = G.phase === 'cmd' && !G.strike;
-  $('dn-row').innerHTML = orbs.join('') + '<span class="dn-sp"></span>' + (free && G.cap > 0 ? '<button class="dn-small hot" data-a="offer" id="dn-offerb">바친다</button>' : '') + (deck ? `<button class="dn-small" data-a="auto" id="dn-autob">저절로 세우기</button>` : '');
-  const ask = raid && G.raid.ask;
+  $('dn-row').innerHTML = orbs.join('') + '<span class="dn-sp"></span>'
+    + (free && !deck && (G.cap > 0 || G.binding.length) ? `<button class="dn-small hot" data-a="offer" id="dn-offerb">${ic('ic_captive', 1)}제물 ${G.cap}</button>` : '')
+    + (!raid && !deck ? `<button class="dn-small" data-a="view" id="dn-viewb">${md === 'watch' ? ic('ic_board', 1) + '운영판' : ic('ic_watch', 1) + '구경'}</button>` : '')
+    + (deck ? `<button class="dn-small" data-a="auto" id="dn-autob">저절로 세우기</button>` : '');
+  const ask = raid && G.raid.ask && !rp;
   $('dn-cmds').hidden = raid; $('dn-raidc').hidden = !raid || !!ask; $('dn-ask').hidden = !ask;
   if (!raid && !deck) $('dn-cmds').innerHTML = `<button data-a="strike" ${free ? '' : 'disabled'}>${ic('ic_strike')}친다</button><button data-a="deck" ${free ? '' : 'disabled'}>${ic('ic_deck')}꾸민다</button><button data-a="rest" ${free ? '' : 'disabled'}>${ic('ic_rest')}쉰다</button>`;
   else if (deck) $('dn-cmds').innerHTML = `<button data-a="summon" id="dn-summonb">${ic('ic_call')}부른다</button>${G.undo ? `<button data-a="undo" id="dn-undo">${ic('ic_undo')}되돌린다</button>` : `<button data-a="deckx" ${G.ops ? 'disabled' : ''}>그만둔다</button>`}<button data-a="deckend" id="dn-deckend" class="pri">${ic('ic_done')}마친다</button>`;
-  else if (!ask) $('dn-raidc').innerHTML = `<span class="dn-mind" id="dn-mind" aria-label="침입자들의 남은 정신"><i style="width:${Math.round(mindLeft() * 100)}%"></i></span><button data-a="speed">${['보통', '빠름', '아주 빠름'][U.speed]}</button><button data-a="skip">넘기기</button>`;
+  else if (!ask) $('dn-raidc').innerHTML = `<span class="dn-mind" id="dn-mind" aria-label="침입자들의 남은 정신"><i style="width:${Math.round(mindLeft() * 100)}%"></i></span><button data-a="speed">${['보통', '빠름', '아주 빠름'][U.speed]}</button><button data-a="skip">${rp ? '그만 보기' : '넘기기'}</button>`;
   const iso = isoOn(); $('dn-isob').hidden = !iso; $('dn-fit').textContent = ISO.fit ? '가까이' : '전체'; $('dn-follow').hidden = !(raid && !ISO.follow);
   if (ask) { const q = G.raid.ask; $('dn-ask').innerHTML = `<p>${esc(D.ga(q.name))} 죽습니다. 제물 하나를 바쳐 다시 굴립니까</p><div class="dn-askb">${G.cap > 0 ? '<button class="pri" data-a="ans" data-v="offer">바친다</button>' : ''}${q.orb ? '<button data-a="ans" data-v="orb">번식의 구슬</button>' : ''}<button data-a="ans" data-v="let">보낸다</button></div>`; }
+  // 운영판: 도면 높이는 남는 자리에서 일손 표 몫(줄 셋 남짓)을 먼저 떼고 잡는다 (큰 글씨에서도 표가 보이게)
+  if (md === 'board') { let fixed = 0; Array.from(root.children).forEach(e => { if (e.id !== 'dn-cavew' && e.id !== 'dn-board' && !e.hidden && e.offsetParent !== null) fixed += e.offsetHeight; }); const rowH = (document.querySelector('#dn-board .dn-jr') || { offsetHeight: 40 }).offsetHeight || 40, want = Math.round(window.innerHeight * 0.3);
+    $('dn-cavew').style.height = Math.max(120, Math.min(240, want, root.clientHeight - fixed - Math.round(rowH * 3.6 + 30))) + 'px'; }
+  else $('dn-cavew').style.height = '';
   guideTick();
+}
+// 요구 띠: 다음 요구 한 줄, 남은 밤, 얼마나 찼는지. 누르면 세 요구가 다 보인다. 오른쪽 끝에 발소리 등불
+function bandDraw() {
+  const G = U.G, V = D.demandsView(G), nx = V.find(d => d.done == null), raid = G.phase === 'raid', lit = G.lamp || raid;
+  const sh = V.map(d => ic(d.done ? 'ic_shard' : 'ic_shard_off', 1, 'dn-shd' + (d.done === false ? ' lost' : ''))).join('');
+  let h;
+  if (!nx) h = `<span class="t">요구를 다 쟀습니다</span>`;
+  else { const ok = nx.ok, left = Math.max(0, nx.left); h = `<span class="left">${left ? left + '밤 남음' : '이 밤 끝에 잽니다'}</span><span class="t">${esc(nx.t)}</span><b class="pg">${nx.parts.map(q => q[0] + '/' + q[1]).join(' · ')}</b>`; $('dn-dband').className = ok ? 'ok' : left <= 2 ? 'due' : ''; }
+  $('dn-dband').setAttribute('aria-label', nx ? nx.night + '밤의 요구 ' + nx.t + ', ' + nx.cur + '/' + nx.need : '요구');
+  const band = $('dn-dband'); band.innerHTML = `${ic('ic_demand', 1)}${h}<span class="shs">${sh}</span><img id="dn-lamp" class="${lit ? 'on' : ''}" src="${ART.url(lit ? 'ic_steps_on' : 'ic_steps_off', { scale: 2 })}" alt="${lit ? '발소리 등불 켜짐' : '발소리 등불 꺼짐'}">`;
+  // 요구 글이 한 줄에 안 들어가면 (긴 요구, 큰 글씨) 글을 아랫줄로 내린다
+  band.classList.remove('two'); const t = band.querySelector('.t'); if (t && t.offsetHeight > parseFloat(getComputedStyle(t).fontSize) * 1.7) band.classList.add('two');
+}
+// 일손 표의 한 줄: 그림 · 이름 · [−] n/m [+] · 오늘 밤 결과
+function jobRow(G, k, slots, res) {
+  const J = D.JOBS[k], n = G.job[k] || 0, m = slots[k] || 0, can = G.phase === 'cmd' && !G.strike, idle = D.idleFol(G);
+  return `<div class="dn-jr${res[1] ? ' short' : ''}" data-k="${k}"><img class="ji" src="${ART.url(J.icon, { scale: 2 })}" alt=""><span class="nm">${J.name}</span>`
+    + `<button class="st" data-a="job" data-k="${k}" data-d="-1" ${can && n > 0 ? '' : 'disabled'} aria-label="${J.name}에서 하나 빼기">−</button><span class="nn"><b>${n}</b>/${m}</span>`
+    + `<button class="st" data-a="job" data-k="${k}" data-d="1" ${can && n < m && idle > 0 ? '' : 'disabled'} aria-label="${J.name}에 하나 더">+</button><span class="rs">${res[0]}</span>${res[2] || ''}</div>`;
+}
+function jobRes(G, k, fc, slots) {
+  const n = G.job[k] || 0, e = fc.eff[k] || 0, boil = Math.min(fc.eff.boil || 0, slots.boil || 0), hun = n > e ? ' (굶음 ' + (n - e) + ')' : '';
+  if (k === 'dig') return [(n ? '진액 +' + fc.work : '진액 0') + hun, n > e];
+  if (k === 'boil') return [n ? '캐기 ×' + (1 + 0.5 * boil) : '캐기를 불립니다', false];
+  if (k === 'farm') return ['먹이 ' + fc.food[0] + '/' + fc.food[1], fc.food[0] > fc.food[1]];
+  if (k === 'pray') return [n ? '믿음 +' + fc.faith : '믿음 0', false, `<button class="god" data-a="praygod" aria-label="기도할 신 바꾸기: 지금 ${D.ASPN[G.prayGod]}">${ic('sig_' + G.prayGod, 1, 'dn-sig')}</button>`];
+  if (k === 'bind') return [G.binding.length ? (n >= G.binding.length ? '물들이는 중 ' + G.binding.length : '일손 모자람') : '올린 제물 없음', G.binding.length > n];
+  if (k === 'mend') return [n ? '함정 +, 체력 +' + 3 * n : '손질 반만', false];
+  return ['', false];
+}
+function boardDraw() {
+  const G = U.G, el = $('dn-board'), slots = D.jobSlots(G), fc = D.forecast(G), idle = D.idleFol(G);
+  let h = `<div class="dn-jh"><span>${ic('ic_follower', 1)}신도 <b>${G.fol}</b></span><span id="dn-idle" class="${idle ? 'idle' : ''}">노는 이 <b>${idle}</b></span><button class="dn-small" data-a="autojobs" id="dn-autojobs" ${G.phase === 'cmd' && !G.strike ? '' : 'disabled'}>${ic('ic_auto', 1)}알아서 나누기</button></div>`;
+  const miss = [];
+  D.JOBK.forEach(k => { if (slots[k] || G.job[k]) h += jobRow(G, k, slots, jobRes(G, k, fc, slots)); else miss.push(D.JOBS[k].name); });
+  // 땅 위: 열린 곳마다 한 줄. 포교·염탐은 한 명씩 켜고 끈다
+  const open = D.placesOpen(G), can = G.phase === 'cmd' && !G.strike, lu = D.landUsed(G), lm = D.landMax(G);
+  if (open.length || G.risen.some(Boolean)) {
+    h += `<div class="dn-jh land"><span>${ic('job_preach', 1)}땅 위 <b class="${lu >= lm ? 'full' : ''}">${lu}/${lm}</b></span></div>`;
+    D.PLACE.forEach((P, p) => {
+      if (open.indexOf(p) < 0 && !G.risen[p]) return;
+      const dots = Array.from({ length: D.OUTCAP[p] }, (_, i) => ic(i < G.outFol[p] ? 'out_fol_on' : 'out_fol_off', 1, 'od')).join('');
+      if (G.risen[p]) { h += `<div class="dn-lr risen"><img class="pl" src="${ART.url('place' + (p + 1), { scale: 1 })}" alt=""><span class="nm">${P.name}</span><span class="rs">${ic('flag_ours', 1)}넘어왔습니다 · 공물 +${D.tribOf(p)}</span></div>`; return; }
+      const tg = (k, nm) => { const on = (G.job[k] || 0) > 0, ok = can && (on || (idle > 0 && lu < lm)); return `<button class="tg${on ? ' on' : ''}" data-a="job" data-k="${k}" data-d="${on ? -1 : 1}" ${ok ? '' : 'disabled'} aria-pressed="${on}">${ic(k.indexOf('spy') === 0 ? 'job_spy' : 'job_preach', 1)}${nm}</button>`; };
+      h += `<div class="dn-lr" data-p="${p}"><img class="pl" src="${ART.url('place' + (p + 1), { scale: 1 })}" alt=""><span class="nm">${P.name}<span class="dots" aria-label="바깥 신도 ${G.outFol[p]}/${D.OUTCAP[p]}">${dots}</span></span>${tg('preach' + p, '포교')}${tg('spy' + p, '염탐')}</div>`;
+    });
+  }
+  if (miss.length) h += `<p class="dn-jmiss">방을 지으면 생기는 일: ${miss.join(' · ')}</p>`;
+  const top = el.scrollTop; el.innerHTML = h; el.scrollTop = top;
+}
+// 오늘 밤 예상 장부 한 줄. 모자란 것은 붉게
+function fcDraw() {
+  const G = U.G, fc = D.forecast(G), food = fc.food[0] > fc.food[1], sus = G.sus + fc.sus >= D.SUS_T;
+  const susT = '의심 ' + G.sus + (fc.sus ? ' +' + fc.sus : '');
+  $('dn-fc').innerHTML = `<span class="h">오늘 밤</span><span id="dn-fc-ichor">${ic('ic_ichor', 1)}+${fc.ichor}</span><span id="dn-fc-food" class="${food ? 'short' : ''}">먹이 ${fc.food[0]}/${fc.food[1]}</span><span id="dn-fc-faith">믿음 +${fc.faith}</span><span id="dn-fc-sus" class="${sus ? 'short' : ''}">${susT}</span>`;
 }
 // 굴 안 침입자들의 남은 정신 (처음을 1 로)
 function mindLeft() { const G = U.G; if (!G || !G.raid) return 0; let a = 0, b = 0; G.raid.party.forEach(x => { b += Math.max(1, x.mind0); if (x.st === 'in') a += Math.max(0, x.mind); }); return b ? Math.min(1, a / b) : 0; }
 function noteText() {
   const G = U.G; if (U.note) return U.note;
-  if (G.phase === 'raid') return G.raid.ask ? '' : (U.say || '침입자가 내려옵니다.');
+  if (G.phase === 'raid') return G.raid.ask && !U.replay ? '' : (U.say || (U.replay ? '지난 침입을 다시 봅니다.' : '침입자가 내려옵니다.'));
   if (G.strike) return '';
   if (G.cmd === 'deck') { if (U.sel) { const k = D.kinById(G, U.sel); return k ? D.ga(k.name) + ' 설 칸을 누르세요. 한 번 더 누르면 자세히 봅니다.' : ''; } const n = D.newRooms(G).length; return n ? '새 방이 ' + D.nk(n) + ' 열렸습니다. 칸을 눌러 보세요.' : '칸을 눌러 방을 고르고, 권속을 눌러 옮깁니다.'; }
+  if (G.rose && G.rose.length) return G.rose.map(p => josa(D.PLACE[p].name, '이', '가')).join(', ') + ' 들고일어나 넘어왔습니다. 신도 +' + 3 * G.rose.length + '.';
+  if (G.outPurge != null) return '색출대가 ' + D.PLACE[G.outPurge].name + '의 바깥 신도를 모두 잡아갔습니다.';
+  const fc = D.forecast(G); if (fc.starve) return '먹이가 모자라 오늘 밤 신도 ' + D.nk(fc.starve) + ' 굶습니다. 가꾸기에 세우세요.';
+  if (G.jobLost) return '일자리를 잃은 신도 ' + josa(D.nk(G.jobLost), '이', '가') + ' 놉니다.';
   const wait = G.kin.filter(k => !k.at).length;
   if (wait) return '자리가 모자라 권속 ' + D.nk(wait) + (wait === 1 ? '가' : '이') + ' 굴 밖에서 기다립니다.';
   if (G.lamp) return '발소리가 들립니다. 밤을 넘기면 누군가 옵니다.';
-  return G.night === 1 ? '「꾸민다」로 굴을 고치고 권속을 부르세요.' : '조용한 밤입니다.';
+  return G.night === 1 ? '신도를 일에 세우고 「꾸민다」로 굴을 고치세요.' : '조용한 밤입니다.';
 }
 
 // ---------- 굴 그림 ----------
 // 굴 밖 한 줄 + 3×3 (안쪽 줄의 가운데는 빈 통로) + 그 바깥에 본체 방과 금고. 칸 사이 틈에 통로를 그린다
 function lay(W, H) {
-  const gx = 10, gy = 8, outH = 26, pad = 4, cw = Math.floor((W - pad * 2 - gx * 2) / 3);
+  // 운영판의 낮은 도면(cmp): 틈을 좁히고, 블록은 한 줄, 위쪽 띠에 일자리 동그라미
+  const cmp = H < 260, gx = cmp ? 8 : 10, gy = cmp ? 4 : 8, outH = cmp ? 18 : 26, pad = 4, cw = Math.floor((W - pad * 2 - gx * 2) / 3);
   // 줄 셋 + 그 아래 본체 방 줄. 본체 방 줄은 칸 높이와 같게 잡는다
   const ch = Math.floor((H - outH - gy * 5 - 4) / 4);
   const sc = Math.max(1, Math.min(3, Math.floor(Math.min((cw - 6) / 48, (ch - 6) / 34))));
-  const L = { W, H, sc, cw, ch, gx, gy, cells: {} }, xs = [pad, pad + cw + gx, pad + 2 * (cw + gx)], y0 = outH + gy;
+  const L = { W, H, sc, cw, ch, gx, gy, cmp, cells: {} }, xs = [pad, pad + cw + gx, pad + 2 * (cw + gx)], y0 = outH + gy;
   L.cells.out = { x: pad, y: 2, w: W - pad * 2, h: outH - 2 };
   D.ROWS.forEach((row, r) => { const order = [row[1], row[0], row[2]]; order.forEach((c, i) => { if (c !== 'b') L.cells[c] = { x: xs[i], y: y0 + r * (ch + gy), w: cw, h: ch }; }); });
   // 본체 방은 3×3 바깥(아래)에 따로, 금고는 그 옆 더 바깥에. 안쪽 줄의 가운데는 빈 통로다
@@ -8678,7 +10062,7 @@ function lay(W, H) {
   return L;
 }
 // 칸 안의 블록 자리 (3 × 2, 아래쪽에 붙인다). 위쪽 띠는 침입자가 서는 곳
-function blkPos(L, c, i) { const r = L.cells[c], s = 16 * L.sc, gw = s * 3 + 4, x0 = r.x + Math.floor((r.w - gw) / 2), y0 = r.y + r.h - s * 2 - 6; return { x: x0 + (i % 3) * (s + 2), y: y0 + Math.floor(i / 3) * (s + 2) }; }
+function blkPos(L, c, i) { if (L.cmp) { const r = L.cells[c], b = U.G ? D.blocks(U.G, c) : [], big = b.length <= 2 && b.indexOf('seat') < 0 && r.h >= 36, s2 = big ? 2 : 1; return { x: r.x + 4 + i * (16 * s2 + 1), y: r.y + r.h - 16 * s2 - 2, s: s2 }; } const r = L.cells[c], s = 16 * L.sc, gw = s * 3 + 4, x0 = r.x + Math.floor((r.w - gw) / 2), y0 = r.y + r.h - s * 2 - 6; return { x: x0 + (i % 3) * (s + 2), y: y0 + Math.floor(i / 3) * (s + 2) }; }
 function seatList(G, c) { const b = D.blocks(G, c), out = []; b.forEach((x, i) => { if (x === 'seat') out.push(i); }); return out; }
 function kinPos(G, L, k) {
   if (!k.at) return null; const c = k.at;
@@ -8687,7 +10071,7 @@ function kinPos(G, L, k) {
   return blkPos(L, c, sl[i]);
 }
 function kinPosB(L, i) { const bp = bossPos(L), s = 16 * L.sc, r = L.cells.b, per = Math.max(1, Math.floor((r.w - bp.w - 10) / (s * 0.62))); return { x: r.x + bp.w + 6 + (i % per) * s * 0.62, y: r.y + r.h - s - 4 - Math.floor(i / per) * (s * 0.6) }; }
-function bossPos(L) { const s = ART.size('boss' + U.G.bossStage), sc = Math.max(1, L.sc - (s.w * L.sc > L.cw * 0.55 ? 1 : 0)), r = L.cells.b; return { x: r.x + 4, y: r.y + r.h - s.h * sc - 4, w: s.w * sc, h: s.h * sc, sc }; }
+function bossPos(L) { const s = ART.size('boss' + U.G.bossStage), r = L.cells.b, sc = L.cmp ? Math.min(1, (r.h - 6) / s.h) : Math.max(1, L.sc - (s.w * L.sc > L.cw * 0.55 ? 1 : 0)); return { x: r.x + 4, y: r.y + r.h - s.h * sc - 4, w: s.w * sc, h: s.h * sc, sc }; }
 // 침입자가 서는 곳: 칸의 위쪽 띠
 function manSpot(L, c, i, n) {
   const s = 16 * L.sc, r = L.cells[c] || L.cells.out;
@@ -8738,6 +10122,14 @@ function nine(c, r) {
 }
 function road(c, a, b, lit, w) { c.strokeStyle = lit ? '#7a5640' : '#3d2a4c'; c.lineWidth = w || 8; c.lineCap = 'round'; c.beginPath(); c.moveTo(a.x, a.y); c.lineTo(b.x, b.y); c.stroke(); if (lit) { c.strokeStyle = 'rgba(240,200,140,.18)'; c.lineWidth = 2; c.stroke(); } }
 function dots(c, x, y, n, col) { for (let i = 0; i < n; i++) { c.fillStyle = col; c.fillRect(x + i * 5, y, 3, 3); } }
+// 칸마다의 일자리: [{ j, full, hungry }]. 같은 일의 신도는 칸 차례대로 채운다
+function slotMap(G) {
+  const out = {}, left = {}, starve = D.forecast(G).starve; let hun = starve;
+  D.JOBK.forEach(j => { left[j] = G.job[j] || 0; });
+  let bindCap = 2;
+  D.CELLS.forEach(cid => { if (cid === 'b') return; D.roomOf(G, cid).b.forEach(b => { D.JOBK.forEach(j => { const J = D.JOBS[j]; if (J.blk !== b) return; for (let i = 0; i < J.per; i++) { if (j === 'bind' && bindCap-- <= 0) return; const full = left[j] > 0; if (full) left[j]--; (out[cid] = out[cid] || []).push({ j, full, hungry: full && j !== 'farm' && hun-- > 0 }); } }); }); });
+  return out;
+}
 function paint(c, L, t) {
   const G = U.G, sc = L.sc, s = 16 * sc, raid = G.phase === 'raid', dm = U.dm, tk = Math.floor(t / 520), shape = D.pathShape(G), deck = G.phase === 'cmd' && G.cmd === 'deck';
   c.fillStyle = '#120a1b'; c.fillRect(0, 0, L.W, L.H);
@@ -8758,12 +10150,13 @@ function paint(c, L, t) {
   D.CELLS.forEach(cid => {
     if (cid === 'out') return;
     const r = L.cells[cid], ln = D.laneOf(cid), used = cid === 'b' || lanes.indexOf(ln) >= 0;
-    rrect(c, r, 8, used ? '#2c1a3a' : '#20132a'); tile(c, used ? 'cell_road' : 'cell_side', { x: r.x + 3, y: r.y + 3, w: r.w - 6, h: r.h - 6 }, sc, used ? 0.6 : 0.4);
+    const has = cid === 'b' || D.roomOf(G, cid).b.length > 0;
+    if (L.cmp) rrect(c, r, 6, has ? (used ? '#3a2350' : '#33204a') : '#1d1128'); else { rrect(c, r, 8, used ? '#2c1a3a' : '#20132a'); tile(c, used ? 'cell_road' : 'cell_side', { x: r.x + 3, y: r.y + 3, w: r.w - 6, h: r.h - 6 }, sc, used ? 0.6 : 0.4); }
     nine(c, r);
     if (raid && G.raid.cell === cid) rrect(c, r, 8, null, '#c0704a', 2);
     if (deck && U.selCell === cid) rrect(c, r, 8, null, '#f2c25a', 2);
     if (cid === 'b') return;
-    const R = D.roomOf(G, cid), big = R.b.length <= 2 && R.b.every(b => b !== 'seat' && /^(rm_|out_|blk_shop|blk_inn|blk_sign|blk_bait)/.test(blkArt(b)));
+    const R = D.roomOf(G, cid), big = !L.cmp && R.b.length <= 2 && R.b.every(b => b !== 'seat' && /^(rm_|out_|blk_shop|blk_inn|blk_sign|blk_bait)/.test(blkArt(b)));
     if (big) { R.b.forEach((b, i) => { const id = blkArt(b), bs = sc + 1, w = 16 * bs, x0 = r.x + r.w / 2 - (R.b.length * w) / 2 + i * w, y0 = r.y + r.h - w - 6; ART.draw(c, id, x0, y0, { scale: /^out_/.test(id) ? sc : bs, frame: /^rm_/.test(id) ? (R.cost >= 20 ? 'lv2' : 'lv1') + (tk % 2 ? 'b' : '') : 0 }); if (b === 'spring' || b === 'pot') ART.draw(c, 'fx_steam', x0 + w / 2 - 6, y0 - 10, { scale: 1, frame: tk % 2 ? 'f1' : 'f0' }); if (b === 'larder') for (let j = 0; j < Math.min(G.cap, 8); j++) ART.draw(c, 'ic_captive', r.x + 4 + j * 12, r.y + 3 + ((tk + j) % 5 === 0 ? 1 : 0), { scale: 1 }); }); }
     else R.b.forEach((b, i) => {
       const q = blkPos(L, cid, i); let id = blkArt(b), fr = 0;
@@ -8771,11 +10164,12 @@ function paint(c, L, t) {
       if (D.BLK[b] && /^rm_/.test(id)) fr = (R.cost >= 28 ? 'lv3' : R.cost >= 14 ? 'lv2' : 'lv1') + (tk % 2 ? 'b' : '');
       if (b === 'fork') { ART.draw(c, 'blk_bend_l', q.x, q.y, { scale: sc }); return ART.draw(c, 'blk_bend_r', q.x + s / 2, q.y, { scale: sc, alpha: 0.9 }); }
       if (/^out_/.test(id)) return ART.draw(c, id, q.x, q.y + s / 4, { scale: Math.max(1, sc - 1) });
-      ART.draw(c, id, q.x, q.y, { scale: sc, frame: fr });
-      if (b === 'larder') for (let j = 0; j < Math.min(G.cap, 6); j++) ART.draw(c, 'ic_captive', r.x + 4 + j * 12, r.y + 3 + ((tk + j) % 5 === 0 ? 1 : 0), { scale: 1 });
-      if (b === 'spring' || b === 'pot') ART.draw(c, 'fx_steam', q.x + s / 2 - 5, q.y - 8, { scale: 1, frame: tk % 2 ? 'f1' : 'f0', alpha: 0.7 });
+      ART.draw(c, id, q.x, q.y, { scale: q.s || sc, frame: fr });
+      if (b === 'larder') for (let j = 0; j < Math.min(G.cap, 6); j++) ART.draw(c, 'ic_captive', L.cmp ? r.x + r.w - 14 - j * 10 : r.x + 4 + j * 12, r.y + 3 + ((tk + j) % 5 === 0 ? 1 : 0), { scale: 1 });
+      if (!L.cmp && (b === 'spring' || b === 'pot')) ART.draw(c, 'fx_steam', q.x + s / 2 - 5, q.y - 8, { scale: 1, frame: tk % 2 ? 'f1' : 'f0', alpha: 0.7 });
     });
     // 값비싼 방은 구석에 꾸밈이 그려져 있다
+    if (L.cmp) return;
     if (R.lux >= 3) ART.draw(c, ['deco_candle', 'deco_mush', 'deco_helms', 'deco_mobile', 'deco_censer'][R.cost % 5], r.x + r.w - 15, r.y + 3, { scale: 1 });
     if (R.lux >= 2) ART.draw(c, ['deco_moss', 'deco_bones', 'deco_mirror'][R.cost % 3], r.x + r.w - 28, r.y + 3, { scale: 1 });
   });
@@ -8803,6 +10197,9 @@ function paint(c, L, t) {
     if (!raid && k.st === 'ok' && (k.id + Math.floor(t / 4000)) % 5 === 0) ART.draw(c, 'ic_zzz', q.x + s - 10, q.y - 4 - (tk % 2), { scale: 1 });
     if (dm && dm.kinNom[k.id] > t) ART.draw(c, 'fx_nom', q.x + s - 8, q.y + 2, { scale: 1, frame: tk % 2 ? 'f1' : 'f0' });
   });
+  // 일자리 동그라미: 빈 자리는 테만, 찬 자리는 신도 (꾸미는 밤에는 손잡이 뒤로)
+  const SM = slotMap(G), ss = L.cmp && L.ch >= 30 ? 2 : 1;
+  Object.keys(SM).forEach(cid => { const r = L.cells[cid]; if (!r) return; const out = cid === 'out', n = SM[cid].length; SM[cid].forEach((q, i) => { const sc2 = out ? 1 : ss, w2 = 8 * sc2 + 1, x = r.x + r.w - 5 - (n - i) * w2, y = out ? r.y + Math.max(1, (r.h - 8) / 2) : r.y + 3; ART.draw(c, q.full ? 'slot_full' : 'slot_empty', x, y, { scale: sc2 }); if (q.full && q.hungry) { c.fillStyle = 'rgba(239,106,106,.9)'; c.fillRect(x, y + 8 * sc2 - 2, 8 * sc2, 2); } }); });
   // 기다리는 권속 (자리가 없어 굴 밖)
   if (deck) D.CELLS.forEach(cid => { if (cid === 'out') return; const r = L.cells[cid]; c.save(); c.fillStyle = 'rgba(26,16,36,.85)'; c.fillRect(r.x + 1, r.y + 1, 18, 16); c.restore(); ART.draw(c, 'ic_deck', r.x + 4, r.y + 3, { scale: 1 }); });
   const wait = G.kin.filter(k => !k.at); wait.slice(0, 6).forEach((k, i) => ART.draw(c, kinArt(k), O.x + 4 + i * (12 * Math.max(1, sc - 1)), O.y + O.h - 16 * Math.max(1, sc - 1), { scale: Math.max(1, sc - 1), frame: kinArt(k).indexOf('man_') === 0 ? 'mad' : 'idle0', alpha: 0.85 }));
@@ -8828,7 +10225,8 @@ function paint(c, L, t) {
     });
   }
   // 덧그림: 주사위·숫자·효과
-  U.fx.filter(() => false).forEach(f => {
+  U.fx = U.fx.filter(f => t < f.t0 + f.dur);
+  U.fx.filter(f => !raid && (f.k === 'num' || f.k === 'spr')).forEach(f => {
     if (t < f.t0) return; const k = Math.max(0, (t - f.t0) / f.dur);
     if (f.k === 'd20') {
       const bounce = k < 0.3 ? -Math.sin(k / 0.3 * Math.PI) * 6 : 0, ds = f.small ? 1 : Math.max(1, sc - (sc >= 3 ? 1 : 0));
@@ -8857,7 +10255,7 @@ function onCave(e) {
   const G = U.G, L = U.lay; if (!G || !L || G.phase !== 'cmd' || G.strike) return;
   const r = $('dn-cv').getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top, s = 16 * L.sc, deck = G.cmd === 'deck';
   // 쿼터뷰: 끌어서 옮긴 직후의 누름은 버린다. 권속 → 권속 창, 방 → 그 방이 무엇인지
-  if (!deck) { if (performance.now() - ISO.moved < 300) return; const h = isoHit(x, y); if (!h) return; sfx('flip'); if (h.kin) return openSheet({ k: 'kin', id: h.kin }); if (h.cell) return openSheet({ k: 'cell', id: h.cell }); return; }
+  if (isoOn()) { if (performance.now() - ISO.moved < 300) return; const h = isoHit(x, y); if (!h) return; sfx('flip'); if (h.kin) return openSheet({ k: 'kin', id: h.kin }); if (h.cell) return openSheet({ k: 'cell', id: h.cell }); return; }
   // 칸 왼쪽 위의 손잡이를 누르면 권속이 서 있어도 그 칸의 방 목록이 열린다
   if (deck) for (const cid of D.CELLS) { if (cid === 'out') continue; const rr = L.cells[cid]; if (x >= rr.x - 2 && x <= rr.x + 26 && y >= rr.y - 4 && y <= rr.y + 22) { U.sel = null; sfx('flip'); return openSheet({ k: 'cell', id: cid }); } }
   for (const k of G.kin) { const q = kinPos(G, L, k); if (q && x >= q.x && x <= q.x + s && y >= q.y - 2 && y <= q.y + s + 2) {
@@ -8886,8 +10284,19 @@ function onClick(e) {
   if (a === 'guide') { META.guided = 0; META.seen = {}; saveMeta(); if (G) G.tut = true; closeSheet(true); openSheet({ k: 'intro', i: 0 }); return; }
   if (a === 'sound') { META.sound = !META.sound; saveMeta(); return renderSheet(); }
   if (a === 'ask') { META.ask = !META.ask; saveMeta(); if (G) G.opt.ask = META.ask; return renderSheet(); }
+  if (a === 'watchset') { META.watch = !META.watch; saveMeta(); if (G) G.opt.watch = META.watch; return renderSheet(); }
+  if (a === 'askmin') { const L0 = [1, 2, 3, 99], i = L0.indexOf(META.askMin); META.askMin = L0[(i + 1) % L0.length]; saveMeta(); if (G) G.opt.askMin = META.askMin; return renderSheet(); }
   if (a === 'intro') { const i = U.sheet.i + 1; if (i >= 3) { closeSheet(); draw(); return; } U.sheet.i = i; return renderSheet(); }
   if (!G) return;
+  if (U.replay && a !== 'speed' && a !== 'skip' && a !== 'fit' && a !== 'follow') return;
+  if (a === 'demands') { if (GD.cur && GD.cur.key === 'band') gSeenSet('band'); return openSheet({ k: 'demands' }); }
+  if (a === 'view') { U.view = U.view === 'watch' ? 'board' : 'watch'; if (U.view === 'watch') { ISO.follow = false; draw(); const wc = D.workCells(G).filter(c => c !== 'out'); setTimeout(() => { ISO.follow = true; isoFocus(wc[0] || 'e', true); ISO.follow = false; }, 30); return; } return draw(); }
+  if (a === 'job') { const r = D.setJob(G, b.dataset.k, +b.dataset.d); if (!r.ok) return toast(r.msg); G.jobLost = 0; sfx('slide'); if (GD.cur && GD.cur.key === 'jobdig') gSeenSet('jobdig'); return after(); }
+  if (a === 'autojobs') { const was = JSON.stringify(G.job); D.autoJobs(G); sfx('slide'); G.jobLost = 0; gSeenSet('autojobs'); toast(JSON.stringify(G.job) === was ? '더 나눌 신도가 없습니다.' : '노는 신도를 일에 세웠습니다.'); return after(); }
+  if (a === 'praygod') { const i = D.ASP.indexOf(G.prayGod); G.prayGod = D.ASP[(i + 1) % D.ASP.length]; sfx('flip'); toast(D.ASPN[G.prayGod] + '에게 기도합니다.'); return after(); }
+  if (a === 'bind') { const r = D.bindStart(G); if (!r.ok) return toast(r.msg); sfx('birth'); let m = '제물을 물들이기 자리에 올렸습니다.'; if ((G.job.bind || 0) < G.binding.length && D.setJob(G, 'bind', 1).ok) m += ' 노는 신도가 맡습니다.'; toast(m); return after(); }
+  if (a === 'replay') return replayRun();
+  if (a === 'dresok') { closeSheet(); toast(G.night + '번째 밤입니다.' + (G.lamp ? ' 발소리가 들립니다.' : ''), 1600); return; }
   if (a === 'deck') { const r = D.deckStart(G); if (!r.ok) return toast(r.msg); U.sel = null; save(); return draw(); }
   if (a === 'deckx') { const r = D.deckCancel(G); if (!r.ok) return toast(r.msg); U.sel = null; D.markSeen(G); save(); return draw(); }
   if (a === 'deckend') { U.sel = null; closeSheet(true); D.markSeen(G); const r = D.deckEnd(G); save(); return afterNight(r); }
@@ -8933,12 +10342,14 @@ function after() { save(); draw(); renderSheet(); }
 function doRest() { const G = U.G; const r = D.rest(G); if (!r.ok) return toast(r.msg); sfx('night'); save(); afterNight(r); }
 function afterNight(r) {
   const G = U.G; draw();
-  if (G.phase === 'raid') return raidRun();
+  // 침입은 결과부터: 곧바로 계산한다. 직접 보는 설정이거나 길잡이의 첫 침입이면 지금처럼 재생
+  if (G.phase === 'raid') { if (META.watch || U.test.watch || (G.tut && !META.guided && G.st.raids <= 1)) return raidRun(); D.raidAuto(G); save(); }
   ledgerPops(); setTimeout(() => openSheet({ k: 'tally' }), U.test.fast ? 30 : 650);
 }
 function ledgerPops() {
   const G = U.G, L = U.lay, T = G.tally; if (!T || !L) return;
-  T.led.pops.forEach((p, j) => { const r = isoCellW(p.id); if (p.v) fxAdd({ k: 'num', x: r.x, y: r.y - 14, txt: '+' + p.v, col: '#f2c25a', dur: 1300, delay: j * 140 }); if (p.mul) fxAdd({ k: 'num', x: r.x, y: r.y, txt: '×' + p.mul, col: '#5fd6c2', dur: 1300, delay: j * 140 }); fxAdd({ k: 'spr', id: 'fx_plus', x: r.x - 6, y: r.y - 6, dur: 900, delay: j * 140, fade: 1 }); });
+  const at = id => { if (isoOn()) return isoCellW(id); const q = L.cells[id] || L.cells.e; return { x: q.x + q.w / 2, y: q.y + q.h / 2 }; };
+  T.led.pops.forEach((p, j) => { const r = at(p.id); if (p.v) fxAdd({ k: 'num', x: r.x, y: r.y - 14, txt: '+' + p.v, col: '#f2c25a', dur: 1300, delay: j * 140 }); if (p.mul) fxAdd({ k: 'num', x: r.x, y: r.y, txt: '×' + p.mul, col: '#5fd6c2', dur: 1300, delay: j * 140 }); fxAdd({ k: 'spr', id: 'fx_plus', x: r.x - 6, y: r.y - 6, dur: 900, delay: j * 140, fade: 1 }); });
   if (T.led.pops.length) sfx('coin');
 }
 function strikeRoll(h) {
@@ -8950,6 +10361,7 @@ function tallyClose() {
   const G = U.G, r = D.tallyClose(G); save(); closeSheet(true);
   if (r.end) return endShow();
   U.note = ''; sfx('night'); draw();
+  if (r.demand) { openSheet({ k: 'dres', d: r.demand }); if (!r.demand.ok) wrathFx(); else sfx('burst'); return; }
   toast(G.night + '번째 밤입니다.' + (G.lamp ? ' 발소리가 들립니다.' : ''), 1600);
 }
 
@@ -8992,6 +10404,7 @@ async function raidRun() {
   while (G.phase === 'raid' && guard++ < 6000) {
     if (U.guideHold) await U.guideHold;
     const e = D.raidStep(G); U.ev = e; U.evN++; if (!e) break;
+    if (e.t === 'ask' && U.replay) { draw(); continue; }
     if (e.t === 'ask') {
       save(); draw(); sfx('mad'); U.skip = false;
       await new Promise(res => { U.wait = res; }); draw(); continue;
@@ -9002,9 +10415,18 @@ async function raidRun() {
   }
   save(); U.raiding = false; U.skip = false;
   await sleep(U.test.fast ? 30 : 500);
-  U.dm = null; U.note = ''; U.say = ''; ISO.box = null; draw(); ledgerPops();
+  U.dm = null; U.note = ''; U.say = ''; ISO.box = null;
+  if (U.replay) { U.G = U.replay; U.replay = null; draw(); return openSheet({ k: 'tally', seen: 1 }); }
+  draw(); ledgerPops();
   setTimeout(() => openSheet({ k: 'tally' }), U.test.fast ? 30 : 500);
 }
+// 다시 보기: 같은 굴림으로 처음부터. 그동안 U.G 는 사본이고 저장하지 않는다
+function replayRun() {
+  const G0 = U.G, G2 = D.replayMake(G0); if (!G2) return toast('다시 볼 침입이 없습니다.');
+  gSeenSet('replay'); closeSheet(true); U.replay = G0; U.G = G2; return raidRun();
+}
+// 노여움: 화면이 어두워지고 큰 눈 하나
+function wrathFx() { const f = $('dn-flash'); f.style.background = '#05020a'; f.style.opacity = '.7'; sfx('omen'); setTimeout(() => { f.style.opacity = '0'; }, 1600); }
 // 사건 하나를 그림에 옮긴다
 function applyEv(e) {
   const dm = U.dm, G = U.G; if (!dm) return;
@@ -9168,16 +10590,16 @@ const SHEETS = {
     const G = U.G, n = { seat: 0, trap: 0, other: 0 }; D.CELLS.forEach(c => { if (c === 'b') return; const b = D.roomOf(G, c).b; if (!b.length) return; if (b.indexOf('seat') >= 0) n.seat++; else if (b.some(x => D.TRAPS.indexOf(x) >= 0)) n.trap++; else n.other++; });
     const gods = D.ASP.filter(a => D.faithTier(G, a)).map(a => D.ASPN[a] + ' ' + D.faithTier(G, a) + '단계').join(' · ') || '아직 없습니다';
     const row = (a, b) => `<tr><td>${a}</td><td>${b}</td></tr>`;
-    return `<div class="dn-sbox">${head('굴 현황', G.night + '번째 밤')}<div class="dn-sbody"><table class="dn-led" id="dn-status">${row('진액', G.ichor)}${row('공포', G.fear)}${row('제물', G.cap + ' / ' + D.larderTotal(G))}${row('호화', D.lux(G))}${row('권속', G.kin.length + ' (자리 ' + D.seatsTotal(G) + ')')}${row('자리 있는 방', n.seat)}${row('함정 방', n.trap)}${row('그 밖의 방', n.other)}${row('본체', G.bossStage + '단계')}</table><div class="dn-desc"><b>깃든 신</b><span>${gods}</span></div><div class="dn-desc"><b>묘비</b><span>${G.dead.length}개</span></div></div></div>`;
+    return `<div class="dn-sbox">${head('굴 현황', G.night + '번째 밤')}<div class="dn-sbody"><table class="dn-led" id="dn-status">${row('진액', G.ichor)}${row('공포', G.fear)}${row('제물', G.cap + ' / ' + D.larderTotal(G))}${row('호화', D.lux(G))}${row('권속', G.kin.length + ' (자리 ' + D.seatsTotal(G) + ')')}${row('자리 있는 방', n.seat)}${row('함정 방', n.trap)}${row('그 밖의 방', n.other)}${row('본체', G.bossStage + '단계')}${row('신도', G.fol + ' (노는 이 ' + D.idleFol(G) + ')')}${row('물들이는 제물', G.binding.length)}${row('의심', G.sus + ' / 20 (색출대 ' + D.SUS_T + ')')}${row('바깥 신도', D.outTotal(G))}${row('넘어온 곳', D.risenN(G))}${row('부름의 조각', G.shards + ' / 3')}</table><div class="dn-sec">요구</div>${D.demandsView(G).map(d => `<div class="dn-desc"><b>${d.night}밤 · ${esc(d.t)}</b><span>${d.done ? '채웠습니다' : d.done === false ? '못 채웠습니다' : d.parts.map(q => q[0] + '/' + q[1]).join(' · ')}</span></div>`).join('')}<div class="dn-desc"><b>깃든 신</b><span>${gods}</span></div><div class="dn-desc"><b>묘비</b><span>${G.dead.length}개</span></div></div></div>`;
   },
   intro(s) {
-    const T = ['나는 굴 깊은 곳에서 갓 깨어난 작은 옛 것입니다.', '땅 위를 건드려 사람들을 굴로 꾀어 들입니다.', '굴이 그들을 먹고, 나는 자랍니다. 스물네 번째 밤까지.'];
+    const T = ['나는 먼저 내려온 작은 옛 것입니다. 굴 밑에 교단을 꾸립니다.', '스물네 번째 밤, 별이 바로 설 때 큰 옛 것을 부릅니다. 그분은 기다리는 동안 세 번 요구합니다.', '채우지 못하면 그분이 먼저 우리를 먹습니다. 다 채워서 부르면, 그분이 와서 모두를 먹습니다. 우리도.'];
     setTimeout(() => { const cv = $('dn-icv'); if (!cv) return; cv.width = 96; cv.height = 64; const c = cv.getContext('2d'); c.imageSmoothingEnabled = false; c.fillStyle = '#1f1230'; c.fillRect(0, 0, 96, 64);
-      if (s.i === 0) ART.draw(c, 'boss1', 38, 22, { scale: 1 }); else if (s.i === 1) { ART.draw(c, 'place1', 24, 8, { scale: 1, frame: 'shake' }); ART.draw(c, 'man_adv', 40, 44, { scale: 1 }); } else { ART.draw(c, 'kin_hunger_b', 22, 36, { scale: 1, frame: 'atk' }); ART.draw(c, 'man_mob', 46, 36, { scale: 1, frame: 'down' }); ART.draw(c, 'ic_bone', 62, 50, { scale: 1 }); ART.draw(c, 'boss1', 70, 26, { scale: 1, frame: 'eat' }); } }, 0);
+      if (s.i === 0) { ART.draw(c, 'boss1', 40, 18, { scale: 1 }); [14, 30, 58, 74].forEach((x, j) => ART.draw(c, 'fol', x, 42, { scale: 1, frame: j % 2 ? 'work0' : 'pray' })); } else if (s.i === 1) { ART.draw(c, 'elder_eye', 32, 8, { scale: 1, frame: 'open' }); ['ic_shard', 'ic_shard', 'ic_shard_off'].forEach((id, j) => ART.draw(c, id, 24 + j * 18, 46, { scale: 1 })); } else ART.draw(c, 'elder', 0, 0, { scale: 1, frame: 'half' }); }, 0);
     return `<div class="dn-sbox">${head('길잡이', (s.i + 1) + '/3', true)}<div class="dn-sbody"><div class="dn-intro"><canvas id="dn-icv"></canvas><p>${T[s.i]}</p></div></div><div class="dn-sfoot"><button class="dn-btn pri" data-a="intro" id="dn-introb">${s.i < 2 ? '다음' : '시작합니다'}</button></div></div>`;
   },
   menu() {
-    return `<div class="dn-sbox">${head('메뉴')}<div class="dn-sbody"><div class="dn-rowb" style="flex-direction:column"><button class="dn-btn sm" data-a="guide">길잡이 다시 보기</button><button class="dn-btn sm" data-a="status" id="dn-statusb">굴 현황</button><button class="dn-btn sm" data-a="rules" id="dn-rulesb">굴림 한눈에</button><button class="dn-btn sm" data-a="sound">소리 ${META.sound ? '켜짐' : '꺼짐'}</button><button class="dn-btn sm" data-a="ask">죽음 앞에서 묻기 ${META.ask ? '켜짐' : '꺼짐 (늘 보냅니다)'}</button><button class="dn-btn sm" data-a="title">첫 화면으로</button><button class="dn-btn sm" data-a="wipe">처음부터 (저장을 지웁니다)</button></div></div></div>`;
+    return `<div class="dn-sbox">${head('메뉴')}<div class="dn-sbody"><div class="dn-rowb" style="flex-direction:column"><button class="dn-btn sm" data-a="guide">길잡이 다시 보기</button><button class="dn-btn sm" data-a="status" id="dn-statusb">굴 현황</button><button class="dn-btn sm" data-a="rules" id="dn-rulesb">굴림 한눈에</button><button class="dn-btn sm" data-a="sound">소리 ${META.sound ? '켜짐' : '꺼짐'}</button><button class="dn-btn sm" data-a="watchset" id="dn-watchset">침입을 직접 본다 ${META.watch ? '켜짐' : '꺼짐'}</button><button class="dn-btn sm" data-a="askmin" id="dn-askmin">죽음 앞에서: ${META.askMin > 9 ? '늘 보냅니다' : '제물이 ' + D.nk(META.askMin) + ' 이상이면 바칩니다'}</button><button class="dn-btn sm" data-a="ask">직접 볼 때 죽음 앞에서 묻기 ${META.ask ? '켜짐' : '꺼짐'}</button><button class="dn-btn sm" data-a="title">첫 화면으로</button><button class="dn-btn sm" data-a="wipe">처음부터 (저장을 지웁니다)</button></div></div></div>`;
   },
   rules() {
     const R = [['rt_eye', '갈림길', '우두머리가 마음으로 살핍니다. 성공하면 지키는 권속이 가장 적은 갈래로, 실패하면 눈에 띄는 쪽으로 갑니다. 1 이면 흩어집니다.'],
@@ -9207,6 +10629,8 @@ const SHEETS = {
     const R = D.roomOf(G, id), z = D.ZONE[id];
     const where = { out: '굴 밖. 오는 사람에 영향을 줍니다.', e: '입구. 이 칸의 방이 길의 모양을 정합니다.', es: '옆 갈래의 첫 칸. 입구가 갈림길이 아니면 아무도 오지 않는 안전한 자리입니다.', m: '가운데 갈래의 둘째 칸.', ms: '옆 갈래의 둘째 칸.', is: '옆 갈래의 마지막 칸. 가운데로 온 도둑도 본체 방 앞에서 새어 듭니다.' }[z];
     let h = `<div class="dn-desc"><b>${R.name} ${luxTxt(R.lux)}</b><span>${esc(R.d)}</span><span>${where}</span></div>`;
+    const js = D.JOBK.filter(k => R.b.indexOf(D.JOBS[k].blk) >= 0);
+    if (js.length && !deck) { const sl = D.jobSlots(G), fc = D.forecast(G); h += `<div class="dn-sec">일자리 · 노는 신도 ${D.idleFol(G)}</div><div class="dn-jobs">${js.map(k => jobRow(G, k, sl, jobRes(G, k, fc, sl))).join('')}</div><p class="dn-line dim">수는 굴 전체의 같은 일을 셉니다.</p>`; }
     if (!deck) h += `<p class="dn-line" style="color:var(--dn-dim)">방을 바꾸려면 「꾸민다」 밤에 누르세요.</p>`;
     else if (true) {
       // 방 목록 = 표 (이름 | 자리 | 함정 | 그 밖 | 값). 안 열린 방은 ?????. 줄을 누르면 미리보기와 「놓는다」
@@ -9233,10 +10657,29 @@ const SHEETS = {
     return `<div class="dn-sbox">${head(CELLN[id], deck && G.undo ? '' : '')}${deck && G.undo ? '' : ''}<div class="dn-sbody">${h}</div>${deck && G.undo ? `<div class="dn-sfoot"><button class="dn-btn sm" data-a="undo" id="dn-undo2">${ic('ic_undo', 1)} 되돌린다</button></div>` : ''}</div>`;
   },
   offer(s) {
-    const G = U.G, a = s.asp;
+    // 제물 창: 바친다 / 물들인다 (권속으로는 알 방이 생기면)
+    const G = U.G, a = s.asp, slots = D.jobSlots(G).bind || 0, bw = G.job.bind || 0;
     const ON = { hunger: '권속의 피해가 오르고, 대성공이 잦아집니다.', abyss: '침입자의 정신이 더 빨리 무너집니다.', brood: '권속의 체력이 늘고 잘 아뭅니다.', dusk: '쓰러진 권속이 더 잘 돌아옵니다.', nebula: '함정이 더 잘 터지고 아파집니다.' };
-    return `<div class="dn-sbox">${head('바친다', '제물 ' + G.cap)}<div class="dn-sbody"><div class="dn-gods">${D.ASP.map(g => `<button class="dn-god${a === g ? ' cur' : ''}" data-a="god" data-g="${g}">${ic('sig_' + g, 2, '')}${D.ASPN[g]}<span class="dots">${'●'.repeat(D.faithTier(G, g))}${'○'.repeat(3 - D.faithTier(G, g))}</span></button>`).join('')}</div>`
-      + (a ? `<div class="dn-desc"><b>${D.ASPN[a]} · 믿음 ${G.faith[a]}</b><span>${ON[a]} 구슬도 하나 받습니다.</span></div><button class="dn-btn pri" data-a="give" id="dn-give">${D.ASPN[a]}에게 하나 바친다</button>` : '<div class="dn-desc"><b>누구에게 바칠지 고르세요</b><span>바친 만큼 그 신이 굴에 깃들고 본체가 자랍니다.</span></div>') + '</div></div>';
+    let why = '';
+    if (!G.cap) why = '제물이 없습니다.'; else if (!slots) why = '제물 광이 있어야 물들입니다.'; else if (G.binding.length >= slots) why = '물들이기 자리 ' + josa(D.nk(slots), '이', '가') + ' 다 찼습니다.';
+    const prog = G.binding.map((x, i) => `<span class="dn-bnd${i < bw ? '' : ' stop'}">${ic('job_bind', 2, '')}${'●'.repeat(x.n)}${'○'.repeat(2 - x.n)}</span>`).join('');
+    let h = `<div class="dn-sec">바친다</div><div class="dn-gods">${D.ASP.map(g => `<button class="dn-god${a === g ? ' cur' : ''}" data-a="god" data-g="${g}" ${G.cap ? '' : 'disabled'}>${ic('sig_' + g, 2, '')}${D.ASPN[g]}<span class="dots">${'●'.repeat(D.faithTier(G, g))}${'○'.repeat(3 - D.faithTier(G, g))}</span></button>`).join('')}</div>`
+      + (a ? `<div class="dn-desc"><b>${D.ASPN[a]} · 믿음 ${G.faith[a]}</b><span>${ON[a]} 구슬도 하나 받습니다. 바친 제물이 쌓이면 본체가 자랍니다.</span></div><button class="dn-btn pri sm" data-a="give" id="dn-give" ${G.cap ? '' : 'disabled'}>${D.ASPN[a]}에게 하나 바친다</button>` : '<div class="dn-desc"><span>신을 고르면 바칠 수 있습니다. 믿음이 차고 구슬을 하나 받습니다.</span></div>');
+    h += `<div class="dn-sec">물들인다</div><div class="dn-desc"><span>제물 광의 물들이기 자리에 올립니다. 물들이기에 신도가 서 있으면 이틀 뒤 신도 하나가 됩니다. 그동안 제물 자리를 차지합니다.</span></div>`
+      + (prog ? `<div class="dn-bnds" id="dn-bnds">${prog}</div>` : '') + (G.binding.length > bw ? `<p class="dn-line no" id="dn-bindstop">물들이기 일손이 모자라 제물 ${josa(D.nk(G.binding.length - bw), '이', '가')} 멈춰 있습니다.</p>` : '')
+      + `<button class="dn-btn sm" data-a="bind" id="dn-bindb" ${why ? 'disabled' : ''}>하나 물들인다</button>${why ? `<p class="dn-line dim">${why}</p>` : ''}`;
+    return `<div class="dn-sbox tall">${head('제물', '제물 ' + G.cap + ' · 물들이는 중 ' + G.binding.length)}<div class="dn-sbody">${h}</div></div>`;
+  },
+  demands() {
+    const G = U.G, V = D.demandsView(G);
+    const rows = V.map(d => { const st = d.done ? 'ok' : d.done === false ? 'no' : d.ok ? 'ready' : d.left <= 2 ? 'due' : ''; return `<div class="dn-dm ${st}"><b>${d.night}밤</b><span class="t">${esc(d.t)}</span><span class="pg">${d.done == null ? d.parts.map(q => q[0] + '/' + q[1]).join(' · ') : ''}</span><span class="s">${d.done ? ic('ic_shard', 1) + '채움' : d.done === false ? ic('ic_wrath', 1) + '못 채움' : d.left > 0 ? d.left + '밤 남음' : '이 밤 끝'}</span></div>`; }).join('');
+    return `<div class="dn-sbox">${head('큰 옛 것의 요구', '조각 ' + G.shards + '/3')}<div class="dn-sbody"><div id="dn-dms">${rows}</div><div class="dn-desc"><span>요구는 그 밤이 끝날 때 잽니다. 채우면 부름의 조각 하나를 받습니다. 못 채우면 그분이 가장 강한 권속 하나와 신도 둘을 삼킵니다.</span><span>스물네 번째 밤의 요구를 못 채우면 그분은 오지 않습니다. 조각이 많을수록 온전히 옵니다.</span></div></div></div>`;
+  },
+  dres(s) {
+    const G = U.G, d = s.d;
+    setTimeout(() => { const cv = $('dn-wcv'); if (!cv) return; cv.width = 96; cv.height = 48; const c = cv.getContext('2d'); c.imageSmoothingEnabled = false; c.fillStyle = d.ok ? '#1f1230' : '#07030c'; c.fillRect(0, 0, 96, 48); ART.draw(c, 'elder_eye', 32, 8, { scale: 1, frame: d.ok ? 'shut' : 'open' }); if (d.ok) ART.draw(c, 'ic_shard', 70, 4, { scale: 1 }); }, 0);
+    const txt = d.ok ? `그분이 눈을 감습니다. 부름의 조각을 받았습니다 (${G.shards}/3).` : `그분이 눈을 뜹니다. ${d.eaten ? josa(esc(d.eaten), '과', '와') + ' ' : ''}신도 ${josa(D.nk(d.fol || 0), '을', '를')} 삼켰습니다.`;
+    return `<div class="dn-sbox${d.ok ? '' : ' wrath'}">${head(d.night + '밤의 요구', esc(d.t), true)}<div class="dn-sbody"><div class="dn-intro"><canvas id="dn-wcv"></canvas><p id="dn-dres">${d.ok ? '채웠습니다' : '채우지 못했습니다'}</p><p class="pg">${txt}</p></div></div><div class="dn-sfoot"><button class="dn-btn pri" data-a="dresok" id="dn-dresok">다음</button></div></div>`;
   },
   kin(s) {
     const G = U.G, k = D.kinById(G, s.id); if (!k) return '';
@@ -9251,8 +10694,9 @@ const SHEETS = {
   strike(s) {
     const G = U.G, S = G.strike;
     if (!S) {
-      const open = D.placesOpen(G);
-      return `<div class="dn-sbox">${head('친다', '곳 고르기')}<div class="dn-sbody dn-plist">${D.PLACE.map((p, i) => { const ok = open.indexOf(i) >= 0; return `<button class="dn-card" data-a="place" data-p="${i}" ${ok ? '' : 'disabled'} style="flex-direction:row"><img src="${ART.url('place' + (i + 1), { scale: 1 })}" alt=""><span style="flex:1;min-width:0"><span class="nm">${p.name}</span><span class="sub" style="display:block">${ok ? '버팀 ' + p.hold + ' · 주사위 ' + D.K.holdDice + '개' : '공포 ' + p.fear + '에 열립니다'}</span></span></button>`; }).join('')}</div></div>`;
+      const open = D.placesStrike(G);
+      return `<div class="dn-sbox">${head('친다', '곳 고르기')}<div class="dn-sbody dn-plist">${D.PLACE.map((p, i) => { const ok = open.indexOf(i) >= 0, rz = G.risen[i], of = G.outFol[i], dots = Array.from({ length: D.OUTCAP[i] }, (_, j) => ic(j < of ? 'out_fol_on' : 'out_fol_off', 1, 'od')).join('');
+        return `<button class="dn-card" data-a="place" data-p="${i}" ${ok ? '' : 'disabled'} style="flex-direction:row"><img src="${ART.url('place' + (i + 1), { scale: 1 })}" alt=""><span style="flex:1;min-width:0"><span class="nm">${p.name}${rz ? ' ' + ic('flag_ours', 1) : ''}</span><span class="sub" style="display:block">${rz ? '넘어왔습니다. 더 치지 않습니다' : ok ? '버팀 ' + p.hold + ' · 주사위 ' + D.K.holdDice + '개' + (of ? ' · ±1 도 딱 맞음' : '') : '공포 ' + p.fear + '에 열립니다'}</span>${rz ? '' : `<span class="dots" aria-label="바깥 신도 ${of}/${D.OUTCAP[i]}">${dots}</span>`}</span></button>`; }).join('')}</div></div>`;
     }
     const P = D.PLACE[S.p], res = S.done ? S.res : null, cells = [];
     for (let i = 1; i <= Math.max(S.hold, S.sum); i++) cells.push(`<i class="${i <= S.sum ? (i > S.hold ? 'over' : 'on' + (S.hold - S.sum <= 3 ? ' near' : '')) : ''}"></i>`);
@@ -9270,15 +10714,28 @@ const SHEETS = {
   tally(s) {
     const G = U.G, T = G.tally; if (!T) return '';
     const Lg = T.led, row = (n, v, cls) => `<tr class="${cls || ''}"><td>${n}</td><td>${v > 0 ? '+' + v : v}</td></tr>`;
-    let h = `<table class="dn-led" id="dn-ledger">${row('살림·장사', Lg.home)}${row('공물 (치기)', Lg.tribute)}${row('전리품', Lg.loot)}${row('털림', -Lg.robbed)}${row('합', Lg.total, 'sum')}</table>`;
-    if (T.raid) h += `<p class="dn-line">${esc(T.line)}</p>`;
-    else h += `<p class="dn-line">${T.how === 'rest' ? '권속과 본체가 푹 쉬었습니다.' : T.how === 'deck' ? '굴을 손보았습니다. 침입은 없었습니다.' : '침입은 없었습니다.'}</p>`;
+    let h = '';
+    // 침입 결과: 온 사람, 쓰러뜨림 · 사로잡음 · 달아남 · 금고, 잃은 것, 쓰인 가호
+    if (T.raid) {
+      const g = T.raid.gain; if (!s.party && G.lastRaid) { try { const S = JSON.parse(G.lastRaid.snap); const n = {}; S.raid.party.forEach(x => { n[x.cls] = (n[x.cls] || 0) + 1; }); s.party = n; } catch (e) { s.party = {}; } }
+      const who = Object.keys(s.party || {}).map(c => `<span class="who">${ic(D.MAN[c].art, 2, '')}<b>${s.party[c]}</b></span>`).join('');
+      const it = (id, n, t, bad) => n ? `<span class="${bad ? 'bad' : ''}">${ic(id, 1)}${t} ${n}</span>` : '';
+      h += `<div class="dn-rres" id="dn-rres"><div class="dn-who">${who || '<span class="dim">아무도 들어오지 않았습니다</span>'}</div><div class="dn-rit">${it('ic_bone', g.kill, '쓰러뜨림')}${it('ic_captive', g.caps, '사로잡음')}${it('ic_follower', g.joined.length, '우리 편')}${it('fx_miss', g.fled + g.bait + (g.turned ? 1 : 0), '달아남')}${it('blk_hoard', g.reach, '금고에 닿음', 1)}${it('man_inq', g.dragged, '끌려간 신도', 1)}${it('ic_tomb', g.deaths.length, '죽은 권속', 1)}</div>`
+        + (g.orbs && g.orbs.length ? `<div class="dn-rit">쓰인 가호 ${g.orbs.map(a => ic('gem_' + a, 1)).join('')}</div>` : '')
+        + `<p class="dn-line">${esc(T.line)}</p></div>`;
+      if (G.lastRaid && !U.replay) h += `<div class="dn-rowb"><button class="dn-btn sm" data-a="replay" id="dn-replay">${ic('ic_watch', 1)} 다시 보기</button></div>`;
+    }
+    h += `<table class="dn-led" id="dn-ledger">${row('일 · 살림', Lg.home)}${row('공물 (치기 · 넘어온 곳)', Lg.tribute)}${row('전리품', Lg.loot)}${row('털림', -Lg.robbed)}${row('합', Lg.total, 'sum')}</table>`;
+    if (!T.raid) h += `<p class="dn-line">${T.how === 'rest' ? '권속과 본체가 푹 쉬었습니다. 의심이 조금 내렸습니다.' : T.how === 'deck' ? '굴을 손보았습니다. 침입은 없었습니다.' : '침입은 없었습니다.'}</p>`;
+    (T.msg || []).forEach(m => { h += `<p class="dn-line warn">${esc(m)}</p>`; });
+    const nx = D.demandNext(G), pv = nx && D.demandProg(G, nx.k);
+    h += `<div class="dn-stats" id="dn-tcult"><span>${ic('ic_follower', 1)}신도 ${T.fol}</span><span class="${T.sus >= D.SUS_T ? 'no' : ''}">${ic('ic_suspect', 1)}의심 ${T.sus}</span><span>${ic('job_bind', 1)}물들이는 제물 ${T.binding}</span>${nx ? `<span>${ic('ic_demand', 1)}${nx.night}밤까지 ${Math.min(pv[0], pv[1])}/${pv[1]}</span>` : ''}</div>`;
     if (T.ups.length) h += '<div class="dn-sec">자란 권속</div>' + T.ups.map(u => { const k = D.kinById(G, u.id); const g = u.got.t === 'sk' ? '기술 「' + u.got.name + '」' : u.got.t === 'hit' ? '명중 +1' : u.got.t === 'ac' ? '방어도 +1' : '피해 +1'; return `<div class="dn-up">${k ? `<img src="${ART.url(kinArt(k), { scale: 2 })}" alt="">` : ''}<span>${esc(u.name)} Lv ${u.lv} · 체력 +${u.hpUp} · d6 ${u.roll} → ${g}</span></div>`; }).join('');
     if (T.raid && T.raid.gain.deaths.length) h += `<div class="dn-sec">돌아오지 않은 권속</div><p class="dn-line">${T.raid.gain.deaths.map(esc).join(', ')}</p>`;
     if (T.raid && T.raid.gain.stuns.length) h += `<p class="dn-line">기절해 쉬는 권속: ${T.raid.gain.stuns.map(esc).join(', ')}</p>`;
     if (T.raid) { const big = T.raid.log.filter(l => l.indexOf('★ ') === 0), list = s.log === 2 ? T.raid.log : big;
       h += `<div class="dn-rowb"><button class="dn-btn sm" data-a="logtog" id="dn-logb">${s.log ? '굴림 기록 접기' : '굴림 기록 보기'}</button>${s.log ? `<button class="dn-btn sm" data-a="logall" id="dn-logall">${s.log === 2 ? '결정의 굴림만' : '전부 보기'}</button>` : ''}</div>` + (s.log ? `<ul class="dn-log" id="dn-log">${list.map(l => `<li>${esc(l.replace(/^★ /, ''))}</li>`).join('')}</ul>` : ''); }
-    return `<div class="dn-sbox${s.log ? ' tall' : ''}">${head('밤의 장부', T.night + '번째 밤', true)}<div class="dn-sbody">${h}</div><div class="dn-sfoot"><button class="dn-btn pri" data-a="tally" id="dn-next">${T.night >= D.K.nights ? '등급을 본다' : '다음 밤'}</button></div></div>`;
+    return `<div class="dn-sbox${s.log || T.raid ? ' tall' : ''}">${head(T.raid ? '침입 결과' : '밤의 장부', T.night + '번째 밤', true)}<div class="dn-sbody">${h}</div><div class="dn-sfoot"><button class="dn-btn pri" data-a="tally" id="dn-next">${T.night >= D.K.nights ? '요구를 잰다' : '다음 밤'}</button></div></div>`;
   },
 };
 
@@ -9286,13 +10743,15 @@ const SHEETS = {
 function endShow() {
   const G = U.G, g = G.grade || D.grade(G); show('end');
   if (!META.best || g.score > META.best.score) { META.best = { letter: g.letter, score: g.score }; } saveMeta(); store.del('run');
-  const e = $('dn-end'), eld = g.eldest;
-  e.innerHTML = `<div class="gr" id="dn-grade">${g.letter}</div><p class="say">${g.rose ? '별이 바로 섰습니다.' : '다시 잠듭니다.'}</p><canvas id="dn-ecv"></canvas>`
-    + `<table class="dn-led">${g.parts.map(p => `<tr><td>${p.name}</td><td>${p.v}</td></tr>`).join('')}<tr class="sum"><td>점수</td><td>${g.score}</td></tr></table>`
-    + `<p class="eld">${eld ? '가장 오래 산 권속: ' + esc(eld.name) + ' Lv ' + eld.lv + '<br>' + esc(eld.line) : '살아남은 권속이 없습니다.'}<br>묘비 ${g.tombs}개</p>`
+  const e = $('dn-end'), eld = g.eldest, fr = g.summoned ? (g.shards >= 3 ? 'full' : 'half') : 'gone';
+  const say = { full: ['온전히 오셨습니다.', '모두 맛있었습니다. 당신도요.'], half: ['반쯤 오셨습니다.', '굴과 교단을 한 입에 드셨습니다. 당신도요.'], gone: ['그분은 오지 않았습니다.', '다시 잠듭니다.'] }[fr];
+  e.innerHTML = `<canvas id="dn-elder" class="${fr}" role="img" aria-label="큰 옛 것"></canvas><p class="say" id="dn-endsay">${say[0]}</p><p class="say2">${say[1]}</p><div class="shs">${[0, 1, 2].map(i => ic(i < g.shards ? 'ic_shard' : 'ic_shard_off', 2, 'dn-shd')).join('')}</div><div class="gr" id="dn-grade">${g.letter}</div>`
+    + `<table class="dn-led">${g.parts.map(p => `<tr><td>${p.name}</td><td>${p.v}</td></tr>`).join('')}<tr class="sum"><td>점수</td><td>${g.score}</td></tr></table>${g.summoned ? '' : '<p class="eld">부르지 못한 판은 C 를 넘지 못합니다.</p>'}`
+    + `<p class="eld">${eld ? '가장 오래 산 권속: ' + esc(eld.name) + ' Lv ' + eld.lv + '<br>' + esc(eld.line) : '살아남은 권속이 없습니다.'}<br>묘비 ${g.tombs}개 · 신도 ${G.fol}</p>`
     + `<button class="dn-btn pri" data-a="again">한 판 더</button><button class="dn-btn" data-a="title">첫 화면</button>`;
-  const cv = $('dn-ecv'); cv.width = 64; cv.height = 64; const c = cv.getContext('2d'); c.imageSmoothingEnabled = false; const sz = ART.size('boss' + G.bossStage); ART.draw(c, 'boss' + G.bossStage, 32 - sz.w, 32 - sz.h, { scale: 2 });
-  sfx('ending');
+  // 큰 옛 것: 화면 폭 가득 (조금 넘치게), 위에 붙여서. 아래는 잘린다
+  const cv = $('dn-elder'); cv.width = 96; cv.height = 72; const c = cv.getContext('2d'); c.imageSmoothingEnabled = false; c.fillStyle = '#120a1b'; c.fillRect(0, 0, 96, 72); ART.draw(c, 'elder', 0, 0, { scale: 1, frame: fr });
+  e.scrollTop = 0; sfx('ending');
 }
 
 // ---------- 시험용 갈고리 ----------
@@ -9304,7 +10763,8 @@ window.__den = {
     if (typeof target === 'number') { const k = D.kinById(U.G, target); const q = k && kinPos(U.G, L, k); if (!q) return null; return { x: r.left + q.x + 8 * L.sc, y: r.top + q.y + 8 * L.sc }; }
     const q = L.cells[target]; if (U.G && U.G.cmd === 'deck' && target !== 'out') return { x: r.left + q.x + 12, y: r.top + q.y + 9 }; return { x: r.left + q.x + q.w / 2, y: r.top + q.y + 10 }; },
   cellBox(id) { const L = U.lay, r = $('dn-cv').getBoundingClientRect(); if (!L) return null; if (isoOn() && ISO.map) return isoCellBox(id); const q = L.cells[id]; return { left: r.left + q.x, top: r.top + q.y, width: q.w, height: q.h }; },
-  st() { const G = U.G; if (!G) return { scr: U.scr }; return { scr: U.scr, phase: G.phase, night: G.night, cmd: G.cmd, sheet: U.sheet && U.sheet.k, raiding: U.raiding, ask: !!(G.raid && G.raid.ask), ichor: G.ichor, kin: G.kin.length, lamp: G.lamp, strike: G.strike ? { sum: G.strike.sum, hold: G.strike.hold, n: G.strike.dice.length, done: G.strike.done } : null, step: typeof guideStep === 'function' ? (guideStep() || [null])[0] : null, tip: !$('dn-tip').hidden, grade: G.grade && G.grade.letter, evN: U.evN, ev: U.ev && U.ev.t, iso: isoOn(), fit: ISO.fit, follow: ISO.follow, box: !!ISO.box, cam: [Math.round(ISO.cam.x), Math.round(ISO.cam.y)], say: U.say }; },
+  st() { const G = U.G; if (!G) return { scr: U.scr }; return { scr: U.scr, phase: G.phase, night: G.night, cmd: G.cmd, sheet: U.sheet && U.sheet.k, raiding: U.raiding, ask: !!(G.raid && G.raid.ask), ichor: G.ichor, kin: G.kin.length, lamp: G.lamp, strike: G.strike ? { sum: G.strike.sum, hold: G.strike.hold, n: G.strike.dice.length, done: G.strike.done } : null, step: typeof guideStep === 'function' ? (guideStep() || [null])[0] : null, tip: !$('dn-tip').hidden, grade: G.grade && G.grade.letter, evN: U.evN, ev: U.ev && U.ev.t, iso: isoOn(), fit: ISO.fit, follow: ISO.follow, box: !!ISO.box, cam: [Math.round(ISO.cam.x), Math.round(ISO.cam.y)], say: U.say, view: mode(), fol: G.fol, idle: D.idleFol(G), job: Object.assign({}, G.job), sus: G.sus, cap: G.cap, binding: G.binding.length, replay: !!U.replay, shards: G.shards, fc: D.forecast(G) }; },
+  view(v) { U.view = v; draw(); },
   get iso() { return ISO; }, isoCellBox: c => isoCellBox(c), boxRect: () => ISO.box && ISO.box.rect,
 };
 // 굴 (den) 쿼터뷰: 2:1 마름모 타일 지도. 본 화면과 침입 때 쓴다 (꾸미는 밤은 denui.js 의 납작한 도면).
@@ -9398,7 +10858,8 @@ function isoBind(cv) {
   const dragEnd = e => { if (e && e.pointerId != null) delete pts[e.pointerId]; if (ISO.pinch) { ISO.pinch = null; ISO.drag = null; ISO.moved = performance.now(); draw(); return; } const d = ISO.drag; ISO.drag = null; if (d && d.moved) ISO.moved = performance.now(); };
   window.addEventListener('pointerup', dragEnd); window.addEventListener('pointercancel', dragEnd);
 }
-function isoOn() { const G = U.G; return !!G && !(G.phase === 'cmd' && G.cmd === 'deck'); }
+// 쿼터뷰는 구경 화면과 침입을 볼 때만. 운영판과 꾸미는 밤은 납작한 도면
+function isoOn() { const G = U.G; if (!G || (G.phase === 'cmd' && G.cmd === 'deck')) return false; return G.phase === 'raid' || U.view === 'watch'; }
 // 화면 좌표 ↔ 세상 좌표
 const isoS = (wx, wy) => ({ x: wx * ISO.z + ISO.cam.x, y: wy * ISO.z + ISO.cam.y });
 function isoHitTile(sx, sy) { const wx = (sx - ISO.cam.x) / ISO.z, wy = (sy - ISO.cam.y) / ISO.z, gx = (wy / TH + wx / TW) / 2, gy = (wy / TH - wx / TW) / 2; return [Math.floor(gx + 0.5), Math.floor(gy + 0.5)]; }
@@ -9509,6 +10970,10 @@ function isoPaint(c, t, W, H, dpr) {
       items.push({ d: tl[0] + tl[1] - 0.2, f: () => { const s = isoStand(c, art, p.x + shake, p.y - 1, { frame: fr, k: bkK }); if (bk === 'larder') for (let j = 0; j < Math.min(G.cap, 3); j++) ART.draw(c, 'ic_captive', s.x + j * 5 * ISO.z, s.y - 6 * ISO.z, { scale: ISO.z * 0.75 }); } }); });
     if (R.lux >= 3) { const tl = [C.x0, C.y0 + C.h - 1], p = iwp(tl[0], tl[1]); items.push({ d: tl[0] + tl[1], f: () => isoStand(c, ['deco_candle', 'deco_mush', 'deco_helms', 'deco_mobile', 'deco_censer'][R.cost % 5], p.x, p.y, { k: 0.75 }) }); }
   });
+  // 일하는 신도: 일자리 블록 곁에 작게 (기도는 손을 들고, 굶으면 배를 잡는다)
+  const SMp = slotMap(G);
+  Object.keys(SMp).forEach(id => { const C = M.cells[id]; if (!C || !C.inner || !C.inner.length) return; SMp[id].filter(q => q.full).forEach((q, j) => { const tl = C.inner[j % C.inner.length], p = iwp(tl[0], tl[1]), dx = (j % 2 ? 7 : -7), fr = q.hungry ? 'hungry' : q.j === 'pray' ? 'pray' : ((tk + j) % 2 ? 'work1' : 'work0');
+    items.push({ d: tl[0] + tl[1] + 0.05, f: () => isoStand(c, 'fol', p.x + dx, p.y + 3, { frame: fr, k: 0.75 }) }); }); });
   // 본체와 묘비, 금고의 보물 더미
   const B = M.cells.b, bp = iwp(B.x0 + 1, B.y0 + 1), bossHp = dm ? dm.bossHp : G.boss.hp;
   const bf = bossHp <= 0 ? 'sleep' : (U.eatT > t ? 'eat' : (dm && dm.bossHurt > t ? 'hurt' : (tk % 9 === 0 ? 'blink' : (tk % 2 ? 'idle1' : 'idle0'))));
@@ -9645,7 +11110,7 @@ const gOff = () => U.test.guide === false;
 const cellT = id => () => window.__den.cellBox(id);
 // 지금 걸음: [이름, 가리킬 것, 글, 닫으면 넘어가는 걸음인지]
 function guideStep() {
-  const G = U.G; if (!G || gOff() || U.scr !== 'game' || !G.tut || META.guided) return null;
+  const G = U.G; if (!G || gOff() || U.scr !== 'game' || !G.tut || META.guided || U.replay) return null;
   const sh = U.sheet && U.sheet.k, n = G.night;
   if (sh === 'intro' || sh === 'menu') return null;
   if (G.phase === 'tally') {
@@ -9657,7 +11122,13 @@ function guideStep() {
   if (G.phase !== 'cmd') return null;
   const deck = G.cmd === 'deck';
   if (n === 1) {
-    if (!deck) return ['deck', '[data-a="deck"]', '「꾸민다」를 누르세요. 굴을 고치고 권속을 부르는 밤입니다.'];
+    if (!deck) {
+      if (sh === 'demands') return ['closeDm', '#dn-sheet .dn-x', '세 요구가 처음부터 다 보입니다. 닫기를 누르세요.'];
+      if (sh) return null;
+      if (!gSeen('band')) return ['band', '#dn-dband', '큰 옛 것의 요구입니다. 8밤까지 채워야 합니다. 못 채우면 그분이 우리를 먹습니다.', true];
+      if (!gSeen('jobdig') && (G.job.dig || 0) < 2 && D.idleFol(G) > 0) return ['jobdig', '#dn-board [data-a="job"][data-k="dig"][data-d="1"]', '노는 신도가 하나 있습니다. 캐기의 「+」를 누르세요. 아래 예상 장부의 진액이 바뀝니다.'];
+      return ['deck', '[data-a="deck"]', '「꾸민다」를 누르세요. 굴을 고치고 권속을 부르는 밤입니다.'];
+    }
     if (G.kin.length < 2) {
       if (sh === 'summon') { const i = G.shop.findIndex(c => c.cost <= G.ichor); return ['buy', i >= 0 ? '#dn-sheet [data-a="buy"][data-i="' + i + '"]' : '#dn-reroll', '싼 권속 둘을 부르세요. 진액이 듭니다.']; }
       return ['summon', '#dn-summonb', '「부른다」를 누르세요.'];
@@ -9677,9 +11148,9 @@ function guideStep() {
     if (!S.done) return S.hold - S.sum <= 3 && S.dice.length ? ['stop', '#dn-stop', '가까우면 멈추세요. 마지막에 굴린 눈이 그 밤을 본 신입니다.'] : ['roll', '#dn-sheet .dn-strk .dn-rowb', '살살은 1~4, 세게는 1~8. 더해서 버팀에 가까이, 넘기지 않게.'];
     return ['sdone', '#dn-sdone', '사람들이 다음 밤에 찾아옵니다.'];
   }
-  if (n === 3) return deck ? null : ['restRaid', '[data-a="rest"]', '발소리가 들립니다. 「쉰다」로 밤을 넘기면 침입이 옵니다.'];
+  if (n === 3) return deck || sh ? null : ['restRaid', '[data-a="rest"]', '발소리가 들립니다. 「쉰다」로 밤을 넘기면 침입이 옵니다. 첫 침입은 직접 봅니다.'];
   if (n === 4) {
-    if (!deck) return ['deck2', '[data-a="deck"]', '「꾸민다」로 옆 칸에 살림을 지어 봅니다.'];
+    if (!deck) { if (!gSeen('autojobs') && !sh) return ['autojobs', '#dn-autojobs', '「알아서 나누기」는 노는 신도를 알맞은 일에 세웁니다. 눌러 보세요.']; return sh ? null : ['deck2', '[data-a="deck"]', '「꾸민다」로 방과 권속을 손봅니다.']; }
     if (G.cells.el === 'es_none') {
       if (sh === 'cell' && U.sheet.id === 'el') return U.sheet.pick === 'es_spring' ? ['springPut', '#dn-place', '「놓는다」를 누르세요. 진액 샘은 밤마다 진액을 냅니다.'] : ['spring', '#dn-sheet [data-t="es_spring"]', '표에서 진액 샘을 고르세요.'];
       if (sh) return ['closeAny', '#dn-sheet .dn-x', '닫기를 누르세요.'];
@@ -9693,17 +11164,23 @@ function guideStep() {
 }
 // 처음 생기는 일에 한 번씩
 function guideOnce() {
-  const G = U.G; if (!G || gOff() || U.scr !== 'game') return null;
+  const G = U.G; if (!G || gOff() || U.scr !== 'game' || U.replay) return null;
   const sh = U.sheet && U.sheet.k;
   if (sh === 'intro' || sh === 'menu') return null;
   if (G.phase === 'raid' && G.raid.ask && !gSeen('ask')) return ['ask', '#dn-ask', '제물 하나로 죽음 굴림을 한 번 더 할 수 있습니다. 보내도 판은 이어집니다.'];
+  if (sh === 'dres' && U.sheet.d) { const ok = U.sheet.d.ok; if (!gSeen(ok ? 'dresok' : 'dresno')) return [ok ? 'dresok' : 'dresno', '#dn-dresok', ok ? '요구를 채우면 부름의 조각을 받습니다. 조각이 많을수록 그분이 온전히 옵니다.' : '노여움입니다. 다음 요구는 띠에 있습니다. 스물네 번째 밤의 요구를 못 채우면 판이 끝납니다.']; return null; }
   if (G.phase === 'tally' && G.tally) {
+    if (G.tally.raid && G.tally.raid.gain.dragged && !gSeen('inq')) return ['inq', '#dn-rres', '색출대가 왔습니다. 일터 칸에 권속이 없으면 신도를 끌고 갑니다. 의심을 낮추려면 쉬세요.'];
+    if (G.tally.raid && G.lastRaid && !U.replay && !gSeen('replay') && !(G.tut && !META.guided)) return ['replay', '#dn-replay', '침입은 곧바로 계산됩니다. 「다시 보기」로 같은 굴림을 처음부터 볼 수 있습니다.'];
     if (G.tally.ups.length && !gSeen('lvup')) return ['lvup', '#dn-sheet .dn-up', '권속이 자랐습니다. d6 으로 무엇이 오를지 정해집니다. 기술은 셋까지.'];
     if (G.tally.raid && G.tally.raid.gain.sideRob.length && !gSeen('rob')) return ['rob', '#dn-ledger', '도둑이 살림을 털었습니다. 같은 갈래에 권속을 세우면 막습니다.'];
     return null;
   }
   if (G.phase !== 'cmd' || G.strike || (G.tut && !META.guided)) return null;
-  if (G.cap > 0 && !gSeen('offer') && !sh) return ['offer', '#dn-offerb', '제물이 생겼습니다. 「바친다」로 다섯 신 가운데 하나에게 바칠 수 있습니다.'];
+  if (G.cap > 0 && !gSeen('offer') && !sh) return ['offer', '#dn-offerb', '제물이 생겼습니다. 「제물」에서 신에게 바치거나, 물들여 신도로 만듭니다.'];
+  if (!sh && G.cmd !== 'deck' && D.forecast(G).starve && !gSeen('starve')) return ['starve', '#dn-fc-food', '먹이가 모자랍니다. 굶은 신도는 일하지 않고, 두 밤 굶으면 달아납니다. 가꾸기에 세우세요.'];
+  if (!sh && G.rose && G.rose.length && !gSeen('rise')) return ['rise', '#dn-note', '바깥 신도가 가득 찬 곳이 들고일어나 넘어왔습니다. 공물이 들어오고, 그곳은 더 치지 않습니다.'];
+  if (!sh && G.sus > 0 && !gSeen('sus')) return ['sus', '#dn-sus', '의심입니다. 포교와 바깥 신도로 오르고, 8이 되면 색출대가 옵니다. 쉬면 내립니다.'];
   if (G.cmd === 'deck' && !sh && D.roomOpen(G, 'e_split') && !gSeen('fork')) return ['fork', cellT('e'), '입구에 갈림길을 놓으면 사람들이 세 갈래로 나뉩니다. 옆 칸의 살림도 드러납니다.'];
   if (G.cmd === 'deck' && !sh && D.newRooms(G).length && !gSeen('newroom')) return ['newroom', '#dn-note', '굴에 진액을 쓸수록 새 방이 열립니다.'];
   if (!sh && G.kin.some(k => !k.at) && !gSeen('seats')) return ['seats', '#dn-cap-seat', '자리가 모자라 굴 밖에서 기다리는 권속이 있습니다. 둥지를 지으세요.'];
